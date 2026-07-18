@@ -378,14 +378,12 @@ private fun RouteSelectionSection(
         val routes = Route.values().filter { it != Route.PATCH_REMOVE && it != Route.PATCH_APPLY }
         ButtonGroup(modifier = Modifier.fillMaxWidth()) {
             routes.forEachIndexed { index, route ->
-                val interactionSource = remember(route) { MutableInteractionSource() }
                 ToggleButton(
                     checked = selectedRoute == route,
                     onCheckedChange = { onRouteSelected(route) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                    interactionSource = interactionSource,
+                    // Keep every route at a stable width. The expressive width animation
+                    // causes wrapped labels and the content below to jump on narrow screens.
+                    modifier = Modifier.weight(1f),
                     shapes = when {
                         index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                         index == routes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
