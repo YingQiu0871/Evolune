@@ -21,7 +21,7 @@ data class ReleaseInfo(
 object UpdateChecker {
     private const val TAG = "UpdateChecker"
     private const val API_URL =
-        "https://api.github.com/repos/NaiveTomcat/HRTTracker/releases/latest"
+        "https://api.github.com/repos/Yuning-Gu/HRTTracker/releases/latest"
 
     /**
      * 从 GitHub API 获取最新 Release 信息（网络操作，需在 IO 线程调用）

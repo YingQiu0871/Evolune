@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest an idea for this project
 title: "[FEAT REQ]"
 labels: enhancement
-assignees: NaiveTomcat
+assignees: Yuning-Gu
 
 ---
 
