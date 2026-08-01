@@ -1,0 +1,18 @@
+Evolune Notices
+===============
+
+Evolune is distributed under the MIT License in LICENSE.
+
+This repository contains a provenance record at docs/SOURCE_PROVENANCE.md.
+That record distinguishes verified project sources from references that are
+used only to understand product behavior or testing requirements. It does not
+replace the license notices of third-party dependencies.
+
+The feiwuliyong/ directory is a separately identified migration reference
+package. Its source snapshots, patches, and dedicated assets are not part of
+the Evolune build and must not be treated as Evolune source code. The package
+contains its own source and license notice.
+
+Third-party libraries retain their respective copyright and license terms.
+The dependency license inventory must be checked before a release build is
+published.

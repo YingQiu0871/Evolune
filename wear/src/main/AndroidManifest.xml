@@ -9,8 +9,10 @@
 
     <application
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@drawable/ic_tile_medication"
         android:label="@string/app_name"
+        android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true">
 
         <meta-data

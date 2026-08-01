@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
     <cloud-backup>
-        <!-- Do not upload medication records, settings, or cached health data. -->
+        <!-- Wear cache and paired-device state remain device-local. -->
         <exclude domain="root" path="." />
         <exclude domain="file" path="." />
         <exclude domain="database" path="." />
@@ -13,7 +13,7 @@
         <exclude domain="device_sharedpref" path="." />
     </cloud-backup>
     <device-transfer>
-        <!-- Require explicit JSON export/import for cross-device migration. -->
+        <!-- Rebuild Wear state through the paired-device flow. -->
         <exclude domain="root" path="." />
         <exclude domain="file" path="." />
         <exclude domain="database" path="." />

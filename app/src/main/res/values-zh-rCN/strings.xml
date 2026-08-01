@@ -68,7 +68,7 @@
     <string name="version_copied">版本号已复制</string>
 
     <string name="about_copyright_title">版权信息</string>
-    <string name="about_copyright_content">本应用 Evolune（月序） 的原作者为 NaiveTomcat，当前版本由 Yuning-Gu 维护。\n\n本应用受到 SmirnovaOyama/Oyama-s-HRT-Tracker 项目启发；药代动力学模型与参数实现参考并使用了 LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test 项目。\n\n相关名称与仓库标识归其各自权利人所有。</string>
+    <string name="about_copyright_content">本应用项目名为 Evolune（月序），当前版本由 Yuning-Gu 维护。\n\n有关项目来源、第三方许可证和参考资料，请查看仓库中的 NOTICE 与 docs/SOURCE_PROVENANCE.md。相关名称与仓库标识归其各自权利人所有。</string>
 
     <string name="about_disclaimer_title">免责声明</string>
     <string name="about_disclaimer_content">本应用仅用于学习、研究与个人记录，不构成任何医疗建议、诊断或治疗方案。\n\n尽管本应用包含医疗相关内容与计算结果，但不保证其准确性、完整性、时效性或适用性；由此产生的任何风险与后果需由使用者自行承担。\n\n如有健康问题，请咨询具备资质的医疗专业人士。</string>
