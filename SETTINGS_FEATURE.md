@@ -6,7 +6,7 @@
 ## 实现的功能
 
 ### 1. 体重输入
-- **位置**: [SettingsScreen.kt](app/src/main/java/io/github/yuninggu/hrttracker/ui/screens/SettingsScreen.kt)
+- **位置**: [SettingsScreen.kt](app/src/main/java/io/github/yuninggu/evolune/ui/screens/SettingsScreen.kt)
 - **功能**: 允许用户输入体重（单位：kg）
 - **作用**: 影响血药浓度计算
 - **验证**: 输入范围 0-300 kg
@@ -29,22 +29,22 @@
 
 ### 数据持久化
 - 使用 **DataStore Preferences** 存储用户设置
-- 文件: [SettingsDataStore.kt](app/src/main/java/io/github/yuninggu/hrttracker/data/SettingsDataStore.kt)
+- 文件: [SettingsDataStore.kt](app/src/main/java/io/github/yuninggu/evolune/data/SettingsDataStore.kt)
 - 自动持久化，应用重启后保持设置
 
 ### ViewModel
-- 文件: [SettingsViewModel.kt](app/src/main/java/io/github/yuninggu/hrttracker/viewmodel/SettingsViewModel.kt)
+- 文件: [SettingsViewModel.kt](app/src/main/java/io/github/yuninggu/evolune/viewmodel/SettingsViewModel.kt)
 - 使用 Kotlin Flow 提供响应式数据流
 - 提供更新设置的方法
 
 ### 主题系统
-- 更新 [Theme.kt](app/src/main/java/io/github/yuninggu/hrttracker/ui/theme/Theme.kt)
+- 更新 [Theme.kt](app/src/main/java/io/github/yuninggu/evolune/ui/theme/Theme.kt)
 - 支持根据用户设置动态切换主题
 - 集成系统动态着色（Material You）
 
 ### 导航集成
-- 更新 [Screen.kt](app/src/main/java/io/github/yuninggu/hrttracker/navigation/Screen.kt)
-- 更新 [AppNavigation.kt](app/src/main/java/io/github/yuninggu/hrttracker/navigation/AppNavigation.kt)
+- 更新 [Screen.kt](app/src/main/java/io/github/yuninggu/evolune/navigation/Screen.kt)
+- 更新 [AppNavigation.kt](app/src/main/java/io/github/yuninggu/evolune/navigation/AppNavigation.kt)
 - 在底部导航栏添加设置图标
 
 ## 使用方式
@@ -58,17 +58,17 @@
 ## 文件清单
 
 ### 新增文件
-- `app/src/main/java/io/github/yuninggu/hrttracker/data/SettingsDataStore.kt` - 设置数据存储
-- `app/src/main/java/io/github/yuninggu/hrttracker/viewmodel/SettingsViewModel.kt` - 设置 ViewModel
-- `app/src/main/java/io/github/yuninggu/hrttracker/ui/screens/SettingsScreen.kt` - 设置页面 UI
+- `app/src/main/java/io/github/yuninggu/evolune/data/SettingsDataStore.kt` - 设置数据存储
+- `app/src/main/java/io/github/yuninggu/evolune/viewmodel/SettingsViewModel.kt` - 设置 ViewModel
+- `app/src/main/java/io/github/yuninggu/evolune/ui/screens/SettingsScreen.kt` - 设置页面 UI
 
 ### 修改文件
 - `gradle/libs.versions.toml` - 添加 DataStore 依赖版本
 - `app/build.gradle.kts` - 添加 DataStore 依赖
-- `app/src/main/java/io/github/yuninggu/hrttracker/ui/theme/Theme.kt` - 支持主题设置
-- `app/src/main/java/io/github/yuninggu/hrttracker/navigation/Screen.kt` - 添加设置路由
-- `app/src/main/java/io/github/yuninggu/hrttracker/navigation/AppNavigation.kt` - 集成设置页面
-- `app/src/main/java/io/github/yuninggu/hrttracker/MainActivity.kt` - 集成设置数据流
+- `app/src/main/java/io/github/yuninggu/evolune/ui/theme/Theme.kt` - 支持主题设置
+- `app/src/main/java/io/github/yuninggu/evolune/navigation/Screen.kt` - 添加设置路由
+- `app/src/main/java/io/github/yuninggu/evolune/navigation/AppNavigation.kt` - 集成设置页面
+- `app/src/main/java/io/github/yuninggu/evolune/MainActivity.kt` - 集成设置数据流
 
 ## 注意事项
 

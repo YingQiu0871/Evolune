@@ -1,8 +1,8 @@
-# HRT Tracker 快速开始指南
+# Evolune 快速开始指南
 
 ## 功能概述
 
-HRT Tracker 是一个用于跟踪和预测雌激素替代治疗(HRT)血药浓度的 Android 应用。
+Evolune 是一个用于跟踪和预测雌激素替代治疗(HRT)血药浓度的 Android 应用。
 
 ### 主要功能
 

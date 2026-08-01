@@ -295,7 +295,7 @@ fun MedicationApp() {
         mutableStateListOf<DoseEvent>()
     }
     
-    HRTTrackerTheme {
+    EvoluneTheme {
         MedicationRecordsScreen(
             events = events,
             onEventClick = { event ->

@@ -1,8 +1,10 @@
-# HRT Tracker
+# Evolune（月序）
 
-[![Build Debug APK](https://github.com/Yuning-Gu/HRTTracker/actions/workflows/apkdebug.yml/badge.svg?branch=master)](https://github.com/Yuning-Gu/HRTTracker/actions/workflows/apkdebug.yml)
+> Hormone & Wellness Tracker
 
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Yuning-Gu/HRTTracker/total?style=flat&logo=github&label=Downloads)](https://github.com/Yuning-Gu/HRTTracker/releases/latest)
+[![Build Debug APK](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=master)](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml)
+
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Yuning-Gu/Evolune/total?style=flat&logo=github&label=Downloads)](https://github.com/Yuning-Gu/Evolune/releases/latest)
 
 一款面向 Android 的 HRT（激素替代治疗）记录与雌二醇浓度趋势工具。  
 你可以用它记录每日用药、设置用药方案与提醒，并查看基于药代动力学模型生成的浓度曲线。
@@ -27,13 +29,13 @@
 
 ### 方式一：下载Release版本安装包（推荐）
 
-1. 打开项目 Release 页面：<https://github.com/Yuning-Gu/HRTTracker/releases>
+1. 打开项目 Release 页面：<https://github.com/Yuning-Gu/Evolune/releases>
 2. 下载最新 `apk`。
 3. 在手机上安装（如有提示，请允许“安装未知应用”）。
 
 ### 方式二：使用 GitHub Action 自动构建的 Debug 版本（测试）
 
-1. 打开项目 Actions 页面：<https://github.com/Yuning-Gu/HRTTracker/actions>
+1. 打开项目 Actions 页面：<https://github.com/Yuning-Gu/Evolune/actions>
 2. 找到最近的 `Build APK Debug` 工作流，点击进入。
 3. 在 Artifacts 区域下载压缩包（形如：${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) debug generated）。
 4. 解压后安装 `app-debug.apk`。

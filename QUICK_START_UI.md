@@ -330,7 +330,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            HRTTrackerTheme {
+            EvoluneTheme {
                 val events = remember {
                     mutableStateListOf<DoseEvent>()
                 }
@@ -375,7 +375,7 @@ class MainActivity : ComponentActivity() {
 
 创建新屏幕时需要：
 
-- [ ] 导入 `HRTTrackerTheme`
+- [ ] 导入 `EvoluneTheme`
 - [ ] 使用 `remember` 管理状态
 - [ ] 为所有交互提供回调函数
 - [ ] 添加 `@Preview` 注解以便预览

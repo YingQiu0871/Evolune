@@ -24,13 +24,13 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.HRTTracker"
+        android:theme="@style/Theme.Evolune"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="36">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.HRTTracker"
+            android:theme="@style/Theme.Evolune"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -81,9 +81,9 @@
             </intent-filter>
         </service>
 
-        <!-- HRT Tracker 组合微件（用药提醒 + 快速添加） -->
+        <!-- Evolune 组合微件（用药提醒 + 快速添加） -->
         <receiver
-            android:name=".widget.HRTTrackerWidgetReceiver"
+            android:name=".widget.EvoluneWidgetReceiver"
             android:label="@string/widget_combined_label"
             android:exported="true">
             <intent-filter>
@@ -91,7 +91,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/hrt_tracker_widget_info" />
+                android:resource="@xml/evolune_widget_info" />
         </receiver>
 
     </application>

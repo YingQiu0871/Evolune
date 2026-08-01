@@ -28,7 +28,7 @@ fun String.runCommand(
 
 
 android {
-    namespace = "io.github.yuninggu.hrttracker"
+    namespace = "io.github.yuninggu.evolune"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -45,7 +45,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.yuninggu.hrttracker"
+        applicationId = "io.github.yuninggu.evolune"
         minSdk = 31
         targetSdk = 36
         versionCode = 10060
