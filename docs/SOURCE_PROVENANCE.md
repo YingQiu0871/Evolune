@@ -23,6 +23,7 @@
 | PK 参考实现与参数 | `LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test` | `docs/evolune/README.md` 和历史文档声明为参考；`VD_PER_KG` 等参数缺少逐项来源证据 | Pending | Pending | 核实仓库许可证、引用范围、参数文献和是否存在代码复制 | Pending |
 | 产品灵感 | `SmirnovaOyama/Oyama-s-HRT-Tracker` | README 仅声明“灵感来源”，未形成代码/资源使用清单 | Pending | Pending | 确认仅为产品参考还是存在实际复用；按结果更新 NOTICE/README | Pending |
 | `feiwuliyong/02-source-snapshots`、`03-patches`、专属资源 | `mkx173/Featherline` 迁移资料 | `feiwuliyong/06-licenses/SOURCE-AND-LICENSE-NOTICE.md` 明确标记源码快照和补丁为 GPLv3 衍生成果 | GPL-3.0 | Reference only | 保持在资料区，不加入 Evolune 构建；独立实现时只使用行为和验收目标 | Pending |
+| `docs/legacy-specs/` 行为规格 | Clean-room 行为整理；参考范围来自 Featherline 迁移资料，但不复用源码、测试、资源或内部命名 | 初始快照由 Git 标签 `legacy-specs-v1` 固定；`reviews/LEGACY_SPEC_AUDIT_V1.md` 与 `LEGACY_SPEC_DISPOSITION_V1.md` 记录逐项审阅、阶段边界和删除内容 | 文档原创表达；参考资料为 GPL-3.0，禁止代码性复用 | Reference only | 只保留用户可观察行为、边界场景和独立验收目标；实现前再次核对目标阶段，不从规格反推旧项目类、package、schema 或视觉资源 | Codex / 2026-08-01 |
 | `branding/` 与 launcher 图标 | 当前 Evolune 品牌资产 | 工作树中存在品牌文件和新图标，但未见统一的作者、生成工具、原始提示或授权记录 | Pending | Pending | 记录每个最终发布资产的作者/工具、创建日期、源文件和授权 | Pending |
 | Gradle 第三方依赖 | AndroidX、Kotlin、Room、Compose、Wearable 等 | 版本定义存在于 `gradle/libs.versions.toml`；尚未生成发布依赖许可证清单 | 各依赖许可证 | Partial | 发布前生成依赖清单并复核打包 NOTICE 要求 | Pending |
 

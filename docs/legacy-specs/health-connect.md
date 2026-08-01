@@ -1,5 +1,8 @@
 # 功能规格：Health Connect 集成
 
+> **优先级与阶段**：P2（1.x），仅在 `MIGRATION_PLAN.md` Phase 5 的数据模型、权限范围和 Provider 矩阵前置条件满足后进入实现。
+> **事实来源约束**：Evolune 本地数据保持主要事实来源。Health Connect 读取的体重是来源明确的外部 observation，不得静默覆盖用户手动维护的体重。
+
 ## 功能名称
 
 Health Connect 集成
@@ -46,7 +49,7 @@ Health Connect 集成
 - 同步成功后的短暂 Toast 消息："Health Connect sync completed"
 - 同步失败后的短暂 Toast 消息："Health Connect sync could not be completed"
 - 权限被拒绝后的短暂 Toast 消息："Health Connect permission was not granted"
-- 体重同步启用后，应用内的"体重"字段被更新为 Health Connect 中读取的数值（单位 kg，内部存储；在设置页"个性化"→"体重"行显示已更新后的值）
+- 体重同步启用后，设置页显示 Health Connect 中最新体重 observation 的数值、记录时间和来源；只有用户明确选择采用该数值后，才更新应用内用于 PK 估算的体重
 
 ### 写入 Health Connect 的数据
 - 当服药记录导出启用时，向 Health Connect Personal Health Record 写入 FHIR R4 格式的 MedicationStatement 资源（见"数据字段业务含义"）
@@ -118,7 +121,7 @@ Health Connect 集成
 
 ### 体重记录状态
 - 上次同步时间（timestamp）
-- 上次导入的体重值（kg）
+- 上次读取的外部体重值（kg）、记录时间和来源
 - 当前记录的指纹（ID + 最后修改时间组合）：用于判断是否需要更新
 
 ### 服药记录导出状态
@@ -133,24 +136,21 @@ Health Connect 集成
 ### 体重数据（读取自 Health Connect）
 | 字段 | 业务含义 |
 |------|----------|
-| 体重值（kg） | 读取到的最新体重，写入应用本地"体重"字段，改善 PK 模型的雌二醇浓度估算精度 |
-| 记录时间 | 体重测量的时间戳，用于更新应用内的"体重记录时间" |
+| 体重值（kg） | 读取到的最新外部体重 observation；默认不覆盖用户手动维护的本地体重 |
+| 记录时间 | 体重测量的时间戳，用于向用户解释数据新鲜度 |
+| 数据来源 | Health Connect provider 提供的来源信息，用于区分外部 observation 与用户手动体重 |
 | 记录 ID + 最后修改时间 | 两者组合形成"指纹"，用于判断是否有新体重需要导入；相同则跳过导入以避免重复更新 |
 
 ### FHIR MedicationStatement 字段（写入 Health Connect）
 | 字段 | 业务含义 |
 |------|----------|
 | 资源类型 | 固定为 MedicationStatement，符合 FHIR R4 规范 |
-| 资源 ID | 基于本地服药记录 UUID 生成的稳定标识符；跨同步保持不变，用于 upsert（新增或更新）和删除操作 |
-| 状态 | 固定为 "completed"，表示该记录为已实际完成的给药 |
-| 药物（medicationCodeableConcept） | 人类可读的药物名称和给药途径组合（如"Estradiol valerate · Injection"） |
-| 主体（subject） | 固定为 "Self"，表示用户本人 |
-| 生效时间（effectiveDateTime） | 实际给药的日期时间，含时区偏移，格式为 ISO 8601 OffsetDateTime |
-| 记录时间（dateAsserted） | 与生效时间相同 |
-| 给药文本（dosage.text） | 给药途径与剂量的人类可读合并描述（如 "Oral · 2 mg"） |
-| 给药途径（dosage.route） | 给药方式的文字描述（如 Oral、Sublingual、Injection、Gel、Patch） |
-| 剂量数量（dosage.doseAndRate.doseQuantity） | 实际给药量及单位；单位可为 mg、mL、g 或 tablet（含 UCUM 系统编码，视制剂类型而定） |
-| 元数据来源 URI（meta.source） | 基于记录 UUID 的标识 URI，用于溯源到本地记录 |
+| 稳定标识 | 与本地记录稳定关联，用于重复同步时更新同一外部记录并支持删除 |
+| 状态 | 表示该记录是已实际完成的给药，而不是计划或医疗建议 |
+| 药物与给药途径 | 以可互操作且不依赖 Evolune UI 文案格式的业务含义表达 |
+| 实际给药时间 | 保留实际发生时间及其时区语义 |
+| 实际剂量 | 保留数值和单位；无法可靠映射时跳过该条并报告结果，不猜测单位 |
+| 来源 | 标识记录由 Evolune 导出，并可追溯到对应本地记录 |
 
 ### Health Connect 数据源（写入侧）
 - 在 Health Connect 中以固定显示名称创建一个 FHIR 数据源，代表应用的服药历史
@@ -161,8 +161,8 @@ Health Connect 集成
 
 ## 边界情况
 
-- **过去 30 天内无体重记录**：体重同步视为成功（无操作），仅更新"上次同步时间"，不修改应用内体重
-- **体重记录未变化**（指纹相同）：跳过导入，仅更新"上次同步检查时间"，不覆盖当前体重
+- **过去 30 天内无体重记录**：体重同步视为成功（无操作），仅更新"上次同步时间"，不修改本地体重
+- **体重记录未变化**（指纹相同）：跳过更新外部 observation，仅更新"上次同步检查时间"，不覆盖本地体重
 - **时区未知或无效**：FHIR 记录使用 UTC 时区作为后备，不丢弃记录
 - **服药记录中药物信息缺失**：该条记录被跳过，不写入 Health Connect，其他记录正常处理
 - **服药记录被本地删除**：对应的 FHIR 资源从 Health Connect 数据源中删除（增量删除）
@@ -231,8 +231,8 @@ Health Connect 集成
 
 | 关联功能 | 关系说明 |
 |----------|----------|
-| **体重（个性化）** | 体重同步读取 Health Connect 的体重后，直接更新应用内"体重"字段，与用户手动设置的体重使用相同的数据路径；会覆盖用户手动输入的体重 |
-| **PK 浓度估算（血药浓度估算）** | 体重是 PK 模型的输入参数之一；体重同步可使估算值更贴近用户实际体重 |
+| **体重（个性化）** | Health Connect 体重作为来源明确的外部 observation 展示；用户主动采用后才更新本地体重，关闭同步不会删除手动体重 |
+| **PK 浓度估算（血药浓度估算）** | PK 默认继续使用用户当前选定的本地体重；仅读取外部 observation 不改变估算结果 |
 | **服药记录（A. 药物和计划）** | 服药记录导出的数据来源为本地服药日志；记录被删除时，Health Connect 侧对应资源同步删除；仅导出已完成状态的记录 |
 | **隐私与安全（H）** | Health Connect 偏好配置文件（含开关和同步元数据）被排除在 Android Auto Backup 和设备迁移（device-to-device transfer）之外；恢复到新设备时，Health Connect 集成状态重置为关闭 |
 | **云端备份（G）** | Health Connect 同步元数据不包含在用户自主备份文件中；备份还原后需重新启用 Health Connect 功能 |
@@ -257,10 +257,10 @@ Health Connect 集成
 9. 体重和服药权限已分别授予后，再次开关均不弹出权限申请界面，直接生效
 
 ### 体重同步
-10. Health Connect 中存在 30 天内的体重记录，开启体重同步后，确认应用内"体重"字段被更新为该体重值（以 kg 计）
+10. Health Connect 中存在 30 天内的体重记录，开启体重同步后，确认设置页显示该外部 observation 的 kg 数值、记录时间和来源，且手动体重保持不变
 11. Health Connect 中无 30 天内的体重记录，开启体重同步后，确认应用内"体重"字段不变，同步视为成功（无 Toast 失败消息）
 12. 体重记录未发生变化（多次同步），确认应用内体重不重复更新，同步标记为成功
-13. Health Connect 中体重更新后，触发前台同步，确认应用内体重同步更新为最新值
+13. Health Connect 中体重更新后，触发前台同步，确认外部 observation 更新为最新值；用户未主动采用时，本地体重和 PK 输入保持不变
 14. 在系统中撤销体重读取权限后，尝试同步，确认同步不执行并有相应错误提示
 
 ### 服药记录导出
@@ -297,8 +297,11 @@ Health Connect 集成
 35. 隐私说明页面上的"打开隐私政策"按钮可正常跳转至外部浏览器
 
 ### 与体重功能联动
-36. 用户通过 Health Connect 同步导入体重后，主页/设置页的体重显示值与 Health Connect 中的体重一致
-37. Health Connect 同步导入的体重与手动输入的体重共用同一数据路径，即同步导入会覆盖用户手动输入的值
+36. 用户主动采用 Health Connect observation 后，设置页的当前体重更新为所选数值，并显示该次采用的来源和记录时间
+37. 用户不采用外部 observation 时，重复同步不得覆盖手动输入的体重，也不得静默改变 PK 估算输入
+
+### Provider 兼容性
+38. 在至少两个目标 Android/Health Connect provider 组合上完成体重读取、权限撤销和不可用降级验证；能力探测为不可用时，设置页显示不可用状态且核心记录功能继续工作
 
 ---
 
