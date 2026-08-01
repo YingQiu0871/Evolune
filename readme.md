@@ -2,7 +2,7 @@
 
 > Hormone & Wellness Tracker
 
-[![Build Debug APK](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=master)](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml)
+[![Build Debug APK](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml)
 
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/Yuning-Gu/Evolune/total?style=flat&logo=github&label=Downloads)](https://github.com/Yuning-Gu/Evolune/releases/latest)
 

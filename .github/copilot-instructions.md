@@ -2,7 +2,7 @@
 
 This file contains instructions for GitHub Copilot to help it generate code that is consistent with the existing codebase. The instructions are based on the recent edits made to the codebase, and they provide guidance on how to write code that fits well with the existing code.
 
-The HRT-Recorder-PKcomponent-Test and Oyama-s-HRT-Tracker directory is not part of this application and only serves as reference purposes for the pharmacokinetic modeling and overall app structure. When writing new code, please focus on the existing codebase of this HRT Tracker application and follow the guidelines provided below.
+The HRT-Recorder-PKcomponent-Test and Oyama-s-HRT-Tracker directory is not part of this application and only serves as reference purposes for the pharmacokinetic modeling and overall app structure. When writing new code, please focus on the existing codebase of this Evolune application and follow the guidelines provided below.
 
 ## General Guidelines
 

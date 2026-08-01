@@ -5,7 +5,7 @@ env:
   main_project_module: app
 
   # The name of the Play Store
-  playstore_name: HRT Tracker
+  playstore_name: Evolune
 
 on:
 
