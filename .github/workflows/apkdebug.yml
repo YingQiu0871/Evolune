@@ -47,13 +47,17 @@ jobs:
           cache: 'gradle'
 
       
-      - name: Decode Keystore
-        id: decode_keystore
-        uses: timheuer/base64-to-file@v1
-        with:
-          fileDir: './app'
-          fileName: 'debugkeystore.jks'
-          encodedString: ${{ secrets.KEYSTORE }}
+      - name: Generate debug keystore
+        run: |
+          keytool -genkeypair \
+            -keystore app/debugkeystore.jks \
+            -storepass DEBUG1 \
+            -keypass DEBUG1 \
+            -alias DEBUG \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
