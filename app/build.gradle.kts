@@ -28,7 +28,7 @@ fun String.runCommand(
 
 
 android {
-    namespace = "cn.naivetomcat.hrt_tracker"
+    namespace = "io.github.yuninggu.hrttracker"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -45,7 +45,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "cn.naivetomcat.hrt_tracker"
+        applicationId = "io.github.yuninggu.hrttracker"
         minSdk = 31
         targetSdk = 36
         versionCode = 10060

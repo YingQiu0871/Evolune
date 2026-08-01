@@ -33,13 +33,13 @@
 
 #### UI界面
 
-- **用药方案列表页面** ([MedicationPlansScreen.kt](app/src/main/java/cn/naivetomcat/hrt_tracker/ui/screens/MedicationPlansScreen.kt))
+- **用药方案列表页面** ([MedicationPlansScreen.kt](app/src/main/java/io/github/yuninggu/hrttracker/ui/screens/MedicationPlansScreen.kt))
   - 显示所有用药方案
   - 方案卡片显示：名称、描述、启用状态
   - 支持快速启用/禁用方案
   - 点击卡片编辑方案
 
-- **添加/编辑方案弹窗** ([MedicationPlanBottomSheet.kt](app/src/main/java/cn/naivetomcat/hrt_tracker/ui/components/MedicationPlanBottomSheet.kt))
+- **添加/编辑方案弹窗** ([MedicationPlanBottomSheet.kt](app/src/main/java/io/github/yuninggu/hrttracker/ui/components/MedicationPlanBottomSheet.kt))
   - 方案名称输入
   - 给药途径选择
   - 药物类型选择
@@ -182,7 +182,7 @@
 ## 文件结构
 
 ```
-app/src/main/java/cn/naivetomcat/hrt_tracker/
+app/src/main/java/io/github/yuninggu/hrttracker/
 ├── data/
 │   ├── MedicationPlan.kt                # 用药方案数据模型
 │   ├── MedicationPlanEntity.kt          # 数据库实体

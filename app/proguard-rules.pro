@@ -37,18 +37,18 @@
 }
 
 # Explicit keep for widget action callbacks used by actionRunCallback<T>().
--keep class cn.naivetomcat.hrt_tracker.widget.StartConfirmAction {
+-keep class io.github.yuninggu.hrttracker.widget.StartConfirmAction {
 	public <init>();
 }
--keep class cn.naivetomcat.hrt_tracker.widget.ConfirmDoseAction {
+-keep class io.github.yuninggu.hrttracker.widget.ConfirmDoseAction {
 	public <init>();
 }
--keep class cn.naivetomcat.hrt_tracker.widget.CancelConfirmAction {
+-keep class io.github.yuninggu.hrttracker.widget.CancelConfirmAction {
 	public <init>();
 }
 
 # Future-proof: keep all widget package callback implementations and class names.
--keep class cn.naivetomcat.hrt_tracker.widget.** implements androidx.glance.appwidget.action.ActionCallback {
+-keep class io.github.yuninggu.hrttracker.widget.** implements androidx.glance.appwidget.action.ActionCallback {
 	public <init>();
 }
--keepnames class cn.naivetomcat.hrt_tracker.widget.** implements androidx.glance.appwidget.action.ActionCallback
+-keepnames class io.github.yuninggu.hrttracker.widget.** implements androidx.glance.appwidget.action.ActionCallback
