@@ -125,7 +125,3 @@ Evolune 基于上游项目继续维护和扩展。相关项目名称、代码和
 ## 许可证
 
 本项目采用 [MIT License](LICENSE)。
-
-## 支持项目
-
-<img width="420" alt="支持 Evolune" src="https://github.com/user-attachments/assets/b40e595d-fe5c-4dfd-a3f6-bccdda109b6b" />
