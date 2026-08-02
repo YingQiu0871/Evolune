@@ -199,9 +199,43 @@ Phase 1 只定义 `RECORDED`，表示当前表中已经实际保存的给药事�
 
 ### 6.5 目标 `MedicationPlan`
 
-保留当前全部业务字段；目标模型用 `slots: List<ScheduledDoseSlot>` 取代没有 ID 的 `timeOfDay: List<LocalTime>`。迁移期间提供只读兼容映射 `slots.map { it.localTime }`，现有 UI 和提醒可以分批切换。
+目标文件为 `app/src/main/java/io/github/yuninggu/evolune/core/model/MedicationPlan.kt`，目标类型为纯 Kotlin Domain model。字段正式锁定为：
 
-`createdAt` 在 Domain 可映射为 `Instant`，但 Phase 1 不修改 `medication_plans.createdAt INTEGER` 的存储含义。
+| 字段 | 类型 | 规则 |
+|---|---|---|
+| `id` | `UUID` | 计划稳定身份，不由 mapper 重写 |
+| `name` | `String` | 保留当前值，不新增兼容性校验 |
+| `route` | 当前暂时复用 `pk.Route` | Batch 3 不搬迁 Route |
+| `ester` | 当前暂时复用 `pk.Ester` | Batch 3 不搬迁 Ester |
+| `doseMG` | `Double` | 保留当前值，不新增兼容性校验 |
+| `scheduleType` | `core.model.ScheduleType` | 不依赖旧内嵌枚举 |
+| `slots` | `List<ScheduledDoseSlot>` | 替代 `timeOfDay`，列表顺序是权威业务顺序 |
+| `daysOfWeek` | `Set<DayOfWeek>` | WEEKLY 使用；其他类型保留 legacy 值 |
+| `intervalDays` | `Int` | 合法范围为 `1..Int.MAX_VALUE` |
+| `isEnabled` | `Boolean` | 保留当前启停语义 |
+| `extras` | `Map<core.model.ExtraKey, Double>` | 使用显式键映射，不使用 ordinal |
+| `createdAt` | `Instant` | Entity mapper 在边界转换 epoch millis |
+
+`getDescription()` 和其他显示格式化方法不进入 Domain。`timeOfDay` 不进入目标模型；兼容读取只允许在 mapper 或 adapter 中通过 `slots.map { it.localTime }` 生成，不改变 Domain 的权威字段。
+
+### 6.6 `core.model.ScheduleType`
+
+新增独立枚举，值固定为 `DAILY`、`WEEKLY`、`CUSTOM`。新 Domain contract 不依赖当前 `data.MedicationPlan.ScheduleType` 内嵌枚举；旧枚举与新枚举之间必须由 Batch 3B 使用显式 `when` 映射，禁止 ordinal 映射。
+
+`MedicationPlan` 不变量：
+
+1. 每个 `slot.planId` 必须等于 `MedicationPlan.id`。
+2. `slots` 的列表顺序是权威业务顺序；不自动排序。
+3. 每个 `slot.position` 必须等于其列表索引。
+4. position 必须从 0 开始、连续且唯一。
+5. 允许多个 slot 使用相同 `localTime`。
+6. 允许空 `slots`。
+7. 不自动重编号、不去重、不修正非法输入；planId、position 或时间精度错误必须显式失败。
+8. `intervalDays` 必须在 `1..Int.MAX_VALUE`。
+9. `DAILY` 调度忽略 `daysOfWeek` 和 `intervalDays`；`WEEKLY` 使用 `daysOfWeek`，空集合表示不产生 occurrence；`CUSTOM` 使用 `intervalDays` 并忽略 `daysOfWeek`。
+10. irrelevant 字段保留 legacy 值，不在构造时清空或标准化。
+
+上述规则不改变当前 Predictor、Reminder 或 Widget 行为；这些入口仍在后续批次通过 adapter 迁移。
 
 ## 7. 时间字段语义
 
@@ -266,20 +300,48 @@ contract 放入 `app` 内新的逻辑 package，例如 `io.github.yuninggu.evolu
 
 ### 9.1 `DoseEventRepository` contract
 
-| 能力 | 语义 |
+| 能力 | 签名形状与语义 |
 |---|---|
-| `observeAll()` | 按 `occurredAt` 倒序观察全部 Domain event |
-| `getById(id)` | 按稳定 ID 获取 |
-| `findOccurredBetween(startInclusive, endExclusive)` | 使用 instant 的半开区间查询；现有闭区间调用由 adapter 保持旧边界 |
-| `getEventsForPk(asOf)` | 保留当前 30 天/20 条选择逻辑和返回顺序 |
-| `insert(event)` | 新建；同 ID 同内容返回幂等成功，不产生第二条记录 |
-| `update(event, expectedRevision)` | 仅 revision 匹配时更新并递增；返回冲突而非静默覆盖 |
-| `delete(id)` | 保持当前物理删除行为 |
-| `deleteAll()` | 保留现有维护能力，不暴露给普通 UI |
+| `observeAll()` | `Flow<List<DoseEvent>>`；按 `occurredAt` 倒序 |
+| `getById(id)` | `suspend`；按稳定 `UUID` 获取，缺失返回 null |
+| `findOccurredBetween(startInclusive, endExclusive)` | `suspend`；参数为 `Instant`；使用 `[startInclusive, endExclusive)`，按 `occurredAt` 升序 |
+| `getEventsForPk(asOf)` | `suspend`；参数为 `Instant`；冻结当前 30 天/20 条选择逻辑以及两个分支各自的现有返回顺序，Batch 3 不统一排序 |
+| `insert(event)` | `suspend`；返回 `InsertResult` |
+| `update(event, expectedRevision)` | `suspend`；返回 `UpdateResult` |
+| `delete(id)` | `suspend`；保持物理删除，返回 `DeleteResult` |
+| `deleteAll()` | `suspend`；返回 `DeleteResult`；维护能力，不暴露给普通 UI |
 
 ### 9.2 `MedicationPlanRepository` contract
 
-保留当前能力：观察全部、观察启用项、按 ID 获取、保存计划 aggregate、启停、删除和清空。保存计划与 slots 必须在一个 Room transaction 内完成。
+| 能力 | 签名形状与语义 |
+|---|---|
+| `observeAll()` | `Flow<List<MedicationPlan>>`；保持当前 `createdAt` 倒序 |
+| `observeEnabled()` | `Flow<List<MedicationPlan>>`；只返回启用计划，保持当前 `createdAt` 倒序 |
+| `getById(id)` | `suspend`；按稳定 `UUID` 获取，缺失返回 null |
+| `save(plan)` | `suspend`；返回 `PlanSaveResult`；语义是计划和全部 slots 的原子 aggregate 保存 |
+| `setEnabled(id, enabled)` | `suspend`；返回 `PlanUpdateResult` |
+| `delete(id)` | `suspend`；保持物理删除，返回 `DeleteResult` |
+| `deleteAll()` | `suspend`；返回 `DeleteResult`；维护能力，不暴露给普通 UI |
+
+v2 没有 slots 表，因此 Batch 3 不实现 `save(plan)` 的生产写入路径。实际 plan + slots transaction implementation 等待 Batch 4 v3 schema、Entity 和 DAO 完成。Phase 1 不给 `MedicationPlan` 增加 revision 或并发版本字段。
+
+### 9.3 Repository 业务结果
+
+正常业务结果使用纯 Kotlin sealed result，不使用 Boolean 混合语义，也不把异常文本作为协议。具体文件拆分可以在 Batch 3A 按以下固定集合实现，但不得改变成员和含义：
+
+- `InsertResult`：`Inserted`、`Idempotent`、`Conflict`、`Invalid`。
+- `UpdateResult`：`Updated`、`NoChange`、`NotFound`、`RevisionConflict`、`Invalid`。
+- `DeleteResult`：`Deleted`、`NotFound`。
+- `PlanSaveResult`：`Created`、`Updated`、`NoChange`、`Invalid`。
+- `PlanUpdateResult`：`Updated`、`NoChange`、`NotFound`、`Invalid`。
+
+事件 insert 规则：新 ID 返回 `Inserted`；同 ID 且业务内容相同返回 `Idempotent`，不新增第二行；同 ID 但业务内容不同返回 `Conflict`，不得覆盖；Domain 或 mapping 校验失败返回 `Invalid`。
+
+事件 update 规则：ID 存在、`expectedRevision` 匹配且业务内容有意义地变化时 revision +1 并返回 `Updated`；内容完全相同返回 `NoChange` 且 revision 不递增；ID 不存在返回 `NotFound`；revision 不匹配返回 `RevisionConflict`；输入或 mapping 非法返回 `Invalid`。
+
+计划 save 规则：新 aggregate 返回 `Created`；已有 aggregate 内容变化返回 `Updated`；内容相同返回 `NoChange`；输入或 mapping 非法返回 `Invalid`。`setEnabled` 使用 `PlanUpdateResult` 的对应语义。
+
+Room 打开失败、transaction 失败和不可恢复的 I/O/数据库故障继续作为异常；幂等、冲突、未找到和 revision mismatch 是正常业务结果。
 
 Repository contract 不负责 JSON、Wear payload、UI 文案或 PK 参数。JSON 导入、提醒动作、Widget/Wear 动作通过 Use Case 调用 contract；这些 Use Case 可以在 Phase 1 先保留在 `app` 内。
 
@@ -293,6 +355,16 @@ Repository contract 不负责 JSON、Wear payload、UI 文案或 PK 参数。JSO
 | External JSON v1 DTO | `timeH: Double` | 字符串 UUID，可缺失/损坏 | 由专用 v1 adapter 转 Domain；不直接复用 Entity/Domain 序列化 |
 | Wear DTO | Phase 1 不改当前 payload | 当前 action ID 保持 | 只要求未来 DTO 能携带 event/slot/revision；本阶段现有 `recorded_at` 转 Domain |
 | UI model | 格式化后的日期/时间、可选来源标签 | 字符串 key | 由 Domain + 显示 ZoneId 生成；UI 不读取 Entity |
+
+Batch 3 的 Room v2 mapper policy 正式锁定为只读：
+
+1. 只提供 `DoseEventEntity v2 -> core.model.DoseEvent`、`MedicationPlanEntity v2 -> core.model.MedicationPlan`、纯枚举/ExtraKey 显式映射和必要的只读 legacy adapter。
+2. `DoseEventEntity` legacy 映射使用 `LegacyTimeAdapter`；成功后 `zoneId`、`localDate`、`slotId` 为 null，`source=LEGACY`、`status=RECORDED`、`revision=1`。
+3. `MedicationPlanEntity.timeOfDay` 按原列表顺序生成 slots；position 等于原列表索引，slot ID 使用第 17.1 节 UUIDv5 规范。重复时间和空列表必须原样保留。
+4. ScheduleType 和 ExtraKey 使用穷尽 `when` 映射；禁止 ordinal。未知存储字符串、非法 route/ester、损坏 extras、非法 timeH、非法 LocalTime 或 Slot ID 生成失败必须返回明确 mapping failure，不得跳过或替换。
+5. Batch 3 不提供通用 `Domain -> Room v2 Entity` mapper。v2 无法保存 `zoneId`、`localDate`、`slotId`、`source`、`status`、`revision` 和 `ScheduledDoseSlot.id`，不得 best-effort、lossy 或静默丢字段写回。
+6. 完整双向 Domain/Entity mapper 等待 Batch 4 v3 Entity 完成后实施；Batch 3 不接入新的 Repository 生产写路径。
+7. `Instant.toEpochMilli()` 的可持久化范围在 persistence mapper 边界捕获 `ArithmeticException` 并返回明确 mapping error；Domain 构造函数不加入数据库范围限制。
 
 `SimulationResult.timeH` 和图表坐标继续属于 PK/UI 数值模型，不因 Domain 改用 `Instant` 而删除。
 
@@ -308,6 +380,7 @@ Repository contract 不负责 JSON、Wear payload、UI 文案或 PK 参数。JSO
 - `status`，仅 `RECORDED`
 - `revision`
 - `ScheduledDoseSlot` 和 `scheduled_dose_slots`
+- `core.model.MedicationPlan` 和 `core.model.ScheduleType`
 - Repository contract 和 Room implementation 边界
 - v2/v3 schema 导出与 migration test
 - JSON v1 adapter 和 PK adapter
@@ -603,16 +676,42 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 
 **测试/验收**：不接 Room；公式、1 ms 容差、ZoneId/localDate、DST gap/overlap、slot ID 和 enum 测试通过；PK 参数无变化。
 
-### Batch 3：Repository contract 与 mapper
+### Batch 3A：Domain aggregate 与 Repository contract
 
-**涉及文件**：
+**允许新增文件**：
 
-- 新增 `app/src/main/java/io/github/yuninggu/evolune/core/dataapi/DoseEventRepository.kt`
-- 新增 `MedicationPlanRepository.kt`
-- 新增 Room mapper/implementation 文件
-- 现有 `data/DoseEventRepository.kt`、`MedicationPlanRepository.kt` 分批改为实现类
+- `app/src/main/java/io/github/yuninggu/evolune/core/model/MedicationPlan.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/core/model/ScheduleType.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/core/dataapi/DoseEventRepository.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/core/dataapi/MedicationPlanRepository.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/core/dataapi/RepositoryResults.kt`
+- 上述类型对应的 `app/src/test/...` 纯 JVM 测试
 
-**测试/验收**：contract 不暴露 Room 类型；mapper roundtrip；insert/update/revision/idempotency contract test；仍可在单一 `app` module 编译。
+**边界**：只定义第 6.5、6.6 和第 9 节已经锁定的纯 Kotlin Domain aggregate、枚举、contract 和业务结果。不得修改 Room Entity、DAO、当前 Repository 实现、composition root 或任何 ViewModel/UI/Reminder/Widget/Wear 调用方；不得把 contract 接入生产路径。
+
+**测试/验收**：验证 MedicationPlan 全部字段和不变量、ScheduleType 三个值、五组 result 的完整成员、Repository 方法集合与半开时间区间语义。测试必须证明 slot 不会被自动排序、重编号或去重；重复时间和空 slots 保持合法。仍可在单一 `app` module 编译，且 core 不新增 Android、Room、Compose 或 Wear 依赖。
+
+### Batch 3B：Room v2 只读 mapper
+
+**允许新增文件**：
+
+- `app/src/main/java/io/github/yuninggu/evolune/data/mapper/DoseEventEntityMapper.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/data/mapper/MedicationPlanEntityMapper.kt`
+- `app/src/main/java/io/github/yuninggu/evolune/data/mapper/PersistenceEnumMapper.kt`
+- 上述 mapper 对应的 `app/src/test/...` 纯 JVM 测试
+
+**边界**：只实现第 10 节的 v2 Entity -> Domain 读取映射和显式枚举/ExtraKey 映射。不得提供通用 Domain -> v2 Entity mapper，不得修改当前 Repository、DAO、Entity、Room version/schema 或生产调用路径。
+
+**P2 处置与测试/验收**：
+
+1. Domain/PK ExtraKey 之间使用穷尽 `when`，显式覆盖 `CONCENTRATION_MG_ML`、`AREA_CM2`、`RELEASE_RATE_UG_PER_DAY`、`SUBLINGUAL_THETA`、`SUBLINGUAL_TIER`、`ANTI_ANDROGEN_TYPE`；禁止 ordinal，未知持久化值明确失败。
+2. persistence mapper 调用 `Instant.toEpochMilli()` 时捕获 `ArithmeticException` 并返回明确 mapping failure；测试覆盖 `Instant.MIN`、`Instant.MAX`，但不把数据库范围限制放入 Domain 构造函数。
+3. `core.model` 暂时继续依赖 `pk.Route`/`pk.Ester`；本批不移动枚举、不修改 `SimulationEngine`，并把该依赖记录为后续技术债。
+4. MedicationPlan v2 mapper 按 `timeOfDay` 原顺序生成 slots，使用 Slot ID v1；测试覆盖空列表、重复时间、顺序、非法时间和确定性 ID。schema 2 identity hash 和 SHA-256 必须保持 Batch 1 基线值。
+
+### Batch 3C：Repository 实现与生产接线（推迟）
+
+Batch 3C 必须等待 Batch 4 完成 v3 schema、Entity、DAO、迁移和 schema 验证后才能开始。届时才允许实现完整无损双向 mapper、Repository contract 的 Room 实现、计划与 slots 的原子 transaction、revision/idempotency/conflict 语义及 composition root 接线。Batch 3A 或 3B 的通过不授权提前实施 3C。
 
 ### Batch 4：v2 -> v3 additive schema
 
@@ -627,7 +726,7 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 - `AppDatabaseMigrationTest.kt`
 - 独立 `tools/repair-v2-timeh/` CLI 数据检查与修复工具及其说明
 
-**测试/验收**：第 18.3 节 migration 矩阵通过；非法 `timeH` 中止 transaction 和发布检查；CLI 仅在数据库副本上显式运行且结果可审计；旧列逐位不变；新 event 时间误差不超过 1 ms；slot 顺序/重复值完整；无 destructive migration。
+**测试/验收**：第 18.3 节 migration 矩阵通过；非法 `timeH` 中止 transaction 和发布检查；CLI 仅在数据库副本上显式运行且结果可审计；旧列逐位不变；新 event 时间误差不超过 1 ms；slot 顺序/重复值完整；无 destructive migration。只有本批通过并导出、核对 v3 schema 后，Batch 3C 的无损双向 mapper 和 Repository 实现才具备前置条件。
 
 ### Batch 5：双读双写与计划槽位切换
 
@@ -684,7 +783,7 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 
 ## 21. Resolved 决策记录
 
-以下 15 项均已由项目所有者解决。重新评估条件只允许触发新的设计记录，不会自动改变本文件的 Phase 1 基线。
+以下 16 项均已由项目所有者解决。重新评估条件只允许触发新的设计记录，不会自动改变本文件的 Phase 1 基线。
 
 ### D1. 目标 schema 版本 — Resolved
 
@@ -790,5 +889,12 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 - **理由**：跨时区、DST、贴片配对、舌下 tier 和长历史需要高覆盖率，但真实健康数据的隐私风险高于复用样本的便利性。
 - **影响范围**：第 18、19、20 节；fixture generator、本地测试约定、`.gitignore`/敏感文件检查和发布流程。
 - **重新评估条件**：若未来建立经过法律、隐私和安全审查的受控测试数据系统，可另行评估访问方式；公共 Git 历史仍不得包含真实或真实派生健康数据库。
+
+### D16. Batch 3 contract、MedicationPlan 与 v2 mapper 分阶段策略 — Resolved
+
+- **最终选择**：Batch 3 分为 3A、3B 和 3C。3A 只新增 `core.model.MedicationPlan`、`core.model.ScheduleType`、Repository contract、固定业务结果及纯 JVM 测试；3B 只新增 Room v2 Entity -> Domain 只读 mapper 和显式枚举/ExtraKey mapper；3C 推迟到 Batch 4 v3 schema、Entity 和 DAO 通过后，再实现无损双向 mapper、Repository Room 实现和生产接线。v2 不提供会丢失 Phase 1 元数据或 slot ID 的通用写 mapper。
+- **理由**：v2 无法持久化 `occurredAt` 元数据、revision 和 `ScheduledDoseSlot.id`。先锁定纯 contract 和只读边界，可以获得可测试的依赖方向，同时避免以 best-effort 写回静默丢失领域事实。
+- **影响范围**：第 6.5、6.6、9、10、11、20 节；Batch 3A/3B 的新增文件和测试、Batch 4 的前置条件以及 Batch 3C 的实施时机。`getEventsForPk` 保持现有 30 天/20 条选择逻辑和两个分支各自顺序；Route/Ester 暂不迁移；ExtraKey 必须显式映射；持久化 Instant 溢出必须明确失败。
+- **重新评估条件**：只有 v3 schema、Entity、DAO 和 migration tests 已通过，才可解除 3C 阻塞并设计生产接线；若需要移动 Route/Ester、扩展 Repository 方法、改变 PK 选取规则或允许有损写回，必须新增 ADR，不得在实现中临时改变。
 
 **未决问题**：无。任何触发上述重新评估条件的事项必须建立新的设计决策，不得在 Batch 实施中临时改变本基线。

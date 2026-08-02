@@ -142,3 +142,19 @@
 - **不可变兼容规则**：Slot ID v1 的 namespace、UTF-8 编码、字段顺序、分隔符、规范化规则和固定测试向量不得改变。固定向量 `00000000-0000-0000-0000-000000000001`、position `0`、`08:30` 必须得到 `17d1fd14-9d70-5344-beaa-0b158c9f62f4`。
 - **错误行为**：非法 UUID、首尾空白、负 position、非分钟精度 localTime 或 UUIDv5 输入构建失败必须产生明确错误；不得静默修正、返回 null、生成随机 ID 或回退到数据库自增值。
 - **Slot ID v2 条件**：只有 canonical 输入语义、namespace、算法或兼容需求发生不可兼容变化时才设计 v2。v2 必须使用新的版本前缀或新的 namespace，不得重新解释已生成的 v1 ID。
+
+## ADR-015：Repository contract、MedicationPlan Domain 与 v2 mapper 分阶段落地
+
+- **背景**：Phase 1 需要建立独立的 Domain 和 Repository 边界，但当前生产数据库仍为 Room v2。v2 Entity 不能保存 `occurredAt` 的完整领域元数据、`zoneId`、`localDate`、`slotId`、`source`、`status`、`revision` 或 `ScheduledDoseSlot.id`。
+- **可选方案**：立即实现完整双向 mapper 并接入当前 Repository；只建立 Domain/contract 并推迟 mapper；先建立纯 contract，再建立 v2 Entity -> Domain 只读 mapper，等 v3 schema 后实现完整 Repository；继续让 feature 直接依赖 DAO/Entity。
+- **最终选择**：采用三阶段 Batch 3。3A 只定义 `core.model.MedicationPlan`、`core.model.ScheduleType`、Repository contract、固定业务结果和纯 JVM 测试；3B 只实现 v2 Entity -> Domain 只读 mapper、显式枚举/ExtraKey mapper、LegacyTimeAdapter 和 Slot ID v1 的边界适配；3C 等 Batch 4 v3 schema、Entity、DAO 和 migration tests 全部通过后，才实现完整无损双向 mapper、Repository Room 实现、聚合 transaction 和生产接线。
+- **依赖方向**：目标关系为 `feature -> core:data-api <- core:database`。Batch 3A 的 contract 只依赖 Domain、`Flow` 和 Kotlin 标准库，不暴露 DAO、Entity、Room、Context 或 Wear 类型；Batch 3B 的 persistence mapper 属于 data 边界，不反向污染 Domain。
+- **不变量**：`DoseEvent.occurredAt` 是权威 `Instant`；`MedicationPlan` 的 slots 列表顺序权威，position 必须连续、唯一且从零开始，允许重复 localTime 和空列表；`DAILY` 忽略无关字段，`WEEKLY` 使用 `daysOfWeek`，`CUSTOM` 使用 `intervalDays`；不自动排序、重编号、去重或修正非法输入；Phase 1 status 仅为 `RECORDED`。
+- **v2 读取策略**：v2 legacy event 读取后设置 `zoneId`、`localDate`、`slotId` 为 null，`source=LEGACY`、`status=RECORDED`、`revision=1`；v2 plan 按 `timeOfDay` 原顺序生成 Slot ID v1。Batch 3 不提供通用 Domain -> v2 Entity mapper，不以 best-effort、lossy 或静默丢字段方式写回。
+- **Repository 结果语义**：事件插入使用 `Inserted`、`Idempotent`、`Conflict`、`Invalid`；事件更新使用 `Updated`、`NoChange`、`NotFound`、`RevisionConflict`、`Invalid`；删除使用 `Deleted`、`NotFound`；计划保存使用 `Created`、`Updated`、`NoChange`、`Invalid`；计划更新使用 `Updated`、`NoChange`、`NotFound`、`Invalid`。数据库打开、transaction 和不可恢复 I/O 故障仍作为异常处理，不伪装成业务结果。
+- **现有行为冻结**：`getEventsForPk(asOf)` 保持当前 30 天窗口、最多 20 条选择逻辑以及两个分支各自的返回顺序；Batch 3 不统一排序，也不修改 PK 参数或算法。JSON v1 缺失/损坏 ID 继续使用随机 UUID。
+- **过渡取舍**：`core.model` 在 Batch 3 暂时复用 `pk.Route` 和 `pk.Ester`，不移动枚举、不修改 `SimulationEngine`；Domain ExtraKey 与 PK ExtraKey 使用六个值的显式 `when` 映射，禁止 ordinal，未知值明确失败；`Instant.toEpochMilli()` 的 `ArithmeticException` 在 persistence mapper 边界转为明确 mapping failure，Domain 不加入数据库范围限制。
+- **优点**：先锁定依赖方向和业务语义，避免 v2 有损写回；3A 可独立验证，3B 可独立验证 legacy 读取，Batch 4 后再一次性实现真实持久化写入。
+- **缺点**：Batch 3A/3B 期间存在只读过渡层，当前生产 Repository 仍未切换；3C 需要等待 schema 迁移，短期会保留部分旧模型和 mapper。
+- **不可变兼容规则**：不得因为 3A/3B 实施而修改 Room version、schema 2、Entity、DAO、JSON v1、PK、Wear 或 Widget 行为；不得提前引入 Tracked Date、Health Connect、Glance、WorkManager、云同步或生产路径切换。
+- **重新评估条件**：Batch 4 v3 schema、Entity、DAO、migration test、schema export 和非法数据失败检查全部通过后，才能评估 3C。若需要让 v2 写入领域 metadata、移动 Route/Ester、改变 `getEventsForPk`、增加 result 状态或允许有损兼容，必须另立 ADR。
