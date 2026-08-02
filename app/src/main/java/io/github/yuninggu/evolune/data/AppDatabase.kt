@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MedicationPlanEntity::class
     ],
     version = 2,  // 增加版本号
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
