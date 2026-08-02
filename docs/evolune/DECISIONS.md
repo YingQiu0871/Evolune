@@ -129,3 +129,16 @@
 - **缺点**：增加 contract、mapping 和 composition root 代码。
 - **风险**：过早拆 module 会增加 Gradle 复杂度；长期不拆 package 边界又可能被绕过。
 - **重新评估**：Phase 1 开始前由项目所有者确认模块名称和创建时机；依赖方向本身不得反转。
+
+## ADR-014：Scheduled Dose Slot 使用版本化 UUIDv5 标识
+
+- **背景**：当前 `MedicationPlan.timeOfDay` 只有本地时间列表，没有稳定槽位 ID。Room v2 到 v3 backfill、计划编辑和未来跨入口幂等需要同一计划槽在重复计算时得到相同标识，同时必须保留重复时间和列表顺序。
+- **可选方案**：新槽和 backfill 全部使用随机 UUID；直接对业务内容做未版本化 hash；使用带固定 namespace 和 canonical name 的 UUIDv5；使用数据库自增 ID。
+- **最终选择**：使用 UUID version 5 和 SHA-1 生成版本化稳定 ID。SHA-1 仅用于稳定标识，不用于密码学安全、签名、认证或完整性校验。根 namespace 是标准 DNS namespace `6ba7b810-9dad-11d1-80b4-00c04fd430c8`；对 UTF-8 名称 `io.github.yuninggu.evolune:scheduled-dose-slot` 执行 UUIDv5，得到不可变项目 namespace `68559b97-4ddc-5be2-bcbd-9ab409f0d95b`。
+- **Canonical name**：`slot:v1:plan=<canonicalPlanUuid>;position=<canonicalPosition>;time=<canonicalLocalTime>`，整体使用 UTF-8。planId 使用 UUID 标准小写带连字符格式；position 使用零基、无符号、无前导零的十进制 ASCII，范围为 `0..Int.MAX_VALUE`；localTime 只允许分钟精度并固定为 `HH:mm`。
+- **身份语义**：Slot ID 由 planId、position 和 localTime 共同决定。任一变化都会改变 ID；相同时间可由不同 position 区分。剂量、药物名称、route、ester 和启用状态不定义槽位身份，因此不进入 canonical name。Slot ID 不是通用数据库行 ID，也不是 `DoseEvent.id`。
+- **优点**：跨重复迁移和进程稳定；不依赖数据库插入顺序、Locale、时区、设备状态或随机源；标准 UUID 可直接用于现有 UUID/Room 边界；版本前缀支持未来演进。
+- **缺点**：时间列表重排会改变 position 并可能改变 Slot ID；canonical 规则一旦发布即成为兼容承诺；UUIDv5 需要项目自行提供明确且经过测试的标准实现。
+- **不可变兼容规则**：Slot ID v1 的 namespace、UTF-8 编码、字段顺序、分隔符、规范化规则和固定测试向量不得改变。固定向量 `00000000-0000-0000-0000-000000000001`、position `0`、`08:30` 必须得到 `17d1fd14-9d70-5344-beaa-0b158c9f62f4`。
+- **错误行为**：非法 UUID、首尾空白、负 position、非分钟精度 localTime 或 UUIDv5 输入构建失败必须产生明确错误；不得静默修正、返回 null、生成随机 ID 或回退到数据库自增值。
+- **Slot ID v2 条件**：只有 canonical 输入语义、namespace、算法或兼容需求发生不可兼容变化时才设计 v2。v2 必须使用新的版本前缀或新的 namespace，不得重新解释已生成的 v1 ID。

@@ -337,7 +337,7 @@ Repository contract 不负责 JSON、Wear payload、UI 文案或 PK 参数。JSO
 3. 现有行保持 `source='LEGACY'`、`status='RECORDED'`、`revision=1`，zone/localDate/slotId 为 null。
 4. 创建 `scheduled_dose_slots` 表和索引。
 5. 逐行读取 `medication_plans.id` 与 `timeOfDay` JSON，按原列表顺序创建 slot；解析失败必须使 migration test 失败并阻止发布，不能静默丢槽。
-6. backfill slot ID 使用固定、带版本的确定性输入 `slot:v1:{planId}:{position}:{canonicalLocalTime}`；`canonicalLocalTime` 为解析现有值后得到的 `LocalTime.toString()`。迁移实现与测试共享同一纯函数，并用固定输出 fixture 锁定结果。
+6. backfill slot ID 严格使用第 17.1 节的 Slot ID v1 规范。迁移实现与测试共享同一纯函数，并用该节的固定 UUIDv5 测试向量锁定结果。
 7. 不尝试把现有 dose event 通过药物、时间或 ±1 小时规则反向绑定到 slot；全部保持 null。
 8. 让 Room 校验最终 schema，并输出 v3 schema JSON。
 
@@ -442,6 +442,79 @@ Phase 1 策略：
 4. Repository `insert` 遇到同 ID、同业务内容时返回幂等成功；同 ID、不同内容返回 conflict，不能无提示覆盖。
 5. 手动编辑使用 `expectedRevision`；成功后 revision +1。
 6. 迁移不通过相似药物、剂量或时间窗口合并现有事件。
+
+### 17.1 ScheduledDoseSlot ID v1 — Resolved
+
+Slot ID v1 是版本化、确定性的领域标识。它不是数据库行 ID 的通用替代物，也不是 `DoseEvent.id`。本规范一经发布不得重新解释；未来不兼容变更必须使用新的版本前缀或新的 namespace，并定义 Slot ID v2。
+
+#### UUIDv5 算法与 namespace
+
+- 使用标准 name-based UUID version 5，摘要算法为 SHA-1，UUID variant 为 RFC 标准 variant。
+- SHA-1 仅用于生成稳定领域标识，不用于密码学安全、签名、认证或数据完整性校验。
+- 输出使用 `UUID.toString()`，即小写、带连字符的标准 UUID 字符串。
+- 根 namespace 使用标准 DNS namespace `6ba7b810-9dad-11d1-80b4-00c04fd430c8`。
+- 项目 namespace 名称是 UTF-8 编码的 `io.github.yuninggu.evolune:scheduled-dose-slot`。
+- `projectSlotNamespace = UUIDv5(DNS_NAMESPACE, UTF8("io.github.yuninggu.evolune:scheduled-dose-slot"))`。
+- 固定项目 namespace 为 `68559b97-4ddc-5be2-bcbd-9ab409f0d95b`，一经发布不得改变。
+
+禁止使用 `UUID.randomUUID()`、`String.hashCode()`、平台默认 charset、Locale 相关格式、随机 salt、设备 ID、当前时间或数据库自增 ID。
+
+#### 输入规范化
+
+`planId`：
+
+1. 最终输入类型表达为 UUID。
+2. 字符串输入不得包含首尾空白；不得通过 trim 后继续接受。
+3. 字符串必须能被 UUID 解析，并规范化为 `UUID.toString()` 的小写带连字符格式。
+4. 非法输入返回明确错误，不得替换为随机 UUID 或空 UUID。
+
+`position`：
+
+1. 表示同一计划中时间槽的零基索引，合法范围是 `0..Int.MAX_VALUE`。
+2. canonical 形式是无正号、无前导零的十进制 ASCII；数字零仅表示为 `0`。
+3. 负数非法；`+1`、`01` 等非 canonical 字符串输入非法；格式不受 Locale 影响。
+
+`localTime`：
+
+1. 使用 `java.time.LocalTime`，Phase 1 只允许分钟精度。
+2. `second` 和 `nano` 必须均为 0；非分钟精度输入返回明确错误，不得静默截断。
+3. canonical 格式固定为 24 小时制 `HH:mm`，始终为 5 个 ASCII 字符，使用 `Locale.ROOT` 或等效非本地化实现。
+4. canonical 值不包含日期、时区或 offset。合法示例为 `00:00`、`08:30`、`23:59`；`08:30:01` 和 `08:30:00.500` 非法。
+
+#### Canonical name 与生成规则
+
+canonical name 必须精确为：
+
+```text
+slot:v1:plan=<canonicalPlanUuid>;position=<canonicalPosition>;time=<canonicalLocalTime>
+```
+
+字段顺序固定。版本后使用冒号，字段之间使用分号，key 与 value 之间使用等号。整个 canonical name 明确使用 UTF-8 编码。三个 value 已有严格 ASCII 格式，不执行 URL encoding、JSON escaping、Unicode normalization 或其他二次转换。
+
+最终 ID：
+
+```text
+slotId = UUIDv5(projectSlotNamespace, UTF8(canonicalName))
+```
+
+#### 固定测试向量
+
+```text
+planId: 00000000-0000-0000-0000-000000000001
+position: 0
+localTime: 08:30
+canonicalName: slot:v1:plan=00000000-0000-0000-0000-000000000001;position=0;time=08:30
+projectSlotNamespace: 68559b97-4ddc-5be2-bcbd-9ab409f0d95b
+slotId: 17d1fd14-9d70-5344-beaa-0b158c9f62f4
+```
+
+该向量已使用 Python 标准库 `uuid.uuid5` 独立验证；纳入版本控制后不得在 v1 中改变。
+
+#### 错误与身份语义
+
+以下情况必须返回明确错误：planId 不是有效 UUID、planId 含首尾空白、position 小于 0、localTime 的 second 非零、localTime 的 nano 非零、UUIDv5 输入构建失败。具体 Kotlin 错误类型名称在实现阶段按统一 Result 设计确定，但不得返回随机 ID、静默 null、数据库自增回退或自动修正输入，也不得读取系统时间、Locale 或时区。
+
+Slot 身份由 `planId`、`position` 和 `canonicalLocalTime` 共同决定，任一变化都会改变 Slot ID。同一计划中相同 localTime 可由不同 position 区分。剂量、药物名称、route、ester 和启用状态不属于 Slot 身份，改变这些字段不得改变 Slot ID。调整时间列表顺序会改变 position，因此可能改变 Slot ID。
 
 ## 18. Schema 导出与 migration test
 
@@ -685,10 +758,10 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 
 ### D11. Slot backfill ID — Resolved
 
-- **最终选择**：使用版本化确定性输入 `slot:v1:{planId}:{position}:{canonicalLocalTime}` 生成 backfill UUID；保留重复时间槽。`canonicalLocalTime` 为解析现有值后得到的 `LocalTime.toString()`。
-- **理由**：同一 v2 数据库重复迁移可得到相同 slot ID，`position` 同时保留顺序并区分重复时间。
+- **最终选择**：使用第 17.1 节锁定的版本化 UUIDv5 规范。根 namespace 为标准 DNS namespace；项目 namespace 为 `68559b97-4ddc-5be2-bcbd-9ab409f0d95b`；canonical name 为 `slot:v1:plan=<canonicalPlanUuid>;position=<canonicalPosition>;time=<canonicalLocalTime>`；输出使用标准 UUID 小写带连字符格式。
+- **理由**：明确的 namespace、UTF-8 编码、字段规范化、UUID 版本和固定测试向量使同一 v2 数据库重复迁移得到相同 ID；position 保留顺序并区分重复时间，且算法不依赖 Locale、时区或设备状态。
 - **影响范围**：第 6、8、12、17、18、20 节；slot 纯函数、migration 和固定输出测试。
-- **重新评估条件**：仅当现有 `timeOfDay` 出现无法解析或规范化后碰撞的数据时，阻止迁移并新增版本化算法；不得修改 `slot:v1` 已发布输出。
+- **重新评估条件**：仅当现有 `timeOfDay` 出现无法解析或规范化后碰撞的数据时，阻止迁移并设计新的版本前缀或 namespace；不得修改或重新解释 Slot ID v1 已发布输出。
 
 ### D12. Phase 1 status 范围 — Resolved
 
