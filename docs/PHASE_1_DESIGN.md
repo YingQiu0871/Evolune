@@ -403,19 +403,53 @@ Batch 3 的 Room v2 mapper policy 正式锁定为只读：
 
 目标数据库版本确定为 v3，作为已固定 v2 schema baseline 之后的首个 additive migration 版本；v2 和 v3 schema 均由 Room 自动导出并纳入版本控制。
 
-迁移顺序：
+`MIGRATION_2_3` 必须按以下顺序执行：
 
-1. 在外层 SQLiteOpenHelper upgrade transaction 内，先完整扫描并验证全部 `dose_events.timeH` 和 `medication_plans.timeOfDay`；任何失败发生在所有回填 `UPDATE`、slot `INSERT` 和 schema 变更之前。
-2. 对 `dose_events` 使用 `ALTER TABLE ADD COLUMN` 添加 7 个新列。
-3. 逐行读取 `id` 和 `timeH`，使用统一纯函数计算 `occurredAtEpochMillis` 并更新；不修改原 `timeH`。
-4. 现有行保持 `source='LEGACY'`、`status='RECORDED'`、`revision=1`，zone/localDate/slotId 为 null。
-5. 创建 `scheduled_dose_slots` 表和索引。
-6. 按预检保留的原始列表顺序为每个计划创建 slot；空列表和重复时间原样保留。
-7. backfill slot ID 严格使用第 17.1 节的 Slot ID v1 规范。迁移实现与测试共享同一纯函数，并用该节的固定 UUIDv5 测试向量锁定结果。
-8. 不尝试把现有 dose event 通过药物、时间或 ±1 小时规则反向绑定到 slot；全部保持 null。
-9. 让 Room 校验最终 schema，并输出 v3 schema JSON。
+### Phase 1：DDL
 
-迁移必须在 SQLiteOpenHelper 提供的外层 upgrade transaction 内完成。任何预检、DDL、回填或插入失败都必须回滚，数据库 `user_version` 保持 2，且不得留下部分新增列或 slot 行。禁止 destructive migration，禁止删除表重建后只复制部分列。
+在 Room/SQLiteOpenHelper 提供的外层 upgrade transaction 中：
+
+1. 对 `dose_events` 使用 `ALTER TABLE ADD COLUMN` 添加 7 个新列。
+2. 创建 `scheduled_dose_slots` 表。
+3. 创建 `planId` index。
+4. 创建唯一的 `planId/position` index。
+
+Migration 不得显式调用 `beginTransaction` 或 `commit`，不得修改 `user_version`，不得使用 destructive migration，也不得删除表重建后只复制部分列。
+
+### Phase 2：全量预检
+
+DDL 执行后、任何数据回填 `UPDATE` 或 `INSERT` 前：
+
+1. 按稳定顺序读取并验证全部 `dose_events`。
+2. 检查每行 `timeH` 的 SQLite storage class。
+3. 通过 `MigrationPrimitives` 计算全部 `occurredAtEpochMillis`。
+4. 按稳定顺序读取并验证全部 `medication_plans.timeOfDay` 原始字符串。
+5. 通过 `LegacyPlanTimeParser` 生成全部 slot rows，保留原列表顺序、空列表和重复时间。
+6. 将全部验证结果保存在内存中，本阶段不执行任何数据回填。
+
+“全量预检”精确定义为：在任何数据回填 `UPDATE` 或 `INSERT` 前验证全部 legacy 数据，而不是在 schema 变更前验证。DDL 可以先在外层 upgrade transaction 中执行；任一预检异常必须向上抛出，不得吞掉或转换为成功，由外层 transaction 一并回滚 DDL、数据变化和 `user_version`。该原子回滚行为必须由 connected instrumentation 测试证明，不能只依赖文档推断。
+
+### Phase 3：回填
+
+只有全部预检成功后才能：
+
+1. 使用预检结果逐行更新 `occurredAtEpochMillis`，每个 `UPDATE` 必须恰好影响一行。
+2. 按预检保留的顺序插入 `scheduled_dose_slots`，并校验每个 `INSERT` 成功。
+3. 让 legacy 行的 `source='LEGACY'`、`status='RECORDED'`、`revision=1` 使用与 Entity 完全一致的 DDL defaults；zoneId/localDate/slotId 保持 null。
+4. backfill slot ID 严格使用第 17.1 节 Slot ID v1 规范及固定 UUIDv5 测试向量。
+5. 不修改原 `timeH` 或 `medication_plans.timeOfDay`。
+6. 不通过药物、时间或 ±1 小时规则推断旧 event 的 `slotId`。
+
+### Phase 4：后置验证
+
+1. event 行数不变，且每个 `occurredAtEpochMillis` 与预检结果一致。
+2. `source`、`status`、`revision` 正确，nullable metadata 为 null。
+3. slot 数量等于预检结果，无 orphan，且同一计划内 position 唯一。
+4. 原 `timeH` 和 `timeOfDay` 未改变。
+5. `foreign_key_check` 无错误。
+6. 让 Room 校验最终 schema，并输出 v3 schema JSON。
+
+以上四个阶段必须全部位于 SQLiteOpenHelper 提供的同一个外层 upgrade transaction 中。任何 DDL、预检、回填、插入或后置验证失败都必须整体回滚，数据库 `user_version` 保持 2，且不得留下部分新增列、索引、slot 行或数据更新。
 
 `occurredAtEpochMillis DEFAULT 0` 只用于 `ALTER TABLE` 与 Room schema 兼容，不是运行时业务默认值。Batch 4A 的兼容 `DoseEventEntity` 构造必须调用共享的严格 persistence helper，由合法 `timeH` 计算 `occurredAtEpochMillis`；Room 创建的新 Entity 不得把 0 绑定为实际事件时间。兼容构造暂时写入 `zoneId=null`、`localDate=null`、`slotId=null`、`source='LEGACY'`、`status='RECORDED'`、`revision=1`。非法 `timeH` 必须明确失败，不得回退到 SQL 默认值。
 
@@ -429,7 +463,7 @@ Batch 3 的 Room v2 mapper policy 正式锁定为只读：
 6. Slot ID v1 的 namespace、canonical name、UTF-8 编码和固定测试向量保持不变；非分钟值不得通过重新解释 v1 算法迁移。
 7. 非分钟值只能由 Batch 4C 工具根据显式 correction manifest 在数据库副本中修复。
 
-当前 v2 合成 fixture 中的 `20:30:15` 固定为正式负向迁移用例：v2 -> v3 必须失败，`user_version` 必须保持 2，且不得留下部分新增列或 slot 行。
+当前 v2 合成 fixture 中的 `20:30:15` 固定为正式负向迁移用例和 Batch 4A-1 提交阻断条件。connected instrumentation 必须证明：migration 抛出异常；数据库可由 v2 raw helper 重新打开；`PRAGMA user_version = 2`；`dose_events` 不存在七个新列；`scheduled_dose_slots` 和两个新索引不存在；原 `dose_events` 数据及 `medication_plans.timeOfDay` 原始字符串不变；没有部分 `UPDATE` 或 `INSERT`。
 
 ## 13. `timeH` 转换、舍入和容差
 
@@ -655,8 +689,8 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 5. 计划无槽、单槽、多槽、重复时间、跨午夜时间；SQL 空字符串和 JSON `[]` 均得到空 slots。
 6. `HH:mm`、`HH:mm:00` 和 second/nano 均为零的等效 ISO `timeOfDay` 可迁移，slot canonical time 为 `HH:mm`，原字符串不变。
 7. `timeOfDay` 原顺序、重复值及 slot position/ID 稳定。
-8. 固定使用现有含 `20:30:15` 的 v2 fixture 做负向迁移：migration 失败，`user_version=2`，无部分新增列或 slot 行。
-9. 任一 event 或 plan 预检失败都回滚整个 migration；验证失败前后旧表、旧列和值逐位不变。
+8. 固定使用现有含 `20:30:15` 的 v2 fixture 做负向迁移：migration 抛出异常后，以 v2 raw helper 重新打开并验证 `user_version=2`、七个新列不存在、`scheduled_dose_slots` 与两个新索引不存在、原 event 数据和 `timeOfDay` 字符串不变、无部分 `UPDATE` 或 `INSERT`。
+9. 任一 event 或 plan 预检失败都由外层 upgrade transaction 回滚 DDL、数据变化和 `user_version`；该用例必须作为 Batch 4A-1 的 connected instrumentation 提交阻断测试实际执行。
 10. 使用明确标记为 test fixture 的 v1 `dose_events` DDL 执行 v1 -> v2 -> v3 完整链；不得把 fixture 冒充历史导出 schema。
 11. v3 schema 与 Room 自动导出的 JSON 一致。
 12. `scheduled_dose_slots` 的 FK、cascade、唯一索引、顺序和重复时间行为。
@@ -675,7 +709,7 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 1. 每批独立提交；schema bump 之前的批次可直接回滚。
 2. v3 发布后不降低数据库 version，也不启用 destructive downgrade。
 3. v3 保留 `timeH`、`timeOfDay` 并双写，可通过 feature flag/adapter 配置临时切回 legacy 读取路径。
-4. migration 在 transaction 内失败时，Room 保留 v2 数据库，不提交半迁移结果。
+4. migration 先在外层 upgrade transaction 中执行 DDL，再在任何数据回填前完成全量预检；任一阶段失败时，Room 必须整体回滚 DDL、数据变化和 `user_version`，保留可由 v2 raw helper 打开的原数据库。该行为必须由 connected instrumentation 证明。
 5. 发布前保存并版本化合成 v2 fixture；真实健康数据库和从其派生的脱敏 fixture 不进入仓库。若本地私有 fixture 暴露迁移缺陷，先将缺陷归纳为最小合成回归用例，再修复并停止发布，不能通过清库解决。
 6. 若 v3 生产问题需要 APK 回退，应发布“旧行为 + v3 schema 兼容”的修复版本，而不是安装不认识 v3 的旧 APK。
 7. 不从 `occurredAt` 反向覆盖历史 `timeH`；旧列始终是 rollback shadow 的原始证据。
@@ -792,7 +826,9 @@ Batch 3C 不并入 Batch 4A。它必须等待 v3 schema、Entity、DAO、migrati
 - 基础 migration instrumentation tests
 - 调整 v2 baseline test 以兼容数据库版本升级
 
-禁止提交 Entity 已改但 version 仍为 2、version 3 没有 `MIGRATION_2_3`、migration DDL 与 `ColumnInfo.defaultValue` 不一致、Slot Entity 未注册、手写 `3.json` 或生产代码无法构建的中间状态。本批即使通过也处于第 19.1 节内部不可发布区间；现有写路径尚不维护 slot 表。
+基础 instrumentation 必须实际连接 emulator 或专用测试设备，使用含 `20:30:15` 的 v2 fixture 证明预检失败会回滚 DDL、数据变化和 `user_version`；仅编译 androidTest 不足以通过，该 connected rollback test 是 Batch 4A-1 的提交阻断条件。
+
+禁止提交 Entity 已改但 version 仍为 2、version 3 没有 `MIGRATION_2_3`、migration DDL 与 `ColumnInfo.defaultValue` 不一致、Slot Entity 未注册、手写 `3.json`、connected rollback test 未实际通过或生产代码无法构建的中间状态。本批即使通过也处于第 19.1 节内部不可发布区间；现有写路径尚不维护 slot 表。
 
 ### Batch 4B：完整 migration matrix
 
