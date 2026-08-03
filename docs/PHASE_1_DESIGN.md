@@ -401,20 +401,35 @@ Batch 3 的 Room v2 mapper policy 正式锁定为只读：
 
 ## 12. Room v2 到 v3 additive migration
 
-目标数据库版本确定为 v3，作为首个 schema 导出版本和从 v2 开始的 additive migration 版本。
+目标数据库版本确定为 v3，作为已固定 v2 schema baseline 之后的首个 additive migration 版本；v2 和 v3 schema 均由 Room 自动导出并纳入版本控制。
 
 迁移顺序：
 
-1. 对 `dose_events` 使用 `ALTER TABLE ADD COLUMN` 添加 7 个新列。
-2. 逐行读取 `id` 和 `timeH`，使用统一纯函数计算 `occurredAtEpochMillis` 并更新；不修改原 `timeH`。
-3. 现有行保持 `source='LEGACY'`、`status='RECORDED'`、`revision=1`，zone/localDate/slotId 为 null。
-4. 创建 `scheduled_dose_slots` 表和索引。
-5. 逐行读取 `medication_plans.id` 与 `timeOfDay` JSON，按原列表顺序创建 slot；解析失败必须使 migration test 失败并阻止发布，不能静默丢槽。
-6. backfill slot ID 严格使用第 17.1 节的 Slot ID v1 规范。迁移实现与测试共享同一纯函数，并用该节的固定 UUIDv5 测试向量锁定结果。
-7. 不尝试把现有 dose event 通过药物、时间或 ±1 小时规则反向绑定到 slot；全部保持 null。
-8. 让 Room 校验最终 schema，并输出 v3 schema JSON。
+1. 在外层 SQLiteOpenHelper upgrade transaction 内，先完整扫描并验证全部 `dose_events.timeH` 和 `medication_plans.timeOfDay`；任何失败发生在所有回填 `UPDATE`、slot `INSERT` 和 schema 变更之前。
+2. 对 `dose_events` 使用 `ALTER TABLE ADD COLUMN` 添加 7 个新列。
+3. 逐行读取 `id` 和 `timeH`，使用统一纯函数计算 `occurredAtEpochMillis` 并更新；不修改原 `timeH`。
+4. 现有行保持 `source='LEGACY'`、`status='RECORDED'`、`revision=1`，zone/localDate/slotId 为 null。
+5. 创建 `scheduled_dose_slots` 表和索引。
+6. 按预检保留的原始列表顺序为每个计划创建 slot；空列表和重复时间原样保留。
+7. backfill slot ID 严格使用第 17.1 节的 Slot ID v1 规范。迁移实现与测试共享同一纯函数，并用该节的固定 UUIDv5 测试向量锁定结果。
+8. 不尝试把现有 dose event 通过药物、时间或 ±1 小时规则反向绑定到 slot；全部保持 null。
+9. 让 Room 校验最终 schema，并输出 v3 schema JSON。
 
-迁移必须在 transaction 内完成。禁止 destructive migration，禁止删除表重建后只复制部分列。
+迁移必须在 SQLiteOpenHelper 提供的外层 upgrade transaction 内完成。任何预检、DDL、回填或插入失败都必须回滚，数据库 `user_version` 保持 2，且不得留下部分新增列或 slot 行。禁止 destructive migration，禁止删除表重建后只复制部分列。
+
+`occurredAtEpochMillis DEFAULT 0` 只用于 `ALTER TABLE` 与 Room schema 兼容，不是运行时业务默认值。Batch 4A 的兼容 `DoseEventEntity` 构造必须调用共享的严格 persistence helper，由合法 `timeH` 计算 `occurredAtEpochMillis`；Room 创建的新 Entity 不得把 0 绑定为实际事件时间。兼容构造暂时写入 `zoneId=null`、`localDate=null`、`slotId=null`、`source='LEGACY'`、`status='RECORDED'`、`revision=1`。非法 `timeH` 必须明确失败，不得回退到 SQL 默认值。
+
+### 12.1 历史 `timeOfDay` 兼容规则（B1）— Resolved
+
+1. 读取现有 `medication_plans.timeOfDay` JSON 时，严格保留列表顺序和重复值；SQL 空字符串与 JSON 空数组 `[]` 均解释为空列表。
+2. 每个元素按 ISO `LocalTime` 语义解析。`HH:mm`、`HH:mm:00` 以及 second 和 nano 均为 0 的等效 ISO 表达可迁移。
+3. 合法值只在新建 slot 的 `localTime` 中 canonicalize 为 `HH:mm`；原 `medication_plans.timeOfDay` 字符串逐字保持不变。
+4. second 或 nano 任一非零时，整个 migration 中止；不得截断、舍入、跳过 slot、修改旧列或自动修复。
+5. 错误必须包含 `planId`、零基 `position`、原始字符串和失败原因。
+6. Slot ID v1 的 namespace、canonical name、UTF-8 编码和固定测试向量保持不变；非分钟值不得通过重新解释 v1 算法迁移。
+7. 非分钟值只能由 Batch 4C 工具根据显式 correction manifest 在数据库副本中修复。
+
+当前 v2 合成 fixture 中的 `20:30:15` 固定为正式负向迁移用例：v2 -> v3 必须失败，`user_version` 必须保持 2，且不得留下部分新增列或 slot 行。
 
 ## 13. `timeH` 转换、舍入和容差
 
@@ -436,15 +451,32 @@ timeH = occurredAtEpochMillis / 3_600_000.0
 
 迁移、JSON v1 adapter、PK adapter、Wear/Widget/提醒入口必须调用同一个纯 Kotlin 转换器，不得各自复制常量和舍入逻辑。
 
-### 13.2 校验和容差
+### 13.2 校验、容差与 storage class（B3）— Resolved
 
 - `timeH` 必须 finite，乘法结果也必须 finite 且在 `Long` 范围内；Phase 1 不额外设置主观的历史/未来日期阈值。
 - 对当前由 epoch millis 生成的数据，要求 `Math.round(reconstructedTimeH * 3_600_000.0)` 恢复原 millis。
 - 对任意合法 JSON v1 Double，允许的时间量化误差不超过 1 ms，即 `2.7777778e-7` 小时。
 - 数据库迁移后旧 `timeH` 列逐位不变。
 - PK 回归继续使用现有 `1e-6` 输出容差；不得通过放宽测试掩盖时间转换差异。
-- NaN、Infinity 或无法表示为 epoch millis 的溢出值必须使 migration transaction 中止，并使 migration test 和发布检查失败；不得静默删除、截断或替换为当前时间。
-- Phase 1 必须提供独立 CLI 数据修复脚本，用于在显式人工操作下检查和修复数据库副本中的非法 `timeH`。修复脚本不得成为应用运行时自动迁移的一部分，修复规则和操作日志必须可审计。
+- migration 读取 `timeH` 时先检查 `Cursor.isNull` 和 `Cursor.getType`。只有 `FIELD_TYPE_INTEGER` 与 `FIELD_TYPE_FLOAT` 合法；`FIELD_TYPE_STRING`、`FIELD_TYPE_BLOB`、`FIELD_TYPE_NULL` 和 `isNull=true` 均明确失败。
+- 只有 storage class 校验通过后才可调用 `getDouble`，随后统一交给 `LegacyTimeAdapter`；不得由 migration 复制或弱化转换规则。
+- NaN、positive infinity、negative infinity、乘法溢出或超出 `Long` 范围必须使 migration transaction 中止，并使 migration test 和发布检查失败；不得 clamp、删除异常记录、替换为 0 或当前时间，也不得更新原 `timeH`。
+- 全部 event 和 plan 输入必须在任何回填 `UPDATE` 或 slot `INSERT` 前验证完毕；任一失败由外层 SQLiteOpenHelper upgrade transaction 回滚。
+- exact v2 `NOT NULL` 表若无法可靠保存 NaN，不得声称设备迁移已覆盖该情形。NaN 必须由 `LegacyTimeAdapter` JVM test 覆盖；instrumentation 只记录 Android/SQLite 的实际表示能力。NULL 和异常 storage class 仍由真实 migration failure tests 覆盖。
+
+### 13.3 `repair-v2` 显式修复工具（B4）— Resolved
+
+Batch 4C 在 `tools/repair-v2/` 实现 Python 3.12-compatible 标准库工具，只允许使用 `sqlite3`、`argparse`、`json`、`hashlib`、`pathlib`、`shutil` 和 `datetime`；不引入 SQLite JDBC、Gradle module 或第三方依赖。
+
+- `scan`：默认只读，检查非法 `timeH` 与非分钟 `timeOfDay`，只输出计数和最小必要诊断。
+- `repair`：必须提供显式 JSON correction manifest；输入数据库只读，输出到不同的新路径，禁止覆盖输入或原地修改。
+- `verify`：重新扫描输出副本；只有不存在阻断数据时才成功。
+- manifest 使用稳定 ID 显式映射 `event ID -> replacement timeH` 和 `plan ID -> replacement timeOfDay list`。
+- 禁止猜测时间、截断秒/纳秒、使用当前时间、根据相邻记录或时区推断，以及无 manifest 自动修复。
+- JSONL 审计记录工具版本、输入/输出 SHA-256、dry-run/apply 模式、修复数和失败数，不记录完整行内容。
+- 仓库只提交工具源码、README、合成 fixture 和单元测试；真实数据库及副本、用户 manifest 和审计日志不得提交。
+
+Batch 4C 不阻塞 4A/4B 的技术实施，但阻塞完整 Batch 4 的最终验收。该工具不进入 Android 运行时，也不替代 migration 的严格失败策略。
 
 ## 14. 旧列保留和删除时机
 
@@ -618,20 +650,25 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 
 1. v2 空数据库 -> v3。
 2. v2 含每种 route/ester/extras 的事件 -> v3。
-3. 整数和小数 `timeH`、真实 epoch、分钟对齐和毫秒精度。
-4. 非法 timeH 的已决定处置。
-5. 计划无槽、单槽、多槽、重复时间、跨午夜时间。
-6. `timeOfDay` 原顺序和 slot position/ID 稳定。
-7. 使用明确标记为 test fixture 的 v1 `dose_events` DDL 执行 v1 -> v2 -> v3 完整链；不得把 fixture 冒充历史导出 schema。
-8. v3 schema 与导出 JSON 一致。
-9. 新旧列双写一致。
-10. DST gap、DST overlap、设备换时区和 legacy zone null。
-11. JSON v1 fixture 和导出再导入。
-12. 相同 reminder/Wear/Widget ID 重放不产生重复行。
-13. revision 更新冲突。
-14. 全部现有 PK、提醒、Wear、Widget utility 和 UI 纯 JVM 测试。
-15. 固定种子的合成长历史 fixture，覆盖数千条事件、跨时区、DST、贴片配对和舌下 tier。
-16. 本地脱敏 fixture 仅作为非必需补充测试；公共 CI 和 Phase 1 验收不得依赖本地私有样本才能通过。
+3. `timeH` 的 INTEGER/FLOAT storage class、整数值、小数值、真实 epoch、分钟对齐和毫秒精度。
+4. `timeH` 为 NULL、STRING、BLOB、NaN、positive/negative infinity、乘法溢出或超出 `Long` 范围时按第 13.2 节失败；只有 Android/SQLite 实际可表示的异常值才声称 instrumentation 覆盖，NaN 始终由 JVM adapter test 覆盖。
+5. 计划无槽、单槽、多槽、重复时间、跨午夜时间；SQL 空字符串和 JSON `[]` 均得到空 slots。
+6. `HH:mm`、`HH:mm:00` 和 second/nano 均为零的等效 ISO `timeOfDay` 可迁移，slot canonical time 为 `HH:mm`，原字符串不变。
+7. `timeOfDay` 原顺序、重复值及 slot position/ID 稳定。
+8. 固定使用现有含 `20:30:15` 的 v2 fixture 做负向迁移：migration 失败，`user_version=2`，无部分新增列或 slot 行。
+9. 任一 event 或 plan 预检失败都回滚整个 migration；验证失败前后旧表、旧列和值逐位不变。
+10. 使用明确标记为 test fixture 的 v1 `dose_events` DDL 执行 v1 -> v2 -> v3 完整链；不得把 fixture 冒充历史导出 schema。
+11. v3 schema 与 Room 自动导出的 JSON 一致。
+12. `scheduled_dose_slots` 的 FK、cascade、唯一索引、顺序和重复时间行为。
+13. 新旧列双写一致。
+14. DST gap、DST overlap、设备换时区和 legacy zone null。
+15. JSON v1 fixture 和导出再导入。
+16. 相同 reminder/Wear/Widget ID 重放不产生重复行。
+17. revision 更新冲突。
+18. 全部现有 PK、提醒、Wear、Widget utility 和 UI 纯 JVM 测试。
+19. 固定种子的合成长历史 fixture，覆盖数千条事件、跨时区、DST、贴片配对和舌下 tier。
+20. migration matrix 必须在 emulator 或专用测试设备上实际执行；仅编译 androidTest 不等于通过。
+21. 本地脱敏 fixture 仅作为非必需补充测试；公共 CI 和 Phase 1 验收不得依赖本地私有样本才能通过。
 
 ## 19. 回滚方案
 
@@ -642,6 +679,23 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 5. 发布前保存并版本化合成 v2 fixture；真实健康数据库和从其派生的脱敏 fixture 不进入仓库。若本地私有 fixture 暴露迁移缺陷，先将缺陷归纳为最小合成回归用例，再修复并停止发布，不能通过清库解决。
 6. 若 v3 生产问题需要 APK 回退，应发布“旧行为 + v3 schema 兼容”的修复版本，而不是安装不认识 v3 的旧 APK。
 7. 不从 `occurredAt` 反向覆盖历史 `timeH`；旧列始终是 rollback shadow 的原始证据。
+
+### 19.1 v3 内部不可发布区间与发布门槛（B2）— Resolved
+
+从首个包含 Room v3 schema 的提交开始，直到 Phase 1 Batch 8 全部退出验收通过，所有构建均为内部、不可发布的迁移版本。期间禁止创建正式 release、分发生产 APK/AAB、升级用户主数据库，或在包含真实健康数据的设备/数据库上安装和运行。只允许合成 fixture、测试数据库、emulator、使用非真实数据的专用测试设备和本地可丢弃数据库。
+
+进入正式发布至少必须同时满足：
+
+1. v2 -> v3 migration matrix 已在设备或 emulator 实际执行通过。
+2. Batch 3C Repository implementation 完成。
+3. event 写入正确同步 `timeH`、`occurredAtEpochMillis`、`zoneId`、`localDate`、`slotId`、`source`、`status`、`revision`。
+4. plan 保存能在同一 transaction 中同步 `medication_plans.timeOfDay` 与 `scheduled_dose_slots`。
+5. Reminder、Widget、Wear、UI 和其他现有入口不再绕过新 Repository contract。
+6. JSON v1 导入完成 `source` 与时间字段适配，既有格式和随机 UUID 行为保持不变。
+7. PK adapter 回归在 `1e-6` 绝对容差内通过，参数不变。
+8. Batch 8 的完整退出验收通过。
+
+Batch 4A 期间现有写路径不会同步 slot 表，且迁移行的 `source`/`slotId` 语义仍处于兼容状态，因此即使构建、schema 和基础 migration tests 通过也不得发布。设备 migration 验证之外，任何真实数据库问题只能在受控本地副本上调查；不得用中间 APK 直接升级用户数据。
 
 ## 20. 分批实施顺序、文件和验收
 
@@ -711,22 +765,44 @@ app/schemas/io.github.yuninggu.evolune.data.AppDatabase/3.json
 
 ### Batch 3C：Repository 实现与生产接线（推迟）
 
-Batch 3C 必须等待 Batch 4 完成 v3 schema、Entity、DAO、迁移和 schema 验证后才能开始。届时才允许实现完整无损双向 mapper、Repository contract 的 Room 实现、计划与 slots 的原子 transaction、revision/idempotency/conflict 语义及 composition root 接线。Batch 3A 或 3B 的通过不授权提前实施 3C。
+Batch 3C 不并入 Batch 4A。它必须等待 v3 schema、Entity、DAO、migration tests 和 schema validation 就绪后单独实施，届时才允许实现完整无损双向 mapper、Repository contract 的 Room 实现、计划与 slots 的原子 transaction、revision/idempotency/conflict 语义及 composition root 接线。Batch 3A、3B 或 4A-0 的通过均不授权提前实施 3C；3C 仍受第 19.1 节不可发布门槛约束。
 
-### Batch 4：v2 -> v3 additive schema
+### Batch 4A-0：Migration primitives
 
-**涉及文件**：
+**只允许实现**：
 
-- `DoseEventEntity.kt`
-- `MedicationPlanEntity.kt`
-- 新增 `ScheduledDoseSlotEntity.kt` 和 persistence aggregate
-- `DoseEventDao.kt`、`MedicationPlanDao.kt`、新 slot DAO
-- `AppDatabase.kt` 和独立 migration 文件
-- `app/schemas/.../3.json`
-- `AppDatabaseMigrationTest.kt`
-- 独立 `tools/repair-v2-timeh/` CLI 数据检查与修复工具及其说明
+- `LegacyPlanTimeParser`
+- persistence compatibility time helper
+- migration error 类型
+- 对应纯 JVM tests
 
-**测试/验收**：第 18.3 节 migration 矩阵通过；非法 `timeH` 中止 transaction 和发布检查；CLI 仅在数据库副本上显式运行且结果可审计；旧列逐位不变；新 event 时间误差不超过 1 ms；slot 顺序/重复值完整；无 destructive migration。只有本批通过并导出、核对 v3 schema 后，Batch 3C 的无损双向 mapper 和 Repository 实现才具备前置条件。
+本批不得修改 `AppDatabase` version、Entity 或 Room schema，不得生成 `3.json`。验收重点是 B1/B3 的解析、storage class 后续调用契约、错误上下文、`LegacyTimeAdapter` 复用和边界测试。
+
+### Batch 4A-1：Atomic v3 schema implementation
+
+以下内容必须在一个可构建、不可拆分的提交中完成：
+
+- `DoseEventEntity` 七个新字段
+- `ScheduledDoseSlotEntity`
+- `ScheduledDoseSlotDao`
+- 必要 persistence aggregate
+- `AppDatabase version = 3`
+- `MIGRATION_2_3` 及注册
+- Room 自动生成的 `app/schemas/.../3.json`
+- 基础 migration instrumentation tests
+- 调整 v2 baseline test 以兼容数据库版本升级
+
+禁止提交 Entity 已改但 version 仍为 2、version 3 没有 `MIGRATION_2_3`、migration DDL 与 `ColumnInfo.defaultValue` 不一致、Slot Entity 未注册、手写 `3.json` 或生产代码无法构建的中间状态。本批即使通过也处于第 19.1 节内部不可发布区间；现有写路径尚不维护 slot 表。
+
+### Batch 4B：完整 migration matrix
+
+实现并在 emulator 或专用测试设备实际执行第 18.3 节矩阵，至少覆盖非法数据、transaction rollback、slot 顺序与重复值、FK/cascade/unique index、v1 -> v2 -> v3、固定种子长历史、Room schema validation 和 connected instrumentation。androidTest 只编译不算本批通过。
+
+### Batch 4C：Python repair toolkit
+
+按第 13.3 节在 `tools/repair-v2/` 实现 `scan`、`repair`、`verify`、显式 manifest、JSONL 审计、合成 fixture 和单元测试。4C 不阻塞 4A/4B 技术工作，但未通过时 Batch 4 不得完成最终验收。
+
+**Batch 4 总体验收**：4A-0、4A-1、4B 和 4C 全部通过；旧 `timeH`/`timeOfDay` 不变；新 event 时间误差不超过 1 ms；slot 顺序和重复值完整；无 destructive migration。此验收不等于可发布，最终 release 仍必须满足第 19.1 节和 Batch 8 门槛。
 
 ### Batch 5：双读双写与计划槽位切换
 
@@ -783,11 +859,11 @@ Batch 3C 必须等待 Batch 4 完成 v3 schema、Entity、DAO、迁移和 schema
 
 ## 21. Resolved 决策记录
 
-以下 16 项均已由项目所有者解决。重新评估条件只允许触发新的设计记录，不会自动改变本文件的 Phase 1 基线。
+以下 20 项均已由项目所有者解决。重新评估条件只允许触发新的设计记录，不会自动改变本文件的 Phase 1 基线。
 
 ### D1. 目标 schema 版本 — Resolved
 
-- **最终选择**：使用 v3 作为首个导出和 additive migration 目标版本。
+- **最终选择**：使用 v3 作为已固定 v2 schema baseline 之后的首个 additive migration 目标版本。
 - **理由**：当前生产模型为 Room v2；从 v2 固定基线后迁移到 v3，能够保持版本链清晰且避免伪造历史 schema。
 - **影响范围**：第 12、18、19、20 节；`AppDatabase`、schema 2/3、v1->2->3 和 v2->3 migration test。
 - **重新评估条件**：仅当实施前发现仓库外已经存在使用 v3 的可分发数据库，发生版本号冲突时重新设计目标版本。
@@ -896,5 +972,33 @@ Batch 3C 必须等待 Batch 4 完成 v3 schema、Entity、DAO、迁移和 schema
 - **理由**：v2 无法持久化 `occurredAt` 元数据、revision 和 `ScheduledDoseSlot.id`。先锁定纯 contract 和只读边界，可以获得可测试的依赖方向，同时避免以 best-effort 写回静默丢失领域事实。
 - **影响范围**：第 6.5、6.6、9、10、11、20 节；Batch 3A/3B 的新增文件和测试、Batch 4 的前置条件以及 Batch 3C 的实施时机。`getEventsForPk` 保持现有 30 天/20 条选择逻辑和两个分支各自顺序；Route/Ester 暂不迁移；ExtraKey 必须显式映射；持久化 Instant 溢出必须明确失败。
 - **重新评估条件**：只有 v3 schema、Entity、DAO 和 migration tests 已通过，才可解除 3C 阻塞并设计生产接线；若需要移动 Route/Ester、扩展 Repository 方法、改变 PK 选取规则或允许有损写回，必须新增 ADR，不得在实现中临时改变。
+
+### D17. B1：历史非分钟 `timeOfDay` — Resolved
+
+- **最终选择**：保持原列表顺序和重复值；SQL 空字符串与 JSON `[]` 解释为空列表；使用 ISO `LocalTime` 解析。只有 second/nano 均为 0 的值可迁移，slot canonicalize 为 `HH:mm`，旧 `timeOfDay` 不变。任一非零 second/nano 中止整个 migration，并报告 `planId`、position、原始值和原因；`20:30:15` 固定为 rollback 负向用例。
+- **理由**：分钟精度是 Slot ID v1 的已发布输入语义；截断、舍入或跳过会改变计划含义并破坏确定性标识。
+- **影响范围**：第 12、13、17、18、19、20 节；`LegacyPlanTimeParser`、migration、错误类型、Batch 4B 和 4C。
+- **重新评估条件**：只有通过新的版本化 Slot ID 设计和独立数据迁移 ADR 才能改变该规则；不得重新解释 Slot ID v1。
+
+### D18. B2：v3 内部不可发布区间 — Resolved
+
+- **最终选择**：从首个 v3 schema 提交到 Batch 8 退出验收全部通过，所有构建均为内部不可发布版本；只允许合成或可丢弃测试数据环境。发布必须满足第 19.1 节全部门槛。
+- **理由**：4A 的 schema、现有写路径和后续 Repository/入口适配不是一个原子产品切换；中间版本可能无法维护完整 slot、source 和双写语义。
+- **影响范围**：第 12、14、15、16、18、19、20 节；构建分发、设备测试、3C、Batch 5–8 和 release 流程。
+- **重新评估条件**：只有形成另一个经完整 migration、写路径和入口验收的可发布切片时，才可通过新 ADR 缩短区间；不得仅以构建成功解除门槛。
+
+### D19. B3：migration `timeH` storage class — Resolved
+
+- **最终选择**：先用 `Cursor.isNull`/`getType` 验证，只允许 INTEGER/FLOAT，随后才调用 `getDouble` 并交给 `LegacyTimeAdapter`。NULL/STRING/BLOB、非 finite、乘法或 `Long` 溢出全部失败；所有 event/plan 在任何回填写入前完成预检，任一失败回滚外层 upgrade transaction。
+- **理由**：SQLite 动态类型可能让声明为 REAL 的列保存异常 storage class；先验证真实存储类型可避免隐式转换掩盖损坏数据。
+- **影响范围**：第 12、13、18、19、20 节；migration reader、错误报告、JVM 与 instrumentation tests。
+- **重新评估条件**：只有 Android/SQLite 支持矩阵或 v2 实际 schema 证据发生变化时重新评估测试构造方式；严格失败语义不因测试平台限制而放宽。
+
+### D20. B4：v2 显式修复工具 — Resolved
+
+- **最终选择**：Batch 4C 在 `tools/repair-v2/` 提供 Python 3.12-compatible 标准库 `scan/repair/verify` 工具。repair 必须使用稳定 ID correction manifest，从只读输入生成不同输出副本并写最小 JSONL 审计；禁止自动猜测、截断或原地修复。
+- **理由**：不可无歧义迁移的数据需要人工确认，同时必须保护原数据库、保持操作可重复和可审计，并避免把修复逻辑引入应用运行时。
+- **影响范围**：第 12、13、18、19、20 节；工具源码、README、合成 fixture、测试、敏感文件排除和 Batch 4 验收。
+- **重新评估条件**：只有 correction manifest 格式、支持的 v2 schema 或审计合规要求变化时新增工具版本；真实数据库、manifest 和审计日志仍不得进入仓库。
 
 **未决问题**：无。任何触发上述重新评估条件的事项必须建立新的设计决策，不得在 Batch 实施中临时改变本基线。

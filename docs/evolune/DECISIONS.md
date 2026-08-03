@@ -158,3 +158,19 @@
 - **缺点**：Batch 3A/3B 期间存在只读过渡层，当前生产 Repository 仍未切换；3C 需要等待 schema 迁移，短期会保留部分旧模型和 mapper。
 - **不可变兼容规则**：不得因为 3A/3B 实施而修改 Room version、schema 2、Entity、DAO、JSON v1、PK、Wear 或 Widget 行为；不得提前引入 Tracked Date、Health Connect、Glance、WorkManager、云同步或生产路径切换。
 - **重新评估条件**：Batch 4 v3 schema、Entity、DAO、migration test、schema export 和非法数据失败检查全部通过后，才能评估 3C。若需要让 v2 写入领域 metadata、移动 Route/Ester、改变 `getEventsForPk`、增加 result 状态或允许有损兼容，必须另立 ADR。
+
+## ADR-016：Room v3 迁移采用严格时间兼容、内部不可发布门槛与显式修复工具
+
+- **背景**：Room v2 的 `dose_events.timeH` 使用 SQLite 动态数值存储，`medication_plans.timeOfDay` 是历史 JSON 字符串列表。v3 需要回填权威 `occurredAtEpochMillis` 和稳定 `ScheduledDoseSlot`，但旧数据可能包含异常 storage class、非法数值或非分钟时间；同时 schema、Repository、双写和入口切换会跨多个批次完成。
+- **状态**：Batch 4 设计阻断项 B1、B2、B3、B4 均为 `Resolved`。
+- **非分钟 `timeOfDay`**：读取时保留列表顺序和重复值；SQL 空字符串与 JSON `[]` 均为空列表；按 ISO `LocalTime` 解析。`HH:mm`、`HH:mm:00` 和 second/nano 均为 0 的等效 ISO 表达可迁移，新 slot 规范化为 `HH:mm`，旧字符串不变。second 或 nano 任一非零即中止整个 migration，不截断、舍入、跳过或修正；错误包含 planId、position、原始值和原因。
+- **Slot ID v1 不变**：非分钟时间不通过改变 UUIDv5 namespace、canonical name、UTF-8 规则或固定向量解决。修改 v1 会让同一历史计划产生不同身份并破坏已锁定兼容承诺；不兼容需求必须设计 Slot ID v2。
+- **Storage class**：先检查 `Cursor.isNull` 和 `Cursor.getType`，只允许 INTEGER/FLOAT；NULL/STRING/BLOB 明确失败。通过类型验证后才调用 `getDouble`，再统一交给 `LegacyTimeAdapter`。NaN、positive/negative infinity、乘法溢出和 `Long` 溢出全部失败；不 clamp、不替换为 0/当前时间、不删除记录、不更新旧 `timeH`。全部 event/plan 必须在任何回填 `UPDATE/INSERT` 前验证，失败由外层 SQLiteOpenHelper upgrade transaction 回滚。
+- **SQL default 与运行时默认**：`occurredAtEpochMillis DEFAULT 0` 只服务于 `ALTER TABLE` 和 Room schema 兼容。运行时创建 `DoseEventEntity` 必须通过共享严格 helper 从合法 `timeH` 计算时间，不得把 0 当作业务默认值；兼容阶段只允许 `zoneId/localDate/slotId=null`、`source=LEGACY`、`status=RECORDED`、`revision=1`。
+- **内部不可发布区间**：从首个包含 v3 schema 的提交到 Phase 1 Batch 8 退出验收全部通过，所有构建均不可正式发布。禁止生产 APK/AAB、用户主数据库升级、正式 release 和在真实健康数据上运行；只允许合成 fixture、测试数据库、emulator、非真实数据专用设备和本地可丢弃数据库。
+- **显式修复工具**：Batch 4C 在 `tools/repair-v2/` 提供 Python 3.12-compatible 标准库工具，只使用 `sqlite3`、`argparse`、`json`、`hashlib`、`pathlib`、`shutil`、`datetime`。`scan` 只读诊断，`repair` 必须使用稳定 ID JSON correction manifest 并从只读输入生成不同输出副本，`verify` 重新扫描；禁止猜测、截断、当前时间、相邻记录/时区推断、无 manifest 修复和原地覆盖。JSONL 审计只记录版本、输入/输出 SHA-256、模式和计数，不记录完整行。
+- **Batch 4 拆分**：4A-0 只实现 parser、compatibility helper、错误类型和 JVM tests，不改数据库；4A-1 用单个可构建原子提交完成 v3 Entity/slot DAO/schema/migration/基础 instrumentation；4B 完成并实际执行 migration matrix；4C 完成 Python repair toolkit。3C 仍在 v3 schema/DAO 就绪后独立实施，不并入 4A。
+- **优点**：不歧义改写健康记录；保留原始列作为 rollback shadow；异常数据在写入前被发现并可完整回滚；Slot ID 保持确定性；修复过程保护原库且可审计；避免把不完整的中间 schema 当作可发布产品。
+- **缺点**：发现异常数据时升级会明确失败；Phase 1 存在较长的内部不可发布区间；需要维护 Python 工具、合成 fixture 和设备 migration matrix；Batch 4A 通过后仍不能立即发布或直接开始生产切换。
+- **发布门槛**：设备/emulator 上的 v2 -> v3 migration matrix、Batch 3C Repository、event 八字段双写、plan `timeOfDay`/slots 同 transaction、所有现有入口改走 contract、JSON v1 source/time 适配、PK 回归和 Batch 8 退出验收必须全部通过。仅编译 androidTest、生成 schema 或构建成功均不足以发布。
+- **重新评估条件**：只有发布切片重新划分并能独立满足完整迁移/写入/入口门槛，或 Android/SQLite 支持矩阵、correction manifest 版本、审计合规要求发生变化时，才可新增 ADR。不得修改 Slot ID v1、放宽非法数据失败语义、将中间 v3 版本用于用户数据，或在实现中临时绕过本决策。
