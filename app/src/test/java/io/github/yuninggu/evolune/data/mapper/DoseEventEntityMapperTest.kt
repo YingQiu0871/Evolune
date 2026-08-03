@@ -141,6 +141,23 @@ class DoseEventEntityMapperTest {
         extras = extras
     )
 
+    private fun corruptEntity(timeH: Double) = DoseEventEntity(
+        id = eventId,
+        route = "ORAL",
+        timeH = timeH,
+        doseMG = 2.0,
+        ester = "EV",
+        extras = emptyMap(),
+        // v3 normally rejects invalid timeH; explicit persistence fields model a corrupt stored row.
+        occurredAtEpochMillis = 0L,
+        zoneId = null,
+        localDate = null,
+        slotId = null,
+        source = "LEGACY",
+        status = "RECORDED",
+        revision = 1L
+    )
+
     private fun success(result: MappingResult<DoseEvent>): DoseEvent {
         assertTrue(result is MappingResult.Success)
         return (result as MappingResult.Success).value
@@ -152,7 +169,7 @@ class DoseEventEntityMapperTest {
     }
 
     private fun assertNonFiniteFailure(value: Double, expectedKind: NonFiniteKind) {
-        val error = failure(entity(timeH = value).toDomainDoseEvent())
+        val error = failure(corruptEntity(timeH = value).toDomainDoseEvent())
         assertTrue(error is MappingError.InvalidTimeH)
         val cause = (error as MappingError.InvalidTimeH).cause
         assertTrue(cause is LegacyTimeError.NonFinite)
@@ -160,7 +177,7 @@ class DoseEventEntityMapperTest {
     }
 
     private fun assertOverflowFailure(value: Double) {
-        val error = failure(entity(timeH = value).toDomainDoseEvent())
+        val error = failure(corruptEntity(timeH = value).toDomainDoseEvent())
         assertTrue(error is MappingError.InvalidTimeH)
         assertTrue((error as MappingError.InvalidTimeH).cause is LegacyTimeError.Overflow)
     }

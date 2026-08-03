@@ -1,9 +1,10 @@
 package io.github.yuninggu.evolune.data
 
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.json.JSONObject
@@ -12,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -21,6 +23,7 @@ import org.junit.runner.RunWith
 class AppDatabaseV2BaselineTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context: Context = instrumentation.targetContext
+    private val testContext: Context = instrumentation.context
 
     @get:Rule
     val migrationHelper = MigrationTestHelper(instrumentation, AppDatabase::class.java)
@@ -102,17 +105,37 @@ class AppDatabaseV2BaselineTest {
             }
         }
 
-        val reopened = Room.databaseBuilder(context, AppDatabase::class.java, TEST_DATABASE)
-            .allowMainThreadQueries()
-            .build()
+        val reopened = openExistingV2Database()
         try {
-            val database = reopened.openHelper.writableDatabase
+            val database = reopened.writableDatabase
             assertSyntheticEvents(database)
             assertSyntheticPlans(database)
             assertIdentityHashMatchesGeneratedSchema(database)
         } finally {
             reopened.close()
         }
+    }
+
+    private fun openExistingV2Database(): SupportSQLiteOpenHelper {
+        val configuration = SupportSQLiteOpenHelper.Configuration.builder(context)
+            .name(TEST_DATABASE)
+            .callback(
+                object : SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
+                    override fun onCreate(database: SupportSQLiteDatabase) {
+                        fail("Existing v2 database must not be created during raw reopen")
+                    }
+
+                    override fun onUpgrade(
+                        database: SupportSQLiteDatabase,
+                        oldVersion: Int,
+                        newVersion: Int
+                    ) {
+                        fail("Existing v2 database must not be upgraded during raw reopen")
+                    }
+                }
+            )
+            .build()
+        return FrameworkSQLiteOpenHelperFactory().create(configuration)
     }
 
     private fun assertColumns(
@@ -161,7 +184,7 @@ class AppDatabaseV2BaselineTest {
     }
 
     private fun assertIdentityHashMatchesGeneratedSchema(database: SupportSQLiteDatabase) {
-        val expectedHash = context.assets.open(SCHEMA_ASSET).bufferedReader().use { reader ->
+        val expectedHash = testContext.assets.open(SCHEMA_ASSET).bufferedReader().use { reader ->
             JSONObject(reader.readText()).getJSONObject("database").getString("identityHash")
         }
         val actualHash = database.query(

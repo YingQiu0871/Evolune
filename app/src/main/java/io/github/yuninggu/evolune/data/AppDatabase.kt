@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import io.github.yuninggu.evolune.data.migration.MIGRATION_2_3
 
 /**
  * 应用数据库
@@ -14,15 +15,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [
         DoseEventEntity::class,
-        MedicationPlanEntity::class
+        MedicationPlanEntity::class,
+        ScheduledDoseSlotEntity::class
     ],
-    version = 2,  // 增加版本号
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun doseEventDao(): DoseEventDao
     abstract fun medicationPlanDao(): MedicationPlanDao
+    abstract fun scheduledDoseSlotDao(): ScheduledDoseSlotDao
 
     companion object {
         @Volatile
@@ -62,7 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "evolune_database"
                 )
-                    .addMigrations(MIGRATION_1_2) // 添加迁移策略，保留数据
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance

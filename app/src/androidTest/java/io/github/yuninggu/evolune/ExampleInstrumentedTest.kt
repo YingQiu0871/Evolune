@@ -18,7 +18,11 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("io.github.yuninggu.evolune", appContext.packageName)
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val appContext = instrumentation.targetContext
+        val targetPackage = appContext.packageManager
+            .getInstrumentationInfo(instrumentation.componentName, 0)
+            .targetPackage
+        assertEquals(targetPackage, appContext.packageName)
     }
 }
