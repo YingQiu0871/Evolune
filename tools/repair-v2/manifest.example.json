@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "inputSha256": "REPLACE_WITH_64_HEX_SHA256_OF_EXACT_OFFLINE_INPUT_COPY",
+  "eventCorrections": {
+    "00000000-0000-0000-0000-000000000101": {
+      "timeH": 123.456
+    }
+  },
+  "planCorrections": {
+    "00000000-0000-0000-0000-000000000201": {
+      "timeOfDay": [
+        "08:30",
+        "20:00"
+      ]
+    }
+  }
+}
