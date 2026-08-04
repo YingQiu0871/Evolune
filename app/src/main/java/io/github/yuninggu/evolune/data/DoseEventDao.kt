@@ -9,6 +9,87 @@ import java.util.UUID
  */
 @Dao
 interface DoseEventDao {
+    @Query("SELECT * FROM dose_events ORDER BY occurredAtEpochMillis DESC, id ASC")
+    fun observeAllForRepository(): Flow<List<DoseEventEntity>>
+
+    @Query("SELECT * FROM dose_events WHERE id = :id")
+    suspend fun getEventById(id: UUID): DoseEventEntity?
+
+    @Query(
+        """
+        SELECT * FROM dose_events
+        WHERE occurredAtEpochMillis >= :startInclusive
+            AND occurredAtEpochMillis < :endExclusive
+        ORDER BY occurredAtEpochMillis ASC, id ASC
+        """
+    )
+    suspend fun getEventsByOccurredAtRange(
+        startInclusive: Long,
+        endExclusive: Long
+    ): List<DoseEventEntity>
+
+    @Query(
+        """
+        SELECT * FROM dose_events
+        WHERE occurredAtEpochMillis >= :startInclusive
+        ORDER BY occurredAtEpochMillis ASC, id ASC
+        """
+    )
+    suspend fun getEventsAfterOccurredAt(startInclusive: Long): List<DoseEventEntity>
+
+    @Query(
+        """
+        SELECT * FROM dose_events
+        ORDER BY occurredAtEpochMillis DESC, id ASC
+        LIMIT :limit
+        """
+    )
+    suspend fun getRecentEventsByOccurredAt(limit: Int): List<DoseEventEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertEventIfAbsent(event: DoseEventEntity): Long
+
+    @Query(
+        """
+        UPDATE dose_events SET
+            route = :route,
+            timeH = :timeH,
+            doseMG = :doseMG,
+            ester = :ester,
+            extras = :extras,
+            occurredAtEpochMillis = :occurredAtEpochMillis,
+            zoneId = :zoneId,
+            localDate = :localDate,
+            slotId = :slotId,
+            source = :source,
+            status = :status,
+            revision = :revision
+        WHERE id = :id AND revision = :expectedRevision
+        """
+    )
+    suspend fun updateEventIfRevisionMatches(
+        id: UUID,
+        route: String,
+        timeH: Double,
+        doseMG: Double,
+        ester: String,
+        extras: Map<String, Double>,
+        occurredAtEpochMillis: Long,
+        zoneId: String?,
+        localDate: String?,
+        slotId: UUID?,
+        source: String,
+        status: String,
+        revision: Long,
+        expectedRevision: Long
+    ): Int
+
+    @Query("DELETE FROM dose_events WHERE id = :id")
+    suspend fun deleteEventIfPresent(id: UUID): Int
+
+    @Query("DELETE FROM dose_events")
+    suspend fun deleteAllEventsIfPresent(): Int
+
     /**
      * 获取所有用药事件（按时间排序）
      */

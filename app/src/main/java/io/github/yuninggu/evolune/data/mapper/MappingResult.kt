@@ -3,6 +3,7 @@ package io.github.yuninggu.evolune.data.mapper
 import io.github.yuninggu.evolune.core.model.SlotIdError
 import io.github.yuninggu.evolune.core.time.LegacyTimeError
 import java.time.Instant
+import java.util.UUID
 
 sealed interface MappingResult<out T> {
     data class Success<T>(val value: T) : MappingResult<T>
@@ -22,10 +23,26 @@ sealed interface MappingError {
     data class InvalidTimeOfDay(val value: String) : MappingError
     data class InvalidDayOfWeek(val value: Int) : MappingError
     data class InvalidCreatedAt(val input: CreatedAtInput) : MappingError
+    data class InvalidOccurredAtPrecision(val value: Instant) : MappingError
+    data class InconsistentEventTime(val eventId: UUID) : MappingError
+    data class InvalidZoneId(val value: String) : MappingError
+    data class InvalidLocalDate(val value: String) : MappingError
+    data class InvalidSource(val value: String) : MappingError
+    data class InvalidStatus(val value: String) : MappingError
     data class InvalidSlot(
         val position: Int,
         val cause: SlotIdError
     ) : MappingError
+
+    data class InvalidSlotPlan(val position: Int) : MappingError
+    data class InvalidSlotPosition(val position: Int) : MappingError
+    data class InvalidSlotLocalTime(
+        val position: Int,
+        val value: String
+    ) : MappingError
+
+    data class UnexpectedSlotId(val position: Int) : MappingError
+    data class InconsistentPlanTimes(val planId: UUID) : MappingError
 
     data class InvalidDoseEventInvariant(val revision: Long) : MappingError
     data class InvalidPlanInvariant(val intervalDays: Int) : MappingError
