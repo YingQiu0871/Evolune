@@ -18,6 +18,7 @@ import io.github.yuninggu.evolune.data.ThemeMode
 import io.github.yuninggu.evolune.data.DoseEventRepository
 import io.github.yuninggu.evolune.data.MedicationPlanRepository
 import io.github.yuninggu.evolune.data.SettingsDataStore
+import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yuninggu.evolune.navigation.AppNavigation
 import io.github.yuninggu.evolune.reminder.ReminderManager
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
@@ -38,7 +39,9 @@ class MainActivity : ComponentActivity() {
         // 初始化数据库和仓库
         val database = AppDatabase.getDatabase(applicationContext)
         val doseEventRepository = DoseEventRepository(database.doseEventDao())
-        val medicationPlanRepository = MedicationPlanRepository(database.medicationPlanDao())
+        val legacyMedicationPlanRepository = MedicationPlanRepository(database.medicationPlanDao())
+        val productionRepositoryProvider =
+            ProductionRepositoryProvider.get(applicationContext)
         
         // 初始化设置数据存储
         val settingsDataStore = SettingsDataStore(applicationContext)
@@ -83,7 +86,7 @@ class MainActivity : ComponentActivity() {
                 val hrtViewModel: HRTViewModel = viewModel(
                     factory = HRTViewModelFactory(
                         repository = doseEventRepository,
-                        medicationPlanRepository = medicationPlanRepository,
+                        medicationPlanRepository = legacyMedicationPlanRepository,
                         bodyWeightKG = userSettings.bodyWeight
                     )
                 )
@@ -96,17 +99,20 @@ class MainActivity : ComponentActivity() {
                 // 创建 MedicationPlanViewModel
                 val reminderManager = ReminderManager(applicationContext)
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
-                    factory = MedicationPlanViewModelFactory(medicationPlanRepository, reminderManager)
+                    factory = MedicationPlanViewModelFactory(
+                        productionRepositoryProvider.medicationPlans,
+                        reminderManager
+                    )
                 )
-                val medicationPlans by medicationPlanViewModel.plans.collectAsState()
+                val legacyMedicationPlans by hrtViewModel.allPlans.collectAsState()
                 LaunchedEffect(
-                    medicationPlans,
+                    legacyMedicationPlans,
                     pkState.simulationResult,
                     pkState.currentConcentration
                 ) {
                     WearDataLayer.syncDashboard(
                         applicationContext,
-                        medicationPlans.filter { it.isEnabled }.take(2),
+                        legacyMedicationPlans.filter { it.isEnabled }.take(2),
                         pkState.currentConcentration,
                         io.github.yuninggu.evolune.wear.sampleWearCurve(
                             pkState.simulationResult,

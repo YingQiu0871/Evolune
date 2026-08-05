@@ -21,20 +21,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import io.github.yuninggu.evolune.R
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.MedicationPlan
+import io.github.yuninggu.evolune.core.model.ScheduleType
+import io.github.yuninggu.evolune.core.model.ScheduledDoseSlot
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yuninggu.evolune.ui.components.MedicationPlanCard
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanViewModel
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperation
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationState
+import io.github.yuninggu.evolune.viewmodel.ReminderSideEffectResult
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalTime
 import java.util.UUID
 
@@ -50,8 +57,12 @@ fun MedicationPlansScreen(
 ) {
     val context = LocalContext.current
     val plans by viewModel.plans.collectAsState()
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var planToEdit by remember { mutableStateOf<MedicationPlan?>(null) }
+    val editSession by viewModel.editSession.collectAsState()
+    val operationState by viewModel.operationState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val operationInProgress = operationState is MedicationPlanOperationState.Running
+    val submissionFailure = operationState as? MedicationPlanOperationState.Failure
+    val unknownErrorMessage = stringResource(R.string.common_unknown_error)
     var notificationPermissionGranted by remember {
         mutableStateOf(
             Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -102,21 +113,49 @@ fun MedicationPlansScreen(
 
     val hasEnabledPlan = plans.any { it.isEnabled }
 
+    LaunchedEffect(operationState, unknownErrorMessage) {
+        when (val state = operationState) {
+            is MedicationPlanOperationState.Success -> {
+                if (state.result.operation in listOf(
+                        MedicationPlanOperation.SAVE,
+                        MedicationPlanOperation.DELETE
+                    )
+                ) {
+                    viewModel.closeEditSession()
+                }
+                if (state.result.reminder == ReminderSideEffectResult.FAILED) {
+                    snackbarHostState.showSnackbar(unknownErrorMessage)
+                }
+                viewModel.acknowledgeOperation()
+            }
+            is MedicationPlanOperationState.Failure -> {
+                if (state.operation in listOf(
+                        MedicationPlanOperation.SET_ENABLED,
+                        MedicationPlanOperation.RESCHEDULE
+                    )
+                ) {
+                    snackbarHostState.showSnackbar(unknownErrorMessage)
+                    viewModel.acknowledgeOperation()
+                }
+            }
+            MedicationPlanOperationState.Idle,
+            is MedicationPlanOperationState.Running -> Unit
+        }
+    }
+
     MedicationPlansScreenContent(
         plans = plans,
         onPlanClick = { plan ->
-            planToEdit = plan
-            showBottomSheet = true
+            viewModel.startEditSession(plan)
         },
         onAddClick = {
-            planToEdit = null
-            showBottomSheet = true
+            viewModel.startCreateSession()
         },
         onToggleEnabled = { id, isEnabled ->
             if (isEnabled) {
                 requestNotificationPermissionIfNeeded()
             }
-            viewModel.togglePlanEnabled(id, isEnabled)
+            viewModel.setPlanEnabled(id, isEnabled)
         },
         showNotificationPermissionSetup = hasEnabledPlan && !notificationPermissionGranted,
         onNotificationPermissionSetup = ::requestNotificationPermissionIfNeeded,
@@ -126,31 +165,34 @@ fun MedicationPlansScreen(
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA &&
                 !promotedNotificationsEnabled,
         onPromotedNotificationSetup = ::openPromotedNotificationSettings,
+        interactionsEnabled = !operationInProgress,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier
     )
 
     // 底部弹窗
     MedicationPlanBottomSheet(
-        showBottomSheet = showBottomSheet,
+        showBottomSheet = editSession != null,
         onDismiss = {
-            showBottomSheet = false
-            planToEdit = null
+            viewModel.closeEditSession()
+            viewModel.acknowledgeOperation()
         },
-        onSave = { plan ->
-            if (plan.isEnabled) {
+        onSave = { draft ->
+            if (draft.isEnabled) {
                 requestNotificationPermissionIfNeeded()
             }
-            viewModel.upsertPlan(plan)
-            showBottomSheet = false
-            planToEdit = null
+            viewModel.saveDraft(draft)
         },
         onDelete = { id ->
             viewModel.deletePlan(id)
-            showBottomSheet = false
-            planToEdit = null
         },
-        planToEdit = planToEdit,
-        is24Hour = is24Hour
+        session = editSession,
+        is24Hour = is24Hour,
+        operationInProgress = operationInProgress,
+        showSubmissionError = submissionFailure?.operation in listOf(
+            MedicationPlanOperation.SAVE,
+            MedicationPlanOperation.DELETE
+        )
     )
 }
 
@@ -168,9 +210,12 @@ fun MedicationPlansScreenContent(
     onNotificationPermissionSetup: () -> Unit = {},
     showPromotedNotificationSetup: Boolean = false,
     onPromotedNotificationSetup: () -> Unit = {},
+    interactionsEnabled: Boolean = true,
+    snackbarHost: @Composable () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
+        snackbarHost = snackbarHost,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.plans_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
@@ -182,8 +227,9 @@ fun MedicationPlansScreenContent(
         },
         floatingActionButton = {
             LargeFloatingActionButton(
-                onClick = onAddClick,
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                onClick = { if (interactionsEnabled) onAddClick() },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.testTag("plan-add")
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -241,7 +287,8 @@ fun MedicationPlansScreenContent(
                     MedicationPlanCard(
                         plan = plan,
                         onClick = { onPlanClick(plan) },
-                        onToggleEnabled = { onToggleEnabled(plan.id, !plan.isEnabled) }
+                        onToggleEnabled = { onToggleEnabled(plan.id, !plan.isEnabled) },
+                        enabled = interactionsEnabled
                     )
                 }
             }
@@ -296,35 +343,35 @@ private fun ReminderSetupCard(
 private fun MedicationPlansScreenPreview() {
     EvoluneTheme {
         val samplePlans = listOf(
-            MedicationPlan(
-                id = UUID.randomUUID(),
+            previewPlan(
+                id = UUID(0L, 11L),
                 name = "EV注射",
                 route = Route.INJECTION,
                 ester = Ester.EV,
                 doseMG = 10.0,
-                scheduleType = MedicationPlan.ScheduleType.WEEKLY,
-                timeOfDay = listOf(LocalTime.of(9, 0)),
+                scheduleType = ScheduleType.WEEKLY,
+                times = listOf(LocalTime.of(9, 0)),
                 daysOfWeek = setOf(DayOfWeek.MONDAY),
                 isEnabled = true
             ),
-            MedicationPlan(
-                id = UUID.randomUUID(),
+            previewPlan(
+                id = UUID(0L, 12L),
                 name = "E2凝胶",
                 route = Route.GEL,
                 ester = Ester.E2,
                 doseMG = 3.0,
-                scheduleType = MedicationPlan.ScheduleType.DAILY,
-                timeOfDay = listOf(LocalTime.of(23, 0)),
+                scheduleType = ScheduleType.DAILY,
+                times = listOf(LocalTime.of(23, 0)),
                 isEnabled = true
             ),
-            MedicationPlan(
-                id = UUID.randomUUID(),
+            previewPlan(
+                id = UUID(0L, 13L),
                 name = "口服EV",
                 route = Route.ORAL,
                 ester = Ester.EV,
                 doseMG = 2.0,
-                scheduleType = MedicationPlan.ScheduleType.DAILY,
-                timeOfDay = listOf(LocalTime.of(8, 0), LocalTime.of(23, 30)),
+                scheduleType = ScheduleType.DAILY,
+                times = listOf(LocalTime.of(8, 0), LocalTime.of(23, 30)),
                 isEnabled = false
             )
         )
@@ -337,3 +384,35 @@ private fun MedicationPlansScreenPreview() {
         )
     }
 }
+
+private fun previewPlan(
+    id: UUID,
+    name: String,
+    route: Route,
+    ester: Ester,
+    doseMG: Double,
+    scheduleType: ScheduleType,
+    times: List<LocalTime>,
+    daysOfWeek: Set<DayOfWeek> = emptySet(),
+    isEnabled: Boolean
+): MedicationPlan = MedicationPlan(
+    id = id,
+    name = name,
+    route = route,
+    ester = ester,
+    doseMG = doseMG,
+    scheduleType = scheduleType,
+    slots = times.mapIndexed { position, localTime ->
+        ScheduledDoseSlot(
+            id = UUID(2L, position.toLong()),
+            planId = id,
+            localTime = localTime,
+            position = position
+        )
+    },
+    daysOfWeek = daysOfWeek,
+    intervalDays = 1,
+    isEnabled = isEnabled,
+    extras = emptyMap(),
+    createdAt = Instant.EPOCH
+)

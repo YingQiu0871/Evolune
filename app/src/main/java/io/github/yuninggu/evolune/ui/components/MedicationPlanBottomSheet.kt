@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,7 +21,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.yuninggu.evolune.R
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.application.MedicationPlanDraft
+import io.github.yuninggu.evolune.application.MedicationPlanEditSession
+import io.github.yuninggu.evolune.application.MedicationPlanEditorInput
+import io.github.yuninggu.evolune.application.MedicationPlanInputResult
+import io.github.yuninggu.evolune.application.selectedAntiAndrogen
+import io.github.yuninggu.evolune.application.selectedSublingualTier
+import io.github.yuninggu.evolune.application.toMedicationPlanDraft
+import io.github.yuninggu.evolune.core.model.ScheduleType
 import io.github.yuninggu.evolune.pk.*
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.ui.utils.getRouteDisplayName
@@ -37,11 +45,14 @@ import java.util.*
 fun MedicationPlanBottomSheet(
     showBottomSheet: Boolean,
     onDismiss: () -> Unit,
-    onSave: (MedicationPlan) -> Unit,
+    onSave: (MedicationPlanDraft) -> Unit,
     onDelete: ((UUID) -> Unit)? = null,
-    planToEdit: MedicationPlan? = null,
-    is24Hour: Boolean = true
+    session: MedicationPlanEditSession? = null,
+    is24Hour: Boolean = true,
+    operationInProgress: Boolean = false,
+    showSubmissionError: Boolean = false
 ) {
+    val planToEdit = session?.existingPlan
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -60,15 +71,11 @@ fun MedicationPlanBottomSheet(
     }
 
     var selectedAntiAndrogen by remember(planToEdit, showBottomSheet) {
-        mutableStateOf(
-            planToEdit?.extras?.get(DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE)?.toInt()?.let {
-                AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
-            } ?: AntiAndrogen.CPA
-        )
+        mutableStateOf(planToEdit?.selectedAntiAndrogen() ?: AntiAndrogen.CPA)
     }
 
     var scheduleType by remember(planToEdit, showBottomSheet) {
-        mutableStateOf(planToEdit?.scheduleType ?: MedicationPlan.ScheduleType.DAILY)
+        mutableStateOf(planToEdit?.scheduleType ?: ScheduleType.DAILY)
     }
 
     var doseMGText by remember(planToEdit, showBottomSheet) {
@@ -76,7 +83,7 @@ fun MedicationPlanBottomSheet(
     }
 
     var timeOfDay by remember(planToEdit, showBottomSheet) {
-        mutableStateOf(planToEdit?.timeOfDay ?: listOf(LocalTime.of(9, 0)))
+        mutableStateOf(planToEdit?.slots?.map { it.localTime } ?: listOf(LocalTime.of(9, 0)))
     }
 
     var daysOfWeek by remember(planToEdit, showBottomSheet) {
@@ -89,12 +96,10 @@ fun MedicationPlanBottomSheet(
 
     // 舌下吸收等级
     var sublingualTier by remember(planToEdit, showBottomSheet) {
-        mutableStateOf(
-            planToEdit?.extras?.get(DoseEvent.ExtraKey.SUBLINGUAL_TIER)?.toInt()?.let { tier ->
-                SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
-            } ?: SublingualTier.STANDARD
-        )
+        mutableStateOf(planToEdit?.selectedSublingualTier() ?: SublingualTier.STANDARD)
     }
+
+    var hasInputError by remember(session, showBottomSheet) { mutableStateOf(false) }
 
     var showTimePicker by remember { mutableStateOf(false) }
     var timeIndexToEdit by remember { mutableStateOf(0) }
@@ -111,19 +116,9 @@ fun MedicationPlanBottomSheet(
         }
     }
 
-    // 验证表单
-    val isValid = remember(name, doseMGText, timeOfDay, scheduleType, daysOfWeek, intervalDays) {
-        name.isNotBlank() &&
-                doseMGText.toDoubleOrNull() != null &&
-                doseMGText.toDouble() > 0 &&
-                timeOfDay.isNotEmpty() &&
-                (scheduleType != MedicationPlan.ScheduleType.WEEKLY || daysOfWeek.isNotEmpty()) &&
-                (scheduleType != MedicationPlan.ScheduleType.CUSTOM || (intervalDays.toIntOrNull() ?: 0) > 0)
-    }
-
     if (showBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = onDismiss,
+            onDismissRequest = { if (!operationInProgress) onDismiss() },
             sheetState = sheetState,
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
             dragHandle = { BottomSheetDefaults.DragHandle() }
@@ -148,7 +143,9 @@ fun MedicationPlanBottomSheet(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.plan_sheet_name_label)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("plan-name"),
                     singleLine = true
                 )
 
@@ -183,7 +180,9 @@ fun MedicationPlanBottomSheet(
                     value = doseMGText,
                     onValueChange = { doseMGText = it },
                     label = { Text(stringResource(R.string.plan_sheet_dose_label)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("plan-dose"),
                     singleLine = true
                 )
 
@@ -212,10 +211,10 @@ fun MedicationPlanBottomSheet(
 
                 // 根据周期类型显示不同的配置
                 when (scheduleType) {
-                    MedicationPlan.ScheduleType.DAILY -> {
+                    ScheduleType.DAILY -> {
                         // 每天：只需要选择时间
                     }
-                    MedicationPlan.ScheduleType.WEEKLY -> {
+                    ScheduleType.WEEKLY -> {
                         // 每周：选择星期几
                         DaysOfWeekSection(
                             selectedDays = daysOfWeek,
@@ -229,7 +228,7 @@ fun MedicationPlanBottomSheet(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
-                    MedicationPlan.ScheduleType.CUSTOM -> {
+                    ScheduleType.CUSTOM -> {
                         // 自定义：输入间隔天数
                         OutlinedTextField(
                             value = intervalDays,
@@ -262,6 +261,17 @@ fun MedicationPlanBottomSheet(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                if (hasInputError || showSubmissionError) {
+                    Text(
+                        text = stringResource(R.string.common_unknown_error),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .padding(bottom = 12.dp)
+                            .testTag("plan-error")
+                    )
+                }
+
                 // 操作按钮
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -273,7 +283,10 @@ fun MedicationPlanBottomSheet(
                             onClick = {
                                 onDelete(planToEdit.id)
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("plan-delete"),
+                            enabled = !operationInProgress,
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
@@ -291,7 +304,8 @@ fun MedicationPlanBottomSheet(
                     // 取消按钮
                     OutlinedButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        enabled = !operationInProgress
                     ) {
                         Text(stringResource(R.string.common_cancel))
                     }
@@ -299,35 +313,34 @@ fun MedicationPlanBottomSheet(
                     // 保存按钮
                     Button(
                         onClick = {
-                            val doseMG = doseMGText.toDoubleOrNull() ?: 0.0
-                            
-                            // 构建extras
-                            val extras = mutableMapOf<DoseEvent.ExtraKey, Double>()
-                            if (selectedRoute == Route.SUBLINGUAL) {
-                                extras[DoseEvent.ExtraKey.SUBLINGUAL_TIER] = sublingualTier.ordinal.toDouble()
-                            }
-                            if (selectedRoute == Route.ANTIANDROGEN) {
-                                extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.ordinal.toDouble()
-                            }
-                            
-                            val plan = MedicationPlan(
-                                id = planToEdit?.id ?: UUID.randomUUID(),
+                            val currentSession = session ?: return@Button
+                            val input = MedicationPlanEditorInput(
                                 name = name,
                                 route = selectedRoute,
-                                ester = if (selectedRoute == Route.ANTIANDROGEN) Ester.E2 else selectedEster,
-                                doseMG = doseMG,
+                                ester = selectedEster,
+                                selectedAntiAndrogen = selectedAntiAndrogen,
+                                doseMGText = doseMGText,
                                 scheduleType = scheduleType,
-                                timeOfDay = timeOfDay,
+                                times = timeOfDay,
                                 daysOfWeek = daysOfWeek,
-                                intervalDays = intervalDays.toIntOrNull() ?: 1,
+                                intervalDaysText = intervalDays,
                                 isEnabled = planToEdit?.isEnabled ?: true,
-                                extras = extras,
-                                createdAt = planToEdit?.createdAt ?: System.currentTimeMillis()
+                                sublingualTier = sublingualTier
                             )
-                            onSave(plan)
+                            when (val result = input.toMedicationPlanDraft(currentSession)) {
+                                is MedicationPlanInputResult.Success -> {
+                                    hasInputError = false
+                                    onSave(result.draft)
+                                }
+                                is MedicationPlanInputResult.InvalidInput -> {
+                                    hasInputError = true
+                                }
+                            }
                         },
-                        modifier = Modifier.weight(1f),
-                        enabled = isValid
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("plan-save"),
+                        enabled = !operationInProgress
                     ) {
                         Text(stringResource(R.string.common_save))
                     }
@@ -479,8 +492,8 @@ private fun EsterSelectionSection(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ScheduleTypeSection(
-    selectedType: MedicationPlan.ScheduleType,
-    onTypeSelected: (MedicationPlan.ScheduleType) -> Unit
+    selectedType: ScheduleType,
+    onTypeSelected: (ScheduleType) -> Unit
 ) {
     Column {
         Text(
@@ -489,7 +502,7 @@ private fun ScheduleTypeSection(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        val types = MedicationPlan.ScheduleType.values()
+        val types = ScheduleType.values()
         ButtonGroup(modifier = Modifier.fillMaxWidth()) {
             types.forEachIndexed { index, type ->
                 val interactionSource = remember(type) { MutableInteractionSource() }
@@ -507,9 +520,9 @@ private fun ScheduleTypeSection(
                     }
                 ) {
                     val scheduleText = when (type) {
-                        MedicationPlan.ScheduleType.DAILY -> stringResource(R.string.plan_sheet_schedule_daily)
-                        MedicationPlan.ScheduleType.WEEKLY -> stringResource(R.string.plan_sheet_schedule_weekly)
-                        MedicationPlan.ScheduleType.CUSTOM -> stringResource(R.string.plan_sheet_schedule_custom)
+                        ScheduleType.DAILY -> stringResource(R.string.plan_sheet_schedule_daily)
+                        ScheduleType.WEEKLY -> stringResource(R.string.plan_sheet_schedule_weekly)
+                        ScheduleType.CUSTOM -> stringResource(R.string.plan_sheet_schedule_custom)
                     }
                     Box(
                         modifier = Modifier.fillMaxWidth(),

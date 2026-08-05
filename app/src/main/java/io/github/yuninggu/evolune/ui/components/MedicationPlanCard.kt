@@ -10,11 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.MedicationPlan
+import io.github.yuninggu.evolune.core.model.ScheduleType
+import io.github.yuninggu.evolune.core.model.ScheduledDoseSlot
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
+import io.github.yuninggu.evolune.utils.description
 import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalTime
 import java.util.UUID
 
@@ -27,6 +31,7 @@ fun MedicationPlanCard(
     plan: MedicationPlan,
     onClick: () -> Unit,
     onToggleEnabled: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -63,6 +68,7 @@ fun MedicationPlanCard(
                 Switch(
                     checked = plan.isEnabled,
                     onCheckedChange = { onToggleEnabled() },
+                    enabled = enabled,
                     thumbContent = if (plan.isEnabled) {
                         {
                             Icon(
@@ -81,7 +87,7 @@ fun MedicationPlanCard(
 
             // 方案描述
             Text(
-                text = plan.getDescription(),
+                text = plan.description(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (plan.isEnabled) {
                     MaterialTheme.colorScheme.onSurfaceVariant
@@ -107,14 +113,14 @@ private fun MedicationPlanCardPreview() {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MedicationPlanCard(
-                plan = MedicationPlan(
-                    id = UUID.randomUUID(),
+                plan = previewPlan(
+                    id = UUID(0L, 1L),
                     name = "EV注射",
                     route = Route.INJECTION,
                     ester = Ester.EV,
                     doseMG = 10.0,
-                    scheduleType = MedicationPlan.ScheduleType.WEEKLY,
-                    timeOfDay = listOf(LocalTime.of(9, 0)),
+                    scheduleType = ScheduleType.WEEKLY,
+                    times = listOf(LocalTime.of(9, 0)),
                     daysOfWeek = setOf(DayOfWeek.MONDAY),
                     isEnabled = true
                 ),
@@ -123,14 +129,14 @@ private fun MedicationPlanCardPreview() {
             )
 
             MedicationPlanCard(
-                plan = MedicationPlan(
-                    id = UUID.randomUUID(),
+                plan = previewPlan(
+                    id = UUID(0L, 2L),
                     name = "E2凝胶",
                     route = Route.GEL,
                     ester = Ester.E2,
                     doseMG = 3.0,
-                    scheduleType = MedicationPlan.ScheduleType.DAILY,
-                    timeOfDay = listOf(LocalTime.of(23, 0)),
+                    scheduleType = ScheduleType.DAILY,
+                    times = listOf(LocalTime.of(23, 0)),
                     isEnabled = true
                 ),
                 onClick = {},
@@ -138,14 +144,14 @@ private fun MedicationPlanCardPreview() {
             )
 
             MedicationPlanCard(
-                plan = MedicationPlan(
-                    id = UUID.randomUUID(),
+                plan = previewPlan(
+                    id = UUID(0L, 3L),
                     name = "口服EV（已禁用）",
                     route = Route.ORAL,
                     ester = Ester.EV,
                     doseMG = 2.0,
-                    scheduleType = MedicationPlan.ScheduleType.DAILY,
-                    timeOfDay = listOf(LocalTime.of(8, 0), LocalTime.of(23, 30)),
+                    scheduleType = ScheduleType.DAILY,
+                    times = listOf(LocalTime.of(8, 0), LocalTime.of(23, 30)),
                     isEnabled = false
                 ),
                 onClick = {},
@@ -154,3 +160,35 @@ private fun MedicationPlanCardPreview() {
         }
     }
 }
+
+private fun previewPlan(
+    id: UUID,
+    name: String,
+    route: Route,
+    ester: Ester,
+    doseMG: Double,
+    scheduleType: ScheduleType,
+    times: List<LocalTime>,
+    daysOfWeek: Set<DayOfWeek> = emptySet(),
+    isEnabled: Boolean
+): MedicationPlan = MedicationPlan(
+    id = id,
+    name = name,
+    route = route,
+    ester = ester,
+    doseMG = doseMG,
+    scheduleType = scheduleType,
+    slots = times.mapIndexed { position, localTime ->
+        ScheduledDoseSlot(
+            id = UUID(1L, position.toLong()),
+            planId = id,
+            localTime = localTime,
+            position = position
+        )
+    },
+    daysOfWeek = daysOfWeek,
+    intervalDays = 1,
+    isEnabled = isEnabled,
+    extras = emptyMap(),
+    createdAt = Instant.EPOCH
+)

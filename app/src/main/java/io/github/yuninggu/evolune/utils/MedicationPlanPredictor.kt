@@ -1,13 +1,17 @@
 package io.github.yuninggu.evolune.utils
 
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.ExtraKey as DomainExtraKey
+import io.github.yuninggu.evolune.core.model.MedicationPlan as DomainMedicationPlan
+import io.github.yuninggu.evolune.core.model.ScheduleType
+import io.github.yuninggu.evolune.data.MedicationPlan as LegacyMedicationPlan
 import io.github.yuninggu.evolune.pk.DoseEvent
+import io.github.yuninggu.evolune.pk.Ester
+import io.github.yuninggu.evolune.pk.Route
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
-import java.util.*
+import java.util.UUID
 
 /**
  * 用药方案预测工具
@@ -21,132 +25,127 @@ object MedicationPlanPredictor {
      */
     const val PLAN_CONFLICT_WINDOW_H = 1.0
 
-    /**
-     * 根据用药方案生成未来的DoseEvent列表
-     * @param plan 用药方案
-     * @param fromDateTime 起始时间
-     * @param daysAhead 预测多少天
-     * @return 生成的DoseEvent列表
-     */
     fun generateFutureEvents(
-        plan: MedicationPlan,
+        plan: LegacyMedicationPlan,
         fromDateTime: LocalDateTime = LocalDateTime.now(),
         daysAhead: Int = 15
+    ): List<DoseEvent> = generateFutureEvents(
+        plan = PredictionPlan(
+            isEnabled = plan.isEnabled,
+            route = plan.route,
+            ester = plan.ester,
+            doseMG = plan.doseMG,
+            scheduleType = plan.scheduleType.toDomainScheduleType(),
+            times = plan.timeOfDay,
+            daysOfWeek = plan.daysOfWeek,
+            intervalDays = plan.intervalDays,
+            extras = plan.extras
+        ),
+        fromDateTime = fromDateTime,
+        daysAhead = daysAhead
+    )
+
+    fun generateFutureEvents(
+        plan: DomainMedicationPlan,
+        fromDateTime: LocalDateTime = LocalDateTime.now(),
+        daysAhead: Int = 15
+    ): List<DoseEvent> = generateFutureEvents(
+        plan = PredictionPlan(
+            isEnabled = plan.isEnabled,
+            route = plan.route,
+            ester = plan.ester,
+            doseMG = plan.doseMG,
+            scheduleType = plan.scheduleType,
+            times = plan.slots.map { it.localTime },
+            daysOfWeek = plan.daysOfWeek,
+            intervalDays = plan.intervalDays,
+            extras = plan.extras.mapKeys { (key, _) -> key.toPkExtraKey() }
+        ),
+        fromDateTime = fromDateTime,
+        daysAhead = daysAhead
+    )
+
+    private fun generateFutureEvents(
+        plan: PredictionPlan,
+        fromDateTime: LocalDateTime,
+        daysAhead: Int
     ): List<DoseEvent> {
         if (!plan.isEnabled) {
             return emptyList()
         }
-
         val events = mutableListOf<DoseEvent>()
         val today = fromDateTime.toLocalDate()
-
         when (plan.scheduleType) {
-            MedicationPlan.ScheduleType.DAILY -> {
-                // 每天的每个时间点
+            ScheduleType.DAILY -> {
                 for (dayOffset in 0 until daysAhead) {
                     val date = today.plusDays(dayOffset.toLong())
-                    
-                    for (time in plan.timeOfDay) {
-                        val dateTime = LocalDateTime.of(date, time)
-                        
-                        // 只添加未来的事件
-                        if (dateTime.isAfter(fromDateTime)) {
-                            events.add(createDoseEvent(plan, dateTime))
+                    plan.times.forEach { time ->
+                        addIfFuture(events, plan, LocalDateTime.of(date, time), fromDateTime)
+                    }
+                }
+            }
+            ScheduleType.WEEKLY -> {
+                for (dayOffset in 0 until daysAhead) {
+                    val date = today.plusDays(dayOffset.toLong())
+                    if (date.dayOfWeek in plan.daysOfWeek) {
+                        plan.times.forEach { time ->
+                            addIfFuture(events, plan, LocalDateTime.of(date, time), fromDateTime)
                         }
                     }
                 }
             }
-
-            MedicationPlan.ScheduleType.WEEKLY -> {
-                // 每周特定几天的每个时间点
-                for (dayOffset in 0 until daysAhead) {
-                    val date = today.plusDays(dayOffset.toLong())
-                    val dayOfWeek = date.dayOfWeek
-                    
-                    if (plan.daysOfWeek.contains(dayOfWeek)) {
-                        for (time in plan.timeOfDay) {
-                            val dateTime = LocalDateTime.of(date, time)
-                            
-                            // 只添加未来的事件
-                            if (dateTime.isAfter(fromDateTime)) {
-                                events.add(createDoseEvent(plan, dateTime))
-                            }
-                        }
-                    }
-                }
-            }
-
-            MedicationPlan.ScheduleType.CUSTOM -> {
-                // 自定义间隔天数
+            ScheduleType.CUSTOM -> {
                 var dayOffset = 0
-                
                 while (dayOffset < daysAhead) {
                     val date = today.plusDays(dayOffset.toLong())
-                    
-                    for (time in plan.timeOfDay) {
-                        val dateTime = LocalDateTime.of(date, time)
-                        
-                        // 只添加未来的事件
-                        if (dateTime.isAfter(fromDateTime)) {
-                            events.add(createDoseEvent(plan, dateTime))
-                        }
+                    plan.times.forEach { time ->
+                        addIfFuture(events, plan, LocalDateTime.of(date, time), fromDateTime)
                     }
-                    
                     dayOffset += plan.intervalDays
                 }
             }
         }
-
         return events.sortedBy { it.timeH }
     }
 
-    /**
-     * 根据用药方案和时间创建DoseEvent
-     */
-    private fun createDoseEvent(plan: MedicationPlan, dateTime: LocalDateTime): DoseEvent {
-        val timeH = dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 3600000.0
-        
-        return DoseEvent(
-            id = UUID.randomUUID(),
-            route = plan.route,
-            timeH = timeH,
-            doseMG = plan.doseMG,
-            ester = plan.ester,
-            extras = plan.extras
-        )
+    private fun addIfFuture(
+        events: MutableList<DoseEvent>,
+        plan: PredictionPlan,
+        dateTime: LocalDateTime,
+        fromDateTime: LocalDateTime
+    ) {
+        if (dateTime.isAfter(fromDateTime)) {
+            events += DoseEvent(
+                id = UUID.randomUUID(),
+                route = plan.route,
+                timeH = dateTime.atZone(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli() / 3_600_000.0,
+                doseMG = plan.doseMG,
+                ester = plan.ester,
+                extras = plan.extras
+            )
+        }
     }
 
-    /**
-     * 为多个用药方案生成未来事件
-     * @param plans 用药方案列表
-     * @param fromDateTime 起始时间
-     * @param daysAhead 预测多少天
-     * @return 合并后的DoseEvent列表
-     */
     fun generateFutureEventsForPlans(
-        plans: List<MedicationPlan>,
+        plans: List<LegacyMedicationPlan>,
         fromDateTime: LocalDateTime = LocalDateTime.now(),
         daysAhead: Int = 15
-    ): List<DoseEvent> {
-        return plans
-            .filter { it.isEnabled }
-            .flatMap { plan -> generateFutureEvents(plan, fromDateTime, daysAhead) }
-            .sortedBy { it.timeH }
-    }
+    ): List<DoseEvent> = plans
+        .filter { it.isEnabled }
+        .flatMap { generateFutureEvents(it, fromDateTime, daysAhead) }
+        .sortedBy { it.timeH }
 
-    /**
-     * 过滤与实际用药记录冲突的预测事件
-     *
-     * 若某个预测事件与实际用药记录具有相同的给药途径和酯类，
-     * 且发生在实际用药时间点之后的 [conflictWindowH] 小时内，
-     * 则认为该实际记录已覆盖此次计划用药，预测事件将被过滤掉，
-     * 以避免在短时间内出现两次参与计算的用药事件。
-     *
-     * @param predictedEvents 预测事件列表
-     * @param actualEvents 实际用药事件列表
-     * @param conflictWindowH 冲突时间窗口（小时），默认 [PLAN_CONFLICT_WINDOW_H]
-     * @return 过滤后的预测事件列表
-     */
+    fun generateFutureEventsForDomainPlans(
+        plans: List<DomainMedicationPlan>,
+        fromDateTime: LocalDateTime = LocalDateTime.now(),
+        daysAhead: Int = 15
+    ): List<DoseEvent> = plans
+        .filter { it.isEnabled }
+        .flatMap { generateFutureEvents(it, fromDateTime, daysAhead) }
+        .sortedBy { it.timeH }
+
     fun filterConflictingPredictions(
         predictedEvents: List<DoseEvent>,
         actualEvents: List<DoseEvent>,
@@ -163,4 +162,31 @@ object MedicationPlanPredictor {
             }
         }
     }
+
+    private data class PredictionPlan(
+        val isEnabled: Boolean,
+        val route: Route,
+        val ester: Ester,
+        val doseMG: Double,
+        val scheduleType: ScheduleType,
+        val times: List<LocalTime>,
+        val daysOfWeek: Set<DayOfWeek>,
+        val intervalDays: Int,
+        val extras: Map<DoseEvent.ExtraKey, Double>
+    )
+}
+
+private fun LegacyMedicationPlan.ScheduleType.toDomainScheduleType(): ScheduleType = when (this) {
+    LegacyMedicationPlan.ScheduleType.DAILY -> ScheduleType.DAILY
+    LegacyMedicationPlan.ScheduleType.WEEKLY -> ScheduleType.WEEKLY
+    LegacyMedicationPlan.ScheduleType.CUSTOM -> ScheduleType.CUSTOM
+}
+
+private fun DomainExtraKey.toPkExtraKey(): DoseEvent.ExtraKey = when (this) {
+    DomainExtraKey.CONCENTRATION_MG_ML -> DoseEvent.ExtraKey.CONCENTRATION_MG_ML
+    DomainExtraKey.AREA_CM2 -> DoseEvent.ExtraKey.AREA_CM2
+    DomainExtraKey.RELEASE_RATE_UG_PER_DAY -> DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY
+    DomainExtraKey.SUBLINGUAL_THETA -> DoseEvent.ExtraKey.SUBLINGUAL_THETA
+    DomainExtraKey.SUBLINGUAL_TIER -> DoseEvent.ExtraKey.SUBLINGUAL_TIER
+    DomainExtraKey.ANTI_ANDROGEN_TYPE -> DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
 }
