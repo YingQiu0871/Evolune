@@ -15,10 +15,14 @@ import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import io.github.yuninggu.evolune.R
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.DoseEventSource
+import io.github.yuninggu.evolune.core.model.DoseEventStatus
+import io.github.yuninggu.evolune.core.model.ExtraKey
+import io.github.yuninggu.evolune.core.model.MedicationPlan
+import io.github.yuninggu.evolune.core.model.ScheduleType
 import io.github.yuninggu.evolune.data.ThemeMode
 import io.github.yuninggu.evolune.pk.AntiAndrogen
-import io.github.yuninggu.evolune.pk.DoseEvent
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.pk.SublingualTier
@@ -30,7 +34,13 @@ import io.github.yuninggu.evolune.ui.components.getAntiAndrogenDisplayName
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.ui.utils.getRouteDisplayName
 import io.github.yuninggu.evolune.ui.utils.getRouteIcon
+import io.github.yuninggu.evolune.viewmodel.DoseEventOperationError
+import io.github.yuninggu.evolune.viewmodel.DoseEventOperationState
+import io.github.yuninggu.evolune.viewmodel.DoseEventUiEvent
 import io.github.yuninggu.evolune.viewmodel.HRTViewModel
+import java.time.Instant
+import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * 用药记录列表屏幕（带状态管理）
@@ -47,64 +57,51 @@ fun MedicationRecordsScreen(
 ) {
     val events by viewModel.events.collectAsState()
     val allPlans by viewModel.allPlans.collectAsState()
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var eventToEdit by remember { mutableStateOf<DoseEvent?>(null) }
+    val editSession by viewModel.editSession.collectAsState()
+    val operationState by viewModel.operationState.collectAsState()
     var recordDefaults by remember { mutableStateOf<RecordDefaults?>(null) }
+
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvents.collect { event ->
+            when (event) {
+                is DoseEventUiEvent.Saved -> {
+                    if (event.created) {
+                        recordDefaults = event.event.toRecordDefaults()
+                    }
+                    viewModel.closeEditSession()
+                }
+                is DoseEventUiEvent.Deleted -> viewModel.closeEditSession()
+            }
+            viewModel.acknowledgeOperation()
+        }
+    }
 
     MedicationRecordsScreenContent(
         events = events,
         allPlans = allPlans,
-        onEventClick = { event ->
-            eventToEdit = event
-            showBottomSheet = true
-        },
-        onAddClick = {
-            eventToEdit = null
-            showBottomSheet = true
-        },
-        onQuickAddFromPlan = { plan ->
-            val quickEvent = DoseEvent(
-                route = plan.route,
-                timeH = currentTimeHAtMinutePrecision(),
-                doseMG = plan.doseMG,
-                ester = plan.ester,
-                extras = plan.extras
-            )
-            viewModel.upsertEvent(quickEvent)
-            recordDefaults = quickEvent.toRecordDefaults()
-        },
+        onEventClick = viewModel::startEditSession,
+        onAddClick = viewModel::startCreateSession,
+        onQuickAddFromPlan = viewModel::quickAddFromPlan,
         is24Hour = is24Hour,
         modifier = modifier
     )
 
     // 底部弹窗
     MedicationRecordBottomSheet(
-        showBottomSheet = showBottomSheet,
+        showBottomSheet = editSession != null,
         onDismiss = {
-            showBottomSheet = false
-            eventToEdit = null
+            viewModel.closeEditSession()
+            viewModel.acknowledgeOperation()
         },
-        onSave = { event ->
-            // 保存前判断是否为新记录（用于更新默认值）
-            val isNewRecord = eventToEdit == null
-            
-            viewModel.upsertEvent(event)
-            showBottomSheet = false
-            eventToEdit = null
-            
-            // 如果是新记录，保存默认值（除时间外）以供下次使用
-            if (isNewRecord) {
-                recordDefaults = event.toRecordDefaults()
-            }
-        },
-        onDelete = { id ->
-            viewModel.deleteEvent(id)
-            showBottomSheet = false
-            eventToEdit = null
-        },
-        eventToEdit = eventToEdit,
+        onSave = viewModel::saveEvent,
+        onDelete = viewModel::deleteEvent,
+        session = editSession,
         defaults = recordDefaults,
-        is24Hour = is24Hour
+        is24Hour = is24Hour,
+        isOperationRunning = operationState is DoseEventOperationState.Running,
+        operationError = (operationState as? DoseEventOperationState.Failure)
+            ?.error
+            ?.displayMessage()
     )
 }
 
@@ -258,7 +255,7 @@ private fun MedicationRecordsScreenContent(
         } else {
             // 用药记录列表（按时间倒序排列，最新的在前面）
             val sortedEvents = remember(events) {
-                events.sortedByDescending { it.timeH }
+                events.sortedByDescending { it.occurredAt }
             }
             
             LazyColumn(
@@ -288,31 +285,25 @@ private fun DoseEvent.toRecordDefaults(): RecordDefaults {
         route = route,
         ester = ester,
         doseMG = doseMG,
-        patchMode = if (extras.containsKey(DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
+        patchMode = if (extras.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
             PatchMode.RATE
         } else {
             PatchMode.DOSE
         },
-        patchRateUgPerDay = extras[DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY] ?: 0.0,
-        sublingualTier = extras[DoseEvent.ExtraKey.SUBLINGUAL_TIER]?.toInt()?.let { tier ->
+        patchRateUgPerDay = extras[ExtraKey.RELEASE_RATE_UG_PER_DAY] ?: 0.0,
+        sublingualTier = extras[ExtraKey.SUBLINGUAL_TIER]?.toInt()?.let { tier ->
             SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
         } ?: SublingualTier.STANDARD,
-        antiAndrogen = extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+        antiAndrogen = extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
             AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
         } ?: AntiAndrogen.CPA
     )
 }
 
-private fun currentTimeHAtMinutePrecision(): Double {
-    val nowMs = System.currentTimeMillis()
-    val minuteAlignedMs = (nowMs / 60000L) * 60000L
-    return minuteAlignedMs / 3600000.0
-}
-
 @Composable
 private fun getPlanMedicationDisplayName(plan: MedicationPlan): String {
     return if (plan.route == Route.ANTIANDROGEN) {
-        val aaType = plan.extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+        val aaType = plan.extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
             AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
         } ?: AntiAndrogen.CPA
         getAntiAndrogenDisplayName(aaType)
@@ -330,6 +321,41 @@ private fun getEsterDisplayName(ester: Ester): String {
         Ester.EC -> stringResource(R.string.ester_ec)
         Ester.EN -> stringResource(R.string.ester_en)
     }
+}
+
+private fun DoseEventOperationError.displayMessage(): String = when (this) {
+    is DoseEventOperationError.InvalidInput -> "请检查记录输入"
+    DoseEventOperationError.RepositoryInvalid -> "记录无法保存"
+    DoseEventOperationError.Conflict -> "相同记录 ID 已存在不同内容"
+    DoseEventOperationError.RevisionConflict -> "该记录已被其他操作修改"
+    DoseEventOperationError.NotFound -> "该记录已不存在"
+    DoseEventOperationError.StorageFailure -> "记录存储暂时不可用"
+}
+
+private fun previewDoseEvent(
+    route: Route,
+    timeH: Double,
+    doseMG: Double,
+    ester: Ester,
+    extras: Map<ExtraKey, Double> = emptyMap()
+): DoseEvent {
+    val occurredAt = Instant.ofEpochMilli(Math.round(timeH * 3_600_000.0))
+    return DoseEvent(
+        id = UUID.nameUUIDFromBytes(
+            "preview:$route:$timeH:$doseMG:$ester".toByteArray(Charsets.UTF_8)
+        ),
+        route = route,
+        occurredAt = occurredAt,
+        zoneId = ZoneOffset.UTC,
+        localDate = occurredAt.atZone(ZoneOffset.UTC).toLocalDate(),
+        doseMG = doseMG,
+        ester = ester,
+        extras = extras,
+        slotId = null,
+        source = DoseEventSource.MANUAL,
+        status = DoseEventStatus.RECORDED,
+        revision = 1L
+    )
 }
 
 // ============================================================================
@@ -359,43 +385,43 @@ private fun PreviewMedicationRecordsScreenWithData() {
         val currentTime = System.currentTimeMillis() / 3600000.0
         val events = remember {
             listOf(
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.INJECTION,
                     timeH = currentTime - 168.0,
                     doseMG = 5.0,
                     ester = Ester.EV
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.ORAL,
                     timeH = currentTime - 24.0,
                     doseMG = 2.0,
                     ester = Ester.E2
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.ORAL,
                     timeH = currentTime - 12.0,
                     doseMG = 2.0,
                     ester = Ester.E2
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.SUBLINGUAL,
                     timeH = currentTime - 6.0,
                     doseMG = 1.0,
                     ester = Ester.E2
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.GEL,
                     timeH = currentTime - 2.0,
                     doseMG = 0.75,
                     ester = Ester.E2,
-                    extras = mapOf(DoseEvent.ExtraKey.AREA_CM2 to 750.0)
+                    extras = mapOf(ExtraKey.AREA_CM2 to 750.0)
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.PATCH_APPLY,
                     timeH = currentTime - 72.0,
                     doseMG = 0.0,
                     ester = Ester.E2,
-                    extras = mapOf(DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY to 50.0)
+                    extras = mapOf(ExtraKey.RELEASE_RATE_UG_PER_DAY to 50.0)
                 )
             )
         }
@@ -403,13 +429,18 @@ private fun PreviewMedicationRecordsScreenWithData() {
         val allPlans = remember {
             listOf(
                 MedicationPlan(
+                    id = UUID(0L, 101L),
                     name = "晚间口服",
                     route = Route.ORAL,
                     ester = Ester.E2,
                     doseMG = 2.0,
-                    scheduleType = MedicationPlan.ScheduleType.DAILY,
-                    timeOfDay = emptyList(),
-                    isEnabled = true
+                    scheduleType = ScheduleType.DAILY,
+                    slots = emptyList(),
+                    daysOfWeek = emptySet(),
+                    intervalDays = 1,
+                    isEnabled = true,
+                    extras = emptyMap(),
+                    createdAt = Instant.EPOCH
                 )
             )
         }
@@ -431,19 +462,19 @@ private fun PreviewMedicationRecordsScreenDark() {
         val currentTime = System.currentTimeMillis() / 3600000.0
         val events = remember {
             listOf(
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.INJECTION,
                     timeH = currentTime - 168.0,
                     doseMG = 5.0,
                     ester = Ester.EV
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.ORAL,
                     timeH = currentTime - 12.0,
                     doseMG = 2.0,
                     ester = Ester.E2
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.SUBLINGUAL,
                     timeH = currentTime - 2.0,
                     doseMG = 1.0,
@@ -471,19 +502,19 @@ private fun PreviewMedicationRecordsScreenSystem() {
         val currentTime = System.currentTimeMillis() / 3600000.0
         val events = remember {
             listOf(
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.INJECTION,
                     timeH = currentTime - 168.0,
                     doseMG = 5.0,
                     ester = Ester.EV
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.ORAL,
                     timeH = currentTime - 12.0,
                     doseMG = 2.0,
                     ester = Ester.E2
                 ),
-                DoseEvent(
+                previewDoseEvent(
                     route = Route.SUBLINGUAL,
                     timeH = currentTime - 2.0,
                     doseMG = 1.0,

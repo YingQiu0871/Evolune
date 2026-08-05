@@ -16,14 +16,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.yuninggu.evolune.R
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.DoseEventSource
+import io.github.yuninggu.evolune.core.model.DoseEventStatus
+import io.github.yuninggu.evolune.core.model.ExtraKey
 import io.github.yuninggu.evolune.pk.AntiAndrogen
-import io.github.yuninggu.evolune.pk.DoseEvent
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.ui.utils.getRouteDisplayName
 import io.github.yuninggu.evolune.ui.utils.getRouteIcon
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneOffset
 import java.util.*
 
 /**
@@ -169,7 +174,7 @@ fun MedicationRecordItem(
     val isAntiAndrogen = event.route == Route.ANTIANDROGEN
     val medicationName = if (isAntiAndrogen) {
         getAntiAndrogenDisplayName(
-            event.extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+            event.extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
                 AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
             } ?: AntiAndrogen.CPA
         )
@@ -181,7 +186,7 @@ fun MedicationRecordItem(
         medicationName = medicationName,
         route = event.route,
         doseMG = event.doseMG,
-        timeH = event.timeH,
+        timeH = event.occurredAt.toEpochMilli() / 3_600_000.0,
         isAntiAndrogen = isAntiAndrogen,
         is24Hour = is24Hour,
         modifier = modifier,
@@ -414,7 +419,7 @@ private fun PreviewMedicationRecordItemFromEvent() {
                 val currentTime = System.currentTimeMillis() / 3600000.0
                 
                 MedicationRecordItem(
-                    event = DoseEvent(
+                    event = previewDomainDoseEvent(
                         route = Route.ORAL,
                         timeH = currentTime,
                         doseMG = 2.0,
@@ -424,18 +429,18 @@ private fun PreviewMedicationRecordItemFromEvent() {
                 )
                 
                 MedicationRecordItem(
-                    event = DoseEvent(
+                    event = previewDomainDoseEvent(
                         route = Route.ANTIANDROGEN,
                         timeH = currentTime - 6.0,
                         doseMG = 25.0,
                         ester = Ester.E2,
-                        extras = mapOf(DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE to AntiAndrogen.BICALUTAMIDE.ordinal.toDouble())
+                        extras = mapOf(ExtraKey.ANTI_ANDROGEN_TYPE to AntiAndrogen.BICALUTAMIDE.ordinal.toDouble())
                     ),
                     onClick = {}
                 )
                 
                 MedicationRecordItem(
-                    event = DoseEvent(
+                    event = previewDomainDoseEvent(
                         route = Route.INJECTION,
                         timeH = currentTime - 168.0,
                         doseMG = 5.0,
@@ -446,4 +451,29 @@ private fun PreviewMedicationRecordItemFromEvent() {
             }
         }
     }
+}
+
+private fun previewDomainDoseEvent(
+    route: Route,
+    timeH: Double,
+    doseMG: Double,
+    ester: Ester,
+    extras: Map<ExtraKey, Double> = emptyMap()
+): DoseEvent {
+    val occurredAt = Instant.ofEpochMilli(Math.round(timeH * 3_600_000.0))
+    return DoseEvent(
+        id = UUID.nameUUIDFromBytes(
+            "record-preview:$route:$timeH:$doseMG:$ester".toByteArray(Charsets.UTF_8)
+        ),
+        route = route,
+        occurredAt = occurredAt,
+        zoneId = ZoneOffset.UTC,
+        localDate = occurredAt.atZone(ZoneOffset.UTC).toLocalDate(),
+        doseMG = doseMG,
+        ester = ester,
+        extras = extras,
+        source = DoseEventSource.MANUAL,
+        status = DoseEventStatus.RECORDED,
+        revision = 1L
+    )
 }

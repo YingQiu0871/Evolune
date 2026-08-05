@@ -3,199 +3,305 @@ package io.github.yuninggu.evolune.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import io.github.yuninggu.evolune.data.DoseEventRepository
-import io.github.yuninggu.evolune.data.MedicationPlanRepository
-import io.github.yuninggu.evolune.pk.DoseEvent
+import io.github.yuninggu.evolune.application.Batch6HrtPkProjection
+import io.github.yuninggu.evolune.application.Batch6MahiroJsonBridge
+import io.github.yuninggu.evolune.application.DoseEventEditCommand
+import io.github.yuninggu.evolune.application.DoseEventEditSession
+import io.github.yuninggu.evolune.application.DoseEventEditSessionFactory
+import io.github.yuninggu.evolune.application.DoseEventEditorInput
+import io.github.yuninggu.evolune.application.DoseEventEditorResult
+import io.github.yuninggu.evolune.application.DoseEventInputIssue
+import io.github.yuninggu.evolune.application.toDoseEventCommand
+import io.github.yuninggu.evolune.core.dataapi.DeleteResult
+import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
+import io.github.yuninggu.evolune.core.dataapi.InsertResult
+import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
+import io.github.yuninggu.evolune.core.dataapi.UpdateResult
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.DoseEventStatus
+import io.github.yuninggu.evolune.core.model.MedicationPlan
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.pk.SimulationEngine
-import io.github.yuninggu.evolune.utils.MahiroJsonFormat
 import io.github.yuninggu.evolune.utils.MedicationPlanPredictor
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.ceil
+import java.time.Clock
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
+import kotlin.math.ceil
 
-/**
- * JSON 导入结果
- */
 sealed class ImportResult {
     data object Idle : ImportResult()
     data object Importing : ImportResult()
-    data class Success(val importedCount: Int) : ImportResult()
+    data class Success(
+        val importedCount: Int,
+        val existingCount: Int = 0,
+        val conflictCount: Int = 0,
+        val invalidCount: Int = 0
+    ) : ImportResult()
     data class Error(val message: String) : ImportResult()
 }
 
-/**
- * Evolune ViewModel
- * 管理用药记录和药代动力学模拟
- */
+enum class DoseEventOperation {
+    CREATE,
+    QUICK_ADD,
+    UPDATE,
+    DELETE,
+    IMPORT
+}
+
+sealed interface DoseEventOperationError {
+    data class InvalidInput(val issues: List<DoseEventInputIssue>) : DoseEventOperationError
+    data object RepositoryInvalid : DoseEventOperationError
+    data object Conflict : DoseEventOperationError
+    data object RevisionConflict : DoseEventOperationError
+    data object NotFound : DoseEventOperationError
+    data object StorageFailure : DoseEventOperationError
+}
+
+sealed interface DoseEventOperationState {
+    data object Idle : DoseEventOperationState
+    data class Running(val operation: DoseEventOperation) : DoseEventOperationState
+    data class Success(
+        val operation: DoseEventOperation,
+        val event: DoseEvent? = null
+    ) : DoseEventOperationState
+    data class Failure(
+        val operation: DoseEventOperation,
+        val error: DoseEventOperationError
+    ) : DoseEventOperationState
+}
+
+sealed interface DoseEventUiEvent {
+    data class Saved(
+        val event: DoseEvent,
+        val created: Boolean
+    ) : DoseEventUiEvent
+    data class Deleted(val id: UUID) : DoseEventUiEvent
+}
+
 class HRTViewModel(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
-    private val bodyWeightKG: Double = 55.0 // 默认体重，后续可以从用户设置中获取
+    private val bodyWeightKG: Double = 55.0,
+    private val sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(),
+    private val clock: Clock = Clock.systemUTC(),
+    operationScope: CoroutineScope? = null
 ) : ViewModel() {
+    private val scope = operationScope ?: viewModelScope
+    private val jsonBridge = Batch6MahiroJsonBridge(repository)
+    private val operationLock = Any()
+    private var operationInFlight = false
+    private var pendingTerminalState: DoseEventOperationState? = null
+    private var pendingUiEvent: DoseEventUiEvent? = null
 
-    private companion object {
-        const val SIMULATION_POINTS_PER_HOUR = 12.0 // 5分钟一个数据点
-    }
-
-    // 用药事件列表
-    val events: StateFlow<List<DoseEvent>> = repository.getAllEvents()
+    val events: StateFlow<List<DoseEvent>> = repository.observeAll()
         .stateIn(
-            scope = viewModelScope,
+            scope = scope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    // 所有用药计划列表
-    val allPlans: StateFlow<List<io.github.yuninggu.evolune.data.MedicationPlan>> = medicationPlanRepository.getAllPlans()
+    val allPlans: StateFlow<List<MedicationPlan>> = medicationPlanRepository.observeAll()
         .stateIn(
-            scope = viewModelScope,
+            scope = scope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    // 启用的用药计划列表
-    val enabledPlans: StateFlow<List<io.github.yuninggu.evolune.data.MedicationPlan>> = medicationPlanRepository.getEnabledPlans()
+    val enabledPlans: StateFlow<List<MedicationPlan>> = medicationPlanRepository.observeEnabled()
         .stateIn(
-            scope = viewModelScope,
+            scope = scope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    // PK 状态
+    val doseTimePoints: StateFlow<List<Double>> = events
+        .map { eventList -> Batch6HrtPkProjection.project(eventList).map { it.timeH } }
+        .stateIn(
+            scope = scope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     private val _pkState = MutableStateFlow(PKState())
     val pkState: StateFlow<PKState> = _pkState.asStateFlow()
 
-    // 实时当前时刻流（每秒更新一次）
     val currentTimeH: StateFlow<Double> = flow {
         while (true) {
-            emit(System.currentTimeMillis() / 3600000.0)
-            delay(1000) // 每秒更新一次
+            emit(clock.millis() / MILLIS_PER_HOUR)
+            delay(1000)
         }
     }.stateIn(
-        scope = viewModelScope,
+        scope = scope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = System.currentTimeMillis() / 3600000.0
+        initialValue = clock.millis() / MILLIS_PER_HOUR
     )
 
-    init {
-        // 监听事件变化，自动重新运行模拟
-        viewModelScope.launch {
-            events.collect { eventList ->
-                // 无论列表是否为空，都运行模拟以更新状态
-                runSimulation()
-            }
-        }
-        
-        // 监听用药方案变化，自动重新运行模拟
-        viewModelScope.launch {
-            medicationPlanRepository.getEnabledPlans().collect {
-                runSimulation()
-            }
-        }
-    }
+    private val _editSession = MutableStateFlow<DoseEventEditSession?>(null)
+    val editSession: StateFlow<DoseEventEditSession?> = _editSession.asStateFlow()
 
-    /**
-     * 添加或更新用药事件
-     */
-    fun upsertEvent(event: DoseEvent) {
-        viewModelScope.launch {
-            repository.upsertEvent(event)
-        }
-    }
+    private val _operationState =
+        MutableStateFlow<DoseEventOperationState>(DoseEventOperationState.Idle)
+    val operationState: StateFlow<DoseEventOperationState> = _operationState.asStateFlow()
 
-    /**
-     * 删除用药事件
-     */
-    fun deleteEvent(id: UUID) {
-        viewModelScope.launch {
-            repository.deleteEvent(id)
-        }
-    }
+    private val uiEventChannel = Channel<DoseEventUiEvent>(Channel.BUFFERED)
+    val uiEvents = uiEventChannel.receiveAsFlow()
 
-    // JSON 导入结果状态
     private val _importResult = MutableStateFlow<ImportResult>(ImportResult.Idle)
     val importResult: StateFlow<ImportResult> = _importResult.asStateFlow()
 
-    /**
-     * 从 mahiro JSON 格式字符串导入用药事件
-     * @param jsonContent JSON 字符串
-     * @param onWeightImport 若 JSON 中包含体重数据，回调以更新体重设置
-     */
-    fun importFromMahiroJson(jsonContent: String, onWeightImport: ((Double) -> Unit)? = null) {
-        viewModelScope.launch {
-            _importResult.value = ImportResult.Importing
-            try {
-                val data = withContext(Dispatchers.Default) {
-                    MahiroJsonFormat.parseImport(jsonContent)
+    init {
+        scope.launch {
+            events.collect { runSimulation() }
+        }
+        scope.launch {
+            enabledPlans.collect { runSimulation() }
+        }
+    }
+
+    fun startCreateSession() {
+        if (_editSession.value == null) {
+            _editSession.value = sessionFactory.createNew()
+        }
+    }
+
+    fun startEditSession(event: DoseEvent) {
+        if (_operationState.value !is DoseEventOperationState.Running) {
+            _editSession.value = sessionFactory.edit(event)
+        }
+    }
+
+    fun closeEditSession() {
+        if (_operationState.value !is DoseEventOperationState.Running) {
+            _editSession.value = null
+        }
+    }
+
+    fun acknowledgeOperation() {
+        if (_operationState.value !is DoseEventOperationState.Running) {
+            _operationState.value = DoseEventOperationState.Idle
+        }
+    }
+
+    fun saveEvent(input: DoseEventEditorInput) {
+        val session = _editSession.value ?: return
+        when (val mapped = input.toDoseEventCommand(session)) {
+            is DoseEventEditorResult.Invalid -> {
+                val operation = when (session.mode) {
+                    io.github.yuninggu.evolune.application.DoseEventEditMode.CREATE ->
+                        DoseEventOperation.CREATE
+                    io.github.yuninggu.evolune.application.DoseEventEditMode.UPDATE ->
+                        DoseEventOperation.UPDATE
                 }
-                data.events.forEach { event ->
-                    repository.upsertEvent(event)
+                _operationState.value = DoseEventOperationState.Failure(
+                    operation,
+                    DoseEventOperationError.InvalidInput(mapped.issues)
+                )
+            }
+            is DoseEventEditorResult.Valid -> persistCommand(mapped.command)
+        }
+    }
+
+    fun quickAddFromPlan(plan: MedicationPlan) {
+        launchOperation(DoseEventOperation.QUICK_ADD) {
+            val event = sessionFactory.createQuickEvent(plan)
+            handleInsert(event, DoseEventOperation.QUICK_ADD)
+        }
+    }
+
+    fun deleteEvent(id: UUID) {
+        launchOperation(DoseEventOperation.DELETE) {
+            when (repository.delete(id)) {
+                DeleteResult.Deleted -> {
+                    succeed(DoseEventOperation.DELETE)
+                    pendingUiEvent = DoseEventUiEvent.Deleted(id)
                 }
-                data.weight?.let { onWeightImport?.invoke(it) }
-                _importResult.value = ImportResult.Success(data.events.size)
-            } catch (e: Exception) {
-                _importResult.value = ImportResult.Error(e.message ?: "Unknown error")
+                DeleteResult.NotFound -> fail(
+                    DoseEventOperation.DELETE,
+                    DoseEventOperationError.NotFound
+                )
             }
         }
     }
 
-    /**
-     * 重置导入结果状态为 Idle
-     */
+    fun importFromMahiroJson(
+        jsonContent: String,
+        onWeightImport: ((Double) -> Unit)? = null
+    ) {
+        if (!beginOperation(DoseEventOperation.IMPORT)) {
+            return
+        }
+        _importResult.value = ImportResult.Importing
+        scope.launch {
+            try {
+                val outcome = withContext(Dispatchers.Default) {
+                    jsonBridge.import(jsonContent)
+                }
+                outcome.weight?.let { onWeightImport?.invoke(it) }
+                _importResult.value = ImportResult.Success(
+                    importedCount = outcome.acceptedCount,
+                    existingCount = outcome.idempotentCount,
+                    conflictCount = outcome.conflictCount,
+                    invalidCount = outcome.invalidCount
+                )
+                succeed(DoseEventOperation.IMPORT)
+            } catch (error: CancellationException) {
+                pendingTerminalState = DoseEventOperationState.Idle
+                throw error
+            } catch (_: RuntimeException) {
+                _importResult.value = ImportResult.Error("Import failed")
+                fail(DoseEventOperation.IMPORT, DoseEventOperationError.StorageFailure)
+            } finally {
+                finishOperation()
+            }
+        }
+    }
+
     fun dismissImportResult() {
         _importResult.value = ImportResult.Idle
     }
 
-    /**
-     * 直接将导入结果设为 Error（例如剪贴板为空时）
-     */
     fun reportClipboardImportError(message: String) {
         _importResult.value = ImportResult.Error(message)
     }
 
-    /**
-     * 将当前所有用药事件导出为 mahiro JSON 格式字符串
-     * @param weight 用户体重（kg），用于写入 JSON 的 weight 字段
-     */
-    fun exportToMahiroJson(weight: Double): String {
-        return MahiroJsonFormat.generateExport(weight, events.value)
-    }
+    fun exportToMahiroJson(weight: Double): String = jsonBridge.export(weight, events.value)
 
-    /**
-     * 运行药代动力学模拟
-     */
     fun runSimulation() {
-        viewModelScope.launch {
+        scope.launch {
             try {
                 _pkState.update { it.copy(isSimulating = true, error = null) }
-
-                val currentTimeH = System.currentTimeMillis() / 3600000.0
-                
-                // 获取历史用药事件（过滤抗雄药物，不参与药代动力学计算）
-                val historicalEvents = repository.getEventsForSimulation(currentTimeH)
+                val now = clock.instant()
+                val currentTimeH = clock.millis() / MILLIS_PER_HOUR
+                val historicalEvents = Batch6HrtPkProjection.project(
+                    repository.getEventsForPk(now)
+                        .filter { it.status == DoseEventStatus.RECORDED }
+                ).filter { it.route != Route.ANTIANDROGEN }
+                val plans = medicationPlanRepository.observeEnabled().first()
                     .filter { it.route != Route.ANTIANDROGEN }
-                
-                // 获取启用的用药方案（过滤抗雄药物方案）
-                val enabledPlans = medicationPlanRepository.getEnabledPlans().first()
-                    .filter { it.route != Route.ANTIANDROGEN }
-                
-                // 根据用药方案生成未来15天的预测事件
-                val futureEvents = if (enabledPlans.isNotEmpty()) {
-                    val now = LocalDateTime.now()
-                    val predicted = MedicationPlanPredictor.generateFutureEventsForPlans(
-                        plans = enabledPlans,
-                        fromDateTime = now,
+                val futureEvents = if (plans.isNotEmpty()) {
+                    val predicted = MedicationPlanPredictor.generateFutureEventsForDomainPlans(
+                        plans = plans,
+                        fromDateTime = LocalDateTime.ofInstant(now, ZoneId.systemDefault()),
                         daysAhead = 15
                     )
-                    // 过滤与历史用药记录冲突的预测事件：
-                    // 若实际用药后1小时内存在同类计划用药，则该计划用药不参与曲线计算
                     MedicationPlanPredictor.filterConflictingPredictions(
                         predictedEvents = predicted,
                         actualEvents = historicalEvents
@@ -203,7 +309,7 @@ class HRTViewModel(
                 } else {
                     emptyList()
                 }
-                
+
                 if (historicalEvents.isEmpty() && futureEvents.isEmpty()) {
                     _pkState.update {
                         it.copy(
@@ -217,72 +323,160 @@ class HRTViewModel(
                     return@launch
                 }
 
-                // 计算时间范围：当前时刻往前15天到往后15天
-                val startTimeH = currentTimeH - 24.0 * 15  // 当前时刻往前15天
-                val endTimeH = currentTimeH + 24.0 * 15    // 当前时刻往后15天
-
-                // 计算步数：至少5分钟一步
-                val totalHours = endTimeH - startTimeH
-                val stepsNeeded = ceil(totalHours * SIMULATION_POINTS_PER_HOUR).toInt() + 1
-                val numberOfSteps = maxOf(stepsNeeded, 1000) // 至少1000步
-
-                // 运行基线仿真（仅历史事件，不考虑未来计划）
+                val startTimeH = currentTimeH - 24.0 * 15
+                val endTimeH = currentTimeH + 24.0 * 15
+                val stepsNeeded = ceil(
+                    (endTimeH - startTimeH) * SIMULATION_POINTS_PER_HOUR
+                ).toInt() + 1
+                val numberOfSteps = maxOf(stepsNeeded, 1000)
                 val baselineResult = if (historicalEvents.isNotEmpty()) {
-                    val baselineEngine = SimulationEngine(
+                    SimulationEngine(
                         events = historicalEvents,
                         bodyWeightKG = bodyWeightKG,
                         startTimeH = startTimeH,
                         endTimeH = endTimeH,
                         numberOfSteps = numberOfSteps
-                    )
-                    baselineEngine.run()
+                    ).run()
                 } else {
                     null
                 }
-                
-                // 运行完整仿真（历史事件 + 未来计划）
                 val allEvents = historicalEvents + futureEvents
                 val fullResult = if (allEvents.isNotEmpty()) {
-                    val fullEngine = SimulationEngine(
+                    SimulationEngine(
                         events = allEvents,
                         bodyWeightKG = bodyWeightKG,
                         startTimeH = startTimeH,
                         endTimeH = endTimeH,
                         numberOfSteps = numberOfSteps
-                    )
-                    fullEngine.run()
+                    ).run()
                 } else {
                     null
                 }
-                
-                // 计算当前时刻的浓度（使用完整仿真结果）
-                val currentConc = fullResult?.concentration(currentTimeH) 
+                val currentConcentration = fullResult?.concentration(currentTimeH)
                     ?: baselineResult?.concentration(currentTimeH)
 
                 _pkState.update {
                     it.copy(
                         simulationResult = fullResult,
                         baselineSimulationResult = baselineResult,
-                        currentConcentration = currentConc,
+                        currentConcentration = currentConcentration,
                         currentTimeH = currentTimeH,
                         isSimulating = false
                     )
                 }
-            } catch (e: Exception) {
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: RuntimeException) {
                 _pkState.update {
-                    it.copy(
-                        isSimulating = false,
-                        error = "模拟失败: ${e.message}"
+                    it.copy(isSimulating = false, error = "Simulation unavailable")
+                }
+            }
+        }
+    }
+
+    private fun persistCommand(command: DoseEventEditCommand) {
+        when (command) {
+            is DoseEventEditCommand.Create -> launchOperation(DoseEventOperation.CREATE) {
+                handleInsert(command.event, DoseEventOperation.CREATE)
+            }
+            is DoseEventEditCommand.Update -> launchOperation(DoseEventOperation.UPDATE) {
+                when (repository.update(command.event, command.expectedRevision)) {
+                    UpdateResult.Updated,
+                    UpdateResult.NoChange -> {
+                        val stored = repository.getById(command.event.id)
+                            ?: throw IllegalStateException("Updated dose event is missing")
+                        succeed(DoseEventOperation.UPDATE, stored)
+                        pendingUiEvent = DoseEventUiEvent.Saved(stored, created = false)
+                    }
+                    UpdateResult.NotFound -> fail(
+                        DoseEventOperation.UPDATE,
+                        DoseEventOperationError.NotFound
+                    )
+                    UpdateResult.RevisionConflict -> fail(
+                        DoseEventOperation.UPDATE,
+                        DoseEventOperationError.RevisionConflict
+                    )
+                    UpdateResult.Invalid -> fail(
+                        DoseEventOperation.UPDATE,
+                        DoseEventOperationError.RepositoryInvalid
                     )
                 }
             }
         }
     }
+
+    private suspend fun handleInsert(event: DoseEvent, operation: DoseEventOperation) {
+        when (repository.insert(event)) {
+            InsertResult.Inserted,
+            InsertResult.Idempotent -> {
+                val stored = repository.getById(event.id)
+                    ?: throw IllegalStateException("Inserted dose event is missing")
+                succeed(operation, stored)
+                pendingUiEvent = DoseEventUiEvent.Saved(stored, created = true)
+            }
+            InsertResult.Conflict -> fail(operation, DoseEventOperationError.Conflict)
+            InsertResult.Invalid -> fail(operation, DoseEventOperationError.RepositoryInvalid)
+        }
+    }
+
+    private fun launchOperation(
+        operation: DoseEventOperation,
+        block: suspend () -> Unit
+    ) {
+        if (!beginOperation(operation)) {
+            return
+        }
+        scope.launch {
+            try {
+                block()
+            } catch (error: CancellationException) {
+                pendingTerminalState = DoseEventOperationState.Idle
+                throw error
+            } catch (_: RuntimeException) {
+                fail(operation, DoseEventOperationError.StorageFailure)
+            } finally {
+                finishOperation()
+            }
+        }
+    }
+
+    private fun beginOperation(operation: DoseEventOperation): Boolean =
+        synchronized(operationLock) {
+            if (operationInFlight) {
+                false
+            } else {
+                operationInFlight = true
+                pendingTerminalState = null
+                pendingUiEvent = null
+                _operationState.value = DoseEventOperationState.Running(operation)
+                true
+            }
+        }
+
+    private fun finishOperation() {
+        val uiEvent = synchronized(operationLock) {
+            operationInFlight = false
+            _operationState.value = pendingTerminalState ?: DoseEventOperationState.Idle
+            pendingTerminalState = null
+            pendingUiEvent.also { pendingUiEvent = null }
+        }
+        uiEvent?.let(uiEventChannel::trySend)
+    }
+
+    private fun succeed(operation: DoseEventOperation, event: DoseEvent? = null) {
+        pendingTerminalState = DoseEventOperationState.Success(operation, event)
+    }
+
+    private fun fail(operation: DoseEventOperation, error: DoseEventOperationError) {
+        pendingTerminalState = DoseEventOperationState.Failure(operation, error)
+    }
+
+    private companion object {
+        const val SIMULATION_POINTS_PER_HOUR = 12.0
+        const val MILLIS_PER_HOUR = 3_600_000.0
+    }
 }
 
-/**
- * ViewModel Factory
- */
 class HRTViewModelFactory(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,

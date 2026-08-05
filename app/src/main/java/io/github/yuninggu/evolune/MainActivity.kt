@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.yuninggu.evolune.data.AppDatabase
 import io.github.yuninggu.evolune.data.ThemeMode
-import io.github.yuninggu.evolune.data.DoseEventRepository
 import io.github.yuninggu.evolune.data.MedicationPlanRepository
 import io.github.yuninggu.evolune.data.SettingsDataStore
 import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
@@ -38,7 +37,6 @@ class MainActivity : ComponentActivity() {
 
         // 初始化数据库和仓库
         val database = AppDatabase.getDatabase(applicationContext)
-        val doseEventRepository = DoseEventRepository(database.doseEventDao())
         val legacyMedicationPlanRepository = MedicationPlanRepository(database.medicationPlanDao())
         val productionRepositoryProvider =
             ProductionRepositoryProvider.get(applicationContext)
@@ -85,8 +83,8 @@ class MainActivity : ComponentActivity() {
                 // 创建 HRTViewModel，使用用户设置的体重
                 val hrtViewModel: HRTViewModel = viewModel(
                     factory = HRTViewModelFactory(
-                        repository = doseEventRepository,
-                        medicationPlanRepository = legacyMedicationPlanRepository,
+                        repository = productionRepositoryProvider.doseEvents,
+                        medicationPlanRepository = productionRepositoryProvider.medicationPlans,
                         bodyWeightKG = userSettings.bodyWeight
                     )
                 )
@@ -104,7 +102,9 @@ class MainActivity : ComponentActivity() {
                         reminderManager
                     )
                 )
-                val legacyMedicationPlans by hrtViewModel.allPlans.collectAsState()
+                val legacyMedicationPlans by legacyMedicationPlanRepository
+                    .getAllPlans()
+                    .collectAsState(initial = emptyList())
                 LaunchedEffect(
                     legacyMedicationPlans,
                     pkState.simulationResult,

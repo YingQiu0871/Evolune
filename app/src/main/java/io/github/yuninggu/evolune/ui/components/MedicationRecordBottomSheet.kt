@@ -14,16 +14,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.yuninggu.evolune.R
+import io.github.yuninggu.evolune.application.DoseEventEditMode
+import io.github.yuninggu.evolune.application.DoseEventEditSession
+import io.github.yuninggu.evolune.application.DoseEventEditorInput
+import io.github.yuninggu.evolune.core.model.ExtraKey
 import io.github.yuninggu.evolune.pk.*
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.ui.utils.getRouteDisplayName
 import io.github.yuninggu.evolune.ui.utils.getRouteIcon
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 
 /**
@@ -46,7 +52,7 @@ data class RecordDefaults(
  * @param onDismiss 关闭回调
  * @param onSave 保存回调
  * @param onDelete 删除回调（仅编辑时）
- * @param eventToEdit 要编辑的事件（null表示新增）
+ * @param session 稳定的新建或编辑会话
  * @param defaults 添加新记录时的默认值（从上次记录继承）
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -54,48 +60,47 @@ data class RecordDefaults(
 fun MedicationRecordBottomSheet(
     showBottomSheet: Boolean,
     onDismiss: () -> Unit,
-    onSave: (DoseEvent) -> Unit,
+    onSave: (DoseEventEditorInput) -> Unit,
     onDelete: ((UUID) -> Unit)? = null,
-    eventToEdit: DoseEvent? = null,
+    session: DoseEventEditSession? = null,
     defaults: RecordDefaults? = null,
-    is24Hour: Boolean = true
+    is24Hour: Boolean = true,
+    isOperationRunning: Boolean = false,
+    operationError: String? = null
 ) {
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
 
-    // 表单状态 - 使用 eventToEdit 作为 key，确保每次打开时都重新初始化
+    val eventToEdit = session?.original?.takeIf { session.mode == DoseEventEditMode.UPDATE }
+
+    // 表单状态 - 使用 session 作为 key，确保同一会话重组时保持身份和时间
     // 新建时使用默认值（如果有），编辑时使用记录的值
-    var selectedRoute by remember(eventToEdit, showBottomSheet) { 
+    var selectedRoute by remember(session, showBottomSheet) {
         mutableStateOf(eventToEdit?.route ?: defaults?.route ?: Route.INJECTION) 
     }
-    var selectedEster by remember(eventToEdit, showBottomSheet) { 
+    var selectedEster by remember(session, showBottomSheet) {
         mutableStateOf(eventToEdit?.ester ?: defaults?.ester ?: Ester.EV) 
     }
-    var selectedAntiAndrogen by remember(eventToEdit, showBottomSheet) {
+    var selectedAntiAndrogen by remember(session, showBottomSheet) {
         mutableStateOf(
-            eventToEdit?.extras?.get(DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE)?.toInt()?.let {
+            eventToEdit?.extras?.get(ExtraKey.ANTI_ANDROGEN_TYPE)?.toInt()?.let {
                 AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
             } ?: defaults?.antiAndrogen ?: AntiAndrogen.CPA
         )
     }
-    var selectedDateTime by remember(eventToEdit, showBottomSheet) { 
-        mutableStateOf(
-            if (eventToEdit != null) {
-                Date((eventToEdit.timeH * 3600000).toLong())
-            } else {
-                Date() // 新建时使用当前时间
-            }
-        )
+    var selectedDateTime by remember(session, showBottomSheet) {
+        mutableStateOf(Date.from(session?.original?.occurredAt ?: Instant.EPOCH))
     }
+    var occurredAtEdited by remember(session, showBottomSheet) { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
     // 剂量相关状态
-    var rawDoseText by remember(eventToEdit, showBottomSheet) { 
+    var rawDoseText by remember(session, showBottomSheet) {
         mutableStateOf(
             if (eventToEdit != null && eventToEdit.route == Route.PATCH_APPLY && 
-                eventToEdit.extras.containsKey(DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
+                eventToEdit.extras.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
                 "" // 贴片释放速率模式下，不显示剂量
             } else if (eventToEdit != null) {
                 eventToEdit.doseMG.toString()
@@ -106,7 +111,7 @@ fun MedicationRecordBottomSheet(
             }
         )
     }
-    var e2DoseText by remember(eventToEdit, showBottomSheet) { 
+    var e2DoseText by remember(session, showBottomSheet) {
         mutableStateOf(
             if (eventToEdit != null && eventToEdit.route != Route.PATCH_APPLY &&
                 eventToEdit.route != Route.ANTIANDROGEN) {
@@ -121,16 +126,16 @@ fun MedicationRecordBottomSheet(
             }
         )
     }
-    var lastEditedField by remember(eventToEdit, showBottomSheet) { 
+    var lastEditedField by remember(session, showBottomSheet) {
         // When editing an existing record, treat raw dose as the source of truth to avoid
         // floating-point precision loss from the E2-equivalence round-trip.
         mutableStateOf<DoseField>(if (eventToEdit != null) DoseField.RAW else DoseField.E2) 
     }
 
     // 贴片相关状态
-    var patchMode by remember(eventToEdit, showBottomSheet) { 
+    var patchMode by remember(session, showBottomSheet) {
         mutableStateOf(
-            if (eventToEdit?.extras?.containsKey(DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY) == true) 
+            if (eventToEdit?.extras?.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY) == true)
                 PatchMode.RATE 
             else if (eventToEdit == null && defaults != null)
                 defaults.patchMode
@@ -138,17 +143,17 @@ fun MedicationRecordBottomSheet(
                 PatchMode.DOSE
         ) 
     }
-    var patchRateText by remember(eventToEdit, showBottomSheet) { 
+    var patchRateText by remember(session, showBottomSheet) {
         mutableStateOf(
-            eventToEdit?.extras?.get(DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY)?.toString() 
+            eventToEdit?.extras?.get(ExtraKey.RELEASE_RATE_UG_PER_DAY)?.toString()
                 ?: (if (defaults != null && defaults.patchRateUgPerDay > 0) defaults.patchRateUgPerDay.toString() else "")
         ) 
     }
 
     // 舌下相关状态
-    var sublingualTier by remember(eventToEdit, showBottomSheet) { 
+    var sublingualTier by remember(session, showBottomSheet) {
         mutableStateOf(
-            eventToEdit?.extras?.get(DoseEvent.ExtraKey.SUBLINGUAL_TIER)?.toInt()?.let { tier ->
+            eventToEdit?.extras?.get(ExtraKey.SUBLINGUAL_TIER)?.toInt()?.let { tier ->
                 SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
             } ?: defaults?.sublingualTier ?: SublingualTier.STANDARD
         )
@@ -304,6 +309,18 @@ fun MedicationRecordBottomSheet(
                     }
                 }
 
+                if (operationError != null) {
+                    Text(
+                        text = operationError,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .testTag("record-error")
+                    )
+                }
+
                 // 按钮区域
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -314,9 +331,11 @@ fun MedicationRecordBottomSheet(
                         OutlinedButton(
                             onClick = {
                                 onDelete(eventToEdit.id)
-                                onDismiss()
                             },
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("record-delete"),
+                            enabled = !isOperationRunning,
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
@@ -330,7 +349,8 @@ fun MedicationRecordBottomSheet(
                     // 取消按钮
                     OutlinedButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        enabled = !isOperationRunning
                     ) {
                         Text(stringResource(R.string.common_cancel))
                     }
@@ -338,45 +358,47 @@ fun MedicationRecordBottomSheet(
                     // 保存按钮
                     Button(
                         onClick = {
-                            val timeH = selectedDateTime.time / 3600000.0
                             val doseMG = when {
                                 selectedRoute == Route.PATCH_REMOVE -> 0.0
                                 selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> 0.0
                                 else -> rawDoseText.toDoubleOrNull() ?: 0.0
                             }
 
-                            val extras = mutableMapOf<DoseEvent.ExtraKey, Double>()
+                            val extras = requireNotNull(session).original.extras.toMutableMap()
                             
                             // 添加贴片释放速率
                             if (selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE) {
                                 patchRateText.toDoubleOrNull()?.let {
-                                    extras[DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY] = it
+                                    extras[ExtraKey.RELEASE_RATE_UG_PER_DAY] = it
                                 }
                             }
                             
                             // 添加舌下档位
                             if (selectedRoute == Route.SUBLINGUAL) {
-                                extras[DoseEvent.ExtraKey.SUBLINGUAL_TIER] = sublingualTier.ordinal.toDouble()
+                                extras[ExtraKey.SUBLINGUAL_TIER] = sublingualTier.ordinal.toDouble()
                             }
 
                             // 添加抗雄药物类型
                             if (selectedRoute == Route.ANTIANDROGEN) {
-                                extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.ordinal.toDouble()
+                                extras[ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.ordinal.toDouble()
                             }
 
-                            val event = DoseEvent(
-                                id = eventToEdit?.id ?: UUID.randomUUID(),
+                            onSave(
+                                DoseEventEditorInput(
+                                occurredAt = selectedDateTime.toInstant(),
+                                occurredAtEdited = occurredAtEdited,
                                 route = selectedRoute,
-                                timeH = timeH,
                                 doseMG = doseMG,
                                 ester = if (selectedRoute == Route.ANTIANDROGEN) Ester.E2 else selectedEster,
                                 extras = extras
+                                )
                             )
-                            onSave(event)
-                            onDismiss()
                         },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("record-save"),
                         enabled = when {
+                            isOperationRunning -> false
                             selectedRoute == Route.PATCH_REMOVE -> true
                             selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> patchRateText.toDoubleOrNull() != null && patchRateText.toDoubleOrNull()!! > 0
                             else -> rawDoseText.toDoubleOrNull() != null && rawDoseText.toDoubleOrNull()!! > 0
@@ -405,6 +427,7 @@ fun MedicationRecordBottomSheet(
                             set(Calendar.MINUTE, selectedDateTime.minutes)
                         }
                         selectedDateTime = calendar.time
+                        occurredAtEdited = true
                     }
                     showDatePicker = false
                 }) {
@@ -438,6 +461,7 @@ fun MedicationRecordBottomSheet(
                         set(Calendar.MINUTE, timePickerState.minute)
                     }
                     selectedDateTime = calendar.time
+                    occurredAtEdited = true
                     showTimePicker = false
                 }) {
                     Text(stringResource(R.string.common_confirm))
@@ -697,7 +721,9 @@ private fun DoseInputSection(
                     )
                 },
                 singleLine = true,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("record-dose"),
                 trailingIcon = {
                     Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
                 }

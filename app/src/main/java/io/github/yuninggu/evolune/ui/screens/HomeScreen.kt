@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.yuninggu.evolune.R
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.MedicationPlan
 import io.github.yuninggu.evolune.pk.SimulationResult
 import io.github.yuninggu.evolune.ui.components.ConcentrationChart
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
@@ -47,13 +47,13 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val pkState by viewModel.pkState.collectAsState()
-    val events by viewModel.events.collectAsState()
+    val doseTimePoints by viewModel.doseTimePoints.collectAsState()
     val enabledPlans by viewModel.enabledPlans.collectAsState()
     val realtimeCurrentTimeH by viewModel.currentTimeH.collectAsState()
 
     HomeScreenContent(
         pkState = pkState,
-        doseTimePoints = events.map { it.timeH },
+        doseTimePoints = doseTimePoints,
         enabledPlans = enabledPlans,
         realtimeCurrentTimeH = realtimeCurrentTimeH,
         onRefresh = { viewModel.runSimulation() },
@@ -79,7 +79,7 @@ private fun HomeScreenContent(
     // 计算分叉点时间：未来第一次计划用药的时间
     val forkPointTimeH = if (enabledPlans.isNotEmpty()) {
         val now = LocalDateTime.now()
-        val nextEvents = MedicationPlanPredictor.generateFutureEventsForPlans(
+        val nextEvents = MedicationPlanPredictor.generateFutureEventsForDomainPlans(
             plans = enabledPlans,
             fromDateTime = now,
             daysAhead = 7  // 检查接下来的7天，确保能找到周期性计划的下一次事件
