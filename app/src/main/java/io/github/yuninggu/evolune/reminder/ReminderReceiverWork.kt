@@ -1,6 +1,7 @@
 package io.github.yuninggu.evolune.reminder
 
-import io.github.yuninggu.evolune.application.RecordDoseEventAction
+import io.github.yuninggu.evolune.application.LocalActionRecorder
+import io.github.yuninggu.evolune.application.RecordAcceptance
 import io.github.yuninggu.evolune.application.RecordDoseEventActionResult
 import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
 import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
@@ -111,18 +112,15 @@ internal class ContractNotificationActionWork(
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: () -> ZoneId = ZoneId::systemDefault
 ) : NotificationActionWork {
-    private val recordAction = RecordDoseEventAction(medicationPlans, doseEvents)
+    private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
 
     override suspend fun handle(command: NotificationActionCommand): NotificationActionOutcome {
         val recordedAtMillis = clock.millis()
-        val eventId = reminderDoseEventId(command.planId, command.scheduledAtMillis)
         return when (
-            val result = recordAction.execute(
+            val result = recordAction.recordReminder(
                 planId = command.planId,
-                eventId = eventId,
-                source = DoseEventSource.REMINDER,
-                requireEnabledPlan = false
-            ) { plan ->
+                scheduledAtMillis = command.scheduledAtMillis,
+            ) { plan, _ ->
                 createReminderDoseEvent(
                     plan = plan,
                     recordedAtMillis = recordedAtMillis,
@@ -131,7 +129,10 @@ internal class ContractNotificationActionWork(
                 )
             }
         ) {
-            is RecordDoseEventActionResult.Accepted -> accepted(command, result.replayed)
+            is RecordDoseEventActionResult.Accepted -> accepted(
+                command,
+                result.acceptance != RecordAcceptance.Inserted
+            )
             RecordDoseEventActionResult.PlanNotFound,
             RecordDoseEventActionResult.PlanDisabled -> stale(command)
             RecordDoseEventActionResult.Conflict -> NotificationActionOutcome.Conflict

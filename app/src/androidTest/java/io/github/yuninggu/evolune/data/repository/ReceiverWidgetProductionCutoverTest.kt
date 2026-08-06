@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.yuninggu.evolune.application.RecordAcceptance
+import io.github.yuninggu.evolune.application.RecordDoseEventActionResult
+import io.github.yuninggu.evolune.application.WearActionRecorder
 import io.github.yuninggu.evolune.core.dataapi.InsertResult
+import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yuninggu.evolune.core.dataapi.PlanSaveResult
 import io.github.yuninggu.evolune.core.model.DoseEvent
 import io.github.yuninggu.evolune.core.model.DoseEventSource
@@ -27,6 +31,10 @@ import io.github.yuninggu.evolune.widget.WidgetQuickActionCommand
 import io.github.yuninggu.evolune.widget.WidgetQuickActionOutcome
 import io.github.yuninggu.evolune.widget.WidgetQuickActionSideEffects
 import io.github.yuninggu.evolune.widget.widgetDoseEventId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -86,9 +94,16 @@ class ReceiverWidgetProductionCutoverTest {
             NotificationActionOutcome.Accepted(false),
             notificationWork.handle(notificationCommand)
         )
+        val delayedNotificationWork = ContractNotificationActionWork(
+            medicationPlans = provider.medicationPlans,
+            doseEvents = provider.doseEvents,
+            sideEffects = notificationEffects,
+            clock = Clock.fixed(NOTIFICATION_REPLAY_OCCURRED_AT, ZoneOffset.UTC),
+            zoneId = { TEST_ZONE }
+        )
         assertEquals(
             NotificationActionOutcome.Accepted(true),
-            notificationWork.handle(notificationCommand)
+            delayedNotificationWork.handle(notificationCommand)
         )
         val reminderId = reminderDoseEventId(PLAN_ID, SCHEDULED_AT_MILLIS)
         val reminder = requireNotNull(provider.doseEvents.getById(reminderId))
@@ -111,7 +126,14 @@ class ReceiverWidgetProductionCutoverTest {
         )
         val widgetCommand = WidgetQuickActionCommand(PLAN_ID.toString())
         assertEquals(WidgetQuickActionOutcome.Accepted(false), widgetWork.handle(widgetCommand))
-        assertEquals(WidgetQuickActionOutcome.Accepted(true), widgetWork.handle(widgetCommand))
+        val replayWidgetWork = ContractWidgetQuickActionWork(
+            medicationPlans = provider.medicationPlans,
+            doseEvents = provider.doseEvents,
+            sideEffects = widgetEffects,
+            clock = Clock.fixed(WIDGET_REPLAY_OCCURRED_AT, ZoneOffset.UTC),
+            zoneId = { TEST_ZONE }
+        )
+        assertEquals(WidgetQuickActionOutcome.Accepted(true), replayWidgetWork.handle(widgetCommand))
         val widgetId = widgetDoseEventId(PLAN_ID, WIDGET_OCCURRED_AT.toEpochMilli())
         val widget = requireNotNull(provider.doseEvents.getById(widgetId))
         assertEquals(DoseEventSource.WIDGET, widget.source)
@@ -186,6 +208,115 @@ class ReceiverWidgetProductionCutoverTest {
         assertSingleDisposableDatabase()
     }
 
+    @Test
+    fun wearRecorderUsesStoredEventBeforePlanAndPreservesRepositoryEquality() = runBlocking {
+        val opened = openDatabase()
+        val provider = ProductionRepositoryProvider(opened)
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val actionId = UUID(0L, 820L)
+        var materializerCalls = 0
+        val firstResult = WearActionRecorder(
+            provider.medicationPlans,
+            provider.doseEvents
+        ).record(PLAN_ID, actionId, WEAR_OCCURRED_AT) { materializedPlan ->
+            materializerCalls += 1
+            wearEvent(materializedPlan, actionId, WEAR_OCCURRED_AT)
+        }
+        val first = firstResult as RecordDoseEventActionResult.Accepted
+        assertEquals(RecordAcceptance.Inserted, first.acceptance)
+        assertEquals(1, materializerCalls)
+        assertEquals(actionId, first.event.id)
+        assertEquals(WEAR_OCCURRED_AT, first.event.occurredAt)
+
+        assertEquals(
+            PlanSaveResult.Updated,
+            provider.medicationPlans.save(plan().copy(name = "Edited synthetic plan"))
+        )
+        val replayPlans = CountingMedicationPlanRepository(provider.medicationPlans)
+        var replayMaterializerCalls = 0
+        val replay = WearActionRecorder(replayPlans, provider.doseEvents).record(
+            PLAN_ID,
+            actionId,
+            WEAR_OCCURRED_AT
+        ) {
+            replayMaterializerCalls += 1
+            wearEvent(it, actionId, WEAR_OCCURRED_AT)
+        } as RecordDoseEventActionResult.Accepted
+        assertEquals(RecordAcceptance.FirstAcceptedReplay, replay.acceptance)
+        assertEquals(first.event, replay.event)
+        assertNull(replay.plan)
+        assertEquals(0, replayPlans.getCalls)
+        assertEquals(0, replayMaterializerCalls)
+
+        val conflictPlans = CountingMedicationPlanRepository(provider.medicationPlans)
+        var conflictMaterializerCalls = 0
+        val conflict = WearActionRecorder(conflictPlans, provider.doseEvents).record(
+            PLAN_ID,
+            actionId,
+            WEAR_OCCURRED_AT.plusMillis(1)
+        ) {
+            conflictMaterializerCalls += 1
+            wearEvent(it, actionId, WEAR_OCCURRED_AT.plusMillis(1))
+        }
+        assertEquals(RecordDoseEventActionResult.Conflict, conflict)
+        assertEquals(0, conflictPlans.getCalls)
+        assertEquals(0, conflictMaterializerCalls)
+        assertEquals(first.event, provider.doseEvents.getById(actionId))
+
+        assertEquals(InsertResult.Idempotent, provider.doseEvents.insert(first.event))
+        assertEquals(
+            InsertResult.Conflict,
+            provider.doseEvents.insert(first.event.copy(doseMG = first.event.doseMG + 1.0))
+        )
+        assertEquals(3, opened.openHelper.readableDatabase.version)
+        assertSingleDisposableDatabase()
+    }
+
+    @Test
+    fun concurrentWearActionsKeepOneAuthoritativeRow() = runBlocking {
+        val opened = openDatabase()
+        val provider = ProductionRepositoryProvider(opened)
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val sameActionId = UUID(0L, 821L)
+        val recorder = WearActionRecorder(provider.medicationPlans, provider.doseEvents)
+        val sameOutcomes = coroutineScope {
+            List(2) {
+                async(Dispatchers.IO) {
+                    recorder.record(PLAN_ID, sameActionId, WEAR_OCCURRED_AT) { materializedPlan ->
+                        wearEvent(materializedPlan, sameActionId, WEAR_OCCURRED_AT)
+                    }
+                }
+            }.awaitAll()
+        }
+        assertTrue(sameOutcomes.all { it is RecordDoseEventActionResult.Accepted })
+        assertEquals(
+            1,
+            sameOutcomes.count {
+                (it as RecordDoseEventActionResult.Accepted).acceptance == RecordAcceptance.Inserted
+            }
+        )
+        assertEquals(WEAR_OCCURRED_AT, provider.doseEvents.getById(sameActionId)?.occurredAt)
+
+        val conflictingActionId = UUID(0L, 822L)
+        val conflictingOccurrences = listOf(WEAR_OCCURRED_AT, WEAR_OCCURRED_AT.plusMillis(1))
+        val conflictingOutcomes = coroutineScope {
+            conflictingOccurrences.map { recordedAt ->
+                async(Dispatchers.IO) {
+                    recorder.record(PLAN_ID, conflictingActionId, recordedAt) { materializedPlan ->
+                        wearEvent(materializedPlan, conflictingActionId, recordedAt)
+                    }
+                }
+            }.awaitAll()
+        }
+        assertEquals(1, conflictingOutcomes.count { it is RecordDoseEventActionResult.Accepted })
+        assertEquals(1, conflictingOutcomes.count { it == RecordDoseEventActionResult.Conflict })
+        assertTrue(
+            provider.doseEvents.getById(conflictingActionId)?.occurredAt in conflictingOccurrences
+        )
+        assertEquals(3, opened.openHelper.readableDatabase.version)
+        assertSingleDisposableDatabase()
+    }
+
     private fun plan(): MedicationPlan = MedicationPlan(
         id = PLAN_ID,
         name = "Synthetic integration plan",
@@ -217,6 +348,24 @@ class ReceiverWidgetProductionCutoverTest {
         doseMG = 2.0,
         ester = Ester.E2,
         source = source
+    )
+
+    private fun wearEvent(
+        plan: MedicationPlan,
+        id: UUID,
+        occurredAt: Instant
+    ): DoseEvent = DoseEvent(
+        id = id,
+        route = plan.route,
+        occurredAt = occurredAt,
+        zoneId = TEST_ZONE,
+        localDate = occurredAt.atZone(TEST_ZONE).toLocalDate(),
+        doseMG = plan.doseMG,
+        ester = plan.ester,
+        extras = plan.extras,
+        slotId = null,
+        source = DoseEventSource.WEAR,
+        revision = 1L
     )
 
     private fun rawEventCount(): Int = requireNotNull(database)
@@ -272,8 +421,23 @@ class ReceiverWidgetProductionCutoverTest {
         const val SCHEDULED_AT_MILLIS = 1_800_000_000_000L
         val PLAN_ID: UUID = UUID(0L, 801L)
         val NOTIFICATION_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:30:00.123Z")
+        val NOTIFICATION_REPLAY_OCCURRED_AT: Instant =
+            Instant.parse("2027-01-15T08:30:30.456Z")
         val WIDGET_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:31:00.456Z")
+        val WIDGET_REPLAY_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:31:01.789Z")
+        val WEAR_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:32:00.123Z")
         val TEST_ZONE: ZoneId = ZoneId.of("Asia/Shanghai")
+    }
+}
+
+private class CountingMedicationPlanRepository(
+    private val delegate: MedicationPlanRepository
+) : MedicationPlanRepository by delegate {
+    var getCalls = 0
+
+    override suspend fun getById(id: UUID): MedicationPlan? {
+        getCalls += 1
+        return delegate.getById(id)
     }
 }
 

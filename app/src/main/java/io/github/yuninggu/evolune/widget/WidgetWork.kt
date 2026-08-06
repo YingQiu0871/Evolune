@@ -1,6 +1,7 @@
 package io.github.yuninggu.evolune.widget
 
-import io.github.yuninggu.evolune.application.RecordDoseEventAction
+import io.github.yuninggu.evolune.application.LocalActionRecorder
+import io.github.yuninggu.evolune.application.RecordAcceptance
 import io.github.yuninggu.evolune.application.RecordDoseEventActionResult
 import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
 import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
@@ -104,27 +105,24 @@ internal class ContractWidgetQuickActionWork(
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: () -> ZoneId = ZoneId::systemDefault
 ) : WidgetQuickActionWork {
-    private val recordAction = RecordDoseEventAction(medicationPlans, doseEvents)
+    private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
 
     override suspend fun handle(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
         val planId = command.planId
             ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
             ?: return WidgetQuickActionOutcome.Invalid
         val recordedAtMillis = clock.millis()
-        val eventId = widgetDoseEventId(planId, recordedAtMillis)
         return when (
-            val result = recordAction.execute(
+            val result = recordAction.recordWidget(
                 planId = planId,
-                eventId = eventId,
-                source = DoseEventSource.WIDGET,
-                requireEnabledPlan = true
-            ) { plan ->
+                recordedAtMillis = recordedAtMillis,
+            ) { plan, eventId ->
                 createWidgetDoseEvent(plan, eventId, recordedAtMillis, zoneId())
             }
         ) {
             is RecordDoseEventActionResult.Accepted -> accepted(
-                planName = result.plan.name,
-                replayed = result.replayed
+                planName = requireNotNull(result.plan).name,
+                replayed = result.acceptance != RecordAcceptance.Inserted
             )
             RecordDoseEventActionResult.PlanNotFound -> WidgetQuickActionOutcome.PlanNotFound
             RecordDoseEventActionResult.PlanDisabled -> WidgetQuickActionOutcome.PlanDisabled
