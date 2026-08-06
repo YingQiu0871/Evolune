@@ -1,16 +1,15 @@
 package io.github.yuninggu.evolune.reminder
 
-import io.github.yuninggu.evolune.data.MedicationPlan
-import io.github.yuninggu.evolune.pk.DoseEvent
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.MedicationPlan
 import kotlin.math.abs
 
-internal const val DOSE_CHECK_IN_WINDOW_HOURS = 1.0
 internal const val DOSE_CHECK_IN_WINDOW_MILLIS = 60 * 60 * 1000L
 private const val DOSE_TOLERANCE_MG = 0.000_001
 
 /**
- * Dose records do not currently store a plan ID, so use the stable medication
- * fields to determine whether a check-in belongs to a plan.
+ * Events without a proven slot identity are matched using the existing
+ * medication fields and time window.
  */
 internal fun DoseEvent.matchesPlanDose(plan: MedicationPlan): Boolean =
     route == plan.route &&
@@ -22,10 +21,10 @@ internal fun hasPlanDoseCheckIn(
     events: List<DoseEvent>,
     scheduledAtMillis: Long
 ): Boolean {
-    val scheduledTimeH = scheduledAtMillis / 3_600_000.0
     return events.any { event ->
         event.matchesPlanDose(plan) &&
-            abs(event.timeH - scheduledTimeH) <= DOSE_CHECK_IN_WINDOW_HOURS
+            abs(event.occurredAt.toEpochMilli() - scheduledAtMillis) <=
+            DOSE_CHECK_IN_WINDOW_MILLIS
     }
 }
 

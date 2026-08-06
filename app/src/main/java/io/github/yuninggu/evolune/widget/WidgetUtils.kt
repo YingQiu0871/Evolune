@@ -1,9 +1,11 @@
 package io.github.yuninggu.evolune.widget
 
-import io.github.yuninggu.evolune.data.MedicationPlan
-import io.github.yuninggu.evolune.data.displayName
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.ExtraKey
+import io.github.yuninggu.evolune.core.model.MedicationPlan
+import io.github.yuninggu.evolune.core.model.ScheduleType
 import io.github.yuninggu.evolune.pk.AntiAndrogen
-import io.github.yuninggu.evolune.pk.DoseEvent
+import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.pk.displayName as antiAndrogenDisplayName
 import io.github.yuninggu.evolune.reminder.matchesPlanDose
@@ -49,12 +51,12 @@ object WidgetUtils {
      */
     fun MedicationPlan.drugDisplayName(): String {
         return if (route == Route.ANTIANDROGEN) {
-            val aaType = extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+            val aaType = extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
                 AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
             } ?: AntiAndrogen.CPA
             aaType.antiAndrogenDisplayName
         } else {
-            ester.displayName
+            ester.widgetDisplayName()
         }
     }
 
@@ -77,10 +79,10 @@ object WidgetUtils {
         recentActualEvents: List<DoseEvent>
     ): ScheduledDoseInfo? {
         val now = LocalDateTime.now()
-        val nowH = System.currentTimeMillis() / 3600000.0
+        val nowMillis = System.currentTimeMillis()
 
         val relevantPerPlan = enabledPlans.mapNotNull { plan ->
-            findRelevantForPlan(plan, now, nowH, recentActualEvents)
+            findRelevantForPlan(plan, now, nowMillis, recentActualEvents)
         }
 
         if (relevantPerPlan.isEmpty()) return null
@@ -93,11 +95,11 @@ object WidgetUtils {
                 // 全部已用药，展示最近的下一次计划
                 relevantPerPlan
                     .filter { !it.isOverdue }
-                    .minByOrNull { localDateTimeToHours(it.scheduledTime) - nowH }
+                    .minByOrNull { scheduledMillis(it.scheduledTime) - nowMillis }
                     ?: relevantPerPlan.maxByOrNull { localDateTimeToHours(it.scheduledTime) }
             }
             overdueUntaken.isEmpty() -> {
-                upcomingUntaken.minByOrNull { localDateTimeToHours(it.scheduledTime) - nowH }
+                upcomingUntaken.minByOrNull { scheduledMillis(it.scheduledTime) - nowMillis }
             }
             upcomingUntaken.isEmpty() -> {
                 overdueUntaken.maxByOrNull { localDateTimeToHours(it.scheduledTime) }
@@ -107,8 +109,8 @@ object WidgetUtils {
                     overdueUntaken.maxByOrNull { localDateTimeToHours(it.scheduledTime) }!!
                 val closestUpcoming =
                     upcomingUntaken.minByOrNull { localDateTimeToHours(it.scheduledTime) }!!
-                val timeSince = nowH - localDateTimeToHours(closestOverdue.scheduledTime)
-                val timeToNext = localDateTimeToHours(closestUpcoming.scheduledTime) - nowH
+                val timeSince = nowMillis - scheduledMillis(closestOverdue.scheduledTime)
+                val timeToNext = scheduledMillis(closestUpcoming.scheduledTime) - nowMillis
                 // 过期事件仍更近时继续显示它
                 if (timeSince <= timeToNext) closestOverdue else closestUpcoming
             }
@@ -118,7 +120,7 @@ object WidgetUtils {
     private fun findRelevantForPlan(
         plan: MedicationPlan,
         now: LocalDateTime,
-        nowH: Double,
+        nowMillis: Long,
         recentActualEvents: List<DoseEvent>
     ): ScheduledDoseInfo? {
         val scheduledTimes = generateScheduledTimes(plan, now.minusHours(48), now.plusDays(7))
@@ -129,10 +131,11 @@ object WidgetUtils {
 
         /** Standard ±[TAKEN_WINDOW_HOURS] check for a given scheduled time. */
         fun isTakenAt(time: LocalDateTime): Boolean {
-            val h = localDateTimeToHours(time)
+            val scheduledMillis = scheduledMillis(time)
             return recentActualEvents.any { actual ->
                 actual.matchesPlanDose(plan) &&
-                    abs(actual.timeH - h) <= TAKEN_WINDOW_HOURS
+                    abs(actual.occurredAt.toEpochMilli() - scheduledMillis) <=
+                    DOSE_WINDOW_MILLIS
             }
         }
 
@@ -145,11 +148,11 @@ object WidgetUtils {
          * The [TAKEN_WINDOW_HOURS] subtraction on [fromH] mirrors the ±window logic of
          * [isTakenAt], so a dose recorded slightly before the scheduled time is still counted.
          */
-        fun isTakenBetween(fromH: Double, toExclusiveH: Double): Boolean {
+        fun isTakenBetween(fromMillis: Long, toExclusiveMillis: Long): Boolean {
             return recentActualEvents.any { actual ->
                 actual.matchesPlanDose(plan) &&
-                    actual.timeH >= fromH - TAKEN_WINDOW_HOURS &&
-                    actual.timeH < toExclusiveH
+                    actual.occurredAt.toEpochMilli() >= fromMillis - DOSE_WINDOW_MILLIS &&
+                    actual.occurredAt.toEpochMilli() < toExclusiveMillis
             }
         }
 
@@ -157,20 +160,21 @@ object WidgetUtils {
             return nextFuture?.let { ScheduledDoseInfo(plan, it, isTakenAt(it), false) }
         }
 
-        val lastPastH = localDateTimeToHours(lastPast)
-        val nextFutureH = nextFuture?.let { localDateTimeToHours(it) }
+        val lastPastMillis = scheduledMillis(lastPast)
+        val nextFutureMillis = nextFuture?.let(::scheduledMillis)
 
         // Consider the past dose taken if any matching dose was recorded from the scheduled
         // time all the way up to (but not within the window of) the next scheduled dose.
         // This allows catch-up doses to clear the "漏服" state immediately.
         val lastPastTaken = isTakenBetween(
-            fromH = lastPastH,
-            toExclusiveH = nextFutureH?.minus(TAKEN_WINDOW_HOURS) ?: (nowH + TAKEN_WINDOW_HOURS)
+            fromMillis = lastPastMillis,
+            toExclusiveMillis = nextFutureMillis?.minus(DOSE_WINDOW_MILLIS)
+                ?: (nowMillis + DOSE_WINDOW_MILLIS)
         )
 
         return if (!lastPastTaken && nextFuture != null) {
-            val timeSince = nowH - lastPastH
-            val timeToNext = nextFutureH!! - nowH
+            val timeSince = nowMillis - lastPastMillis
+            val timeToNext = nextFutureMillis!! - nowMillis
             if (timeSince <= timeToNext) {
                 ScheduledDoseInfo(plan, lastPast, false, isOverdue = true)
             } else {
@@ -201,35 +205,35 @@ object WidgetUtils {
         }
 
         when (plan.scheduleType) {
-            MedicationPlan.ScheduleType.DAILY -> {
+            ScheduleType.DAILY -> {
                 var date = fromDate
                 while (!date.isAfter(toDate)) {
-                    plan.timeOfDay.forEach { addIfInRange(LocalDateTime.of(date, it)) }
+                    plan.slots.forEach { addIfInRange(LocalDateTime.of(date, it.localTime)) }
                     date = date.plusDays(1)
                 }
             }
-            MedicationPlan.ScheduleType.WEEKLY -> {
+            ScheduleType.WEEKLY -> {
                 var date = fromDate
                 while (!date.isAfter(toDate)) {
                     if (plan.daysOfWeek.contains(date.dayOfWeek)) {
-                        plan.timeOfDay.forEach { addIfInRange(LocalDateTime.of(date, it)) }
+                        plan.slots.forEach { addIfInRange(LocalDateTime.of(date, it.localTime)) }
                     }
                     date = date.plusDays(1)
                 }
             }
-            MedicationPlan.ScheduleType.CUSTOM -> {
+            ScheduleType.CUSTOM -> {
                 // 从今天向前和向后按间隔枚举
                 var offset = 0L
                 var date = today
                 while (!date.isAfter(toDate)) {
-                    plan.timeOfDay.forEach { addIfInRange(LocalDateTime.of(date, it)) }
+                    plan.slots.forEach { addIfInRange(LocalDateTime.of(date, it.localTime)) }
                     offset += plan.intervalDays
                     date = today.plusDays(offset)
                 }
                 offset = plan.intervalDays.toLong()
                 date = today.minusDays(offset)
                 while (!date.isBefore(fromDate)) {
-                    plan.timeOfDay.forEach { addIfInRange(LocalDateTime.of(date, it)) }
+                    plan.slots.forEach { addIfInRange(LocalDateTime.of(date, it.localTime)) }
                     offset += plan.intervalDays
                     date = today.minusDays(offset)
                 }
@@ -253,4 +257,17 @@ object WidgetUtils {
             else -> "${date.monthValue}/${date.dayOfMonth} $timeStr"
         }
     }
+
+    private fun scheduledMillis(dateTime: LocalDateTime): Long =
+        dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+    private fun Ester.widgetDisplayName(): String = when (this) {
+        Ester.E2 -> "雌二醇"
+        Ester.EB -> "苯甲酸雌二醇"
+        Ester.EV -> "戊酸雌二醇"
+        Ester.EC -> "环戊丙酸雌二醇"
+        Ester.EN -> "庚酸雌二醇"
+    }
+
+    private const val DOSE_WINDOW_MILLIS = 3_600_000L
 }

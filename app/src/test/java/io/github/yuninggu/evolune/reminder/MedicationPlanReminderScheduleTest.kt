@@ -3,7 +3,6 @@ package io.github.yuninggu.evolune.reminder
 import io.github.yuninggu.evolune.core.model.MedicationPlan as DomainMedicationPlan
 import io.github.yuninggu.evolune.core.model.ScheduleType
 import io.github.yuninggu.evolune.core.model.ScheduledDoseSlot
-import io.github.yuninggu.evolune.data.MedicationPlan as LegacyMedicationPlan
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import org.junit.Assert.assertEquals
@@ -18,19 +17,19 @@ import java.util.UUID
 
 class MedicationPlanReminderScheduleTest {
     @Test
-    fun `Domain and legacy reminder schedules match for every schedule type`() {
-        listOf(
-            ScheduleType.DAILY to LegacyMedicationPlan.ScheduleType.DAILY,
-            ScheduleType.WEEKLY to LegacyMedicationPlan.ScheduleType.WEEKLY,
-            ScheduleType.CUSTOM to LegacyMedicationPlan.ScheduleType.CUSTOM
-        ).forEach { (domainType, legacyType) ->
-            val times = listOf(LocalTime.of(20, 0), LocalTime.of(8, 30))
-            val domain = domainPlan(domainType, times)
-            val legacy = legacyPlan(legacyType, times)
-
-            assertEquals(
-                reminderOccurrences(legacy, NOW),
-                reminderOccurrences(domain, NOW)
+    fun `Domain reminder schedules cover every schedule type`() {
+        ScheduleType.entries.forEach { scheduleType ->
+            val occurrences = reminderOccurrences(
+                domainPlan(scheduleType, listOf(LocalTime.of(20, 0), LocalTime.of(8, 30))),
+                NOW
+            )
+            val occurrencesPerTime = if (scheduleType == ScheduleType.WEEKLY) 18 else 30
+            assertEquals(occurrencesPerTime * 2, occurrences.size)
+            assertTrue(
+                occurrences.take(occurrencesPerTime).all { it.timePosition == 0 }
+            )
+            assertTrue(
+                occurrences.drop(occurrencesPerTime).all { it.timePosition == 1 }
             )
         }
     }
@@ -98,26 +97,20 @@ class MedicationPlanReminderScheduleTest {
     }
 
     @Test
-    fun `Domain and legacy local schedules resolve equally across DST gap and overlap`() {
+    fun `Domain local schedules use Java defaults across DST gap and overlap`() {
         val zoneId = ZoneId.of("America/New_York")
-        listOf(
-            LocalDateTime.of(2024, 3, 10, 0, 0) to LocalTime.of(2, 30),
-            LocalDateTime.of(2024, 11, 3, 0, 0) to LocalTime.of(1, 30)
-        ).forEach { (now, time) ->
-            val domain = reminderOccurrences(
-                domainPlan(ScheduleType.DAILY, listOf(time)),
-                now
-            ).first()
-            val legacy = reminderOccurrences(
-                legacyPlan(LegacyMedicationPlan.ScheduleType.DAILY, listOf(time)),
-                now
-            ).first()
+        val gap = reminderOccurrences(
+            domainPlan(ScheduleType.DAILY, listOf(LocalTime.of(2, 30))),
+            LocalDateTime.of(2024, 3, 10, 0, 0)
+        ).first().dateTime.atZone(zoneId)
+        val overlap = reminderOccurrences(
+            domainPlan(ScheduleType.DAILY, listOf(LocalTime.of(1, 30))),
+            LocalDateTime.of(2024, 11, 3, 0, 0)
+        ).first().dateTime.atZone(zoneId)
 
-            assertEquals(
-                legacy.dateTime.atZone(zoneId).toInstant(),
-                domain.dateTime.atZone(zoneId).toInstant()
-            )
-        }
+        assertEquals(3, gap.hour)
+        assertEquals("-04:00", gap.offset.id)
+        assertEquals("-04:00", overlap.offset.id)
     }
 
     private fun domainPlan(
@@ -143,24 +136,6 @@ class MedicationPlanReminderScheduleTest {
         isEnabled = true,
         extras = emptyMap(),
         createdAt = Instant.parse("2024-01-02T03:04:05Z")
-    )
-
-    private fun legacyPlan(
-        scheduleType: LegacyMedicationPlan.ScheduleType,
-        times: List<LocalTime>
-    ): LegacyMedicationPlan = LegacyMedicationPlan(
-        id = PLAN_ID,
-        name = "Synthetic reminder plan",
-        route = Route.ORAL,
-        ester = Ester.E2,
-        doseMG = 2.0,
-        scheduleType = scheduleType,
-        timeOfDay = times,
-        daysOfWeek = setOf(DayOfWeek.MONDAY, DayOfWeek.THURSDAY),
-        intervalDays = 3,
-        isEnabled = true,
-        extras = emptyMap(),
-        createdAt = Instant.parse("2024-01-02T03:04:05Z").toEpochMilli()
     )
 
     private companion object {

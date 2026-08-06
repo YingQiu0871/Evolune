@@ -3,18 +3,28 @@ package io.github.yuninggu.evolune.reminder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.github.yuninggu.evolune.data.AppDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yuninggu.evolune.utils.description
 import java.util.UUID
 
 /**
  * 用药提醒广播接收器
  * 接收定时提醒的广播并显示通知
  */
-class MedicationReminderReceiver : BroadcastReceiver() {
+class MedicationReminderReceiver : BroadcastReceiver {
+
+    private var workFactory: ((Context) -> ReminderDeliveryWork)? = null
+    private var workLauncher = ReceiverWorkLauncher()
+
+    constructor()
+
+    internal constructor(
+        workFactory: (Context) -> ReminderDeliveryWork,
+        workLauncher: ReceiverWorkLauncher = ReceiverWorkLauncher()
+    ) : this() {
+        this.workFactory = workFactory
+        this.workLauncher = workLauncher
+    }
 
     companion object {
         const val EXTRA_PLAN_ID = "plan_id"
@@ -32,40 +42,49 @@ class MedicationReminderReceiver : BroadcastReceiver() {
             System.currentTimeMillis()
         )
         val planUuid = runCatching { UUID.fromString(planId) }.getOrNull() ?: return
+        val applicationContext = context.applicationContext
         val pendingResult = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                val database = AppDatabase.getDatabase(context)
-                val plan = database.medicationPlanDao()
-                    .getPlanById(planUuid)
-                    ?.toMedicationPlan()
+        workLauncher.launch(
+            work = {
+                val work = workFactory?.invoke(applicationContext)
+                    ?: productionWork(applicationContext)
+                work.handle(
+                    ReminderDeliveryCommand(
+                        planId = planUuid,
+                        notificationId = notificationId,
+                        scheduledAtMillis = scheduledAtMillis
+                    )
+                )
+            },
+            finish = pendingResult::finish
+        )
+    }
 
-                if (plan?.isEnabled == true) {
-                    val scheduledTimeH = scheduledAtMillis / 3_600_000.0
-                    val checkIns = database.doseEventDao()
-                        .getEventsByTimeRange(
-                            scheduledTimeH - DOSE_CHECK_IN_WINDOW_HOURS,
-                            scheduledTimeH + DOSE_CHECK_IN_WINDOW_HOURS
-                        )
-                        .map { it.toDoseEvent() }
+    private fun productionWork(context: Context): ReminderDeliveryWork {
+        val repositories = ProductionRepositoryProvider.get(context)
+        return ContractReminderDeliveryWork(
+            medicationPlans = repositories.medicationPlans,
+            doseEvents = repositories.doseEvents,
+            sideEffects = object : ReminderDeliverySideEffects {
+                override fun sendReminder(
+                    plan: io.github.yuninggu.evolune.core.model.MedicationPlan,
+                    command: ReminderDeliveryCommand
+                ) {
+                    NotificationHelper(context).sendMedicationReminder(
+                        planId = plan.id.toString(),
+                        planName = plan.name,
+                        description = plan.description(),
+                        notificationId = command.notificationId,
+                        scheduledAtMillis = command.scheduledAtMillis
+                    )
+                }
 
-                    if (!hasPlanDoseCheckIn(plan, checkIns, scheduledAtMillis)) {
-                        NotificationHelper(context).sendMedicationReminder(
-                            planId = planId,
-                            planName = plan.name,
-                            description = plan.getDescription(),
-                            notificationId = notificationId,
-                            scheduledAtMillis = scheduledAtMillis
-                        )
-                    }
-
-                    // Keep long-running plans alive beyond the pre-scheduled
-                    // window by refreshing the next batch after delivery.
+                override fun scheduleNextBatch(
+                    plan: io.github.yuninggu.evolune.core.model.MedicationPlan
+                ) {
                     ReminderManager(context).scheduleReminder(plan)
                 }
-            } finally {
-                pendingResult.finish()
             }
-        }
+        )
     }
 }

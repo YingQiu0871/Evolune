@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import io.github.yuninggu.evolune.core.model.MedicationPlan as DomainMedicationPlan
-import io.github.yuninggu.evolune.data.MedicationPlan as LegacyMedicationPlan
 import io.github.yuninggu.evolune.utils.description
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -44,23 +43,6 @@ class ReminderManager(
         rescheduleDomainReminders(plans)
     }
 
-    /**
-     * 为用药方案设置提醒
-     */
-    fun scheduleReminder(plan: LegacyMedicationPlan) {
-        if (!plan.isEnabled) {
-            return
-        }
-
-        // Editing a plan can remove or move times. Clear old PendingIntents first
-        // so stale alarms from the previous definition cannot fire.
-        cancelReminder(plan.id)
-
-        reminderOccurrences(plan, LocalDateTime.now()).forEach { occurrence ->
-            scheduleAlarm(plan, occurrence.dateTime, occurrence.requestOffset)
-        }
-    }
-
     fun scheduleReminder(plan: DomainMedicationPlan) {
         if (!plan.isEnabled) {
             return
@@ -96,14 +78,6 @@ class ReminderManager(
     /**
      * 重新设置所有启用方案的提醒
      */
-    suspend fun rescheduleAllReminders(plans: List<LegacyMedicationPlan>) {
-        // 取消所有现有提醒
-        plans.forEach { cancelReminder(it.id) }
-        
-        // 重新设置启用的方案
-        plans.filter { it.isEnabled }.forEach { scheduleReminder(it) }
-    }
-
     suspend fun rescheduleDomainReminders(plans: List<DomainMedicationPlan>) {
         plans.forEach { cancelReminder(it.id) }
         plans.filter { it.isEnabled }.forEach { scheduleReminder(it) }
@@ -112,20 +86,6 @@ class ReminderManager(
     /**
      * 设置单次提醒
      */
-    private fun scheduleAlarm(
-        plan: LegacyMedicationPlan,
-        dateTime: LocalDateTime,
-        timeIndex: Int
-    ) {
-        scheduleAlarm(
-            planId = plan.id,
-            planName = plan.name,
-            planDescription = plan.getDescription(),
-            dateTime = dateTime,
-            timeIndex = timeIndex
-        )
-    }
-
     private fun scheduleAlarm(
         plan: DomainMedicationPlan,
         dateTime: LocalDateTime,

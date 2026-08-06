@@ -2,7 +2,6 @@ package io.github.yuninggu.evolune.reminder
 
 import io.github.yuninggu.evolune.core.model.MedicationPlan as DomainMedicationPlan
 import io.github.yuninggu.evolune.core.model.ScheduleType
-import io.github.yuninggu.evolune.data.MedicationPlan as LegacyMedicationPlan
 import java.time.DayOfWeek
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -26,17 +25,6 @@ internal fun reminderOccurrences(
     daysOfWeek = plan.daysOfWeek,
     intervalDays = plan.intervalDays,
     times = plan.slots.sortedBy { it.position }.map { it.localTime },
-    now = now
-)
-
-internal fun reminderOccurrences(
-    plan: LegacyMedicationPlan,
-    now: LocalDateTime
-): List<MedicationPlanReminderOccurrence> = reminderOccurrences(
-    scheduleType = plan.scheduleType.toDomainScheduleType(),
-    daysOfWeek = plan.daysOfWeek,
-    intervalDays = plan.intervalDays,
-    times = plan.timeOfDay,
     now = now
 )
 
@@ -111,9 +99,3 @@ internal fun reminderRequestCode(
     timeIndex: Int,
     occurrenceIndex: Int
 ): Int = planId.hashCode() + timeIndex * 1000 + occurrenceIndex
-
-private fun LegacyMedicationPlan.ScheduleType.toDomainScheduleType(): ScheduleType = when (this) {
-    LegacyMedicationPlan.ScheduleType.DAILY -> ScheduleType.DAILY
-    LegacyMedicationPlan.ScheduleType.WEEKLY -> ScheduleType.WEEKLY
-    LegacyMedicationPlan.ScheduleType.CUSTOM -> ScheduleType.CUSTOM
-}

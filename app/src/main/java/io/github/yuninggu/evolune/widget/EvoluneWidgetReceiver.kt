@@ -12,27 +12,35 @@ import android.widget.RemoteViews
 import android.widget.Toast
 import io.github.yuninggu.evolune.MainActivity
 import io.github.yuninggu.evolune.R
-import io.github.yuninggu.evolune.data.AppDatabase
-import io.github.yuninggu.evolune.data.DoseEventEntity
-import io.github.yuninggu.evolune.data.DoseEventRepository
-import io.github.yuninggu.evolune.data.MedicationPlan
+import io.github.yuninggu.evolune.core.model.MedicationPlan
 import io.github.yuninggu.evolune.data.SettingsDataStore
-import io.github.yuninggu.evolune.pk.DoseEvent
-import io.github.yuninggu.evolune.pk.Route
-import io.github.yuninggu.evolune.pk.SimulationEngine
-import kotlinx.coroutines.CoroutineScope
+import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yuninggu.evolune.reminder.ReceiverWorkLauncher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import java.nio.charset.StandardCharsets
-import java.util.UUID
+import kotlinx.coroutines.withContext
 
 /**
  * Traditional RemoteViews widget used for broad launcher compatibility,
  * including Honor foldable launchers.
  */
-class EvoluneWidgetReceiver : AppWidgetProvider() {
+class EvoluneWidgetReceiver : AppWidgetProvider {
+
+    private var quickActionWorkFactory: ((Context) -> WidgetQuickActionWork)? = null
+    private var updateWorkFactory: ((Context, AppWidgetManager) -> WidgetUpdateWork)? = null
+    private var workLauncher = ReceiverWorkLauncher()
+
+    constructor()
+
+    internal constructor(
+        quickActionWorkFactory: (Context) -> WidgetQuickActionWork,
+        updateWorkFactory: (Context, AppWidgetManager) -> WidgetUpdateWork,
+        workLauncher: ReceiverWorkLauncher = ReceiverWorkLauncher()
+    ) : this() {
+        this.quickActionWorkFactory = quickActionWorkFactory
+        this.updateWorkFactory = updateWorkFactory
+        this.workLauncher = workLauncher
+    }
 
     override fun onUpdate(
         context: Context,
@@ -62,14 +70,18 @@ class EvoluneWidgetReceiver : AppWidgetProvider() {
         super.onReceive(context, intent)
         if (intent.action != ACTION_RECORD_PLAN) return
 
+        val applicationContext = context.applicationContext
         val pendingResult = goAsync()
-        WIDGET_SCOPE.launch {
-            try {
-                recordPlanDose(context.applicationContext, intent)
-            } finally {
-                pendingResult.finish()
-            }
-        }
+        workLauncher.launch(
+            work = {
+                val work = quickActionWorkFactory?.invoke(applicationContext)
+                    ?: productionQuickActionWork(applicationContext)
+                work.handle(
+                    WidgetQuickActionCommand(intent.getStringExtra(EXTRA_PLAN_ID))
+                )
+            },
+            finish = pendingResult::finish
+        )
     }
 
     private fun updateAsync(
@@ -77,20 +89,16 @@ class EvoluneWidgetReceiver : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        val applicationContext = context.applicationContext
         val pendingResult = goAsync()
-        WIDGET_SCOPE.launch {
-            try {
-                appWidgetIds.forEach { appWidgetId ->
-                    updateWidget(
-                        context.applicationContext,
-                        appWidgetManager,
-                        appWidgetId
-                    )
-                }
-            } finally {
-                pendingResult.finish()
-            }
-        }
+        workLauncher.launch(
+            work = {
+                val work = updateWorkFactory?.invoke(applicationContext, appWidgetManager)
+                    ?: productionUpdateWork(applicationContext, appWidgetManager)
+                work.handle(appWidgetIds)
+            },
+            finish = pendingResult::finish
+        )
     }
 
     private companion object {
@@ -98,28 +106,40 @@ class EvoluneWidgetReceiver : AppWidgetProvider() {
             "io.github.yuninggu.evolune.widget.RECORD_PLAN"
         const val EXTRA_PLAN_ID = "plan_id"
         const val EXTRA_WIDGET_ID = "widget_id"
-        val WIDGET_SCOPE = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
+
+    private fun productionQuickActionWork(context: Context): WidgetQuickActionWork {
+        val repositories = ProductionRepositoryProvider.get(context)
+        return ContractWidgetQuickActionWork(
+            medicationPlans = repositories.medicationPlans,
+            doseEvents = repositories.doseEvents,
+            sideEffects = object : WidgetQuickActionSideEffects {
+                override suspend fun refreshWidgets() {
+                    updateAllEvoluneWidgets(context)
+                }
+
+                override suspend fun showRecorded(planName: String) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "已记录：$planName", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        )
+    }
+
+    private fun productionUpdateWork(
+        context: Context,
+        appWidgetManager: AppWidgetManager
+    ): WidgetUpdateWork = createProductionWidgetUpdateWork(context, appWidgetManager)
 }
 
-private suspend fun updateWidget(
+private fun renderWidget(
     context: Context,
     appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
+    appWidgetId: Int,
+    snapshot: WidgetSnapshot
 ) {
-    val plans = runCatching {
-        AppDatabase.getDatabase(context)
-            .medicationPlanDao()
-            .getEnabledPlans()
-            .first()
-            .mapNotNull { entity ->
-                runCatching { entity.toMedicationPlan() }.getOrNull()
-            }
-            .take(2)
-    }.getOrDefault(emptyList())
-    val concentration = runCatching {
-        calculateWidgetConcentration(context)
-    }.getOrNull()
+    val plans = snapshot.plans
     val minHeight = appWidgetManager
         .getAppWidgetOptions(appWidgetId)
         .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
@@ -128,7 +148,7 @@ private suspend fun updateWidget(
     val views = RemoteViews(context.packageName, R.layout.widget_evolune)
     views.setTextViewText(
         R.id.widget_concentration,
-        concentration?.let { "%.1f".format(it) } ?: "--"
+        snapshot.concentration?.let { "%.1f".format(it) } ?: "--"
     )
     views.setViewVisibility(
         R.id.widget_target_range,
@@ -208,63 +228,43 @@ private fun openAppPendingIntent(context: Context): PendingIntent =
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-private suspend fun recordPlanDose(context: Context, intent: Intent) {
-    val planId = intent.getStringExtra("plan_id")
-        ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-        ?: return
-    val database = AppDatabase.getDatabase(context)
-    val plan = database.medicationPlanDao()
-        .getPlanById(planId)
-        ?.toMedicationPlan()
-        ?.takeIf { it.isEnabled }
-        ?: return
-    val nowMillis = System.currentTimeMillis()
-    val recordId = UUID.nameUUIDFromBytes(
-        "widget:${plan.id}:${nowMillis / 60_000}"
-            .toByteArray(StandardCharsets.UTF_8)
-    )
-    database.doseEventDao().upsertEvent(
-        DoseEventEntity.fromDoseEvent(
-            DoseEvent(
-                id = recordId,
-                route = plan.route,
-                timeH = nowMillis / 3_600_000.0,
-                doseMG = plan.doseMG,
-                ester = plan.ester,
-                extras = plan.extras
-            )
-        )
-    )
-    updateAllEvoluneWidgets(context)
-    CoroutineScope(Dispatchers.Main).launch {
-        Toast.makeText(context, "已记录：${plan.name}", Toast.LENGTH_SHORT)
-            .show()
-    }
-}
-
 internal suspend fun calculateWidgetConcentration(context: Context): Double? {
-    val database = AppDatabase.getDatabase(context)
-    val nowH = System.currentTimeMillis() / 3_600_000.0
-    val events = DoseEventRepository(database.doseEventDao())
-        .getEventsForSimulation(nowH)
-        .filter { it.route != Route.ANTIANDROGEN && it.timeH <= nowH }
-    if (events.isEmpty()) return null
-
-    val bodyWeight = SettingsDataStore(context).userSettings.first().bodyWeight
-    return SimulationEngine(
-        events = events,
-        bodyWeightKG = bodyWeight,
-        startTimeH = nowH - 0.01,
-        endTimeH = nowH,
-        numberOfSteps = 2
-    ).run().concPGmL.lastOrNull()
+    val repositories = ProductionRepositoryProvider.get(context.applicationContext)
+    return WidgetSnapshotLoader(
+        medicationPlans = repositories.medicationPlans,
+        doseEvents = repositories.doseEvents,
+        bodyWeight = {
+            SettingsDataStore(context.applicationContext)
+                .userSettings.first().bodyWeight
+        }
+    ).load().concentration
 }
 
 internal suspend fun updateAllEvoluneWidgets(context: Context) {
-    val manager = AppWidgetManager.getInstance(context)
-    val component = ComponentName(context, EvoluneWidgetReceiver::class.java)
+    val applicationContext = context.applicationContext
+    val manager = AppWidgetManager.getInstance(applicationContext)
+    val component = ComponentName(applicationContext, EvoluneWidgetReceiver::class.java)
     val ids = manager.getAppWidgetIds(component)
-    ids.forEach { updateWidget(context, manager, it) }
+    createProductionWidgetUpdateWork(applicationContext, manager).handle(ids)
+}
+
+private fun createProductionWidgetUpdateWork(
+    context: Context,
+    appWidgetManager: AppWidgetManager
+): WidgetUpdateWork {
+    val repositories = ProductionRepositoryProvider.get(context)
+    return ContractWidgetUpdateWork(
+        snapshotLoader = WidgetSnapshotLoader(
+            medicationPlans = repositories.medicationPlans,
+            doseEvents = repositories.doseEvents,
+            bodyWeight = {
+                SettingsDataStore(context).userSettings.first().bodyWeight
+            }
+        ),
+        renderer = WidgetSnapshotRenderer { appWidgetId, snapshot ->
+            renderWidget(context, appWidgetManager, appWidgetId, snapshot)
+        }
+    )
 }
 
 private fun formatDose(doseMG: Double): String =

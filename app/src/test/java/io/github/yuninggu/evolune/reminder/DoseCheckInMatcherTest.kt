@@ -1,36 +1,31 @@
 package io.github.yuninggu.evolune.reminder
 
-import io.github.yuninggu.evolune.data.MedicationPlan
-import io.github.yuninggu.evolune.pk.DoseEvent
-import io.github.yuninggu.evolune.pk.Ester
+import io.github.yuninggu.evolune.application.syntheticPlan
+import io.github.yuninggu.evolune.core.model.DoseEvent
+import io.github.yuninggu.evolune.core.model.DoseEventSource
 import io.github.yuninggu.evolune.pk.Route
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.LocalTime
+import java.time.Instant
+import java.util.UUID
 
 class DoseCheckInMatcherTest {
 
-    private val plan = MedicationPlan(
-        name = "晚间用药",
-        route = Route.ORAL,
-        ester = Ester.E2,
-        doseMG = 2.0,
-        scheduleType = MedicationPlan.ScheduleType.DAILY,
-        timeOfDay = listOf(LocalTime.of(22, 0))
-    )
+    private val plan = syntheticPlan()
     private val scheduledAtMillis = 1_800_000_000_000L
-    private val scheduledTimeH = scheduledAtMillis / 3_600_000.0
 
     private fun event(
-        timeOffsetH: Double,
+        timeOffsetMillis: Long,
         route: Route = plan.route,
         doseMG: Double = plan.doseMG
     ) = DoseEvent(
+        id = UUID(0L, timeOffsetMillis + 3_600_001L),
         route = route,
-        timeH = scheduledTimeH + timeOffsetH,
+        occurredAt = Instant.ofEpochMilli(scheduledAtMillis + timeOffsetMillis),
         doseMG = doseMG,
-        ester = plan.ester
+        ester = plan.ester,
+        source = DoseEventSource.MANUAL
     )
 
     @Test
@@ -38,7 +33,7 @@ class DoseCheckInMatcherTest {
         assertTrue(
             hasPlanDoseCheckIn(
                 plan,
-                listOf(event(-1.0), event(1.0)),
+                listOf(event(-3_600_000L), event(3_600_000L)),
                 scheduledAtMillis
             )
         )
@@ -49,7 +44,7 @@ class DoseCheckInMatcherTest {
         assertFalse(
             hasPlanDoseCheckIn(
                 plan,
-                listOf(event(1.01)),
+                listOf(event(3_600_001L)),
                 scheduledAtMillis
             )
         )
@@ -61,8 +56,8 @@ class DoseCheckInMatcherTest {
             hasPlanDoseCheckIn(
                 plan,
                 listOf(
-                    event(0.0, route = Route.SUBLINGUAL),
-                    event(0.0, doseMG = 1.0)
+                    event(0L, route = Route.SUBLINGUAL),
+                    event(0L, doseMG = 1.0)
                 ),
                 scheduledAtMillis
             )

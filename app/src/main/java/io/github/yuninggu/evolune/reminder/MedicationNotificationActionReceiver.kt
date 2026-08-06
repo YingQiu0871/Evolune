@@ -3,19 +3,27 @@ package io.github.yuninggu.evolune.reminder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.github.yuninggu.evolune.data.AppDatabase
-import io.github.yuninggu.evolune.data.DoseEventEntity
+import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yuninggu.evolune.widget.updateAllEvoluneWidgets
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 /**
  * Handles the system notification's dose actions without opening the app.
  */
-class MedicationNotificationActionReceiver : BroadcastReceiver() {
+class MedicationNotificationActionReceiver : BroadcastReceiver {
+
+    private var workFactory: ((Context) -> NotificationActionWork)? = null
+    private var workLauncher = ReceiverWorkLauncher()
+
+    constructor()
+
+    internal constructor(
+        workFactory: (Context) -> NotificationActionWork,
+        workLauncher: ReceiverWorkLauncher = ReceiverWorkLauncher()
+    ) : this() {
+        this.workFactory = workFactory
+        this.workLauncher = workLauncher
+    }
 
     companion object {
         const val ACTION_CONFIRM_DOSE =
@@ -29,10 +37,9 @@ class MedicationNotificationActionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
-        val notificationHelper = NotificationHelper(context)
-
         if (intent.action == ACTION_SKIP_DOSE) {
-            notificationHelper.cancelNotification(notificationId)
+            NotificationHelper(context.applicationContext)
+                .cancelNotification(notificationId)
             return
         }
         if (intent.action != ACTION_CONFIRM_DOSE) {
@@ -46,32 +53,38 @@ class MedicationNotificationActionReceiver : BroadcastReceiver() {
             EXTRA_SCHEDULED_AT_MILLIS,
             System.currentTimeMillis()
         )
+        val applicationContext = context.applicationContext
         val pendingResult = goAsync()
-
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                val database = AppDatabase.getDatabase(context)
-                val plan = database.medicationPlanDao()
-                    .getPlanById(planId)
-                    ?.toMedicationPlan()
-
-                if (plan != null) {
-                    val event = createReminderDoseEvent(
-                        plan = plan,
-                        recordedAtMillis = System.currentTimeMillis(),
+        workLauncher.launch(
+            work = {
+                val work = workFactory?.invoke(applicationContext)
+                    ?: productionWork(applicationContext)
+                work.handle(
+                    NotificationActionCommand(
+                        planId = planId,
+                        notificationId = notificationId,
                         scheduledAtMillis = scheduledAtMillis
                     )
-                    database.doseEventDao().upsertEvent(
-                        DoseEventEntity.fromDoseEvent(event)
-                    )
+                )
+            },
+            finish = pendingResult::finish
+        )
+    }
+
+    private fun productionWork(context: Context): NotificationActionWork {
+        val repositories = ProductionRepositoryProvider.get(context)
+        return ContractNotificationActionWork(
+            medicationPlans = repositories.medicationPlans,
+            doseEvents = repositories.doseEvents,
+            sideEffects = object : NotificationActionSideEffects {
+                override suspend fun refreshWidgets() {
                     updateAllEvoluneWidgets(context)
                 }
 
-                // A deleted plan is also a stale reminder, so dismiss it.
-                notificationHelper.cancelNotification(notificationId)
-            } finally {
-                pendingResult.finish()
+                override fun cancelNotification(notificationId: Int) {
+                    NotificationHelper(context).cancelNotification(notificationId)
+                }
             }
-        }
+        )
     }
 }
