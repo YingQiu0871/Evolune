@@ -13,9 +13,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.yuninggu.evolune.data.AppDatabase
 import io.github.yuninggu.evolune.data.ThemeMode
-import io.github.yuninggu.evolune.data.MedicationPlanRepository
 import io.github.yuninggu.evolune.data.SettingsDataStore
 import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yuninggu.evolune.navigation.AppNavigation
@@ -29,15 +27,13 @@ import io.github.yuninggu.evolune.viewmodel.SettingsViewModel
 import io.github.yuninggu.evolune.viewmodel.SettingsViewModelFactory
 import io.github.yuninggu.evolune.widget.updateAllEvoluneWidgets
 import io.github.yuninggu.evolune.wear.WearDataLayer
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // 初始化数据库和仓库
-        val database = AppDatabase.getDatabase(applicationContext)
-        val legacyMedicationPlanRepository = MedicationPlanRepository(database.medicationPlanDao())
         val productionRepositoryProvider =
             ProductionRepositoryProvider.get(applicationContext)
         
@@ -89,6 +85,7 @@ class MainActivity : ComponentActivity() {
                     )
                 )
                 val doseEvents by hrtViewModel.events.collectAsState()
+                val domainMedicationPlans by hrtViewModel.allPlans.collectAsState()
                 val pkState by hrtViewModel.pkState.collectAsState()
                 LaunchedEffect(doseEvents) {
                     updateAllEvoluneWidgets(applicationContext)
@@ -102,17 +99,17 @@ class MainActivity : ComponentActivity() {
                         reminderManager
                     )
                 )
-                val legacyMedicationPlans by legacyMedicationPlanRepository
-                    .getAllPlans()
-                    .collectAsState(initial = emptyList())
                 LaunchedEffect(
-                    legacyMedicationPlans,
+                    domainMedicationPlans,
                     pkState.simulationResult,
                     pkState.currentConcentration
                 ) {
+                    val plans = runCatching {
+                        productionRepositoryProvider.medicationPlans.observeAll().first()
+                    }.getOrNull() ?: return@LaunchedEffect
                     WearDataLayer.syncDashboard(
                         applicationContext,
-                        legacyMedicationPlans.filter { it.isEnabled }.take(2),
+                        plans.filter { it.isEnabled }.take(2),
                         pkState.currentConcentration,
                         io.github.yuninggu.evolune.wear.sampleWearCurve(
                             pkState.simulationResult,

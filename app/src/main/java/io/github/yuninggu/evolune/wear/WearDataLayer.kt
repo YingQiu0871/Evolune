@@ -2,26 +2,35 @@ package io.github.yuninggu.evolune.wear
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataItem
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
-import io.github.yuninggu.evolune.data.AppDatabase
-import io.github.yuninggu.evolune.data.DoseEventEntity
-import io.github.yuninggu.evolune.data.MedicationPlan
-import io.github.yuninggu.evolune.pk.DoseEvent
+import io.github.yuninggu.evolune.application.WearDoseActionHandler
+import io.github.yuninggu.evolune.application.WearDoseActionOutcome
+import io.github.yuninggu.evolune.application.WearDoseActionPayload
+import io.github.yuninggu.evolune.application.parseWearDoseAction
+import io.github.yuninggu.evolune.core.model.MedicationPlan
+import io.github.yuninggu.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yuninggu.evolune.pk.SimulationResult
 import io.github.yuninggu.evolune.widget.updateAllEvoluneWidgets
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import java.util.UUID
+import kotlin.coroutines.resume
 
 object WearDataLayer {
     const val PLANS_PATH = "/hrt/plans"
@@ -115,17 +124,25 @@ internal fun sampleWearCurve(
  * Receives reliable, buffered one-tap dose actions from the paired Wear OS app.
  */
 class WearDoseListenerService : WearableListenerService() {
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onMessageReceived(messageEvent: MessageEvent) {
         if (messageEvent.path != WearDataLayer.REQUEST_PLANS_PATH) return
 
-        runBlocking(Dispatchers.IO) {
-            val plans = AppDatabase.getDatabase(this@WearDoseListenerService)
-                .medicationPlanDao()
-                .getEnabledPlans()
-                .first()
-                .mapNotNull { runCatching { it.toMedicationPlan() }.getOrNull() }
-                .take(2)
-            WearDataLayer.syncPlans(this@WearDoseListenerService, plans)
+        serviceScope.launch {
+            try {
+                val plans = ProductionRepositoryProvider
+                    .get(applicationContext)
+                    .medicationPlans
+                    .observeEnabled()
+                    .first()
+                    .take(2)
+                WearDataLayer.syncPlans(applicationContext, plans)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                Log.w(TAG, "Unable to load plans for Wear sync")
+            }
         }
     }
 
@@ -137,42 +154,73 @@ class WearDoseListenerService : WearableListenerService() {
                         WearDataLayer.DOSE_ACTIONS_PATH_PREFIX
                     ) == true
             }
-            .map { it.dataItem }
+            .map { parseDataItem(it.dataItem) }
 
         if (changedActions.isEmpty()) return
 
-        runBlocking(Dispatchers.IO) {
-            val database = AppDatabase.getDatabase(this@WearDoseListenerService)
-            changedActions.forEach { item ->
-                val data = DataMapItem.fromDataItem(item).dataMap
-                val planId = data.getString(WearDataLayer.KEY_PLAN_ID)
-                    ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                val actionId = data.getString(WearDataLayer.KEY_ACTION_ID)
-                    ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                val recordedAt = data.getLong(
-                    WearDataLayer.KEY_RECORDED_AT,
-                    System.currentTimeMillis()
-                )
-                val plan = planId
-                    ?.let { database.medicationPlanDao().getPlanById(it) }
-                    ?.toMedicationPlan()
-                    ?.takeIf { it.isEnabled }
-
-                if (plan != null && actionId != null && recordedAt > 0L) {
-                    database.doseEventDao().upsertEvent(
-                        DoseEventEntity.fromDoseEvent(
-                            createWearDoseEvent(plan, actionId, recordedAt)
-                        )
-                    )
-                    updateAllEvoluneWidgets(this@WearDoseListenerService)
+        changedActions.forEach { action ->
+            serviceScope.launch {
+                try {
+                    processAction(action)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Throwable) {
+                    Log.w(TAG, "Wear action processing failed")
                 }
-
-                // The action ID is also the dose record ID, so processing is
-                // idempotent even if deletion is delayed or delivery repeats.
-                Wearable.getDataClient(this@WearDoseListenerService)
-                    .deleteDataItems(item.uri)
             }
         }
+    }
+
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
+    }
+
+    private suspend fun processAction(action: WearDoseActionPayload) {
+        val context = applicationContext
+        val repositories = ProductionRepositoryProvider.get(context)
+        val outcome = WearDoseActionHandler(
+            medicationPlans = repositories.medicationPlans,
+            doseEvents = repositories.doseEvents,
+            acceptedSideEffect = { updateAllEvoluneWidgets(context) },
+            deleteDataItem = { uri ->
+                Wearable.getDataClient(context)
+                    .deleteDataItems(android.net.Uri.parse(uri))
+                    .awaitSuccess()
+            }
+        ).handle(action)
+
+        when (outcome) {
+            is WearDoseActionOutcome.Accepted -> if (!outcome.dataItemDeleted) {
+                Log.w(TAG, "Wear action accepted; DataItem acknowledgement pending")
+            }
+            WearDoseActionOutcome.StorageFailure,
+            WearDoseActionOutcome.UnexpectedFailure ->
+                Log.w(TAG, "Wear action retained for retry")
+            else -> Unit
+        }
+    }
+
+    private fun parseDataItem(item: DataItem): WearDoseActionPayload {
+        val uri = item.uri.toString()
+        val data = runCatching { DataMapItem.fromDataItem(item).dataMap }.getOrNull()
+        val recordedAt = runCatching {
+            if (data?.containsKey(WearDataLayer.KEY_RECORDED_AT) == true) {
+                data.getLong(WearDataLayer.KEY_RECORDED_AT)
+            } else {
+                null
+            }
+        }.getOrNull()
+        return parseWearDoseAction(
+            dataItemUri = uri,
+            planId = runCatching { data?.getString(WearDataLayer.KEY_PLAN_ID) }.getOrNull(),
+            actionId = runCatching { data?.getString(WearDataLayer.KEY_ACTION_ID) }.getOrNull(),
+            recordedAtMillis = recordedAt
+        )
+    }
+
+    private companion object {
+        const val TAG = "HRTWearDoseListener"
     }
 }
 
@@ -189,15 +237,11 @@ internal fun encodeWearPlans(plans: List<MedicationPlan>): String =
         }
     }.toString()
 
-internal fun createWearDoseEvent(
-    plan: MedicationPlan,
-    actionId: UUID,
-    recordedAtMillis: Long
-): DoseEvent = DoseEvent(
-    id = actionId,
-    route = plan.route,
-    timeH = recordedAtMillis / 3_600_000.0,
-    doseMG = plan.doseMG,
-    ester = plan.ester,
-    extras = plan.extras
-)
+private suspend fun <T> Task<T>.awaitSuccess(): Boolean =
+    suspendCancellableCoroutine { continuation ->
+        addOnCompleteListener { task ->
+            if (continuation.isActive) {
+                continuation.resume(task.isSuccessful)
+            }
+        }
+    }
