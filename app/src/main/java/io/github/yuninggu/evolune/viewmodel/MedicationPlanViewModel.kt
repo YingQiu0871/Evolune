@@ -75,6 +75,7 @@ sealed interface MedicationPlanOperationError {
     data object RepositoryInvalid : MedicationPlanOperationError
     data object NotFound : MedicationPlanOperationError
     data object StorageFailure : MedicationPlanOperationError
+    data object UnexpectedFailure : MedicationPlanOperationError
 }
 
 sealed interface MedicationPlanOperationState {
@@ -284,6 +285,11 @@ class MedicationPlanViewModel(
             } catch (error: CancellationException) {
                 pendingTerminalState = MedicationPlanOperationState.Idle
                 throw error
+            } catch (_: RuntimeException) {
+                pendingTerminalState = MedicationPlanOperationState.Failure(
+                    operation,
+                    MedicationPlanOperationError.UnexpectedFailure
+                )
             } finally {
                 synchronized(operationLock) {
                     operationInFlight = false

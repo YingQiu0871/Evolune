@@ -17,6 +17,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class MedicationPlanEditorTest {
@@ -41,6 +42,19 @@ class MedicationPlanEditorTest {
         assertEquals(UUID(0L, 2L), second.id)
         assertEquals(SECOND_INSTANT, second.createdAt)
         assertEquals(2, clock.instantCalls)
+    }
+
+    @Test
+    fun `new session normalizes device clock instant to persistence precision`() {
+        val deviceInstant = Instant.parse("2026-08-07T01:02:03.123456789Z")
+        val factory = MedicationPlanEditSessionFactory(
+            idSupplier = { UUID(0L, 3L) },
+            clock = Clock.fixed(deviceInstant, ZoneId.of("UTC"))
+        )
+
+        val session = factory.createNew()
+
+        assertEquals(deviceInstant.truncatedTo(ChronoUnit.MILLIS), session.createdAt)
     }
 
     @Test

@@ -50,7 +50,7 @@ fun MedicationPlanBottomSheet(
     session: MedicationPlanEditSession? = null,
     is24Hour: Boolean = true,
     operationInProgress: Boolean = false,
-    showSubmissionError: Boolean = false
+    submissionErrorMessage: String? = null
 ) {
     val planToEdit = session?.existingPlan
     val sheetState = rememberModalBottomSheetState(
@@ -261,9 +261,14 @@ fun MedicationPlanBottomSheet(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                if (hasInputError || showSubmissionError) {
+                val errorMessage = if (hasInputError) {
+                    stringResource(R.string.plan_error_invalid_input)
+                } else {
+                    submissionErrorMessage
+                }
+                if (errorMessage != null) {
                     Text(
-                        text = stringResource(R.string.common_unknown_error),
+                        text = errorMessage,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier

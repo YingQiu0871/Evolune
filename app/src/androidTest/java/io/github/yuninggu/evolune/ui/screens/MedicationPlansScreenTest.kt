@@ -4,10 +4,12 @@ import android.Manifest
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.yuninggu.evolune.R
 import io.github.yuninggu.evolune.application.MedicationPlanEditSessionFactory
 import io.github.yuninggu.evolune.core.dataapi.DeleteResult
 import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
@@ -98,6 +100,8 @@ class MedicationPlansScreenTest {
         assertSame(session, viewModel.editSession.value)
         composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.plan_error_invalid_input)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
     }
 
     @Test
@@ -116,10 +120,12 @@ class MedicationPlansScreenTest {
         assertTrue(viewModel.editSession.value != null)
         composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.plan_error_invalid_plan)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
     }
 
     @Test
-    fun saveSuccessClosesEditor() {
+    fun saveSuccessClosesEditorWithoutUnknownError() {
         val repository = FakeRepository().apply { saveResult = PlanSaveResult.Updated }
         val viewModel = viewModel(repository)
         viewModel.startEditSession(plan())
@@ -130,6 +136,42 @@ class MedicationPlansScreenTest {
 
         assertEquals(1, repository.saveCalls)
         composeRule.onNodeWithTag("plan-name").assertDoesNotExist()
+        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+    }
+
+    @Test
+    fun storageFailureShowsSaveFailureInsteadOfUnknownError() {
+        val repository = FakeRepository().apply {
+            saveError = IllegalStateException("synthetic storage failure")
+        }
+        val viewModel = viewModel(repository)
+        viewModel.startEditSession(plan())
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-save").performScrollTo().performClick()
+        composeRule.waitUntil(5_000L) {
+            viewModel.operationState.value is MedicationPlanOperationState.Failure
+        }
+
+        composeRule.onNodeWithText(string(R.string.plan_error_save_failed)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+    }
+
+    @Test
+    fun unexpectedFailureIsTheOnlySavePathUsingUnknownError() {
+        val repository = FakeRepository().apply {
+            saveError = UnsupportedOperationException("synthetic unexpected failure")
+        }
+        val viewModel = viewModel(repository)
+        viewModel.startEditSession(plan())
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-save").performScrollTo().performClick()
+        composeRule.waitUntil(5_000L) {
+            viewModel.operationState.value is MedicationPlanOperationState.Failure
+        }
+
+        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertIsDisplayed()
     }
 
     @Test
@@ -157,6 +199,9 @@ class MedicationPlansScreenTest {
             }
         }
     }
+
+    private fun string(resourceId: Int): String =
+        InstrumentationRegistry.getInstrumentation().targetContext.getString(resourceId)
 
     private fun viewModel(repository: FakeRepository): MedicationPlanViewModel {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
@@ -197,6 +242,7 @@ class MedicationPlansScreenTest {
     private class FakeRepository : MedicationPlanRepository {
         val plans = MutableStateFlow<List<MedicationPlan>>(emptyList())
         var saveResult: PlanSaveResult = PlanSaveResult.Created
+        var saveError: RuntimeException? = null
         var deleteResult: DeleteResult = DeleteResult.Deleted
         var saveCalls = 0
         var deleteCalls = 0
@@ -211,6 +257,7 @@ class MedicationPlansScreenTest {
 
         override suspend fun save(plan: MedicationPlan): PlanSaveResult {
             saveCalls += 1
+            saveError?.let { throw it }
             return saveResult
         }
 

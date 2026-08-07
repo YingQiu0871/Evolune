@@ -11,6 +11,7 @@ import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 data class MedicationPlanEditSession(
@@ -30,7 +31,7 @@ class MedicationPlanEditSessionFactory(
 ) {
     fun createNew(): MedicationPlanEditSession = MedicationPlanEditSession(
         id = idSupplier(),
-        createdAt = clock.instant(),
+        createdAt = clock.instant().truncatedTo(ChronoUnit.MILLIS),
         existingPlan = null
     )
 

@@ -15,6 +15,7 @@ import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.reminder.MedicationPlanReminderScheduler
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -167,6 +168,46 @@ class MedicationPlanViewModelTest {
                 ),
                 fixture.viewModel.operationState.value
             )
+            assertEquals(0, reminder.totalCalls)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `unexpected repository runtime failure is distinct from storage failure`() {
+        val repository = FakeMedicationPlanRepository().apply {
+            unexpectedSaveError = UnsupportedOperationException("synthetic unexpected failure")
+        }
+        val reminder = FakeReminderScheduler()
+        val fixture = fixture(repository, reminder)
+        try {
+            fixture.viewModel.saveDraft(draft())
+
+            assertEquals(
+                MedicationPlanOperationState.Failure(
+                    MedicationPlanOperation.SAVE,
+                    MedicationPlanOperationError.UnexpectedFailure
+                ),
+                fixture.viewModel.operationState.value
+            )
+            assertEquals(0, reminder.totalCalls)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `repository cancellation returns operation to idle instead of unknown failure`() {
+        val repository = FakeMedicationPlanRepository().apply {
+            saveError = CancellationException("synthetic cancellation")
+        }
+        val reminder = FakeReminderScheduler()
+        val fixture = fixture(repository, reminder)
+        try {
+            fixture.viewModel.saveDraft(draft())
+
+            assertEquals(MedicationPlanOperationState.Idle, fixture.viewModel.operationState.value)
             assertEquals(0, reminder.totalCalls)
         } finally {
             fixture.close()
@@ -384,6 +425,7 @@ class MedicationPlanViewModelTest {
         var updateResult: PlanUpdateResult = PlanUpdateResult.Updated
         var deleteResult: DeleteResult = DeleteResult.Deleted
         var saveError: IllegalStateException? = null
+        var unexpectedSaveError: RuntimeException? = null
         var updateError: IllegalStateException? = null
         var deleteError: IllegalStateException? = null
         var saveGate: CompletableDeferred<Unit>? = null
@@ -402,6 +444,7 @@ class MedicationPlanViewModelTest {
             operationLog?.add("repository.save")
             saveGate?.await()
             saveError?.let { throw it }
+            unexpectedSaveError?.let { throw it }
             return saveResult
         }
 

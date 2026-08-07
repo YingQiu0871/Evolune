@@ -38,6 +38,7 @@ import io.github.yuninggu.evolune.ui.components.MedicationPlanCard
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperation
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationError
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationState
 import io.github.yuninggu.evolune.viewmodel.ReminderSideEffectResult
 import java.time.DayOfWeek
@@ -63,6 +64,23 @@ fun MedicationPlansScreen(
     val operationInProgress = operationState is MedicationPlanOperationState.Running
     val submissionFailure = operationState as? MedicationPlanOperationState.Failure
     val unknownErrorMessage = stringResource(R.string.common_unknown_error)
+    val submissionErrorMessage = submissionFailure?.let { failure ->
+        when (failure.error) {
+            is MedicationPlanOperationError.InvalidDraft ->
+                stringResource(R.string.plan_error_invalid_input)
+            MedicationPlanOperationError.RepositoryInvalid ->
+                stringResource(R.string.plan_error_invalid_plan)
+            MedicationPlanOperationError.NotFound ->
+                stringResource(R.string.plan_error_not_found)
+            MedicationPlanOperationError.StorageFailure -> when (failure.operation) {
+                MedicationPlanOperation.SAVE -> stringResource(R.string.plan_error_save_failed)
+                MedicationPlanOperation.DELETE -> stringResource(R.string.plan_error_delete_failed)
+                MedicationPlanOperation.SET_ENABLED,
+                MedicationPlanOperation.RESCHEDULE -> unknownErrorMessage
+            }
+            MedicationPlanOperationError.UnexpectedFailure -> unknownErrorMessage
+        }
+    }
     var notificationPermissionGranted by remember {
         mutableStateOf(
             Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -189,10 +207,12 @@ fun MedicationPlansScreen(
         session = editSession,
         is24Hour = is24Hour,
         operationInProgress = operationInProgress,
-        showSubmissionError = submissionFailure?.operation in listOf(
-            MedicationPlanOperation.SAVE,
-            MedicationPlanOperation.DELETE
-        )
+        submissionErrorMessage = submissionErrorMessage.takeIf {
+            submissionFailure?.operation in listOf(
+                MedicationPlanOperation.SAVE,
+                MedicationPlanOperation.DELETE
+            )
+        }
     )
 }
 

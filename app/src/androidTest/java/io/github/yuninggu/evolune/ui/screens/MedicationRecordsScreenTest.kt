@@ -68,7 +68,14 @@ class MedicationRecordsScreenTest {
         composeRule.runOnIdle(viewModel::startCreateSession)
 
         composeRule.onNodeWithTag("record-dose").performTextInput("2")
-        composeRule.onNodeWithTag("record-save").performScrollTo().performClick()
+        val saveButton = composeRule.onNodeWithTag("record-save").performScrollTo()
+        composeRule.waitUntil(5_000L) {
+            runCatching {
+                saveButton.assertIsEnabled()
+                true
+            }.getOrDefault(false)
+        }
+        saveButton.performClick()
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
 
         assertEquals(1, repository.insertCalls)
