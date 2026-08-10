@@ -11,9 +11,11 @@
     <string name="settings_theme_mode_title">夜间模式</string>
     <string name="settings_theme_mode_light">浅色</string>
     <string name="settings_theme_mode_dark">深色</string>
+    <string name="settings_theme_mode_amoled">OLED 全黑</string>
     <string name="settings_theme_mode_system">系统默认</string>
     <string name="settings_theme_mode_light_desc">始终使用浅色主题</string>
     <string name="settings_theme_mode_dark_desc">始终使用深色主题</string>
+    <string name="settings_theme_mode_amoled_desc">OLED 屏幕纯黑背景</string>
     <string name="settings_theme_mode_system_desc">跟随系统设置</string>
 
     <string name="settings_color_theme_title">颜色主题</string>
@@ -153,7 +155,7 @@
     <string name="plan_sheet_add_title">添加用药方案</string>
     <string name="plan_sheet_edit_title">编辑用药方案</string>
     <string name="plan_sheet_name_label">方案名称</string>
-    <string name="plan_sheet_dose_label">剂量 (mg)</string>
+    <string name="plan_sheet_dose_label">剂量</string>
     <string name="plan_sheet_interval_days_label">间隔天数</string>
     <string name="plan_sheet_route_title">给药途径</string>
     <string name="plan_sheet_ester_title">药物类型</string>
@@ -186,9 +188,9 @@
     <string name="record_sheet_route_title">给药途径</string>
     <string name="record_sheet_ester_title">药物类型</string>
     <string name="record_sheet_dose_title">药物剂量</string>
-    <string name="record_sheet_dose_label">剂量 (mg)</string>
-    <string name="record_sheet_e2_equivalent_label">等效 E2 (mg)</string>
-    <string name="record_sheet_dose_label_with_ester">%1$s 剂量 (mg)</string>
+    <string name="record_sheet_dose_label">剂量</string>
+    <string name="record_sheet_e2_equivalent_label">等效 E2</string>
+    <string name="record_sheet_dose_label_with_ester">%1$s 剂量</string>
     <string name="record_sheet_conversion_factor">转换因子: %1$s</string>
     <string name="record_sheet_patch_total_dose">贴片总剂量</string>
     <string name="record_sheet_switch_to_rate">切换到释放速率</string>

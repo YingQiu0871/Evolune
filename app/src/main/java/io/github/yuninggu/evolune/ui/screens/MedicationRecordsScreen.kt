@@ -53,28 +53,12 @@ import java.util.UUID
 fun MedicationRecordsScreen(
     viewModel: HRTViewModel,
     is24Hour: Boolean = true,
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val events by viewModel.events.collectAsState()
     val allPlans by viewModel.allPlans.collectAsState()
     val editSession by viewModel.editSession.collectAsState()
-    val operationState by viewModel.operationState.collectAsState()
-    var recordDefaults by remember { mutableStateOf<RecordDefaults?>(null) }
-
-    LaunchedEffect(viewModel) {
-        viewModel.uiEvents.collect { event ->
-            when (event) {
-                is DoseEventUiEvent.Saved -> {
-                    if (event.created) {
-                        recordDefaults = event.event.toRecordDefaults()
-                    }
-                    viewModel.closeEditSession()
-                }
-                is DoseEventUiEvent.Deleted -> viewModel.closeEditSession()
-            }
-            viewModel.acknowledgeOperation()
-        }
-    }
 
     MedicationRecordsScreenContent(
         events = events,
@@ -83,25 +67,8 @@ fun MedicationRecordsScreen(
         onAddClick = viewModel::startCreateSession,
         onQuickAddFromPlan = viewModel::quickAddFromPlan,
         is24Hour = is24Hour,
+        showTopBar = showTopBar,
         modifier = modifier
-    )
-
-    // 底部弹窗
-    MedicationRecordBottomSheet(
-        showBottomSheet = editSession != null,
-        onDismiss = {
-            viewModel.closeEditSession()
-            viewModel.acknowledgeOperation()
-        },
-        onSave = viewModel::saveEvent,
-        onDelete = viewModel::deleteEvent,
-        session = editSession,
-        defaults = recordDefaults,
-        is24Hour = is24Hour,
-        isOperationRunning = operationState is DoseEventOperationState.Running,
-        operationError = (operationState as? DoseEventOperationState.Failure)
-            ?.error
-            ?.displayMessage()
     )
 }
 
@@ -122,22 +89,31 @@ private fun MedicationRecordsScreenContent(
     onAddClick: () -> Unit,
     onQuickAddFromPlan: (MedicationPlan) -> Unit,
     is24Hour: Boolean = true,
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var fabMenuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Horizontal + WindowInsetsSides.Top
-        ),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.records_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+        contentWindowInsets = if (showTopBar) {
+            WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Top
             )
+        } else {
+            WindowInsets(0, 0, 0, 0)
+        },
+        topBar = {
+            if (showTopBar) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.records_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButtonMenu(
@@ -280,35 +256,25 @@ private fun MedicationRecordsScreenContent(
     }
 }
 
-private fun DoseEvent.toRecordDefaults(): RecordDefaults {
-    return RecordDefaults(
-        route = route,
-        ester = ester,
-        doseMG = doseMG,
-        patchMode = if (extras.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
-            PatchMode.RATE
-        } else {
-            PatchMode.DOSE
-        },
-        patchRateUgPerDay = extras[ExtraKey.RELEASE_RATE_UG_PER_DAY] ?: 0.0,
-        sublingualTier = extras[ExtraKey.SUBLINGUAL_TIER]?.toInt()?.let { tier ->
-            SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
-        } ?: SublingualTier.STANDARD,
-        antiAndrogen = extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
-            AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
-        } ?: AntiAndrogen.CPA
-    )
+private fun DoseEventOperationError.displayMessage(): String = when (this) {
+    is DoseEventOperationError.InvalidInput -> "请检查记录输入"
+    DoseEventOperationError.RepositoryInvalid -> "记录无法保存"
+    DoseEventOperationError.Conflict -> "相同记录 ID 已存在不同内容"
+    DoseEventOperationError.RevisionConflict -> "该记录已被其他操作修改"
+    DoseEventOperationError.NotFound -> "该记录已不存在"
+    DoseEventOperationError.StorageFailure -> "记录存储暂时不可用"
 }
 
 @Composable
 private fun getPlanMedicationDisplayName(plan: MedicationPlan): String {
-    return if (plan.route == Route.ANTIANDROGEN) {
-        val aaType = plan.extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
-            AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
-        } ?: AntiAndrogen.CPA
-        getAntiAndrogenDisplayName(aaType)
-    } else {
-        getEsterDisplayName(plan.ester)
+    return when (plan.route) {
+        Route.ANTIANDROGEN -> {
+            val aaType = plan.extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+                AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
+            } ?: AntiAndrogen.CPA
+            getAntiAndrogenDisplayName(aaType)
+        }
+        else -> getEsterDisplayName(plan.ester)
     }
 }
 
@@ -321,15 +287,6 @@ private fun getEsterDisplayName(ester: Ester): String {
         Ester.EC -> stringResource(R.string.ester_ec)
         Ester.EN -> stringResource(R.string.ester_en)
     }
-}
-
-private fun DoseEventOperationError.displayMessage(): String = when (this) {
-    is DoseEventOperationError.InvalidInput -> "请检查记录输入"
-    DoseEventOperationError.RepositoryInvalid -> "记录无法保存"
-    DoseEventOperationError.Conflict -> "相同记录 ID 已存在不同内容"
-    DoseEventOperationError.RevisionConflict -> "该记录已被其他操作修改"
-    DoseEventOperationError.NotFound -> "该记录已不存在"
-    DoseEventOperationError.StorageFailure -> "记录存储暂时不可用"
 }
 
 private fun previewDoseEvent(

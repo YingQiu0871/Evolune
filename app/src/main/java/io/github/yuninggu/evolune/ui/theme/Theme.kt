@@ -3,6 +3,7 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
@@ -93,6 +94,25 @@ private val darkScheme = darkColorScheme(
     surfaceContainer = surfaceContainerDark,
     surfaceContainerHigh = surfaceContainerHighDark,
     surfaceContainerHighest = surfaceContainerHighestDark,
+)
+
+internal fun ThemeMode.usesDarkColors(systemInDarkTheme: Boolean): Boolean = when (this) {
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK,
+    ThemeMode.AMOLED -> true
+    ThemeMode.SYSTEM -> systemInDarkTheme
+}
+
+internal fun ColorScheme.withAmoledSurfaces(): ColorScheme = copy(
+    background = Color.Black,
+    surface = Color.Black,
+    surfaceDim = Color.Black,
+    surfaceBright = Color(0xFF202020),
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color(0xFF050505),
+    surfaceContainer = Color(0xFF0A0A0A),
+    surfaceContainerHigh = Color(0xFF101010),
+    surfaceContainerHighest = Color(0xFF181818)
 )
 
 private val mediumContrastLightColorScheme = lightColorScheme(
@@ -269,11 +289,7 @@ fun EvoluneTheme(
     val systemInDarkTheme = isSystemInDarkTheme()
     
     // 根据主题模式确定是否使用深色主题
-    val darkTheme = when (themeMode) {
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
-        ThemeMode.SYSTEM -> systemInDarkTheme
-    }
+    val darkTheme = themeMode.usesDarkColors(systemInDarkTheme)
     
     // 根据颜色主题确定是否使用动态颜色
     val dynamicColor = when (colorTheme) {
@@ -281,13 +297,18 @@ fun EvoluneTheme(
         ColorTheme.BUILTIN -> false
     }
     
-    val colorScheme = when {
+    val baseColorScheme = when {
         dynamicColor -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> darkScheme
         else -> lightScheme
+    }
+    val colorScheme = if (themeMode == ThemeMode.AMOLED) {
+        baseColorScheme.withAmoledSurfaces()
+    } else {
+        baseColorScheme
     }
 
     MaterialExpressiveTheme(

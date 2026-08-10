@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,29 +53,22 @@ fun MedicationRecordItem(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
-    val listItemColors = if (isAntiAndrogen) {
-        ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            leadingIconColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            headlineColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            overlineColor = MaterialTheme.colorScheme.onTertiaryFixedVariant,
-        )
+    val containerColor = if (isAntiAndrogen) {
+        MaterialTheme.colorScheme.tertiaryContainer
     } else {
-        ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            leadingIconColor = MaterialTheme.colorScheme.tertiary,
-        )
+        MaterialTheme.colorScheme.secondaryContainer
     }
-    val trailingPrimaryColor = if (isAntiAndrogen) {
-        MaterialTheme.colorScheme.onTertiaryFixed
+    val containerContentColor = if (isAntiAndrogen) {
+        MaterialTheme.colorScheme.onTertiaryContainer
     } else {
-        Color.Unspecified
+        MaterialTheme.colorScheme.onSecondaryContainer
     }
-    val trailingSecondaryColor = if (isAntiAndrogen) {
-        MaterialTheme.colorScheme.onTertiaryFixedVariant
-    } else {
-        Color.Unspecified
-    }
+    val listItemColors = ListItemDefaults.colors(
+        containerColor = containerColor,
+        leadingIconColor = containerContentColor,
+        headlineColor = containerContentColor,
+        overlineColor = containerContentColor.copy(alpha = 0.8f)
+    )
 
     ElevatedCard(
         modifier = modifier
@@ -116,12 +108,12 @@ fun MedicationRecordItem(
                         text = formatTime(timeH, is24Hour),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = trailingPrimaryColor
+                        color = containerContentColor
                     )
                     Text(
                         text = formatDate(timeH),
                         style = MaterialTheme.typography.bodySmall,
-                        color = trailingSecondaryColor
+                        color = containerContentColor.copy(alpha = 0.8f)
                     )
                 }
             }
@@ -172,14 +164,13 @@ fun MedicationRecordItem(
     onClick: (() -> Unit)? = null
 ) {
     val isAntiAndrogen = event.route == Route.ANTIANDROGEN
-    val medicationName = if (isAntiAndrogen) {
-        getAntiAndrogenDisplayName(
+    val medicationName = when (event.route) {
+        Route.ANTIANDROGEN -> getAntiAndrogenDisplayName(
             event.extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
                 AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
             } ?: AntiAndrogen.CPA
         )
-    } else {
-        getMedicationDisplayName(event.ester)
+        else -> getMedicationDisplayName(event.ester)
     }
     
     MedicationRecordItem(

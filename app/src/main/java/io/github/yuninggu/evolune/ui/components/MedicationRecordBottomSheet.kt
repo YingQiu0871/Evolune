@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,13 +11,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
 import io.github.yuninggu.evolune.R
 import io.github.yuninggu.evolune.application.DoseEventEditMode
 import io.github.yuninggu.evolune.application.DoseEventEditSession
@@ -68,10 +72,6 @@ fun MedicationRecordBottomSheet(
     isOperationRunning: Boolean = false,
     operationError: String? = null
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-
     val eventToEdit = session?.original?.takeIf { session.mode == DoseEventEditMode.UPDATE }
 
     // 表单状态 - 使用 session 作为 key，确保同一会话重组时保持身份和时间
@@ -191,18 +191,26 @@ fun MedicationRecordBottomSheet(
     }
 
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            dragHandle = { BottomSheetDefaults.DragHandle() }
+        BackHandler(onBack = { if (!isOperationRunning) onDismiss() })
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("record-editor-surface"),
+            color = MaterialTheme.colorScheme.background
         ) {
+            // IME 跟随完全交给框架：windowInsetsPadding(safeDrawing) 缩小可视区，
+            // 焦点字段由框架 BringIntoView 一次性带入视口。
+            // 不再手写 snapshotFlow + animateScrollTo（该逻辑会与框架滚动并发排队，
+            // 产生二次缓动 = 真机可见的“回弹”）。
+            val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp)
-                    .verticalScroll(rememberScrollState())
+                    .padding(top = 20.dp, bottom = 24.dp)
+                    .verticalScroll(scrollState)
+                    .testTag("record-editor-scroll")
             ) {
                 // 标题
                 Text(
@@ -231,13 +239,12 @@ fun MedicationRecordBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // 药物类型选择（雌激素途径）/ 抗雄药物类型选择（抗雄途径）
-                if (selectedRoute == Route.ANTIANDROGEN) {
-                    AntiAndrogenSelector(
+                when (selectedRoute) {
+                    Route.ANTIANDROGEN -> AntiAndrogenSelector(
                         selectedAntiAndrogen = selectedAntiAndrogen,
                         onAntiAndrogenSelected = { selectedAntiAndrogen = it }
                     )
-                } else {
-                    EsterSelector(
+                    else -> EsterSelector(
                         selectedEster = selectedEster,
                         availableEsters = availableEsters,
                         onEsterSelected = { selectedEster = it }
@@ -321,43 +328,22 @@ fun MedicationRecordBottomSheet(
                     )
                 }
 
-                // 按钮区域
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // 删除按钮（仅编辑时显示）
-                    if (eventToEdit != null && onDelete != null) {
-                        OutlinedButton(
-                            onClick = {
-                                onDelete(eventToEdit.id)
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("record-delete"),
-                            enabled = !isOperationRunning,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.common_delete))
-                        }
+                val saveEnabled = when {
+                    isOperationRunning -> false
+                    selectedRoute == Route.PATCH_REMOVE -> true
+                    selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> {
+                        patchRateText.toDoubleOrNull()?.let { it > 0 } == true
                     }
-
-                    // 取消按钮
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        enabled = !isOperationRunning
-                    ) {
-                        Text(stringResource(R.string.common_cancel))
-                    }
-
-                    // 保存按钮
-                    Button(
-                        onClick = {
+                    else -> rawDoseText.toDoubleOrNull()?.let { it > 0 } == true
+                }
+                MedicationEditorActionRow(
+                    onDelete = if (eventToEdit != null && onDelete != null) {
+                        { onDelete(eventToEdit.id) }
+                    } else {
+                        null
+                    },
+                    onCancel = onDismiss,
+                    onSave = {
                             val doseMG = when {
                                 selectedRoute == Route.PATCH_REMOVE -> 0.0
                                 selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> 0.0
@@ -393,20 +379,13 @@ fun MedicationRecordBottomSheet(
                                 extras = extras
                                 )
                             )
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("record-save"),
-                        enabled = when {
-                            isOperationRunning -> false
-                            selectedRoute == Route.PATCH_REMOVE -> true
-                            selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> patchRateText.toDoubleOrNull() != null && patchRateText.toDoubleOrNull()!! > 0
-                            else -> rawDoseText.toDoubleOrNull() != null && rawDoseText.toDoubleOrNull()!! > 0
-                        }
-                    ) {
-                        Text(stringResource(R.string.common_save))
-                    }
-                }
+                    },
+                    actionsEnabled = !isOperationRunning,
+                    saveEnabled = saveEnabled,
+                    deleteTag = "record-delete",
+                    cancelTag = "record-cancel",
+                    saveTag = "record-save"
+                )
             }
         }
     }
@@ -481,6 +460,11 @@ fun MedicationRecordBottomSheet(
 
 /**
  * 日期时间选择部分
+ *
+ * 自适应布局：用 TextMeasurer 按当前字体缩放实测两段文本的真实宽度，
+ * 与可用宽度比较后决定并排（Row）还是堆叠（Column）。
+ * 文本永远单行（maxLines=1, softWrap=false），不缩小字号、不用负边距、
+ * 不写死任何设备宽度。
  */
 @Composable
 private fun DateTimeSection(
@@ -489,6 +473,13 @@ private fun DateTimeSection(
     onTimeClick: () -> Unit,
     is24Hour: Boolean = true
 ) {
+    val locale = LocalLocale.current.platformLocale
+    val dateText = SimpleDateFormat("yyyy-MM-dd", locale).format(selectedDateTime)
+    val timeText = SimpleDateFormat(
+        if (is24Hour) "HH:mm" else "hh:mm a",
+        locale
+    ).format(selectedDateTime)
+
     Column {
         Text(
             text = stringResource(R.string.record_sheet_time_title),
@@ -496,60 +487,92 @@ private fun DateTimeSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // 日期选择
-            ElevatedCard(
-                onClick = onDateClick,
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.CalendarToday,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = SimpleDateFormat("yyyy-MM-dd", LocalLocale.current.platformLocale).format(selectedDateTime),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val textMeasurer = rememberTextMeasurer()
+            val textStyle = MaterialTheme.typography.bodyLarge
+            val density = LocalDensity.current
+            // 每张卡片除文本外的固定占用：内边距 16*2 + 图标 24 + 间隔 12
+            val cardOverhead = with(density) { (16 * 2 + 24 + 12).dp.toPx() }
+            val cardSpacing = with(density) { 12.dp.toPx() }
+            val availablePx = with(density) { maxWidth.toPx() }
+            val widestTextPx = maxOf(
+                textMeasurer.measure(dateText, textStyle).size.width,
+                textMeasurer.measure(timeText, textStyle).size.width
+            ).toFloat()
+            // 并排时每卡分得 (可用宽 - 卡间距) / 2；实测文本 + 固定占用放得下才并排
+            val fitsSideBySide =
+                widestTextPx + cardOverhead <= (availablePx - cardSpacing) / 2f
 
-            // 时间选择
-            ElevatedCard(
-                onClick = onTimeClick,
-                modifier = Modifier.weight(1f)
-            ) {
+            if (fitsSideBySide) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Schedule,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                    DateTimeCard(
+                        icon = Icons.Default.CalendarToday,
+                        text = dateText,
+                        onClick = onDateClick,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = SimpleDateFormat(
-                            if (is24Hour) "HH:mm" else "hh:mm a",
-                            LocalLocale.current.platformLocale
-                        ).format(selectedDateTime),
-                        style = MaterialTheme.typography.bodyLarge
+                    DateTimeCard(
+                        icon = Icons.Default.Schedule,
+                        text = timeText,
+                        onClick = onTimeClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DateTimeCard(
+                        icon = Icons.Default.CalendarToday,
+                        text = dateText,
+                        onClick = onDateClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    DateTimeCard(
+                        icon = Icons.Default.Schedule,
+                        text = timeText,
+                        onClick = onTimeClick,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DateTimeCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                softWrap = false
+            )
         }
     }
 }
@@ -703,48 +726,71 @@ private fun DoseInputSection(
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
+        val rawDoseLabel = if (selectedEster == Ester.E2) {
+            stringResource(R.string.record_sheet_dose_label)
+        } else {
+            stringResource(R.string.record_sheet_dose_label_with_ester, selectedEster.name)
+        }
+        val equivalentDoseLabel = stringResource(R.string.record_sheet_e2_equivalent_label)
+        val showEquivalentDose = selectedEster != Ester.E2
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 原始剂量输入
+            Text(
+                text = rawDoseLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+                    .testTag("record-dose-label")
+            )
+            if (showEquivalentDose) {
+                Text(
+                    text = equivalentDoseLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp)
+                        .testTag("record-e2-dose-label")
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             OutlinedTextField(
                 value = rawDoseText,
                 onValueChange = onRawDoseChange,
-                label = {
-                    Text(
-                        if (selectedEster == Ester.E2) {
-                            stringResource(R.string.record_sheet_dose_label)
-                        } else {
-                            stringResource(R.string.record_sheet_dose_label_with_ester, selectedEster.name)
-                        }
-                    )
-                },
                 singleLine = true,
                 modifier = Modifier
                     .weight(1f)
+                    .semantics { contentDescription = rawDoseLabel }
                     .testTag("record-dose"),
                 trailingIcon = {
                     Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
                 }
             )
 
-            // E2等效剂量（仅非E2时显示）
-            if (selectedEster != Ester.E2) {
+            if (showEquivalentDose) {
                 OutlinedTextField(
                     value = e2DoseText,
                     onValueChange = onE2DoseChange,
-                    label = { Text(stringResource(R.string.record_sheet_e2_equivalent_label)) },
                     singleLine = true,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = equivalentDoseLabel }
+                        .testTag("record-e2-dose"),
                     trailingIcon = {
                         Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                            alpha = 0.3f
-                        )
-                    )
+                    }
                 )
             }
         }

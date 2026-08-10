@@ -2,22 +2,19 @@ package io.github.yuninggu.evolune.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.yuninggu.evolune.R
@@ -53,9 +50,6 @@ fun MedicationPlanBottomSheet(
     submissionErrorMessage: String? = null
 ) {
     val planToEdit = session?.existingPlan
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
 
     // 表单状态
     var name by remember(planToEdit, showBottomSheet) {
@@ -117,18 +111,26 @@ fun MedicationPlanBottomSheet(
     }
 
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { if (!operationInProgress) onDismiss() },
-            sheetState = sheetState,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            dragHandle = { BottomSheetDefaults.DragHandle() }
+        BackHandler(onBack = { if (!operationInProgress) onDismiss() })
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("plan-editor-surface"),
+            color = MaterialTheme.colorScheme.background
         ) {
+            // IME 跟随完全交给框架（见 MedicationRecordBottomSheet 同款修复）：
+            // windowInsetsPadding(safeDrawing) 缩小可视区，焦点字段由框架
+            // BringIntoView 一次性带入视口；删除手写 snapshotFlow + animateScrollTo，
+            // 消除二次缓动“回弹”。
+            val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp)
-                    .verticalScroll(rememberScrollState())
+                    .padding(top = 20.dp, bottom = 24.dp)
+                    .verticalScroll(scrollState)
+                    .testTag("plan-editor-scroll")
             ) {
                 // 标题
                 Text(
@@ -160,13 +162,12 @@ fun MedicationPlanBottomSheet(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 药物类型选择（雌激素）/ 抗雄药物类型选择（抗雄途径）
-                if (selectedRoute == Route.ANTIANDROGEN) {
-                    AntiAndrogenSelectionSection(
+                when (selectedRoute) {
+                    Route.ANTIANDROGEN -> AntiAndrogenSelectionSection(
                         selectedAntiAndrogen = selectedAntiAndrogen,
                         onAntiAndrogenSelected = { selectedAntiAndrogen = it }
                     )
-                } else {
-                    EsterSelectionSection(
+                    else -> EsterSelectionSection(
                         selectedEster = selectedEster,
                         availableEsters = availableEsters,
                         onEsterSelected = { selectedEster = it }
@@ -183,7 +184,13 @@ fun MedicationPlanBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("plan-dose"),
-                    singleLine = true
+                    singleLine = true,
+                    trailingIcon = {
+                        Text(
+                            stringResource(R.string.unit_mg),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -277,48 +284,15 @@ fun MedicationPlanBottomSheet(
                     )
                 }
 
-                // 操作按钮
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // 删除按钮（仅编辑时显示）
-                    if (planToEdit != null && onDelete != null) {
-                        OutlinedButton(
-                            onClick = {
-                                onDelete(planToEdit.id)
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .testTag("plan-delete"),
-                            enabled = !operationInProgress,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.common_delete))
-                        }
-                    }
-
-                    // 取消按钮
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f),
-                        enabled = !operationInProgress
-                    ) {
-                        Text(stringResource(R.string.common_cancel))
-                    }
-
-                    // 保存按钮
-                    Button(
-                        onClick = {
-                            val currentSession = session ?: return@Button
+                MedicationEditorActionRow(
+                    onDelete = if (planToEdit != null && onDelete != null) {
+                        { onDelete(planToEdit.id) }
+                    } else {
+                        null
+                    },
+                    onCancel = onDismiss,
+                    onSave = onSaveAction@{
+                            val currentSession = session ?: return@onSaveAction
                             val input = MedicationPlanEditorInput(
                                 name = name,
                                 route = selectedRoute,
@@ -341,15 +315,13 @@ fun MedicationPlanBottomSheet(
                                     hasInputError = true
                                 }
                             }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("plan-save"),
-                        enabled = !operationInProgress
-                    ) {
-                        Text(stringResource(R.string.common_save))
-                    }
-                }
+                    },
+                    actionsEnabled = !operationInProgress,
+                    saveEnabled = !operationInProgress,
+                    deleteTag = "plan-delete",
+                    cancelTag = "plan-cancel",
+                    saveTag = "plan-save"
+                )
             }
         }
     }
@@ -380,7 +352,6 @@ fun MedicationPlanBottomSheet(
 /**
  * 给药途径选择组件
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun RouteSelectionSection(
     selectedRoute: Route,
@@ -394,49 +365,22 @@ private fun RouteSelectionSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         val routes = Route.values().filter { it != Route.PATCH_REMOVE && it != Route.PATCH_APPLY }
-        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
-            routes.forEachIndexed { index, route ->
-                ToggleButton(
-                    checked = selectedRoute == route,
-                    onCheckedChange = { onRouteSelected(route) },
-                    // Keep every route at a stable width. The expressive width animation
-                    // causes wrapped labels and the content below to jump on narrow screens.
-                    modifier = Modifier.weight(1f),
-                    shapes = when {
-                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        index == routes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                ) {
-                    val routeText = getRouteDisplayName(route)
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Invisible anchor text forces Box to be exactly 2 lines tall
-                        Text(
-                            text = routeText,
-                            style = MaterialTheme.typography.bodySmall,
-                            minLines = 2,
-                            color = Color.Transparent
-                        )
-                        // Visible text is centered within the 2-line Box
-                        Text(
-                            text = routeText,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
+        MedicationOptionGrid(
+            options = routes,
+            selectedOption = selectedRoute,
+            onOptionSelected = onRouteSelected,
+            optionLabel = { getRouteDisplayName(it) },
+            optionTag = { "plan-route-${it.name.lowercase()}" },
+            compactColumns = 2,
+            expandedColumns = 3,
+            itemHeight = 64.dp
+        )
     }
 }
 
 /**
  * 药物类型选择组件
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun EsterSelectionSection(
     selectedEster: Ester,
@@ -450,51 +394,21 @@ private fun EsterSelectionSection(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
-            availableEsters.forEachIndexed { index, ester ->
-                val interactionSource = remember(ester) { MutableInteractionSource() }
-                ToggleButton(
-                    checked = selectedEster == ester,
-                    onCheckedChange = { onEsterSelected(ester) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                    interactionSource = interactionSource,
-                    shapes = when {
-                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        index == availableEsters.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                ) {
-                    val esterText = ester.name
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Invisible anchor text forces Box to be exactly 2 lines tall
-                        Text(
-                            text = esterText,
-                            style = MaterialTheme.typography.bodySmall,
-                            minLines = 2,
-                            color = Color.Transparent
-                        )
-                        // Visible text is centered within the 2-line Box
-                        Text(
-                            text = esterText,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
+        MedicationOptionGrid(
+            options = availableEsters,
+            selectedOption = selectedEster,
+            onOptionSelected = onEsterSelected,
+            optionLabel = { it.name },
+            optionTag = { "plan-ester-${it.name.lowercase()}" },
+            compactColumns = 3,
+            expandedColumns = 5
+        )
     }
 }
 
 /**
  * 给药周期类型选择组件
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ScheduleTypeSection(
     selectedType: ScheduleType,
@@ -508,48 +422,20 @@ private fun ScheduleTypeSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         val types = ScheduleType.values()
-        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
-            types.forEachIndexed { index, type ->
-                val interactionSource = remember(type) { MutableInteractionSource() }
-                ToggleButton(
-                    checked = selectedType == type,
-                    onCheckedChange = { onTypeSelected(type) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                    interactionSource = interactionSource,
-                    shapes = when {
-                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        index == types.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                ) {
-                    val scheduleText = when (type) {
-                        ScheduleType.DAILY -> stringResource(R.string.plan_sheet_schedule_daily)
-                        ScheduleType.WEEKLY -> stringResource(R.string.plan_sheet_schedule_weekly)
-                        ScheduleType.CUSTOM -> stringResource(R.string.plan_sheet_schedule_custom)
-                    }
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Invisible anchor text forces Box to be exactly 2 lines tall
-                        Text(
-                            text = scheduleText,
-                            style = MaterialTheme.typography.bodySmall,
-                            minLines = 2,
-                            color = Color.Transparent
-                        )
-                        // Visible text is centered within the 2-line Box
-                        Text(
-                            text = scheduleText,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+        MedicationOptionGrid(
+            options = types.toList(),
+            selectedOption = selectedType,
+            onOptionSelected = onTypeSelected,
+            optionLabel = { type ->
+                when (type) {
+                    ScheduleType.DAILY -> stringResource(R.string.plan_sheet_schedule_daily)
+                    ScheduleType.WEEKLY -> stringResource(R.string.plan_sheet_schedule_weekly)
+                    ScheduleType.CUSTOM -> stringResource(R.string.plan_sheet_schedule_custom)
                 }
-            }
-        }
+            },
+            optionTag = { "plan-schedule-${it.name.lowercase()}" },
+            compactColumns = 3
+        )
     }
 }
 
@@ -700,7 +586,6 @@ private fun TimePickerDialog(
 /**
  * 舌下吸收等级选择器
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SublingualTierSelector(
     selectedTier: SublingualTier,
@@ -714,40 +599,19 @@ private fun SublingualTierSelector(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        val tiers = SublingualTier.values()
-        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
-            tiers.forEachIndexed { index, tier ->
-                val interactionSource = remember(tier) { MutableInteractionSource() }
-                ToggleButton(
-                    checked = selectedTier == tier,
-                    onCheckedChange = { onTierSelected(tier) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                    interactionSource = interactionSource,
-                    shapes = when {
-                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        index == tiers.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = getSublingualTierName(tier),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = if (selectedTier == tier) FontWeight.Bold else FontWeight.Normal
-                        )
-                        Text(
-                            text = getSublingualTierDescription(tier),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                }
-            }
-        }
+        val tiers = SublingualTier.values().toList()
+        MedicationOptionGrid(
+            options = tiers,
+            selectedOption = selectedTier,
+            onOptionSelected = onTierSelected,
+            optionLabel = {
+                "${getSublingualTierName(it)}\n${getSublingualTierDescription(it)}"
+            },
+            optionTag = { "plan-sublingual-tier-${it.name.lowercase()}" },
+            compactColumns = 2,
+            expandedColumns = 4,
+            itemHeight = 72.dp
+        )
     }
 }
 
@@ -820,44 +684,15 @@ private fun AntiAndrogenSelectionSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
         val antiAndrogens = AntiAndrogen.values()
-        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
-            antiAndrogens.forEachIndexed { index, aa ->
-                val interactionSource = remember(aa) { MutableInteractionSource() }
-                ToggleButton(
-                    checked = selectedAntiAndrogen == aa,
-                    onCheckedChange = { onAntiAndrogenSelected(aa) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .animateWidth(interactionSource),
-                    interactionSource = interactionSource,
-                    shapes = when {
-                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        index == antiAndrogens.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    }
-                ) {
-                    val aaText = getAntiAndrogenDisplayName(aa)
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Invisible anchor text forces Box to be exactly 2 lines tall
-                        Text(
-                            text = aaText,
-                            style = MaterialTheme.typography.bodySmall,
-                            minLines = 2,
-                            color = Color.Transparent
-                        )
-                        // Visible text is centered within the 2-line Box
-                        Text(
-                            text = aaText,
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-        }
+        MedicationOptionGrid(
+            options = antiAndrogens.toList(),
+            selectedOption = selectedAntiAndrogen,
+            onOptionSelected = onAntiAndrogenSelected,
+            optionLabel = { getAntiAndrogenDisplayName(it) },
+            optionTag = { "plan-antiandrogen-${it.name.lowercase()}" },
+            compactColumns = 2,
+            expandedColumns = 4
+        )
     }
 }
 

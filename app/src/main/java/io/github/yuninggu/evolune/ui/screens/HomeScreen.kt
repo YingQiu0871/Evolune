@@ -44,6 +44,7 @@ import kotlin.math.abs
 fun HomeScreen(
     viewModel: HRTViewModel,
     is24Hour: Boolean = true,
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val pkState by viewModel.pkState.collectAsState()
@@ -58,6 +59,7 @@ fun HomeScreen(
         realtimeCurrentTimeH = realtimeCurrentTimeH,
         onRefresh = { viewModel.runSimulation() },
         is24Hour = is24Hour,
+        showTopBar = showTopBar,
         modifier = modifier
     )
 }
@@ -74,6 +76,7 @@ private fun HomeScreenContent(
     realtimeCurrentTimeH: Double,
     onRefresh: () -> Unit,
     is24Hour: Boolean = true,
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     // 计算分叉点时间：未来第一次计划用药的时间
@@ -105,25 +108,33 @@ private fun HomeScreenContent(
         }
     }
     Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Horizontal + WindowInsetsSides.Top
-        ),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.home_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
-                actions = {
-                    IconButton(onClick = onRefresh) {
-                        Icon(
-                            imageVector = Icons.Filled.Refresh,
-                            contentDescription = stringResource(R.string.home_refresh)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+        contentWindowInsets = if (showTopBar) {
+            WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Top
             )
+        } else {
+            WindowInsets(0, 0, 0, 0)
+        },
+        topBar = {
+            if (showTopBar) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.nav_home), style = MaterialTheme.typography.headlineMediumEmphasized) },
+                    actions = {
+                        IconButton(onClick = onRefresh) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = stringResource(R.string.home_refresh)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
         },
         modifier = modifier
     ) { paddingValues ->
@@ -361,7 +372,7 @@ private fun ChartCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.home_chart_title),
+                text = stringResource(R.string.home_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )

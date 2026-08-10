@@ -54,6 +54,7 @@ import java.util.UUID
 fun MedicationPlansScreen(
     viewModel: MedicationPlanViewModel,
     is24Hour: Boolean = true,
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -185,34 +186,8 @@ fun MedicationPlansScreen(
         onPromotedNotificationSetup = ::openPromotedNotificationSettings,
         interactionsEnabled = !operationInProgress,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        showTopBar = showTopBar,
         modifier = modifier
-    )
-
-    // 底部弹窗
-    MedicationPlanBottomSheet(
-        showBottomSheet = editSession != null,
-        onDismiss = {
-            viewModel.closeEditSession()
-            viewModel.acknowledgeOperation()
-        },
-        onSave = { draft ->
-            if (draft.isEnabled) {
-                requestNotificationPermissionIfNeeded()
-            }
-            viewModel.saveDraft(draft)
-        },
-        onDelete = { id ->
-            viewModel.deletePlan(id)
-        },
-        session = editSession,
-        is24Hour = is24Hour,
-        operationInProgress = operationInProgress,
-        submissionErrorMessage = submissionErrorMessage.takeIf {
-            submissionFailure?.operation in listOf(
-                MedicationPlanOperation.SAVE,
-                MedicationPlanOperation.DELETE
-            )
-        }
     )
 }
 
@@ -232,18 +207,30 @@ fun MedicationPlansScreenContent(
     onPromotedNotificationSetup: () -> Unit = {},
     interactionsEnabled: Boolean = true,
     snackbarHost: @Composable () -> Unit = {},
+    showTopBar: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
+        contentWindowInsets = if (showTopBar) {
+            WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+            )
+        } else {
+            WindowInsets(0, 0, 0, 0)
+        },
         snackbarHost = snackbarHost,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.plans_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            if (showTopBar) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.plans_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
-            )
+            }
         },
         floatingActionButton = {
             LargeFloatingActionButton(

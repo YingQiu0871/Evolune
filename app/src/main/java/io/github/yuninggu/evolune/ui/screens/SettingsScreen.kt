@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.LightMode
@@ -26,6 +27,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,7 +65,8 @@ fun SettingsScreen(
     importResult: ImportResult = ImportResult.Idle,
     onDismissImportResult: () -> Unit = {},
     clipboardExportMessage: String? = null,
-    onClipboardExportMessageShown: () -> Unit = {}
+    onClipboardExportMessageShown: () -> Unit = {},
+    showTopBar: Boolean = true
 ) {
     var showCopyrightDialog by remember { mutableStateOf(false) }
     var showDisclaimerDialog by remember { mutableStateOf(false) }
@@ -77,14 +80,25 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+        contentWindowInsets = if (showTopBar) {
+            WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Top
             )
+        } else {
+            WindowInsets(0, 0, 0, 0)
+        },
+        topBar = {
+            if (showTopBar) {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.settings_title), style = MaterialTheme.typography.headlineMediumEmphasized) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -232,10 +246,7 @@ private fun DataSection(
             SegmentedListItem(
                 onClick = onImportClick,
                 shapes = ListItemDefaults.segmentedShapes(index = 0, count = 4),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.Download,
@@ -252,10 +263,7 @@ private fun DataSection(
             SegmentedListItem(
                 onClick = onImportFromClipboard,
                 shapes = ListItemDefaults.segmentedShapes(index = 1, count = 4),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.ContentPaste,
@@ -272,10 +280,7 @@ private fun DataSection(
             SegmentedListItem(
                 onClick = onExportClick,
                 shapes = ListItemDefaults.segmentedShapes(index = 2, count = 4),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.Upload,
@@ -292,10 +297,7 @@ private fun DataSection(
             SegmentedListItem(
                 onClick = onExportToClipboard,
                 shapes = ListItemDefaults.segmentedShapes(index = 3, count = 4),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.ContentCopy,
@@ -367,6 +369,27 @@ private fun BodyWeightSection(
 /**
  * 夜间模式选择部分
  */
+/**
+ * Settings 分段列表统一配色：container/onContainer 语义配对。
+ * 未选中：secondaryContainer 底 → onSecondaryContainer 前景；
+ * 选中：primaryContainer 底 → onPrimaryContainer 前景。
+ * （库默认前景按 surface/secondaryContainer 底配对，覆盖容器色后必须同步覆盖前景色。）
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun settingsListItemColors(): ListItemColors = ListItemDefaults.colors(
+    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    leadingContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    trailingContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    supportingContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+    selectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    selectedLeadingContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    selectedTrailingContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    selectedSupportingContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+)
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun stableSegmentedShapes(index: Int, count: Int): ListItemShapes {
@@ -404,34 +427,38 @@ private fun ThemeModeSection(
                 val label = when (mode) {
                     ThemeMode.LIGHT -> stringResource(R.string.settings_theme_mode_light)
                     ThemeMode.DARK -> stringResource(R.string.settings_theme_mode_dark)
+                    ThemeMode.AMOLED -> stringResource(R.string.settings_theme_mode_amoled)
                     ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_mode_system)
                 }
                 val description = when (mode) {
                     ThemeMode.LIGHT -> stringResource(R.string.settings_theme_mode_light_desc)
                     ThemeMode.DARK -> stringResource(R.string.settings_theme_mode_dark_desc)
+                    ThemeMode.AMOLED -> stringResource(R.string.settings_theme_mode_amoled_desc)
                     ThemeMode.SYSTEM -> stringResource(R.string.settings_theme_mode_system_desc)
                 }
                 val icon = when (mode) {
                     ThemeMode.LIGHT -> Icons.Outlined.LightMode
                     ThemeMode.DARK -> Icons.Outlined.DarkMode
+                    ThemeMode.AMOLED -> Icons.Outlined.Contrast
                     ThemeMode.SYSTEM -> Icons.Outlined.PhoneAndroid
                 }
 
                 SegmentedListItem(
+                    modifier = Modifier.testTag("theme-mode-${mode.name.lowercase()}"),
                     selected = currentMode == mode,
                     onClick = { onModeChange(mode) },
                     shapes = stableSegmentedShapes(
                         index = index,
                         count = ThemeMode.entries.size
                     ),
-                    colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
+                    colors = settingsListItemColors(),
                     leadingContent = {
                         Icon(
                             imageVector = icon,
-                            contentDescription = null
+                            contentDescription = null,
+                            modifier = Modifier.testTag(
+                                "theme-mode-icon-${mode.name.lowercase()}"
+                            )
                         )
                     },
                     trailingContent = {
@@ -494,10 +521,7 @@ private fun ColorThemeSection(
                         index = index,
                         count = ColorTheme.entries.size
                     ),
-                    colors = ListItemDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
+                    colors = settingsListItemColors(),
                     leadingContent = {
                         Icon(
                             imageVector = icon,
@@ -566,10 +590,7 @@ private fun TimeFormatSection(
                         index = index,
                         count = TimeFormat.entries.size
                     ),
-                    colors = ListItemDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
+                    colors = settingsListItemColors(),
                     leadingContent = {
                         Icon(
                             imageVector = icon,
@@ -641,10 +662,7 @@ private fun UpdateSection(
             SegmentedListItem(
                 onClick = { onAutoCheckUpdatesChange(!autoCheckUpdates) },
                 shapes = ListItemDefaults.segmentedShapes(index = 0, count = 3),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.SystemUpdate,
@@ -676,10 +694,7 @@ private fun UpdateSection(
             SegmentedListItem(
                 onClick = { if (!isChecking) onCheckForUpdates() },
                 shapes = ListItemDefaults.segmentedShapes(index = 1, count = 3),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     if (isChecking) {
                         LoadingIndicator(
@@ -696,8 +711,11 @@ private fun UpdateSection(
             ) {
                 Text(
                     text = stringResource(R.string.settings_check_updates_now),
-                    color = if (isChecking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    else MaterialTheme.colorScheme.onSurface
+                    // 该条目恒为未选中态，容器为 secondaryContainer（见 settingsListItemColors），
+                    // 文字必须与其配对使用 onSecondaryContainer；旧实现用 onSurface 造成低对比。
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                        alpha = if (isChecking) 0.38f else 1f
+                    )
                 )
             }
 
@@ -710,10 +728,7 @@ private fun UpdateSection(
                     scope.launch { snackbarHostState.showSnackbar(versionCopiedText) }
                 },
                 shapes = ListItemDefaults.segmentedShapes(index = 2, count = 3),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.PhoneAndroid,
@@ -721,10 +736,12 @@ private fun UpdateSection(
                     )
                 },
                 trailingContent = {
+                    // tint 不再硬编码 onSurfaceVariant：交给 ListItem 的
+                    // trailingContentColor（settingsListItemColors 已按容器配对），
+                    // 避免与 secondaryContainer 容器产生对比度不匹配。
                     Icon(
                         imageVector = Icons.Outlined.ContentCopy,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        contentDescription = null
                     )
                 },
                 supportingContent = {
@@ -760,10 +777,7 @@ private fun AboutSection(
             SegmentedListItem(
                 onClick = onCopyrightClick,
                 shapes = ListItemDefaults.segmentedShapes(index = 0, count = 2),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.Info,
@@ -777,10 +791,7 @@ private fun AboutSection(
             SegmentedListItem(
                 onClick = onDisclaimerClick,
                 shapes = ListItemDefaults.segmentedShapes(index = 1, count = 2),
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
+                colors = settingsListItemColors(),
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Outlined.WarningAmber,

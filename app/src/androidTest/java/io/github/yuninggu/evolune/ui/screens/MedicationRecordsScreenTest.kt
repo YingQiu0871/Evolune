@@ -10,6 +10,9 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.click
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import io.github.yuninggu.evolune.application.DoseEventEditSessionFactory
 import io.github.yuninggu.evolune.application.DoseEventEditorInput
 import io.github.yuninggu.evolune.core.dataapi.DeleteResult
@@ -26,8 +29,11 @@ import io.github.yuninggu.evolune.core.model.ExtraKey
 import io.github.yuninggu.evolune.core.model.MedicationPlan
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
+import io.github.yuninggu.evolune.ui.components.MedicationRecordBottomSheet
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
+import io.github.yuninggu.evolune.viewmodel.DoseEventOperationError
 import io.github.yuninggu.evolune.viewmodel.DoseEventOperationState
+import io.github.yuninggu.evolune.viewmodel.DoseEventUiEvent
 import io.github.yuninggu.evolune.viewmodel.HRTViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +42,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -188,6 +195,26 @@ class MedicationRecordsScreenTest {
     }
 
     @Test
+    fun editActionsHaveEqualStableSizes() {
+        val original = event()
+        val repository = FakeDoseEventRepository().apply {
+            stored[EVENT_ID] = original
+        }
+        val viewModel = viewModel(repository)
+        setScreen(viewModel)
+        composeRule.runOnIdle { viewModel.startEditSession(original) }
+
+        composeRule.onNodeWithTag("record-save").performScrollTo()
+        composeRule.waitForIdle()
+        val deleteBounds = composeRule.onNodeWithTag("record-delete").fetchSemanticsNode().boundsInRoot
+        val cancelBounds = composeRule.onNodeWithTag("record-cancel").fetchSemanticsNode().boundsInRoot
+        val saveBounds = composeRule.onNodeWithTag("record-save").fetchSemanticsNode().boundsInRoot
+
+        assertBoundsSizeEqual(deleteBounds, cancelBounds)
+        assertBoundsSizeEqual(deleteBounds, saveBounds)
+    }
+
+    @Test
     fun rapidDoubleTapInvokesOneInsert() {
         val gate = CompletableDeferred<Unit>()
         val repository = FakeDoseEventRepository().apply { insertGate = gate }
@@ -215,16 +242,102 @@ class MedicationRecordsScreenTest {
         assertEquals(1, repository.insertCalls)
     }
 
+    @Test
+    fun doseLabelsAndFieldsStayFixedAcrossFocusChanges() {
+        val viewModel = viewModel(FakeDoseEventRepository())
+        setScreen(viewModel)
+        composeRule.runOnIdle(viewModel::startCreateSession)
+
+        val rawLabel = composeRule.onNodeWithTag("record-dose-label")
+        val equivalentLabel = composeRule.onNodeWithTag("record-e2-dose-label")
+        val rawField = composeRule.onNodeWithTag("record-dose").performScrollTo()
+        val equivalentField = composeRule.onNodeWithTag("record-e2-dose")
+        composeRule.waitForIdle()
+
+        val initialRawLabelBounds = rawLabel.fetchSemanticsNode().boundsInRoot
+        val initialEquivalentLabelBounds = equivalentLabel.fetchSemanticsNode().boundsInRoot
+        val initialRawFieldBounds = rawField.fetchSemanticsNode().boundsInRoot
+        val initialEquivalentFieldBounds = equivalentField.fetchSemanticsNode().boundsInRoot
+
+        rawField.performClick()
+        composeRule.waitForIdle()
+        assertBoundsEqual(initialRawLabelBounds, rawLabel.fetchSemanticsNode().boundsInRoot)
+        assertBoundsEqual(
+            initialEquivalentLabelBounds,
+            equivalentLabel.fetchSemanticsNode().boundsInRoot
+        )
+        assertBoundsEqual(initialRawFieldBounds, rawField.fetchSemanticsNode().boundsInRoot)
+        assertBoundsEqual(
+            initialEquivalentFieldBounds,
+            equivalentField.fetchSemanticsNode().boundsInRoot
+        )
+
+        equivalentField.performClick()
+        composeRule.waitForIdle()
+        assertBoundsEqual(initialRawLabelBounds, rawLabel.fetchSemanticsNode().boundsInRoot)
+        assertBoundsEqual(
+            initialEquivalentLabelBounds,
+            equivalentLabel.fetchSemanticsNode().boundsInRoot
+        )
+        assertBoundsEqual(initialRawFieldBounds, rawField.fetchSemanticsNode().boundsInRoot)
+        assertBoundsEqual(
+            initialEquivalentFieldBounds,
+            equivalentField.fetchSemanticsNode().boundsInRoot
+        )
+    }
+
+    private fun assertBoundsEqual(
+        expected: androidx.compose.ui.geometry.Rect,
+        actual: androidx.compose.ui.geometry.Rect
+    ) {
+        assertEquals(expected.left.toDouble(), actual.left.toDouble(), 0.5)
+        assertEquals(expected.top.toDouble(), actual.top.toDouble(), 0.5)
+        assertEquals(expected.right.toDouble(), actual.right.toDouble(), 0.5)
+        assertEquals(expected.bottom.toDouble(), actual.bottom.toDouble(), 0.5)
+    }
+
+    private fun assertBoundsSizeEqual(
+        expected: androidx.compose.ui.geometry.Rect,
+        actual: androidx.compose.ui.geometry.Rect
+    ) {
+        assertEquals(expected.width.toDouble(), actual.width.toDouble(), 1.1)
+        assertEquals(expected.height.toDouble(), actual.height.toDouble(), 0.5)
+    }
+
     private fun setScreen(viewModel: HRTViewModel) {
         composeRule.setContent {
             EvoluneTheme {
-                MedicationRecordsScreen(viewModel)
+                LaunchedEffect(viewModel) {
+                    viewModel.uiEvents.collect { event ->
+                        when (event) {
+                            is DoseEventUiEvent.Saved,
+                            is DoseEventUiEvent.Deleted -> viewModel.closeEditSession()
+                        }
+                        viewModel.acknowledgeOperation()
+                    }
+                }
+                val editSession by viewModel.editSession.collectAsState()
+                val operationState by viewModel.operationState.collectAsState()
+                MedicationRecordBottomSheet(
+                    showBottomSheet = editSession != null,
+                    onDismiss = {
+                        viewModel.closeEditSession()
+                        viewModel.acknowledgeOperation()
+                    },
+                    onSave = viewModel::saveEvent,
+                    onDelete = viewModel::deleteEvent,
+                    session = editSession,
+                    is24Hour = true,
+                    isOperationRunning = operationState is DoseEventOperationState.Running,
+                    operationError = (operationState as? DoseEventOperationState.Failure)
+                        ?.error
+                        ?.probeDisplayMessage()
+                )
             }
         }
     }
 
-    private fun viewModel(repository: FakeDoseEventRepository): HRTViewModel {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+    private fun viewModel(repository: FakeDoseEventRepository): HRTViewModel {        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         scopes += scope
         return HRTViewModel(
             repository = repository,
@@ -343,4 +456,13 @@ class MedicationRecordsScreenTest {
         val NOW: Instant = Instant.parse("2026-01-02T03:04:05.678Z")
         val TEST_ZONE: ZoneId = ZoneId.of("Asia/Shanghai")
     }
+}
+
+private fun DoseEventOperationError.probeDisplayMessage(): String = when (this) {
+    is DoseEventOperationError.InvalidInput -> "请检查记录输入"
+    DoseEventOperationError.RepositoryInvalid -> "记录无法保存"
+    DoseEventOperationError.Conflict -> "相同记录 ID 已存在不同内容"
+    DoseEventOperationError.RevisionConflict -> "该记录已被其他操作修改"
+    DoseEventOperationError.NotFound -> "该记录已不存在"
+    DoseEventOperationError.StorageFailure -> "记录存储暂时不可用"
 }
