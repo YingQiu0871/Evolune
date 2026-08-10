@@ -1,13 +1,18 @@
 package io.github.yuninggu.evolune.ui.screens
 
 import android.Manifest
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.res.stringResource
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yuninggu.evolune.R
 import io.github.yuninggu.evolune.application.MedicationPlanEditSessionFactory
@@ -21,7 +26,10 @@ import io.github.yuninggu.evolune.core.model.ScheduledDoseSlot
 import io.github.yuninggu.evolune.pk.Ester
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.reminder.MedicationPlanReminderScheduler
+import io.github.yuninggu.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yuninggu.evolune.ui.theme.EvoluneTheme
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperation
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationError
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationState
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -68,13 +76,9 @@ class MedicationPlansScreenTest {
         val repository = FakeRepository()
         val viewModel = viewModel(repository)
         val recomposeState = mutableStateOf(true)
-        composeRule.setContent {
-            EvoluneTheme {
-                MedicationPlansScreen(viewModel, is24Hour = recomposeState.value)
-            }
-        }
+        viewModel.startCreateSession()
+        setScreen(viewModel, is24Hour = recomposeState.value)
 
-        composeRule.onNodeWithTag("plan-add").performClick()
         val session = requireNotNull(viewModel.editSession.value)
         composeRule.runOnIdle { recomposeState.value = false }
         composeRule.waitForIdle()
@@ -192,10 +196,127 @@ class MedicationPlansScreenTest {
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
     }
 
-    private fun setScreen(viewModel: MedicationPlanViewModel) {
+    @Test
+    fun portraitOptionGridKeepsRouteSizesStableAcrossSelection() {
+        val viewModel = viewModel(FakeRepository())
+        viewModel.startCreateSession()
+        setScreen(viewModel)
+
+        val routeTags = listOf(
+            "plan-route-injection",
+            "plan-route-oral",
+            "plan-route-sublingual",
+            "plan-route-gel",
+            "plan-route-antiandrogen"
+        )
+        val antiAndrogenOption = composeRule.onNodeWithTag("plan-route-antiandrogen").performScrollTo()
+        composeRule.waitForIdle()
+        val initialBounds = routeTags.associateWith { tag ->
+            composeRule.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+        }
+
+        val referenceBounds = initialBounds.getValue("plan-route-injection")
+        initialBounds.values.forEach { bounds ->
+            // Equal weights may distribute one remaining physical pixel across a row.
+            assertEquals(referenceBounds.width.toDouble(), bounds.width.toDouble(), 1.1)
+            assertEquals(referenceBounds.height.toDouble(), bounds.height.toDouble(), 0.5)
+        }
+        assertTrue(referenceBounds.width > referenceBounds.height * 1.5f)
+
+        val antiAndrogenBounds = initialBounds.getValue("plan-route-antiandrogen")
+        antiAndrogenOption.performClick().assertIsSelected()
+        composeRule.waitForIdle()
+        assertBoundsSizeEqual(
+            antiAndrogenBounds,
+            antiAndrogenOption.fetchSemanticsNode().boundsInRoot
+        )
+    }
+
+    @Test
+    fun editActionsHaveEqualStableSizes() {
+        val viewModel = viewModel(FakeRepository())
+        viewModel.startEditSession(plan())
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-save").performScrollTo()
+        composeRule.waitForIdle()
+        val deleteBounds = composeRule.onNodeWithTag("plan-delete").fetchSemanticsNode().boundsInRoot
+        val cancelBounds = composeRule.onNodeWithTag("plan-cancel").fetchSemanticsNode().boundsInRoot
+        val saveBounds = composeRule.onNodeWithTag("plan-save").fetchSemanticsNode().boundsInRoot
+
+        assertBoundsSizeEqual(deleteBounds, cancelBounds)
+        assertBoundsSizeEqual(deleteBounds, saveBounds)
+    }
+
+    private fun assertBoundsSizeEqual(
+        expected: androidx.compose.ui.geometry.Rect,
+        actual: androidx.compose.ui.geometry.Rect
+    ) {
+        assertEquals(expected.width.toDouble(), actual.width.toDouble(), 1.1)
+        assertEquals(expected.height.toDouble(), actual.height.toDouble(), 0.5)
+    }
+
+    private fun setScreen(
+        viewModel: MedicationPlanViewModel,
+        is24Hour: Boolean = true
+    ) {
         composeRule.setContent {
             EvoluneTheme {
-                MedicationPlansScreen(viewModel)
+                LaunchedEffect(viewModel) {
+                    viewModel.operationState.collect { state ->
+                        if (state is MedicationPlanOperationState.Success) {
+                            if (state.result.operation in listOf(
+                                    MedicationPlanOperation.SAVE,
+                                    MedicationPlanOperation.DELETE
+                                )
+                            ) {
+                                viewModel.closeEditSession()
+                            }
+                            viewModel.acknowledgeOperation()
+                        }
+                    }
+                }
+                val editSession by viewModel.editSession.collectAsState()
+                val operationState by viewModel.operationState.collectAsState()
+                val submissionFailure = operationState as? MedicationPlanOperationState.Failure
+                val unknownErrorMessage = stringResource(R.string.common_unknown_error)
+                val submissionErrorMessage = submissionFailure?.let { failure ->
+                    when (failure.error) {
+                        is MedicationPlanOperationError.InvalidDraft ->
+                            stringResource(R.string.plan_error_invalid_input)
+                        MedicationPlanOperationError.RepositoryInvalid ->
+                            stringResource(R.string.plan_error_invalid_plan)
+                        MedicationPlanOperationError.NotFound ->
+                            stringResource(R.string.plan_error_not_found)
+                        MedicationPlanOperationError.StorageFailure -> when (failure.operation) {
+                            MedicationPlanOperation.SAVE ->
+                                stringResource(R.string.plan_error_save_failed)
+                            MedicationPlanOperation.DELETE ->
+                                stringResource(R.string.plan_error_delete_failed)
+                            MedicationPlanOperation.SET_ENABLED,
+                            MedicationPlanOperation.RESCHEDULE -> unknownErrorMessage
+                        }
+                        MedicationPlanOperationError.UnexpectedFailure -> unknownErrorMessage
+                    }
+                }
+                MedicationPlanBottomSheet(
+                    showBottomSheet = editSession != null,
+                    onDismiss = {
+                        viewModel.closeEditSession()
+                        viewModel.acknowledgeOperation()
+                    },
+                    onSave = viewModel::saveDraft,
+                    onDelete = viewModel::deletePlan,
+                    session = editSession,
+                    is24Hour = is24Hour,
+                    operationInProgress = operationState is MedicationPlanOperationState.Running,
+                    submissionErrorMessage = submissionErrorMessage.takeIf {
+                        submissionFailure?.operation in listOf(
+                            MedicationPlanOperation.SAVE,
+                            MedicationPlanOperation.DELETE
+                        )
+                    }
+                )
             }
         }
     }

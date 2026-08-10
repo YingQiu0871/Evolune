@@ -1,36 +1,53 @@
 package io.github.yuninggu.evolune.navigation
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.SystemClock
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,14 +60,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -63,25 +83,42 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import io.github.yuninggu.evolune.R
+import io.github.yuninggu.evolune.core.model.ExtraKey
 import io.github.yuninggu.evolune.data.TimeFormat
+import io.github.yuninggu.evolune.pk.AntiAndrogen
+import io.github.yuninggu.evolune.pk.SublingualTier
+import io.github.yuninggu.evolune.ui.components.MedicationPlanBottomSheet
+import io.github.yuninggu.evolune.ui.components.MedicationRecordBottomSheet
+import io.github.yuninggu.evolune.ui.components.PatchMode
+import io.github.yuninggu.evolune.ui.components.RecordDefaults
 import io.github.yuninggu.evolune.ui.screens.HomeScreen
 import io.github.yuninggu.evolune.ui.screens.MedicationPlansScreen
 import io.github.yuninggu.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yuninggu.evolune.ui.screens.SettingsScreen
+import io.github.yuninggu.evolune.viewmodel.DoseEventOperationError
+import io.github.yuninggu.evolune.viewmodel.DoseEventOperationState
+import io.github.yuninggu.evolune.viewmodel.DoseEventUiEvent
 import io.github.yuninggu.evolune.viewmodel.HRTViewModel
 import io.github.yuninggu.evolune.viewmodel.ImportResult
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperation
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationError
+import io.github.yuninggu.evolune.viewmodel.MedicationPlanOperationState
 import io.github.yuninggu.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yuninggu.evolune.viewmodel.SettingsViewModel
 import io.github.yuninggu.evolune.viewmodel.UpdateCheckResult
 
-private const val NAV_SPRING_DAMPING_RATIO = 0.72f
-private const val NAV_SPRING_STIFFNESS = Spring.StiffnessLow
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+private const val NAV_FADE_OUT_MS = 90
+private const val NAV_FADE_IN_MS = 220
+private const val NAV_FADE_IN_DELAY_MS = 90
+private val NAVIGATION_RAIL_WIDTH = 80.dp
+private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
 /**
  * 应用主导航
  */
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
@@ -89,7 +126,6 @@ fun AppNavigation(
     medicationPlanViewModel: MedicationPlanViewModel
 ) {
     val navController = rememberNavController()
-    var navDirection by remember { mutableIntStateOf(1) }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
@@ -237,27 +273,59 @@ fun AppNavigation(
         )
     }
 
+    // 折叠屏/宽屏自适应导航：compact 走底部导航栏，medium/expanded 走侧边导航栏。
+    // 通过 calculateWindowSizeClass(activity) 取得真实窗口尺寸类，而非硬编码设备宽度。
+    val activity = LocalActivity.current
+    val windowSizeClass = activity?.let { calculateWindowSizeClass(it) }
+    val useNavigationRail =
+        windowSizeClass != null && windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
+
+    val recordEditorOpenForNav by hrtViewModel.editSession.collectAsState()
+    val planEditorOpenForNav by medicationPlanViewModel.editSession.collectAsState()
+    val navigationVisible = recordEditorOpenForNav == null && planEditorOpenForNav == null
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.HOME
+    val currentRouteState = rememberUpdatedState(currentRoute)
+
     Scaffold(
         contentWindowInsets = WindowInsets.safeDrawing.only(
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         ),
         bottomBar = {
-            BottomNavigationBar(
-                navController = navController,
-                onDirectionChange = { navDirection = it }
+            if (navigationVisible && !useNavigationRail) {
+                BottomNavigationBar(navController = navController)
+            }
+        },
+        topBar = {
+            AppTopBar(
+                currentScreen = currentScreen,
+                alignWithNavigationRail = navigationVisible && useNavigationRail,
+                onRefresh = hrtViewModel::runSimulation
             )
         }
     ) { innerPadding ->
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRouteState = rememberUpdatedState(navBackStackEntry?.destination?.route)
         var swipeDelta by remember { mutableFloatStateOf(0f) }
         val swipeThresholdPx = with(LocalDensity.current) { NAV_SWIPE_THRESHOLD_DP.dp.toPx() }
 
-        Box(
+        Row(
             modifier = Modifier
                 .padding(innerPadding)
+                // 根 Scaffold 是 Horizontal+Bottom 安全区的唯一所有者：
+                // 消费掉这部分 inset，目的地内部的 Scaffold 取到的 safeDrawing
+                // 只剩 Top，不会再次叠加底部导航栏高度（Settings 底部异常色块的根因）。
+                .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
-                .pointerInput(Unit) {
+        ) {
+            if (navigationVisible && useNavigationRail) {
+                NavigationRailBar(navController = navController)
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+                    .testTag("app-content")
+                    .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onDragStart = { swipeDelta = 0f },
                         onDragCancel = { swipeDelta = 0f },
@@ -268,7 +336,6 @@ fun AppNavigation(
                                 val currentIndex = screenIndex(currentRouteState.value)
                                 val targetIndex = currentIndex + direction
                                 if (currentIndex != -1 && targetIndex in Screen.entries.indices) {
-                                    navDirection = direction
                                     navController.navigate(Screen.entries[targetIndex].route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
@@ -287,108 +354,64 @@ fun AppNavigation(
             NavHost(
                 navController = navController,
                 startDestination = Screen.HOME.route,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface),
             enterTransition = {
-                val initialIndex = screenIndex(initialState.destination.route)
-                val targetIndex = screenIndex(targetState.destination.route)
-                if (initialIndex == -1 || targetIndex == -1 || initialIndex == targetIndex) {
-                    EnterTransition.None
-                } else if (navDirection > 0) {
-                    slideInHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        initialOffsetX = { it }
+                fadeIn(
+                    animationSpec = tween(
+                        durationMillis = NAV_FADE_IN_MS,
+                        delayMillis = NAV_FADE_IN_DELAY_MS
                     )
-                } else {
-                    slideInHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        initialOffsetX = { -it }
+                ) + scaleIn(
+                    initialScale = 0.98f,
+                    animationSpec = tween(
+                        durationMillis = NAV_FADE_IN_MS,
+                        delayMillis = NAV_FADE_IN_DELAY_MS
                     )
-                }
+                )
             },
             exitTransition = {
-                val initialIndex = screenIndex(initialState.destination.route)
-                val targetIndex = screenIndex(targetState.destination.route)
-                if (initialIndex == -1 || targetIndex == -1 || initialIndex == targetIndex) {
-                    ExitTransition.None
-                } else if (navDirection > 0) {
-                    slideOutHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        targetOffsetX = { -it }
-                    )
-                } else {
-                    slideOutHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        targetOffsetX = { it }
-                    )
-                }
+                fadeOut(animationSpec = tween(NAV_FADE_OUT_MS))
             },
             popEnterTransition = {
-                val initialIndex = screenIndex(initialState.destination.route)
-                val targetIndex = screenIndex(targetState.destination.route)
-                if (initialIndex == -1 || targetIndex == -1 || initialIndex == targetIndex) {
-                    EnterTransition.None
-                } else if (navDirection > 0) {
-                    slideInHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        initialOffsetX = { it }
+                fadeIn(
+                    animationSpec = tween(
+                        durationMillis = NAV_FADE_IN_MS,
+                        delayMillis = NAV_FADE_IN_DELAY_MS
                     )
-                } else {
-                    slideInHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        initialOffsetX = { -it }
+                ) + scaleIn(
+                    initialScale = 0.98f,
+                    animationSpec = tween(
+                        durationMillis = NAV_FADE_IN_MS,
+                        delayMillis = NAV_FADE_IN_DELAY_MS
                     )
-                }
+                )
             },
             popExitTransition = {
-                val initialIndex = screenIndex(initialState.destination.route)
-                val targetIndex = screenIndex(targetState.destination.route)
-                if (initialIndex == -1 || targetIndex == -1 || initialIndex == targetIndex) {
-                    ExitTransition.None
-                } else if (navDirection > 0) {
-                    slideOutHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        targetOffsetX = { -it }
-                    )
-                } else {
-                    slideOutHorizontally(
-                        animationSpec = spring(
-                            dampingRatio = NAV_SPRING_DAMPING_RATIO,
-                            stiffness = NAV_SPRING_STIFFNESS
-                        ),
-                        targetOffsetX = { it }
-                    )
-                }
+                fadeOut(animationSpec = tween(NAV_FADE_OUT_MS))
             },
         ) {
             composable(Screen.HOME.route) {
-                HomeScreen(viewModel = hrtViewModel, is24Hour = is24Hour)
+                HomeScreen(
+                    viewModel = hrtViewModel,
+                    is24Hour = is24Hour,
+                    showTopBar = false
+                )
             }
             composable(Screen.RECORDS.route) {
-                MedicationRecordsScreen(viewModel = hrtViewModel, is24Hour = is24Hour)
+                MedicationRecordsScreen(
+                    viewModel = hrtViewModel,
+                    is24Hour = is24Hour,
+                    showTopBar = false
+                )
             }
             composable(Screen.MEDICATION_PLANS.route) {
-                MedicationPlansScreen(viewModel = medicationPlanViewModel, is24Hour = is24Hour)
+                MedicationPlansScreen(
+                    viewModel = medicationPlanViewModel,
+                    is24Hour = is24Hour,
+                    showTopBar = false
+                )
             }
             composable(Screen.SETTINGS.route) {
                 SettingsScreen(
@@ -410,52 +433,260 @@ fun AppNavigation(
                     importResult = importResult,
                     onDismissImportResult = hrtViewModel::dismissImportResult,
                     clipboardExportMessage = clipboardExportMessage,
-                    onClipboardExportMessageShown = { clipboardExportMessage = null }
+                    onClipboardExportMessageShown = { clipboardExportMessage = null },
+                    showTopBar = false
                 )
             }
         }
         } // Box
+        } // Row
+    }
+
+    // ---- Fullscreen editor overlays (root level; cover bottom bar and system bar areas) ----
+    val recordEditSession by hrtViewModel.editSession.collectAsState()
+    val planEditSession by medicationPlanViewModel.editSession.collectAsState()
+    val recordOperationState by hrtViewModel.operationState.collectAsState()
+    val planOperationState by medicationPlanViewModel.operationState.collectAsState()
+    var recordDefaults by remember { mutableStateOf<RecordDefaults?>(null) }
+
+    LaunchedEffect(hrtViewModel) {
+        hrtViewModel.uiEvents.collect { event ->
+            when (event) {
+                is DoseEventUiEvent.Saved -> {
+                    if (event.created) {
+                        recordDefaults = event.event.toRecordDefaults()
+                    }
+                    hrtViewModel.closeEditSession()
+                }
+                is DoseEventUiEvent.Deleted -> hrtViewModel.closeEditSession()
+            }
+            hrtViewModel.acknowledgeOperation()
+        }
+    }
+
+    var notificationPermissionGranted by remember {
+        mutableStateOf(
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notificationPermissionGranted = granted
+    }
+    fun requestNotificationPermissionIfNeeded() {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !notificationPermissionGranted
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    if (recordEditSession != null) {
+        MedicationRecordBottomSheet(
+            showBottomSheet = true,
+            onDismiss = {
+                hrtViewModel.closeEditSession()
+                hrtViewModel.acknowledgeOperation()
+            },
+            onSave = hrtViewModel::saveEvent,
+            onDelete = hrtViewModel::deleteEvent,
+            session = recordEditSession,
+            defaults = recordDefaults,
+            is24Hour = is24Hour,
+            isOperationRunning = recordOperationState is DoseEventOperationState.Running,
+            operationError = (recordOperationState as? DoseEventOperationState.Failure)
+                ?.error
+                ?.displayMessage()
+        )
+    }
+    if (planEditSession != null) {
+        val planSubmissionFailure = planOperationState as? MedicationPlanOperationState.Failure
+        val unknownErrorText = stringResource(R.string.common_unknown_error)
+        val planSubmissionErrorMessage = planSubmissionFailure?.let { failure ->
+            when (failure.error) {
+                is MedicationPlanOperationError.InvalidDraft ->
+                    stringResource(R.string.plan_error_invalid_input)
+                MedicationPlanOperationError.RepositoryInvalid ->
+                    stringResource(R.string.plan_error_invalid_plan)
+                MedicationPlanOperationError.NotFound ->
+                    stringResource(R.string.plan_error_not_found)
+                MedicationPlanOperationError.StorageFailure -> when (failure.operation) {
+                    MedicationPlanOperation.SAVE -> stringResource(R.string.plan_error_save_failed)
+                    MedicationPlanOperation.DELETE -> stringResource(R.string.plan_error_delete_failed)
+                    MedicationPlanOperation.SET_ENABLED,
+                    MedicationPlanOperation.RESCHEDULE -> unknownErrorText
+                }
+                MedicationPlanOperationError.UnexpectedFailure -> unknownErrorText
+            }
+        }
+        MedicationPlanBottomSheet(
+            showBottomSheet = true,
+            onDismiss = {
+                medicationPlanViewModel.closeEditSession()
+                medicationPlanViewModel.acknowledgeOperation()
+            },
+            onSave = { draft ->
+                if (draft.isEnabled) {
+                    requestNotificationPermissionIfNeeded()
+                }
+                medicationPlanViewModel.saveDraft(draft)
+            },
+            onDelete = medicationPlanViewModel::deletePlan,
+            session = planEditSession,
+            is24Hour = is24Hour,
+            operationInProgress = planOperationState is MedicationPlanOperationState.Running,
+            submissionErrorMessage = planSubmissionErrorMessage.takeIf {
+                planSubmissionFailure?.operation in listOf(
+                    MedicationPlanOperation.SAVE,
+                    MedicationPlanOperation.DELETE
+                )
+            }
+        )
+    }
+}
+
+private fun io.github.yuninggu.evolune.core.model.DoseEvent.toRecordDefaults(): RecordDefaults =
+    RecordDefaults(
+        route = route,
+        ester = ester,
+        doseMG = doseMG,
+        patchMode = if (extras.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
+            PatchMode.RATE
+        } else {
+            PatchMode.DOSE
+        },
+        patchRateUgPerDay = extras[ExtraKey.RELEASE_RATE_UG_PER_DAY] ?: 0.0,
+        sublingualTier = extras[ExtraKey.SUBLINGUAL_TIER]?.toInt()?.let { tier ->
+            SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
+        } ?: SublingualTier.STANDARD,
+        antiAndrogen = extras[ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
+            AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
+        } ?: AntiAndrogen.CPA
+    )
+
+private fun DoseEventOperationError.displayMessage(): String = when (this) {
+    is DoseEventOperationError.InvalidInput -> "请检查记录输入"
+    DoseEventOperationError.RepositoryInvalid -> "记录无法保存"
+    DoseEventOperationError.Conflict -> "相同记录 ID 已存在不同内容"
+    DoseEventOperationError.RevisionConflict -> "该记录已被其他操作修改"
+    DoseEventOperationError.NotFound -> "该记录已不存在"
+    DoseEventOperationError.StorageFailure -> "记录存储暂时不可用"
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AppTopBar(
+    currentScreen: Screen,
+    alignWithNavigationRail: Boolean,
+    onRefresh: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .testTag("app-top-bar")
+    ) {
+        if (alignWithNavigationRail) {
+            Spacer(modifier = Modifier.width(NAVIGATION_RAIL_WIDTH))
+        }
+        CenterAlignedTopAppBar(
+            modifier = Modifier.weight(1f),
+            title = {
+                Text(
+                    text = when (currentScreen) {
+                        Screen.HOME -> stringResource(R.string.nav_home)
+                        Screen.RECORDS -> stringResource(R.string.records_title)
+                        Screen.MEDICATION_PLANS -> stringResource(R.string.plans_title)
+                        Screen.SETTINGS -> stringResource(R.string.settings_title)
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.testTag("app-top-title")
+                )
+            },
+            actions = {
+                Box(modifier = Modifier.size(48.dp)) {
+                    if (currentScreen == Screen.HOME) {
+                        IconButton(onClick = onRefresh) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = stringResource(R.string.home_refresh)
+                            )
+                        }
+                    }
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        )
     }
 }
 
 /**
- * 底部导航栏
+ * 导航项（底部栏与侧边栏共用）
+ */
+@Composable
+private fun rememberNavItems(): List<BottomNavItem> = listOf(
+    BottomNavItem(
+        screen = Screen.HOME,
+        selectedIcon = Icons.Filled.Home,
+        unselectedIcon = Icons.Outlined.Home,
+        label = stringResource(R.string.nav_home)
+    ),
+    BottomNavItem(
+        screen = Screen.RECORDS,
+        selectedIcon = Icons.Filled.List,
+        unselectedIcon = Icons.Outlined.List,
+        label = stringResource(R.string.nav_records)
+    ),
+    BottomNavItem(
+        screen = Screen.MEDICATION_PLANS,
+        selectedIcon = Icons.Filled.MedicalServices,
+        unselectedIcon = Icons.Outlined.MedicalServices,
+        label = stringResource(R.string.nav_plans)
+    ),
+    BottomNavItem(
+        screen = Screen.SETTINGS,
+        selectedIcon = Icons.Filled.Settings,
+        unselectedIcon = Icons.Outlined.Settings,
+        label = stringResource(R.string.nav_settings)
+    )
+)
+
+/**
+ * 导航到目标 tab（底部栏与侧边栏共用同一套 popUpTo/saveState/restoreState 语义，
+ * 保证 compact ↔ medium/expanded 切换时不会重建 NavController、不丢目的地状态）。
+ */
+private fun navigateToTab(navController: NavHostController, screen: Screen) {
+    navController.navigate(screen.route) {
+        popUpTo(navController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
+/**
+ * 底部导航栏（compact 宽度）
  */
 @Composable
 private fun BottomNavigationBar(
-    navController: NavHostController,
-    onDirectionChange: (Int) -> Unit
+    navController: NavHostController
 ) {
     var lastNavigateAt by remember { mutableLongStateOf(0L) }
+    val items = rememberNavItems()
 
-    val items = listOf(
-        BottomNavItem(
-            screen = Screen.HOME,
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home,
-            label = stringResource(R.string.nav_home)
-        ),
-        BottomNavItem(
-            screen = Screen.RECORDS,
-            selectedIcon = Icons.Filled.List,
-            unselectedIcon = Icons.Outlined.List,
-            label = stringResource(R.string.nav_records)
-        ),
-        BottomNavItem(
-            screen = Screen.MEDICATION_PLANS,
-            selectedIcon = Icons.Filled.MedicalServices,
-            unselectedIcon = Icons.Outlined.MedicalServices,
-            label = stringResource(R.string.nav_plans)
-        ),
-        BottomNavItem(
-            screen = Screen.SETTINGS,
-            selectedIcon = Icons.Filled.Settings,
-            unselectedIcon = Icons.Outlined.Settings,
-            label = stringResource(R.string.nav_settings)
-        )
-    )
-
-    NavigationBar {
+    NavigationBar(modifier = Modifier.testTag("navigation-bar")) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
@@ -465,6 +696,7 @@ private fun BottomNavigationBar(
             } == true
 
             NavigationBarItem(
+                modifier = Modifier.testTag("nav-bar-${item.screen.route}"),
                 icon = {
                     Icon(
                         imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
@@ -476,30 +708,74 @@ private fun BottomNavigationBar(
                 onClick = {
                     if (selected) return@NavigationBarItem
 
-                    val currentIndex = screenIndex(currentDestination?.route)
-                    val targetIndex = screenIndex(item.screen.route)
-                    if (currentIndex != -1 && targetIndex != -1) {
-                        onDirectionChange(if (targetIndex > currentIndex) 1 else -1)
-                    }
-
                     val now = SystemClock.elapsedRealtime()
                     if (now - lastNavigateAt < NAV_CLICK_THROTTLE_MS) {
                         return@NavigationBarItem
                     }
                     lastNavigateAt = now
 
-                    navController.navigate(item.screen.route) {
-                        // 弹出到导航图的起始目的地
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        // 避免在重新选择同一项时创建多个副本
-                        launchSingleTop = true
-                        // 在重新选择之前选择的项时恢复状态
-                        restoreState = true
-                    }
+                    navigateToTab(navController, item.screen)
                 }
             )
+        }
+    }
+}
+
+/**
+ * 侧边导航栏（medium / expanded 宽度，如折叠屏展开态、平板、横屏）
+ */
+@Composable
+private fun NavigationRailBar(
+    navController: NavHostController
+) {
+    var lastNavigateAt by remember { mutableLongStateOf(0L) }
+    val items = rememberNavItems()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
+    Box(
+        modifier = Modifier
+            .width(NAVIGATION_RAIL_WIDTH)
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surface)
+            .testTag("navigation-rail"),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.testTag("navigation-rail-items"),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(NAVIGATION_RAIL_ITEM_SPACING)
+        ) {
+            items.forEach { item ->
+                val selected = currentDestination?.hierarchy?.any {
+                    it.route == item.screen.route
+                } == true
+
+                NavigationRailItem(
+                    modifier = Modifier
+                        .width(NAVIGATION_RAIL_WIDTH)
+                        .testTag("nav-rail-${item.screen.route}"),
+                    icon = {
+                        Icon(
+                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                            contentDescription = item.label
+                        )
+                    },
+                    label = { Text(item.label) },
+                    selected = selected,
+                    onClick = {
+                        if (selected) return@NavigationRailItem
+
+                        val now = SystemClock.elapsedRealtime()
+                        if (now - lastNavigateAt < NAV_CLICK_THROTTLE_MS) {
+                            return@NavigationRailItem
+                        }
+                        lastNavigateAt = now
+
+                        navigateToTab(navController, item.screen)
+                    }
+                )
+            }
         }
     }
 }

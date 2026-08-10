@@ -20,6 +20,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 enum class ThemeMode {
     LIGHT,      // 浅色
     DARK,       // 深色
+    AMOLED,     // OLED/AMOLED 纯黑
     SYSTEM      // 系统默认
 }
 
