@@ -11,6 +11,9 @@ import io.github.yuninggu.evolune.application.DoseEventEditSessionFactory
 import io.github.yuninggu.evolune.application.DoseEventEditorInput
 import io.github.yuninggu.evolune.application.DoseEventEditorResult
 import io.github.yuninggu.evolune.application.DoseEventInputIssue
+import io.github.yuninggu.evolune.application.MahiroJsonV1ImportError
+import io.github.yuninggu.evolune.application.MahiroJsonV1ImportResult
+import io.github.yuninggu.evolune.application.MahiroJsonV1ImportService
 import io.github.yuninggu.evolune.application.toDoseEventCommand
 import io.github.yuninggu.evolune.core.dataapi.DeleteResult
 import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
@@ -55,7 +58,14 @@ sealed class ImportResult {
         val conflictCount: Int = 0,
         val invalidCount: Int = 0
     ) : ImportResult()
-    data class Error(val message: String) : ImportResult()
+    data class Error(
+        val message: String,
+        val importedCount: Int = 0,
+        val existingCount: Int = 0,
+        val conflictCount: Int = 0,
+        val invalidCount: Int = 0,
+        val failedIndex: Int? = null
+    ) : ImportResult()
 }
 
 enum class DoseEventOperation {
@@ -102,6 +112,8 @@ class HRTViewModel(
     private val bodyWeightKG: Double = 55.0,
     private val sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(),
     private val clock: Clock = Clock.systemUTC(),
+    private val jsonImportService: MahiroJsonV1ImportService =
+        MahiroJsonV1ImportService(repository),
     operationScope: CoroutineScope? = null
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
@@ -251,17 +263,35 @@ class HRTViewModel(
         _importResult.value = ImportResult.Importing
         scope.launch {
             try {
-                val outcome = withContext(Dispatchers.Default) {
-                    jsonBridge.import(jsonContent)
+                val result = withContext(Dispatchers.Default) {
+                    jsonImportService.import(jsonContent)
                 }
-                outcome.weight?.let { onWeightImport?.invoke(it) }
-                _importResult.value = ImportResult.Success(
-                    importedCount = outcome.acceptedCount,
-                    existingCount = outcome.idempotentCount,
-                    conflictCount = outcome.conflictCount,
-                    invalidCount = outcome.invalidCount
-                )
-                succeed(DoseEventOperation.IMPORT)
+                when (result) {
+                    is MahiroJsonV1ImportResult.Success -> {
+                        val summary = result.summary
+                        summary.weight?.let { onWeightImport?.invoke(it) }
+                        _importResult.value = ImportResult.Success(
+                            importedCount = summary.acceptedCount,
+                            existingCount = summary.idempotentCount,
+                            conflictCount = summary.conflictCount,
+                            invalidCount = summary.invalidCount
+                        )
+                        succeed(DoseEventOperation.IMPORT)
+                    }
+                    is MahiroJsonV1ImportResult.Failure -> {
+                        val summary = result.summary
+                        _importResult.value = ImportResult.Error(
+                            message = "Import failed",
+                            importedCount = summary.acceptedCount,
+                            existingCount = summary.idempotentCount,
+                            conflictCount = summary.conflictCount,
+                            invalidCount = summary.invalidCount,
+                            failedIndex = (result.error as? MahiroJsonV1ImportError.Storage)
+                                ?.sourceIndex
+                        )
+                        fail(DoseEventOperation.IMPORT, DoseEventOperationError.StorageFailure)
+                    }
+                }
             } catch (error: CancellationException) {
                 pendingTerminalState = DoseEventOperationState.Idle
                 throw error

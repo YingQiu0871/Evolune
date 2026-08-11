@@ -32,6 +32,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -378,14 +379,23 @@ class HRTViewModelTest {
     @Test
     fun `JSON storage failure is explicit and operation gate remains reusable`() = runBlocking {
         val repository = FakeDoseEventRepository().apply {
+            insertResult = InsertResult.Inserted
             insertError = IllegalStateException("synthetic import failure")
+            insertErrorCall = 2
         }
         val fixture = fixture(repository)
         try {
-            fixture.viewModel.importFromMahiroJson(jsonWithFourEvents())
-            withTimeout(5_000L) {
+            var importedWeight: Double? = null
+            fixture.viewModel.importFromMahiroJson(jsonWithFourEvents()) { importedWeight = it }
+            val result = withTimeout(5_000L) {
                 fixture.viewModel.importResult.filter { it is ImportResult.Error }.first()
-            }
+            } as ImportResult.Error
+            assertEquals(1, result.importedCount)
+            assertEquals(0, result.existingCount)
+            assertEquals(0, result.conflictCount)
+            assertEquals(0, result.invalidCount)
+            assertEquals(1, result.failedIndex)
+            assertNull(importedWeight)
             assertEquals(
                 DoseEventOperationState.Failure(
                     DoseEventOperation.IMPORT,
@@ -393,7 +403,7 @@ class HRTViewModelTest {
                 ),
                 fixture.viewModel.operationState.value
             )
-            assertEquals(1, repository.insertCalls)
+            assertEquals(2, repository.insertCalls)
 
             repository.insertError = null
             fixture.viewModel.startCreateSession()
@@ -403,6 +413,36 @@ class HRTViewModelTest {
             fixture.close()
         }
     }
+
+    @Test
+    fun `JSON numeric id follows formal v1 invalid behavior without repository fallback`() =
+        runBlocking {
+            val repository = FakeDoseEventRepository()
+            val fixture = fixture(repository)
+            try {
+                fixture.viewModel.importFromMahiroJson(
+                    """
+                        {
+                          "weight": 55,
+                          "events": [
+                            {"id":7,"route":"oral","ester":"E2","timeH":1.0,"doseMG":2.0,"extras":{}},
+                            {"id":"00000000-0000-0000-0000-000000000008","route":"oral","ester":"E2","timeH":2.0,"doseMG":2.0,"extras":{}}
+                          ]
+                        }
+                    """.trimIndent()
+                )
+                val result = withTimeout(5_000L) {
+                    fixture.viewModel.importResult.filter { it is ImportResult.Success }.first()
+                } as ImportResult.Success
+
+                assertEquals(1, result.importedCount)
+                assertEquals(1, result.invalidCount)
+                assertEquals(1, repository.insertCalls)
+                assertEquals(UUID(0L, 8L), repository.inserted.single().id)
+            } finally {
+                fixture.close()
+            }
+        }
 
     @Test
     fun `PK inputs preserve contract ordering and delegate selection to repository`() = runBlocking {
@@ -532,6 +572,7 @@ class HRTViewModelTest {
         var updateResult: UpdateResult = UpdateResult.Updated
         var deleteResult: DeleteResult = DeleteResult.Deleted
         var insertError: RuntimeException? = null
+        var insertErrorCall: Int? = null
         var deleteError: RuntimeException? = null
         var insertGate: CompletableDeferred<Unit>? = null
         var storedTransform: (DoseEvent) -> DoseEvent = { it }
@@ -558,7 +599,9 @@ class HRTViewModelTest {
 
         override suspend fun insert(event: DoseEvent): InsertResult {
             insertCalls += 1
-            insertError?.let { throw it }
+            if (insertError != null && (insertErrorCall == null || insertCalls == insertErrorCall)) {
+                throw requireNotNull(insertError)
+            }
             insertGate?.await()
             inserted += event
             val result = insertResultProvider?.invoke() ?: insertResult

@@ -136,9 +136,12 @@ class DoseEventProductionCutoverTest {
         assertNull(reopenedProvider.doseEvents.getById(MISSING_EVENT_ID))
 
         reopenedViewModel.importFromMahiroJson(jsonV1())
-        withTimeout(10_000L) {
+        val firstImport = withTimeout(10_000L) {
             reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
-        }
+        } as ImportResult.Success
+        assertEquals(1, firstImport.importedCount)
+        assertEquals(0, firstImport.existingCount)
+        assertEquals(0, firstImport.conflictCount)
         val imported = requireNotNull(reopenedProvider.doseEvents.getById(JSON_EVENT_ID))
         assertEquals(DoseEventSource.JSON_V1, imported.source)
         assertEquals(DoseEventStatus.RECORDED, imported.status)
@@ -146,6 +149,25 @@ class DoseEventProductionCutoverTest {
         assertNull(imported.zoneId)
         assertNull(imported.localDate)
         assertNull(imported.slotId)
+
+        reopenedViewModel.dismissImportResult()
+        reopenedViewModel.importFromMahiroJson(jsonV1())
+        val replay = withTimeout(10_000L) {
+            reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
+        } as ImportResult.Success
+        assertEquals(1, replay.importedCount)
+        assertEquals(1, replay.existingCount)
+        assertEquals(0, replay.conflictCount)
+
+        reopenedViewModel.dismissImportResult()
+        reopenedViewModel.importFromMahiroJson(jsonV1(doseMG = 9.0))
+        val conflict = withTimeout(10_000L) {
+            reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
+        } as ImportResult.Success
+        assertEquals(0, conflict.importedCount)
+        assertEquals(0, conflict.existingCount)
+        assertEquals(1, conflict.conflictCount)
+        assertEquals(imported, reopenedProvider.doseEvents.getById(JSON_EVENT_ID))
 
         assertSuccess(reopenedViewModel, DoseEventOperation.DELETE) {
             reopenedViewModel.deleteEvent(MANUAL_EVENT_ID)
@@ -280,7 +302,7 @@ class DoseEventProductionCutoverTest {
         revision = revision
     )
 
-    private fun jsonV1(): String = """
+    private fun jsonV1(doseMG: Double = 2.0): String = """
         {
           "weight": 55,
           "events": [{
@@ -288,7 +310,7 @@ class DoseEventProductionCutoverTest {
             "route":"oral",
             "ester":"E2",
             "timeH":1.0,
-            "doseMG":2.0,
+            "doseMG":$doseMG,
             "extras":{}
           }]
         }
