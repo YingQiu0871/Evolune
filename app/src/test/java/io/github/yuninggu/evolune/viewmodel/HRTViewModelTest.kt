@@ -30,6 +30,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -466,6 +470,38 @@ class HRTViewModelTest {
                 }
             }
             assertEquals(NOW, repository.lastPkAsOf)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `JSON export uses the formal Domain protocol boundary and preserves order`() = runBlocking {
+        val events = listOf(
+            event(UUID(0L, 2L), Instant.ofEpochMilli(2_000L)),
+            event(UUID(0L, 1L), Instant.ofEpochMilli(1_000L))
+        )
+        val repository = FakeDoseEventRepository().apply { observed.value = events }
+        val fixture = fixture(repository)
+        try {
+            withTimeout(5_000L) {
+                fixture.viewModel.events.filter { it.size == 2 }.first()
+            }
+            val root = Json.parseToJsonElement(
+                fixture.viewModel.exportToMahiroJson(55.0)
+            ).jsonObject
+
+            assertEquals(
+                events.map { it.id.toString() },
+                root.getValue("events").jsonArray.map {
+                    it.jsonObject.getValue("id").jsonPrimitive.content
+                }
+            )
+            assertEquals(
+                NOW.toString(),
+                root.getValue("meta").jsonObject
+                    .getValue("exportedAt").jsonPrimitive.content
+            )
         } finally {
             fixture.close()
         }

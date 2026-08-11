@@ -3,16 +3,15 @@ package io.github.yuninggu.evolune.widget
 import io.github.yuninggu.evolune.application.LocalActionRecorder
 import io.github.yuninggu.evolune.application.RecordAcceptance
 import io.github.yuninggu.evolune.application.RecordDoseEventActionResult
+import io.github.yuninggu.evolune.core.adapter.DomainDoseEventToPkAdapter
 import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
 import io.github.yuninggu.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yuninggu.evolune.core.model.DoseEvent
 import io.github.yuninggu.evolune.core.model.DoseEventSource
 import io.github.yuninggu.evolune.core.model.DoseEventStatus
-import io.github.yuninggu.evolune.core.model.ExtraKey
 import io.github.yuninggu.evolune.core.model.MedicationPlan
 import io.github.yuninggu.evolune.core.time.LegacyTimeAdapter
 import io.github.yuninggu.evolune.core.time.LegacyTimeResult
-import io.github.yuninggu.evolune.pk.DoseEvent as PkDoseEvent
 import io.github.yuninggu.evolune.pk.Route
 import io.github.yuninggu.evolune.pk.SimulationEngine
 import kotlinx.coroutines.CancellationException
@@ -46,7 +45,7 @@ internal class WidgetSnapshotLoader(
         } else {
             val nowH = now.toWidgetPkTimeH()
             SimulationEngine(
-                events = events.map(DoseEvent::toWidgetPkEvent),
+                events = DomainDoseEventToPkAdapter.adapt(events),
                 bodyWeightKG = bodyWeight(),
                 startTimeH = nowH - 0.01,
                 endTimeH = nowH,
@@ -185,22 +184,4 @@ private fun Instant.toWidgetPkTimeH(): Double = when (
     is LegacyTimeResult.Failure -> throw IllegalArgumentException(
         "Widget PK time is outside the compatibility range"
     )
-}
-
-private fun DoseEvent.toWidgetPkEvent(): PkDoseEvent = PkDoseEvent(
-    id = id,
-    route = route,
-    timeH = occurredAt.toWidgetPkTimeH(),
-    doseMG = doseMG,
-    ester = ester,
-    extras = extras.mapKeys { (key, _) -> key.toWidgetPkExtraKey() }
-)
-
-private fun ExtraKey.toWidgetPkExtraKey(): PkDoseEvent.ExtraKey = when (this) {
-    ExtraKey.CONCENTRATION_MG_ML -> PkDoseEvent.ExtraKey.CONCENTRATION_MG_ML
-    ExtraKey.AREA_CM2 -> PkDoseEvent.ExtraKey.AREA_CM2
-    ExtraKey.RELEASE_RATE_UG_PER_DAY -> PkDoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY
-    ExtraKey.SUBLINGUAL_THETA -> PkDoseEvent.ExtraKey.SUBLINGUAL_THETA
-    ExtraKey.SUBLINGUAL_TIER -> PkDoseEvent.ExtraKey.SUBLINGUAL_TIER
-    ExtraKey.ANTI_ANDROGEN_TYPE -> PkDoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
 }

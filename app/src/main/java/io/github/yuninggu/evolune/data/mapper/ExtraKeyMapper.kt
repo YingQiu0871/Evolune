@@ -22,15 +22,6 @@ fun DomainExtraKey.toLegacyStorageKey(): String = when (this) {
     DomainExtraKey.ANTI_ANDROGEN_TYPE -> "ANTI_ANDROGEN_TYPE"
 }
 
-fun DomainExtraKey.toPkExtraKey(): PkExtraKey = when (this) {
-    DomainExtraKey.CONCENTRATION_MG_ML -> PkExtraKey.CONCENTRATION_MG_ML
-    DomainExtraKey.AREA_CM2 -> PkExtraKey.AREA_CM2
-    DomainExtraKey.RELEASE_RATE_UG_PER_DAY -> PkExtraKey.RELEASE_RATE_UG_PER_DAY
-    DomainExtraKey.SUBLINGUAL_THETA -> PkExtraKey.SUBLINGUAL_THETA
-    DomainExtraKey.SUBLINGUAL_TIER -> PkExtraKey.SUBLINGUAL_TIER
-    DomainExtraKey.ANTI_ANDROGEN_TYPE -> PkExtraKey.ANTI_ANDROGEN_TYPE
-}
-
 fun PkExtraKey.toDomainExtraKey(): DomainExtraKey = when (this) {
     PkExtraKey.CONCENTRATION_MG_ML -> DomainExtraKey.CONCENTRATION_MG_ML
     PkExtraKey.AREA_CM2 -> DomainExtraKey.AREA_CM2
