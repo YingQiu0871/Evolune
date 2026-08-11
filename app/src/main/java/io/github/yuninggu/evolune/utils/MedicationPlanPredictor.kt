@@ -1,6 +1,6 @@
 package io.github.yuninggu.evolune.utils
 
-import io.github.yuninggu.evolune.core.model.ExtraKey as DomainExtraKey
+import io.github.yuninggu.evolune.core.adapter.toPkExtraKey
 import io.github.yuninggu.evolune.core.model.MedicationPlan as DomainMedicationPlan
 import io.github.yuninggu.evolune.core.model.ScheduleType
 import io.github.yuninggu.evolune.data.MedicationPlan as LegacyMedicationPlan
@@ -180,13 +180,4 @@ private fun LegacyMedicationPlan.ScheduleType.toDomainScheduleType(): ScheduleTy
     LegacyMedicationPlan.ScheduleType.DAILY -> ScheduleType.DAILY
     LegacyMedicationPlan.ScheduleType.WEEKLY -> ScheduleType.WEEKLY
     LegacyMedicationPlan.ScheduleType.CUSTOM -> ScheduleType.CUSTOM
-}
-
-private fun DomainExtraKey.toPkExtraKey(): DoseEvent.ExtraKey = when (this) {
-    DomainExtraKey.CONCENTRATION_MG_ML -> DoseEvent.ExtraKey.CONCENTRATION_MG_ML
-    DomainExtraKey.AREA_CM2 -> DoseEvent.ExtraKey.AREA_CM2
-    DomainExtraKey.RELEASE_RATE_UG_PER_DAY -> DoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY
-    DomainExtraKey.SUBLINGUAL_THETA -> DoseEvent.ExtraKey.SUBLINGUAL_THETA
-    DomainExtraKey.SUBLINGUAL_TIER -> DoseEvent.ExtraKey.SUBLINGUAL_TIER
-    DomainExtraKey.ANTI_ANDROGEN_TYPE -> DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
 }

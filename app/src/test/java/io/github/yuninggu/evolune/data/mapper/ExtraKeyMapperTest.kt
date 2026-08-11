@@ -1,5 +1,6 @@
 package io.github.yuninggu.evolune.data.mapper
 
+import io.github.yuninggu.evolune.core.adapter.toPkExtraKey
 import io.github.yuninggu.evolune.core.model.ExtraKey as DomainExtraKey
 import io.github.yuninggu.evolune.pk.DoseEvent.ExtraKey as PkExtraKey
 import org.junit.Assert.assertEquals

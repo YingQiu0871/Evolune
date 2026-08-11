@@ -3,8 +3,6 @@ package io.github.yuninggu.evolune.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import io.github.yuninggu.evolune.application.Batch6HrtPkProjection
-import io.github.yuninggu.evolune.application.Batch6MahiroJsonBridge
 import io.github.yuninggu.evolune.application.DoseEventEditCommand
 import io.github.yuninggu.evolune.application.DoseEventEditSession
 import io.github.yuninggu.evolune.application.DoseEventEditSessionFactory
@@ -14,7 +12,9 @@ import io.github.yuninggu.evolune.application.DoseEventInputIssue
 import io.github.yuninggu.evolune.application.MahiroJsonV1ImportError
 import io.github.yuninggu.evolune.application.MahiroJsonV1ImportResult
 import io.github.yuninggu.evolune.application.MahiroJsonV1ImportService
+import io.github.yuninggu.evolune.application.MahiroJsonV1ExportService
 import io.github.yuninggu.evolune.application.toDoseEventCommand
+import io.github.yuninggu.evolune.core.adapter.DomainDoseEventToPkAdapter
 import io.github.yuninggu.evolune.core.dataapi.DeleteResult
 import io.github.yuninggu.evolune.core.dataapi.DoseEventRepository
 import io.github.yuninggu.evolune.core.dataapi.InsertResult
@@ -114,10 +114,11 @@ class HRTViewModel(
     private val clock: Clock = Clock.systemUTC(),
     private val jsonImportService: MahiroJsonV1ImportService =
         MahiroJsonV1ImportService(repository),
+    private val jsonExportService: MahiroJsonV1ExportService =
+        MahiroJsonV1ExportService(clock = clock),
     operationScope: CoroutineScope? = null
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
-    private val jsonBridge = Batch6MahiroJsonBridge(repository)
     private val operationLock = Any()
     private var operationInFlight = false
     private var pendingTerminalState: DoseEventOperationState? = null
@@ -145,7 +146,9 @@ class HRTViewModel(
         )
 
     val doseTimePoints: StateFlow<List<Double>> = events
-        .map { eventList -> Batch6HrtPkProjection.project(eventList).map { it.timeH } }
+        .map { eventList ->
+            DomainDoseEventToPkAdapter.adapt(eventList).map { event -> event.timeH }
+        }
         .stateIn(
             scope = scope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -312,7 +315,8 @@ class HRTViewModel(
         _importResult.value = ImportResult.Error(message)
     }
 
-    fun exportToMahiroJson(weight: Double): String = jsonBridge.export(weight, events.value)
+    fun exportToMahiroJson(weight: Double): String =
+        jsonExportService.export(weight, events.value)
 
     fun runSimulation() {
         scope.launch {
@@ -320,10 +324,12 @@ class HRTViewModel(
                 _pkState.update { it.copy(isSimulating = true, error = null) }
                 val now = clock.instant()
                 val currentTimeH = clock.millis() / MILLIS_PER_HOUR
-                val historicalEvents = Batch6HrtPkProjection.project(
-                    repository.getEventsForPk(now)
-                        .filter { it.status == DoseEventStatus.RECORDED }
-                ).filter { it.route != Route.ANTIANDROGEN }
+                val historicalEvents = DomainDoseEventToPkAdapter.adapt(
+                    repository.getEventsForPk(now).filter { event ->
+                        event.status == DoseEventStatus.RECORDED &&
+                            event.route != Route.ANTIANDROGEN
+                    }
+                )
                 val plans = medicationPlanRepository.observeEnabled().first()
                     .filter { it.route != Route.ANTIANDROGEN }
                 val futureEvents = if (plans.isNotEmpty()) {
