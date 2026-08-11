@@ -135,10 +135,9 @@ class DoseEventProductionCutoverTest {
         )
         assertNull(reopenedProvider.doseEvents.getById(MISSING_EVENT_ID))
 
-        reopenedViewModel.importFromMahiroJson(jsonV1())
-        val firstImport = withTimeout(10_000L) {
-            reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
-        } as ImportResult.Success
+        val firstImport = awaitImportSuccess(reopenedViewModel) {
+            reopenedViewModel.importFromMahiroJson(jsonV1())
+        }
         assertEquals(1, firstImport.importedCount)
         assertEquals(0, firstImport.existingCount)
         assertEquals(0, firstImport.conflictCount)
@@ -151,19 +150,17 @@ class DoseEventProductionCutoverTest {
         assertNull(imported.slotId)
 
         reopenedViewModel.dismissImportResult()
-        reopenedViewModel.importFromMahiroJson(jsonV1())
-        val replay = withTimeout(10_000L) {
-            reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
-        } as ImportResult.Success
+        val replay = awaitImportSuccess(reopenedViewModel) {
+            reopenedViewModel.importFromMahiroJson(jsonV1())
+        }
         assertEquals(1, replay.importedCount)
         assertEquals(1, replay.existingCount)
         assertEquals(0, replay.conflictCount)
 
         reopenedViewModel.dismissImportResult()
-        reopenedViewModel.importFromMahiroJson(jsonV1(doseMG = 9.0))
-        val conflict = withTimeout(10_000L) {
-            reopenedViewModel.importResult.filter { it is ImportResult.Success }.first()
-        } as ImportResult.Success
+        val conflict = awaitImportSuccess(reopenedViewModel) {
+            reopenedViewModel.importFromMahiroJson(jsonV1(doseMG = 9.0))
+        }
         assertEquals(0, conflict.importedCount)
         assertEquals(0, conflict.existingCount)
         assertEquals(1, conflict.conflictCount)
@@ -246,6 +243,14 @@ class DoseEventProductionCutoverTest {
         action: () -> Unit
     ) {
         assertTrue(awaitOperation(viewModel, operation, action) is DoseEventOperationState.Success)
+    }
+
+    private suspend fun awaitImportSuccess(
+        viewModel: HRTViewModel,
+        action: () -> Unit
+    ): ImportResult.Success {
+        assertSuccess(viewModel, DoseEventOperation.IMPORT, action)
+        return viewModel.importResult.value as ImportResult.Success
     }
 
     private suspend fun awaitOperation(
