@@ -313,7 +313,7 @@ class AppDatabaseMigrationTest {
         assertNotNull("Expected LegacyMigrationException in cause chain", migrationError)
         migrationError!!
         assertEquals("medication_plans", migrationError.tableName)
-        assertEquals(INVALID_PLAN_ID, migrationError.rowId)
+        assertNotNull(migrationError.rowFingerprint)
         val error = migrationError.error as LegacyMigrationError.NonMinuteLocalTime
         assertEquals(UUID.fromString(INVALID_PLAN_ID), error.planId)
         assertEquals(1, error.position)

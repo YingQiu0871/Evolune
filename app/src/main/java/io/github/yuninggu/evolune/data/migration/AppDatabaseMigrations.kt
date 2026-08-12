@@ -17,25 +17,6 @@ internal val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
-private data class EventBackfill(
-    val id: UUID,
-    val rawTimeH: Double,
-    val occurredAtEpochMillis: Long
-)
-
-private data class PlanPreflight(
-    val id: UUID,
-    val rawTimeOfDay: String,
-    val slots: List<SlotBackfill>
-)
-
-private data class SlotBackfill(
-    val id: UUID,
-    val planId: UUID,
-    val localTime: String,
-    val position: Int
-)
-
 private fun applyV3Schema(db: SupportSQLiteDatabase) {
     db.execSQL(
         "ALTER TABLE `dose_events` " +
@@ -85,13 +66,21 @@ private fun applyV3Schema(db: SupportSQLiteDatabase) {
     )
 }
 
-private fun preflightEvents(db: SupportSQLiteDatabase): List<EventBackfill> {
-    val events = mutableListOf<EventBackfill>()
+private fun preflightEvents(db: SupportSQLiteDatabase): List<LegacyEventValues> {
+    val events = mutableListOf<LegacyEventValues>()
     db.query(
-        "SELECT `id`, `timeH` FROM `dose_events` ORDER BY `id`"
+        """
+        SELECT `id`, `route`, `timeH`, `doseMG`, `ester`, `extras`
+        FROM `dose_events`
+        ORDER BY `id`
+        """.trimIndent()
     ).use { cursor ->
         val idIndex = cursor.getColumnIndexOrThrow("id")
+        val routeIndex = cursor.getColumnIndexOrThrow("route")
         val timeHIndex = cursor.getColumnIndexOrThrow("timeH")
+        val doseIndex = cursor.getColumnIndexOrThrow("doseMG")
+        val esterIndex = cursor.getColumnIndexOrThrow("ester")
+        val extrasIndex = cursor.getColumnIndexOrThrow("extras")
         while (cursor.moveToNext()) {
             val rawId = requireText(
                 cursor = cursor,
@@ -101,22 +90,17 @@ private fun preflightEvents(db: SupportSQLiteDatabase): List<EventBackfill> {
                 operation = "event ID preflight"
             )
             val eventId = parseUuid(DOSE_EVENTS_TABLE, rawId, "event ID preflight")
-            val storageClass = if (cursor.isNull(timeHIndex)) {
-                LegacySqliteStorageClass.NULL
-            } else {
-                storageClass(
-                    type = cursor.getType(timeHIndex),
-                    tableName = DOSE_EVENTS_TABLE,
-                    rowId = rawId,
-                    operation = "timeH storage preflight"
-                )
-            }
+            val route = requireText(cursor, routeIndex, DOSE_EVENTS_TABLE, rawId, "route")
+            val storageClass = sqliteStorageClass(cursor, timeHIndex)
             validateLegacyTimeHStorageClass(storageClass).valueOrThrow(
                 tableName = DOSE_EVENTS_TABLE,
                 rowId = rawId,
                 operation = "timeH storage preflight"
             )
             val rawTimeH = cursor.getDouble(timeHIndex)
+            val doseMG = requireNumeric(cursor, doseIndex, DOSE_EVENTS_TABLE, rawId, "doseMG")
+            val ester = requireText(cursor, esterIndex, DOSE_EVENTS_TABLE, rawId, "ester")
+            val extras = requireText(cursor, extrasIndex, DOSE_EVENTS_TABLE, rawId, "extras")
             val occurredAtEpochMillis = legacyTimeHToOccurredAtEpochMillis(
                 eventId = eventId,
                 rawTimeH = rawTimeH
@@ -125,19 +109,46 @@ private fun preflightEvents(db: SupportSQLiteDatabase): List<EventBackfill> {
                 rowId = rawId,
                 operation = "timeH conversion preflight"
             )
-            events += EventBackfill(eventId, rawTimeH, occurredAtEpochMillis)
+            val event = LegacyEventValues(
+                id = eventId,
+                route = route,
+                timeH = rawTimeH,
+                doseMG = doseMG,
+                ester = ester,
+                extrasPayload = extras,
+                occurredAtEpochMillis = occurredAtEpochMillis
+            )
+            requireAggregateReadable(DOSE_EVENTS_TABLE, rawId) {
+                LegacyAggregatePreflight.requireReadable(event)
+            }
+            events += event
         }
     }
     return events
 }
 
-private fun preflightPlans(db: SupportSQLiteDatabase): List<PlanPreflight> {
-    val plans = mutableListOf<PlanPreflight>()
+private fun preflightPlans(db: SupportSQLiteDatabase): List<LegacyPlanValues> {
+    val plans = mutableListOf<LegacyPlanValues>()
     db.query(
-        "SELECT `id`, `timeOfDay` FROM `medication_plans` ORDER BY `id`"
+        """
+        SELECT `id`, `name`, `route`, `ester`, `doseMG`, `scheduleType`,
+            `timeOfDay`, `daysOfWeek`, `intervalDays`, `isEnabled`, `extras`, `createdAt`
+        FROM `medication_plans`
+        ORDER BY `id`
+        """.trimIndent()
     ).use { cursor ->
         val idIndex = cursor.getColumnIndexOrThrow("id")
+        val nameIndex = cursor.getColumnIndexOrThrow("name")
+        val routeIndex = cursor.getColumnIndexOrThrow("route")
+        val esterIndex = cursor.getColumnIndexOrThrow("ester")
+        val doseIndex = cursor.getColumnIndexOrThrow("doseMG")
+        val scheduleIndex = cursor.getColumnIndexOrThrow("scheduleType")
         val timeOfDayIndex = cursor.getColumnIndexOrThrow("timeOfDay")
+        val daysIndex = cursor.getColumnIndexOrThrow("daysOfWeek")
+        val intervalIndex = cursor.getColumnIndexOrThrow("intervalDays")
+        val enabledIndex = cursor.getColumnIndexOrThrow("isEnabled")
+        val extrasIndex = cursor.getColumnIndexOrThrow("extras")
+        val createdAtIndex = cursor.getColumnIndexOrThrow("createdAt")
         while (cursor.moveToNext()) {
             val rawId = requireText(
                 cursor = cursor,
@@ -147,6 +158,17 @@ private fun preflightPlans(db: SupportSQLiteDatabase): List<PlanPreflight> {
                 operation = "plan ID preflight"
             )
             val planId = parseUuid(MEDICATION_PLANS_TABLE, rawId, "plan ID preflight")
+            val name = requireText(cursor, nameIndex, MEDICATION_PLANS_TABLE, rawId, "name")
+            val route = requireText(cursor, routeIndex, MEDICATION_PLANS_TABLE, rawId, "route")
+            val ester = requireText(cursor, esterIndex, MEDICATION_PLANS_TABLE, rawId, "ester")
+            val doseMG = requireNumeric(cursor, doseIndex, MEDICATION_PLANS_TABLE, rawId, "doseMG")
+            val scheduleType = requireText(
+                cursor,
+                scheduleIndex,
+                MEDICATION_PLANS_TABLE,
+                rawId,
+                "scheduleType"
+            )
             val rawTimeOfDay = requireText(
                 cursor = cursor,
                 columnIndex = timeOfDayIndex,
@@ -154,16 +176,63 @@ private fun preflightPlans(db: SupportSQLiteDatabase): List<PlanPreflight> {
                 rowId = rawId,
                 operation = "timeOfDay preflight"
             )
+            val daysOfWeek = requireText(
+                cursor,
+                daysIndex,
+                MEDICATION_PLANS_TABLE,
+                rawId,
+                "daysOfWeek"
+            )
+            val intervalDays = requireInt(
+                cursor,
+                intervalIndex,
+                MEDICATION_PLANS_TABLE,
+                rawId,
+                "intervalDays"
+            )
+            val enabledValue = requireLong(
+                cursor,
+                enabledIndex,
+                MEDICATION_PLANS_TABLE,
+                rawId,
+                "isEnabled"
+            )
+            if (enabledValue != 0L && enabledValue != 1L) {
+                persistedValueFailure(
+                    MEDICATION_PLANS_TABLE,
+                    rawId,
+                    "isEnabled",
+                    PersistedValueFailure.NONCANONICAL_BOOLEAN
+                )
+            }
+            val extras = requireText(cursor, extrasIndex, MEDICATION_PLANS_TABLE, rawId, "extras")
+            val createdAt = requireLong(
+                cursor,
+                createdAtIndex,
+                MEDICATION_PLANS_TABLE,
+                rawId,
+                "createdAt"
+            )
             val parsed = LegacyPlanTimeParser.parse(planId, rawTimeOfDay).valueOrThrow(
                 tableName = MEDICATION_PLANS_TABLE,
                 rowId = rawId,
                 operation = "timeOfDay preflight"
             )
-            plans += PlanPreflight(
+            val plan = LegacyPlanValues(
                 id = planId,
-                rawTimeOfDay = rawTimeOfDay,
+                name = name,
+                route = route,
+                ester = ester,
+                doseMG = doseMG,
+                scheduleType = scheduleType,
+                timeOfDayPayload = rawTimeOfDay,
+                daysOfWeekPayload = daysOfWeek,
+                intervalDays = intervalDays,
+                isEnabled = enabledValue == 1L,
+                extrasPayload = extras,
+                createdAt = createdAt,
                 slots = parsed.entries.map { entry ->
-                    SlotBackfill(
+                    LegacySlotValues(
                         id = entry.slotId,
                         planId = planId,
                         localTime = entry.canonicalLocalTime,
@@ -171,6 +240,10 @@ private fun preflightPlans(db: SupportSQLiteDatabase): List<PlanPreflight> {
                     )
                 }
             )
+            requireAggregateReadable(MEDICATION_PLANS_TABLE, rawId) {
+                LegacyAggregatePreflight.requireReadable(plan)
+            }
+            plans += plan
         }
     }
     return plans
@@ -178,7 +251,7 @@ private fun preflightPlans(db: SupportSQLiteDatabase): List<PlanPreflight> {
 
 private fun backfillEvents(
     db: SupportSQLiteDatabase,
-    events: List<EventBackfill>
+    events: List<LegacyEventValues>
 ) {
     db.compileStatement(
         """
@@ -205,7 +278,7 @@ private fun backfillEvents(
 
 private fun insertSlots(
     db: SupportSQLiteDatabase,
-    slots: List<SlotBackfill>
+    slots: List<LegacySlotValues>
 ) {
     db.compileStatement(
         """
@@ -233,13 +306,18 @@ private fun insertSlots(
 
 private fun validateMigration(
     db: SupportSQLiteDatabase,
-    events: List<EventBackfill>,
-    plans: List<PlanPreflight>,
-    slots: List<SlotBackfill>
+    events: List<LegacyEventValues>,
+    plans: List<LegacyPlanValues>,
+    slots: List<LegacySlotValues>
 ) {
     validateEventRows(db, events)
     validatePlanRows(db, plans)
     validateSlotRows(db, slots)
+    db.query("PRAGMA integrity_check").use { cursor ->
+        if (!cursor.moveToFirst() || cursor.getString(0) != "ok" || cursor.moveToNext()) {
+            migrationFailure(DATABASE_TABLE, null, "integrity validation")
+        }
+    }
     db.query("PRAGMA foreign_key_check").use { cursor ->
         if (cursor.moveToFirst()) {
             migrationFailure(
@@ -253,7 +331,7 @@ private fun validateMigration(
 
 private fun validateEventRows(
     db: SupportSQLiteDatabase,
-    events: List<EventBackfill>
+    events: List<LegacyEventValues>
 ) {
     val expectedById = events.associateBy { it.id.toString() }
     db.query(
@@ -284,7 +362,7 @@ private fun validateEventRows(
                 operation = "unexpected event row"
             )
             if (
-                cursor.getDouble(1) != expected.rawTimeH ||
+                cursor.getDouble(1) != expected.timeH ||
                 cursor.getLong(2) != expected.occurredAtEpochMillis ||
                 !cursor.isNull(3) ||
                 !cursor.isNull(4) ||
@@ -305,7 +383,7 @@ private fun validateEventRows(
 
 private fun validatePlanRows(
     db: SupportSQLiteDatabase,
-    plans: List<PlanPreflight>
+    plans: List<LegacyPlanValues>
 ) {
     val expectedById = plans.associateBy { it.id.toString() }
     db.query(
@@ -330,7 +408,7 @@ private fun validatePlanRows(
                 rowId = rawId,
                 operation = "unexpected plan row"
             )
-            if (cursor.getString(1) != expected.rawTimeOfDay) {
+            if (cursor.getString(1) != expected.timeOfDayPayload) {
                 migrationFailure(
                     tableName = MEDICATION_PLANS_TABLE,
                     rowId = rawId,
@@ -343,7 +421,7 @@ private fun validatePlanRows(
 
 private fun validateSlotRows(
     db: SupportSQLiteDatabase,
-    slots: List<SlotBackfill>
+    slots: List<LegacySlotValues>
 ) {
     val expectedById = slots.associateBy { it.id.toString() }
     db.query(
@@ -403,29 +481,119 @@ private fun parseUuid(
     rawId: String,
     operation: String
 ): UUID = try {
-    UUID.fromString(rawId)
-} catch (cause: IllegalArgumentException) {
+    UUID.fromString(rawId).also { parsed ->
+        if (parsed.toString() != rawId) {
+            persistedValueFailure(
+                tableName,
+                rawId,
+                "id",
+                PersistedValueFailure.NONCANONICAL_ID
+            )
+        }
+    }
+} catch (_: IllegalArgumentException) {
     throw LegacyMigrationException(
         tableName = tableName,
         rowId = rawId,
-        operation = operation,
-        cause = cause
+        operation = operation
     )
 }
 
-private fun storageClass(
-    type: Int,
+private fun requireNumeric(
+    cursor: Cursor,
+    columnIndex: Int,
     tableName: String,
     rowId: String?,
-    operation: String
-): LegacySqliteStorageClass = when (type) {
-    Cursor.FIELD_TYPE_INTEGER -> LegacySqliteStorageClass.INTEGER
-    Cursor.FIELD_TYPE_FLOAT -> LegacySqliteStorageClass.FLOAT
-    Cursor.FIELD_TYPE_STRING -> LegacySqliteStorageClass.STRING
-    Cursor.FIELD_TYPE_BLOB -> LegacySqliteStorageClass.BLOB
-    Cursor.FIELD_TYPE_NULL -> LegacySqliteStorageClass.NULL
-    else -> migrationFailure(tableName, rowId, "$operation found unknown storage")
+    field: String
+): Double {
+    val type = cursor.getType(columnIndex)
+    if (type != Cursor.FIELD_TYPE_INTEGER && type != Cursor.FIELD_TYPE_FLOAT) {
+        persistedValueFailure(
+            tableName,
+            rowId,
+            field,
+            PersistedValueFailure.INVALID_STORAGE_CLASS
+        )
+    }
+    return cursor.getDouble(columnIndex)
 }
+
+private fun requireLong(
+    cursor: Cursor,
+    columnIndex: Int,
+    tableName: String,
+    rowId: String?,
+    field: String
+): Long {
+    if (cursor.getType(columnIndex) != Cursor.FIELD_TYPE_INTEGER) {
+        persistedValueFailure(
+            tableName,
+            rowId,
+            field,
+            PersistedValueFailure.INVALID_STORAGE_CLASS
+        )
+    }
+    return cursor.getLong(columnIndex)
+}
+
+private fun requireInt(
+    cursor: Cursor,
+    columnIndex: Int,
+    tableName: String,
+    rowId: String?,
+    field: String
+): Int {
+    val value = requireLong(cursor, columnIndex, tableName, rowId, field)
+    if (value !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
+        persistedValueFailure(
+            tableName,
+            rowId,
+            field,
+            PersistedValueFailure.MAPPER_REJECTED
+        )
+    }
+    return value.toInt()
+}
+
+private fun sqliteStorageClass(cursor: Cursor, columnIndex: Int): LegacySqliteStorageClass =
+    if (cursor.isNull(columnIndex)) {
+        LegacySqliteStorageClass.NULL
+    } else {
+        when (cursor.getType(columnIndex)) {
+            Cursor.FIELD_TYPE_INTEGER -> LegacySqliteStorageClass.INTEGER
+            Cursor.FIELD_TYPE_FLOAT -> LegacySqliteStorageClass.FLOAT
+            Cursor.FIELD_TYPE_STRING -> LegacySqliteStorageClass.STRING
+            Cursor.FIELD_TYPE_BLOB -> LegacySqliteStorageClass.BLOB
+            Cursor.FIELD_TYPE_NULL -> LegacySqliteStorageClass.NULL
+            else -> LegacySqliteStorageClass.BLOB
+        }
+    }
+
+private inline fun requireAggregateReadable(
+    tableName: String,
+    rowId: String,
+    block: () -> Unit
+) {
+    try {
+        block()
+    } catch (failure: LegacyAggregatePreflightException) {
+        persistedValueFailure(tableName, rowId, failure.field, failure.reason, failure)
+    }
+}
+
+private fun persistedValueFailure(
+    tableName: String,
+    rowId: String?,
+    field: String,
+    reason: PersistedValueFailure,
+    cause: Throwable? = null
+): Nothing = throw LegacyMigrationException(
+    tableName = tableName,
+    rowId = rowId,
+    error = LegacyMigrationError.InvalidPersistedValue(field, reason),
+    operation = "complete legacy preflight",
+    cause = cause
+)
 
 private fun <T> LegacyMigrationResult<T>.valueOrThrow(
     tableName: String,
@@ -454,6 +622,7 @@ private fun migrationFailure(
 private const val DOSE_EVENTS_TABLE = "dose_events"
 private const val MEDICATION_PLANS_TABLE = "medication_plans"
 private const val SLOTS_TABLE = "scheduled_dose_slots"
+private const val DATABASE_TABLE = "database"
 private const val LEGACY_SOURCE = "LEGACY"
 private const val RECORDED_STATUS = "RECORDED"
 private const val INITIAL_REVISION = 1L

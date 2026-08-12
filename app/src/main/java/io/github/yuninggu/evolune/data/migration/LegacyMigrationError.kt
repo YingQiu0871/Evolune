@@ -11,6 +11,11 @@ sealed interface LegacyMigrationResult<out T> {
 }
 
 sealed interface LegacyMigrationError {
+    data class InvalidPersistedValue(
+        val field: String,
+        val reason: PersistedValueFailure
+    ) : LegacyMigrationError
+
     data class InvalidEventTimeH(
         val eventId: UUID,
         val rawTimeH: Double,
@@ -53,6 +58,14 @@ sealed interface LegacyMigrationError {
     data class InvalidTimeHStorageClass(
         val storageClass: LegacySqliteStorageClass
     ) : LegacyMigrationError
+}
+
+enum class PersistedValueFailure {
+    INVALID_STORAGE_CLASS,
+    NONCANONICAL_ID,
+    CONVERTER_REJECTED,
+    MAPPER_REJECTED,
+    NONCANONICAL_BOOLEAN
 }
 
 enum class TimeOfDayJsonFailure {
