@@ -1,21 +1,22 @@
 package io.github.yuninggu.evolune.data.migration.contract
 
 import android.content.Context
+import android.database.sqlite.SQLiteException
+import androidx.room.migration.Migration
 import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.SupportSQLiteStatement
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yuninggu.evolune.data.AppDatabase
 import io.github.yuninggu.evolune.data.migration.MIGRATION_2_3
-import io.github.yuninggu.evolune.data.repository.CorruptAggregateException
 import io.github.yuninggu.evolune.data.repository.RoomDoseEventRepository
 import io.github.yuninggu.evolune.data.repository.RoomMedicationPlanRepository
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerializationException
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,6 +27,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.UUID
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Proxy
 
 @RunWith(AndroidJUnit4::class)
 class AppDatabaseMigrationContractTest {
@@ -110,84 +113,84 @@ class AppDatabaseMigrationContractTest {
     }
 
     @Test
-    fun currentMigrationLetsMapperInvalidRowsReachRepositoryBoundary() = runBlocking {
+    fun batch8BMapperCasesRejectAndRollBackBeforeRepositoryOpen() {
         val cases = MigrationContractMatrix.batch8BRejections.filter {
             it.currentOutcome == CurrentMigrationOutcome.MIGRATES_BUT_REPOSITORY_REJECTS &&
                 it.rejectionStage == RejectionStage.PRODUCTION_MAPPER
         }
 
         cases.forEachIndexed { index, case ->
-            val databaseName = databaseName("mapper-$index")
-            createV2Database(databaseName).use(case.fixture!!::insertInto)
-            migrateToV3(databaseName).close()
-
-            withProductionDatabase(databaseName) { database ->
-                val error = when (case.aggregate) {
-                    PersistedAggregate.DOSE_EVENT -> assertSuspendFails<CorruptAggregateException> {
-                        val id = UUID.fromString(case.fixture.events.single().id)
-                        RoomDoseEventRepository(database).getById(id)
-                    }
-
-                    PersistedAggregate.MEDICATION_PLAN -> assertSuspendFails<CorruptAggregateException> {
-                        val id = UUID.fromString(case.fixture.plans.single().id)
-                        RoomMedicationPlanRepository(database).getById(id)
-                    }
-
-                    PersistedAggregate.DATABASE -> error("No aggregate repository for database case")
-                }
-                assertNotNull(error.mappingError)
-            }
+            assertRejectsAndRestoresV2(case, "mapper-$index")
         }
     }
 
     @Test
-    fun currentMigrationLetsMalformedConverterPayloadsReachRepositoryBoundary() = runBlocking {
+    fun batch8BConverterCasesRejectAndRollBackBeforeRepositoryOpen() {
         val cases = MigrationContractMatrix.batch8BRejections.filter {
             it.rejectionStage == RejectionStage.PRODUCTION_CONVERTER
         }
 
         cases.forEachIndexed { index, case ->
-            val databaseName = databaseName("converter-$index")
-            createV2Database(databaseName).use(case.fixture!!::insertInto)
-            migrateToV3(databaseName).close()
-
-            withProductionDatabase(databaseName) { database ->
-                when (case.aggregate) {
-                    PersistedAggregate.DOSE_EVENT -> assertSuspendFails<SerializationException> {
-                        val id = UUID.fromString(case.fixture.events.single().id)
-                        RoomDoseEventRepository(database).getById(id)
-                    }
-
-                    PersistedAggregate.MEDICATION_PLAN -> assertSuspendFails<SerializationException> {
-                        val id = UUID.fromString(case.fixture.plans.single().id)
-                        RoomMedicationPlanRepository(database).getById(id)
-                    }
-
-                    PersistedAggregate.DATABASE -> error("No aggregate repository for database case")
-                }
-            }
+            assertRejectsAndRestoresV2(case, "converter-$index")
         }
     }
 
     @Test
-    fun noncanonicalEnabledIntegerCurrentlyMigratesAndCoercesToTrue() = runBlocking {
+    fun noncanonicalEnabledIntegerRejectsAndRollsBack() {
         val case = MigrationContractMatrix.batch8BRejections.single {
             it.name == "noncanonical-enabled-integer"
         }
-        val databaseName = databaseName("enabled-coercion")
-        createV2Database(databaseName).use(case.fixture!!::insertInto)
-        migrateToV3(databaseName).close()
+        assertRejectsAndRestoresV2(case, "enabled-coercion")
+    }
 
-        withProductionDatabase(databaseName) { database ->
-            val row = case.fixture.plans.single()
-            val plan = RoomMedicationPlanRepository(database).getById(UUID.fromString(row.id))
-            assertEquals(true, plan?.isEnabled)
-            database.openHelper.readableDatabase.query(
-                "SELECT isEnabled FROM medication_plans WHERE id = ?",
-                arrayOf(row.id)
-            ).use { cursor ->
-                assertTrue(cursor.moveToFirst())
-                assertEquals(2, cursor.getInt(0))
+    @Test
+    fun completeDatasetPreflightRejectsLateInvalidRowBeforeAnyBackfill() {
+        val invalidCase = MigrationContractMatrix.batch8BRejections.single {
+            it.name == "unknown-plan-schedule-type"
+        }
+        val fixture = RawV2Fixture(
+            events = (0 until 12).map { index -> V2EventRow(id = eventId(700 + index)) },
+            plans = (0 until 12).map { index -> V2PlanRow(id = planId(700 + index)) } +
+                invalidCase.fixture!!.plans
+        )
+        assertFixtureRejectsAndRestoresV2(fixture, "late-invalid")
+    }
+
+    @Test
+    fun mutationAndPostconditionFailuresRollBackEntireUpgradeTransaction() {
+        FaultPoint.entries.forEach { faultPoint ->
+            val fixture = RawV2Fixture(
+                events = listOf(V2EventRow(id = eventId(800 + faultPoint.ordinal))),
+                plans = listOf(
+                    V2PlanRow(
+                        id = planId(800 + faultPoint.ordinal),
+                        timeOfDay = "[\"08:30\"]"
+                    )
+                )
+            )
+            val databaseName = databaseName("atomic-${faultPoint.name.lowercase()}")
+            val expected = createV2Database(databaseName).use { database ->
+                fixture.insertInto(database)
+                snapshotV2(database)
+            }
+
+            val failure = runCatching {
+                migrationHelper.runMigrationsAndValidate(
+                    databaseName,
+                    3,
+                    true,
+                    faultingMigration(faultPoint)
+                ).close()
+            }.exceptionOrNull()
+            assertNotNull("$faultPoint must fail the migration", failure)
+
+            openExistingV2Database(databaseName).use { helper ->
+                val database = helper.writableDatabase
+                assertEquals(2, pragmaInt(database, "user_version"))
+                assertFalse(tableExists(database, "scheduled_dose_slots"))
+                assertEquals(V2_EVENT_COLUMNS, columnNames(database, "dose_events"))
+                assertEquals(V2_PLAN_COLUMNS, columnNames(database, "medication_plans"))
+                assertEquals(expected, snapshotV2(database))
             }
         }
     }
@@ -282,8 +285,124 @@ class AppDatabaseMigrationContractTest {
     private fun createV2Database(name: String): SupportSQLiteDatabase =
         migrationHelper.createDatabase(name, 2)
 
+    private fun assertRejectsAndRestoresV2(case: MigrationContractCase, suffix: String) {
+        assertFixtureRejectsAndRestoresV2(requireNotNull(case.fixture), suffix)
+    }
+
+    private fun assertFixtureRejectsAndRestoresV2(fixture: RawV2Fixture, suffix: String) {
+        val databaseName = databaseName(suffix)
+        val expected = createV2Database(databaseName).use { database ->
+            fixture.insertInto(database)
+            snapshotV2(database)
+        }
+
+        assertNotNull(runCatching { migrateToV3(databaseName).close() }.exceptionOrNull())
+        openExistingV2Database(databaseName).use { helper ->
+            val database = helper.writableDatabase
+            assertEquals(2, pragmaInt(database, "user_version"))
+            assertFalse(tableExists(database, "scheduled_dose_slots"))
+            assertEquals(V2_EVENT_COLUMNS, columnNames(database, "dose_events"))
+            assertEquals(V2_PLAN_COLUMNS, columnNames(database, "medication_plans"))
+            assertEquals(expected, snapshotV2(database))
+        }
+    }
+
+    private fun snapshotV2(database: SupportSQLiteDatabase): List<List<String>> =
+        listOf(
+            snapshotRows(
+                database,
+                "SELECT ${V2_EVENT_COLUMNS.joinToString { "`$it`" }} FROM dose_events ORDER BY id"
+            ),
+            snapshotRows(
+                database,
+                "SELECT ${V2_PLAN_COLUMNS.joinToString { "`$it`" }} FROM medication_plans ORDER BY id"
+            )
+        ).flatten()
+
+    private fun snapshotRows(
+        database: SupportSQLiteDatabase,
+        query: String
+    ): List<List<String>> = database.query(query).use { cursor ->
+        buildList {
+            while (cursor.moveToNext()) {
+                add(
+                    (0 until cursor.columnCount).map { index ->
+                        when (cursor.getType(index)) {
+                            android.database.Cursor.FIELD_TYPE_NULL -> "NULL"
+                            android.database.Cursor.FIELD_TYPE_INTEGER -> "I:${cursor.getLong(index)}"
+                            android.database.Cursor.FIELD_TYPE_FLOAT -> "F:${cursor.getDouble(index)}"
+                            android.database.Cursor.FIELD_TYPE_STRING -> "T:${cursor.getString(index)}"
+                            android.database.Cursor.FIELD_TYPE_BLOB ->
+                                "B:${cursor.getBlob(index).joinToString { byte -> "%02x".format(byte) }}"
+                            else -> "UNKNOWN"
+                        }
+                    }
+                )
+            }
+        }
+    }
+
     private fun migrateToV3(name: String): SupportSQLiteDatabase =
         migrationHelper.runMigrationsAndValidate(name, 3, true, MIGRATION_2_3)
+
+    private fun faultingMigration(faultPoint: FaultPoint): Migration = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            MIGRATION_2_3.migrate(db.withInjectedFailure(faultPoint))
+        }
+    }
+
+    private fun SupportSQLiteDatabase.withInjectedFailure(
+        faultPoint: FaultPoint
+    ): SupportSQLiteDatabase = proxy(SupportSQLiteDatabase::class.java, this) { method, arguments ->
+        val sql = arguments.firstOrNull() as? String
+        when {
+            method.name == "compileStatement" && sql != null -> {
+                val statement = invokeDelegate(method, this, arguments) as SupportSQLiteStatement
+                when {
+                    faultPoint == FaultPoint.EVENT_UPDATE && sql.contains("UPDATE `dose_events`") ->
+                        statement.failOn("executeUpdateDelete", faultPoint)
+                    faultPoint == FaultPoint.SLOT_INSERT &&
+                        sql.contains("INSERT INTO `scheduled_dose_slots`") ->
+                        statement.failOn("executeInsert", faultPoint)
+                    else -> statement
+                }
+            }
+            faultPoint == FaultPoint.POSTCONDITION &&
+                method.name == "query" &&
+                sql == "PRAGMA integrity_check" -> throw SQLiteException("synthetic postcondition failure")
+            else -> invokeDelegate(method, this, arguments)
+        }
+    }
+
+    private fun SupportSQLiteStatement.failOn(
+        methodName: String,
+        faultPoint: FaultPoint
+    ): SupportSQLiteStatement = proxy(SupportSQLiteStatement::class.java, this) { method, arguments ->
+        if (method.name == methodName) {
+            throw SQLiteException("synthetic ${faultPoint.name.lowercase()} failure")
+        }
+        invokeDelegate(method, this, arguments)
+    }
+
+    private fun <T> proxy(
+        contract: Class<T>,
+        delegate: T,
+        invocation: (java.lang.reflect.Method, Array<out Any?>) -> Any?
+    ): T = requireNotNull(contract.cast(
+        Proxy.newProxyInstance(contract.classLoader, arrayOf(contract)) { _, method, arguments ->
+            invocation(method, arguments ?: emptyArray())
+        }
+    ))
+
+    private fun invokeDelegate(
+        method: java.lang.reflect.Method,
+        delegate: Any,
+        arguments: Array<out Any?>
+    ): Any? = try {
+        method.invoke(delegate, *arguments)
+    } catch (failure: InvocationTargetException) {
+        throw requireNotNull(failure.targetException)
+    }
 
     private inline fun <T> withProductionDatabase(
         name: String,
@@ -360,19 +479,6 @@ class AppDatabaseMigrationContractTest {
         }
     }
 
-    private suspend inline fun <reified T : Throwable> assertSuspendFails(
-        crossinline block: suspend () -> Unit
-    ): T {
-        try {
-            block()
-        } catch (error: Throwable) {
-            if (error is T) return error
-            throw error
-        }
-        fail("Expected ${T::class.java.simpleName}")
-        throw AssertionError("unreachable")
-    }
-
     private fun eventId(index: Int): String =
         "30000000-0000-0000-0000-${index.toString().padStart(12, '0')}"
 
@@ -402,5 +508,11 @@ class AppDatabaseMigrationContractTest {
             "extras",
             "createdAt"
         )
+    }
+
+    private enum class FaultPoint {
+        EVENT_UPDATE,
+        SLOT_INSERT,
+        POSTCONDITION
     }
 }
