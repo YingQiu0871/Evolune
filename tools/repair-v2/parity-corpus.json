@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "cases": [
+    {"name": "valid-event", "aggregate": "event", "expectedValid": true, "values": {}},
+    {"name": "valid-plan", "aggregate": "plan", "expectedValid": true, "values": {}},
+    {"name": "valid-daily-irrelevant-fields", "aggregate": "plan", "expectedValid": true, "values": {"scheduleType": "DAILY", "daysOfWeek": "[1,7]", "intervalDays": "7"}},
+    {"name": "invalid-event-id", "aggregate": "event", "expectedValid": false, "values": {"id": "not-a-uuid"}},
+    {"name": "invalid-event-route", "aggregate": "event", "expectedValid": false, "values": {"route": "UNKNOWN"}},
+    {"name": "invalid-event-ester", "aggregate": "event", "expectedValid": false, "values": {"ester": "UNKNOWN"}},
+    {"name": "invalid-event-extras", "aggregate": "event", "expectedValid": false, "values": {"extras": "{"}},
+    {"name": "invalid-event-extra-key", "aggregate": "event", "expectedValid": false, "values": {"extras": "{\"UNKNOWN\":1.0}"}},
+    {"name": "invalid-event-time", "aggregate": "event", "expectedValid": false, "values": {"timeH": "Infinity"}},
+    {"name": "invalid-event-time-storage", "aggregate": "event", "expectedValid": false, "values": {"timeH": "TEXT"}},
+    {"name": "invalid-event-dose-storage", "aggregate": "event", "expectedValid": false, "values": {"doseMG": "TEXT"}},
+    {"name": "invalid-plan-id", "aggregate": "plan", "expectedValid": false, "values": {"id": "not-a-uuid"}},
+    {"name": "invalid-plan-route", "aggregate": "plan", "expectedValid": false, "values": {"route": "UNKNOWN"}},
+    {"name": "invalid-plan-ester", "aggregate": "plan", "expectedValid": false, "values": {"ester": "UNKNOWN"}},
+    {"name": "invalid-plan-schedule", "aggregate": "plan", "expectedValid": false, "values": {"scheduleType": "UNKNOWN"}},
+    {"name": "invalid-plan-days", "aggregate": "plan", "expectedValid": false, "values": {"daysOfWeek": "[8]"}},
+    {"name": "invalid-plan-days-json", "aggregate": "plan", "expectedValid": false, "values": {"daysOfWeek": "{"}},
+    {"name": "invalid-plan-interval", "aggregate": "plan", "expectedValid": false, "values": {"intervalDays": "0"}},
+    {"name": "invalid-plan-interval-storage", "aggregate": "plan", "expectedValid": false, "values": {"intervalDays": "TEXT"}},
+    {"name": "invalid-plan-time", "aggregate": "plan", "expectedValid": false, "values": {"timeOfDay": "[\"20:30:15\"]"}},
+    {"name": "invalid-plan-enabled", "aggregate": "plan", "expectedValid": false, "values": {"isEnabled": "2"}},
+    {"name": "invalid-plan-enabled-storage", "aggregate": "plan", "expectedValid": false, "values": {"isEnabled": "TEXT"}},
+    {"name": "invalid-plan-extra-key", "aggregate": "plan", "expectedValid": false, "values": {"extras": "{\"UNKNOWN\":1.0}"}},
+    {"name": "invalid-plan-extras-json", "aggregate": "plan", "expectedValid": false, "values": {"extras": "{"}},
+    {"name": "invalid-plan-created-storage", "aggregate": "plan", "expectedValid": false, "values": {"createdAt": "TEXT"}}
+  ]
+}

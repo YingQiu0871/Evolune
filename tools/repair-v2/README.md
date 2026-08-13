@@ -1,95 +1,108 @@
-# Evolune v2 Repair Toolkit
+# Evolune Room v2 Offline Repair Toolkit
 
-This offline Python tool scans an Evolune Room v2 database copy for data that would block the strict v2-to-v3 Android migration. It can create a separately repaired v2 copy from an explicit correction manifest and verify that copy.
+Version `2.0.0` is an operator/developer tool for an explicitly selected,
+offline copy of an Evolune Room v2 database. It is not linked into the app and
+is never invoked by app startup or `MIGRATION_2_3`.
 
-The tool does **not** upgrade a database to v3, run Room migrations, infer missing times, or modify an input database in place. A repaired copy must still be upgraded later by the official Evolune app migration.
+The authority boundary is fixed:
 
-## Safety status
+- valid v2 data is upgraded only by the official Room migration;
+- invalid v2 data makes the official migration fail;
+- this tool can audit a separate v2 copy and, after preview plus an explicit
+  manifest, create another repaired v2 copy;
+- the repaired copy must still pass the official migration and production
+  Repository checks before it is usable evidence.
 
-- Requires Python 3.12 or a compatible newer Python 3 runtime.
-- Uses only the Python standard library; there are no pip dependencies.
-- Accepts only a recognizable Evolune Room v2 database with `user_version = 2`, the required v2 tables and columns, and Room identity hash `a8036e3f5ed6bb42d0e7289ac84039f3`.
-- Opens scan and verify inputs read-only.
-- Rejects symbolic-link inputs, existing outputs, equal resolved input/output paths, and active non-empty SQLite WAL or rollback-journal sidecars.
-- Copies the input before repair, verifies SHA-256 before and after copying, and modifies only the output copy.
-- Applies all corrections in one SQLite transaction, verifies the result before commit, and deletes an incomplete output after failure.
-- Never changes `user_version`, `room_master_table`, schemas, or non-target columns.
+The tool never changes the selected input, never overwrites an output, never
+automatically repairs findings, and never invents medical semantics.
 
-Do not use the only copy of a database. Create an additional offline backup, rehearse against another copy first, and retain the untouched backup until the official app migration has been independently verified.
+## Runtime
+
+- Python `3.12` is the sealed Batch 8D runtime. Evidence used Python `3.12.13`.
+- Only the Python standard library is used.
+- Run tests with:
+
+```powershell
+python -m unittest discover -s tools/repair-v2 -p "test_*.py" -v
+```
+
+Batch 8D evidence: 94 tests, 94 pass, 0 failures or errors.
+
+## Database identity and snapshot gate
+
+Only the formal Evolune v2 baseline is accepted:
+
+- `PRAGMA user_version = 2`;
+- `dose_events`, `medication_plans`, and `room_master_table` exist;
+- required v2 columns exist;
+- Room identity hash is `a8036e3f5ed6bb42d0e7289ac84039f3`.
+
+v1, v3, unknown versions, unknown schemas, wrong Room identities, non-SQLite
+files, and symbolic-link inputs fail safely. The tool does not guess.
+
+The selected database must be cleanly closed. A non-empty sibling `-wal`,
+`-shm`, or `-journal` file is rejected. For a live database, first use a
+SQLite-consistent snapshot method such as the SQLite backup API or `VACUUM
+INTO`; copying only the main file while a WAL is active is invalid.
 
 ## Commands
 
-### Scan
+All output paths, including audit paths, must not already exist.
 
-`scan` reports every blocking legacy `timeH` or `timeOfDay` issue without modifying the database.
-
-Windows PowerShell:
+### 1. Read-only scan
 
 ```powershell
 python tools/repair-v2/repair_v2.py scan `
-  --input C:\offline-copy\legacy-v2.db `
-  --audit C:\offline-copy\scan-audit.jsonl
+  --input C:\offline-work\legacy-v2-copy.db `
+  --audit C:\offline-work\scan-audit.jsonl
 ```
 
-Linux or macOS:
+`scan` opens the input read-only and performs zero mutation. Exit `0` means
+clean; exit `1` means blocking persisted data was found.
 
-```bash
-python3 tools/repair-v2/repair_v2.py scan \
-  --input /offline-copy/legacy-v2.db \
-  --audit /offline-copy/scan-audit.jsonl
+### 2. Mandatory preview
+
+Create an explicit manifest, then validate it and obtain a deterministic token:
+
+```powershell
+python tools/repair-v2/repair_v2.py preview `
+  --input C:\offline-work\legacy-v2-copy.db `
+  --manifest C:\offline-work\corrections.json `
+  --audit C:\offline-work\preview-audit.jsonl
 ```
 
-Exit code `0` means no blocker; exit code `1` means blocking data was found.
+The token is bound to tool version, exact input SHA-256, and exact manifest
+SHA-256. Changing any of them invalidates the token.
 
-### Repair
-
-`repair` requires an explicit version 1 manifest. It copies the input to a new output path, applies only listed `timeH` and `timeOfDay` corrections, and performs complete verification before keeping the output.
-
-Windows PowerShell:
+### 3. Explicit copy repair
 
 ```powershell
 python tools/repair-v2/repair_v2.py repair `
-  --input C:\offline-copy\legacy-v2.db `
-  --output C:\offline-copy\legacy-v2-repaired.db `
-  --manifest C:\offline-copy\corrections.json `
-  --audit C:\offline-copy\repair-audit.jsonl
+  --input C:\offline-work\legacy-v2-copy.db `
+  --output C:\offline-work\legacy-v2-repaired.db `
+  --manifest C:\offline-work\corrections.json `
+  --preview-token <exact-token-from-preview> `
+  --audit C:\offline-work\repair-audit.jsonl
 ```
 
-Linux or macOS:
+Repair copies the input to a new path, proves the pre-mutation copy hash equals
+the input hash, applies all corrections in one SQLite transaction, verifies the
+output, and removes the output after any failure. The original file hash, size,
+and modification time must remain unchanged.
 
-```bash
-python3 tools/repair-v2/repair_v2.py repair \
-  --input /offline-copy/legacy-v2.db \
-  --output /offline-copy/legacy-v2-repaired.db \
-  --manifest /offline-copy/corrections.json \
-  --audit /offline-copy/repair-audit.jsonl
-```
-
-There is no `--force-in-place` option. Output, manifest, and audit paths are never overwritten.
-
-### Verify
-
-`verify` read-only checks that a repaired copy has no data blockers. It does not upgrade or open the database through Android Room.
-
-Windows PowerShell:
+### 4. Read-only verification
 
 ```powershell
 python tools/repair-v2/repair_v2.py verify `
-  --input C:\offline-copy\legacy-v2-repaired.db `
-  --audit C:\offline-copy\verify-audit.jsonl
+  --input C:\offline-work\legacy-v2-repaired.db `
+  --audit C:\offline-work\verify-audit.jsonl
 ```
 
-Linux or macOS:
+`verify` performs no mutation. A clean Python result is necessary but not
+sufficient: the copy must next pass `MIGRATION_2_3`, Room v3 reopen,
+`integrity_check`, `foreign_key_check`, and production Repository reads.
 
-```bash
-python3 tools/repair-v2/repair_v2.py verify \
-  --input /offline-copy/legacy-v2-repaired.db \
-  --audit /offline-copy/verify-audit.jsonl
-```
-
-## Correction manifest v1
-
-The manifest must contain exactly these top-level fields:
+## Manifest v1
 
 ```json
 {
@@ -108,60 +121,124 @@ The manifest must contain exactly these top-level fields:
 }
 ```
 
-Rules:
+The manifest is operator input, not an inference result. UUIDs must be
+canonical and identify rows with blocking time findings. It must cover every
+blocking time row and must not modify a clean row. Duplicate JSON keys, unknown
+fields, non-finite numbers, overflow, and non-canonical replacement times are
+rejected. Plan time order and duplicates are preserved.
 
-- `inputSha256` must exactly match the input database bytes.
-- IDs must be standard UUID strings and must exist in the input database.
-- Duplicate JSON keys and unknown fields are rejected at every manifest object level.
-- Event `timeH` must be a JSON number; booleans, non-finite values, and conversion overflow are rejected.
-- Plan times must already be canonical five-character `HH:mm` values. `HH:mm:ss` is rejected rather than canonicalized.
-- Order and duplicate plan times are preserved.
-- Every blocking row must have a correction, and clean rows must not be included.
-- The tool never guesses, truncates, sorts, deduplicates, clamps, or substitutes the current time.
+## Complete v2 audit contract
 
-`manifest.example.json` contains only synthetic identifiers and an intentionally invalid SHA placeholder. Replace the placeholder with the SHA-256 of the exact offline input copy before use.
+The scanner checks the sealed v2 persisted grammar for:
 
-## Compatibility rules
+- canonical event and plan UUIDs;
+- known route and ester values;
+- numeric dose storage;
+- JSON object extras, known extra keys, and numeric values;
+- numeric legacy `timeH`, finite conversion, Java-compatible rounding, and
+  signed 64-bit epoch-millisecond range;
+- known schedule types;
+- strict plan time JSON arrays and minute precision;
+- day JSON arrays containing only integers 1 through 7;
+- `intervalDays` in `1..Int.MAX_VALUE` using INTEGER storage;
+- canonical Boolean storage `0` or `1`;
+- INTEGER `createdAt` storage;
+- expected SQLite storage classes for all inspected fields.
 
-### Legacy `timeH`
+Empty plan time storage and duplicate local times remain valid. The tool does
+not sort, deduplicate, renumber, clamp, normalize irrelevant schedule fields,
+or substitute the current time.
 
-- SQLite storage class must be `INTEGER` or `REAL`; `NULL`, `TEXT`, and `BLOB` are blocking.
-- The binary64 value must be finite.
-- Conversion multiplies by `3_600_000.0`, rejects multiplication overflow, requires the result in `[-2^63, 2^63)`, and uses `floor(value + 0.5)` to match Java `Math.round(double)` rather than Python bankers rounding.
-- NaN, positive or negative Infinity, and range overflow are blocking. There is no clamp or zero fallback.
+## Repairability
 
-### Legacy `timeOfDay`
+| Category | Detectable | Tool repair | Operator input | Policy |
+|---|---:|---:|---:|---|
+| Invalid legacy event `timeH` | Yes | Explicit manifest only | Required | Exact replacement cannot be inferred |
+| Invalid/non-minute plan `timeOfDay` | Yes | Explicit manifest only | Required | Exact intended schedule cannot be inferred |
+| UUID, route, ester, schedule type | Yes | No | External decision | No medical/identity guessing |
+| Extras JSON/key/value | Yes | No | External decision | Meaning cannot be reconstructed safely |
+| Days, interval, Boolean, storage class | Yes | No | External decision | No semantic coercion or normalization |
+| Wrong schema/version/Room identity | Yes | No | Not applicable | Fail safe; v2 only |
 
-- An empty SQL string means an empty list.
-- Otherwise the value must be a JSON array of strings.
-- Historical `HH:mm`, `HH:mm:00`, and zero-only fractional forms such as `HH:mm:00.000` are accepted.
-- Non-zero seconds or nanoseconds, invalid JSON, non-array roots, non-string elements, empty elements, offsets, zones, whitespace variants, and non-ISO separators are blocking.
-- Accepted zero-second forms are interpreted at minute precision; the repair manifest itself must still use only canonical `HH:mm`.
+`OPERATOR_MANIFEST_REQUIRED` does not mean automatic repair. The tool only
+executes values explicitly supplied after scan and preview. All other findings
+are `NO_SAFE_AUTOMATIC_REPAIR` and prevent repair output creation.
 
-## Audit privacy
+## Privacy-safe persistent output
 
-Audit output is optional and is created only when `--audit` is explicitly supplied. Each JSONL file contains a summary plus individual blocking issue records. It includes the resolved database path, SHA-256, user version, issue and correction counts, UUIDs, plan positions, and possibly one raw invalid time value.
+Console summaries and optional JSONL audits contain structural information
+only: tool version, mode, schema/version identity, category, field, aggregate
+type, issue count, repairability, and a 16-hex SHA-256 row fingerprint.
 
-An audit file may therefore contain sensitive timing information and stable identifiers. It never intentionally records full database rows, `extras`, `doseMG`, complete `timeOfDay` arrays, user names, or unrelated health fields. Do not commit, publish, or share real audit files. The same prohibition applies to real databases, correction manifests, and repaired outputs.
+They do not contain database paths, raw UUIDs, raw invalid values, dose,
+medication names, schedules, extras payloads, timestamps, or SQL rows. Real
+databases, manifests, repaired copies, and audit files must never be committed
+or published even though the output format is sanitized.
+
+## Private real-database validation runbook
+
+Private validation is not authorized merely by having this tool. The required
+sequence is:
+
+1. The user supplies the exact `REAL_DB_PATH` in a separate message.
+2. The user explicitly authorizes `PRIVATE REAL-DB VALIDATION`.
+3. Do not search any filesystem, backup, or connected device for a database.
+4. Ensure the source is closed or create a SQLite-consistent snapshot.
+5. Keep the original immutable and locally record its SHA-256.
+6. Create an independent safety backup and prove its SHA-256 equals the source.
+7. Create a separate working copy; operate only on that copy.
+8. Run read-only `scan` first and retain only sanitized evidence.
+9. If clean, migrate another copy and run integrity, FK, structural/count, and
+   production Repository checks.
+10. If invalid, stop. Validation authorization does not authorize repair.
+11. Obtain a separate explicit `REAL-DB REPAIR AUTHORIZED` decision before
+    preparing any manifest or running preview/repair.
+12. Never commit a database, audit, manifest, backup, APK, or health data.
+13. Delete disposable migrated/repaired copies only when authorized; retain the
+    original untouched.
+
+Without an exact path and explicit authorization, private execution is
+`NOT EXECUTED`, not a pass.
+
+## Synthetic evidence and 8C reproducibility
+
+`create_synthetic_evidence.py` creates an ephemeral invalid v2 fixture, scans
+it, previews an explicit manifest, repairs a new copy, and verifies that copy.
+The generated DB files belong under an ignored build/temp directory and must be
+deleted after Android evidence. `RepairToolOutputMigrationTest` accepts the
+gzip/base64 bytes and SHA-256 only as explicit instrumentation arguments; no DB
+binary is stored in Git.
+
+The Batch 8C historical package-upgrade evidence can be reproduced without
+committing APKs:
+
+1. Create a detached worktree at
+   `16d8dbf1c7d1ed359b2e8c4e0857759b2dd12c81`, tagged
+   `phase-1-batch-4a1-design-v1`.
+2. Build its debug app with the same local debug signing key. Expected app APK
+   SHA-256 from the sealed run:
+   `6075281B0FD4C3C1CB42E270FC36AEBA7CF80BF05346C82DF5F6838EA29AB2CF`.
+3. Recreate the deterministic instrumentation seeder from the synthetic
+   fixture declared by current `Batch8CPreservedUpgradeTest`: six event IDs
+   `81000000-...-001` through `...-006`, three plan IDs
+   `82000000-...-001` through `...-003`, and all expected Domain fields in that
+   test. At the historical worktree, insert those values through its production
+   `DoseEventRepository` and `MedicationPlanRepository`, never raw SQL.
+4. Build the historical test APK. Expected SHA-256 from the sealed run:
+   `6CB3F68BAB0ACADAA16EB3751CF3AB2ED707546EC6CC276CBAA586373B5FED3D`.
+5. Follow `PHASE_1_BATCH_8C_REPORT.md` section 7 for seed, in-place install,
+   Room v3 reopen, Repository comparison, force-stop/reopen, and cold restart.
+
+The recorded APK hashes are provenance checks for the sealed run, not binaries
+to add to source control or release artifacts.
 
 ## Exit codes
 
 | Code | Meaning |
 |---:|---|
-| `0` | Success with no blocking issue |
-| `1` | `scan` found blocking data |
-| `2` | Command, path, or manifest usage error |
-| `3` | Input is not a recognized Evolune Room v2 database |
-| `4` | Repair failed, or `verify` found blocking data |
-| `5` | Unexpected internal tool error |
-
-## Tests
-
-Tests dynamically create synthetic databases in temporary directories. They do not use or leave persistent database fixtures.
-
-```powershell
-python -m unittest discover -s tools/repair-v2 -p "test_*.py" -v
-```
-
-Run the same command with `python3` on systems where that is the Python 3 launcher.
-
+| `0` | Successful operation with no blocking issue |
+| `1` | Read-only scan found blocking data |
+| `2` | Command, path, manifest, or preview-token usage error |
+| `3` | Input is not the recognized Evolune Room v2 database |
+| `4` | Repair failed or verification found blocking data |
+| `5` | Unexpected internal error |
