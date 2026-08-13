@@ -1,10 +1,12 @@
 import json
+import hashlib
 import math
 import pathlib
 import sqlite3
 import tempfile
 import unittest
 
+import create_synthetic_evidence
 import repair_v2
 
 
@@ -12,6 +14,15 @@ EVENT_ID = "00000000-0000-0000-0000-000000000101"
 EVENT_ID_2 = "00000000-0000-0000-0000-000000000102"
 PLAN_ID = "00000000-0000-0000-0000-000000000201"
 PLAN_ID_2 = "00000000-0000-0000-0000-000000000202"
+PARITY_CORPUS = pathlib.Path(__file__).with_name("parity-corpus.json")
+ANDROID_PARITY_CORPUS = (
+    pathlib.Path(__file__).parents[2]
+    / "app"
+    / "src"
+    / "androidTest"
+    / "assets"
+    / "repair-v2-parity-corpus.json"
+)
 
 
 def create_v2_database(
@@ -74,9 +85,9 @@ def insert_event(
     event_id: str = EVENT_ID,
     time_h=1.0,
     *,
-    route: str = "SYNTHETIC_ROUTE",
+    route: str = "ORAL",
     dose_mg: float = 1.25,
-    ester: str = "SYNTHETIC_ESTER",
+    ester: str = "E2",
     extras: str = "{}",
 ) -> None:
     connection = sqlite3.connect(path)
@@ -98,6 +109,13 @@ def insert_plan(
     *,
     name: str = "Synthetic Plan",
     extras: str = "{}",
+    route: str = "ORAL",
+    ester: str = "E2",
+    schedule_type: str = "DAILY",
+    days_of_week: str = "[]",
+    interval_days: int = 1,
+    is_enabled: int = 1,
+    created_at: int = 0,
 ) -> None:
     connection = sqlite3.connect(path)
     try:
@@ -109,16 +127,16 @@ def insert_plan(
             (
                 plan_id,
                 name,
-                "SYNTHETIC_ROUTE",
-                "SYNTHETIC_ESTER",
+                route,
+                ester,
                 2.5,
-                "DAILY",
+                schedule_type,
                 time_of_day,
-                "[]",
-                1,
-                1,
+                days_of_week,
+                interval_days,
+                is_enabled,
                 extras,
-                0,
+                created_at,
             ),
         )
         connection.commit()
@@ -163,6 +181,40 @@ class RepairV2TestCase(unittest.TestCase):
     def issue_codes(self, database: pathlib.Path) -> list[repair_v2.IssueCode]:
         return [issue.code for issue in repair_v2.scan_database(database).issues]
 
+    def test_synthetic_evidence_generator_runs_complete_copy_repair(self) -> None:
+        evidence_root = self.root / "evidence"
+        evidence = create_synthetic_evidence.create_evidence(evidence_root)
+        self.assertEqual(2, evidence["inputIssueCount"])
+        self.assertEqual(
+            ["TIME_H_NON_FINITE", "TIME_OF_DAY_NON_MINUTE"],
+            evidence["inputIssueCategories"],
+        )
+        self.assertEqual(1, evidence["eventCorrectionCount"])
+        self.assertEqual(1, evidence["planCorrectionCount"])
+        self.assertEqual(0, evidence["outputIssueCount"])
+        self.assertEqual(
+            repair_v2.sha256_file(evidence_root / "synthetic-invalid-v2.db"),
+            evidence["originalSha256"],
+        )
+        self.assertEqual(
+            repair_v2.sha256_file(evidence_root / "synthetic-repaired-v2.db"),
+            evidence["repairedSha256"],
+        )
+
+    def repair_database(
+        self,
+        database: pathlib.Path,
+        output: pathlib.Path,
+        manifest: pathlib.Path,
+    ) -> repair_v2.RepairResult:
+        preview = repair_v2.preview_repair(database, manifest)
+        return repair_v2.repair_database(
+            database,
+            output,
+            manifest,
+            preview.preview_token,
+        )
+
     # Database identity
 
     def test_identity_accepts_user_version_two(self) -> None:
@@ -173,6 +225,11 @@ class RepairV2TestCase(unittest.TestCase):
 
     def test_identity_rejects_user_version_three(self) -> None:
         database = self.database(user_version=3)
+        with self.assertRaises(repair_v2.DatabaseIdentityError):
+            repair_v2.scan_database(database)
+
+    def test_identity_rejects_user_version_one(self) -> None:
+        database = self.database(user_version=1)
         with self.assertRaises(repair_v2.DatabaseIdentityError):
             repair_v2.scan_database(database)
 
@@ -302,9 +359,81 @@ class RepairV2TestCase(unittest.TestCase):
         insert_plan(database, plan_id="synthetic-invalid-plan")
         self.assertIn(repair_v2.IssueCode.PLAN_ID_INVALID, self.issue_codes(database))
 
+    def test_scan_reports_complete_persisted_contract_categories(self) -> None:
+        cases = [
+            ("event-route", lambda db: insert_event(db, route="UNKNOWN"), repair_v2.IssueCode.ROUTE_INVALID),
+            ("event-ester", lambda db: insert_event(db, ester="UNKNOWN"), repair_v2.IssueCode.ESTER_INVALID),
+            ("event-extras-json", lambda db: insert_event(db, extras="{"), repair_v2.IssueCode.EXTRAS_JSON_MALFORMED),
+            ("event-extra-key", lambda db: insert_event(db, extras='{"UNKNOWN":1.0}'), repair_v2.IssueCode.EXTRA_KEY_INVALID),
+            ("plan-route", lambda db: insert_plan(db, route="UNKNOWN"), repair_v2.IssueCode.ROUTE_INVALID),
+            ("plan-schedule", lambda db: insert_plan(db, schedule_type="UNKNOWN"), repair_v2.IssueCode.SCHEDULE_TYPE_INVALID),
+            ("plan-days-json", lambda db: insert_plan(db, days_of_week="{"), repair_v2.IssueCode.DAYS_JSON_MALFORMED),
+            ("plan-day-value", lambda db: insert_plan(db, days_of_week="[8]"), repair_v2.IssueCode.DAY_VALUE_INVALID),
+            ("plan-interval", lambda db: insert_plan(db, interval_days=0), repair_v2.IssueCode.INTERVAL_INVALID),
+            ("plan-enabled", lambda db: insert_plan(db, is_enabled=2), repair_v2.IssueCode.ENABLED_NONCANONICAL),
+        ]
+        for name, arrange, expected in cases:
+            with self.subTest(name=name):
+                database = self.database(f"{name}.db")
+                arrange(database)
+                self.assertIn(expected, self.issue_codes(database))
+
+    def test_shared_parity_corpus_matches_python_classification(self) -> None:
+        corpus = json.loads(PARITY_CORPUS.read_text(encoding="utf-8"))
+        self.assertEqual(
+            corpus,
+            json.loads(ANDROID_PARITY_CORPUS.read_text(encoding="utf-8")),
+        )
+        self.assertEqual(1, corpus["version"])
+        for index, case in enumerate(corpus["cases"]):
+            with self.subTest(name=case["name"]):
+                database = self.database(f"parity-{index}.db")
+                values = dict(case["values"])
+                if values.get("timeH") == "Infinity":
+                    values["timeH"] = math.inf
+                for field in ("timeH", "doseMG", "intervalDays", "isEnabled", "createdAt"):
+                    if values.get(field) == "TEXT":
+                        values[field] = "synthetic-text"
+                if case["aggregate"] == "event":
+                    insert_event(database, **{
+                        "event_id": values.get("id", EVENT_ID),
+                        "time_h": values.get("timeH", 1.0),
+                        "route": values.get("route", "ORAL"),
+                        "dose_mg": values.get("doseMG", 1.25),
+                        "ester": values.get("ester", "E2"),
+                        "extras": values.get("extras", "{}"),
+                    })
+                else:
+                    insert_plan(database, **{
+                        "plan_id": values.get("id", PLAN_ID),
+                        "time_of_day": values.get("timeOfDay", '["08:30"]'),
+                        "route": values.get("route", "ORAL"),
+                        "ester": values.get("ester", "E2"),
+                        "schedule_type": values.get("scheduleType", "DAILY"),
+                        "days_of_week": values.get("daysOfWeek", "[]"),
+                        "interval_days": values.get("intervalDays", 1),
+                        "is_enabled": values.get("isEnabled", 1),
+                        "extras": values.get("extras", "{}"),
+                        "created_at": values.get("createdAt", 0),
+                    })
+                self.assertEqual(case["expectedValid"], not repair_v2.scan_database(database).issues)
+
+    def test_non_time_issue_is_not_manifest_repairable(self) -> None:
+        database = self.database()
+        insert_event(database, route="UNKNOWN")
+        manifest = self.manifest_for(database)
+        with self.assertRaises(repair_v2.UsageError):
+            repair_v2.preview_repair(database, manifest)
+
     def test_scan_rejects_active_wal_sidecar(self) -> None:
         database = self.database()
         pathlib.Path(f"{database}-wal").write_bytes(b"synthetic active wal")
+        with self.assertRaises(repair_v2.UsageError):
+            repair_v2.scan_database(database)
+
+    def test_scan_rejects_active_shm_sidecar(self) -> None:
+        database = self.database()
+        pathlib.Path(f"{database}-shm").write_bytes(b"synthetic active shm")
         with self.assertRaises(repair_v2.UsageError):
             repair_v2.scan_database(database)
 
@@ -529,12 +658,27 @@ class RepairV2TestCase(unittest.TestCase):
 
     # Repair
 
+    def test_preview_is_required_before_repair(self) -> None:
+        database = self.database()
+        insert_event(database, time_h=math.inf)
+        manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
+        with self.assertRaises(repair_v2.UsageError):
+            repair_v2.repair_database(database, self.root / "output.db", manifest, "wrong")
+
+    def test_preview_token_is_bound_to_input_and_manifest(self) -> None:
+        database = self.database()
+        insert_event(database, time_h=math.inf)
+        manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
+        preview = repair_v2.preview_repair(database, manifest)
+        self.assertEqual(64, len(preview.preview_token))
+        self.assertEqual(preview.preview_token, repair_v2.preview_repair(database, manifest).preview_token)
+
     def test_repair_event_succeeds(self) -> None:
         database = self.database()
         insert_event(database, time_h=math.inf)
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 123.456}})
         output = self.root / "output.db"
-        result = repair_v2.repair_database(database, output, manifest)
+        result = self.repair_database(database, output, manifest)
         self.assertEqual((), result.output_scan.issues)
         connection = sqlite3.connect(output)
         try:
@@ -550,7 +694,7 @@ class RepairV2TestCase(unittest.TestCase):
             plan_corrections={PLAN_ID: {"timeOfDay": ["08:30", "20:00"]}},
         )
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         connection = sqlite3.connect(output)
         try:
             self.assertEqual(
@@ -569,7 +713,7 @@ class RepairV2TestCase(unittest.TestCase):
             event_corrections={EVENT_ID: {"timeH": -1.5}},
             plan_corrections={PLAN_ID: {"timeOfDay": ["08:30"]}},
         )
-        result = repair_v2.repair_database(database, self.root / "output.db", manifest)
+        result = self.repair_database(database, self.root / "output.db", manifest)
         self.assertEqual(1, result.event_correction_count)
         self.assertEqual(1, result.plan_correction_count)
 
@@ -579,7 +723,7 @@ class RepairV2TestCase(unittest.TestCase):
         before_hash = repair_v2.sha256_file(database)
         before_mtime = database.stat().st_mtime_ns
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
-        repair_v2.repair_database(database, self.root / "output.db", manifest)
+        self.repair_database(database, self.root / "output.db", manifest)
         self.assertEqual(before_hash, repair_v2.sha256_file(database))
         self.assertEqual(before_mtime, database.stat().st_mtime_ns)
 
@@ -588,7 +732,7 @@ class RepairV2TestCase(unittest.TestCase):
         insert_event(database, time_h=math.inf)
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         connection = sqlite3.connect(output)
         try:
             self.assertEqual(2, connection.execute("PRAGMA user_version").fetchone()[0])
@@ -597,8 +741,8 @@ class RepairV2TestCase(unittest.TestCase):
 
     def test_repair_only_changes_target_columns(self) -> None:
         database = self.database()
-        insert_event(database, time_h=math.inf, extras='{"synthetic":1}')
-        insert_plan(database, time_of_day='["20:30:15"]', extras='{"synthetic":2}')
+        insert_event(database, time_h=math.inf, extras='{"AREA_CM2":1}')
+        insert_plan(database, time_of_day='["20:30:15"]', extras='{"AREA_CM2":2}')
         connection = sqlite3.connect(database)
         try:
             event_before = connection.execute(
@@ -616,7 +760,7 @@ class RepairV2TestCase(unittest.TestCase):
             plan_corrections={PLAN_ID: {"timeOfDay": ["08:30"]}},
         )
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         connection = sqlite3.connect(output)
         try:
             self.assertEqual(
@@ -640,14 +784,14 @@ class RepairV2TestCase(unittest.TestCase):
         output = self.root / "output.db"
         output.write_bytes(b"synthetic existing output")
         with self.assertRaises(repair_v2.UsageError):
-            repair_v2.repair_database(database, output, manifest)
+            self.repair_database(database, output, manifest)
 
     def test_repair_rejects_same_input_output_path(self) -> None:
         database = self.database()
         insert_event(database, time_h=math.inf)
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         with self.assertRaises(repair_v2.UsageError):
-            repair_v2.repair_database(database, database, manifest)
+            self.repair_database(database, database, manifest)
 
     def test_repair_rejects_resolved_same_path_alias(self) -> None:
         database = self.database()
@@ -655,7 +799,7 @@ class RepairV2TestCase(unittest.TestCase):
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         alias = self.root / "missing-parent" / ".." / database.name
         with self.assertRaises(repair_v2.UsageError):
-            repair_v2.repair_database(database, alias, manifest)
+            self.repair_database(database, alias, manifest)
 
     def test_repair_failure_deletes_output_copy(self) -> None:
         database = self.database()
@@ -672,7 +816,7 @@ class RepairV2TestCase(unittest.TestCase):
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         output = self.root / "output.db"
         with self.assertRaises((repair_v2.RepairError, sqlite3.DatabaseError)):
-            repair_v2.repair_database(database, output, manifest)
+            self.repair_database(database, output, manifest)
         self.assertFalse(output.exists())
 
     def test_verify_clean_output_succeeds(self) -> None:
@@ -680,7 +824,7 @@ class RepairV2TestCase(unittest.TestCase):
         insert_event(database, time_h=math.inf)
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         outcome = repair_v2.verify_command(str(output))
         self.assertEqual(repair_v2.EXIT_OK, outcome.exit_code)
 
@@ -702,7 +846,7 @@ class RepairV2TestCase(unittest.TestCase):
         manifest = self.manifest_for(database)
         output = self.root / "output.db"
         with self.assertRaises(repair_v2.UsageError):
-            repair_v2.repair_database(database, output, manifest)
+            self.repair_database(database, output, manifest)
         self.assertFalse(output.exists())
 
     def test_repair_preserves_plan_order_and_duplicates(self) -> None:
@@ -714,7 +858,7 @@ class RepairV2TestCase(unittest.TestCase):
             plan_corrections={PLAN_ID: {"timeOfDay": replacement}},
         )
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         connection = sqlite3.connect(output)
         try:
             raw = connection.execute("SELECT timeOfDay FROM medication_plans").fetchone()[0]
@@ -727,7 +871,7 @@ class RepairV2TestCase(unittest.TestCase):
         insert_event(database, time_h=math.inf)
         manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
         output = self.root / "output.db"
-        repair_v2.repair_database(database, output, manifest)
+        self.repair_database(database, output, manifest)
         connection = sqlite3.connect(output)
         try:
             columns = {row[1] for row in connection.execute("PRAGMA table_info(dose_events)")}
@@ -736,6 +880,22 @@ class RepairV2TestCase(unittest.TestCase):
             connection.close()
         self.assertNotIn("occurredAtEpochMillis", columns)
         self.assertNotIn("scheduled_dose_slots", tables)
+
+    def test_repair_is_idempotent_at_the_semantic_boundary(self) -> None:
+        database = self.database()
+        insert_event(database, time_h=math.inf)
+        manifest = self.manifest_for(database, event_corrections={EVENT_ID: {"timeH": 1.0}})
+        output = self.root / "output.db"
+        self.repair_database(database, output, manifest)
+        self.assertEqual((), repair_v2.scan_database(output).issues)
+        clean_manifest = self.root / "clean-manifest.json"
+        write_manifest(clean_manifest, repair_v2.sha256_file(output))
+        preview = repair_v2.preview_repair(output, clean_manifest)
+        second = self.root / "second.db"
+        result = repair_v2.repair_database(output, second, clean_manifest, preview.preview_token)
+        self.assertEqual(0, result.event_correction_count)
+        self.assertEqual(0, result.plan_correction_count)
+        self.assertEqual((), result.output_scan.issues)
 
     # Audit
 
@@ -757,11 +917,23 @@ class RepairV2TestCase(unittest.TestCase):
         self.assertEqual(repair_v2.sha256_file(database), summary["inputSha256"])
         self.assertEqual(1, summary["issueCount"])
 
+    def test_persistent_output_is_privacy_safe(self) -> None:
+        database = self.database()
+        insert_plan(database, time_of_day='["20:30:15"]')
+        outcome = repair_v2.scan_command(str(database))
+        serialized = json.dumps(
+            {"summary": outcome.summary, "audit": outcome.audit_records},
+            sort_keys=True,
+        )
+        self.assertNotIn(str(database), serialized)
+        self.assertNotIn(PLAN_ID, serialized)
+        self.assertNotIn("20:30:15", serialized)
+        self.assertIn(hashlib.sha256(PLAN_ID.encode("utf-8")).hexdigest()[:16], serialized)
+
     def test_audit_does_not_contain_extras(self) -> None:
         database = self.database()
         insert_event(database, time_h=math.inf, extras='{"private":"synthetic"}')
         serialized = json.dumps(repair_v2.scan_command(str(database)).audit_records)
-        self.assertNotIn("extras", serialized)
         self.assertNotIn("private", serialized)
 
     def test_audit_does_not_contain_dose_mg(self) -> None:
@@ -776,7 +948,7 @@ class RepairV2TestCase(unittest.TestCase):
         insert_plan(database, time_of_day='["08:30","20:30:15","22:00"]')
         serialized = json.dumps(repair_v2.scan_command(str(database)).audit_records)
         self.assertNotIn('[\\"08:30\\",\\"20:30:15\\",\\"22:00\\"]', serialized)
-        self.assertIn("20:30:15", serialized)
+        self.assertNotIn("20:30:15", serialized)
 
     def test_audit_refuses_existing_file(self) -> None:
         audit = self.root / "audit.jsonl"

@@ -10,12 +10,13 @@ import pathlib
 import re
 import shutil
 import sqlite3
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
 
 
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "2.0.0"
 V2_USER_VERSION = 2
 V2_IDENTITY_HASH = "a8036e3f5ed6bb42d0e7289ac84039f3"
 MILLIS_PER_HOUR = 3_600_000.0
@@ -39,6 +40,16 @@ LEGACY_LOCAL_TIME_RE = re.compile(
 )
 CANONICAL_LOCAL_TIME_RE = re.compile(r"^(?:[01][0-9]|2[0-3]):[0-5][0-9]$")
 SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+VALID_ROUTES = {
+    "INJECTION", "ORAL", "SUBLINGUAL", "GEL", "PATCH_APPLY", "PATCH_REMOVE",
+    "ANTIANDROGEN",
+}
+VALID_ESTERS = {"E2", "EB", "EV", "EC", "EN"}
+VALID_SCHEDULE_TYPES = {"DAILY", "WEEKLY", "CUSTOM"}
+VALID_EXTRA_KEYS = {
+    "CONCENTRATION_MG_ML", "AREA_CM2", "RELEASE_RATE_UG_PER_DAY",
+    "SUBLINGUAL_THETA", "SUBLINGUAL_TIER", "ANTI_ANDROGEN_TYPE",
+}
 
 
 class IssueCode(str, Enum):
@@ -54,6 +65,16 @@ class IssueCode(str, Enum):
     TIME_OF_DAY_ELEMENT_NOT_STRING = "TIME_OF_DAY_ELEMENT_NOT_STRING"
     TIME_OF_DAY_INVALID_LOCAL_TIME = "TIME_OF_DAY_INVALID_LOCAL_TIME"
     TIME_OF_DAY_NON_MINUTE = "TIME_OF_DAY_NON_MINUTE"
+    INVALID_STORAGE_CLASS = "INVALID_STORAGE_CLASS"
+    ROUTE_INVALID = "ROUTE_INVALID"
+    ESTER_INVALID = "ESTER_INVALID"
+    EXTRAS_JSON_MALFORMED = "EXTRAS_JSON_MALFORMED"
+    EXTRA_KEY_INVALID = "EXTRA_KEY_INVALID"
+    SCHEDULE_TYPE_INVALID = "SCHEDULE_TYPE_INVALID"
+    DAYS_JSON_MALFORMED = "DAYS_JSON_MALFORMED"
+    DAY_VALUE_INVALID = "DAY_VALUE_INVALID"
+    INTERVAL_INVALID = "INTERVAL_INVALID"
+    ENABLED_NONCANONICAL = "ENABLED_NONCANONICAL"
 
 
 EVENT_TIME_ISSUES = {
@@ -112,21 +133,27 @@ class Issue:
     message: str
     position: int | None = None
     raw_value: Any = None
+    field: str | None = None
+    repairability: str = "NO_SAFE_AUTOMATIC_REPAIR"
+
+    @property
+    def row_fingerprint(self) -> str | None:
+        if self.entity_id is None:
+            return None
+        return hashlib.sha256(self.entity_id.encode("utf-8")).hexdigest()[:16]
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {
             "issueCode": self.code.value,
             "entityType": self.entity_type,
-            "message": self.message,
+            "repairability": self.repairability,
         }
-        if self.entity_type == "event" and self.entity_id is not None:
-            result["eventId"] = self.entity_id
-        if self.entity_type == "plan" and self.entity_id is not None:
-            result["planId"] = self.entity_id
+        if self.field is not None:
+            result["field"] = self.field
+        if self.row_fingerprint is not None:
+            result["rowFingerprint"] = self.row_fingerprint
         if self.position is not None:
             result["position"] = self.position
-        if self.raw_value is not None:
-            result["rawValue"] = json_safe_value(self.raw_value)
         return result
 
 
@@ -164,6 +191,18 @@ class RepairResult:
 
 
 @dataclass(frozen=True)
+class RepairPreview:
+    scan: ScanResult
+    manifest: CorrectionManifest
+    preview_token: str
+
+
+def preview_token(input_sha256: str, manifest_sha256: str) -> str:
+    payload = f"{TOOL_VERSION}\0{input_sha256}\0{manifest_sha256}".encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+@dataclass(frozen=True)
 class CommandOutcome:
     exit_code: int
     summary: Mapping[str, Any]
@@ -173,20 +212,13 @@ class CommandOutcome:
 def canonical_uuid(value: Any, field_name: str) -> str:
     if not isinstance(value, str) or UUID_RE.fullmatch(value) is None:
         raise UsageError(f"{field_name} must be a standard UUID string")
-    return value.lower()
-
-
-def json_safe_value(value: Any) -> Any:
-    if isinstance(value, float):
-        if math.isnan(value):
-            return "NaN"
-        if math.isinf(value):
-            return "Infinity" if value > 0 else "-Infinity"
-    if isinstance(value, bytes):
-        return f"<blob:{len(value)} bytes>"
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
-    return str(value)
+    try:
+        canonical = str(uuid.UUID(value))
+    except ValueError as error:
+        raise UsageError(f"{field_name} must be a standard UUID string") from error
+    if value != canonical:
+        raise UsageError(f"{field_name} must be a canonical lowercase UUID string")
+    return canonical
 
 
 def utc_timestamp() -> str:
@@ -205,15 +237,15 @@ def sha256_file(path: pathlib.Path) -> str:
 
 
 def database_sidecars(path: pathlib.Path) -> tuple[pathlib.Path, ...]:
-    return tuple(pathlib.Path(f"{path}{suffix}") for suffix in ("-wal", "-journal"))
+    return tuple(pathlib.Path(f"{path}{suffix}") for suffix in ("-wal", "-shm", "-journal"))
 
 
 def reject_active_database_sidecars(path: pathlib.Path) -> None:
     active = [str(sidecar) for sidecar in database_sidecars(path) if sidecar.exists() and sidecar.stat().st_size > 0]
     if active:
         raise UsageError(
-            "input has an active SQLite WAL or rollback journal; create an offline standalone copy first",
-            {"sidecars": active},
+            "input has an active SQLite sidecar; create a cleanly closed SQLite snapshot first",
+            {"sidecarCount": len(active)},
         )
 
 
@@ -368,6 +400,82 @@ def validate_persisted_time_h(storage_class: str, value: Any) -> int:
     return java_math_round_scaled(value)
 
 
+def is_canonical_uuid(value: Any) -> bool:
+    if not isinstance(value, str) or UUID_RE.fullmatch(value) is None:
+        return False
+    try:
+        return str(uuid.UUID(value)) == value
+    except ValueError:
+        return False
+
+
+def parse_json(value: str) -> Any:
+    return json.loads(
+        value,
+        parse_constant=lambda token: (_ for _ in ()).throw(ValueError(token)),
+    )
+
+
+def inspect_extras(raw_value: Any) -> tuple[IssueCode | None, str]:
+    if not isinstance(raw_value, str):
+        return IssueCode.INVALID_STORAGE_CLASS, "extras"
+    if raw_value == "":
+        return None, "extras"
+    try:
+        decoded = parse_json(raw_value)
+    except (json.JSONDecodeError, ValueError):
+        return IssueCode.EXTRAS_JSON_MALFORMED, "extras"
+    if not isinstance(decoded, dict):
+        return IssueCode.EXTRAS_JSON_MALFORMED, "extras"
+    for key, value in decoded.items():
+        if key not in VALID_EXTRA_KEYS:
+            return IssueCode.EXTRA_KEY_INVALID, "extras"
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return IssueCode.EXTRAS_JSON_MALFORMED, "extras"
+    return None, "extras"
+
+
+def inspect_days(raw_value: Any) -> IssueCode | None:
+    if not isinstance(raw_value, str):
+        return IssueCode.INVALID_STORAGE_CLASS
+    if raw_value == "":
+        return None
+    try:
+        decoded = parse_json(raw_value)
+    except (json.JSONDecodeError, ValueError):
+        return IssueCode.DAYS_JSON_MALFORMED
+    if not isinstance(decoded, list):
+        return IssueCode.DAYS_JSON_MALFORMED
+    if any(isinstance(value, bool) or not isinstance(value, int) for value in decoded):
+        return IssueCode.DAYS_JSON_MALFORMED
+    if any(value not in range(1, 8) for value in decoded):
+        return IssueCode.DAY_VALUE_INVALID
+    return None
+
+
+def issue(
+    code: IssueCode,
+    entity_type: str,
+    entity_id: str | None,
+    field: str,
+    message: str,
+    *,
+    position: int | None = None,
+    raw_value: Any = None,
+    repairability: str = "NO_SAFE_AUTOMATIC_REPAIR",
+) -> Issue:
+    return Issue(
+        code=code,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        message=message,
+        position=position,
+        raw_value=raw_value,
+        field=field,
+        repairability=repairability,
+    )
+
+
 def inspect_legacy_time_of_day(raw_value: Any) -> tuple[tuple[str, ...], tuple[tuple[IssueCode, int | None, Any, str], ...]]:
     if not isinstance(raw_value, str):
         failure = (
@@ -446,49 +554,76 @@ def scan_connection(connection: sqlite3.Connection) -> tuple[tuple[Issue, ...], 
     plan_ids: dict[str, str] = {}
 
     event_rows = connection.execute(
-        "SELECT id, typeof(timeH) AS storageClass, timeH FROM dose_events ORDER BY id"
+        "SELECT id, typeof(id) AS idStorage, route, typeof(route) AS routeStorage, "
+        "timeH, typeof(timeH) AS timeStorage, doseMG, typeof(doseMG) AS doseStorage, "
+        "ester, typeof(ester) AS esterStorage, extras, typeof(extras) AS extrasStorage "
+        "FROM dose_events ORDER BY id"
     ).fetchall()
     for row in event_rows:
         raw_id = row["id"]
         event_id = raw_id if isinstance(raw_id, str) else None
-        if event_id is None or UUID_RE.fullmatch(event_id) is None:
+        if row["idStorage"] != "text" or not is_canonical_uuid(event_id):
             issues.append(
-                Issue(
+                issue(
                     IssueCode.EVENT_ID_INVALID,
                     "event",
                     event_id,
+                    "id",
                     "event id is not a standard UUID",
                     raw_value=raw_id,
                 )
             )
         else:
             event_ids[event_id.lower()] = event_id
+        if row["routeStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "event", event_id, "route", "route must use TEXT storage"))
+        elif row["route"] not in VALID_ROUTES:
+            issues.append(issue(IssueCode.ROUTE_INVALID, "event", event_id, "route", "route is not supported"))
         try:
-            validate_persisted_time_h(str(row["storageClass"]), row["timeH"])
+            validate_persisted_time_h(str(row["timeStorage"]), row["timeH"])
         except ValidationError as error:
             issues.append(
-                Issue(
+                issue(
                     error.code,
                     "event",
                     event_id,
+                    "timeH",
                     error.message,
                     raw_value=row["timeH"],
+                    repairability="OPERATOR_MANIFEST_REQUIRED",
                 )
             )
+        if row["doseStorage"] not in {"integer", "real"}:
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "event", event_id, "doseMG", "doseMG must use numeric storage"))
+        if row["esterStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "event", event_id, "ester", "ester must use TEXT storage"))
+        elif row["ester"] not in VALID_ESTERS:
+            issues.append(issue(IssueCode.ESTER_INVALID, "event", event_id, "ester", "ester is not supported"))
+        extras_code, extras_field = inspect_extras(row["extras"])
+        if row["extrasStorage"] != "text":
+            extras_code = IssueCode.INVALID_STORAGE_CLASS
+        if extras_code is not None:
+            issues.append(issue(extras_code, "event", event_id, extras_field, "extras do not satisfy the persisted contract"))
 
     plan_rows = connection.execute(
-        "SELECT id, typeof(timeOfDay) AS storageClass, timeOfDay "
+        "SELECT id, typeof(id) AS idStorage, name, typeof(name) AS nameStorage, "
+        "route, typeof(route) AS routeStorage, ester, typeof(ester) AS esterStorage, "
+        "doseMG, typeof(doseMG) AS doseStorage, scheduleType, typeof(scheduleType) AS scheduleStorage, "
+        "timeOfDay, typeof(timeOfDay) AS timeStorage, daysOfWeek, typeof(daysOfWeek) AS daysStorage, "
+        "intervalDays, typeof(intervalDays) AS intervalStorage, isEnabled, typeof(isEnabled) AS enabledStorage, "
+        "extras, typeof(extras) AS extrasStorage, createdAt, typeof(createdAt) AS createdStorage "
         "FROM medication_plans ORDER BY id"
     ).fetchall()
     for row in plan_rows:
         raw_id = row["id"]
         plan_id = raw_id if isinstance(raw_id, str) else None
-        if plan_id is None or UUID_RE.fullmatch(plan_id) is None:
+        if row["idStorage"] != "text" or not is_canonical_uuid(plan_id):
             issues.append(
-                Issue(
+                issue(
                     IssueCode.PLAN_ID_INVALID,
                     "plan",
                     plan_id,
+                    "id",
                     "plan id is not a standard UUID",
                     raw_value=raw_id,
                 )
@@ -496,30 +631,61 @@ def scan_connection(connection: sqlite3.Connection) -> tuple[tuple[Issue, ...], 
         else:
             plan_ids[plan_id.lower()] = plan_id
 
-        storage_class = str(row["storageClass"])
+        if row["nameStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "name", "name must use TEXT storage"))
+        if row["routeStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "route", "route must use TEXT storage"))
+        elif row["route"] not in VALID_ROUTES:
+            issues.append(issue(IssueCode.ROUTE_INVALID, "plan", plan_id, "route", "route is not supported"))
+        if row["esterStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "ester", "ester must use TEXT storage"))
+        elif row["ester"] not in VALID_ESTERS:
+            issues.append(issue(IssueCode.ESTER_INVALID, "plan", plan_id, "ester", "ester is not supported"))
+        if row["doseStorage"] not in {"integer", "real"}:
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "doseMG", "doseMG must use numeric storage"))
+        if row["scheduleStorage"] != "text":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "scheduleType", "scheduleType must use TEXT storage"))
+        elif row["scheduleType"] not in VALID_SCHEDULE_TYPES:
+            issues.append(issue(IssueCode.SCHEDULE_TYPE_INVALID, "plan", plan_id, "scheduleType", "scheduleType is not supported"))
+
+        storage_class = str(row["timeStorage"])
         if storage_class != "text":
             issues.append(
-                Issue(
+                issue(
                     IssueCode.TIME_OF_DAY_STORAGE_CLASS,
                     "plan",
                     plan_id,
+                    "timeOfDay",
                     f"timeOfDay SQLite storage class must be text, found {storage_class}",
                     raw_value=row["timeOfDay"],
+                    repairability="OPERATOR_MANIFEST_REQUIRED",
                 )
             )
-            continue
-        _, failures = inspect_legacy_time_of_day(row["timeOfDay"])
-        for code, position, raw_value, message in failures:
-            issues.append(
-                Issue(
-                    code,
-                    "plan",
-                    plan_id,
-                    message,
-                    position=position,
-                    raw_value=raw_value,
-                )
-            )
+        else:
+            _, failures = inspect_legacy_time_of_day(row["timeOfDay"])
+            for code, position, raw_value, message in failures:
+                issues.append(issue(code, "plan", plan_id, "timeOfDay", message, position=position, raw_value=raw_value, repairability="OPERATOR_MANIFEST_REQUIRED"))
+
+        days_code = inspect_days(row["daysOfWeek"])
+        if row["daysStorage"] != "text":
+            days_code = IssueCode.INVALID_STORAGE_CLASS
+        if days_code is not None:
+            issues.append(issue(days_code, "plan", plan_id, "daysOfWeek", "daysOfWeek do not satisfy the persisted contract"))
+        if row["intervalStorage"] != "integer":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "intervalDays", "intervalDays must use INTEGER storage"))
+        elif not (1 <= int(row["intervalDays"]) <= 2**31 - 1):
+            issues.append(issue(IssueCode.INTERVAL_INVALID, "plan", plan_id, "intervalDays", "intervalDays must be in 1..Int.MAX_VALUE"))
+        if row["enabledStorage"] != "integer":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "isEnabled", "isEnabled must use INTEGER storage"))
+        elif int(row["isEnabled"]) not in {0, 1}:
+            issues.append(issue(IssueCode.ENABLED_NONCANONICAL, "plan", plan_id, "isEnabled", "isEnabled must be 0 or 1"))
+        extras_code, extras_field = inspect_extras(row["extras"])
+        if row["extrasStorage"] != "text":
+            extras_code = IssueCode.INVALID_STORAGE_CLASS
+        if extras_code is not None:
+            issues.append(issue(extras_code, "plan", plan_id, extras_field, "extras do not satisfy the persisted contract"))
+        if row["createdStorage"] != "integer":
+            issues.append(issue(IssueCode.INVALID_STORAGE_CLASS, "plan", plan_id, "createdAt", "createdAt must use INTEGER storage"))
 
     return tuple(issues), event_ids, plan_ids
 
@@ -674,13 +840,17 @@ def validate_manifest_for_scan(manifest: CorrectionManifest, scan: ScanResult) -
         for issue in scan.issues
         if issue.code in PLAN_TIME_ISSUES and issue.entity_id is not None and UUID_RE.fullmatch(issue.entity_id)
     }
+    repairable_codes = EVENT_TIME_ISSUES | PLAN_TIME_ISSUES
     uncorrectable = [
         issue.to_dict()
         for issue in scan.issues
-        if issue.code in {IssueCode.EVENT_ID_INVALID, IssueCode.PLAN_ID_INVALID}
+        if issue.code not in repairable_codes
     ]
     if uncorrectable:
-        raise UsageError("database contains blocking invalid IDs that this manifest cannot repair", {"issues": uncorrectable})
+        raise UsageError(
+            "database contains issues with no safe automatic repair",
+            {"issueCounts": issue_counts(tuple(issue for issue in scan.issues if issue.code not in repairable_codes))},
+        )
 
     unknown_events = sorted(set(manifest.event_corrections) - set(scan.event_ids))
     unknown_plans = sorted(set(manifest.plan_corrections) - set(scan.plan_ids))
@@ -710,6 +880,24 @@ def validate_manifest_for_scan(manifest: CorrectionManifest, scan: ScanResult) -
         )
 
 
+def preview_repair(
+    input_value: str | pathlib.Path,
+    manifest_value: str | pathlib.Path,
+) -> RepairPreview:
+    input_path = resolve_input_file(input_value)
+    reject_active_database_sidecars(input_path)
+    manifest_path = resolve_input_file(manifest_value, "manifest")
+    ensure_distinct_paths({"input": input_path, "manifest": manifest_path})
+    scan = scan_database(input_path)
+    manifest = load_manifest(manifest_path)
+    validate_manifest_for_scan(manifest, scan)
+    return RepairPreview(
+        scan=scan,
+        manifest=manifest,
+        preview_token=preview_token(scan.input_sha256, sha256_file(manifest_path)),
+    )
+
+
 def compact_time_array(values: Sequence[str]) -> str:
     return json.dumps(list(values), ensure_ascii=True, separators=(",", ":"))
 
@@ -732,6 +920,7 @@ def repair_database(
     input_value: str | pathlib.Path,
     output_value: str | pathlib.Path,
     manifest_value: str | pathlib.Path,
+    supplied_preview_token: str,
 ) -> RepairResult:
     input_path = resolve_input_file(input_value)
     reject_active_database_sidecars(input_path)
@@ -740,9 +929,11 @@ def repair_database(
     ensure_distinct_paths({"input": input_path, "output": output_path, "manifest": manifest_path})
 
     before_stat = input_path.stat()
-    input_scan = scan_database(input_path)
-    manifest = load_manifest(manifest_path)
-    validate_manifest_for_scan(manifest, input_scan)
+    preview = preview_repair(input_path, manifest_path)
+    input_scan = preview.scan
+    manifest = preview.manifest
+    if supplied_preview_token != preview.preview_token:
+        raise UsageError("repair requires the exact token produced by the preview command")
     if sha256_file(input_path) != input_scan.input_sha256:
         raise RepairError("input database changed before it could be copied")
 
@@ -859,7 +1050,6 @@ def base_summary(mode: str, scan: ScanResult, exit_code: int, success: bool) -> 
         "mode": mode,
         "success": success,
         "exitCode": exit_code,
-        "inputPath": str(scan.input_path),
         "inputSha256": scan.input_sha256,
         "userVersion": scan.identity.user_version,
         "identityHash": scan.identity.identity_hash,
@@ -885,7 +1075,6 @@ def audit_records_for_scan(
             "toolVersion": TOOL_VERSION,
             "recordType": "issue",
             "mode": mode,
-            "inputPath": str(scan.input_path),
             "inputSha256": scan.input_sha256,
             "userVersion": scan.identity.user_version,
             **issue.to_dict(),
@@ -896,7 +1085,6 @@ def audit_records_for_scan(
         "toolVersion": TOOL_VERSION,
         "recordType": "summary",
         "mode": mode,
-        "inputPath": str(scan.input_path),
         "inputSha256": scan.input_sha256,
         "userVersion": scan.identity.user_version,
         "issueCount": len(scan.issues),
@@ -945,14 +1133,40 @@ def verify_command(input_value: str) -> CommandOutcome:
     )
 
 
-def repair_command(input_value: str, output_value: str, manifest_value: str) -> CommandOutcome:
-    result = repair_database(input_value, output_value, manifest_value)
+def preview_command(input_value: str, manifest_value: str) -> CommandOutcome:
+    preview = preview_repair(input_value, manifest_value)
+    summary = base_summary("preview", preview.scan, EXIT_OK, True)
+    summary = {
+        **summary,
+        "previewToken": preview.preview_token,
+        "correctionCounts": {
+            "events": len(preview.manifest.event_corrections),
+            "plans": len(preview.manifest.plan_corrections),
+        },
+    }
+    return CommandOutcome(
+        exit_code=EXIT_OK,
+        summary=summary,
+        audit_records=[{
+            "timestampUtc": utc_timestamp(),
+            "toolVersion": TOOL_VERSION,
+            "recordType": "summary",
+            **summary,
+        }],
+    )
+
+
+def repair_command(
+    input_value: str,
+    output_value: str,
+    manifest_value: str,
+    supplied_preview_token: str,
+) -> CommandOutcome:
+    result = repair_database(input_value, output_value, manifest_value, supplied_preview_token)
     summary = base_summary("repair", result.output_scan, EXIT_OK, True)
     summary = {
         **summary,
-        "inputPath": str(result.input_scan.input_path),
         "inputSha256": result.input_scan.input_sha256,
-        "outputPath": str(result.output_path),
         "outputSha256": result.output_sha256,
         "correctionCounts": {
             "events": result.event_correction_count,
@@ -993,10 +1207,16 @@ def build_parser() -> argparse.ArgumentParser:
     scan_parser.add_argument("--input", required=True, help="path to an offline Evolune v2 database copy")
     scan_parser.add_argument("--audit", help="new JSONL audit path; never overwritten")
 
+    preview_parser = subparsers.add_parser("preview", help="validate a manifest and issue a repair authorization token")
+    preview_parser.add_argument("--input", required=True, help="path to an offline Evolune v2 database copy")
+    preview_parser.add_argument("--manifest", required=True, help="version 1 correction manifest")
+    preview_parser.add_argument("--audit", help="new JSONL audit path; never overwritten")
+
     repair_parser = subparsers.add_parser("repair", help="repair a new copy using an explicit manifest")
     repair_parser.add_argument("--input", required=True, help="path to an offline Evolune v2 database copy")
     repair_parser.add_argument("--output", required=True, help="new output database path")
     repair_parser.add_argument("--manifest", required=True, help="version 1 correction manifest")
+    repair_parser.add_argument("--preview-token", required=True, help="exact token from the preview command")
     repair_parser.add_argument("--audit", help="new JSONL audit path; never overwritten")
 
     verify_parser = subparsers.add_parser("verify", help="read-only verification of a repaired v2 copy")
@@ -1011,8 +1231,7 @@ def error_summary(mode: str, error: ToolError) -> dict[str, Any]:
         "mode": mode,
         "success": False,
         "exitCode": error.exit_code,
-        "error": error.message,
-        "details": error.details,
+        "errorCategory": type(error).__name__,
     }
 
 
@@ -1025,9 +1244,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         resolved_paths: dict[str, pathlib.Path] = {}
         input_path = resolve_input_file(args.input)
         resolved_paths["input"] = input_path
+        if mode in {"preview", "repair"}:
+            resolved_paths["manifest"] = resolve_input_file(args.manifest, "manifest")
         if mode == "repair":
             resolved_paths["output"] = resolve_new_file(args.output, "output")
-            resolved_paths["manifest"] = resolve_input_file(args.manifest, "manifest")
         if args.audit:
             audit_path = resolve_new_file(args.audit, "audit")
             resolved_paths["audit"] = audit_path
@@ -1037,8 +1257,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             outcome = scan_command(str(input_path))
         elif mode == "verify":
             outcome = verify_command(str(input_path))
+        elif mode == "preview":
+            outcome = preview_command(str(input_path), args.manifest)
         else:
-            outcome = repair_command(str(input_path), args.output, args.manifest)
+            outcome = repair_command(
+                str(input_path), args.output, args.manifest, args.preview_token
+            )
         if audit_path is not None:
             write_audit(audit_path, outcome.audit_records)
         print(json.dumps(outcome.summary, ensure_ascii=False, sort_keys=True, allow_nan=False))
@@ -1051,13 +1275,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "toolVersion": TOOL_VERSION,
                 "recordType": "summary",
                 "mode": mode,
-                "inputPath": str(pathlib.Path(args.input).resolve(strict=False)),
                 "issueCount": 0,
                 "issueCounts": {},
                 "correctionCounts": {"events": 0, "plans": 0},
                 "success": False,
                 "exitCode": error.exit_code,
-                "error": error.message,
+                "errorCategory": type(error).__name__,
             }
             try:
                 write_audit(audit_path, [failure_record])
@@ -1071,7 +1294,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "mode": mode,
             "success": False,
             "exitCode": EXIT_INTERNAL,
-            "error": f"internal tool error: {type(error).__name__}: {error}",
+            "errorCategory": type(error).__name__,
         }
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True, allow_nan=False))
         return EXIT_INTERNAL
