@@ -35,21 +35,22 @@ The application source, launcher artwork, notification icon, and other files tha
 
 [`SmirnovaOyama/Oyama-s-HRT-Tracker`](https://github.com/SmirnovaOyama/Oyama-s-HRT-Tracker) is cited as product/scientific inspiration. The reviewed release tree contains brief reference comments and a documentation link; the Batch 9A review found no copied image, chart, prose block, or separately derived source identified from that project. This is a citation/factual-reference boundary, not a code-license claim.
 
-## PK implementation provenance and pending permission
+## PK implementation provenance and scoped permission
 
 Evolune's current estradiol pharmacokinetic implementation materially traces to work published by LaoZhong-Mihari in [`HRT-Recorder-PKcomponent-Test`](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test).
 
-- Attribution is preserved.
-- No explicit repository-level license or permission grant was located during the completed provenance review.
-- Explicit permission has been requested from the original author; the response remains pending.
-- This provenance record is not itself a license grant and does not classify the PK implementation as MIT.
-- The project owner has elected to proceed with v1.0 while accurately disclosing this pending risk.
+- Explicit permission was received from the `HRT-Recorder-PKcomponent-Test` author on 2026-08-14 for Evolune to use, copy, modify, port, further develop, distribute source and compiled applications, and release corresponding derivative code under the MIT License, to the extent the author owns or is authorized to license the relevant rights.
+- Source and contributor attribution is preserved, including applicable copyright and license notices.
+- The original email remains owner-held provenance evidence; no private address or full correspondence is published in this repository.
+- The grant does not classify the entire upstream repository as MIT, does not represent a grant on behalf of third-party contributors, and does not establish that the upstream repository contains a formal `LICENSE` file.
 
-`PK_PERMISSION_STATUS = PERMISSION_REQUESTED_RESPONSE_PENDING`
+`PK_PERMISSION_STATUS = EXPLICIT_PERMISSION_GRANTED`
 
-`PK_PROVENANCE_RISK = OWNER_ACCEPTED_PENDING_PERMISSION`
+`PK_PERMISSION_SCOPE = AUTHOR_OWNED_OR_AUTHORIZABLE_RIGHTS`
 
-`PK_RELEASE_POLICY = PUBLIC_RELEASE_ALLOWED_WITH_DISCLOSED_PENDING_PROVENANCE_RISK`
+`PK_PROVENANCE_RISK = RESOLVED_WITH_ATTRIBUTION_REQUIREMENT`
+
+`PK_RELEASE_POLICY = PUBLIC_RELEASE_ALLOWED_WITH_SCOPED_PERMISSION_AND_ATTRIBUTION`
 
 ## Third-party assets
 
@@ -75,5 +76,5 @@ Read-only reachability analysis found no substantive Featherline/GPL blob reacha
 1. Publish only the explicitly reviewed release branch and a tag created from its approved sealing commit.
 2. Do not use `git push --all`, `git push --mirror`, unrestricted `git bundle --all`, or distribute the complete `.git` object database.
 3. Ship `THIRD_PARTY_NOTICES.md` with binary release materials or provide it as release documentation accompanying those binaries.
-4. Preserve the PK attribution and pending-permission wording until a separately authorized permission-closure review changes it.
+4. Preserve the PK source/contributor attribution, applicable copyright/license notices, and the documented permission scope in public source and release materials.
 5. Keep the calibration branch separate from v1.0; it is not merged into the reviewed release commit.

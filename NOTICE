@@ -15,15 +15,19 @@ change the license of Evolune-owned work or relicense third-party material.
 
 PK implementation provenance: Evolune's current estradiol pharmacokinetic
 implementation is materially derived from work published by LaoZhong-Mihari
-in HRT-Recorder-PKcomponent-Test. Attribution is preserved. No explicit
-repository license or permission grant was located during the completed
-provenance review. Explicit permission has been requested from the original
-author and the response remains pending. This notice records provenance and
-does not itself constitute a license grant. The project owner has elected to
-proceed with v1.0 while that request remains pending.
+in HRT-Recorder-PKcomponent-Test. On 2026-08-14 its author explicitly
+permitted Evolune to use, copy, modify, port, further develop, distribute
+source and compiled applications, and release corresponding derivative code
+under the MIT License, to the extent the author owns or is authorized to
+license the relevant rights. Source and contributor attribution, including
+applicable copyright and license notices, is preserved. This scoped grant
+does not relicense the entire upstream repository, grant rights on behalf of
+third-party contributors, or establish that the upstream repository contains
+a formal LICENSE file.
 
-PK_PERMISSION_STATUS = PERMISSION_REQUESTED_RESPONSE_PENDING
-PK_RELEASE_RISK_DISPOSITION = OWNER_ACCEPTED_PENDING_PERMISSION
+PK_PERMISSION_STATUS = EXPLICIT_PERMISSION_GRANTED
+PK_PERMISSION_SCOPE = AUTHOR_OWNED_OR_AUTHORIZABLE_RIGHTS
+PK_PROVENANCE_RISK = RESOLVED_WITH_ATTRIBUTION_REQUIREMENT
 
 Historical Featherline migration material exists only in protected local
 evidence and an internal checkpoint tree/ref. It is not present in, compiled

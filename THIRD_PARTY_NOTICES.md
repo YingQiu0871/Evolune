@@ -2,6 +2,12 @@
 
 This file records licenses and attributions for third-party material shipped with Evolune v1.0. It does not change the MIT license of Evolune-owned work. Exact resolved versions and configuration paths are recorded in the Batch 9A dependency inventory.
 
+## HRT-Recorder-PKcomponent-Test PK implementation
+
+Portions of Evolune's estradiol pharmacokinetic implementation are derived from [`LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test`](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test). Explicit permission was received from the author on 2026-08-14 for Evolune to use, copy, modify, port, further develop, distribute source and compiled applications, and release corresponding derivative code under the MIT License, to the extent the author owns or is authorized to license the relevant rights.
+
+Source and contributor attribution is preserved, including applicable copyright and license notices. This scoped permission does not relicense the entire upstream repository, grant rights on behalf of third-party contributors, or establish that the upstream repository contains a formal `LICENSE` file.
+
 ## Shipped third-party software
 
 ### Apache License 2.0 components

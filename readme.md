@@ -32,6 +32,6 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 Evolune 是 [NaiveTomcat/HRTTracker](https://github.com/NaiveTomcat/HRTTracker) 的独立延续与大规模重构；直接上游的 MIT 许可和版权声明保留在 [LICENSE](LICENSE) 中。
 
-**PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 发布的 [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)。项目已保留归属说明，但在来源审查中未找到明确的仓库许可证或许可授权；项目已向原作者请求明确许可，回复仍在等待中。本说明仅记录来源，不构成许可授权。项目所有者已决定在准确披露这一待定风险的前提下继续准备 v1.0 发布。
+**PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 发布的 [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)。2026-08-14，原作者明确授权 Evolune 使用、复制、修改、移植、二次开发、分发修改后的源代码和编译后的应用，并将相应衍生代码按 MIT License 开源发布；授权仅覆盖作者本人拥有相关权利或有权授权的内容。项目继续保留来源及相关贡献者的归属、版权和许可说明。该授权不表示整个上游仓库自动变为 MIT，不表示作者代表第三方贡献者授予权利，也不表示上游仓库已经新增正式 `LICENSE` 文件。
 
-根 [MIT License](LICENSE) 适用于 Evolune 自有工作及按兼容条款继承的内容；另行引入的第三方组件和待定来源项目不因此自动成为 MIT。详见 [NOTICE](NOTICE)、[来源追踪记录](docs/SOURCE_PROVENANCE.md) 与 [第三方许可证与通知](THIRD_PARTY_NOTICES.md)。
+根 [MIT License](LICENSE) 适用于 Evolune 自有工作、按兼容条款继承的内容，以及上述明确授权范围内按 MIT 发布的相应衍生代码；它不将整个上游仓库或第三方贡献自动重新许可为 MIT。详见 [NOTICE](NOTICE)、[来源追踪记录](docs/SOURCE_PROVENANCE.md) 与 [第三方许可证与通知](THIRD_PARTY_NOTICES.md)。
