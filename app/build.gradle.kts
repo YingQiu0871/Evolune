@@ -1,5 +1,3 @@
-import java.io.IOException
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -7,28 +5,37 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-fun String.runCommand(
-    workingDir: File = File("."),
-    timeoutAmount: Long = 60,
-    timeoutUnit: TimeUnit = TimeUnit.SECONDS
-): String = ProcessBuilder(split("\\s(?=(?:[^'\"`]*(['\"`])[^'\"`]*\\1)*[^'\"`]*$)".toRegex()))
-    .directory(workingDir)
-    .redirectOutput(ProcessBuilder.Redirect.PIPE)
-    .redirectError(ProcessBuilder.Redirect.PIPE)
-    .start()
-    .apply { waitFor(timeoutAmount, timeoutUnit) }
-    .run {
-        val error = errorStream.bufferedReader().readText().trim()
-        if (error.isNotEmpty()) {
-            throw IOException(error)
-        }
-        inputStream.bufferedReader().readText().trim()
+val releaseSigningVariableNames = listOf(
+    "EVOLUNE_KEYSTORE_PATH",
+    "EVOLUNE_KEYSTORE_PASSWORD",
+    "EVOLUNE_KEY_ALIAS",
+    "EVOLUNE_KEY_PASSWORD"
+)
+val releaseSigningEnvironment = releaseSigningVariableNames.associateWith { System.getenv(it) }
+val missingReleaseSigningVariables = releaseSigningEnvironment
+    .filterValues { it.isNullOrBlank() }
+    .keys
+val hasReleaseSigningCredentials = missingReleaseSigningVariables.isEmpty()
+val releaseSigningProject = project
+
+gradle.taskGraph.whenReady {
+    val releaseTaskRequested = allTasks.any { task ->
+        task.project == releaseSigningProject && task.name.contains("release", ignoreCase = true)
     }
-
-
+    if (releaseTaskRequested && !hasReleaseSigningCredentials) {
+        throw GradleException(
+            "Evolune Release signing credentials are missing: " +
+                missingReleaseSigningVariables.sorted().joinToString() +
+                ". Configure the approved external environment variables; Release never uses debug signing."
+        )
+    }
+    if (releaseTaskRequested && !file(requireNotNull(releaseSigningEnvironment["EVOLUNE_KEYSTORE_PATH"])).isFile) {
+        throw GradleException("EVOLUNE_KEYSTORE_PATH must point to an existing persistent release keystore.")
+    }
+}
 
 android {
-    namespace = "io.github.yuninggu.evolune"
+    namespace = "io.github.yingqiu0871.evolune"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -36,20 +43,22 @@ android {
     }
 
     signingConfigs {
-        getByName("debug") {
-            storeFile = file("debugkeystore.jks")
-            storePassword = "DEBUG1"
-            keyAlias = "DEBUG"
-            keyPassword = "DEBUG1"
+        if (hasReleaseSigningCredentials) {
+            create("release") {
+                storeFile = file(requireNotNull(releaseSigningEnvironment["EVOLUNE_KEYSTORE_PATH"]))
+                storePassword = requireNotNull(releaseSigningEnvironment["EVOLUNE_KEYSTORE_PASSWORD"])
+                keyAlias = requireNotNull(releaseSigningEnvironment["EVOLUNE_KEY_ALIAS"])
+                keyPassword = requireNotNull(releaseSigningEnvironment["EVOLUNE_KEY_PASSWORD"])
+            }
         }
     }
 
     defaultConfig {
-        applicationId = "io.github.yuninggu.evolune"
+        applicationId = "io.github.yingqiu0871.evolune"
         minSdk = 31
         targetSdk = 36
         versionCode = 10060
-        versionName = "git describe --tags --always --dirty=-dev".runCommand(workingDir = rootDir)
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -63,12 +72,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            applicationIdSuffix = ".release"
+            if (hasReleaseSigningCredentials) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         getByName("debug") {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

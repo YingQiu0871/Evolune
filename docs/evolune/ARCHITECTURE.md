@@ -114,7 +114,7 @@ flowchart LR
 
 ## 5. 数据库与状态管理
 
-当前 `AppDatabase` 位于 `app/src/main/java/io/github/yuninggu/evolune/data/AppDatabase.kt`，版本 2，实体为 `DoseEventEntity` 和 `MedicationPlanEntity`。`SettingsDataStore` 存储体重、主题、颜色方案、自动检查更新和时间制式；Wear 使用 `SharedPreferences` 保存仪表盘缓存。
+当前 `AppDatabase` 位于 `app/src/main/java/io/github/yingqiu0871/evolune/data/AppDatabase.kt`，版本 2，实体为 `DoseEventEntity` 和 `MedicationPlanEntity`。`SettingsDataStore` 存储体重、主题、颜色方案、自动检查更新和时间制式；Wear 使用 `SharedPreferences` 保存仪表盘缓存。
 
 目标设计：
 

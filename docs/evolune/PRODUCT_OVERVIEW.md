@@ -25,11 +25,11 @@ Evolune 是面向个人长期记录的 Android 与 Wear OS 应用，用于管理
 
 ### 建立方案
 
-用户配置药物名称、酯类、剂量、给药途径、周期和每日时间点。当前实现入口为 `app/src/main/java/io/github/yuninggu/evolune/ui/screens/MedicationPlansScreen.kt`，数据通过 `MedicationPlanViewModel` 和 `MedicationPlanRepository` 写入 Room。
+用户配置药物名称、酯类、剂量、给药途径、周期和每日时间点。当前实现入口为 `app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/MedicationPlansScreen.kt`，数据通过 `MedicationPlanViewModel` 和 `MedicationPlanRepository` 写入 Room。
 
 ### 记录用药
 
-用户从记录页、通知或桌面小组件添加实际用药事件。事件进入 `DoseEventRepository`，随后驱动历史列表、模型计算和小组件刷新。通知动作由 `app/src/main/java/io/github/yuninggu/evolune/reminder/MedicationNotificationActionReceiver.kt` 处理。
+用户从记录页、通知或桌面小组件添加实际用药事件。事件进入 `DoseEventRepository`，随后驱动历史列表、模型计算和小组件刷新。通知动作由 `app/src/main/java/io/github/yingqiu0871/evolune/reminder/MedicationNotificationActionReceiver.kt` 处理。
 
 ### 查看趋势
 
@@ -37,7 +37,7 @@ Evolune 是面向个人长期记录的 Android 与 Wear OS 应用，用于管理
 
 ### 手表快速操作
 
-当前 Wear 模块主要提供 Tile。手机通过 `app/src/main/java/io/github/yuninggu/evolune/wear/WearDataLayer.kt` 发送计划快照，手表通过 `wear/src/main/java/io/github/yuninggu/evolune/wear/DoseTileService.kt` 展示并发送动作。
+当前 Wear 模块主要提供 Tile。手机通过 `app/src/main/java/io/github/yingqiu0871/evolune/wear/WearDataLayer.kt` 发送计划快照，手表通过 `wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt` 展示并发送动作。
 
 ## 当前功能
 

@@ -1,0 +1,1579 @@
+package io.github.yingqiu0871.evolune.ui.components
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.activity.compose.BackHandler
+import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.application.DoseEventEditMode
+import io.github.yingqiu0871.evolune.application.DoseEventEditSession
+import io.github.yingqiu0871.evolune.application.DoseEventEditorInput
+import io.github.yingqiu0871.evolune.core.model.ExtraKey
+import io.github.yingqiu0871.evolune.pk.*
+import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+import io.github.yingqiu0871.evolune.ui.utils.getRouteDisplayName
+import io.github.yingqiu0871.evolune.ui.utils.getRouteIcon
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.*
+
+/**
+ * 用于记住上次添加记录时的默认值（除时间外）
+ */
+data class RecordDefaults(
+    val route: Route = Route.INJECTION,
+    val ester: Ester = Ester.EV,
+    val doseMG: Double = 0.0,
+    val patchMode: PatchMode = PatchMode.DOSE,
+    val patchRateUgPerDay: Double = 0.0,
+    val sublingualTier: SublingualTier = SublingualTier.STANDARD,
+    val antiAndrogen: AntiAndrogen = AntiAndrogen.CPA
+)
+
+/**
+ * 添加或编辑用药记录的底部弹窗
+ *
+ * @param showBottomSheet 是否显示底部弹窗
+ * @param onDismiss 关闭回调
+ * @param onSave 保存回调
+ * @param onDelete 删除回调（仅编辑时）
+ * @param session 稳定的新建或编辑会话
+ * @param defaults 添加新记录时的默认值（从上次记录继承）
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun MedicationRecordBottomSheet(
+    showBottomSheet: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (DoseEventEditorInput) -> Unit,
+    onDelete: ((UUID) -> Unit)? = null,
+    session: DoseEventEditSession? = null,
+    defaults: RecordDefaults? = null,
+    is24Hour: Boolean = true,
+    isOperationRunning: Boolean = false,
+    operationError: String? = null
+) {
+    val eventToEdit = session?.original?.takeIf { session.mode == DoseEventEditMode.UPDATE }
+
+    // 表单状态 - 使用 session 作为 key，确保同一会话重组时保持身份和时间
+    // 新建时使用默认值（如果有），编辑时使用记录的值
+    var selectedRoute by remember(session, showBottomSheet) {
+        mutableStateOf(eventToEdit?.route ?: defaults?.route ?: Route.INJECTION) 
+    }
+    var selectedEster by remember(session, showBottomSheet) {
+        mutableStateOf(eventToEdit?.ester ?: defaults?.ester ?: Ester.EV) 
+    }
+    var selectedAntiAndrogen by remember(session, showBottomSheet) {
+        mutableStateOf(
+            eventToEdit?.extras?.get(ExtraKey.ANTI_ANDROGEN_TYPE)?.toInt()?.let {
+                AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
+            } ?: defaults?.antiAndrogen ?: AntiAndrogen.CPA
+        )
+    }
+    var selectedDateTime by remember(session, showBottomSheet) {
+        mutableStateOf(Date.from(session?.original?.occurredAt ?: Instant.EPOCH))
+    }
+    var occurredAtEdited by remember(session, showBottomSheet) { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // 剂量相关状态
+    var rawDoseText by remember(session, showBottomSheet) {
+        mutableStateOf(
+            if (eventToEdit != null && eventToEdit.route == Route.PATCH_APPLY && 
+                eventToEdit.extras.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY)) {
+                "" // 贴片释放速率模式下，不显示剂量
+            } else if (eventToEdit != null) {
+                eventToEdit.doseMG.toString()
+            } else if (defaults != null && defaults.doseMG > 0) {
+                defaults.doseMG.toString()
+            } else {
+                ""
+            }
+        )
+    }
+    var e2DoseText by remember(session, showBottomSheet) {
+        mutableStateOf(
+            if (eventToEdit != null && eventToEdit.route != Route.PATCH_APPLY &&
+                eventToEdit.route != Route.ANTIANDROGEN) {
+                val e2 = eventToEdit.doseMG * Ester.toE2Factor(eventToEdit.ester)
+                String.format("%.3f", e2)
+            } else if (defaults != null && defaults.doseMG > 0 &&
+                defaults.route != Route.ANTIANDROGEN) {
+                val e2 = defaults.doseMG * Ester.toE2Factor(defaults.ester)
+                String.format("%.3f", e2)
+            } else {
+                ""
+            }
+        )
+    }
+    var lastEditedField by remember(session, showBottomSheet) {
+        // When editing an existing record, treat raw dose as the source of truth to avoid
+        // floating-point precision loss from the E2-equivalence round-trip.
+        mutableStateOf<DoseField>(if (eventToEdit != null) DoseField.RAW else DoseField.E2) 
+    }
+
+    // 贴片相关状态
+    var patchMode by remember(session, showBottomSheet) {
+        mutableStateOf(
+            if (eventToEdit?.extras?.containsKey(ExtraKey.RELEASE_RATE_UG_PER_DAY) == true)
+                PatchMode.RATE 
+            else if (eventToEdit == null && defaults != null)
+                defaults.patchMode
+            else 
+                PatchMode.DOSE
+        ) 
+    }
+    var patchRateText by remember(session, showBottomSheet) {
+        mutableStateOf(
+            eventToEdit?.extras?.get(ExtraKey.RELEASE_RATE_UG_PER_DAY)?.toString()
+                ?: (if (defaults != null && defaults.patchRateUgPerDay > 0) defaults.patchRateUgPerDay.toString() else "")
+        ) 
+    }
+
+    // 舌下相关状态
+    var sublingualTier by remember(session, showBottomSheet) {
+        mutableStateOf(
+            eventToEdit?.extras?.get(ExtraKey.SUBLINGUAL_TIER)?.toInt()?.let { tier ->
+                SublingualTier.values().getOrElse(tier) { SublingualTier.STANDARD }
+            } ?: defaults?.sublingualTier ?: SublingualTier.STANDARD
+        )
+    }
+
+    // 根据给药途径过滤可用的酯类
+    val availableEsters = remember(selectedRoute) {
+        getAvailableEstersForRoute(selectedRoute)
+    }
+
+    // 如果当前选择的酯类不在可用列表中，自动切换到第一个
+    LaunchedEffect(selectedRoute, availableEsters) {
+        if (selectedEster !in availableEsters) {
+            selectedEster = availableEsters.firstOrNull() ?: Ester.E2
+        }
+    }
+
+    // 剂量互相转换
+    LaunchedEffect(rawDoseText, selectedEster, lastEditedField) {
+        if (lastEditedField == DoseField.RAW && rawDoseText.isNotEmpty()) {
+            rawDoseText.toDoubleOrNull()?.let { raw ->
+                val e2Equiv = raw * Ester.toE2Factor(selectedEster)
+                e2DoseText = String.format("%.3f", e2Equiv)
+            }
+        }
+    }
+
+    LaunchedEffect(e2DoseText, selectedEster, lastEditedField) {
+        if (lastEditedField == DoseField.E2 && e2DoseText.isNotEmpty()) {
+            e2DoseText.toDoubleOrNull()?.let { e2 ->
+                val raw = e2 / Ester.toE2Factor(selectedEster)
+                rawDoseText = String.format("%.3f", raw)
+            }
+        }
+    }
+
+    if (showBottomSheet) {
+        BackHandler(onBack = { if (!isOperationRunning) onDismiss() })
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("record-editor-surface"),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            // IME 跟随完全交给框架：windowInsetsPadding(safeDrawing) 缩小可视区，
+            // 焦点字段由框架 BringIntoView 一次性带入视口。
+            // 不再手写 snapshotFlow + animateScrollTo（该逻辑会与框架滚动并发排队，
+            // 产生二次缓动 = 真机可见的“回弹”）。
+            val scrollState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 20.dp, bottom = 24.dp)
+                    .verticalScroll(scrollState)
+                    .testTag("record-editor-scroll")
+            ) {
+                // 标题
+                Text(
+                    text = if (eventToEdit != null) stringResource(R.string.record_sheet_edit_title) else stringResource(R.string.record_sheet_add_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                // 时间选择
+                DateTimeSection(
+                    selectedDateTime = selectedDateTime,
+                    onDateClick = { showDatePicker = true },
+                    onTimeClick = { showTimePicker = true },
+                    is24Hour = is24Hour
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 给药途径选择
+                RouteSelector(
+                    selectedRoute = selectedRoute,
+                    onRouteSelected = { selectedRoute = it }
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 药物类型选择（雌激素途径）/ 抗雄药物类型选择（抗雄途径）
+                when (selectedRoute) {
+                    Route.ANTIANDROGEN -> AntiAndrogenSelector(
+                        selectedAntiAndrogen = selectedAntiAndrogen,
+                        onAntiAndrogenSelected = { selectedAntiAndrogen = it }
+                    )
+                    else -> EsterSelector(
+                        selectedEster = selectedEster,
+                        availableEsters = availableEsters,
+                        onEsterSelected = { selectedEster = it }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 剂量输入（根据给药途径和模式显示不同内容）
+                // 贴片移除不需要剂量输入
+                when {
+                    selectedRoute == Route.PATCH_REMOVE -> {
+                        // 不显示剂量输入
+                    }
+                    selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> {
+                        PatchRateInput(
+                            rateText = patchRateText,
+                            onRateChange = { patchRateText = it },
+                            onModeChange = { patchMode = PatchMode.DOSE }
+                        )
+                    }
+                    selectedRoute == Route.PATCH_APPLY -> {
+                        PatchDoseInput(
+                            rawDoseText = rawDoseText,
+                            selectedEster = selectedEster,
+                            onRawDoseChange = {
+                                rawDoseText = it
+                                lastEditedField = DoseField.RAW
+                            },
+                            onModeChange = { patchMode = PatchMode.RATE }
+                        )
+                    }
+                    selectedRoute == Route.ANTIANDROGEN -> {
+                        AntiAndrogenDoseInput(
+                            rawDoseText = rawDoseText,
+                            onRawDoseChange = {
+                                rawDoseText = it
+                                lastEditedField = DoseField.RAW
+                            }
+                        )
+                    }
+                    else -> {
+                        DoseInputSection(
+                            rawDoseText = rawDoseText,
+                            e2DoseText = e2DoseText,
+                            selectedEster = selectedEster,
+                            onRawDoseChange = {
+                                rawDoseText = it
+                                lastEditedField = DoseField.RAW
+                            },
+                            onE2DoseChange = {
+                                e2DoseText = it
+                                lastEditedField = DoseField.E2
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 舌下含服特殊选项
+                AnimatedVisibility(visible = selectedRoute == Route.SUBLINGUAL) {
+                    Column {
+                        SublingualTierSelector(
+                            selectedTier = sublingualTier,
+                            onTierSelected = { sublingualTier = it }
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                if (operationError != null) {
+                    Text(
+                        text = operationError,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .testTag("record-error")
+                    )
+                }
+
+                val saveEnabled = when {
+                    isOperationRunning -> false
+                    selectedRoute == Route.PATCH_REMOVE -> true
+                    selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> {
+                        patchRateText.toDoubleOrNull()?.let { it > 0 } == true
+                    }
+                    else -> rawDoseText.toDoubleOrNull()?.let { it > 0 } == true
+                }
+                MedicationEditorActionRow(
+                    onDelete = if (eventToEdit != null && onDelete != null) {
+                        { onDelete(eventToEdit.id) }
+                    } else {
+                        null
+                    },
+                    onCancel = onDismiss,
+                    onSave = {
+                            val doseMG = when {
+                                selectedRoute == Route.PATCH_REMOVE -> 0.0
+                                selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE -> 0.0
+                                else -> rawDoseText.toDoubleOrNull() ?: 0.0
+                            }
+
+                            val extras = requireNotNull(session).original.extras.toMutableMap()
+                            
+                            // 添加贴片释放速率
+                            if (selectedRoute == Route.PATCH_APPLY && patchMode == PatchMode.RATE) {
+                                patchRateText.toDoubleOrNull()?.let {
+                                    extras[ExtraKey.RELEASE_RATE_UG_PER_DAY] = it
+                                }
+                            }
+                            
+                            // 添加舌下档位
+                            if (selectedRoute == Route.SUBLINGUAL) {
+                                extras[ExtraKey.SUBLINGUAL_TIER] = sublingualTier.ordinal.toDouble()
+                            }
+
+                            // 添加抗雄药物类型
+                            if (selectedRoute == Route.ANTIANDROGEN) {
+                                extras[ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.ordinal.toDouble()
+                            }
+
+                            onSave(
+                                DoseEventEditorInput(
+                                occurredAt = selectedDateTime.toInstant(),
+                                occurredAtEdited = occurredAtEdited,
+                                route = selectedRoute,
+                                doseMG = doseMG,
+                                ester = if (selectedRoute == Route.ANTIANDROGEN) Ester.E2 else selectedEster,
+                                extras = extras
+                                )
+                            )
+                    },
+                    actionsEnabled = !isOperationRunning,
+                    saveEnabled = saveEnabled,
+                    deleteTag = "record-delete",
+                    cancelTag = "record-cancel",
+                    saveTag = "record-save"
+                )
+            }
+        }
+    }
+
+    // Date Picker
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateTime.time
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val calendar = Calendar.getInstance().apply {
+                            timeInMillis = millis
+                            set(Calendar.HOUR_OF_DAY, selectedDateTime.hours)
+                            set(Calendar.MINUTE, selectedDateTime.minutes)
+                        }
+                        selectedDateTime = calendar.time
+                        occurredAtEdited = true
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.common_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // Time Picker
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = selectedDateTime.hours,
+            initialMinute = selectedDateTime.minutes,
+            is24Hour = is24Hour
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val calendar = Calendar.getInstance().apply {
+                        time = selectedDateTime
+                        set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                        set(Calendar.MINUTE, timePickerState.minute)
+                    }
+                    selectedDateTime = calendar.time
+                    occurredAtEdited = true
+                    showTimePicker = false
+                }) {
+                    Text(stringResource(R.string.common_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
+            text = {
+                TimePicker(state = timePickerState)
+            }
+        )
+    }
+}
+
+/**
+ * 日期时间选择部分
+ *
+ * 自适应布局：用 TextMeasurer 按当前字体缩放实测两段文本的真实宽度，
+ * 与可用宽度比较后决定并排（Row）还是堆叠（Column）。
+ * 文本永远单行（maxLines=1, softWrap=false），不缩小字号、不用负边距、
+ * 不写死任何设备宽度。
+ */
+@Composable
+private fun DateTimeSection(
+    selectedDateTime: Date,
+    onDateClick: () -> Unit,
+    onTimeClick: () -> Unit,
+    is24Hour: Boolean = true
+) {
+    val locale = LocalLocale.current.platformLocale
+    val dateText = SimpleDateFormat("yyyy-MM-dd", locale).format(selectedDateTime)
+    val timeText = SimpleDateFormat(
+        if (is24Hour) "HH:mm" else "hh:mm a",
+        locale
+    ).format(selectedDateTime)
+
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_time_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val textMeasurer = rememberTextMeasurer()
+            val textStyle = MaterialTheme.typography.bodyLarge
+            val density = LocalDensity.current
+            // 每张卡片除文本外的固定占用：内边距 16*2 + 图标 24 + 间隔 12
+            val cardOverhead = with(density) { (16 * 2 + 24 + 12).dp.toPx() }
+            val cardSpacing = with(density) { 12.dp.toPx() }
+            val availablePx = with(density) { maxWidth.toPx() }
+            val widestTextPx = maxOf(
+                textMeasurer.measure(dateText, textStyle).size.width,
+                textMeasurer.measure(timeText, textStyle).size.width
+            ).toFloat()
+            // 并排时每卡分得 (可用宽 - 卡间距) / 2；实测文本 + 固定占用放得下才并排
+            val fitsSideBySide =
+                widestTextPx + cardOverhead <= (availablePx - cardSpacing) / 2f
+
+            if (fitsSideBySide) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DateTimeCard(
+                        icon = Icons.Default.CalendarToday,
+                        text = dateText,
+                        onClick = onDateClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                    DateTimeCard(
+                        icon = Icons.Default.Schedule,
+                        text = timeText,
+                        onClick = onTimeClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DateTimeCard(
+                        icon = Icons.Default.CalendarToday,
+                        text = dateText,
+                        onClick = onDateClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    DateTimeCard(
+                        icon = Icons.Default.Schedule,
+                        text = timeText,
+                        onClick = onTimeClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DateTimeCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
+}
+
+/**
+ * 给药途径选择器
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RouteSelector(
+    selectedRoute: Route,
+    onRouteSelected: (Route) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_route_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        var expanded by remember { mutableStateOf(false) }
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = getRouteDisplayName(selectedRoute),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                leadingIcon = {
+                    Icon(getRouteIcon(selectedRoute), contentDescription = null)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                Route.values().forEach { route ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(getRouteIcon(route), contentDescription = null)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(getRouteDisplayName(route))
+                            }
+                        },
+                        onClick = {
+                            onRouteSelected(route)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 药物类型选择器
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EsterSelector(
+    selectedEster: Ester,
+    availableEsters: List<Ester>,
+    onEsterSelected: (Ester) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_ester_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        var expanded by remember { mutableStateOf(false) }
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = getEsterDisplayName(selectedEster),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                availableEsters.forEach { ester ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    getEsterDisplayName(ester),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Text(
+                                    ester.fullName(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        onClick = {
+                            onEsterSelected(ester)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 剂量输入部分
+ */
+@Composable
+private fun DoseInputSection(
+    rawDoseText: String,
+    e2DoseText: String,
+    selectedEster: Ester,
+    onRawDoseChange: (String) -> Unit,
+    onE2DoseChange: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_dose_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val rawDoseLabel = if (selectedEster == Ester.E2) {
+            stringResource(R.string.record_sheet_dose_label)
+        } else {
+            stringResource(R.string.record_sheet_dose_label_with_ester, selectedEster.name)
+        }
+        val equivalentDoseLabel = stringResource(R.string.record_sheet_e2_equivalent_label)
+        val showEquivalentDose = selectedEster != Ester.E2
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = rawDoseLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+                    .testTag("record-dose-label")
+            )
+            if (showEquivalentDose) {
+                Text(
+                    text = equivalentDoseLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp)
+                        .testTag("record-e2-dose-label")
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = rawDoseText,
+                onValueChange = onRawDoseChange,
+                singleLine = true,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = rawDoseLabel }
+                    .testTag("record-dose"),
+                trailingIcon = {
+                    Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
+                }
+            )
+
+            if (showEquivalentDose) {
+                OutlinedTextField(
+                    value = e2DoseText,
+                    onValueChange = onE2DoseChange,
+                    singleLine = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = equivalentDoseLabel }
+                        .testTag("record-e2-dose"),
+                    trailingIcon = {
+                        Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
+                    }
+                )
+            }
+        }
+
+        // 显示转换因子提示
+        if (selectedEster != Ester.E2) {
+            Text(
+                text = stringResource(R.string.record_sheet_conversion_factor, String.format("%.4f", Ester.toE2Factor(selectedEster))),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
+/**
+ * 贴片剂量输入
+ */
+@Composable
+private fun PatchDoseInput(
+    rawDoseText: String,
+    selectedEster: Ester,
+    onRawDoseChange: (String) -> Unit,
+    onModeChange: () -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.record_sheet_patch_total_dose),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(onClick = onModeChange) {
+                Text(stringResource(R.string.record_sheet_switch_to_rate))
+            }
+        }
+
+        OutlinedTextField(
+            value = rawDoseText,
+            onValueChange = onRawDoseChange,
+            label = { Text(stringResource(R.string.record_sheet_total_dose_label)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
+            }
+        )
+    }
+}
+
+/**
+ * 贴片释放速率输入
+ */
+@Composable
+private fun PatchRateInput(
+    rateText: String,
+    onRateChange: (String) -> Unit,
+    onModeChange: () -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.record_sheet_patch_rate),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(onClick = onModeChange) {
+                Text(stringResource(R.string.record_sheet_switch_to_total_dose))
+            }
+        }
+
+        OutlinedTextField(
+            value = rateText,
+            onValueChange = onRateChange,
+            label = { Text(stringResource(R.string.record_sheet_rate_label)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                Text(stringResource(R.string.unit_ug_per_day), style = MaterialTheme.typography.bodySmall)
+            }
+        )
+
+        Text(
+            text = stringResource(R.string.record_sheet_rate_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+        )
+    }
+}
+
+/**
+ * 舌下吸收等级选择器
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SublingualTierSelector(
+    selectedTier: SublingualTier,
+    onTierSelected: (SublingualTier) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_sublingual_tier_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val tiers = SublingualTier.values()
+        ButtonGroup(modifier = Modifier.fillMaxWidth()) {
+            tiers.forEachIndexed { index, tier ->
+                val interactionSource = remember(tier) { MutableInteractionSource() }
+                ToggleButton(
+                    checked = selectedTier == tier,
+                    onCheckedChange = { onTierSelected(tier) },
+                    modifier = Modifier
+                        .weight(1f)
+                        .animateWidth(interactionSource),
+                    interactionSource = interactionSource,
+                    shapes = when {
+                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        index == tiers.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    }
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = getSublingualTierName(tier),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (selectedTier == tier) FontWeight.Bold else FontWeight.Normal
+                        )
+                        Text(
+                            text = getSublingualTierDescription(tier),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ===== 辅助函数 =====
+
+private enum class DoseField {
+    RAW, E2
+}
+
+enum class PatchMode {
+    DOSE, RATE
+}
+
+/**
+ * 根据给药途径获取可用的酯类列表
+ */
+private fun getAvailableEstersForRoute(route: Route): List<Ester> {
+    return when (route) {
+        Route.INJECTION -> listOf(Ester.E2, Ester.EB, Ester.EV, Ester.EC, Ester.EN)
+        Route.ORAL -> listOf(Ester.E2, Ester.EV)
+        Route.SUBLINGUAL -> listOf(Ester.E2, Ester.EV)
+        Route.GEL -> listOf(Ester.E2)
+        Route.PATCH_APPLY, Route.PATCH_REMOVE -> listOf(Ester.E2)
+        Route.ANTIANDROGEN -> listOf(Ester.E2) // 抗雄药物使用E2作为占位符
+    }
+}
+
+/**
+ * 获取酯类的显示名称
+ */
+@Composable
+private fun getEsterDisplayName(ester: Ester): String {
+    return when (ester) {
+        Ester.E2 -> stringResource(R.string.record_sheet_ester_e2)
+        Ester.EB -> stringResource(R.string.record_sheet_ester_eb)
+        Ester.EV -> stringResource(R.string.record_sheet_ester_ev)
+        Ester.EC -> stringResource(R.string.record_sheet_ester_ec)
+        Ester.EN -> stringResource(R.string.record_sheet_ester_en)
+    }
+}
+
+/**
+ * 获取舌下吸收等级名称
+ */
+@Composable
+private fun getSublingualTierName(tier: SublingualTier): String {
+    return when (tier) {
+        SublingualTier.QUICK -> stringResource(R.string.sublingual_tier_quick)
+        SublingualTier.CASUAL -> stringResource(R.string.sublingual_tier_casual)
+        SublingualTier.STANDARD -> stringResource(R.string.sublingual_tier_standard)
+        SublingualTier.STRICT -> stringResource(R.string.sublingual_tier_strict)
+    }
+}
+
+/**
+ * 获取舌下吸收等级描述
+ */
+@Composable
+private fun getSublingualTierDescription(tier: SublingualTier): String {
+    return when (tier) {
+        SublingualTier.QUICK -> stringResource(R.string.sublingual_tier_quick_desc)
+        SublingualTier.CASUAL -> stringResource(R.string.sublingual_tier_casual_desc)
+        SublingualTier.STANDARD -> stringResource(R.string.sublingual_tier_standard_desc)
+        SublingualTier.STRICT -> stringResource(R.string.sublingual_tier_strict_desc)
+    }
+}
+
+/**
+ * 抗雄药物类型选择器
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AntiAndrogenSelector(
+    selectedAntiAndrogen: AntiAndrogen,
+    onAntiAndrogenSelected: (AntiAndrogen) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_antiandrogen_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        var expanded by remember { mutableStateOf(false) }
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = getAntiAndrogenDisplayName(selectedAntiAndrogen),
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                AntiAndrogen.values().forEach { aa ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    getAntiAndrogenDisplayName(aa),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        },
+                        onClick = {
+                            onAntiAndrogenSelected(aa)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 抗雄药物剂量输入（无E2等效换算）
+ */
+@Composable
+private fun AntiAndrogenDoseInput(
+    rawDoseText: String,
+    onRawDoseChange: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.record_sheet_dose_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        OutlinedTextField(
+            value = rawDoseText,
+            onValueChange = onRawDoseChange,
+            label = { Text(stringResource(R.string.record_sheet_dose_label)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            trailingIcon = {
+                Text(stringResource(R.string.unit_mg), style = MaterialTheme.typography.bodySmall)
+            }
+        )
+    }
+}
+
+// ============================================================================
+// Previews
+// ============================================================================
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(name = "新增用药记录", showBackground = true)
+@Composable
+private fun PreviewMedicationRecordBottomSheetAdd() {
+    EvoluneTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                // 模拟表单内容
+                Text(
+                    text = "添加用药记录",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                // 日期时间部分
+                Text(
+                    text = "给药时间",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ElevatedCard(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(SimpleDateFormat("yyyy-MM-dd", LocalLocale.current.platformLocale).format(Date()))
+                        }
+                    }
+                    ElevatedCard(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(SimpleDateFormat("HH:mm", LocalLocale.current.platformLocale).format(Date()))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 给药途径
+                Text(
+                    text = "给药途径",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = "肌肉注射",
+                    onValueChange = {},
+                    readOnly = true,
+                    leadingIcon = { Icon(getRouteIcon(Route.INJECTION), contentDescription = null) },
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 药物类型
+                Text(
+                    text = "药物类型",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = "EV - 戊酸雌二醇",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // 剂量输入
+                Text(
+                    text = "药物剂量",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedTextField(
+                        value = "5.0",
+                        onValueChange = {},
+                        label = { Text("EV 剂量 (mg)") },
+                        trailingIcon = { Text("mg", style = MaterialTheme.typography.bodySmall) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = "3.82",
+                        onValueChange = {},
+                        label = { Text("等效 E2 (mg)") },
+                        trailingIcon = { Text("mg", style = MaterialTheme.typography.bodySmall) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 按钮
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {},
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("取消")
+                    }
+                    Button(
+                        onClick = {},
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("保存")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(name = "编辑注射记录", showBackground = true)
+@Composable
+private fun PreviewMedicationRecordBottomSheetEditInjection() {
+    EvoluneTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "编辑用药记录",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                Text(
+                    text = "给药时间",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ElevatedCard(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(SimpleDateFormat("yyyy-MM-dd", LocalLocale.current.platformLocale).format(Date(System.currentTimeMillis() - 7 * 24 * 3600000)))
+                        }
+                    }
+                    ElevatedCard(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("14:30")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = "肌肉注射",
+                    onValueChange = {},
+                    label = { Text("给药途径") },
+                    readOnly = true,
+                    leadingIcon = { Icon(getRouteIcon(Route.INJECTION), contentDescription = null) },
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = "EV - 戊酸雌二醇",
+                    onValueChange = {},
+                    label = { Text("药物类型") },
+                    readOnly = true,
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = "5.0",
+                        onValueChange = {},
+                        label = { Text("EV 剂量 (mg)") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = "3.82",
+                        onValueChange = {},
+                        label = { Text("等效 E2 (mg)") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = {},
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("删除")
+                    }
+                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("取消")
+                    }
+                    Button(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("保存")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(name = "编辑舌下记录", showBackground = true)
+@Composable
+private fun PreviewMedicationRecordBottomSheetEditSublingual() {
+    EvoluneTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "编辑用药记录",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                OutlinedTextField(
+                    value = "舌下含服",
+                    onValueChange = {},
+                    label = { Text("给药途径") },
+                    readOnly = true,
+                    leadingIcon = { Icon(getRouteIcon(Route.SUBLINGUAL), contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = "E2 - 雌二醇",
+                    onValueChange = {},
+                    label = { Text("药物类型") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = "1.0",
+                    onValueChange = {},
+                    label = { Text("剂量 (mg)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "舌下吸收等级",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                val previewTiers = listOf("快速" to "~2分钟", "随意" to "~5分钟", "标准" to "~10分钟", "严格" to "~15分钟")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                ) {
+                    previewTiers.forEachIndexed { index, (name, desc) ->
+                        ToggleButton(
+                            checked = index == 2,
+                            onCheckedChange = {},
+                            modifier = Modifier.weight(1f),
+                            shapes = when {
+                                index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                index == previewTiers.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            }
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                Text(name, style = MaterialTheme.typography.labelMedium)
+                                Text(desc, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = {},
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("删除")
+                    }
+                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("取消")
+                    }
+                    Button(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("保存")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(name = "编辑贴片记录（释放速率）", showBackground = true)
+@Composable
+private fun PreviewMedicationRecordBottomSheetEditPatchRate() {
+    EvoluneTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "编辑用药记录",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                OutlinedTextField(
+                    value = "贴片贴上",
+                    onValueChange = {},
+                    label = { Text("给药途径") },
+                    readOnly = true,
+                    leadingIcon = { Icon(getRouteIcon(Route.PATCH_APPLY), contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = "E2 - 雌二醇",
+                    onValueChange = {},
+                    label = { Text("药物类型") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "贴片释放速率",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    TextButton(onClick = {}) {
+                        Text("切换到总剂量")
+                    }
+                }
+
+                OutlinedTextField(
+                    value = "50",
+                    onValueChange = {},
+                    label = { Text("释放速率") },
+                    trailingIcon = { Text("µg/天", style = MaterialTheme.typography.bodySmall) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text(
+                    text = "输入贴片标称的释放速率（如 50, 100 µg/天）",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = {},
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("删除")
+                    }
+                    OutlinedButton(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("取消")
+                    }
+                    Button(onClick = {}, modifier = Modifier.weight(1f)) {
+                        Text("保存")
+                    }
+                }
+            }
+        }
+    }
+}

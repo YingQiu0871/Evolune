@@ -19,6 +19,14 @@ local.properties
 
 debugkeystore.jks
 
+# Local release signing material
+*.jks
+*.keystore
+*.p12
+*.pfx
+signing.properties
+release-signing.properties
+
 .idea
 
 # Local debug builds

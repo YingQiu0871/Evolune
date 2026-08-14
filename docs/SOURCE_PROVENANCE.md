@@ -8,6 +8,10 @@
 
 Dependency and asset license text is maintained separately in [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 
+## Public identity continuity
+
+Evolune is currently maintained by 盈秋 under the GitHub identity [`YingQiu0871`](https://github.com/YingQiu0871), with the public repository at [`YingQiu0871/Evolune`](https://github.com/YingQiu0871/Evolune). Earlier Evolune development commits were authored under the GitHub identity `Yuning-Gu`; those immutable author and repository records remain part of the historical provenance.
+
 ## Evolune-maintained / apparently new work
 
 Work added after the direct HRTTracker upstream baseline includes the Room v3 architecture, repository/domain boundaries, migration and recovery handling, Wear write pipeline, replay/idempotency policy, release verification documents, and later UI/runtime integration. Git history identifies the contributing commits and authors. The root MIT statement covers Evolune-owned work; it does not purport to relicense separately sourced material.
@@ -49,7 +53,7 @@ Evolune's current estradiol pharmacokinetic implementation materially traces to 
 
 ## Third-party assets
 
-- `app/src/main/java/io/github/yuninggu/evolune/ui/icons/TablerIcons.kt` contains a shipped Tabler Icons vector. Its full Paweł Kuna MIT notice is preserved in source and in `THIRD_PARTY_NOTICES.md`.
+- `app/src/main/java/io/github/yingqiu0871/evolune/ui/icons/TablerIcons.kt` contains a shipped Tabler Icons vector. Its full Paweł Kuna MIT notice is preserved in source and in `THIRD_PARTY_NOTICES.md`.
 - Phone launcher and notification artwork trace through Git history to the direct MIT HRTTracker baseline.
 - Wear tile icon and tile preview were added by the Evolune maintainer in commit `959aa93fcd5fa1f2fddda252c3f28b8fc1cba52b`; they are repository-native vector resources.
 - The release APKs contain no bundled fonts, screenshots, promotional images, or sample-media payloads.

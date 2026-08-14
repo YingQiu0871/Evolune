@@ -2,8 +2,8 @@
 
 > 面向 Android 与 Wear OS 的激素用药记录、提醒和浓度趋势工具。
 
-[![Build Debug APK](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml)
-[![GitHub Downloads](https://img.shields.io/github/downloads/Yuning-Gu/Evolune/total?style=flat&logo=github&label=Downloads)](https://github.com/Yuning-Gu/Evolune/releases)
+[![Build Debug APK](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml)
+[![GitHub Downloads](https://img.shields.io/github/downloads/YingQiu0871/Evolune/total?style=flat&logo=github&label=Downloads)](https://github.com/YingQiu0871/Evolune/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../LICENSE)
 
 Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具。它用于记录日常用药、管理周期方案、安排提醒，并通过药代动力学模型展示雌二醇浓度的历史与预测趋势。所有个人记录默认保存在本机。
@@ -34,7 +34,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ### GitHub Actions 构建
 
-当前可以从 [Actions 页面](https://github.com/Yuning-Gu/Evolune/actions) 获取最新 Debug APK：
+当前可以从 [Actions 页面](https://github.com/YingQiu0871/Evolune/actions) 获取最新 Debug APK：
 
 1. 打开最近一次成功的 `Build Debug APK` 工作流。
 2. 在页面底部的 Artifacts 区域下载 APK 压缩包。
@@ -42,7 +42,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ### 正式版本
 
-正式发布版本会出现在 [Releases 页面](https://github.com/Yuning-Gu/Evolune/releases)。如果页面暂时没有版本，请使用 Actions 构建产物。
+正式发布版本会出现在 [Releases 页面](https://github.com/YingQiu0871/Evolune/releases)。如果页面暂时没有版本，请使用 Actions 构建产物。
 
 > Debug 与 Release 使用不同的应用 ID 和签名，可以同时安装，但数据不会自动互通。
 
@@ -60,7 +60,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 - JDK 17
 - Android SDK 36
-- Git（版本名通过 `git describe` 生成）
+- Git（可用于 Debug 构建诊断；Release 版本固定为公开语义版本）
 
 Windows：
 
@@ -127,7 +127,7 @@ reviews/  外部审阅报告和逐项处置记录
 - 灵感来源：[SmirnovaOyama/Oyama-s-HRT-Tracker](https://github.com/SmirnovaOyama/Oyama-s-HRT-Tracker)
 - PK 参考实现：[LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)
 
-Evolune 是 HRTTracker 的独立延续与大规模重构。当前 Git 历史直接继承 `upstream/master` 的 MIT 基线，同时使用独立包名 `io.github.yuninggu.evolune`；继承关系及上游许可边界详见 [来源追踪记录](../SOURCE_PROVENANCE.md)。
+Evolune 是 HRTTracker 的独立延续与大规模重构。当前由 盈秋（[`YingQiu0871`](https://github.com/YingQiu0871)）维护，公共仓库为 [`YingQiu0871/Evolune`](https://github.com/YingQiu0871/Evolune)。Git 历史直接继承 `upstream/master` 的 MIT 基线，公开包名为 `io.github.yingqiu0871.evolune`；继承关系、早期公开身份和上游许可边界详见 [来源追踪记录](../SOURCE_PROVENANCE.md)。
 
 当前发布树不包含 Featherline/`feiwuliyong` 源码、补丁或专属资源。相关 GPLv3 历史材料仅存在于受保护的本地证据和内部 checkpoint ref；不得发布所有本地 ref、完整对象库或未过滤的全仓库 bundle。
 

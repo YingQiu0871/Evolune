@@ -9,7 +9,7 @@
 
     <application>
         <service
-            android:name="io.github.yuninggu.evolune.testime.ProbeTestIme"
+            android:name="io.github.yingqiu0871.evolune.testime.ProbeTestIme"
             android:exported="true"
             android:label="Evolune Probe Test IME"
             android:permission="android.permission.BIND_INPUT_METHOD">

@@ -4,7 +4,7 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 > Evolune 仅用于学习、研究和个人记录，不构成诊断、处方或治疗建议。
 
-[![Build Debug APK](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/Yuning-Gu/Evolune/actions/workflows/apkdebug.yml)
+[![Build Debug APK](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 完整的产品说明、构建步骤、隐私边界和致谢见 [项目详细说明](docs/evolune/README.md)。

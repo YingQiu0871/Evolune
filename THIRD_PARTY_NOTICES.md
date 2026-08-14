@@ -49,7 +49,7 @@ Official terms: <https://developer.android.com/studio/terms.html>. Evolune does 
 
 ### Tabler Icons
 
-`app/src/main/java/io/github/yuninggu/evolune/ui/icons/TablerIcons.kt` includes the Tabler `gender-androgyne` vector and is compiled into the phone application. The vector is used in modified Kotlin/ImageVector form.
+`app/src/main/java/io/github/yingqiu0871/evolune/ui/icons/TablerIcons.kt` includes the Tabler `gender-androgyne` vector and is compiled into the phone application. The vector is used in modified Kotlin/ImageVector form.
 
 MIT License
 
