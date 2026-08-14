@@ -92,7 +92,6 @@ wear/build/outputs/apk/debug/wear-debug.apk
 app/   Android 手机端、桌面小组件、提醒、数据存储与药代动力学模型
 wear/  Wear OS 磁贴、方案缓存与手机数据同步
 docs/  产品、架构、功能矩阵、迁移计划、路线图和决策记录
-feiwuliyong/  Featherline 迁移资料包，仅作为受许可证约束的参考资料
 reviews/  外部审阅报告和逐项处置记录
 ```
 
@@ -101,7 +100,7 @@ reviews/  外部审阅报告和逐项处置记录
 ## 数据与隐私
 
 - 用药记录、方案和设置保存在设备本地。
-- 应用本身尚未实现主动云同步，但当前 Android Auto Backup 范围仍未确定；这是进入下一开发阶段前必须解决的隐私阻断项。
+- 应用本身尚未实现主动云同步。
 - 网络权限用于检查 GitHub 上的新版本。
 - 导出的数据文件由用户自行保存和管理。
 - 当前数据库使用 Room 默认存储，尚未启用 SQLCipher 或其他数据库加密方案。
@@ -128,15 +127,17 @@ reviews/  外部审阅报告和逐项处置记录
 - 灵感来源：[SmirnovaOyama/Oyama-s-HRT-Tracker](https://github.com/SmirnovaOyama/Oyama-s-HRT-Tracker)
 - PK 参考实现：[LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)
 
-Evolune 参考了上游 HRTTracker 的公开产品需求和代码演进背景。当前工作区中的 `upstream/master` 实际为单一 `app` 模块，包名为 `cn.naivetomcat.hrt_tracker`；Evolune 使用独立包名 `io.github.yuninggu.evolune`，不应把迁移资料中的 GPLv3 Featherline 源码直接复制到本项目。
+Evolune 是 HRTTracker 的独立延续与大规模重构。当前 Git 历史直接继承 `upstream/master` 的 MIT 基线，同时使用独立包名 `io.github.yuninggu.evolune`；继承关系及上游许可边界详见 [来源追踪记录](../SOURCE_PROVENANCE.md)。
 
-`feiwuliyong/` 是来自 Featherline 的迁移资料包，其中的源码快照和补丁按包内来源说明受 GPLv3 约束。该资料包不是 Evolune 的构建模块，也不是可直接应用的补丁集合。
+当前发布树不包含 Featherline/`feiwuliyong` 源码、补丁或专属资源。相关 GPLv3 历史材料仅存在于受保护的本地证据和内部 checkpoint ref；不得发布所有本地 ref、完整对象库或未过滤的全仓库 bundle。
 
-当前致谢只表示候选来源或产品参考关系，不证明具体代码血缘。逐文件结论以 [来源追踪模板](../SOURCE_PROVENANCE.md) 的人工核验为准。
+**PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 的 HRT-Recorder-PKcomponent-Test。项目已保留归属说明，但来源审查未找到明确的仓库许可证或许可授权；项目已向原作者请求明确许可，回复仍在等待中。本说明仅记录来源，不构成许可授权。项目所有者已决定在准确披露这一待定风险的前提下继续准备 v1.0 发布。
+
+灵感项目和科学资料的列举仅表示引用或事实参考，不自动证明代码、文本或资源复用。完整结论见 [来源追踪记录](../SOURCE_PROVENANCE.md)。
 
 ## 许可证
 
-本项目采用 [MIT License](../../LICENSE)。项目通知见 [NOTICE](../../NOTICE)。
+根 [MIT License](../../LICENSE) 适用于 Evolune 自有工作及按兼容条款继承的内容；另行引入的第三方组件和待定来源项目不因此自动成为 MIT。项目通知见 [NOTICE](../../NOTICE)，依赖与图标许可见 [THIRD_PARTY_NOTICES](../../THIRD_PARTY_NOTICES.md)。
 
 ## 文档索引
 
@@ -147,5 +148,6 @@ Evolune 参考了上游 HRTTracker 的公开产品需求和代码演进背景。
 - [迁移计划](MIGRATION_PLAN.md)
 - [路线图](ROADMAP.md)
 - [架构决策记录](DECISIONS.md)
-- [来源追踪模板](../SOURCE_PROVENANCE.md)
+- [来源追踪记录](../SOURCE_PROVENANCE.md)
+- [第三方许可证与通知](../../THIRD_PARTY_NOTICES.md)
 - [DeepSeek 审阅处置记录](../../reviews/REVIEW_DISPOSITION_V1.md)

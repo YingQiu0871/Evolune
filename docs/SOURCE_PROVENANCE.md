@@ -1,69 +1,75 @@
-# Evolune 来源追踪模板
+# Evolune Source Provenance
 
-**状态**：Phase 0 初始记录，仍待项目所有者逐项确认
+**Reviewed release commit:** `fbb9bafa1aaa605e6c59600203a177fcf957f74f`
 
-**用途**：记录进入 Evolune 构建、发布包、仓库文档或品牌资产的来源、许可证和处理决定。
+**Review date:** 2026-08-14
 
-**限制**：本文是工程来源台账，不是法律意见。无法确认的内容必须保持 `Pending`，不得用推测补全。
+**Purpose:** technical source-lineage and release-boundary record; not legal advice or a license grant.
 
-## 状态定义
+Dependency and asset license text is maintained separately in [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 
-- `Confirmed`：已有可复核的仓库、提交、许可证文件或书面授权证据。
-- `Partial`：只能确认项目级来源，尚未完成逐文件血缘核验。
-- `Pending`：需要项目所有者、原作者或历史提交进一步确认。
-- `Reference only`：只用于理解产品行为、公开 API 或测试目标，不复制代码、测试、图片、XML 或专属资源。
-- `Not used`：已核验没有进入 Evolune 构建或分发。
+## Evolune-maintained / apparently new work
 
-## 当前来源台账
+Work added after the direct HRTTracker upstream baseline includes the Room v3 architecture, repository/domain boundaries, migration and recovery handling, Wear write pipeline, replay/idempotency policy, release verification documents, and later UI/runtime integration. Git history identifies the contributing commits and authors. The root MIT statement covers Evolune-owned work; it does not purport to relicense separately sourced material.
 
-| 资产或范围 | 声称/候选来源 | 当前实际证据 | 许可证 | 使用状态 | 必需动作 | 复核人/日期 |
-|---|---|---|---|---|---|---|
-| Evolune 当前生产源码 | Evolune 历史提交与当前维护者 | 根 `LICENSE` 为 MIT，版权行为 `Copyright (c) 2026 Yitong Dang`；尚未完成逐文件历史核验 | MIT（项目声明） | Partial | 项目所有者确认历史贡献和现有文件是否均受该声明覆盖 | Pending |
-| `upstream/master` HRTTracker | `NaiveTomcat/HRTTracker` | 已核对的上游 `LICENSE` 为 MIT；当前 Evolune 各文件是否复制或演进自上游尚无逐文件记录 | MIT（上游仓库证据） | Partial | 对继承文件使用 Git history/blame 建立清单；确认需要保留的版权通知 | Pending |
-| PK 参考实现与参数 | `LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test` | `docs/evolune/README.md` 和历史文档声明为参考；`VD_PER_KG` 等参数缺少逐项来源证据 | Pending | Pending | 核实仓库许可证、引用范围、参数文献和是否存在代码复制 | Pending |
-| 产品灵感 | `SmirnovaOyama/Oyama-s-HRT-Tracker` | README 仅声明“灵感来源”，未形成代码/资源使用清单 | Pending | Pending | 确认仅为产品参考还是存在实际复用；按结果更新 NOTICE/README | Pending |
-| `feiwuliyong/02-source-snapshots`、`03-patches`、专属资源 | `mkx173/Featherline` 迁移资料 | `feiwuliyong/06-licenses/SOURCE-AND-LICENSE-NOTICE.md` 明确标记源码快照和补丁为 GPLv3 衍生成果 | GPL-3.0 | Reference only | 保持在资料区，不加入 Evolune 构建；独立实现时只使用行为和验收目标 | Pending |
-| `docs/legacy-specs/` 行为规格 | Clean-room 行为整理；参考范围来自 Featherline 迁移资料，但不复用源码、测试、资源或内部命名 | 初始快照由 Git 标签 `legacy-specs-v1` 固定；`reviews/LEGACY_SPEC_AUDIT_V1.md` 与 `LEGACY_SPEC_DISPOSITION_V1.md` 记录逐项审阅、阶段边界和删除内容 | 文档原创表达；参考资料为 GPL-3.0，禁止代码性复用 | Reference only | 只保留用户可观察行为、边界场景和独立验收目标；实现前再次核对目标阶段，不从规格反推旧项目类、package、schema 或视觉资源 | Codex / 2026-08-01 |
-| `branding/` 与 launcher 图标 | 当前 Evolune 品牌资产 | 工作树中存在品牌文件和新图标，但未见统一的作者、生成工具、原始提示或授权记录 | Pending | Pending | 记录每个最终发布资产的作者/工具、创建日期、源文件和授权 | Pending |
-| Gradle 第三方依赖 | AndroidX、Kotlin、Room、Compose、Wearable 等 | 版本定义存在于 `gradle/libs.versions.toml`；尚未生成发布依赖许可证清单 | 各依赖许可证 | Partial | 发布前生成依赖清单并复核打包 NOTICE 要求 | Pending |
+The existing maintainer line in `LICENSE` is useful and sufficient. Adding another maintainer copyright line is `UNNECESSARY`; no ownership transfer from upstream contributors is implied.
 
-## Phase 0 已确认的项目边界
+## Direct MIT upstream - HRTTracker
 
-- Android namespace/applicationId 保持 `io.github.yuninggu.evolune` 和 `io.github.yuninggu.evolune.wear`。
-- 手机与 Wear 的 Android Auto Backup、云备份和设备迁移规则均排除应用私有数据；跨设备迁移使用用户主动 JSON 导出/导入。
-- 根 `LICENSE`、根 `NOTICE` 和本文件只描述可复核的项目边界，不把候选来源或致谢自动认定为代码血缘。
-- `feiwuliyong/` 保持为参考资料区，不进入 Gradle 构建，不执行其中 patch。
+Evolune is an independent continuation and substantial re-engineering of [`NaiveTomcat/HRTTracker`](https://github.com/NaiveTomcat/HRTTracker).
 
-## 新增来源记录模板
+- Direct upstream baseline: `043fb2b2eae3b72b1af718b46bcba797ec6fe8dd` (`upstream/master`).
+- Reachability evidence: that commit is an ancestor of the reviewed release commit.
+- Upstream license evidence: the exact upstream `LICENSE` is MIT and contains `Copyright (c) 2026 Yitong Dang`.
+- Preservation: the inherited copyright and MIT permission notice remains in the root `LICENSE`.
 
-每次引入外部代码、文档、图片、字体、图标、数据、算法参数或测试向量时，复制下表并填写；没有证据时不得标记为 `Confirmed`。
+## Modified/inherited upstream material
 
-| 字段 | 内容 |
-|---|---|
-| Evolune 目标路径 | `path/to/file` |
-| 来源项目/作者 | Pending |
-| 来源 URL/仓库 | Pending |
-| 来源提交或版本 | Pending |
-| 原始文件路径 | Pending |
-| 引入方式 | 原创 / 修改 / 复制 / 生成 / 仅参考行为 |
-| 许可证/SPDX | Pending |
-| 版权通知要求 | Pending |
-| 修改摘要 | Pending |
-| 验证证据 | commit、hash、书面授权或工具记录 |
-| 审阅结论 | Confirmed / Partial / Pending / Reference only / Not used |
-| 审阅人和日期 | Pending |
+The application source, launcher artwork, notification icon, and other files that already existed at the upstream baseline have subsequently been renamed, moved, or substantially modified. They remain inherited MIT material plus later Evolune modifications. Git history, not a claim of from-scratch authorship, is the authoritative per-file record.
 
-## 合入门槛
+## Inspiration/reference projects
 
-1. `Pending` 的外部源码、补丁或专属资源不得进入 Evolune 构建和发布包。
-2. `Reference only` 只能转化为独立需求、接口约束和测试目标，不得保留原实现的表达、结构或资源。
-3. 复制或修改 MIT/BSD/Apache 等许可内容时，按原许可证保留所需版权和 NOTICE；项目根 MIT 文件不能替代第三方通知。
-4. GPLv3 内容若要进入 Evolune，必须先由项目所有者明确改变许可策略或取得兼容的单独授权，并更新所有发布文档。
-5. 发布前对本表、依赖清单、仓库跟踪文件和最终 APK/AAB 内容做一次交叉检查。
+[`SmirnovaOyama/Oyama-s-HRT-Tracker`](https://github.com/SmirnovaOyama/Oyama-s-HRT-Tracker) is cited as product/scientific inspiration. The reviewed release tree contains brief reference comments and a documentation link; the Batch 9A review found no copied image, chart, prose block, or separately derived source identified from that project. This is a citation/factual-reference boundary, not a code-license claim.
 
-## 待项目所有者确认
+## PK implementation provenance and pending permission
 
-- 当前 Evolune 生产源码与原 HRTTracker 的逐文件关系。
-- PK 参数、公式、测试向量和文案的原始来源。
-- `branding/`、launcher 图标和预览资产的作者与可分发权利。
-- 是否需要根级 `NOTICE`；应在上述事实确认后生成，而不是先写未经证实的归属。
+Evolune's current estradiol pharmacokinetic implementation materially traces to work published by LaoZhong-Mihari in [`HRT-Recorder-PKcomponent-Test`](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test).
+
+- Attribution is preserved.
+- No explicit repository-level license or permission grant was located during the completed provenance review.
+- Explicit permission has been requested from the original author; the response remains pending.
+- This provenance record is not itself a license grant and does not classify the PK implementation as MIT.
+- The project owner has elected to proceed with v1.0 while accurately disclosing this pending risk.
+
+`PK_PERMISSION_STATUS = PERMISSION_REQUESTED_RESPONSE_PENDING`
+
+`PK_PROVENANCE_RISK = OWNER_ACCEPTED_PENDING_PERMISSION`
+
+`PK_RELEASE_POLICY = PUBLIC_RELEASE_ALLOWED_WITH_DISCLOSED_PENDING_PROVENANCE_RISK`
+
+## Third-party assets
+
+- `app/src/main/java/io/github/yuninggu/evolune/ui/icons/TablerIcons.kt` contains a shipped Tabler Icons vector. Its full Paweł Kuna MIT notice is preserved in source and in `THIRD_PARTY_NOTICES.md`.
+- Phone launcher and notification artwork trace through Git history to the direct MIT HRTTracker baseline.
+- Wear tile icon and tile preview were added by the Evolune maintainer in commit `959aa93fcd5fa1f2fddda252c3f28b8fc1cba52b`; they are repository-native vector resources.
+- The release APKs contain no bundled fonts, screenshots, promotional images, or sample-media payloads.
+
+## Scientific/reference sources
+
+Scientific/project references, including the Oyama citation and public data-format compatibility references, are used as citations, factual context, or interoperability targets unless a more specific lineage entry says otherwise. No tracked release material marked CC BY-NC-SA, and no copied CC BY-NC-SA prose, image, chart, or derived code, was identified in this review. Citation alone does not alter Evolune's source license.
+
+## Archived/non-production reference material
+
+Featherline/`feiwuliyong` GPLv3 migration snapshots, patches, and dedicated assets are absent from the reviewed release tree. Historical discussion remains in older design/provenance records as evidence. The material itself is retained only in the protected local evidence root and the local tree ref:
+
+`refs/codex/turn-diffs/checkpoints/d22fd9bea88e7ca976e5ec988d9ad0418f270cc72b3480e8df82b02c995006c7/f705e54dfe1428b053535ebdbc4abfcc95dea271ebdac9512389e9864a9dc79f/1786291873064/16efa636-a14e-42a0-88f9-86dacf5f0e49`
+
+Read-only reachability analysis found no substantive Featherline/GPL blob reachable from release HEAD, `main`, existing tags, or origin's public remote-tracking branches. A generic seven-byte `.gitignore` blob is byte-identical across the trees; it is not Featherline source or a protected asset. The internal ref and full object database must not be published. See the Batch 9A publication-boundary report for the permitted publication pattern.
+
+## Release controls
+
+1. Publish only the explicitly reviewed release branch and a tag created from its approved sealing commit.
+2. Do not use `git push --all`, `git push --mirror`, unrestricted `git bundle --all`, or distribute the complete `.git` object database.
+3. Ship `THIRD_PARTY_NOTICES.md` with binary release materials or provide it as release documentation accompanying those binaries.
+4. Preserve the PK attribution and pending-permission wording until a separately authorized permission-closure review changes it.
+5. Keep the calibration branch separate from v1.0; it is not merged into the reviewed release commit.

@@ -1,18 +1,32 @@
 Evolune Notices
 ===============
 
-Evolune is distributed under the MIT License in LICENSE.
+Evolune-owned work is distributed under the MIT License in LICENSE. Evolune
+is an independent continuation and substantial re-engineering of
+NaiveTomcat/HRTTracker. The direct upstream commit in this history is
+043fb2b2eae3b72b1af718b46bcba797ec6fe8dd and is also distributed under the
+MIT License. The inherited copyright and permission notice is preserved in
+LICENSE.
 
-This repository contains a provenance record at docs/SOURCE_PROVENANCE.md.
-That record distinguishes verified project sources from references that are
-used only to understand product behavior or testing requirements. It does not
-replace the license notices of third-party dependencies.
+Separately sourced software and assets retain their own terms. Required
+license and attribution material is recorded in THIRD_PARTY_NOTICES.md, and
+source lineage is recorded in docs/SOURCE_PROVENANCE.md. These records do not
+change the license of Evolune-owned work or relicense third-party material.
 
-The feiwuliyong/ directory is a separately identified migration reference
-package. Its source snapshots, patches, and dedicated assets are not part of
-the Evolune build and must not be treated as Evolune source code. The package
-contains its own source and license notice.
+PK implementation provenance: Evolune's current estradiol pharmacokinetic
+implementation is materially derived from work published by LaoZhong-Mihari
+in HRT-Recorder-PKcomponent-Test. Attribution is preserved. No explicit
+repository license or permission grant was located during the completed
+provenance review. Explicit permission has been requested from the original
+author and the response remains pending. This notice records provenance and
+does not itself constitute a license grant. The project owner has elected to
+proceed with v1.0 while that request remains pending.
 
-Third-party libraries retain their respective copyright and license terms.
-The dependency license inventory must be checked before a release build is
-published.
+PK_PERMISSION_STATUS = PERMISSION_REQUESTED_RESPONSE_PENDING
+PK_RELEASE_RISK_DISPOSITION = OWNER_ACCEPTED_PENDING_PERMISSION
+
+Historical Featherline migration material exists only in protected local
+evidence and an internal checkpoint tree/ref. It is not present in, compiled
+from, or packaged by the intended release commit. Publication must be limited
+to the approved release branch/tag; internal refs and full-repository mirrors
+must not be published.
