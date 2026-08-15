@@ -7,26 +7,51 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 [![Build Debug APK](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-完整的产品说明、构建步骤、隐私边界和致谢见 [项目详细说明](docs/evolune/README.md)。
+## 获取 v1.0.0
+
+当前稳定版本是 **v1.0.0**，发布于 2026-08-15。
+
+[前往 Evolune v1.0.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
+
+Release 提供经过签名的 Phone APK 与 Wear APK。GitHub Actions 中的 Debug APK 仅供开发和测试，不是正式版本的主要下载渠道；Debug 与 Release 的应用 ID、签名和本地数据相互独立。
+
+## 已发布能力
+
+- 用药方案、用药记录、历史、提醒与通知签到
+- JSON 导入导出与 PK 浓度趋势展示
+- Room v3、稳定计划槽位及 Repository 数据边界
+- RemoteViews 手机桌面小组件与快速记录
+- Wear Tile、手机/手表 Data Layer 同步及幂等剂量动作
+- 自动更新检查
+
+Health Connect、Google 云备份、完整的未来 Wear/Widget 增强、Tracked Date 与个性化 PK/calibration 演进尚未实现。当前 Phone/Wear 私有数据明确排除于 Android Auto Backup 和设备迁移；跨设备迁移使用用户主动控制的 JSON 导出/导入。
+
+完整的产品说明、构建步骤、隐私边界和致谢见 [项目详细说明](docs/evolune/README.md)。当前发布与实现事实以 [Current Status](docs/evolune/CURRENT_STATUS.md) 为准。
 
 ## 文档
 
+### Current documentation
+
+- [Current Status](docs/evolune/CURRENT_STATUS.md)
+- [项目详细说明](docs/evolune/README.md)
 - [产品概览](docs/evolune/PRODUCT_OVERVIEW.md)
-- [架构设计](docs/evolune/ARCHITECTURE.md)
+- [架构](docs/evolune/ARCHITECTURE.md)
 - [功能矩阵](docs/evolune/FEATURE_MATRIX.md)
-- [迁移计划](docs/evolune/MIGRATION_PLAN.md)
 - [路线图](docs/evolune/ROADMAP.md)
 - [架构决策记录](docs/evolune/DECISIONS.md)
+
+### Provenance / licensing
+
 - [来源追踪记录](docs/SOURCE_PROVENANCE.md)
+- [NOTICE](NOTICE)
 - [第三方许可证与通知](THIRD_PARTY_NOTICES.md)
-- [DeepSeek 审阅处置记录](reviews/REVIEW_DISPOSITION_V1.md)
 
-## 当前边界
+### Historical design / evidence
 
-- 当前构建模块为 `app` 和 `wear`；Wear 端已有 Tile 和基础设备传输，但尚无目标版本协议或完整 Wear App。
-- Health Connect、云同步、加密备份和正式 Tracked Date 模型尚未实现。
-- 当前发布树不包含 Featherline/`feiwuliyong` 源码、补丁或专属资源；相关历史材料仅保存在受保护的本地证据和内部 ref 中，不得随发布分发。
-- Android Auto Backup 和设备迁移规则排除手机与 Wear 的应用私有数据；用户应通过 JSON 导出/导入完成主动迁移。
+- [Pre-v1 Migration Plan](docs/evolune/MIGRATION_PLAN.md)
+- [Phase 0 Report](docs/PHASE_0_REPORT.md)
+- [Phase 1 reports](docs/phase-reports/)
+- [External review records](reviews/)
 
 ## 来源与许可证
 
@@ -34,4 +59,4 @@ Evolune 是 [NaiveTomcat/HRTTracker](https://github.com/NaiveTomcat/HRTTracker) 
 
 **PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 发布的 [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)。2026-08-14，原作者明确授权 Evolune 使用、复制、修改、移植、二次开发、分发修改后的源代码和编译后的应用，并将相应衍生代码按 MIT License 开源发布；授权仅覆盖作者本人拥有相关权利或有权授权的内容。项目继续保留来源及相关贡献者的归属、版权和许可说明。该授权不表示整个上游仓库自动变为 MIT，不表示作者代表第三方贡献者授予权利，也不表示上游仓库已经新增正式 `LICENSE` 文件。
 
-根 [MIT License](LICENSE) 适用于 Evolune 自有工作、按兼容条款继承的内容，以及上述明确授权范围内按 MIT 发布的相应衍生代码；它不将整个上游仓库或第三方贡献自动重新许可为 MIT。详见 [NOTICE](NOTICE)、[来源追踪记录](docs/SOURCE_PROVENANCE.md) 与 [第三方许可证与通知](THIRD_PARTY_NOTICES.md)。
+根 [MIT License](LICENSE) 适用于 Evolune 自有工作、按兼容条款继承的内容，以及上述明确授权范围内按 MIT 发布的相应衍生代码；它不将整个上游仓库或第三方贡献自动重新许可为 MIT。

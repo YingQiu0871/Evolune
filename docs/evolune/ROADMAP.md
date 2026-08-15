@@ -1,74 +1,78 @@
 # 路线图
 
-优先级：P0 为阻断性问题，P1 为 MVP 必需，P2 为 1.0 建议，P3 为后续优化。
+本路线图从已发布的 v1.0.0 向后规划。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
 
-## MVP
+## Released
 
-### 必需功能
+### v1.0.0 — 2026-08-15
 
-- P0：明确许可证来源、包名、备份规则和隐私声明。
-- P1：稳定的 `MedicationPlan`、`DoseEvent`、计划槽位和本地 Room 数据。
-- P1：手机记录、历史、导入导出和通知提醒。
-- P1：当前 Wear Tile 的可靠快照同步和重复动作保护。
-- P1：PK 估算继续明确标注为估算。
+首个公开稳定版本已经封存并发布，release commit 为 `780f167074cc737954c884d375825ef95db605c7`。
 
-### 暂不纳入
+主要范围：
 
-- P2：Tracked Date 暂定进入 1.0，需产品所有者确认；在确认前不进入 MVP 或 Phase 1 数据库迁移。
-- Health Connect 写入。
-- Google Drive 或实时云同步。
-- 大规模多模块重构一次性落地。
+- Phone/Wear 公共应用身份、持久 Release signing 与经过验证的签名 APK
+- 用药方案、稳定 scheduled-dose slots、用药事件、历史和提醒
+- Room v3、schema export、严格 v2-to-v3 migration 与修复工具
+- Repository/data boundary、domain/entity mapping 和 PK adapter
+- Mahiro JSON v1 导入导出
+- PK 估算与浓度图
+- RemoteViews Phone Widget 及快速记录
+- Wear Tile/Data Layer、dose action 持久化优先、重放/幂等/冲突处理
+- Phone/Wear 私有数据的 Android backup/device-transfer 排除规则
+- 更新检查、来源与第三方通知、明确的公开发布边界
 
-## 1.0
+`v1.0.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
 
-### 必需功能
+## Next
 
-- P1：版本化 Wear 协议、离线队列和重连同步。
-- P1（1.0）：基础 Wear App，至少支持查看下一次用药、今日状态和快速记录；当前 Tile 不等同于完整 Wear App。
-- P1：Room schema 导出、迁移测试和备份规则。
-- P1：主要流程的无障碍、中文/英文资源和真实设备验证。
+### v1.1 — Wear OS + Phone Widget Enhancement
 
-### 有价值但可延后
+第一步：**Wear / Widget Gap Audit**。
 
-- P2（1.0，待产品确认）：正式 `TrackedDate` 模型、日历和统计入口。
-- P2：只读 Glance 小组件试点。
-- P2：本地加密备份。
+Gap Audit 应根据 v1.0 真实设备行为、自动化测试和用户流程，识别并排序：
 
-## 1.x
+- Wear Tile、缓存、离线/重试反馈和手机配对流程的实际差距
+- 当前 `/hrt/*` transport 是否需要版本化 envelope、ack 或兼容策略
+- 是否需要以及需要多少 Wear application surface
+- Phone Widget 的尺寸、布局、快速动作、配置、隐私和 OEM Launcher 差距
+- 可观测性、无障碍、功耗和设备矩阵要求
 
-- P2：Health Connect 体重读取和明确的权限/来源状态。
-- P2：Health Connect 用药写入的能力评估和可选实现。
-- P2：Glance medium/large widget 和配置体验。
-- P2：Wear Complication，前提是信息密度和耗电可接受。
-- P2：历史统计、趋势筛选和导入格式版本升级。
+Audit 完成后再锁定 v1.1 scope。当前路线图不预先决定 Glance、具体协议格式、完整 Wear UI 或 Complication 必须进入 v1.1。
 
-## 长期规划
+## Planned
 
-- P3：可插拔同步 Provider。
-- P3：端到端加密备份和多设备冲突预览。
-- P3：Google Drive appData、用户可见文件或 WebDAV 的小范围实验。
-- P3：更多 Wear 设备形态和桌面端只读查看。
+### v1.2 — Health Connect + Google cloud backup
 
-## 暂缓功能
+v1.2 由两个独立 batch 组成，不作为一个耦合实现：
 
-- P3：实时云同步。对个人用药记录而言，离线本地记录和可恢复备份的收益更高。
-- P3：复杂自建同步服务。需要持续运维、账户体系和安全响应。
-- P3：同时支持多个数据库加密后端。迁移成本和故障面暂时不值得。
-- P3：为每个功能建立独立 Gradle module。应由依赖边界和测试需求驱动。
+#### Health Connect batch
 
-## 实验性功能
+- 定义明确的数据类型和用户价值，优先评估显式授权的体重读取
+- 保持 Room 为核心事实来源
+- 覆盖未授权、撤权、provider 不可用、来源与单位映射
+- 将任何用药写入/PHR 能力作为单独评估项
 
-- Glance 与当前 RemoteViews 并行试点。
-- Health Connect PHR/FHIR 药物记录写入。
-- Wear 48 小时曲线和更高密度的手表仪表盘。
-- 加密云快照的冲突预览。
+#### Google cloud backup batch
 
-## 过度设计警告
+- 先定义版本化、加密、可验证的备份格式
+- 明确密钥生命周期、损坏/错误密钥行为、恢复预览与冲突处理
+- 再接入用户明确授权的 Google provider
+- 不把 cloud backup、实时同步和 Wear Data Layer 混为同一边界
 
-以下做法可能降低收益：
+每个 batch 必须能够独立验收和推迟，不允许一个集成阻塞另一个已完成能力。
 
-1. 在核心模型尚未稳定时先引入 Hilt、SQLCipher、Drive、Glance 和多模块。
-2. 把 Health Connect 作为数据库替代品。
-3. 为了“实时”而持续轮询 Wear 或云端。
-4. 把估算曲线做成医疗结论或自动用药建议。
-5. 复制迁移包中现成的完整架构，而不验证其与 Evolune 的模型和许可证是否兼容。
+## Later / Deferred
+
+- Personalized PK / calibration evolution，包括 PK 2.0；需独立科学、来源和回归评估
+- Tracked Date；仍需产品决策和领域语义设计
+- Repository rehousing 与 `D:\Evolune` protected-root retirement；需要单独、可验证的迁移批次
+- 由测试隔离和构建收益驱动的 Gradle module extraction
+- SQLCipher 或其他数据库透明加密；先完成威胁模型、迁移与密钥恢复设计
+- 更丰富的历史统计、筛选、Wear 设备形态或桌面只读能力
+
+## 永久边界
+
+- 不把 PK 估算描述为实验室结果、诊断或治疗建议。
+- 不静默上传健康或用药数据。
+- 不以未来功能破坏 v1.0 schema、稳定 ID、JSON 兼容或 sealed release history。
+- 不扩大已记录的 PK permission scope；始终保留来源和贡献者 attribution。
