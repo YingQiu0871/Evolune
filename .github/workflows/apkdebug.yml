@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew --no-daemon :wear:assembleDebug
 
       - name: Upload App and Wear Debug APKs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: evolune-debug-apks
           path: |
