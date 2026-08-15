@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.WearableListenerService
 import androidx.wear.tiles.TileService
 
@@ -15,30 +16,83 @@ class WearPlanListenerService : WearableListenerService() {
                     it.dataItem.uri.path == PLANS_PATH
             }
             .forEach { event ->
-                val plansJson = DataMapItem.fromDataItem(event.dataItem)
-                    .dataMap
-                    .getString(KEY_PLANS_JSON)
-                    ?: "[]"
-                val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
-                val current = dataMap.getDouble(
-                    KEY_CURRENT_CONCENTRATION,
-                    Double.NaN
-                ).takeIf { it.isFinite() }
-                val curveValues = dataMap.getFloatArray(KEY_CURVE_VALUES)
-                    ?: floatArrayOf()
-                val updatedAt = dataMap.getLong(KEY_UPDATED_AT, 0L)
-                WearPlanStore.saveDashboard(
-                    this,
-                    plansJson,
-                    current,
-                    curveValues,
-                    updatedAt
-                )
-                Log.d(TAG, "Received plans from phone: $plansJson")
+                applySnapshot(event.dataItem)
             }
 
         TileService.getUpdater(this)
             .requestUpdate(DoseTileService::class.java)
+    }
+
+    override fun onPeerConnected(peer: Node) {
+        WearSyncManager.requestPlansFromPhone(applicationContext, force = true)
+    }
+
+    override fun onPeerDisconnected(peer: Node) {
+        WearSyncManager.markPeerDisconnected(applicationContext)
+    }
+
+    private fun applySnapshot(dataItem: com.google.android.gms.wearable.DataItem) {
+        val receivedAt = System.currentTimeMillis()
+        val dataMap = runCatching {
+            DataMapItem.fromDataItem(dataItem).dataMap
+        }.getOrNull()
+        if (dataMap == null) {
+            rejectSnapshot(receivedAt)
+            return
+        }
+
+        val plansJson = runCatching {
+            if (dataMap.containsKey(KEY_PLANS_JSON)) {
+                dataMap.getString(KEY_PLANS_JSON)
+            } else {
+                null
+            }
+        }.getOrNull()
+        val current = runCatching {
+            dataMap.getDouble(KEY_CURRENT_CONCENTRATION, Double.NaN)
+                .takeIf { it.isFinite() }
+        }.getOrNull()
+        val curveValues = runCatching {
+            dataMap.getFloatArray(KEY_CURVE_VALUES)?.toList().orEmpty()
+        }.getOrDefault(emptyList())
+        val updatedAt = runCatching {
+            dataMap.getLong(KEY_UPDATED_AT, 0L)
+        }.getOrDefault(0L)
+
+        when (
+            val result = applyWearSnapshot(
+                previousDashboard = WearPlanStore.getDashboard(this),
+                plansJson = plansJson,
+                currentConcentration = current,
+                curveValues = curveValues,
+                dashboardUpdatedAt = updatedAt
+            )
+        ) {
+            is WearSnapshotApplyResult.Applied -> {
+                val metadata = WearPlanStore.getSyncMetadata(this)
+                if (!snapshotCompletesPending(metadata, result.dashboard.updatedAt)) {
+                    Log.d(TAG, "Ignored dashboard older than pending request")
+                    return
+                }
+                WearPlanStore.saveDashboard(
+                    context = this,
+                    plansJson = requireNotNull(plansJson),
+                    dashboard = result.dashboard,
+                    snapshotReceivedAt = receivedAt
+                )
+                Log.d(TAG, "Received ${result.dashboard.plans.size} plan(s) from phone")
+            }
+            is WearSnapshotApplyResult.Rejected -> rejectSnapshot(receivedAt)
+        }
+    }
+
+    private fun rejectSnapshot(failedAt: Long) {
+        WearPlanStore.markSyncFailure(
+            context = this,
+            failedAt = failedAt,
+            connectionState = WearConnectionState.CONNECTED
+        )
+        Log.w(TAG, "Rejected invalid dashboard snapshot from phone")
     }
 
     private companion object {

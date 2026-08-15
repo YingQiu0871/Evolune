@@ -2,6 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+val evoluneApplicationId: String by rootProject.extra
+val evoluneWearNamespace: String by rootProject.extra
+val evoluneDebugSuffix: String by rootProject.extra
+val evoluneVersionName: String by rootProject.extra
+val evoluneWearVersionCode: Int by rootProject.extra
+
 val releaseSigningVariableNames = listOf(
     "EVOLUNE_KEYSTORE_PATH",
     "EVOLUNE_KEYSTORE_PASSWORD",
@@ -32,7 +38,7 @@ gradle.taskGraph.whenReady {
 }
 
 android {
-    namespace = "io.github.yingqiu0871.evolune.wear"
+    namespace = evoluneWearNamespace
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -51,11 +57,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.yingqiu0871.evolune.wear"
+        applicationId = evoluneApplicationId
         minSdk = 30
         targetSdk = 36
-        versionCode = 10060
-        versionName = "1.0.0"
+        versionCode = evoluneWearVersionCode
+        versionName = evoluneVersionName
     }
 
     buildTypes {
@@ -66,7 +72,7 @@ android {
             }
         }
         getByName("debug") {
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = evoluneDebugSuffix
             versionNameSuffix = "-debug"
         }
     }
@@ -85,5 +91,6 @@ dependencies {
     implementation(libs.androidx.wear.protolayout.expression)
     implementation(libs.play.services.wearable)
     implementation(libs.guava)
+    implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
 }

@@ -5,6 +5,11 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val evoluneApplicationId: String by rootProject.extra
+val evoluneDebugSuffix: String by rootProject.extra
+val evoluneVersionName: String by rootProject.extra
+val evolunePhoneVersionCode: Int by rootProject.extra
+
 val releaseSigningVariableNames = listOf(
     "EVOLUNE_KEYSTORE_PATH",
     "EVOLUNE_KEYSTORE_PASSWORD",
@@ -35,7 +40,7 @@ gradle.taskGraph.whenReady {
 }
 
 android {
-    namespace = "io.github.yingqiu0871.evolune"
+    namespace = evoluneApplicationId
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -54,11 +59,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.yingqiu0871.evolune"
+        applicationId = evoluneApplicationId
         minSdk = 31
         targetSdk = 36
-        versionCode = 10060
-        versionName = "1.0.0"
+        versionCode = evolunePhoneVersionCode
+        versionName = evoluneVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -77,7 +82,7 @@ android {
             }
         }
         getByName("debug") {
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = evoluneDebugSuffix
             versionNameSuffix = "-debug"
         }
     }

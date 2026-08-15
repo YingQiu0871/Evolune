@@ -13,6 +13,9 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 当前发布与实现边界以 [Current Status](CURRENT_STATUS.md) 为准。
 
+> [!NOTE]
+> v1.1 开发版正在修复 v1.0 的 Phone/Wear Data Layer 应用身份不一致问题。v1.1 的 Phone 与 Wear 安装包使用同一应用 ID；Wear Kotlin namespace 保持独立。已安装 v1.0 Wear APK 的用户需要执行一次卸载/重装，Phone 应用及其 Room 数据不受影响。详见 [Wear v1.1 身份迁移说明](WEAR_V11_MIGRATION.md)。
+
 ## 当前稳定版本
 
 **Evolune v1.0.0** 已于 2026-08-15 发布。请从 [Evolune v1.0.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0) 下载经过签名的 Phone APK 与 Wear APK。
@@ -124,6 +127,7 @@ Evolune 是 HRTTracker 的独立延续与大规模重构。当前由盈秋（[`Y
 ### Current documentation
 
 - [Current Status](CURRENT_STATUS.md)
+- [Wear v1.1 身份迁移说明](WEAR_V11_MIGRATION.md)
 - [产品概览](PRODUCT_OVERVIEW.md)
 - [架构](ARCHITECTURE.md)
 - [功能矩阵](FEATURE_MATRIX.md)

@@ -21,6 +21,14 @@ The `v1.0.0` tag and its published Release are sealed. Development after v1.0 co
 
 Both targets use `versionName = 1.0.0` and `versionCode = 10060` in the stable release. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
 
+## v1.1 Development State
+
+The `v1.1/wear-identity-repair` development line repairs the v1.0 Wear Data Layer identity mismatch. Phone and Wear v1.1 use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
+
+Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
+
+Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cannot update in place to the v1.1 Wear package. See [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md) for the one-time uninstall/reinstall procedure. The Phone package and Phone data are unaffected.
+
 ## Shipped v1.0 Capabilities
 
 - Local medication plans with stable, ordered scheduled-dose slots.
@@ -69,7 +77,7 @@ This scoped permission does not relicense the entire upstream repository, grant 
 
 ## Next Milestones
 
-- `v1.1`: Wear OS + Phone Widget Enhancement. The first step is a Wear / Widget Gap Audit that will lock the implementation scope.
+- `v1.1`: Wear OS + Phone Widget Enhancement. Wear identity/Data Layer repair is in development; later Wear/Widget scope remains separately gated.
 - `v1.2`: Health Connect and Google cloud backup, delivered as separate batches.
 
 See the [Roadmap](ROADMAP.md) for later and deferred work.
