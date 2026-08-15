@@ -1,7 +1,6 @@
 package io.github.yingqiu0871.evolune.wear
 
 import android.content.Context
-import org.json.JSONArray
 
 data class WearPlan(
     val id: String,
@@ -49,31 +48,40 @@ object WearPlanStore {
     private const val KEY_CURRENT_CONCENTRATION = "current_concentration"
     private const val KEY_CURVE_VALUES = "curve_values"
     private const val KEY_UPDATED_AT = "updated_at"
+    private const val KEY_SNAPSHOT_RECEIVED_AT = "snapshot_received_at"
+    private const val KEY_CONNECTION_STATE = "connection_state"
+    private const val KEY_PENDING_SINCE = "pending_since"
+    private const val KEY_PENDING_AFTER_UPDATED_AT = "pending_after_updated_at"
+    private const val KEY_LAST_FAILURE_AT = "last_failure_at"
 
     fun saveDashboard(
         context: Context,
         plansJson: String,
-        currentConcentration: Double?,
-        curveValues: FloatArray,
-        updatedAt: Long
+        dashboard: WearDashboard,
+        snapshotReceivedAt: Long
     ) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
             .edit()
             .putString(KEY_PLANS_JSON, plansJson)
             .apply {
-                if (currentConcentration != null) {
+                if (dashboard.currentConcentration != null) {
                     putString(
                         KEY_CURRENT_CONCENTRATION,
-                        currentConcentration.toString()
+                        dashboard.currentConcentration.toString()
                     )
                 } else {
                     remove(KEY_CURRENT_CONCENTRATION)
                 }
                 putString(
                     KEY_CURVE_VALUES,
-                    curveValues.joinToString(",")
+                    dashboard.curveValues.joinToString(",")
                 )
-                putLong(KEY_UPDATED_AT, updatedAt)
+                putLong(KEY_UPDATED_AT, dashboard.updatedAt)
+                putLong(KEY_SNAPSHOT_RECEIVED_AT, snapshotReceivedAt)
+                putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
+                remove(KEY_PENDING_SINCE)
+                remove(KEY_PENDING_AFTER_UPDATED_AT)
+                remove(KEY_LAST_FAILURE_AT)
             }
             .apply()
     }
@@ -83,39 +91,198 @@ object WearPlanStore {
             PREFERENCES_NAME,
             Context.MODE_PRIVATE
         )
-        val raw = preferences.getString(KEY_PLANS_JSON, "[]") ?: "[]"
-
-        val plans = runCatching {
-            val array = JSONArray(raw)
-            buildList {
-                for (index in 0 until minOf(array.length(), 2)) {
-                    val item = array.getJSONObject(index)
-                    add(
-                        WearPlan(
-                            id = item.getString("id"),
-                            name = item.getString("name"),
-                            doseMG = item.getDouble("doseMG")
-                        )
-                    )
-                }
-            }
-        }.getOrDefault(emptyList())
-        return WearDashboard(
-            plans = plans,
-            currentConcentration = preferences
-                .getString(KEY_CURRENT_CONCENTRATION, null)
-                ?.toDoubleOrNull(),
-            curveValues = preferences
-                .getString(KEY_CURVE_VALUES, null)
-                ?.split(',')
-                ?.mapNotNull { it.toFloatOrNull() }
-                .orEmpty(),
-            updatedAt = preferences.getLong(KEY_UPDATED_AT, 0L)
-        )
+        val current = preferences
+            .getString(KEY_CURRENT_CONCENTRATION, null)
+            ?.toDoubleOrNull()
+        val curve = preferences
+            .getString(KEY_CURVE_VALUES, null)
+            ?.split(',')
+            ?.mapNotNull { it.toFloatOrNull() }
+            .orEmpty()
+        return when (
+            val result = applyWearSnapshot(
+                previousDashboard = null,
+                plansJson = preferences.getString(KEY_PLANS_JSON, null),
+                currentConcentration = current,
+                curveValues = curve,
+                dashboardUpdatedAt = preferences.getLong(KEY_UPDATED_AT, 0L)
+            )
+        ) {
+            is WearSnapshotApplyResult.Applied -> result.dashboard
+            is WearSnapshotApplyResult.Rejected -> WearDashboard(
+                plans = emptyList(),
+                currentConcentration = null,
+                curveValues = emptyList(),
+                updatedAt = 0L
+            )
+        }
     }
 
     fun getPlans(context: Context): List<WearPlan> =
         getDashboard(context).plans
+
+    fun getPresentationState(
+        context: Context,
+        dashboard: WearDashboard,
+        nowMillis: Long
+    ): WearDashboardState = deriveWearDashboardState(
+        dashboard = dashboard,
+        metadata = getSyncMetadata(context),
+        nowMillis = nowMillis
+    )
+
+    internal fun getSyncMetadata(context: Context): WearSyncMetadata {
+        val preferences = context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+        val snapshotReceivedAt = preferences.getLong(KEY_SNAPSHOT_RECEIVED_AT, 0L)
+        return WearSyncMetadata(
+            hasValidSnapshot = snapshotReceivedAt > 0L,
+            snapshotReceivedAt = snapshotReceivedAt,
+            connectionState = runCatching {
+                WearConnectionState.valueOf(
+                    preferences.getString(
+                        KEY_CONNECTION_STATE,
+                        WearConnectionState.UNKNOWN.name
+                    ) ?: WearConnectionState.UNKNOWN.name
+                )
+            }.getOrDefault(WearConnectionState.UNKNOWN),
+            pendingSince = preferences.getLong(KEY_PENDING_SINCE, 0L),
+            pendingAfterDashboardUpdatedAt = preferences.getLong(
+                KEY_PENDING_AFTER_UPDATED_AT,
+                0L
+            ),
+            lastFailureAt = preferences.getLong(KEY_LAST_FAILURE_AT, 0L)
+        )
+    }
+
+    fun markConnected(context: Context): Boolean {
+        val preferences = context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+        val wasConnected = preferences.getString(
+            KEY_CONNECTION_STATE,
+            WearConnectionState.UNKNOWN.name
+        ) == WearConnectionState.CONNECTED.name
+        if (!wasConnected) {
+            preferences.edit()
+                .putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
+                .apply()
+        }
+        return !wasConnected
+    }
+
+    fun markNotConnected(context: Context) {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_CONNECTION_STATE, WearConnectionState.DISCONNECTED.name)
+            .remove(KEY_PENDING_SINCE)
+            .remove(KEY_PENDING_AFTER_UPDATED_AT)
+            .remove(KEY_LAST_FAILURE_AT)
+            .apply()
+    }
+
+    fun markSyncPending(
+        context: Context,
+        pendingSince: Long,
+        pendingAfterDashboardUpdatedAt: Long
+    ) {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
+            .putLong(KEY_PENDING_SINCE, pendingSince)
+            .putLong(
+                KEY_PENDING_AFTER_UPDATED_AT,
+                pendingAfterDashboardUpdatedAt
+            )
+            .remove(KEY_LAST_FAILURE_AT)
+            .apply()
+    }
+
+    internal fun markSyncFailure(
+        context: Context,
+        failedAt: Long,
+        connectionState: WearConnectionState
+    ) {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_CONNECTION_STATE, connectionState.name)
+            .remove(KEY_PENDING_SINCE)
+            .remove(KEY_PENDING_AFTER_UPDATED_AT)
+            .putLong(KEY_LAST_FAILURE_AT, failedAt)
+            .apply()
+    }
+
+    fun markSyncFailureIfPending(
+        context: Context,
+        expectedPendingSince: Long,
+        failedAt: Long
+    ): Boolean {
+        val preferences = context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+        if (preferences.getLong(KEY_PENDING_SINCE, 0L) != expectedPendingSince) {
+            return false
+        }
+        preferences.edit()
+            .remove(KEY_PENDING_SINCE)
+            .remove(KEY_PENDING_AFTER_UPDATED_AT)
+            .putLong(KEY_LAST_FAILURE_AT, failedAt)
+            .apply()
+        return true
+    }
+
+    fun completePendingIfNewerSnapshot(
+        context: Context,
+        expectedPendingSince: Long
+    ): Boolean {
+        val preferences = context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+        if (preferences.getLong(KEY_PENDING_SINCE, 0L) != expectedPendingSince) {
+            return false
+        }
+        val pendingAfterUpdatedAt = preferences.getLong(
+            KEY_PENDING_AFTER_UPDATED_AT,
+            0L
+        )
+        if (preferences.getLong(KEY_UPDATED_AT, 0L) <= pendingAfterUpdatedAt) {
+            return false
+        }
+        preferences.edit()
+            .remove(KEY_PENDING_SINCE)
+            .remove(KEY_PENDING_AFTER_UPDATED_AT)
+            .apply()
+        return true
+    }
+
+    fun markTimedOutIfPending(
+        context: Context,
+        expectedPendingSince: Long,
+        nowMillis: Long
+    ): Boolean {
+        val preferences = context.getSharedPreferences(
+            PREFERENCES_NAME,
+            Context.MODE_PRIVATE
+        )
+        val pendingSince = preferences.getLong(KEY_PENDING_SINCE, 0L)
+        if (
+            pendingSince != expectedPendingSince ||
+            nowMillis - pendingSince < SYNC_TIMEOUT_MILLIS
+        ) {
+            return false
+        }
+        preferences.edit()
+            .remove(KEY_PENDING_SINCE)
+            .remove(KEY_PENDING_AFTER_UPDATED_AT)
+            .putLong(KEY_LAST_FAILURE_AT, nowMillis)
+            .apply()
+        return true
+    }
 
     fun markSent(context: Context, planId: String, sentAt: Long) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -153,7 +320,7 @@ object WearPlanStore {
             Context.MODE_PRIVATE
         )
         val lastRequestedAt = preferences.getLong(KEY_LAST_REQUESTED_AT, 0L)
-        if (nowMillis - lastRequestedAt < 15_000L) return false
+        if (nowMillis - lastRequestedAt < REQUEST_THROTTLE_MILLIS) return false
         markPlansRequested(context, nowMillis)
         return true
     }

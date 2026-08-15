@@ -57,20 +57,25 @@ class DoseTileService : TileService() {
 
     private fun buildTile(requestParams: RequestBuilders.TileRequest): Tile {
         WearSyncManager.requestPlansFromPhone(this)
+        val dashboard = WearPlanStore.getDashboard(this)
+        val plans = dashboard.plans
+        val nowMillis = System.currentTimeMillis()
+        val dashboardState = WearPlanStore.getPresentationState(
+            this,
+            dashboard,
+            nowMillis
+        )
         val selectedPlanId = requestParams.currentState.stateMap[SELECTED_PLAN_KEY]
-        if (!selectedPlanId.isNullOrBlank()) {
-            enqueueDoseAction(selectedPlanId)
+        if (canSendDoseAction(dashboardState, selectedPlanId, plans)) {
+            enqueueDoseAction(requireNotNull(selectedPlanId))
             WearPlanStore.markSent(
                 this,
                 selectedPlanId,
-                System.currentTimeMillis()
+                nowMillis
             )
             scheduleSentFeedbackClear()
         }
 
-        val dashboard = WearPlanStore.getDashboard(this)
-        val plans = dashboard.plans
-        val nowMillis = System.currentTimeMillis()
         val lastSentPlanId = WearPlanStore.recentSentPlanId(
             this,
             nowMillis,
@@ -109,10 +114,10 @@ class DoseTileService : TileService() {
                                 .build()
                         )
                     }
-                    if (plans.isEmpty()) {
+                    if (dashboardState != WearDashboardState.READY) {
                         column.addContent(
                             text(
-                                "请先在手机端启用用药方案".layoutString,
+                                requireNotNull(dashboardState.displayMessage()).layoutString,
                                 typography = BODY_MEDIUM,
                                 maxLines = 2
                             )
