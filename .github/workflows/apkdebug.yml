@@ -1,84 +1,49 @@
 name: Build Debug APK
 
-env:
-  # The name of the main module repository
-  main_project_module: app
-
-  # The name of the Play Store
-  playstore_name: Evolune
-
 on:
-
   push:
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository and fetch all history
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
         with:
-          fetch-depth: 0
+          distribution: zulu
+          java-version: "21"
+          cache: gradle
 
-      - name: Check git describe
-        run: git describe --tags --always
-
-      - name: Set app version
-        run: echo "app_version=$(git describe --tags --always)" >> $GITHUB_ENV
-
-      # Set Current Date As Env Variable
-      - name: Set current date as env variable
-        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-
-      # Set Repository Name As Env Variable
-      - name: Set repository name as env variable
-        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
-
-      - name: Set Up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu' # See 'Supported distributions' for available options
-          java-version: '17'
-          cache: 'gradle'
-
-      
-      - name: Generate debug keystore
-        run: |
-          keytool -genkeypair \
-            -keystore app/debugkeystore.jks \
-            -storepass DEBUG1 \
-            -keypass DEBUG1 \
-            -alias DEBUG \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
-
-      - name: Change wrapper permissions
+      - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
-      # Run Tests Build
-      - name: Run gradle tests
-        run: ./gradlew test
+      - name: Run tests
+        run: ./gradlew --no-daemon test
 
-      # Run Build Project
-      - name: Build gradle project
-        run: ./gradlew build
+      - name: Build App Debug APK
+        run: ./gradlew --no-daemon :app:assembleDebug
 
-      # Create APK Debug
-      - name: Build apk debug project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew assembleDebug
+      - name: Build Wear Debug APK
+        run: ./gradlew --no-daemon :wear:assembleDebug
 
-
-      # Upload Artifact Build
-      # Noted For Output [main_project_module]/build/outputs/apk/debug/
-      - name: Upload APK Debug - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v4
+      - name: Upload App and Wear Debug APKs
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.app_version }} - APK(s) debug generated
-          path: ${{ env.main_project_module }}/build/outputs/apk/debug/
+          name: evolune-debug-apks
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            wear/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
