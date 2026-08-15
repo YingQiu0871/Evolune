@@ -1,194 +1,124 @@
-# 架构设计
+# 架构
 
-## 1. 现状与目标
+本文区分已发布的 v1.0 架构与未来演进方向。当前事实以 `main` 的 production source、v1.0 tagged source 和 [Current Status](CURRENT_STATUS.md) 为依据。
 
-### 当前状态：已确认
+## Current v1.0 Architecture
 
-当前仓库只有 `:app` 和 `:wear` 两个 Android application 模块。手机端的 UI、ViewModel、Repository、Room Entity、PK 模型、提醒和 RemoteViews 小组件都位于 `app`；Wear 端独立保存 Tile 状态，并通过 Google Play Services Wearable Data Layer 与手机通信。
+### 模块与逻辑边界
 
-### 目标状态：建议设计
-
-将公共领域模型、数据库、协议和平台适配从手机 UI 中拆出。迁移以新增边界和稳定接口为主，不要求一次性重写现有 app。
-
-## 2. 模块依赖
-
-```mermaid
-flowchart TD
-    app["app composition root"] --> featureMed["feature:medications"]
-    app --> featureSchedule["feature:schedule"]
-    app --> featureHistory["feature:history"]
-    app --> featureStats["feature:statistics"]
-    app --> featureSettings["feature:settings"]
-    app --> featureBackup["feature:backup"]
-    app --> widget["widget"]
-    app --> wearBridge["core:wear-bridge"]
-    app --> cloudSync["core:sync (future cloud only)"]
-    featureMed --> model["core:model"]
-    featureMed --> dataApi["core:data-api"]
-    featureSchedule --> model
-    featureSchedule --> dataApi
-    featureSchedule --> notifications["core:notifications"]
-    featureHistory --> model
-    featureHistory --> dataApi
-    featureStats --> model
-    featureStats --> dataApi
-    featureSettings --> common["core:common"]
-    featureSettings --> health["core:healthconnect"]
-    featureBackup --> dataApi
-    featureBackup --> common
-    widget --> dataApi
-    widget --> coreDesign["core:designsystem"]
-    wearBridge --> dataApi
-    wearBridge --> model
-    wearBridge --> protocol["core:wear-protocol"]
-    wear["wear"] --> protocol
-    wear --> model
-    coreDesign --> common
-    dataApi --> model
-    database["core:database"] --> dataApi
-    database --> model
-    health --> model
-    cloudSync --> dataApi
-    cloudSync --> common
-```
-
-图中的 `core:data-api` 是目标逻辑边界，不要求 Phase 0 立即创建 Gradle module。过渡期可以先在 `app` 中建立独立 package；创建模块后，feature 只依赖 Repository contract，`core:database` 反向实现这些 contract。`app` 作为 composition root 负责把实现注入 feature、Service、Receiver 和 Worker。
-
-### 依赖规则
-
-- UI feature 只能通过 Use Case 和 `core:data-api` 中的 Repository contract 访问数据，禁止依赖 Room Entity、DAO 或数据库工厂。
-- `core:model` 不依赖 Android、Room、Compose、Wearable 或 Health Connect。
-- `core:data-api` 只依赖 `core:model`，定义 Repository contract、查询结果和事务语义，不暴露 Room 类型。
-- `core:database` 依赖并实现 `core:data-api`，可以依赖 Room，禁止反向依赖 feature、Wear、Widget、Health Connect 或外部云平台。
-- `core:healthconnect` 可以依赖 `core:model` 和 Health Connect SDK，不能让 Health Connect 类型渗入核心模型。
-- `core:wear-protocol` 应保持纯 Kotlin/JVM 可测试，不能依赖手机 UI 或 Room。
-- `core:wear-bridge` 是手机侧 Wearable Data Layer 适配器，只负责配对设备的快照、命令和连接状态；它通过 Use Case/Repository contract 访问业务能力，不直接访问 DAO。
-- `wear` 依赖协议和领域 DTO，不依赖手机 `app` 的 Compose 屏幕。
-- `widget` 依赖只读快照接口和动作入口，不持有独立业务数据库。
-- `feature:backup` 负责用户主动触发的本地导出、恢复和恢复预览。
-- `core:sync` 仅保留给未来云 provider、多设备冲突和后台同步编排，不依赖 Wearable SDK，也不承担手机与手表通信。
-
-## 3. 模块职责
-
-| 模块 | 职责 | 允许依赖 | 禁止依赖 | 对外接口 |
-|---|---|---|---|---|
-| `app` | 启动、导航、依赖组装、权限 Activity | 所有 feature 和平台模块 | 业务实现堆积在 Activity | `MainActivity`、导航入口 |
-| `core:model` | 领域模型、值对象、状态和来源枚举 | Kotlin 标准库 | Android、Room、Compose | `MedicationPlan`、`DoseEvent`、`ScheduledDoseSlot` |
-| `core:data-api` | Repository contract、查询结果、事务和一致性语义 | `core:model` | Android、Room、UI、云/Wear SDK | `DoseEventRepository`、`MedicationPlanRepository` contract |
-| `core:database` | Room Entity、DAO、Repository 实现、schema 和迁移 | `core:data-api`、`core:model`、Room | UI、Health Connect、Wear、云 provider | Repository 实现、数据库工厂（仅 composition root 可见） |
-| `core:common` | 时间、结果类型、错误、序列化辅助 | Kotlin/少量 Android 基础 | 具体 feature | `Clock`、`AppError`、序列化配置 |
-| `core:designsystem` | Compose 色彩、组件、无障碍规范 | Compose、`core:common` | DAO、业务规则 | 主题和通用组件 |
-| `core:notifications` | 通知、提醒调度、重排和动作分发 | `core:model`、平台 API | UI、Wear UI | `ReminderScheduler`、`NotificationActionHandler` |
-| `core:healthconnect` | 权限、映射、读写同步、能力探测 | `core:model`、Health Connect | UI、Room Entity | `HealthConnectGateway`、同步结果 |
-| `core:wear-bridge` | 手机侧 Data Layer、快照发布、命令接收和连接状态 | `core:data-api`、`core:model`、`core:wear-protocol`、Wearable SDK | DAO、Room Entity、云 provider、OAuth | `WearSnapshotPublisher`、`WearCommandAdapter` |
-| `core:sync` | 未来云 Provider 抽象、同步状态、冲突和后台调度 | `core:data-api`、`core:common` | Wearable SDK、直接依赖 UI | `CloudSyncCoordinator`、`CloudSyncProvider` |
-| `core:wear-protocol` | 版本化消息、编码、校验和兼容策略 | Kotlin 标准库 | Android UI、Room | `WearEnvelope`、Codec、MessageType |
-| `feature:*` | 单一用户能力的 Use Case、状态和 UI | model、data-api、design system | DAO、Room Entity、其他 feature 的内部类 | Use Case、UiState、Screen |
-| `wear` | Wear App、Tile、离线队列和动作反馈 | model DTO、wear protocol | 手机 Compose、手机 DAO | Wear UI、Data Layer adapter |
-| `widget` | AppWidget/Glance provider 和配置 | model snapshot、design system | 直接写数据库业务规则 | `WidgetSnapshotProvider` |
-
-## 4. 数据流
+仓库包含 `:app` 与 `:wear` 两个 Android application Gradle 模块。v1.0 没有为每个领域创建独立 Gradle module，但已经在 `app` 内建立明确的逻辑边界：
 
 ```mermaid
 flowchart LR
-    ui["Phone UI / Notification / Widget / Wear"] --> usecase["Use Case"]
-    usecase --> repo["core:data-api Repository contract"]
-    database["core:database implementation"] --> repo
-    database --> room["Room database"]
-    room --> flow["Domain Flow"]
-    flow --> pk["PK calculation adapter"]
-    flow --> snapshot["Widget / Wear snapshot builder"]
-    snapshot --> widgetOut["Widget"]
-    snapshot --> wearBridge["core:wear-bridge"]
-    wearBridge --> wearOut["Paired Wear Data Layer"]
-    repo --> healthSync["Health Connect coordinator"]
-    healthSync --> hc["Health Connect"]
-    repo --> backup["feature:backup local encrypted file"]
-    backup --> userFile["User-controlled export"]
-    backup --> cloudSync["core:sync optional cloud provider"]
+    PhoneUI["Phone UI / ViewModel"] --> Actions["Application actions"]
+    Reminder["Reminder receivers"] --> Actions
+    Widget["RemoteViews Widget"] --> Actions
+    WearBridge["Phone Wear Data Layer"] --> Actions
+    Actions --> DataAPI["core.dataapi Repository contracts"]
+    RoomRepo["data.repository Room implementations"] --> DataAPI
+    RoomRepo --> Room["Room v3"]
+    Room --> Domain["core.model domain objects"]
+    Domain --> PkAdapter["DomainDoseEventToPkAdapter"]
+    PkAdapter --> PK["PK simulation"]
+    Domain --> Widget
+    Domain --> WearBridge
+    WearBridge <--> Wear["Wear Tile / cache / Data Layer"]
 ```
 
-手机数据库保持主要事实来源。Health Connect、Wear 缓存、Widget 状态和云文件都属于派生视图或外部交换格式。
+- `core.model` owns `DoseEvent`, `MedicationPlan`, `ScheduledDoseSlot` and related enums.
+- `core.dataapi` owns Repository contracts and typed business results without exposing Room types.
+- `data.repository` implements the contracts using Room entities, DAOs, mappings and transactions.
+- `application` owns action orchestration and replay policies.
+- `app` remains the composition root through `ProductionRepositoryProvider` and Android entry points.
 
-“Wear 同步”只表示已配对手机和手表之间的短距离设备传输：手机发布可重建快照，手表提交幂等命令，断连后恢复。它不涉及账户、OAuth、云存储或跨手机合并。“云同步”处理远端加密快照、账户授权、多设备冲突和删除传播；“本地备份”处理用户主动导出与恢复。三者不得共享一个含混的 `sync` 入口。
+The target dependency direction `consumer -> core.dataapi <- Room implementation` is implemented as package boundaries. Further Gradle extraction remains optional future work.
 
-## 5. 数据库与状态管理
+### Room v3 as source of truth
 
-当前 `AppDatabase` 位于 `app/src/main/java/io/github/yingqiu0871/evolune/data/AppDatabase.kt`，版本 2，实体为 `DoseEventEntity` 和 `MedicationPlanEntity`。`SettingsDataStore` 存储体重、主题、颜色方案、自动检查更新和时间制式；Wear 使用 `SharedPreferences` 保存仪表盘缓存。
+`AppDatabase` is version 3 with `exportSchema = true` and three entities: `DoseEventEntity`, `MedicationPlanEntity`, and `ScheduledDoseSlotEntity`. Schemas 2 and 3 are tracked in `app/schemas/`.
 
-目标设计：
+Room is the authoritative local store. Wear preferences, Widget render state and external JSON are caches or exchange formats, not competing sources of truth.
 
-1. 继续使用 Room，不为复刻迁移包而引入 SQLCipher、Hilt 或其他大依赖。
-2. 从下一次 schema 变更开始导出 Room schema，并为每一次升级添加迁移测试。
-3. 使用 UTC epoch milliseconds 表示实际事件时间，使用独立 `zoneId` 和本地日期字段表达用户日历语义。
-4. 逐步分离 Domain、Entity、External DTO 和 UI model。
-5. 先建立手动依赖组装的接口边界；只有当模块和对象数量足以证明收益时再评估 Hilt。
+The v2-to-v3 migration:
 
-## 6. 手机与手表同步时序
+- validates all legacy event times and plan time lists before backfill;
+- adds authoritative epoch-millisecond time and domain metadata while retaining compatibility columns;
+- creates stable scheduled-dose slots;
+- fails and rolls back on invalid legacy values instead of guessing, clamping, or dropping records;
+- is covered by migration matrices and an explicit copy-based repair tool for exceptional v2 databases.
+
+### Domain and persistence mapping
+
+`DoseEvent.occurredAt: Instant` is authoritative. Optional `zoneId`, `localDate`, and `slotId` express calendar and schedule context; `source`, `status`, and `revision` express origin and update semantics. `DomainDoseEventToPkAdapter` is the explicit conversion boundary to the legacy PK hour representation.
+
+`MedicationPlan.slots` is an ordered aggregate. Each slot's `position` must match its list index and its local time has minute precision. UUIDv5 provides deterministic slot identity for migration and repeated mapping. The persisted namespace input contains the historical `io.github.yuninggu.evolune` string and is intentionally immutable for compatibility.
+
+Room event insert distinguishes `Inserted`, `Idempotent`, `Conflict`, and `Invalid`. Updates verify the expected revision and return explicit no-change, missing, invalid, or revision-conflict outcomes. Plan saves replace plan and slots in one transaction and verify the reloaded aggregate.
+
+### Persistence before side effects
+
+Phone UI, reminder, Widget and Wear record actions converge on typed application actions and Repository contracts. An action is accepted only after Room insert/idempotency policy succeeds. Widget refresh, toast/notification work, DataItem acknowledgement and other platform effects happen afterward; side-effect failure does not reinterpret a committed record as unpersisted.
+
+### Widget pipeline
+
+The phone Widget is a RemoteViews AppWidget. `WidgetSnapshotLoader` reads enabled plans and PK events through Repository contracts, then builds a snapshot with up to two plans and current concentration. Quick actions use a deterministic plan/minute event ID, validate plan state, persist a `source=WIDGET` event, and only then refresh Widgets and show feedback.
+
+There is no separate Widget database and no production DAO bypass. Glance, advanced configuration and expanded privacy/size behavior are future choices, not v1.0 claims.
+
+### Wear pipeline
+
+The v1.0 path is deliberately small:
 
 ```mermaid
 sequenceDiagram
-    participant Phone as Phone database
-    participant Bridge as Wear bridge
-    participant Data as DataClient
-    participant Watch as Wear cache
-    participant Msg as MessageClient
-
-    Phone->>Bridge: Build versioned snapshot
-    Bridge->>Data: put snapshot with revision and checksum
-    Data-->>Watch: onDataChanged
-    Watch->>Watch: validate, persist cache, refresh Tile
-    Watch->>Msg: send command with requestId
-    Msg-->>Bridge: receive command
-    Bridge->>Phone: idempotent record/skip/undo
-    Phone-->>Bridge: new revision or command result
-    Bridge->>Data: publish updated snapshot
-    Bridge-->>Watch: result observed through snapshot
+    participant Phone as Phone repositories
+    participant Bridge as Phone Data Layer
+    participant Watch as Wear cache / Tile
+    Phone->>Bridge: Build enabled-plan + PK snapshot
+    Bridge->>Watch: Put /hrt/plans DataItem
+    Watch->>Watch: Persist cache and refresh Tile
+    Watch->>Bridge: Put /hrt/dose-actions/<actionId>
+    Bridge->>Bridge: Validate URI and payload identity
+    Bridge->>Phone: Insert or accept eligible replay
+    Phone-->>Bridge: Accepted / conflict / failure
+    Bridge->>Bridge: Refresh Widget after acceptance
+    Bridge->>Watch: Delete only the accepted action DataItem
 ```
 
-当前实现只完成了其中的基础路径：`DataClient` 发布计划快照，`MessageClient` 请求计划，剂量动作通过 DataItem 传回；没有统一 envelope、ack、checksum 或版本协商。
+The Wear action ID is also the stable DoseEvent ID. A matching previously accepted Wear event is replay-safe; a collision with different source/time is a conflict. The exact action DataItem is deleted only after persistence and the accepted side effect complete. Invalid, conflicting or failed actions remain undeleted; failed deletion is retried when the DataItem is observed again.
 
-## 7. Wear 协议建议
+The current `/hrt/*` DataMap/JSON transport does not yet have a general protocol version, envelope, checksum, explicit response message or cross-version negotiation. This limitation is tracked for the v1.1 gap audit.
 
-采用 `DataClient + MessageClient` 组合：
+### JSON compatibility boundary
 
-- `DataClient`：保存小而稳定的最新快照，具备离线缓存和最终一致性，适合 Wear Tile/App 读取。
-- `MessageClient`：发送短命令和刷新请求，适合快速记录、跳过、撤销和请求全量快照。
-- `ChannelClient`：当前不需要。它适合长连接或大文件流，不适合少量用药事件和状态快照。
+Mahiro JSON v1 has its own DTO, codec and domain adapter. Import maps legacy hour timestamps to `occurredAt`, marks source as `JSON_V1`, applies defined defaults for metadata absent from v1, and reports per-item conflict/invalid results. Export projects domain events back to the representable v1 form and explicitly rejects unrepresentable data.
 
-建议 envelope 至少包含：`protocolVersion`、`schemaVersion`、`messageId`、`messageType`、`deviceId`、`createdAt`、`eventId`、`baseRevision`、`payload`、`payloadChecksum`。服务端或手机端以 `(deviceId, messageId)` 记录处理结果，以 `eventId` 保障幂等。
+### Backup and security boundary
 
-## 8. 通知与后台任务
+Phone and Wear Manifests point to version-appropriate backup rules. All private app domains are excluded from Android cloud backup and device transfer. User-controlled JSON export/import is the current migration mechanism.
 
-当前提醒使用 AlarmManager 和广播接收器，未使用 WorkManager。建议保持：精确时间提醒使用 AlarmManager，非紧急重算、Widget 刷新、Health Connect 手动/周期同步使用 WorkManager。后台任务必须可取消、可重试、可观测，并且不能把业务状态藏在 ViewModel。
+The Room database is not SQLCipher-encrypted. Release signing uses a persistent external identity and never falls back to Debug signing. Provenance and publication boundaries are recorded in [Decisions](DECISIONS.md) and [Source Provenance](../SOURCE_PROVENANCE.md).
 
-## 9. Health Connect
+## Future Architecture
 
-Health Connect 是外部健康数据集成层，不是核心事实来源。第一阶段可读取用户授权的体重记录，后续再评估写入用药记录。每类数据单独开关和权限；权限撤销时保留本地数据、停止相关同步并显示降级状态。
+### v1.1: Wear and Widget enhancement
 
-迁移资料的 Health Connect 快照包含体重读取、PHR/FHIR MedicationStatement 写入和设置状态，但这些源码与 Evolune 当前模型、依赖和许可证边界不兼容，必须重新设计接口。
+The first step is a Wear / Widget Gap Audit. It will establish the exact gaps in protocol versioning, offline feedback, broader Wear UI, Widget sizing/configuration/privacy and device coverage before implementation scope is locked.
 
-## 10. 小组件
+Potential directions include a pure Kotlin versioned Wear protocol, explicit acknowledgements, a richer Wear experience, and improved Widget layouts. None is treated as shipped until implemented and verified.
 
-当前 Evolune 使用 `RemoteViews`，可靠性优先。迁移包的 Glance 实现具有响应式尺寸、状态存储、配置 Activity 和后台刷新设计，适合作为行为参考。
+### v1.2: external integrations
 
-建议先抽出 `WidgetSnapshot` 和动作接口，再以一个低风险只读小组件评估 Glance。若 Glance 在目标 OEM Launcher 上出现刷新或交互不一致，应保留 RemoteViews；“现代化”不是单独的验收目标。
+Health Connect and Google cloud backup are separate batches:
 
-## 11. 安全与可观测性
+- Health Connect remains an optional adapter, initially expected to focus on explicitly authorized data such as weight. Room remains authoritative.
+- Cloud backup requires a versioned encrypted format, recovery and conflict behavior, key lifecycle, explicit user authorization, and provider-specific testing before Google integration.
 
-- 当前无数据库加密；SQLCipher 仅在需要明确威胁模型、密钥恢复方案和迁移预算时评估。
-- `allowBackup=true` 与当前缺失备份规则是发布前必须处理的隐私事项。
-- 日志禁止记录药物名称、剂量、健康值和备份明文。
-- 错误应分为权限拒绝、设备不可用、数据无效、冲突、可重试网络错误和不可恢复错误。
-- 生产日志只记录事件类型、结果、耗时和匿名关联 ID。
+### Deferred evolution
 
-## 12. 测试
+- Gradle module extraction may follow stable package boundaries when build/test isolation justifies it.
+- Tracked Date requires a separate product decision and domain design.
+- Personalized calibration and PK 2.0 require isolated scientific, provenance and regression review.
+- SQLCipher requires a threat model and tested migration/key-recovery strategy.
 
-分层测试：
-
-1. `core:model`：时间、状态、幂等键、计划槽位和 Tracked Date 纯 JVM 测试。
-2. `core:database`：Room migration、DAO、Repository 和备份恢复测试。
-3. `core:wear-protocol`：编码兼容、未知版本拒绝、边界长度、checksum 和重复消息测试。
-4. `core:healthconnect`：权限状态、映射、去重和撤销权限测试；真实 Provider 只做设备矩阵验证。
-5. Widget/Wear：snapshot builder、尺寸、离线和真实设备交互测试。
-6. UI：关键状态和无障碍语义测试，不把 UI 截图测试当作唯一覆盖。
+Future work must preserve v1.0 migration compatibility, stable IDs, scoped PK attribution, sealed release history and the explicit publication boundary.

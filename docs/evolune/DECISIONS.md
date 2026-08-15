@@ -1,5 +1,32 @@
 # 架构决策记录
 
+This file preserves historical decision context. Statuses below describe the post-v1.0 outcome without rewriting the original background or rationale.
+
+## Current status index
+
+| ADR | Current status | Post-v1.0 note |
+|---|---|---|
+| ADR-001 | Implemented in v1.0 | Evolune remains MIT within the documented source and permission boundaries. |
+| ADR-002 | Implemented in v1.0 | Protected Featherline/GPL snapshots are excluded from the public release tree. |
+| ADR-003 | Implemented in v1.0 | Room v3 is the local source of truth. |
+| ADR-004 | Accepted / planned v1.2 | Health Connect remains an optional future integration and is not implemented. |
+| ADR-005 | Accepted / partially implemented | v1.0 has tested Data Layer replay/conflict behavior; a general versioned protocol remains for the v1.1 gap audit. |
+| ADR-006 | Accepted / ongoing | Logical package boundaries are implemented; further Gradle module extraction is deferred. |
+| ADR-007 | Implemented in part / deferred | Phone/Wear backup exclusions shipped in v1.0; SQLCipher and encrypted backup remain deferred. |
+| ADR-008 | Deferred | RemoteViews shipped; Widget technology and enhancement scope return to the v1.1 gap audit. |
+| ADR-009 | Accepted / planned v1.2 | Google cloud backup remains separate from local export and Wear transport. |
+| ADR-010 | Implemented in v1.0 | Domain, Room entity and external DTO boundaries are explicit; PK uses an adapter. |
+| ADR-011 | Deferred | Tracked Date did not enter v1.0 and has no current entity or product surface. |
+| ADR-012 | Implemented in v1.0 | Wear device transfer, user export and future cloud backup remain separate boundaries. |
+| ADR-013 | Implemented in v1.0 | `core.dataapi` contracts are implemented by Room repositories. |
+| ADR-014 | Implemented in v1.0 | UUIDv5 slot IDs and the historical namespace input are persisted compatibility rules. |
+| ADR-015 | Implemented in v1.0 | The staged domain/mapper/Repository transition completed against Room v3. |
+| ADR-016 | Implemented in v1.0 | Strict migration, repair tooling and all release gates completed; the internal no-release interval is closed. |
+| ADR-017 | Accepted / implemented in v1.0 | Final public Phone/Wear application identity is fixed. |
+| ADR-018 | Accepted / implemented in v1.0 | Public Release builds require the persistent external signing identity. |
+| ADR-019 | Accepted / implemented in v1.0 | PK permission is scoped to author-owned or authorizable rights and requires attribution. |
+| ADR-020 | Accepted / implemented in v1.0 | Publication is limited to explicitly approved refs and assets. |
+
 ## ADR-001：保持 Evolune 使用 MIT
 
 - **背景**：当前 Evolune `LICENSE` 是 MIT；产品目标是独立、可长期维护的项目。远程 `upstream/master` 的 `LICENSE` 也实际为 MIT，但迁移包来自另一个 GPLv3 Featherline 来源。
@@ -174,3 +201,35 @@
 - **缺点**：发现异常数据时升级会明确失败；Phase 1 存在较长的内部不可发布区间；需要维护 Python 工具、合成 fixture 和设备 migration matrix；Batch 4A 通过后仍不能立即发布或直接开始生产切换。
 - **发布门槛**：设备/emulator 上的 v2 -> v3 migration matrix、Batch 3C Repository、event 八字段双写、plan `timeOfDay`/slots 同 transaction、所有现有入口改走 contract、JSON v1 source/time 适配、PK 回归和 Batch 8 退出验收必须全部通过。仅编译 androidTest、生成 schema 或构建成功均不足以发布。
 - **重新评估条件**：只有发布切片重新划分并能独立满足完整迁移/写入/入口门槛，或 Android/SQLite 支持矩阵、correction manifest 版本、审计合规要求发生变化时，才可新增 ADR。不得修改 Slot ID v1、放宽非法数据失败语义、将中间 v3 版本用于用户数据，或在实现中临时绕过本决策。
+
+## ADR-017：固定 v1 公共应用身份
+
+- **状态**：Accepted；Implemented in v1.0。
+- **背景**：历史开发曾使用 `io.github.yuninggu.evolune`，但 v1 需要与当前维护者和公开仓库一致、可验证且长期稳定的分发身份。
+- **最终选择**：Phone application ID 为 `io.github.yingqiu0871.evolune`，Wear application ID 为 `io.github.yingqiu0871.evolune.wear`。v1.0.0 使用 `versionCode = 10060`。
+- **兼容说明**：Slot ID v1 的 UUIDv5 namespace input 仍包含历史字符串 `io.github.yuninggu.evolune:scheduled-dose-slot`。它是不可变持久化协议常量，不是当前应用身份，不得因包名现代化而修改。
+- **重新评估**：公共 application ID 不应常规变更；任何变化都需要独立迁移、签名、数据和分发决策。
+
+## ADR-018：Release signing 使用持久外部身份
+
+- **状态**：Accepted；Implemented in v1.0。
+- **背景**：公开更新链要求后续 Release 与 v1.0 使用同一受控签名身份。Debug 或临时签名不能建立该连续性。
+- **最终选择**：Release build 只接受显式配置的外部 keystore、alias 与凭据，并验证预期证书；缺少 signing 环境必须失败，不允许 Debug fallback。keystore 与秘密不进入仓库或公开日志。
+- **边界**：Debug workflow 只构建 Debug APK，不要求 Release secrets，也不能产生可冒充正式版本的 Release artifact。
+- **重新评估**：仅在密钥轮换/失陷等需要正式迁移程序的事件中重新评估。
+
+## ADR-019：PK permission 采用 scoped grant 与 attribution
+
+- **状态**：Accepted；Implemented in v1.0。
+- **背景**：`HRT-Recorder-PKcomponent-Test` 作者于 2026-08-14 明确授权 Evolune 使用、复制、修改、移植、二次开发、分发源代码和编译应用，并将相应衍生代码按 MIT 发布，但范围仅限作者拥有或有权授权的相关权利。
+- **最终选择**：在该明确范围内发布相应衍生代码，并持续保留来源、版权、许可和贡献者 attribution。
+- **限制**：不得声称整个上游仓库自动成为 MIT，不得声称作者代表第三方贡献者授予权利，也不得声称上游存在未经实际确认的正式 `LICENSE` 文件。
+- **证据边界**：原始邮件是 owner-held provenance evidence；公开仓库只保存准确摘要，不保存私人地址或完整正文。
+
+## ADR-020：显式公共发布边界
+
+- **状态**：Accepted；Implemented in v1.0。
+- **背景**：受保护的本地 evidence 和内部 refs 包含不得公开的历史材料；完整对象库或全部 refs 不能作为发布输入。
+- **最终选择**：只发布经过审核的明确 branch/tag/refspec 与经过验证的 Release assets。禁止 `--all`、`--mirror`、通配 refspec、未过滤的全仓库 bundle 和 force push 已发布历史。
+- **v1.0 closure**：`v1.0.0` 是 annotated tag，指向 release commit `780f167074cc737954c884d375825ef95db605c7`；该 tag 与 GitHub Release 永久封存，不因后续 `main` 维护而移动或重建。
+- **重新评估**：任何扩大 publication surface 的请求都需要新的只读可达性、来源和 asset 审核。

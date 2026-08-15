@@ -1,5 +1,12 @@
 # 迁移计划
 
+> [!IMPORTANT]
+> **Historical / Superseded document.** This document records the pre-v1.0 migration strategy and preserves the terminology and assumptions used at that time. Phase 1 has since been completed and Evolune v1.0.0 was released on 2026-08-15. Historical package identities, Room v2 statements, phase gates and unresolved-license language below are not current project status.
+>
+> Current implementation: [CURRENT_STATUS.md](CURRENT_STATUS.md)
+>
+> Future development: [ROADMAP.md](ROADMAP.md)
+
 ## 1. 迁移边界
 
 ### 可以直接保留的 Evolune 代码
