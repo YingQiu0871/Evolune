@@ -1,7 +1,6 @@
 package io.github.yingqiu0871.evolune.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -15,13 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -38,8 +35,10 @@ import kotlin.math.abs
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.math.sqrt
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalDensity
+import kotlin.math.ceil
+import kotlin.math.log10
 
 private const val MAX_X_AXIS_LABEL_COUNT = 6
 private const val GAHT_TARGET_MIN_PG_ML = 100.0
@@ -66,6 +65,15 @@ internal fun calculateXAxisLabelCount(
     return (chartWidthPx / slotWidth)
         .toInt()
         .coerceIn(2, MAX_X_AXIS_LABEL_COUNT)
+}
+
+internal fun formatYAxisLabel(value: Double, step: Double): String {
+    val decimalPlaces = if (step.isFinite() && step in 0.0..1.0 && step > 0.0) {
+        ceil(-log10(step)).toInt().coerceIn(0, 6)
+    } else {
+        0
+    }
+    return String.format(Locale.getDefault(), "%.${decimalPlaces}f", value)
 }
 
 private fun createStarPath(
@@ -114,19 +122,22 @@ fun ConcentrationChart(
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
-    val surfaceContainerColor = MaterialTheme.colorScheme.surfaceContainer
     val errorColor = MaterialTheme.colorScheme.error
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val surfaceColor = MaterialTheme.colorScheme.surface
     val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
 
     // 触摸交互状态
     var touchPosition by remember { mutableStateOf<Offset?>(null) }
     var selectedPoint by remember { mutableStateOf<Pair<Double, Double>?>(null) } // (time, conc)
 
     // 数据范围
-    val timeMin = simulationResult.timeH.minOrNull() ?: 0.0
-    val timeMax = simulationResult.timeH.maxOrNull() ?: 1.0
+    val finiteTimes = simulationResult.timeH.asSequence().filter(Double::isFinite)
+    val timeMin = finiteTimes.minOrNull() ?: 0.0
+    val timeMax = simulationResult.timeH.asSequence()
+        .filter(Double::isFinite)
+        .maxOrNull() ?: 1.0
     val totalTimeRange = timeMax - timeMin
     
     // 计算默认显示范围：当前时刻-24小时到+12小时（共36小时）
@@ -141,14 +152,19 @@ fun ConcentrationChart(
 
     // 缩放和平移状态（仅针对时间轴）
     var scaleX by remember { mutableFloatStateOf(initialScale) }
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var isInitialized by remember { mutableStateOf(false) }
+    val initialViewportStart = if (totalTimeRange > 0.0) {
+        ((defaultViewStart - timeMin) / totalTimeRange)
+            .toFloat()
+            .coerceIn(0f, (1f - 1f / initialScale).coerceAtLeast(0f))
+    } else {
+        0f
+    }
+    var viewportStartFraction by remember { mutableFloatStateOf(initialViewportStart) }
     
     // 仅当模拟结果改变时重置初始化状态（不包括 currentTimeH 变化）
     LaunchedEffect(simulationResult) {
         scaleX = initialScale
-        offsetX = 0f
-        isInitialized = false
+        viewportStartFraction = initialViewportStart
     }
 
     if (simulationResult.timeH.isEmpty() || simulationResult.concPGmL.isEmpty()) {
@@ -161,86 +177,122 @@ fun ConcentrationChart(
         return
     }
 
-    // Y轴刻度使用25的倍数
-    val rawConcMax = maxOf(
-        simulationResult.concPGmL.maxOrNull() ?: 100.0,
-        GAHT_TARGET_MAX_PG_ML
-    ) * 1.1
-    val concMin = 0.0
-    val concMax = kotlin.math.ceil(rawConcMax / 25.0) * 25.0
+    val visibleTimeStart = timeMin + viewportStartFraction * totalTimeRange
+    val visibleTimeEnd = visibleTimeStart + totalTimeRange / scaleX
+    val visibleScale = calculateVisibleWindowYScale(
+        series = buildList {
+            add(ChartSeries(simulationResult.timeH, simulationResult.concPGmL))
+            baselineSimulationResult?.let { baseline ->
+                add(ChartSeries(baseline.timeH, baseline.concPGmL))
+            }
+        },
+        visibleStartH = visibleTimeStart,
+        visibleEndH = visibleTimeEnd
+    )
+    val yAxisTextStyle = TextStyle(color = onSurfaceColor, fontSize = 11.sp)
+    val yAxisLabelWidthPx = visibleScale.tickValues()
+        .maxOf { value ->
+            textMeasurer.measure(
+                text = formatYAxisLabel(value, visibleScale.tickStep),
+                style = yAxisTextStyle
+            ).size.width
+        }
+        .toFloat()
+    val labelToAxisGapPx = with(density) { 8.dp.toPx() }
+    val outerMarginPx = with(density) { 8.dp.toPx() }
+    val topMarginPx = with(density) { 20.dp.toPx() }
+    val xAxisGutterPx = with(density) { 50.dp.toPx() }
+
+    fun geometryFor(widthPx: Float, heightPx: Float): PlotGeometry = calculatePlotGeometry(
+        contentWidthPx = widthPx,
+        contentHeightPx = heightPx,
+        yAxisLabelWidthPx = yAxisLabelWidthPx,
+        labelToAxisGapPx = labelToAxisGapPx,
+        outerMarginPx = outerMarginPx,
+        topMarginPx = topMarginPx,
+        xAxisGutterPx = xAxisGutterPx,
+        dataXMin = visibleTimeStart,
+        dataXMax = visibleTimeEnd,
+        dataYMax = visibleScale.max
+    )
 
     Box(modifier = modifier.fillMaxSize()) {
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) {
+                .pointerInput(visibleScale, yAxisLabelWidthPx, timeMin, timeMax) {
                     detectTransformGestures { centroid, pan, zoom, _ ->
-                        val paddingLeft = 60.dp.toPx()
-                        val paddingRight = 20.dp.toPx()
-                        val paddingBottom = 50.dp.toPx()
-                        val chartWidth = size.width - paddingLeft - paddingRight
-                        val chartLeft = paddingLeft
-                        val chartBottom = size.height - paddingBottom - 20.dp.toPx()
-                        
-                        // 检查手势是否在X轴区域（底部坐标轴区域）
-                        val isInXAxisArea = centroid.y >= chartBottom
+                        val currentVisibleStart =
+                            timeMin + viewportStartFraction * totalTimeRange
+                        val currentVisibleEnd =
+                            currentVisibleStart + totalTimeRange / scaleX
+                        val geometry = geometryFor(size.width.toFloat(), size.height.toFloat()).copy(
+                            dataXMin = currentVisibleStart,
+                            dataXMax = currentVisibleEnd
+                        )
+                        val plotRect = geometry.rect
+                        val isInXAxisArea = centroid.y >= plotRect.bottom
+                        if (totalTimeRange <= 0.0 || !totalTimeRange.isFinite()) {
+                            return@detectTransformGestures
+                        }
                         
                         // 只允许 X 轴方向的缩放（最大50倍）
                         val oldScaleX = scaleX
                         val newScaleX = (scaleX * zoom).coerceIn(1f, 50f)
                         
-                        // 如果发生了缩放，调整 offsetX 使得缩放中心保持不变
+                        // 缩放时保持手势焦点对应的数据时间不变。
                         if (newScaleX != oldScaleX && zoom != 1f) {
-                            // 缩放中心相对于图表区域的位置
-                            val focusX = (centroid.x - chartLeft).coerceIn(0f, chartWidth)
-                            // 缩放前，焦点对应的归一化位置
-                            val normalizedPos = (focusX - offsetX) / (chartWidth * oldScaleX)
-                            // 缩放后，调整 offset 使得相同归一化位置仍在焦点处
-                            offsetX = focusX - normalizedPos * chartWidth * newScaleX
+                            val focusFraction = ((centroid.x - plotRect.left) / plotRect.width)
+                                .coerceIn(0f, 1f)
+                            val oldVisibleRange = totalTimeRange / oldScaleX
+                            val focusTime = currentVisibleStart + focusFraction * oldVisibleRange
+                            val newVisibleRange = totalTimeRange / newScaleX
+                            viewportStartFraction = (
+                                (focusTime - focusFraction * newVisibleRange - timeMin) /
+                                    totalTimeRange
+                                ).toFloat()
                         }
                         
                         scaleX = newScaleX
                         
                         // 只有在X轴区域才允许平移
                         if (isInXAxisArea) {
-                            offsetX += pan.x
+                            viewportStartFraction -= pan.x / plotRect.width / scaleX
                         }
                         
-                        // 限制 offsetX 范围
-                        val maxOffset = chartWidth * (scaleX - 1f)
-                        offsetX = offsetX.coerceIn(-maxOffset, 0f)
+                        // 将可见窗口限制在完整模拟范围内。
+                        viewportStartFraction = viewportStartFraction.coerceIn(
+                            0f,
+                            (1f - 1f / scaleX).coerceAtLeast(0f)
+                        )
                         
                         // 清除触摸选中状态
                         touchPosition = null
                         selectedPoint = null
                     }
                 }
-                .pointerInput(Unit) {
+                .pointerInput(visibleScale, yAxisLabelWidthPx, timeMin, timeMax) {
                     awaitEachGesture {
                         val down = awaitFirstDown()
-                        val paddingLeft = 60.dp.toPx()
-                        val paddingRight = 20.dp.toPx()
-                        val paddingTop = 20.dp.toPx()
-                        val paddingBottom = 50.dp.toPx()
-                        val chartWidth = size.width - paddingLeft - paddingRight
-                        val chartHeight = size.height - paddingTop - paddingBottom
-                        val chartLeft = paddingLeft
-                        val chartTop = paddingTop
-                        val chartRight = chartLeft + chartWidth
-                        val chartBottom = chartTop + chartHeight
+                        val currentVisibleStart =
+                            timeMin + viewportStartFraction * totalTimeRange
+                        val currentVisibleEnd =
+                            currentVisibleStart + totalTimeRange / scaleX
+                        val geometry = geometryFor(size.width.toFloat(), size.height.toFloat()).copy(
+                            dataXMin = currentVisibleStart,
+                            dataXMax = currentVisibleEnd
+                        )
+                        val plotRect = geometry.rect
                         
                         // 检查是否在图表区域内
-                        if (down.position.x >= chartLeft && down.position.x <= chartRight &&
-                            down.position.y >= chartTop && down.position.y <= chartBottom) {
+                        if (plotRect.contains(down.position.x, down.position.y)) {
                             
                             // 更新选中点的函数
                             fun updateSelectedPoint(offset: Offset) {
                                 touchPosition = offset
                                 
                                 // 找到最近的数据点
-                                val touchX = offset.x
-                                val normalizedX = (touchX - chartLeft - offsetX) / (chartWidth * scaleX)
-                                val touchTime = timeMin + normalizedX * (timeMax - timeMin)
+                                val touchTime = geometry.screenXToData(offset.x)
                                 
                                 var closestIndex = 0
                                 var minDistance = Double.MAX_VALUE
@@ -253,7 +305,9 @@ fun ConcentrationChart(
                                     }
                                 }
                                 
-                                if (closestIndex < simulationResult.timeH.size) {
+                                if (closestIndex < simulationResult.timeH.size &&
+                                    closestIndex < simulationResult.concPGmL.size
+                                ) {
                                     selectedPoint = Pair(
                                         simulationResult.timeH[closestIndex],
                                         simulationResult.concPGmL[closestIndex]
@@ -268,8 +322,7 @@ fun ConcentrationChart(
                             drag(down.id) { change ->
                                 val currentPos = change.position
                                 // 限制在图表区域内
-                                if (currentPos.x >= chartLeft && currentPos.x <= chartRight &&
-                                    currentPos.y >= chartTop && currentPos.y <= chartBottom) {
+                                if (plotRect.contains(currentPos.x, currentPos.y)) {
                                     updateSelectedPoint(currentPos)
                                     change.consume()
                                 }
@@ -282,26 +335,13 @@ fun ConcentrationChart(
                     }
                 }
         ) {
-        val paddingLeft = 60.dp.toPx()
-        val paddingRight = 20.dp.toPx()
-        val paddingTop = 20.dp.toPx()
-        val paddingBottom = 50.dp.toPx()
-        val chartWidth = size.width - paddingLeft - paddingRight
-        val chartHeight = size.height - paddingTop - paddingBottom
-        val chartLeft = paddingLeft
-        val chartTop = paddingTop
-        val chartRight = chartLeft + chartWidth
-        val chartBottom = chartTop + chartHeight
-
-        // 首次初始化偏移量，使得默认显示范围居中
-        if (!isInitialized && totalTimeRange > 0) {
-            val normalizedStart = ((defaultViewStart - timeMin) / totalTimeRange).toFloat()
-            offsetX = -normalizedStart * chartWidth * scaleX
-            // 限制在有效范围内
-            val maxOffset = chartWidth * (scaleX - 1f)
-            offsetX = offsetX.coerceIn(-maxOffset, 0f)
-            isInitialized = true
-        }
+        val geometry = geometryFor(size.width, size.height)
+        val plotRect = geometry.rect
+        val chartWidth = plotRect.width
+        val chartLeft = plotRect.left
+        val chartTop = plotRect.top
+        val chartRight = plotRect.right
+        val chartBottom = plotRect.bottom
 
         // 限制绘制区域在图表框内
         clipRect(
@@ -310,10 +350,8 @@ fun ConcentrationChart(
             right = chartRight,
             bottom = chartBottom
         ) {
-            val targetBandTop = chartBottom -
-                chartHeight * ((GAHT_TARGET_MAX_PG_ML - concMin) / (concMax - concMin)).toFloat()
-            val targetBandBottom = chartBottom -
-                chartHeight * ((GAHT_TARGET_MIN_PG_ML - concMin) / (concMax - concMin)).toFloat()
+            val targetBandTop = geometry.dataYToScreen(GAHT_TARGET_MAX_PG_ML)
+            val targetBandBottom = geometry.dataYToScreen(GAHT_TARGET_MIN_PG_ML)
 
             drawRect(
                 color = primaryColor.copy(alpha = 0.12f),
@@ -365,9 +403,8 @@ fun ConcentrationChart(
             }
             
             // 计算分叉点的屏幕坐标
-            val forkNormalizedTime = ((forkTime - timeMin) / (timeMax - timeMin)).toFloat()
-            val forkScreenX = chartLeft + forkNormalizedTime * chartWidth * scaleX + offsetX
-            val forkScreenY = chartBottom - chartHeight * ((forkPointConc - concMin) / (concMax - concMin)).toFloat()
+            val forkScreenX = geometry.dataXToScreen(forkTime)
+            val forkScreenY = geometry.dataYToScreen(forkPointConc)
             
             // 绘制基线曲线（分叉点之后未用药）- primary虚线
             baselineSimulationResult?.let { baseline ->
@@ -377,9 +414,8 @@ fun ConcentrationChart(
                     // 只绘制分叉点之后的部分
                     if (time >= forkTime) {
                         val conc = baseline.concPGmL[index]
-                        val normalizedTime = ((time - timeMin) / (timeMax - timeMin)).toFloat()
-                        val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
-                        val y = chartBottom - chartHeight * ((conc - concMin) / (concMax - concMin)).toFloat()
+                        val x = geometry.dataXToScreen(time)
+                        val y = geometry.dataYToScreen(conc)
                         
                         if (isFirst) {
                             // 从分叉点开始
@@ -409,9 +445,8 @@ fun ConcentrationChart(
             simulationResult.timeH.forEachIndexed { index, time ->
                 if (time < forkTime) {  // 严格小于分叉点时间
                     val conc = simulationResult.concPGmL[index]
-                    val normalizedTime = ((time - timeMin) / (timeMax - timeMin)).toFloat()
-                    val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
-                    val y = chartBottom - chartHeight * ((conc - concMin) / (concMax - concMin)).toFloat()
+                    val x = geometry.dataXToScreen(time)
+                    val y = geometry.dataYToScreen(conc)
                     
                     if (!hasMovedBefore) {
                         pathBefore.moveTo(x, y)
@@ -451,9 +486,8 @@ fun ConcentrationChart(
             simulationResult.timeH.forEachIndexed { index, time ->
                 if (time > forkTime) {  // 严格大于分叉点时间
                     val conc = simulationResult.concPGmL[index]
-                    val normalizedTime = ((time - timeMin) / (timeMax - timeMin)).toFloat()
-                    val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
-                    val y = chartBottom - chartHeight * ((conc - concMin) / (concMax - concMin)).toFloat()
+                    val x = geometry.dataXToScreen(time)
+                    val y = geometry.dataYToScreen(conc)
                     
                     if (!startedAfter) {
                         pathAfter.moveTo(x, y)
@@ -475,12 +509,10 @@ fun ConcentrationChart(
             // 在曲线上用星形标记实际给药记录。
             doseTimePoints.forEach { doseTime ->
                 if (doseTime >= timeMin && doseTime <= timeMax) {
-                    val normalizedTime = ((doseTime - timeMin) / (timeMax - timeMin)).toFloat()
-                    val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
+                    val x = geometry.dataXToScreen(doseTime)
                     val concentration = simulationResult.concentration(doseTime)
                     if (x >= chartLeft && x <= chartRight && concentration != null) {
-                        val y = chartBottom -
-                            chartHeight * ((concentration - concMin) / (concMax - concMin)).toFloat()
+                        val y = geometry.dataYToScreen(concentration)
                         val starPath = createStarPath(
                             center = Offset(x, y),
                             outerRadius = 8.dp.toPx(),
@@ -504,8 +536,7 @@ fun ConcentrationChart(
 
             // 标记当前时刻（用大圆点）
             if (currentTimeH >= timeMin && currentTimeH <= timeMax) {
-                val normalizedTime = ((currentTimeH - timeMin) / (timeMax - timeMin)).toFloat()
-                val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
+                val x = geometry.dataXToScreen(currentTimeH)
                 
                 // 找到当前时刾的浓度
                 var currentConc = 0.0
@@ -518,7 +549,7 @@ fun ConcentrationChart(
                     }
                 }
                 
-                val y = chartBottom - chartHeight * ((currentConc - concMin) / (concMax - concMin)).toFloat()
+                val y = geometry.dataYToScreen(currentConc)
                 
                 if (x >= chartLeft && x <= chartRight) {
                     // 绘制外圆（白色边框）
@@ -538,9 +569,8 @@ fun ConcentrationChart(
             
             // 绘制选中点的标记
             selectedPoint?.let { (time, conc) ->
-                val normalizedTime = ((time - timeMin) / (timeMax - timeMin)).toFloat()
-                val x = chartLeft + normalizedTime * chartWidth * scaleX + offsetX
-                val y = chartBottom - chartHeight * ((conc - concMin) / (concMax - concMin)).toFloat()
+                val x = geometry.dataXToScreen(time)
+                val y = geometry.dataYToScreen(conc)
                 
                 if (x >= chartLeft && x <= chartRight) {
                     // 绘制高亮圆点
@@ -563,7 +593,8 @@ fun ConcentrationChart(
         
         // 垂直网格线（时间）
         for (i in 0..10) {
-            val x = chartLeft + chartWidth * i / 10
+            val gridTime = visibleTimeStart + (visibleTimeEnd - visibleTimeStart) * i / 10.0
+            val x = geometry.dataXToScreen(gridTime)
             drawLine(
                 color = gridColor,
                 start = Offset(x, chartTop),
@@ -572,17 +603,8 @@ fun ConcentrationChart(
             )
         }
         
-        // 水平网格线（浓度）- 只使用25的倍数，最多6个刻度
-        val idealStep = concMax / 5.0  // 确保最多6个刻度（包括0）
-        val yStep = kotlin.math.ceil(idealStep / 25.0) * 25.0  // 向上取整到25的倍数
-        val yStepCount = (concMax / yStep).toInt()
-        
-        for (i in 0..yStepCount) {
-            val concValue = i * yStep
-            if (concValue > concMax) break
-            
-            val normalizedY = (concValue - concMin) / (concMax - concMin)
-            val y = chartBottom - chartHeight * normalizedY.toFloat()
+        for (concValue in visibleScale.tickValues()) {
+            val y = geometry.dataYToScreen(concValue)
             
             drawLine(
                 color = gridColor,
@@ -592,18 +614,15 @@ fun ConcentrationChart(
             )
             
             // Y轴刻度标签
-            val text = "%.0f".format(concValue)
+            val text = formatYAxisLabel(concValue, visibleScale.tickStep)
             val textLayoutResult = textMeasurer.measure(
                 text = text,
-                style = TextStyle(
-                    color = onSurfaceColor,
-                    fontSize = 11.sp
-                )
+                style = yAxisTextStyle
             )
             drawText(
                 textLayoutResult = textLayoutResult,
                 topLeft = Offset(
-                    chartLeft - textLayoutResult.size.width - 8.dp.toPx(),
+                    chartLeft - textLayoutResult.size.width - labelToAxisGapPx,
                     y - textLayoutResult.size.height / 2
                 )
             )
@@ -628,10 +647,6 @@ fun ConcentrationChart(
             if (is24Hour) "MM/dd HH:mm" else "MM/dd hh:mm a",
             Locale.getDefault()
         )
-        // 计算可见时间范围
-        val visibleTimeStart = timeMin - (offsetX / (chartWidth * scaleX)) * (timeMax - timeMin)
-        val visibleTimeEnd = visibleTimeStart + (timeMax - timeMin) / scaleX
-
         fun formatXAxisLabel(timeH: Double): String {
             val timeMillis = (timeH * 3600000).toLong()
             return dateFormat.format(Date(timeMillis)).replaceFirst(" ", "\n")
@@ -659,9 +674,7 @@ fun ConcentrationChart(
         for (i in 0 until xAxisLabelCount) {
             val fraction = i.toDouble() / (xAxisLabelCount - 1)
             val timeValue = visibleTimeStart + (visibleTimeEnd - visibleTimeStart) * fraction
-            // 从时间值计算屏幕坐标
-            val normalizedPos = ((timeValue - timeMin) / (timeMax - timeMin)).toFloat()
-            val x = chartLeft + normalizedPos * chartWidth * scaleX + offsetX
+            val x = geometry.dataXToScreen(timeValue)
             
             if (x >= chartLeft && x <= chartRight) {
                 val textLayoutResult = textMeasurer.measure(

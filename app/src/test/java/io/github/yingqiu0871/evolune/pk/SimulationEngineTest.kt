@@ -12,6 +12,50 @@ class SimulationEngineTest {
     private val epsilon = 1e-6
 
     @Test
+    fun `fixed range representative output remains numerically stable`() {
+        val events = listOf(
+            DoseEvent(
+                route = Route.ORAL,
+                timeH = 100.0,
+                doseMG = 2.0,
+                ester = Ester.E2
+            ),
+            DoseEvent(
+                route = Route.INJECTION,
+                timeH = 124.0,
+                doseMG = 5.0,
+                ester = Ester.EV
+            )
+        )
+
+        val result = SimulationEngine(
+            events = events,
+            bodyWeightKG = 55.0,
+            startTimeH = 76.0,
+            endTimeH = 196.0,
+            numberOfSteps = 1_441
+        ).run()
+
+        assertEquals(1_441, result.timeH.size)
+        assertEquals(1_441, result.concPGmL.size)
+        assertEquals(76.0, result.timeH.first(), 0.0)
+        assertEquals(196.0, result.timeH.last(), 0.0)
+        assertEquals(23285.499354395688, result.auc, 1e-9)
+        val expectedSamples = listOf(
+            0.0,
+            0.0,
+            0.792625624558463,
+            272.166239457813,
+            428.8060023204021,
+            404.1989408310931
+        )
+        listOf(0, 288, 576, 864, 1_152, 1_440).forEachIndexed { sampleIndex, resultIndex ->
+            assertEquals(expectedSamples[sampleIndex], result.concPGmL[resultIndex], 1e-9)
+        }
+        assertEquals(0.792625624558463, result.concentration(124.0)!!, 1e-9)
+    }
+
+    @Test
     fun testEmptyEventList() {
         val result = SimulationEngine.runSimulation(
             events = emptyList(),
