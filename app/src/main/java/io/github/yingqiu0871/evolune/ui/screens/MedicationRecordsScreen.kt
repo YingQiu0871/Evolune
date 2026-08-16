@@ -248,6 +248,7 @@ private fun MedicationRecordsScreenContent(
                     MedicationRecordItem(
                         event = event,
                         is24Hour = is24Hour,
+                        modifier = Modifier.animateItem(),
                         onClick = { onEventClick(event) }
                     )
                 }

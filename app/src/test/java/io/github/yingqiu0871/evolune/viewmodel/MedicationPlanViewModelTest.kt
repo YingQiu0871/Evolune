@@ -332,6 +332,45 @@ class MedicationPlanViewModelTest {
     }
 
     @Test
+    fun `enabled updates isolate target rows and reject only same-row duplicates`() {
+        val otherPlanId = UUID(0L, 301L)
+        val firstGate = CompletableDeferred<Unit>()
+        val secondGate = CompletableDeferred<Unit>()
+        val repository = FakeMedicationPlanRepository().apply {
+            updateGates[PLAN_ID] = firstGate
+            updateGates[otherPlanId] = secondGate
+        }
+        val reminder = FakeReminderScheduler()
+        val fixture = fixture(repository, reminder)
+        try {
+            fixture.viewModel.setPlanEnabled(PLAN_ID, false)
+            assertEquals(setOf(PLAN_ID), fixture.viewModel.enabledPlanIdsInFlight.value)
+            assertEquals(listOf(PLAN_ID), repository.updatedPlanIds)
+
+            fixture.viewModel.setPlanEnabled(PLAN_ID, true)
+            assertEquals(listOf(PLAN_ID), repository.updatedPlanIds)
+
+            fixture.viewModel.setPlanEnabled(otherPlanId, false)
+            assertEquals(
+                setOf(PLAN_ID, otherPlanId),
+                fixture.viewModel.enabledPlanIdsInFlight.value
+            )
+            assertEquals(listOf(PLAN_ID, otherPlanId), repository.updatedPlanIds)
+
+            firstGate.complete(Unit)
+            assertEquals(setOf(otherPlanId), fixture.viewModel.enabledPlanIdsInFlight.value)
+            assertEquals(1, reminder.cancelCalls)
+
+            secondGate.complete(Unit)
+            assertTrue(fixture.viewModel.enabledPlanIdsInFlight.value.isEmpty())
+            assertEquals(2, reminder.cancelCalls)
+            assertTrue(fixture.viewModel.operationState.value is MedicationPlanOperationState.Success)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
     fun `reschedule reads contract plans and reports reminder result`() {
         val repository = FakeMedicationPlanRepository().apply {
             allPlans.value = listOf(plan())
@@ -429,6 +468,8 @@ class MedicationPlanViewModelTest {
         var updateError: IllegalStateException? = null
         var deleteError: IllegalStateException? = null
         var saveGate: CompletableDeferred<Unit>? = null
+        val updateGates = mutableMapOf<UUID, CompletableDeferred<Unit>>()
+        val updatedPlanIds = mutableListOf<UUID>()
         var saveCalls: Int = 0
         var updateCalls: Int = 0
         var deleteCalls: Int = 0
@@ -450,6 +491,8 @@ class MedicationPlanViewModelTest {
 
         override suspend fun setEnabled(id: UUID, enabled: Boolean): PlanUpdateResult {
             updateCalls += 1
+            updatedPlanIds += id
+            updateGates[id]?.await()
             updateError?.let { throw it }
             return updateResult
         }

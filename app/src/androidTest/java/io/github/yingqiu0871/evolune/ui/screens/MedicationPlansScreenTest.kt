@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -194,6 +196,27 @@ class MedicationPlansScreenTest {
         assertTrue(viewModel.editSession.value != null)
         composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
+    }
+
+    @Test
+    fun busyPlanDisablesOnlyItsOwnSwitch() {
+        val first = plan()
+        val second = plan().copy(id = UUID(0L, 302L), name = "Other plan")
+        composeRule.setContent {
+            EvoluneTheme {
+                MedicationPlansScreenContent(
+                    plans = listOf(first, second),
+                    onPlanClick = {},
+                    onAddClick = {},
+                    onToggleEnabled = { _, _ -> },
+                    enabledPlanIdsInFlight = setOf(first.id),
+                    showTopBar = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("plan-enabled-${first.id}").assertIsNotEnabled()
+        composeRule.onNodeWithTag("plan-enabled-${second.id}").assertIsEnabled()
     }
 
     @Test
