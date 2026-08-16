@@ -84,6 +84,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":experience-core"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.protolayout)

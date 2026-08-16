@@ -24,4 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Evolune"
 include(":app")
+include(":experience-core")
 include(":wear")
