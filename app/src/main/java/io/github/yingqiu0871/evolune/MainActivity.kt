@@ -29,7 +29,8 @@ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModel
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModelFactory
-import io.github.yingqiu0871.evolune.widget.updateAllEvoluneWidgets
+import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
+import io.github.yingqiu0871.evolune.widget.requestEvoluneWidgetUpdate
 import io.github.yingqiu0871.evolune.wear.WearDataLayer
 import kotlinx.coroutines.flow.first
 
@@ -94,7 +95,10 @@ class MainActivity : ComponentActivity() {
                 val domainMedicationPlans by hrtViewModel.allPlans.collectAsState()
                 val pkState by hrtViewModel.pkState.collectAsState()
                 LaunchedEffect(doseEvents) {
-                    updateAllEvoluneWidgets(applicationContext)
+                    requestEvoluneWidgetUpdate(
+                        applicationContext,
+                        WidgetUpdateReason.DOSE_EVENT_CHANGED
+                    )
                 }
                 
                 // 创建 MedicationPlanViewModel
@@ -105,6 +109,12 @@ class MainActivity : ComponentActivity() {
                         reminderManager
                     )
                 )
+                LaunchedEffect(domainMedicationPlans) {
+                    requestEvoluneWidgetUpdate(
+                        applicationContext,
+                        WidgetUpdateReason.PLAN_CHANGED
+                    )
+                }
                 LaunchedEffect(
                     domainMedicationPlans,
                     pkState.simulationResult,

@@ -12,7 +12,6 @@ import android.widget.RemoteViews
 import android.widget.Toast
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
-import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncher
@@ -48,7 +47,12 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        updateAsync(context, appWidgetManager, appWidgetIds)
+        updateAsync(
+            context,
+            appWidgetManager,
+            appWidgetIds,
+            WidgetUpdateReason.APP_WIDGET_UPDATE
+        )
     }
 
     override fun onAppWidgetOptionsChanged(
@@ -63,13 +67,30 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
             appWidgetId,
             newOptions
         )
-        updateAsync(context, appWidgetManager, intArrayOf(appWidgetId))
+        updateAsync(
+            context,
+            appWidgetManager,
+            intArrayOf(appWidgetId),
+            WidgetUpdateReason.WIDGET_RESIZED
+        )
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        if (intent.action != ACTION_RECORD_PLAN) return
+        when (intent.action) {
+            ACTION_RECORD_PLAN -> handleRecordPlan(context, intent)
+            Intent.ACTION_DATE_CHANGED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_MY_PACKAGE_REPLACED -> refreshAllAsync(
+                context = context,
+                reason = WidgetUpdateReason.DATE_OR_TIMEZONE_CHANGED
+            )
+            else -> Unit
+        }
+    }
 
+    private fun handleRecordPlan(context: Context, intent: Intent) {
         val applicationContext = context.applicationContext
         val pendingResult = goAsync()
         workLauncher.launch(
@@ -84,10 +105,23 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
         )
     }
 
+    private fun refreshAllAsync(context: Context, reason: WidgetUpdateReason) {
+        val applicationContext = context.applicationContext
+        val manager = AppWidgetManager.getInstance(applicationContext)
+        val component = ComponentName(applicationContext, EvoluneWidgetReceiver::class.java)
+        updateAsync(
+            context = applicationContext,
+            appWidgetManager = manager,
+            appWidgetIds = manager.getAppWidgetIds(component),
+            reason = reason
+        )
+    }
+
     private fun updateAsync(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+        appWidgetIds: IntArray,
+        reason: WidgetUpdateReason = WidgetUpdateReason.APP_WIDGET_UPDATE
     ) {
         val applicationContext = context.applicationContext
         val pendingResult = goAsync()
@@ -95,7 +129,8 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
             work = {
                 val work = updateWorkFactory?.invoke(applicationContext, appWidgetManager)
                     ?: productionUpdateWork(applicationContext, appWidgetManager)
-                work.handle(appWidgetIds)
+                ContractWidgetUpdateCoordinator { _ -> work.handle(appWidgetIds) }
+                    .request(reason)
             },
             finish = pendingResult::finish
         )
@@ -115,7 +150,10 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
             doseEvents = repositories.doseEvents,
             sideEffects = object : WidgetQuickActionSideEffects {
                 override suspend fun refreshWidgets() {
-                    updateAllEvoluneWidgets(context)
+                    requestEvoluneWidgetUpdate(
+                        context,
+                        WidgetUpdateReason.ACCEPTED_WIDGET_DOSE_EVENT
+                    )
                 }
 
                 override suspend fun showRecorded(planName: String) {
@@ -139,7 +177,7 @@ private fun renderWidget(
     appWidgetId: Int,
     snapshot: WidgetSnapshot
 ) {
-    val plans = snapshot.plans
+    val plans = snapshot.presentation.visiblePlans
     val minHeight = appWidgetManager
         .getAppWidgetOptions(appWidgetId)
         .getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 100)
@@ -186,7 +224,7 @@ private fun bindPlanButton(
     context: Context,
     views: RemoteViews,
     buttonId: Int,
-    plan: MedicationPlan?,
+    plan: WidgetPlanPresentation?,
     appWidgetId: Int,
     emptyText: String
 ) {
@@ -198,14 +236,14 @@ private fun bindPlanButton(
 
     views.setTextViewText(
         buttonId,
-        "${plan.name}\n${formatDose(plan.doseMG)} mg"
+        "${plan.name}\n${formatDose(plan.doseMg)} mg"
     )
     val intent = Intent(context, EvoluneWidgetReceiver::class.java).apply {
         action = "io.github.yingqiu0871.evolune.widget.RECORD_PLAN"
-        putExtra("plan_id", plan.id.toString())
+        putExtra("plan_id", plan.planId.toString())
         putExtra("widget_id", appWidgetId)
         data = Uri.parse(
-            "evolune://widget/$appWidgetId/plan/${plan.id}"
+            "evolune://widget/$appWidgetId/plan/${plan.planId}"
         )
         addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
     }
@@ -213,7 +251,7 @@ private fun bindPlanButton(
         buttonId,
         PendingIntent.getBroadcast(
             context,
-            appWidgetId xor plan.id.hashCode(),
+            appWidgetId xor plan.planId.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -240,12 +278,16 @@ internal suspend fun calculateWidgetConcentration(context: Context): Double? {
     ).load().concentration
 }
 
-internal suspend fun updateAllEvoluneWidgets(context: Context) {
+internal suspend fun requestEvoluneWidgetUpdate(
+    context: Context,
+    reason: WidgetUpdateReason
+) {
     val applicationContext = context.applicationContext
     val manager = AppWidgetManager.getInstance(applicationContext)
     val component = ComponentName(applicationContext, EvoluneWidgetReceiver::class.java)
     val ids = manager.getAppWidgetIds(component)
-    createProductionWidgetUpdateWork(applicationContext, manager).handle(ids)
+    val work = createProductionWidgetUpdateWork(applicationContext, manager)
+    ContractWidgetUpdateCoordinator { _ -> work.handle(ids) }.request(reason)
 }
 
 private fun createProductionWidgetUpdateWork(

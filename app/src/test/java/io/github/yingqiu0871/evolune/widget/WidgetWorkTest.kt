@@ -68,7 +68,10 @@ class WidgetWorkTest {
             numberOfSteps = 2
         ).run().concPGmL.last()
 
-        assertEquals(listOf(plan.id, third.id), snapshot.plans.map { it.id })
+        assertEquals(
+            listOf(plan.id, third.id),
+            snapshot.presentation.visiblePlans.map { it.planId }
+        )
         assertEquals(expected, snapshot.concentration!!, 1e-6)
     }
 
@@ -223,7 +226,11 @@ class WidgetWorkTest {
         work.handle(intArrayOf(10, 11))
 
         assertEquals(listOf(10, 11), rendered.map { it.first })
-        assertTrue(rendered.all { it.second.plans.single() == plan })
+        assertTrue(
+            rendered.all {
+                it.second.presentation.visiblePlans.single().planId == plan.id
+            }
+        )
     }
 
     private fun quickWork(

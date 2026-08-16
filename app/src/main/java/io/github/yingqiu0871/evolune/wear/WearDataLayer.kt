@@ -18,7 +18,8 @@ import io.github.yingqiu0871.evolune.application.parseWearDoseAction
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.pk.SimulationResult
-import io.github.yingqiu0871.evolune.widget.updateAllEvoluneWidgets
+import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
+import io.github.yingqiu0871.evolune.widget.requestEvoluneWidgetUpdate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -182,7 +183,12 @@ class WearDoseListenerService : WearableListenerService() {
         val outcome = WearDoseActionHandler(
             medicationPlans = repositories.medicationPlans,
             doseEvents = repositories.doseEvents,
-            acceptedSideEffect = { updateAllEvoluneWidgets(context) },
+            acceptedSideEffect = {
+                requestEvoluneWidgetUpdate(
+                    context,
+                    WidgetUpdateReason.ACCEPTED_WEAR_DOSE_EVENT
+                )
+            },
             deleteDataItem = { uri ->
                 Wearable.getDataClient(context)
                     .deleteDataItems(android.net.Uri.parse(uri))
