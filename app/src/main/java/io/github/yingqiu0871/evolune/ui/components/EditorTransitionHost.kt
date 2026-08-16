@@ -20,7 +20,7 @@ fun <T : Any> EditorTransitionHost(
         modifier = modifier,
         transitionSpec = {
             val enter = if (targetState != null) {
-                evolunePageEnterTransition()
+                evolunePageEnterTransition(startImmediately = true)
             } else {
                 EnterTransition.None
             }
