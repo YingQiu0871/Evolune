@@ -21,12 +21,10 @@ import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
-import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.pk.Route
-import io.github.yingqiu0871.evolune.pk.SimulationEngine
-import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -35,19 +33,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Clock
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
-import kotlin.math.ceil
 
 sealed class ImportResult {
     data object Idle : ImportResult()
@@ -106,7 +105,13 @@ sealed interface DoseEventUiEvent {
     data class Deleted(val id: UUID) : DoseEventUiEvent
 }
 
-class HRTViewModel(
+private data class SimulationTrigger(
+    val events: List<DoseEvent>,
+    val plans: List<MedicationPlan>,
+    val refresh: Long
+)
+
+class HRTViewModel internal constructor(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
     private val bodyWeightKG: Double = 55.0,
@@ -116,6 +121,8 @@ class HRTViewModel(
         MahiroJsonV1ImportService(repository),
     private val jsonExportService: MahiroJsonV1ExportService =
         MahiroJsonV1ExportService(clock = clock),
+    private val simulationDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
     operationScope: CoroutineScope? = null
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
@@ -124,10 +131,13 @@ class HRTViewModel(
     private var pendingTerminalState: DoseEventOperationState? = null
     private var pendingUiEvent: DoseEventUiEvent? = null
 
-    val events: StateFlow<List<DoseEvent>> = repository.observeAll()
+    private val eventUpdates = repository.observeAll()
+        .shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+
+    val events: StateFlow<List<DoseEvent>> = eventUpdates
         .stateIn(
             scope = scope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
@@ -138,10 +148,13 @@ class HRTViewModel(
             initialValue = emptyList()
         )
 
-    val enabledPlans: StateFlow<List<MedicationPlan>> = medicationPlanRepository.observeEnabled()
+    private val enabledPlanUpdates = medicationPlanRepository.observeEnabled()
+        .shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+
+    val enabledPlans: StateFlow<List<MedicationPlan>> = enabledPlanUpdates
         .stateIn(
             scope = scope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
@@ -157,6 +170,7 @@ class HRTViewModel(
 
     private val _pkState = MutableStateFlow(PKState())
     val pkState: StateFlow<PKState> = _pkState.asStateFlow()
+    private val simulationRefresh = MutableStateFlow(0L)
 
     val currentTimeH: StateFlow<Double> = flow {
         while (true) {
@@ -184,10 +198,12 @@ class HRTViewModel(
 
     init {
         scope.launch {
-            events.collect { runSimulation() }
-        }
-        scope.launch {
-            enabledPlans.collect { runSimulation() }
+            combine(eventUpdates, enabledPlanUpdates, simulationRefresh) {
+                    eventList, planList, refresh ->
+                SimulationTrigger(eventList, planList, refresh)
+            }
+                .distinctUntilChanged()
+                .collectLatest { trigger -> calculateAndPublish(trigger.plans) }
         }
     }
 
@@ -319,93 +335,30 @@ class HRTViewModel(
         jsonExportService.export(weight, events.value)
 
     fun runSimulation() {
-        scope.launch {
-            try {
-                _pkState.update { it.copy(isSimulating = true, error = null) }
-                val now = clock.instant()
-                val currentTimeH = clock.millis() / MILLIS_PER_HOUR
-                val historicalEvents = DomainDoseEventToPkAdapter.adapt(
-                    repository.getEventsForPk(now).filter { event ->
-                        event.status == DoseEventStatus.RECORDED &&
-                            event.route != Route.ANTIANDROGEN
-                    }
-                )
-                val plans = medicationPlanRepository.observeEnabled().first()
-                    .filter { it.route != Route.ANTIANDROGEN }
-                val futureEvents = if (plans.isNotEmpty()) {
-                    val predicted = MedicationPlanPredictor.generateFutureEventsForDomainPlans(
-                        plans = plans,
-                        fromDateTime = LocalDateTime.ofInstant(now, ZoneId.systemDefault()),
-                        daysAhead = 15
-                    )
-                    MedicationPlanPredictor.filterConflictingPredictions(
-                        predictedEvents = predicted,
-                        actualEvents = historicalEvents
-                    )
-                } else {
-                    emptyList()
-                }
+        simulationRefresh.update { it + 1L }
+    }
 
-                if (historicalEvents.isEmpty() && futureEvents.isEmpty()) {
-                    _pkState.update {
-                        it.copy(
-                            simulationResult = null,
-                            baselineSimulationResult = null,
-                            currentConcentration = null,
-                            isSimulating = false,
-                            currentTimeH = currentTimeH
-                        )
-                    }
-                    return@launch
-                }
-
-                val startTimeH = currentTimeH - 24.0 * 15
-                val endTimeH = currentTimeH + 24.0 * 15
-                val stepsNeeded = ceil(
-                    (endTimeH - startTimeH) * SIMULATION_POINTS_PER_HOUR
-                ).toInt() + 1
-                val numberOfSteps = maxOf(stepsNeeded, 1000)
-                val baselineResult = if (historicalEvents.isNotEmpty()) {
-                    SimulationEngine(
-                        events = historicalEvents,
-                        bodyWeightKG = bodyWeightKG,
-                        startTimeH = startTimeH,
-                        endTimeH = endTimeH,
-                        numberOfSteps = numberOfSteps
-                    ).run()
-                } else {
-                    null
-                }
-                val allEvents = historicalEvents + futureEvents
-                val fullResult = if (allEvents.isNotEmpty()) {
-                    SimulationEngine(
-                        events = allEvents,
-                        bodyWeightKG = bodyWeightKG,
-                        startTimeH = startTimeH,
-                        endTimeH = endTimeH,
-                        numberOfSteps = numberOfSteps
-                    ).run()
-                } else {
-                    null
-                }
-                val currentConcentration = fullResult?.concentration(currentTimeH)
-                    ?: baselineResult?.concentration(currentTimeH)
-
-                _pkState.update {
-                    it.copy(
-                        simulationResult = fullResult,
-                        baselineSimulationResult = baselineResult,
-                        currentConcentration = currentConcentration,
-                        currentTimeH = currentTimeH,
-                        isSimulating = false
-                    )
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: RuntimeException) {
-                _pkState.update {
-                    it.copy(isSimulating = false, error = "Simulation unavailable")
-                }
+    private suspend fun calculateAndPublish(plans: List<MedicationPlan>) {
+        try {
+            _pkState.update { it.copy(isSimulating = true, error = null) }
+            val now = clock.instant()
+            val input = PkSimulationInput(
+                now = now,
+                currentTimeH = clock.millis() / MILLIS_PER_HOUR,
+                historicalDoseEvents = repository.getEventsForPk(now),
+                enabledPlans = plans,
+                bodyWeightKG = bodyWeightKG,
+                zoneId = ZoneId.systemDefault()
+            )
+            val result = withContext(simulationDispatcher) {
+                simulationCalculator.calculate(input)
+            }
+            _pkState.value = result.copy(isSimulating = false, error = null)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: RuntimeException) {
+            _pkState.update {
+                it.copy(isSimulating = false, error = "Simulation unavailable")
             }
         }
     }
@@ -508,7 +461,6 @@ class HRTViewModel(
     }
 
     private companion object {
-        const val SIMULATION_POINTS_PER_HOUR = 12.0
         const val MILLIS_PER_HOUR = 3_600_000.0
     }
 }

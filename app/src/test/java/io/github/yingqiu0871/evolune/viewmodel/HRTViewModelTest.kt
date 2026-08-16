@@ -23,11 +23,14 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -46,8 +49,94 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.ArrayDeque
 import java.util.UUID
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class HRTViewModelTest {
+    @Test
+    fun `initial simulation triggers are coalesced and calculation runs off caller thread`() =
+        runBlocking {
+            val repository = FakeDoseEventRepository()
+            val calls = AtomicInteger()
+            val calculationThread = CompletableDeferred<String>()
+            val executor = Executors.newSingleThreadExecutor { runnable ->
+                Thread(runnable, "pk-calculation-test")
+            }
+            val dispatcher = executor.asCoroutineDispatcher()
+            val fixture = fixture(
+                repository = repository,
+                simulationDispatcher = dispatcher,
+                simulationCalculator = PkSimulationCalculator { input ->
+                    calls.incrementAndGet()
+                    calculationThread.complete(Thread.currentThread().name)
+                    PKState(currentTimeH = input.currentTimeH, currentConcentration = 123.0)
+                }
+            )
+            try {
+                assertTrue(
+                    withTimeout(5_000L) { calculationThread.await() }
+                        .startsWith("pk-calculation-test")
+                )
+                withTimeout(5_000L) {
+                    fixture.viewModel.pkState.filter { it.currentConcentration == 123.0 }.first()
+                }
+                delay(100L)
+                assertEquals(1, calls.get())
+                assertEquals(1, repository.getEventsForPkCalls)
+                assertTrue(!fixture.viewModel.pkState.value.isSimulating)
+            } finally {
+                fixture.close()
+                dispatcher.close()
+                executor.shutdownNow()
+            }
+        }
+
+    @Test
+    fun `cancelled simulation cannot publish over latest input`() = runBlocking {
+        val repository = FakeDoseEventRepository()
+        val calls = AtomicInteger()
+        val firstStarted = CompletableDeferred<Unit>()
+        val firstCancelled = CompletableDeferred<Unit>()
+        val executor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "pk-latest-test")
+        }
+        val dispatcher = executor.asCoroutineDispatcher()
+        val fixture = fixture(
+            repository = repository,
+            simulationDispatcher = dispatcher,
+            simulationCalculator = PkSimulationCalculator { input ->
+                val call = calls.incrementAndGet()
+                if (call == 1) {
+                    firstStarted.complete(Unit)
+                    try {
+                        awaitCancellation()
+                    } finally {
+                        firstCancelled.complete(Unit)
+                    }
+                }
+                PKState(
+                    currentTimeH = input.currentTimeH,
+                    currentConcentration = call.toDouble()
+                )
+            }
+        )
+        try {
+            withTimeout(5_000L) { firstStarted.await() }
+            repository.observed.value = listOf(event(id = UUID(0L, 999L)))
+            withTimeout(5_000L) { firstCancelled.await() }
+
+            val latest = withTimeout(5_000L) {
+                fixture.viewModel.pkState.filter { it.currentConcentration == 2.0 }.first()
+            }
+            assertEquals(2.0, latest.currentConcentration!!, 0.0)
+            assertEquals(2, calls.get())
+        } finally {
+            fixture.close()
+            dispatcher.close()
+            executor.shutdownNow()
+        }
+    }
+
     @Test
     fun `create session survives validation and storage failure without changing identity`() {
         var nextId = 1L
@@ -513,7 +602,9 @@ class HRTViewModelTest {
             idSupplier = { EVENT_ID },
             clock = Clock.fixed(NOW, ZoneOffset.UTC),
             zoneIdSupplier = { TEST_ZONE }
-        )
+        ),
+        simulationDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default,
+        simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator
     ): ViewModelFixture {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         return ViewModelFixture(
@@ -522,6 +613,8 @@ class HRTViewModelTest {
                 medicationPlanRepository = FakeMedicationPlanRepository(),
                 sessionFactory = sessionFactory,
                 clock = Clock.fixed(NOW, ZoneOffset.UTC),
+                simulationDispatcher = simulationDispatcher,
+                simulationCalculator = simulationCalculator,
                 operationScope = scope
             ),
             scope = scope
