@@ -61,8 +61,12 @@ fun MedicationPlansScreen(
     val plans by viewModel.plans.collectAsState()
     val editSession by viewModel.editSession.collectAsState()
     val operationState by viewModel.operationState.collectAsState()
+    val enabledPlanIdsInFlight by viewModel.enabledPlanIdsInFlight.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val operationInProgress = operationState is MedicationPlanOperationState.Running
+    val globalOperationInProgress =
+        (operationState as? MedicationPlanOperationState.Running)?.operation?.let { operation ->
+            operation != MedicationPlanOperation.SET_ENABLED
+        } == true
     val submissionFailure = operationState as? MedicationPlanOperationState.Failure
     val unknownErrorMessage = stringResource(R.string.common_unknown_error)
     val submissionErrorMessage = submissionFailure?.let { failure ->
@@ -184,7 +188,8 @@ fun MedicationPlansScreen(
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA &&
                 !promotedNotificationsEnabled,
         onPromotedNotificationSetup = ::openPromotedNotificationSettings,
-        interactionsEnabled = !operationInProgress,
+        interactionsEnabled = !globalOperationInProgress,
+        enabledPlanIdsInFlight = enabledPlanIdsInFlight,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         showTopBar = showTopBar,
         modifier = modifier
@@ -206,6 +211,7 @@ fun MedicationPlansScreenContent(
     showPromotedNotificationSetup: Boolean = false,
     onPromotedNotificationSetup: () -> Unit = {},
     interactionsEnabled: Boolean = true,
+    enabledPlanIdsInFlight: Set<UUID> = emptySet(),
     snackbarHost: @Composable () -> Unit = {},
     showTopBar: Boolean = true,
     modifier: Modifier = Modifier
@@ -295,7 +301,7 @@ fun MedicationPlansScreenContent(
                         plan = plan,
                         onClick = { onPlanClick(plan) },
                         onToggleEnabled = { onToggleEnabled(plan.id, !plan.isEnabled) },
-                        enabled = interactionsEnabled
+                        enabled = interactionsEnabled && plan.id !in enabledPlanIdsInFlight
                     )
                 }
             }

@@ -12,10 +12,6 @@ import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -87,10 +83,13 @@ import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
 import io.github.yingqiu0871.evolune.pk.SublingualTier
+import io.github.yingqiu0871.evolune.ui.components.EditorTransitionHost
 import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
+import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
+import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
@@ -109,9 +108,6 @@ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
-private const val NAV_FADE_OUT_MS = 90
-private const val NAV_FADE_IN_MS = 220
-private const val NAV_FADE_IN_DELAY_MS = 90
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -358,38 +354,16 @@ fun AppNavigation(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface),
             enterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        durationMillis = NAV_FADE_IN_MS,
-                        delayMillis = NAV_FADE_IN_DELAY_MS
-                    )
-                ) + scaleIn(
-                    initialScale = 0.98f,
-                    animationSpec = tween(
-                        durationMillis = NAV_FADE_IN_MS,
-                        delayMillis = NAV_FADE_IN_DELAY_MS
-                    )
-                )
+                evolunePageEnterTransition()
             },
             exitTransition = {
-                fadeOut(animationSpec = tween(NAV_FADE_OUT_MS))
+                evolunePageExitTransition()
             },
             popEnterTransition = {
-                fadeIn(
-                    animationSpec = tween(
-                        durationMillis = NAV_FADE_IN_MS,
-                        delayMillis = NAV_FADE_IN_DELAY_MS
-                    )
-                ) + scaleIn(
-                    initialScale = 0.98f,
-                    animationSpec = tween(
-                        durationMillis = NAV_FADE_IN_MS,
-                        delayMillis = NAV_FADE_IN_DELAY_MS
-                    )
-                )
+                evolunePageEnterTransition()
             },
             popExitTransition = {
-                fadeOut(animationSpec = tween(NAV_FADE_OUT_MS))
+                evolunePageExitTransition()
             },
         ) {
             composable(Screen.HOME.route) {
@@ -487,25 +461,38 @@ fun AppNavigation(
         }
     }
 
-    if (recordEditSession != null) {
+    EditorTransitionHost(
+        session = recordEditSession,
+        modifier = Modifier.fillMaxSize()
+    ) { visibleSession, isActive ->
         MedicationRecordBottomSheet(
             showBottomSheet = true,
             onDismiss = {
-                hrtViewModel.closeEditSession()
-                hrtViewModel.acknowledgeOperation()
+                if (isActive) {
+                    hrtViewModel.closeEditSession()
+                    hrtViewModel.acknowledgeOperation()
+                }
             },
-            onSave = hrtViewModel::saveEvent,
-            onDelete = hrtViewModel::deleteEvent,
-            session = recordEditSession,
+            onSave = { input ->
+                if (isActive) hrtViewModel.saveEvent(input)
+            },
+            onDelete = { id ->
+                if (isActive) hrtViewModel.deleteEvent(id)
+            },
+            session = visibleSession,
             defaults = recordDefaults,
             is24Hour = is24Hour,
-            isOperationRunning = recordOperationState is DoseEventOperationState.Running,
+            isOperationRunning =
+                !isActive || recordOperationState is DoseEventOperationState.Running,
             operationError = (recordOperationState as? DoseEventOperationState.Failure)
                 ?.error
                 ?.displayMessage()
         )
     }
-    if (planEditSession != null) {
+    EditorTransitionHost(
+        session = planEditSession,
+        modifier = Modifier.fillMaxSize()
+    ) { visibleSession, isActive ->
         val planSubmissionFailure = planOperationState as? MedicationPlanOperationState.Failure
         val unknownErrorText = stringResource(R.string.common_unknown_error)
         val planSubmissionErrorMessage = planSubmissionFailure?.let { failure ->
@@ -528,19 +515,26 @@ fun AppNavigation(
         MedicationPlanBottomSheet(
             showBottomSheet = true,
             onDismiss = {
-                medicationPlanViewModel.closeEditSession()
-                medicationPlanViewModel.acknowledgeOperation()
+                if (isActive) {
+                    medicationPlanViewModel.closeEditSession()
+                    medicationPlanViewModel.acknowledgeOperation()
+                }
             },
             onSave = { draft ->
-                if (draft.isEnabled) {
-                    requestNotificationPermissionIfNeeded()
+                if (isActive) {
+                    if (draft.isEnabled) {
+                        requestNotificationPermissionIfNeeded()
+                    }
+                    medicationPlanViewModel.saveDraft(draft)
                 }
-                medicationPlanViewModel.saveDraft(draft)
             },
-            onDelete = medicationPlanViewModel::deletePlan,
-            session = planEditSession,
+            onDelete = { id ->
+                if (isActive) medicationPlanViewModel.deletePlan(id)
+            },
+            session = visibleSession,
             is24Hour = is24Hour,
-            operationInProgress = planOperationState is MedicationPlanOperationState.Running,
+            operationInProgress =
+                !isActive || planOperationState is MedicationPlanOperationState.Running,
             submissionErrorMessage = planSubmissionErrorMessage.takeIf {
                 planSubmissionFailure?.operation in listOf(
                     MedicationPlanOperation.SAVE,

@@ -97,7 +97,9 @@ class MedicationPlanViewModel(
     private val scope = operationScope ?: viewModelScope
     private val operationLock = Any()
     private var operationInFlight = false
+    private val enabledOperationsInFlight = mutableSetOf<UUID>()
     private var pendingTerminalState: MedicationPlanOperationState? = null
+    private var pendingEnabledTerminalState: MedicationPlanOperationState? = null
 
     val plans: StateFlow<List<MedicationPlan>> = repository.observeAll()
         .stateIn(
@@ -120,6 +122,9 @@ class MedicationPlanViewModel(
         MutableStateFlow<MedicationPlanOperationState>(MedicationPlanOperationState.Idle)
     val operationState: StateFlow<MedicationPlanOperationState> = _operationState.asStateFlow()
 
+    private val _enabledPlanIdsInFlight = MutableStateFlow<Set<UUID>>(emptySet())
+    val enabledPlanIdsInFlight: StateFlow<Set<UUID>> = _enabledPlanIdsInFlight.asStateFlow()
+
     fun startCreateSession() {
         if (_editSession.value == null) {
             _editSession.value = sessionFactory.createNew()
@@ -131,13 +136,17 @@ class MedicationPlanViewModel(
     }
 
     fun closeEditSession() {
-        if (_operationState.value !is MedicationPlanOperationState.Running) {
+        val canClose = synchronized(operationLock) { !operationInFlight }
+        if (canClose) {
             _editSession.value = null
         }
     }
 
     fun acknowledgeOperation() {
-        if (_operationState.value !is MedicationPlanOperationState.Running) {
+        val canAcknowledge = synchronized(operationLock) {
+            !operationInFlight && enabledOperationsInFlight.isEmpty()
+        }
+        if (canAcknowledge) {
             _operationState.value = MedicationPlanOperationState.Idle
         }
     }
@@ -204,35 +213,37 @@ class MedicationPlanViewModel(
     }
 
     fun setPlanEnabled(id: UUID, enabled: Boolean) {
-        launchOperation(MedicationPlanOperation.SET_ENABLED) {
-            val result = try {
-                repository.setEnabled(id, enabled)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: IllegalStateException) {
-                fail(MedicationPlanOperation.SET_ENABLED, MedicationPlanOperationError.StorageFailure)
-                return@launchOperation
+        val started = synchronized(operationLock) {
+            val firstEnabledOperation = enabledOperationsInFlight.isEmpty()
+            if (operationInFlight || !enabledOperationsInFlight.add(id)) {
+                false
+            } else {
+                if (firstEnabledOperation) {
+                    pendingEnabledTerminalState = null
+                }
+                _enabledPlanIdsInFlight.value = enabledOperationsInFlight.toSet()
+                _operationState.value =
+                    MedicationPlanOperationState.Running(MedicationPlanOperation.SET_ENABLED)
+                true
             }
-            when (result) {
-                PlanUpdateResult.Updated,
-                PlanUpdateResult.NoChange -> succeed(
-                    MedicationPlanOperationSuccess.EnabledStateChanged(
-                        repositoryResult = result,
-                        enabled = enabled,
-                        reminder = if (enabled) {
-                            scheduleUpdatedPlan(id)
-                        } else {
-                            cancelReminder(id)
-                        }
+        }
+        if (!started) {
+            return
+        }
+        scope.launch {
+            try {
+                val terminalState = setPlanEnabledAndApplyReminder(id, enabled)
+                finishEnabledOperation(id, terminalState)
+            } catch (error: CancellationException) {
+                finishEnabledOperation(id, MedicationPlanOperationState.Idle)
+                throw error
+            } catch (_: RuntimeException) {
+                finishEnabledOperation(
+                    id,
+                    MedicationPlanOperationState.Failure(
+                        MedicationPlanOperation.SET_ENABLED,
+                        MedicationPlanOperationError.UnexpectedFailure
                     )
-                )
-                PlanUpdateResult.NotFound -> fail(
-                    MedicationPlanOperation.SET_ENABLED,
-                    MedicationPlanOperationError.NotFound
-                )
-                PlanUpdateResult.Invalid -> fail(
-                    MedicationPlanOperation.SET_ENABLED,
-                    MedicationPlanOperationError.RepositoryInvalid
                 )
             }
         }
@@ -268,7 +279,7 @@ class MedicationPlanViewModel(
     ) {
         scope.launch {
             val started = synchronized(operationLock) {
-                if (operationInFlight) {
+                if (operationInFlight || enabledOperationsInFlight.isNotEmpty()) {
                     false
                 } else {
                     operationInFlight = true
@@ -297,6 +308,66 @@ class MedicationPlanViewModel(
                         pendingTerminalState ?: MedicationPlanOperationState.Idle
                     pendingTerminalState = null
                 }
+            }
+        }
+    }
+
+    private suspend fun setPlanEnabledAndApplyReminder(
+        id: UUID,
+        enabled: Boolean
+    ): MedicationPlanOperationState {
+        val result = try {
+            repository.setEnabled(id, enabled)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: IllegalStateException) {
+            return MedicationPlanOperationState.Failure(
+                MedicationPlanOperation.SET_ENABLED,
+                MedicationPlanOperationError.StorageFailure
+            )
+        }
+        return when (result) {
+            PlanUpdateResult.Updated,
+            PlanUpdateResult.NoChange -> MedicationPlanOperationState.Success(
+                MedicationPlanOperationSuccess.EnabledStateChanged(
+                    repositoryResult = result,
+                    enabled = enabled,
+                    reminder = if (enabled) {
+                        scheduleUpdatedPlan(id)
+                    } else {
+                        cancelReminder(id)
+                    }
+                )
+            )
+            PlanUpdateResult.NotFound -> MedicationPlanOperationState.Failure(
+                MedicationPlanOperation.SET_ENABLED,
+                MedicationPlanOperationError.NotFound
+            )
+            PlanUpdateResult.Invalid -> MedicationPlanOperationState.Failure(
+                MedicationPlanOperation.SET_ENABLED,
+                MedicationPlanOperationError.RepositoryInvalid
+            )
+        }
+    }
+
+    private fun finishEnabledOperation(id: UUID, terminalState: MedicationPlanOperationState) {
+        synchronized(operationLock) {
+            enabledOperationsInFlight.remove(id)
+            _enabledPlanIdsInFlight.value = enabledOperationsInFlight.toSet()
+            pendingEnabledTerminalState = when {
+                terminalState is MedicationPlanOperationState.Failure -> terminalState
+                pendingEnabledTerminalState is MedicationPlanOperationState.Failure ->
+                    pendingEnabledTerminalState
+                terminalState !is MedicationPlanOperationState.Idle -> terminalState
+                else -> pendingEnabledTerminalState
+            }
+            if (enabledOperationsInFlight.isEmpty()) {
+                _operationState.value =
+                    pendingEnabledTerminalState ?: MedicationPlanOperationState.Idle
+                pendingEnabledTerminalState = null
+            } else {
+                _operationState.value =
+                    MedicationPlanOperationState.Running(MedicationPlanOperation.SET_ENABLED)
             }
         }
     }
