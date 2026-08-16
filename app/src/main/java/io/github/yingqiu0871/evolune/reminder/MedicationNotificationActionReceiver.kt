@@ -4,7 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
-import io.github.yingqiu0871.evolune.widget.updateAllEvoluneWidgets
+import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
+import io.github.yingqiu0871.evolune.widget.requestEvoluneWidgetUpdate
 import java.util.UUID
 
 /**
@@ -78,7 +79,10 @@ class MedicationNotificationActionReceiver : BroadcastReceiver {
             doseEvents = repositories.doseEvents,
             sideEffects = object : NotificationActionSideEffects {
                 override suspend fun refreshWidgets() {
-                    updateAllEvoluneWidgets(context)
+                    requestEvoluneWidgetUpdate(
+                        context,
+                        WidgetUpdateReason.ACCEPTED_NOTIFICATION_DOSE_EVENT
+                    )
                 }
 
                 override fun cancelNotification(notificationId: Int) {

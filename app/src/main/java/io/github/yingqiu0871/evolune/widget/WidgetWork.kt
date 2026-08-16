@@ -23,7 +23,7 @@ import java.time.ZoneId
 import java.util.UUID
 
 internal data class WidgetSnapshot(
-    val plans: List<MedicationPlan>,
+    val presentation: WidgetPresentationState,
     val concentration: Double?
 )
 
@@ -31,11 +31,23 @@ internal class WidgetSnapshotLoader(
     private val medicationPlans: MedicationPlanRepository,
     private val doseEvents: DoseEventRepository,
     private val bodyWeight: suspend () -> Double,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock = Clock.systemUTC(),
+    private val zoneId: () -> ZoneId = ZoneId::systemDefault,
+    private val presentationMapper: WidgetPresentationMapper = WidgetPresentationMapper()
 ) {
     suspend fun load(): WidgetSnapshot {
-        val plans = medicationPlans.observeEnabled().first().take(2)
+        val plans = medicationPlans.observeEnabled().first()
         val now = Instant.ofEpochMilli(clock.millis())
+        val eventWindow = WidgetPresentationPolicy.eventWindow(now)
+        val presentation = presentationMapper.map(
+            enabledPlans = plans,
+            doseEvents = doseEvents.findOccurredBetween(
+                startInclusive = eventWindow.first,
+                endExclusive = eventWindow.second
+            ),
+            now = now,
+            zoneId = zoneId()
+        )
         val events = doseEvents.getEventsForPk(now)
             .filter { event ->
                 event.route != Route.ANTIANDROGEN && !event.occurredAt.isAfter(now)
@@ -52,7 +64,7 @@ internal class WidgetSnapshotLoader(
                 numberOfSteps = 2
             ).run().concPGmL.lastOrNull()
         }
-        return WidgetSnapshot(plans = plans, concentration = concentration)
+        return WidgetSnapshot(presentation = presentation, concentration = concentration)
     }
 }
 
@@ -62,6 +74,28 @@ internal fun interface WidgetSnapshotRenderer {
 
 internal fun interface WidgetUpdateWork {
     suspend fun handle(appWidgetIds: IntArray)
+}
+
+internal enum class WidgetUpdateReason {
+    APP_WIDGET_UPDATE,
+    WIDGET_RESIZED,
+    PLAN_CHANGED,
+    DOSE_EVENT_CHANGED,
+    ACCEPTED_WIDGET_DOSE_EVENT,
+    ACCEPTED_NOTIFICATION_DOSE_EVENT,
+    ACCEPTED_WEAR_DOSE_EVENT,
+    DATE_OR_TIMEZONE_CHANGED,
+    MANUAL_APP_REFRESH
+}
+
+internal fun interface WidgetUpdateCoordinator {
+    suspend fun request(reason: WidgetUpdateReason)
+}
+
+internal class ContractWidgetUpdateCoordinator(
+    private val update: suspend (WidgetUpdateReason) -> Unit
+) : WidgetUpdateCoordinator {
+    override suspend fun request(reason: WidgetUpdateReason) = update(reason)
 }
 
 internal class ContractWidgetUpdateWork(
