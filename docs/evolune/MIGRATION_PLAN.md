@@ -26,32 +26,29 @@
 - `EvoluneWidgetReceiver.kt`：先抽出只读 snapshot，再决定是否用 Glance 替换 RemoteViews。
 - 数据库备份规则和 Manifest：明确 Android Auto Backup 是否允许、排除哪些敏感文件。
 
-### 仅参考行为后独立实现
+### 未来能力候选
 
-- Featherline 的 Health Connect 权限、体重读取和 MedicationStatement 写入流程。
-- Featherline 的 Wear snapshot、快速记录、跳过、撤销、离线缓存和重试行为。
-- Featherline 的 Glance 尺寸适配、配置和预览行为。
-- Featherline 的 Tracked Date 选择、空状态创建和单日期自动选择行为。
-- Featherline 的加密备份、冲突预览和 Google Drive provider 抽象。
+- Health Connect 权限、体重读取和 MedicationStatement 写入流程。
+- Wear snapshot、快速记录、跳过、撤销、离线缓存和重试行为。
+- Glance 尺寸适配、配置和预览行为。
+- Tracked Date 选择、空状态创建和单日期自动选择行为。
+- 加密备份、冲突预览和 Google Drive provider 抽象。
 
-### 不建议迁移
+### 实现边界
 
-- 直接应用 `feiwuliyong/03-patches` 中的 patch。
-- 直接复制 `com.mkx.hrttracker` 包下源码或将其批量改名为 `io.github.yuninggu.evolune`。
-- 直接复制 Featherline 的完整 Hilt/SQLCipher/Drive/Glance 技术栈。
+- 不直接应用来源和适用条款未经核验的补丁。
+- 不通过改包名或机械重写掩盖源码来源。
+- 不在缺少明确需求和架构边界时引入完整 Hilt/SQLCipher/Drive/Glance 技术栈。
 - 在没有本地加密备份和冲突策略前实现实时云同步。
 - 把 Health Connect 记录作为 Evolune 核心事实来源。
 
 ### 需要人工确认的许可证内容
 
 1. 任务说明称原 HRTTracker 使用 GPLv3，但直接检查的 `upstream/master` `LICENSE` 是 MIT，GitHub API 也返回 MIT。
-2. `feiwuliyong/06-licenses/SOURCE-AND-LICENSE-NOTICE.md` 明确说明快照来自 GPLv3 的 `mkx173/Featherline`。
-3. 当前 Evolune 的 MIT `LICENSE` 和历史贡献来源是否覆盖所有现有文件，需要项目所有者确认。
-4. 迁移包中的图片、图标、XML 和第三方库声明不能因为属于“资源”就自动视为 MIT。
+2. 当前 Evolune 的 MIT `LICENSE` 和历史贡献来源是否覆盖所有现有文件，需要项目所有者确认。
+3. 图片、图标、XML 和第三方库声明不能因为属于“资源”就自动视为 MIT。
 
-在上述问题确认前，Evolune 只使用迁移包的产品行为、接口思想和一般架构概念，不复制其中源代码、补丁或专属资源。
-
-`feiwuliyong/03-patches` 和 `02-source-snapshots` 只能用于阅读、定位行为和编写独立验收标准。不得在 Evolune 工作树执行 `git apply`，不得通过改包名、改版权头或机械重写规避许可证边界。
+在上述问题确认前，Evolune 不纳入来源或许可边界未经确认的源代码、补丁或专属资源。不得通过改包名、改版权头或机械重写规避来源与许可证核验。
 
 ## 2. 包名策略
 
@@ -60,7 +57,6 @@
 - Android namespace/applicationId：`io.github.yuninggu.evolune`
 - Wear namespace/applicationId：`io.github.yuninggu.evolune.wear`
 - 原 HRTTracker：`cn.naivetomcat.hrt_tracker`
-- Featherline 快照：`com.mkx.hrttracker`
 
 建议保留 Evolune 当前包名，不再引入迁移包包名。这样可以避免应用身份、Room 数据路径、备份键、Intent 组件和 Wear 配对产生额外迁移影响。若未来需要从旧安装包迁移数据，应通过明确的 JSON/备份导入流程完成，而不是尝试兼容旧 applicationId。
 
@@ -70,11 +66,11 @@
 
 - **目标**：确定 Evolune 的独立身份、许可证来源和文档边界。
 - **模块**：根项目、`app`、文档。
-- **进入条件**：保存当前工作树状态并确认未提交改动的归属；本阶段仅做事实核验、文档和项目政策修订；未把 `feiwuliyong` 源码、补丁或专属资源加入 Evolune 构建。
+- **进入条件**：保存当前工作树状态并确认未提交改动的归属；本阶段仅做事实核验、文档和项目政策修订；未把来源或许可边界未经确认的源码、补丁或专属资源加入 Evolune 构建。
 - **任务**：保留 `io.github.yuninggu.evolune`；建立 `docs/SOURCE_PROVENANCE.md` 来源台账；将手机和 Wear 应用私有数据排除于 Auto Backup/设备迁移；由项目所有者确认来源记录和 Tracked Date 产品优先级；恢复根 README 文档入口；移除无效旧作者赞赏和旧品牌引用；检查文件名大小写。
 - **数据迁移**：无。
 - **测试**：`git diff --check`、Markdown 链接、许可证扫描、Manifest/备份政策核对；若业务文件没有变化，无需以本轮文档修订触发完整 APK 构建。
-- **验收**：README、LICENSE、NOTICE、来源说明不互相矛盾；根文档入口可达；迁移资料不再指导直接应用 GPLv3 patch；无 `com.mkx.hrttracker` 生产包名；Manifest 引用了备份规则且敏感应用私有数据被排除；Wear 设备传输、本地备份和云同步职责分开记录。
+- **验收**：README、LICENSE、NOTICE、来源说明不互相矛盾；根文档入口可达；文档不再指导直接应用来源未经核验的补丁；生产包名保持 Evolune 身份；Manifest 引用了备份规则且敏感应用私有数据被排除；Wear 设备传输、本地备份和云同步职责分开记录。
 - **风险**：来源事实不清会污染后续版权声明。
 - **回滚**：只回滚文档变更，不触碰用户数据。
 - **退出条件/完成定义**：项目所有者确认许可证和来源台账；备份规则通过 manifest/resource 验证；来源台账中所有拟进入构建的资产不再处于未知状态；I-01、I-02、I-06 无未处置 P0；Repository contract 目标依赖方向已记录；Tracked Date 保持 `P2（1.0，非 MVP）` 或已由所有者更新全部规划文档。

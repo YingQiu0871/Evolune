@@ -36,7 +36,7 @@ Batch 8E review.
 | 16 KB alignment | `zipalign -c -P 16 -v 4` | PASS | P1 | Verification successful | Pending 8E |
 | Private real SQLite DB | No authorized `REAL_DB_PATH` | ACCEPTED_RESIDUAL_P2 | P2 | Recommended non-blocking; optional by design | Pending acceptance |
 | Historical Room v1 | No trusted `1.json`; v2 formal baseline | ACCEPTED_RESIDUAL_P2 | P2 | Do not claim general v1 support | Pending acceptance |
-| License/source | MIT; Featherline GPL reference-only | PASS | P0 | No GPL source integrated | Pending 8E |
+| License/source | MIT with reviewed provenance boundaries | PASS | P0 | No unlicensed source integrated | Pending 8E |
 | Privacy/artifacts | No DB/JSON/APK/keystore/health data in deliverables | PASS | P0 | Three docs only | Pending 8E |
 | Tracked Date | P2/non-MVP, absent from Domain/schema | NOT_APPLICABLE | P2 | Deferred | Existing decision |
 | Actual release | Tag/push/sign/release/upload | NOT_APPLICABLE | P0 | Forbidden in 8E | Later authorization |

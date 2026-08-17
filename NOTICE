@@ -29,8 +29,5 @@ PK_PERMISSION_STATUS = EXPLICIT_PERMISSION_GRANTED
 PK_PERMISSION_SCOPE = AUTHOR_OWNED_OR_AUTHORIZABLE_RIGHTS
 PK_PROVENANCE_RISK = RESOLVED_WITH_ATTRIBUTION_REQUIREMENT
 
-Historical Featherline migration material exists only in protected local
-evidence and an internal checkpoint tree/ref. It is not present in, compiled
-from, or packaged by the intended release commit. Publication must be limited
-to the approved release branch/tag; internal refs and full-repository mirrors
-must not be published.
+Publication must be limited to approved branches, tags, and release assets.
+Internal refs and full-repository mirrors must not be published.

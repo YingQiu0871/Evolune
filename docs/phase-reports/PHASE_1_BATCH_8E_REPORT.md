@@ -122,8 +122,8 @@ the androidTest APK SHA is
 
 The canonical blob hash is authoritative; platform line endings can change a
 worktree-file hash. Production destructive fallback scan returned zero. The
-root remains MIT; Featherline GPL material remains reference-only and outside
-build/runtime source. No private DB/backup/JSON/APK/keystore/manifest/generated
+root remains MIT, and the provenance audit found no unlicensed source in
+build/runtime paths. No private DB/backup/JSON/APK/keystore/manifest/generated
 database belongs in the deliverable.
 
 ## 10. Findings and recommendation

@@ -346,7 +346,7 @@ The accepted transition remains:
 
 ## 19. DeepSeek F1 API 35 revalidation
 
-DeepSeek's first independent review returned `REQUEST CHANGES` with one P1 finding. It ran `MedicationPlansScreenTest` on `emulator-5556`, which was later confirmed to be the `featherline_wear_api35` Wear OS AVD rather than a phone:
+DeepSeek's first independent review returned `REQUEST CHANGES` with one P1 finding. It ran `MedicationPlansScreenTest` on `emulator-5556`, which was later confirmed to be a Wear OS API 35 AVD rather than a phone:
 
 - Android 15 / API 35;
 - model `sdk_gwear_x86_64`;

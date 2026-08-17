@@ -116,8 +116,6 @@ reviews/  外部审阅报告和逐项处置记录
 
 Evolune 是 HRTTracker 的独立延续与大规模重构。当前由盈秋（[`YingQiu0871`](https://github.com/YingQiu0871)）维护，公共仓库为 [`YingQiu0871/Evolune`](https://github.com/YingQiu0871/Evolune)。Git 历史直接继承 `upstream/master` 的 MIT 基线，公开包名为 `io.github.yingqiu0871.evolune`。
 
-当前发布树不包含 Featherline/`feiwuliyong` 源码、补丁或专属资源。相关 GPLv3 历史材料仅存在于受保护的本地证据和内部 checkpoint ref，不得发布所有本地 ref、完整对象库或未过滤的全仓库 bundle。
-
 当前 PK 实现实质上派生自 HRT-Recorder-PKcomponent-Test。2026-08-14，原作者明确授权 Evolune 使用、复制、修改、移植、二次开发、分发修改后的源代码和编译后的应用，并将相应衍生代码按 MIT License 开源发布；授权仅覆盖作者本人拥有相关权利或有权授权的内容。项目保留来源及相关贡献者的归属、版权和许可说明。该授权不表示整个上游仓库自动变为 MIT，也不代表第三方贡献者授予权利。
 
 根 [MIT License](../../LICENSE) 适用于 Evolune 自有工作、兼容继承内容及上述明确授权范围内的相应衍生代码。详见 [NOTICE](../../NOTICE)、[来源追踪记录](../SOURCE_PROVENANCE.md) 与 [第三方许可证与通知](../../THIRD_PARTY_NOTICES.md)。

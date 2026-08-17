@@ -268,7 +268,7 @@
 ## License and Source Boundary
 
 - 无旧 GPL 类名、注释或结构 ✓
-- 无 `feiwuliyong` 引用 ✓
+- 无历史迁移目录引用 ✓
 - 无旧项目资源 ✓
 - 无第三方代码 ✓
 - UUIDv5 是标准算法的独立实现 ✓ (使用 Java 标准库 `MessageDigest` 和 `ByteBuffer`)
