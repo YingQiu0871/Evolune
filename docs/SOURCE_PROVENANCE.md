@@ -63,14 +63,6 @@ Evolune's current estradiol pharmacokinetic implementation materially traces to 
 
 Scientific/project references, including the Oyama citation and public data-format compatibility references, are used as citations, factual context, or interoperability targets unless a more specific lineage entry says otherwise. No tracked release material marked CC BY-NC-SA, and no copied CC BY-NC-SA prose, image, chart, or derived code, was identified in this review. Citation alone does not alter Evolune's source license.
 
-## Archived/non-production reference material
-
-Featherline/`feiwuliyong` GPLv3 migration snapshots, patches, and dedicated assets are absent from the reviewed release tree. Historical discussion remains in older design/provenance records as evidence. The material itself is retained only in the protected local evidence root and the local tree ref:
-
-`refs/codex/turn-diffs/checkpoints/d22fd9bea88e7ca976e5ec988d9ad0418f270cc72b3480e8df82b02c995006c7/f705e54dfe1428b053535ebdbc4abfcc95dea271ebdac9512389e9864a9dc79f/1786291873064/16efa636-a14e-42a0-88f9-86dacf5f0e49`
-
-Read-only reachability analysis found no substantive Featherline/GPL blob reachable from release HEAD, `main`, existing tags, or origin's public remote-tracking branches. A generic seven-byte `.gitignore` blob is byte-identical across the trees; it is not Featherline source or a protected asset. The internal ref and full object database must not be published. See the Batch 9A publication-boundary report for the permitted publication pattern.
-
 ## Release controls
 
 1. Publish only the explicitly reviewed release branch and a tag created from its approved sealing commit.

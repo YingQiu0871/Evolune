@@ -153,7 +153,7 @@ Both APIs independently replayed: v2 seed -> in-place v3 -> production Repositor
 
 ## Licensing/source-boundary verdict
 
-- Root: MIT. Featherline GPL reference materials in docs/ and historical reviews only; not compiled into app or build. No GPL source in build.gradle.kts or app/src/main. SOURCE_PROVENANCE.md documents the boundary.
+- Root: MIT. Provenance review found no unlicensed source compiled into the app or build. `SOURCE_PROVENANCE.md` documents the active source and attribution boundaries.
 
 ## Privacy/artifact verdict
 

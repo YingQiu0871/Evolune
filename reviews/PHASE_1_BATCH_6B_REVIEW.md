@@ -183,7 +183,7 @@ Prerequisite tag: `phase-1-batch-6a`
 
 - API 33 phone：`emulator-5554` = **Evolune_API33_Migration**（AVD 与任务指定 `emulator-5560` 相同，本次 adb 端口为 5554，characteristics=emulator 不含 watch）✓
 - API 35 phone：`emulator-5558` = **Pixel_7**（SDK 35，characteristics=emulator）✓
-- `emulator-5556` = featherline_wear_api35（Wear，未用于 phone 验收）✓
+- `emulator-5556` = Wear OS API 35 AVD（未用于 phone 验收）✓
 
 独立执行结果：
 

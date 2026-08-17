@@ -7,7 +7,7 @@ This file preserves historical decision context. Statuses below describe the pos
 | ADR | Current status | Post-v1.0 note |
 |---|---|---|
 | ADR-001 | Implemented in v1.0 | Evolune remains MIT within the documented source and permission boundaries. |
-| ADR-002 | Implemented in v1.0 | Protected Featherline/GPL snapshots are excluded from the public release tree. |
+| ADR-002 | Implemented in v1.0 | Third-party source and assets require verified provenance and compatible terms. |
 | ADR-003 | Implemented in v1.0 | Room v3 is the local source of truth. |
 | ADR-004 | Accepted / planned v1.2 | Health Connect remains an optional future integration and is not implemented. |
 | ADR-005 | Accepted / partially implemented | v1.0 has tested Data Layer replay/conflict behavior; a general versioned protocol remains for the v1.1 gap audit. |
@@ -29,21 +29,21 @@ This file preserves historical decision context. Statuses below describe the pos
 
 ## ADR-001：保持 Evolune 使用 MIT
 
-- **背景**：当前 Evolune `LICENSE` 是 MIT；产品目标是独立、可长期维护的项目。远程 `upstream/master` 的 `LICENSE` 也实际为 MIT，但迁移包来自另一个 GPLv3 Featherline 来源。
-- **可选方案**：继续 MIT；整体改为 GPLv3；不同模块混合许可证。
-- **最终建议**：保持 Evolune MIT，未经人工确认不纳入 GPLv3 快照源码或专属资源。
+- **背景**：当前 Evolune `LICENSE` 是 MIT；产品目标是独立、可长期维护的项目，直接继承的 `upstream/master` 基线也使用 MIT。
+- **可选方案**：继续 MIT；对具有独立许可的组件保留其各自条款；整体改用其他许可证。
+- **最终建议**：保持 Evolune MIT，并逐项保留实际第三方材料的许可与归属要求。
 - **优点**：许可边界清晰，便于独立维护和分发。
-- **缺点**：不能直接使用迁移包已有实现，需重新设计和测试。
-- **风险**：历史文件来源和第三方资源许可仍需人工确认。
+- **缺点**：新增来源需要逐项审查和记录。
+- **风险**：来源不明的文件或第三方资源可能带来额外许可义务。
 - **重新评估**：若版权持有人书面确认可授权特定代码，逐文件更新 NOTICE 和许可证策略。
 
-## ADR-002：不直接复制 GPLv3 源码
+## ADR-002：只纳入来源与许可已确认的材料
 
-- **背景**：`feiwuliyong/06-licenses/SOURCE-AND-LICENSE-NOTICE.md` 将快照和补丁标为 Featherline GPLv3 衍生物。
-- **可选方案**：复制并把包名改成 Evolune；采用 GPLv3；只参考行为后独立重写。
-- **最终建议**：只参考产品行为、数据概念和公开 API，使用 Evolune 自己的接口和实现重写。
-- **优点**：维持 MIT 目标，减少代码血缘污染。
-- **缺点**：实施成本更高，行为一致性需要重新验证。
+- **背景**：项目必须能够说明纳入公开树的源码、资产和测试资料的来源及适用条款；改名或机械重写不会改变其来源。
+- **可选方案**：不经核验直接复用；按兼容条款与归属要求纳入；仅依据公开行为和 API 独立实现。
+- **最终建议**：仅纳入来源和许可已确认的材料；其他需求使用 Evolune 自己的接口、实现与测试独立完成。
+- **优点**：维持清晰、可审计的许可与来源边界。
+- **缺点**：来源核验和独立实现会增加工作量。
 - **风险**：不可证明来源的实现细节、图片、XML 和测试样例可能仍有许可问题。
 - **重新评估**：人工完成来源审查后逐项决定是否可复用。
 
@@ -59,7 +59,7 @@ This file preserves historical decision context. Statuses below describe the pos
 
 ## ADR-004：Health Connect 作为集成层
 
-- **背景**：迁移资料展示了体重读取和 MedicationStatement/PHR 写入，但当前 Evolune 没有 Health Connect。
+- **背景**：当前 Evolune 没有 Health Connect；未来集成需要覆盖体重读取、MedicationStatement/PHR 写入及权限边界。
 - **可选方案**：核心模型依赖 Health Connect；Health Connect 只做可选交换层；完全不接入。
 - **最终建议**：可选交换层；按数据类型授权、映射、去重和记录来源。
 - **优点**：权限可控，Provider 不可用时核心功能仍工作。
@@ -89,7 +89,7 @@ This file preserves historical decision context. Statuses below describe the pos
 
 ## ADR-007：暂不使用 SQLCipher
 
-- **背景**：当前数据库是 Room 默认实现；迁移包使用 SQLCipher、Argon2 和更多安全设施，但 Evolune 没有威胁模型、密钥恢复或迁移方案。
+- **背景**：当前数据库是 Room 默认实现；Evolune 尚未形成数据库加密所需的威胁模型、密钥恢复或迁移方案。
 - **可选方案**：立即引入 SQLCipher；继续明文 Room 并限制备份；先做加密导出。
 - **最终建议**：先由项目所有者决定 Android Auto Backup 政策，并在进入 Phase 1 前实施可验证的排除规则或关闭备份；随后建立用户主动加密备份，再评估数据库透明加密。
 - **优点**：降低立即迁移风险，优先解决真正的导出和备份场景。
@@ -99,7 +99,7 @@ This file preserves historical decision context. Statuses below describe the pos
 
 ## ADR-008：Glance 先试点，不立即替换 RemoteViews
 
-- **背景**：当前 Evolune 使用 RemoteViews；迁移包包含 Glance 小组件，但其实现与 Featherline 数据模型、Hilt 和配置系统紧密耦合。
+- **背景**：当前 Evolune 使用 RemoteViews；迁移前需要先建立独立的 Widget snapshot 边界，并验证 Glance 在目标 Launcher/OEM 上的尺寸、更新和交互行为。
 - **可选方案**：立即全面迁移；继续 RemoteViews；抽出 snapshot 后做一个 Glance 试点。
 - **最终建议**：第三种方案。
 - **优点**：保持现有可靠路径，同时验证现代 API 和 OEM 行为。
@@ -109,7 +109,7 @@ This file preserves historical decision context. Statuses below describe the pos
 
 ## ADR-009：Google Drive 不作为默认同步方案
 
-- **背景**：迁移包中的 Drive 快照包含 OAuth、加密数据库、冲突决策和 WorkManager，但当前 Evolune 没有加密备份格式和账户体系。
+- **背景**：Drive 同步需要 OAuth、加密备份、冲突决策和后台调度，但当前 Evolune 没有加密备份格式和账户体系。
 - **可选方案**：Drive appData；用户可见文件；WebDAV；自建服务；仅本地加密备份。
 - **最终建议**：先做本地导出/恢复和加密文件格式，再按用户价值选择 provider；不承诺实时同步。
 - **优点**：先解决可恢复性，避免过早承担 OAuth、删除同步和多设备冲突。

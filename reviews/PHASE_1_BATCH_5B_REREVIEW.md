@@ -40,7 +40,7 @@
 
 第一次审阅结论（REQUEST CHANGES，P0/P1/P2 = 0/1/2）：
 
-- **F1 (P1)**: `MedicationPlansScreenTest` 3/5 在 `featherline_wear_api35(AVD)`（当时被误认为 API 35 手机）上失败——`plan-name` testTag 未显示。
+- **F1 (P1)**: `MedicationPlansScreenTest` 3/5 在 Wear OS API 35 AVD（当时被误认为 API 35 手机）上失败——`plan-name` testTag 未显示。
 - **F2 (P2)**: ViewModel Reminder 相关 catch `RuntimeException` 面较宽。
 - **F3 (P2)**: `reminderOccurrences` 中 `slots.sortedBy { position }` 防御性冗余。
 
@@ -56,7 +56,7 @@
 |---|---|---|---|---|---|
 | `emulator-5558` | 35 | `emulator`（**不含 watch**）| sdk_gphone64_x86_64 | 1080x2400 / 420 | **有效 API 35 手机**（Pixel_7 AVD，Gradle 设备名 `Pixel_7(AVD) - 15`）✓ |
 | `emulator-5560` | 33 | `emulator`（**不含 watch**）| sdk_gphone64_x86_64 | 1080x2400 / 420 | **有效 API 33 手机**（Evolune_API33_Migration AVD）✓ |
-| `emulator-5556` | 35 | `emulator,nosdcard,watch` | sdk_gwear_x86_64 | 454x454 / 320 | **Wear OS 手表**（featherline_wear_api35）——非 phone UI 验收目标 ✓ |
+| `emulator-5556` | 35 | `emulator,nosdcard,watch` | sdk_gwear_x86_64 | 454x454 / 320 | **Wear OS 手表**——非 phone UI 验收目标 ✓ |
 
 **结论**：第一次审阅 F1 的失败设备确认为 Wear OS AVD（characteristics 含 `watch`、454x454 表盘尺寸）；`emulator-5558` 与 `emulator-5560` 均为有效手机（characteristics 不含 watch）。Wear OS 上的手机 Compose 测试结果**不应作为 phone UI 验收结论**——该论断成立。两个有效手机 AVD 均未触发 BLOCK 条件。
 
@@ -185,7 +185,7 @@ Rollback 真实性（第一次审阅已完整核实，本轮代码未变，结�
 
 ### F1 (P1→RESOLVED) — MedicationPlansScreenTest 设备形态误判
 
-- **文件/测试**: `MedicationPlansScreenTest`（3 方法）；根因设备 `featherline_wear_api35`（Wear OS AVD）
+- **文件/测试**: `MedicationPlansScreenTest`（3 方法）；根因设备为 Wear OS AVD
 - **问题**: 第一次审阅在 Wear OS AVD 上观察到 3/5 失败，误标为 API 35 手机问题。
 - **依据**: 设备特性核实（characteristics 含 `watch`、454x454）+ 有效 API 35 手机（Pixel_7）上全量通过。
 - **当前状态**: **RESOLVED**（根因 = 错误 form factor；非 UI bug、非测试时序 bug、无代码/测试修改）

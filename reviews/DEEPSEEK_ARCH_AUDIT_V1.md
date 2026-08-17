@@ -1,7 +1,7 @@
 # Evolune 架构审计报告 V1
 
 **审计日期**: 2026-08-01
-**审计范围**: 仓库根目录 + `docs/evolune/` 架构文档 + `app/` `wear/` 源码 + `feiwuliyong/` 迁移资料包
+**审计范围**: 仓库根目录 + `docs/evolune/` 架构文档 + `app/` `wear/` 源码
 **审计方法**: 文档间交叉比对 + 文档与代码逐项验证
 **审计人员**: DeepSeek V4 Pro (自动化审阅)
 
@@ -11,13 +11,12 @@
 
 ### 整体判断：文档间存在 6 处冲突，文档与代码间存在 8 处不一致
 
-**文档体系分层**：仓库实际有两套 README（根目录 `readme.md` 与 `docs/evolune/README.md`），内容不完全一致。根 README 缺少 `docs/` 和 `feiwuliyong/` 目录说明、缺少许可证边界声明、缺少 Wear 协议局限性说明。`docs/evolune/README.md` 更完整但路径引用使用相对路径（如 `[迁移计划](MIGRATION_PLAN.md)`），容易误解为指向根目录文件。
+**文档体系分层**：仓库实际有两套 README（根目录 `readme.md` 与 `docs/evolune/README.md`），内容不完全一致。根 README 缺少 `docs/` 目录说明、许可证边界声明和 Wear 协议局限性说明。`docs/evolune/README.md` 更完整；其文档入口应使用可从当前位置解析的路径（如 `[迁移计划](../docs/evolune/MIGRATION_PLAN.md)`）。
 
 **核心冲突**：
 1. `FEATURE_MATRIX.md` 将 Tracked Date 标记为 **P1**，但 `ROADMAP.md` 将其放在 1.0 阶段标记为 **P2**，`ADR-011` 暗示它尚未进入产品决策
-2. `feiwuliyong/01-product-docs/03-migration-checklist.md` 第二阶段的 "复制 `phone-widgets.patch`" 与 `ADR-001`/`ADR-002` 的 "不直接复制 GPLv3 源码" **直接矛盾**
-3. `ARCHITECTURE.md` 依赖图显示 `feature:*` 模块直接依赖 `core:database`，但同文档的依赖规则规定 feature 应 "通过 Repository、Use Case 访问"
-4. `ARCHITECTURE.md` 使用名称 `core:sync` 同时指代 Wear 桥接和未来云同步，但 `DECISIONS.md` ADR-009 明确 Google Drive 不作为默认方案
+2. `ARCHITECTURE.md` 依赖图显示 `feature:*` 模块直接依赖 `core:database`，但同文档的依赖规则规定 feature 应 "通过 Repository、Use Case 访问"
+3. `ARCHITECTURE.md` 使用名称 `core:sync` 同时指代 Wear 桥接和未来云同步，但 `DECISIONS.md` ADR-009 明确 Google Drive 不作为默认方案
 
 ---
 
@@ -51,7 +50,6 @@
 - **I-02**: 创建 NOTICE 文件，记录所有上游来源与许可证
 - **I-09**: 标记 `exportSchema = true`
 - **I-17**: 统一 `readme.md` 与 `docs/evolune/README.md` 内容
-- **I-19**: 修复 `feiwuliyong` 迁移清单中的 "复制 patch" 表述
 
 ---
 
@@ -63,7 +61,7 @@
 - **I-10**: `WearDoseListenerService` 绕过 Repository 问题
 - **I-12**: `core:sync` 模块职责拆分
 - **I-14**: Wear 端硬编码路径常量
-- **I-18**: 根 README 缺少 `docs/` 和 `feiwuliyong/` 目录
+- **I-18**: 根 README 缺少 `docs/` 目录和许可证边界说明
 
 ---
 
@@ -72,7 +70,7 @@
 | 决策 | 建议 | 理由 |
 |------|------|------|
 | ADR-001 (保持 MIT) | **接受** | 许可证边界清晰，适合独立项目 |
-| ADR-002 (不复制 GPLv3 源码) | **接受，但需修正 feiwuliyong 迁移清单** | 决策正确，但 `03-migration-checklist.md` 第二阶段的 "复制 phone-widgets.patch" 必须改为 "参考行为后独立实现" |
+| ADR-002 (只纳入来源与许可已确认的材料) | **接受** | 建立可审计的来源与许可边界 |
 | ADR-003 (Room 是主要事实来源) | **接受** | 离线可靠，与产品定位一致 |
 | ADR-005 (Wear 协议版本化) | **接受** | 当前 `/hrt/*` payload 无版本/ack/checksum，必须升级 |
 | ADR-006 (逐步多模块) | **接受** | 降低风险，合理 |
@@ -125,12 +123,11 @@
   1. NaiveTomcat/HRTTracker (MIT) 的版权声明
   2. LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test 的 PK 参考实现来源
   3. SmirnovaOyama/Oyama-s-HRT-Tracker 的灵感来源
-  `feiwuliyong/06-licenses/SOURCE-AND-LICENSE-NOTICE.md` 正确声明了 Featherline (GPLv3) 的许可证边界，但 Evolune 库缺少对应文件。
+  Evolune 库缺少统一的来源与第三方许可说明。
 - **影响**: 上游 MIT 项目的要求是 "The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software"。缺少正式 NOTICE 文件意味着分发时可能违反上游许可证条件。
 - **最小修改建议**: 创建 `NOTICE` 文件，逐项列出：
   - 上游 MIT 项目的版权声明和许可证副本引用
   - PK 参数和模型的参考来源
-  - `feiwuliyong/` 目录的 GPLv3 边界说明
   - 第三方依赖（通过 Gradle 自动生成可考虑）
 - **需要人工决定**: 是 — 需要确认哪些代码来自上游项目，哪些是独立实现
 - **阻止进入 Phase 0**: **是**
@@ -213,27 +210,6 @@
 - **需要人工决定**: 否
 - **阻止进入 Phase 0**: 否
 - **阻止进入 Phase 1**: 否 (Wear 协议是 Phase 4)
-
----
-
-### I-06 — `feiwuliyong` 迁移清单与 ADR-001/002 直接矛盾
-
-- **Issue ID**: I-06
-- **分类**: 文档冲突
-- **严重程度**: **P1**
-- **置信度**: 高
-- **状态**: 已确认
-- **文件路径**:
-  - `docs/evolune/DECISIONS.md:13-21` — ADR-001: "保持 Evolune MIT，未经人工确认不纳入 GPLv3 快照源码或专属资源"
-  - `docs/evolune/DECISIONS.md:23-31` — ADR-002: "只参考产品行为、数据概念和公开 API，使用 Evolune 自己的接口和实现重写"
-  - `feiwuliyong/01-product-docs/03-migration-checklist.md:19-20` — 第二阶段: "复制 `phone-widgets.patch` 并按 Evolune package 重命名"
-  - `feiwuliyong/01-product-docs/06-source-map.md:20` — 末尾注明 "补丁应用前请用 `git apply --check` 检查冲突"
-- **证据**: ADR-001 和 ADR-002 明确禁止复制 GPLv3 源码。但 `03-migration-checklist.md` 第 19 行说 "复制 `phone-widgets.patch` 并按 Evolune package 重命名"，`06-source-map.md` 末尾还提示用 `git apply --check`。这两份文档暗示补丁可以直接应用，与 ADR 决策**直接矛盾**。MIGRATION_PLAN.md 第 32 行的 "不建议迁移" 与 ADR 一致，但 `03-migration-checklist.md` 没有被修正。
-- **影响**: 开发者可能误解为 "重命名后即可复制 GPLv3 补丁"，导致许可证污染。
-- **最小修改建议**: 删除 `03-migration-checklist.md:19` 的 "复制 `phone-widgets.patch` 并按 Evolune package 重命名"，改为 "参考 `phone-widgets.patch` 的产品行为，独立实现 Widget snapshot provider"。同样修改其他 "复制 xxx.patch" 的条目。
-- **需要人工决定**: 否 (ADR 已有决定，只是执行文案未更新)
-- **阻止进入 Phase 0**: **是** — Phase 0 目标包括 "确定 Evolune 的独立身份、许可证来源和文档边界"
-- **阻止进入 Phase 1**: 否
 
 ---
 
@@ -420,13 +396,12 @@
 
   | 内容 | 根 readme.md | docs/evolune/README.md |
   |------|-------------|----------------------|
-  | `feiwuliyong/` 目录说明 | 无 | 有 ("仅作为受许可证约束的参考资料") |
   | `docs/` 目录说明 | 无 | 有 |
   | Wear 实现局限性 | 无 ("同步用药方案") | 有 ("Health Connect、云同步、加密备份、正式 Tracked Date 模型和独立 Wear App 尚未在 Evolune 中实现") |
   | 数据加密状态 | 无 | 有 ("尚未启用 SQLCipher 或其他数据库加密方案") |
   | 许可证边界声明 | 仅 "致谢" | 有明确边界声明和指向 MIGRATION_PLAN.md、DECISIONS.md |
 
-- **影响**: 访问 GitHub 仓库首页的读者只看根 README，看不到许可证边界、`feiwuliyong/` 目录意图和当前架构限制。根 README 给人印象是 Wear 同步已成熟，但实际不然。
+- **影响**: 访问 GitHub 仓库首页的读者只看根 README，看不到许可证边界和当前架构限制。根 README 给人印象是 Wear 同步已成熟，但实际不然。
 - **最小修改建议**: 统一两份 README。选项：
   1. 根 README 合并 docs README 的关键内容（许可证边界、功能局限）
   2. 或根 README 精简为简介 + 链接到 docs README
@@ -465,7 +440,7 @@
 
 ---
 
-### I-17 — 根 `readme.md` 缺少 `docs/` 和 `feiwuliyong/` 目录描述
+### I-17 — 根 `readme.md` 缺少文档目录说明
 
 - **Issue ID**: I-17
 - **分类**: 文档冲突
@@ -476,10 +451,9 @@
   - `readme.md:89-98` — 项目结构部分
 - **证据**: 根 README 的项目结构部分只列出 `app/` 和 `wear/`，未提及：
   - `docs/evolune/` — 架构文档、功能矩阵、迁移计划、路线图、决策记录
-  - `feiwuliyong/` — Featherline 迁移资料包（GPLv3 约束）
   - `reviews/` — 审计报告
-- **影响**: 新贡献者可能不知道架构文档存在，或可能误入 `feiwuliyong/` 目录并复制 GPLv3 代码。
-- **最小修改建议**: 在根 README 项目结构部分参考 `docs/evolune/README.md:89-98`，添加四个目录及其用途描述
+- **影响**: 新贡献者可能不知道架构文档和审阅记录存在。
+- **最小修改建议**: 在根 README 项目结构部分参考 `docs/evolune/README.md:89-98`，添加文档与审阅目录及其用途描述
 - **需要人工决定**: 否
 - **阻止进入 Phase 0**: 否
 - **阻止进入 Phase 1**: 否
@@ -554,7 +528,6 @@
 | Health Connect | 第 9 节 | ADR-004 | Phase 5 | 当前不存在 | P2 | P2 | — | — | 无 |
 | exportSchema | 目标: true | — | 标记为需重构 | 当前: false | — | — | — | — | **false** |
 | Repository 边界 | 规则: 禁直接DAO | — | — | — | — | — | — | — | **Wear绕过** |
-| feiwuliyong 迁移 | 仅参考行为 | ADR-001/002 | 第 3 节 | — | — | — | 无 | 有 | 不参与构建 |
 
 - **图例**: — 表示文档未涉及；**加粗** 表示有冲突或不完整。
 
@@ -564,7 +537,7 @@
 
 | 文档 | 存在 | 状态 |
 |------|------|------|
-| README.md (根) | ✓ | 缺少 docs/、feiwuliyong/ 路径和许可证边界 |
+| README.md (根) | ✓ | 缺少 docs/ 路径和许可证边界 |
 | README.md (docs) | ✓ | 完整，路径引用使用相对路径 |
 | ARCHITECTURE.md | ✓ | 完整，但依赖图与规则有冲突 |
 | DECISIONS.md | ✓ | 完整，但 ADR-011 决策未关闭 |

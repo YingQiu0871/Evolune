@@ -274,7 +274,7 @@ in-flight gate（L264-296）：
 
 - **严重程度**: P1
 - **文件**: `app/src/androidTest/java/io/github/yuninggu/evolune/ui/screens/MedicationPlansScreenTest.kt:85-151`（`invalidDraftSkipsRepositoryAndKeepsEditorOpen`、`saveFailureKeepsEditorOpenAndShowsError`、`deleteFailureKeepsEditorOpen`）
-- **问题**: 本轮独立验证中，在 `featherline_wear_api35(AVD)`（API 35）设备上运行，3 个测试失败，全部为 `AssertionError: The component with TestTag = 'plan-name' is not displayed!`。在 API 33（`Evolune_API33_Migration(AVD)`）上同 5 个测试 5/5 通过。两次运行均实际执行（非编译推断）。
+- **问题**: 本轮独立验证中，在 Wear OS API 35 AVD 上运行，3 个测试失败，全部为 `AssertionError: The component with TestTag = 'plan-name' is not displayed!`。在 API 33（`Evolune_API33_Migration(AVD)`）上同 5 个测试 5/5 通过。两次运行均实际执行（非编译推断）。
 - **触发条件**: 在 API 35 设备上运行 connected 测试（测试点击 plan-save/plan-delete 后 `waitUntil(operationState is Failure)`，随后断言 `plan-name` 显示）。
 - **影响**: 无法确认"失败后 sheet 保持打开 + 错误显示"的 UI 行为在 API 35 上成立。可能原因：(a) 测试时序脆弱——`waitUntil` 只等待 operationState，不等待 ModalBottomSheet 展开动画，API 35 动画/渲染时序不同导致 `plan-name` 在断言时不可见；(b) 真实 UI 差异——API 35 上 sheet 行为/布局变化。二者无法从当前证据区分。若为 (b)，API 35 用户会看到保存失败后 sheet 关闭（错误状态丢失）。
 - **依据**: ADR-016 发布门槛要求"目标 Android 设备矩阵验证"；本批报告仅声明 API 33 单一设备。API 35（Android 15）对 2026 年应用不是边缘版本。
@@ -311,7 +311,7 @@ in-flight gate（L264-296）：
 |---|---|
 | `adb devices -l` | emulator-5554（手机）、emulator-5556（**Wear 手表** sdk_gwear_x86_64）——环境与实施方报告时的设备已变化 |
 | 5B JVM 测试类（4 类，--rerun-tasks）| **PASS** — 25 tests（Editor 7 + ReminderSchedule 5 + PredictorParity 3 + ViewModel 10，JUnit XML 实测）|
-| `connectedDebugAndroidTest` cutover+screen 类（首次，ANDROID_SERIAL=emulator-5556 指向手表）| **FAILED** — 3 个 screen 测试在 `featherline_wear_api35(AVD)`（API 35）失败（plan-name not displayed）；cutover 2/2 通过 |
+| `connectedDebugAndroidTest` cutover+screen 类（首次，ANDROID_SERIAL=emulator-5556 指向手表）| **FAILED** — 3 个 screen 测试在 Wear OS API 35 AVD 上失败（plan-name not displayed）；cutover 2/2 通过 |
 | `connectedDebugAndroidTest` screen 类（ANDROID_SERIAL=emulator-5554）| **PASS** — 5/5 在 `Evolune_API33_Migration(AVD)`（API 33）|
 | 全量 `connectedDebugAndroidTest`（API 33）| **PASS** — 75/75，0 failed |
 | 全量 `testDebugUnitTest` | **PASS** — 31 suites / 274 tests |

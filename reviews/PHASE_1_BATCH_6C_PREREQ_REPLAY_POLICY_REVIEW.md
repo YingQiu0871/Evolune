@@ -171,7 +171,7 @@ Prerequisite tag: `phase-1-batch-6-replay-policy-design-v1`
 
 - `emulator-5560` = **Evolune_API33_Migration**（SDK 33、characteristics=emulator 不含 watch、model sdk_gphone64_x86_64、1080x2400/420dpi）✓
 - `emulator-5558` = **Pixel_7**（SDK 35、characteristics=emulator、model sdk_gphone64_x86_64）✓
-- 均 `sys.boot_completed=1` ✓；Wear AVD（featherline_wear_api35）未启动/未用于验收 ✓
+- 均 `sys.boot_completed=1` ✓；Wear OS API 35 AVD 未启动/未用于验收 ✓
 
 独立执行：
 

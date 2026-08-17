@@ -69,7 +69,7 @@
 - [x] 根 README、详细 README、LICENSE、NOTICE 和来源台账链接可达。
 - [x] 手机和 Wear Manifest 均引用 `fullBackupContent` 与 `dataExtractionRules`。
 - [x] 手机和 Wear 敏感应用私有数据在云备份和设备迁移中均被排除。
-- [x] `feiwuliyong` 资料仍未加入 Gradle 构建，迁移文档不再指导对 Evolune 执行 `git apply`。
+- [x] 迁移文档不再指导对 Evolune 直接应用补丁。
 - [x] 手机单元测试、Wear 单元测试、手机 debug 构建、Wear debug 构建和两端 lint 通过。
 - [ ] 项目所有者完成来源台账的逐文件确认，并决定是否需要扩展第三方依赖 NOTICE。
 - [ ] 在独立提交中复核工作树，确认既有业务改动不会与本 Phase 0 基线混合。
