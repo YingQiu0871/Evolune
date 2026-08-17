@@ -9,6 +9,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.click
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,6 +33,7 @@ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
+import io.github.yingqiu0871.evolune.ui.components.MedicationRecordItem
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
@@ -240,6 +244,32 @@ class MedicationRecordsScreenTest {
         gate.complete(Unit)
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
         assertEquals(1, repository.insertCalls)
+    }
+
+    @Test
+    fun cancelledRecordCardGestureDoesNotInvokeItsClickCallback() {
+        var clickCount = 0
+        composeRule.setContent {
+            EvoluneTheme {
+                MedicationRecordItem(
+                    medicationName = "test",
+                    route = Route.INJECTION,
+                    doseMG = 2.0,
+                    timeH = 0.0,
+                    modifier = Modifier.testTag("record-card"),
+                    onClick = { clickCount++ }
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("record-card").performTouchInput {
+            down(center)
+            moveTo(Offset(-1f, center.y))
+            up()
+        }
+        assertEquals(0, clickCount)
+        composeRule.onNodeWithTag("record-card").performClick()
+        assertEquals(1, clickCount)
     }
 
     @Test

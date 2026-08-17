@@ -276,31 +276,33 @@ fun AppNavigation(
     val useNavigationRail =
         windowSizeClass != null && windowSizeClass.widthSizeClass != WindowWidthSizeClass.Compact
 
-    val recordEditorOpenForNav by hrtViewModel.editSession.collectAsState()
-    val planEditorOpenForNav by medicationPlanViewModel.editSession.collectAsState()
-    val navigationVisible = recordEditorOpenForNav == null && planEditorOpenForNav == null
+    val recordEditSession by hrtViewModel.editSession.collectAsState()
+    val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.HOME
     val currentRouteState = rememberUpdatedState(currentRoute)
 
-    Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
-        ),
-        bottomBar = {
-            if (navigationVisible && !useNavigationRail) {
-                BottomNavigationBar(navController = navController)
+    // The top-level Scaffold stays intact beneath full-screen editor layers so its
+    // bottom inset and navigation geometry cannot change during editor transitions.
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+            ),
+            bottomBar = {
+                if (!useNavigationRail) {
+                    BottomNavigationBar(navController = navController)
+                }
+            },
+            topBar = {
+                AppTopBar(
+                    currentScreen = currentScreen,
+                    alignWithNavigationRail = useNavigationRail,
+                    onRefresh = hrtViewModel::runSimulation
+                )
             }
-        },
-        topBar = {
-            AppTopBar(
-                currentScreen = currentScreen,
-                alignWithNavigationRail = navigationVisible && useNavigationRail,
-                onRefresh = hrtViewModel::runSimulation
-            )
-        }
-    ) { innerPadding ->
+        ) { innerPadding ->
         var swipeDelta by remember { mutableFloatStateOf(0f) }
         val swipeThresholdPx = with(LocalDensity.current) { NAV_SWIPE_THRESHOLD_DP.dp.toPx() }
 
@@ -313,7 +315,7 @@ fun AppNavigation(
                 .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            if (navigationVisible && useNavigationRail) {
+            if (useNavigationRail) {
                 NavigationRailBar(navController = navController)
             }
             Box(
@@ -417,8 +419,6 @@ fun AppNavigation(
     }
 
     // ---- Fullscreen editor overlays (root level; cover bottom bar and system bar areas) ----
-    val recordEditSession by hrtViewModel.editSession.collectAsState()
-    val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val recordOperationState by hrtViewModel.operationState.collectAsState()
     val planOperationState by medicationPlanViewModel.operationState.collectAsState()
     var recordDefaults by remember { mutableStateOf<RecordDefaults?>(null) }
@@ -542,7 +542,8 @@ fun AppNavigation(
                 )
             }
         )
-    }
+        }
+        }
 }
 
 private fun io.github.yingqiu0871.evolune.core.model.DoseEvent.toRecordDefaults(): RecordDefaults =

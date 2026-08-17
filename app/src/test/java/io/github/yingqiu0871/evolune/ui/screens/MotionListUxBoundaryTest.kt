@@ -27,7 +27,7 @@ class MotionListUxBoundaryTest {
         assertTrue(source.split("EditorTransitionHost(").size - 1 >= 2)
         assertFalse(source.contains("if (recordEditSession != null)"))
         assertFalse(source.contains("if (planEditSession != null)"))
-        assertTrue(hostSource.contains("evolunePageEnterTransition()"))
+        assertTrue(hostSource.contains("evolunePageEnterTransition(startImmediately = true)"))
         assertTrue(hostSource.contains("evolunePageExitTransition()"))
         assertTrue(hostSource.contains("sizeTransform = null"))
         assertFalse(hostSource.contains("slideIn"))
@@ -39,9 +39,25 @@ class MotionListUxBoundaryTest {
         assertTrue(motionSource.contains("initialScale = PAGE_INITIAL_SCALE"))
         assertTrue(motionSource.contains("TransformOrigin.Center"))
         assertTrue(motionSource.contains("PAGE_INITIAL_SCALE = 0.98f"))
+        assertTrue(motionSource.contains("NO_PAGE_ENTER_DELAY_MILLIS = 0"))
         assertFalse(motionSource.contains("slideIn"))
         assertFalse(motionSource.contains("slideOut"))
         assertFalse(motionSource.contains("BottomEnd"))
+    }
+
+    @Test
+    fun `editor layers cover a persistent top-level scaffold`() {
+        val source = source("navigation/AppNavigation.kt")
+
+        assertTrue(source.contains("Box(modifier = Modifier.fillMaxSize())"))
+        assertTrue(source.contains("The top-level Scaffold stays intact"))
+        assertTrue(source.contains("BottomNavigationBar(navController = navController)"))
+        assertTrue(source.contains("NavigationRailBar(navController = navController)"))
+        assertTrue(source.split("modifier = Modifier.fillMaxSize()").size - 1 >= 2)
+        assertFalse(source.contains("navigationChromeState"))
+        assertFalse(source.contains("MutableTransitionState"))
+        assertFalse(source.contains("AnimatedVisibility"))
+        assertFalse(source.contains("delay("))
     }
 
     private fun source(relativePath: String): String = Files.readString(

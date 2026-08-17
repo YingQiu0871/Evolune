@@ -3,13 +3,17 @@ package io.github.yingqiu0871.evolune.ui.screens
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
+import io.github.yingqiu0871.evolune.R
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Rule
@@ -125,5 +129,70 @@ class FoldableNavigationLayoutTest {
             composeRule.onAllNodesWithText("设置").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editorOverlayKeepsBottomNavigationGeometryStableDuringBothDirections() {
+        composeRule.waitForIdle()
+        val barNodes = composeRule.onAllNodesWithTag("navigation-bar").fetchSemanticsNodes()
+        assumeTrue("This check requires compact navigation", barNodes.size == 1)
+
+        composeRule.onNodeWithTag("nav-bar-records").performClick()
+        val fabDescription = composeRule.activity.getString(R.string.records_fab_open)
+        val manualAdd = composeRule.activity.getString(R.string.records_manual_add)
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithContentDescription(fabDescription).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithContentDescription(fabDescription).performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText(manualAdd).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.waitForIdle()
+
+        val initialNavigationBounds = composeRule
+            .onNodeWithTag("navigation-bar")
+            .fetchSemanticsNode()
+            .boundsInRoot
+
+        composeRule.mainClock.autoAdvance = false
+        try {
+            composeRule.onNodeWithText(manualAdd).performClick()
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.onNodeWithTag("record-editor-surface").fetchSemanticsNode()
+            assertNavigationBounds(initialNavigationBounds)
+            repeat(15) {
+                composeRule.mainClock.advanceTimeByFrame()
+                assertNavigationBounds(initialNavigationBounds)
+            }
+
+            composeRule.mainClock.advanceTimeBy(500L)
+            assertNavigationBounds(initialNavigationBounds)
+            val editorBounds = composeRule
+                .onNodeWithTag("record-editor-surface")
+                .fetchSemanticsNode()
+                .boundsInRoot
+            assertTrue(editorBounds.left <= initialNavigationBounds.left + 1f)
+            assertTrue(editorBounds.top <= initialNavigationBounds.top + 1f)
+            assertTrue(editorBounds.right >= initialNavigationBounds.right - 1f)
+            assertTrue(editorBounds.bottom >= initialNavigationBounds.bottom - 1f)
+
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+            repeat(8) {
+                composeRule.mainClock.advanceTimeByFrame()
+                assertNavigationBounds(initialNavigationBounds)
+            }
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("nav-bar-records").assertIsSelected()
+    }
+
+    private fun assertNavigationBounds(expected: androidx.compose.ui.geometry.Rect) {
+        val actual = composeRule.onNodeWithTag("navigation-bar").fetchSemanticsNode().boundsInRoot
+        assertTrue(abs(actual.left - expected.left) <= 1f)
+        assertTrue(abs(actual.top - expected.top) <= 1f)
+        assertTrue(abs(actual.right - expected.right) <= 1f)
+        assertTrue(abs(actual.bottom - expected.bottom) <= 1f)
     }
 }
