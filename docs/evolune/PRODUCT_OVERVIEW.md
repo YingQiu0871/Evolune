@@ -88,4 +88,12 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 
 ## 后续方向
 
-v1.1 从 Wear / Widget Gap Audit 开始，再锁定 Wear OS 与 Phone Widget 增强范围。v1.2 将 Health Connect 与 Google cloud backup 拆成独立批次。详见 [Roadmap](ROADMAP.md)。
+- `v1.1`: 完成 Phone Widget。
+- `v1.2`: Health Connect 与 Google 数据连续性，作为独立批次。
+- `v1.3`: 轻量级 Wear OS 伴侣应用，同时保留现有 Tile。
+- `v1.4`: 首次使用引导、条款、隐私与权限说明。
+- `v1.5`: 稳定性、性能与代码清理。
+- `v1.6`: 更多 Widget/Wear 展示样式（Widget Gallery）。
+- `v1.7`: 可选 CPA 浓度曲线，默认关闭并需独立科学审查。
+
+详见 [Roadmap](ROADMAP.md)。
