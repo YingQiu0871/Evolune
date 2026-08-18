@@ -23,7 +23,7 @@ Both targets use `versionName = 1.0.0` and `versionCode = 10060` in the stable r
 
 ## v1.1 Development State
 
-The `v1.1/wear-identity-repair` development line repairs the v1.0 Wear Data Layer identity mismatch. Phone and Wear v1.1 use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
+The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged. The remaining planned v1.1 product scope is Phone Widget Completion.
 
 Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
 
@@ -77,7 +77,12 @@ This scoped permission does not relicense the entire upstream repository, grant 
 
 ## Next Milestones
 
-- `v1.1`: Wear OS + Phone Widget Enhancement. Wear identity/Data Layer repair is in development; later Wear/Widget scope remains separately gated.
-- `v1.2`: Health Connect and Google cloud backup, delivered as separate batches.
+- `v1.1`: Phone Widget Completion.
+- `v1.2`: Google Integration & Data Continuity — Health Connect and Google backup delivered as separately gated batches.
+- `v1.3`: Wear OS Companion App.
+- `v1.4`: Onboarding, Terms & Permission Guidance.
+- `v1.5`: Stability, Performance & Code Cleanup.
+- `v1.6`: Widget Gallery.
+- `v1.7`: Optional CPA Pharmacokinetic Curve, default off and gated by independent scientific review.
 
-See the [Roadmap](ROADMAP.md) for later and deferred work.
+See the [Roadmap](ROADMAP.md) for authoritative detail.

@@ -14,7 +14,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 当前发布与实现边界以 [Current Status](CURRENT_STATUS.md) 为准。
 
 > [!NOTE]
-> v1.1 开发版正在修复 v1.0 的 Phone/Wear Data Layer 应用身份不一致问题。v1.1 的 Phone 与 Wear 安装包使用同一应用 ID；Wear Kotlin namespace 保持独立。已安装 v1.0 Wear APK 的用户需要执行一次卸载/重装，Phone 应用及其 Room 数据不受影响。详见 [Wear v1.1 身份迁移说明](WEAR_V11_MIGRATION.md)。
+> v1.0 的 Phone/Wear Data Layer 应用身份不一致问题已在 v1.1 开发主线修复：Phone 与 Wear 安装包使用同一应用 ID；Wear Kotlin namespace 保持独立。已安装 v1.0 Wear APK 的用户仍需执行一次卸载/重装，Phone 应用及其 Room 数据不受影响。详见 [Wear v1.1 身份迁移说明](WEAR_V11_MIGRATION.md)。
 
 ## 当前稳定版本
 
@@ -90,7 +90,9 @@ reviews/  外部审阅报告和逐项处置记录
 ## 当前限制
 
 - Health Connect 与 Google 云备份计划用于 v1.2，尚未实现。
-- Wear 与 Phone Widget 的下一轮增强先由 v1.1 Gap Audit 锁定范围。
+- Phone Widget 完善是 v1.1 剩余产品目标。
+- 轻量级完整 Wear OS 伴侣应用计划用于 v1.3；当前公开 v1.0 能力仍为 Tile/Data Layer。
+- 其他后续版本（v1.4–v1.7）以 [Roadmap](ROADMAP.md) 为准，不在 README 过度展开。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
 - 个性化 calibration/PK 2.0 不属于 v1.0。
 

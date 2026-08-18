@@ -87,7 +87,7 @@ sequenceDiagram
 
 The Wear action ID is also the stable DoseEvent ID. A matching previously accepted Wear event is replay-safe; a collision with different source/time is a conflict. The exact action DataItem is deleted only after persistence and the accepted side effect complete. Invalid, conflicting or failed actions remain undeleted; failed deletion is retried when the DataItem is observed again.
 
-The current `/hrt/*` DataMap/JSON transport does not yet have a general protocol version, envelope, checksum, explicit response message or cross-version negotiation. This limitation is tracked for the v1.1 gap audit.
+The current `/hrt/*` DataMap/JSON transport does not yet have a general protocol version, envelope, checksum, explicit response message or cross-version negotiation. This limitation is tracked for evaluation as required by the v1.3 Wear App; no general protocol redesign is promised.
 
 ### JSON compatibility boundary
 
@@ -101,18 +101,53 @@ The Room database is not SQLCipher-encrypted. Release signing uses a persistent 
 
 ## Future Architecture
 
-### v1.1: Wear and Widget enhancement
+### v1.1: Phone Widget Completion
 
-The first step is a Wear / Widget Gap Audit. It will establish the exact gaps in protocol versioning, offline feedback, broader Wear UI, Widget sizing/configuration/privacy and device coverage before implementation scope is locked.
+- Existing Room/domain/repository source-of-truth architecture remains.
+- Widget remains a derived presentation/action surface.
+- Complete current Phone Widget functionality and responsiveness.
+- Do not place the full Wear App here.
 
-Potential directions include a pure Kotlin versioned Wear protocol, explicit acknowledgements, a richer Wear experience, and improved Widget layouts. None is treated as shipped until implemented and verified.
-
-### v1.2: external integrations
+### v1.2: Google Integration & Data Continuity
 
 Health Connect and Google cloud backup are separate batches:
 
-- Health Connect remains an optional adapter, initially expected to focus on explicitly authorized data such as weight. Room remains authoritative.
+- Health Connect remains an optional adapter/integration, initially expected to focus on explicitly authorized data such as weight. Room remains authoritative.
 - Cloud backup requires a versioned encrypted format, recovery and conflict behavior, key lifecycle, explicit user authorization, and provider-specific testing before Google integration.
+- Health Connect and backup remain separately gated batches.
+
+### v1.3: Wear OS Companion App
+
+- Wear App consumes Phone-derived state/snapshots.
+- Phone Room remains the authoritative source.
+- Wear may cache last-known state; the cache is not authoritative.
+- occurrence actions/undo resolve through authoritative Phone persistence.
+- Keep the existing Tile alongside the App.
+- Avoid creating an independent competing Wear database.
+
+### v1.4: Onboarding / Terms / Permission Guidance
+
+- presentation/platform flow;
+- contextual permission requests;
+- no new health-data authority.
+
+### v1.5: Stability / Performance / Cleanup
+
+Architecture changes here should be justified by measured/tested benefit, not refactoring for its own sake.
+
+### v1.6: Widget Gallery
+
+New Widget/Tile/Complication surfaces should reuse stable shared presentation/domain boundaries instead of duplicating business logic.
+
+### v1.7: Optional CPA PK Curve
+
+- independent CPA series;
+- same chart time domain/plot area;
+- separate unit semantics;
+- default off;
+- E2 output unaffected when off;
+- scientific parameters require independent evidence/source review;
+- no implementation parameter is authorized merely by being present in an external reference project.
 
 ### Deferred evolution
 
