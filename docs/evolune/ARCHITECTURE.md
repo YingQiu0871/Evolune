@@ -1,6 +1,6 @@
 # 架构
 
-本文区分已发布的 v1.0 架构与未来演进方向。当前事实以 `main` 的 production source、v1.0 tagged source 和 [Current Status](CURRENT_STATUS.md) 为依据。
+本文区分已发布的 v1.0 架构、已关闭的 v1.1 Widget 演进与未来方向。当前事实以 `main` 的 production source、v1.0 tagged source 和 [Current Status](CURRENT_STATUS.md) 为依据。
 
 ## Current v1.0 Architecture
 
@@ -61,9 +61,9 @@ Phone UI, reminder, Widget and Wear record actions converge on typed application
 
 ### Widget pipeline
 
-The phone Widget is a RemoteViews AppWidget. `WidgetSnapshotLoader` reads enabled plans and PK events through Repository contracts, then builds a snapshot with up to two plans and current concentration. Quick actions use a deterministic plan/minute event ID, validate plan state, persist a `source=WIDGET` event, and only then refresh Widgets and show feedback.
+The phone Widget is a RemoteViews AppWidget. `WidgetSnapshotLoader` reads enabled plans, their today's occurrences and PK events through Repository contracts, then builds a chronological responsive/scrollable snapshot with current concentration. Quick actions use a deterministic occurrence identity, validate plan and slot/date state, persist a `source=WIDGET` event with the actual click time, and only then refresh Widgets and show feedback.
 
-There is no separate Widget database and no production DAO bypass. Glance, advanced configuration and expanded privacy/size behavior are future choices, not v1.0 claims.
+There is no separate Widget database and no production DAO bypass. The v1.1 RemoteViews configuration, responsive layout, palette/opacity/contrast and multi-widget isolation are complete; Glance and additional gallery surfaces remain future choices.
 
 ### Wear pipeline
 
@@ -99,16 +99,19 @@ Phone and Wear Manifests point to version-appropriate backup rules. All private 
 
 The Room database is not SQLCipher-encrypted. Release signing uses a persistent external identity and never falls back to Debug signing. Provenance and publication boundaries are recorded in [Decisions](DECISIONS.md) and [Source Provenance](../SOURCE_PROVENANCE.md).
 
-## Future Architecture
+## Future Architecture and Completed Evolution
 
-### v1.1: Phone Widget Completion
+### v1.1: Phone Widget Completion (completed)
 
 - Existing Room/domain/repository source-of-truth architecture remains.
 - Widget remains a derived presentation/action surface.
-- Complete current Phone Widget functionality and responsiveness.
+- Occurrence-driven rows, multi-slot independence, responsive/scrollable layouts and per-widget configuration are complete.
+- Occurrence-scoped actions use actual click time and persistence-before-side-effects.
 - Do not place the full Wear App here.
 
 ### v1.2: Google Integration & Data Continuity
+
+This is the next planned milestone; implementation has not started.
 
 Health Connect and Google cloud backup are separate batches:
 

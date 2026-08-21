@@ -1,6 +1,6 @@
 # 功能矩阵
 
-本表以已发布 `v1.0.0` production source 为准。状态使用 `SHIPPED v1.0`、`PARTIAL`、`PLANNED v1.1`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以已发布 `v1.0.0` production source 和已关闭的 v1.1 Phone Widget Completion 为准。状态使用 `SHIPPED v1.0`、`COMPLETED v1.1`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
 | 功能 | 状态 | v1.0 事实 / 后续边界 |
 |---|---|---|
@@ -15,8 +15,8 @@
 | PK visualization | SHIPPED v1.0 | Estradiol PK 估算、当前浓度、历史/预测图；不是医学检测或建议 |
 | Room v3 migration/schema | SHIPPED v1.0 | 三实体、schema 2/3 导出、严格迁移矩阵和 copy-based repair tool |
 | Android backup exclusions | SHIPPED v1.0 | Phone/Wear 私有数据均排除于 cloud backup 与 device transfer |
-| RemoteViews phone Widget | SHIPPED v1.0 | 显示浓度与最多两个启用方案，支持快速记录和持久化后刷新 |
-| Widget advanced layouts/config/privacy | PLANNED v1.1 | 属于 v1.1 Phone Widget Completion 范围，完善尺寸、配置、隐私与交互 |
+| RemoteViews phone Widget | SHIPPED v1.0 | 基础 RemoteViews Widget、浓度展示、方案展示和快速记录 |
+| Widget advanced layouts/config/privacy | COMPLETED v1.1 | occurrence-driven 多 slot 行、响应式/可滚动尺寸、配置预览、配色/透明度/对比度与多 Widget 隔离 |
 | Wear plan/concentration snapshot | SHIPPED v1.0 | Phone `/hrt/plans` DataItem，Wear 本地缓存和 Tile 刷新 |
 | Wear Tile dose actions | SHIPPED v1.0 | 稳定 action/event ID、persist-first、eligible replay、conflict 与精确 DataItem 删除边界 |
 | General versioned Wear protocol | PARTIAL | 当前 transport 可用但没有通用 envelope/version/checksum/ack；未来协议演进按 v1.3 Wear App 需要评估 |
@@ -38,5 +38,5 @@
 ## 版本方向
 
 - `v1.0.0` 已发布并封存；表中 `SHIPPED v1.0` 仅描述该实现。
-- `v1.1`: Phone Widget Completion；`v1.2`: Google Integration & Data Continuity（Health Connect 与 Google backup 分批）；`v1.3`: Wear OS Companion App；`v1.4`: Onboarding/Terms/Permission Guidance；`v1.5`: Stability/Performance/Cleanup；`v1.6`: Widget Gallery；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
+- `v1.1`: Phone Widget Completion（已完成并关闭）；`v1.2`: Google Integration & Data Continuity（规划中，Health Connect 与 Google backup 分批，尚未开始）；`v1.3`: Wear OS Companion App；`v1.4`: Onboarding/Terms/Permission Guidance；`v1.5`: Stability/Performance/Cleanup；`v1.6`: Widget Gallery；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
 - `DEFERRED` 不表示承诺进入某个版本。

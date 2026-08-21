@@ -20,6 +20,8 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 **Evolune v1.0.0** 已于 2026-08-15 发布。请从 [Evolune v1.0.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0) 下载经过签名的 Phone APK 与 Wear APK。
 
+v1.1 Phone Widget Completion 已作为开发里程碑完成并关闭；它没有创建新的 GitHub Release/tag，因此 `v1.0.0` 仍是当前公开稳定版本。下一里程碑 v1.2 仍处于规划阶段，尚未开始实现。
+
 GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 Release 使用不同的应用 ID 和签名，可同时安装，但数据不会自动互通。
 
 ## 主要功能
@@ -89,8 +91,8 @@ reviews/  外部审阅报告和逐项处置记录
 
 ## 当前限制
 
-- Health Connect 与 Google 云备份计划用于 v1.2，尚未实现。
-- Phone Widget 完善是 v1.1 剩余产品目标。
+- Health Connect 与 Google 云备份计划用于 v1.2，尚未实现；v1.2 尚未开始。
+- Phone Widget Completion 已在 v1.1 完成并关闭；更大范围的 Widget Gallery 计划用于 v1.6。
 - 轻量级完整 Wear OS 伴侣应用计划用于 v1.3；当前公开 v1.0 能力仍为 Tile/Data Layer。
 - 其他后续版本（v1.4–v1.7）以 [Roadmap](ROADMAP.md) 为准，不在 README 过度展开。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
