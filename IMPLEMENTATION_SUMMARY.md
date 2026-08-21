@@ -1,170 +1,75 @@
-# Evolune 实现总结
+# Evolune Implementation Summary — through completed v1.1
 
-## 完成状态
+本文总结当前 `main` 已包含的实现。`v1.0.0` 是当前公开稳定 Release；v1.1
+Phone Widget Completion 已于 2026-08-21 完成并关闭，v1.2 尚未开始。
 
-已完成所有功能的实现，包括：
+当前文档基线为 `main @ 5418819ef236d6e815a6bee5b06166e4d2305d40`；v1.1
+Phone Widget 最终实现合并提交仍记录为 `7531af3fdb73b5ecfc2bfe5af65771d670945bdc`。
 
-1. ✅ 添加必要的依赖
-2. ✅ 创建数据持久化层 (Room)
-3. ✅ 创建 ViewModel 和状态管理
-4. ✅ 创建导航结构
-5. ✅ 创建主页图表界面
-6. ✅ 整合模拟计算逻辑
-7. ✅ 更新用药记录页面
+## Domain and persistence
 
-## 功能特性
+- `MedicationPlan` 是包含方案属性、周期、启用状态、创建时间和有序
+  `ScheduledDoseSlot` 列表的领域 aggregate。
+- 每个 `ScheduledDoseSlot` 使用稳定 UUIDv5 身份、所属 plan ID、分钟精度的
+  `localTime` 和连续 `position`。编辑器按本地时间规范化顺序，并在时间重排时
+  尽可能复用既有槽位 ID；position 会重新编号，但槽位身份不是列表索引。
+- `DoseEvent` 使用权威 `occurredAt: Instant`，并可携带 zone、local date、slot、
+  source、status、revision 和途径/剂量等领域元数据。
+- Room v3 保存计划、槽位和事件。Repository contract 与 Room 实现分离；生产
+  入口通过 Repository 和 application action 写入，不直接绕过 DAO。
+- 计划主体与槽位在 transaction 中替换并回读验证，事件写入区分插入、幂等、冲突、
+  无效和存储失败等结果。
 
-### 1. 双页面导航结构
+## Scheduling, reminders and records
 
-- **主页**: 显示雌二醇血药浓度图表和当前浓度信息
-- **用药记录页**: 管理用药记录的添加、编辑和删除
+- DAILY、WEEKLY、CUSTOM 方案均支持多个每日时间槽。
+- ReminderManager/receiver 根据启用方案安排通知；通知确认、Phone UI、Widget
+  和 Wear action 最终都进入同一权威 `DoseEventRepository`。
+- 记录、编辑、删除和历史查看由 Phone Compose UI 提供，实际记录时间与计划时间
+  分开保存。
 
-使用底部导航栏在两个页面之间切换。
+## JSON and PK
 
-### 2. 主页功能
+- Mahiro JSON v1 通过独立 DTO、codec 和 adapter 导入/导出，并报告 inserted、
+  idempotent、conflict、invalid 等逐项结果。
+- PK 路径为：领域 `DoseEvent` → `DomainDoseEventToPkAdapter` → PK model /
+  `SimulationEngine` → Home 图表和 Widget 浓度消费者。
+- v1.1 没有改变 PK 数值算法、参数或回归行为：`PK_NUMERICAL_ALGORITHM_DIFF = ZERO`。
 
-- ✅ 使用 Vico 库绘制可交互的折线图
-- ✅ 显示雌二醇血药浓度随时间变化
-- ✅ 醒目标记每次给药点
-- ✅ 用垂直线标记当前时刻
-- ✅ 显示当前时刻预估的血清E2浓度
-- ✅ 显示浓度等级（偏低、正常下限、正常、正常上限、偏高、超高）
-- ✅ 提供浓度等级参考说明
+## Settings and Phone UI
 
-### 3. 用药记录功能
+- `SettingsDataStore` 保存体重、应用主题模式（Light/Dark/AMOLED/System）、应用
+  颜色主题、时间制式和自动检查更新开关。
+- Settings screen 同时提供 Mahiro JSON 文件/剪贴板导入导出、更新检查、版权和
+  免责声明入口。
+- Phone Compose 顶层导航包含 Home、Records、Medication Plans 和 Settings。
+  紧凑窗口使用底部导航；中等和展开窗口使用 Navigation Rail；编辑器通过独立
+  的全屏 transition layer 保持导航 chrome 的连续性。
 
-- ✅ 使用 Room 数据库持久化保存用药记录
-- ✅ 支持添加、编辑、删除用药记录
-- ✅ 用药记录修改后自动触发模拟计算
-- ✅ 记录按时间倒序排列（最新的在前）
+## Completed v1.1 Phone Widget
 
-### 4. 药代动力学模拟
+- Widget 仍使用 RemoteViews，不建立独立数据库或第二事实来源。
+- Widget 从权威计划和事件生成今日 occurrence 行；同一计划的多个时间槽显示为
+  独立、按时间排序的 occurrence。
+- 2×2 是完整日常使用规格；更大尺寸显示更多行，超出可见容量时使用官方
+  RemoteViews collection/list 垂直滚动，顶部进度和浓度区域保持固定。
+- 每日进度只统计实际已记录 occurrence；过去但未记录的 occurrence 不会自动完成。
+- Widget action 携带 planId、slotId、scheduledLocalDate 和 occurrenceId，记录
+  实际点击时间，写入精确 slot/date，并在持久化成功后刷新 Widget。重复点击和多
+  Widget 实例遵守 occurrence-scoped 幂等语义。
+- 每个 Widget 实例独立保存 Auto/Light/Dark、Material You 或 curated Monet
+  palette、30%–100% 背景透明度及恢复默认值。前景色根据实际解析后的背景保证
+  可读性；配置页预览与生产 Widget 共用同一语义解析。
 
-- ✅ 使用至少30天历史数据或最近20次给药
-- ✅ 计算至当前时刻向后15天
-- ✅ 显示数据范围：当前时刻±15天
-- ✅ 时间步长：15分钟（每小时4步）
+## Wear
 
-## 技术架构
+当前公开能力是 Wear Tile/Data Layer：Phone 发送计划/浓度快照，Wear 保存可重建
+缓存并提交剂量 action；Phone Room 仍是权威来源，action 采用 persist-first、
+重放/冲突处理和精确 DataItem 删除边界。完整 Wear OS Companion App 仍规划为
+v1.3。
 
-### 数据层 (data/)
+## Validation boundary
 
-- **Converters.kt**: Room 类型转换器，用于 UUID 和 Map 的序列化
-- **DoseEventEntity.kt**: 用药事件数据库实体
-- **DoseEventDao.kt**: 数据访问对象，提供数据库操作
-- **AppDatabase.kt**: Room 数据库配置
-- **DoseEventRepository.kt**: 数据仓库，封装数据访问逻辑
-
-### ViewModel 层 (viewmodel/)
-
-- **PKState.kt**: 药代动力学UI状态数据类
-- **HRTViewModel.kt**: 应用主 ViewModel
-  - 管理用药记录的增删改
-  - 自动触发模拟计算
-  - 提供模拟结果和当前浓度
-
-### 导航层 (navigation/)
-
-- **Screen.kt**: 屏幕路由枚举
-- **AppNavigation.kt**: 应用导航配置和底部导航栏
-
-### UI 层 (ui/)
-
-#### 屏幕 (screens/)
-
-- **HomeScreen.kt**: 主页，显示图表和浓度信息
-- **MedicationRecordsScreen.kt**: 用药记录管理页面
-
-#### 组件 (components/)
-
-- **ConcentrationChart.kt**: 雌二醇浓度图表组件（使用 Vico）
-- **MedicationRecordItem.kt**: 用药记录列表项（已存在）
-- **MedicationRecordBottomSheet.kt**: 用药记录编辑弹窗（已存在）
-
-## 数据流
-
-1. 用户在"用药记录"页面添加/修改/删除记录
-2. 操作通过 ViewModel 保存到 Room 数据库
-3. Repository 监听数据变化，返回 Flow
-4. ViewModel 监听 Flow，自动触发模拟计算
-5. 模拟引擎根据用药记录计算血药浓度曲线
-6. 主页自动更新显示最新的浓度图表和信息
-
-## 使用的库
-
-- **Jetpack Compose**: UI 框架
-- **Navigation Compose**: 导航管理
-- **Room**: 数据持久化
-- **Vico**: 图表绘制
-- **ViewModel**: 状态管理
-- **Kotlin Coroutines & Flow**: 异步编程和响应式数据流
-- **Kotlinx Serialization**: JSON 序列化
-
-## 配置文件修改
-
-### gradle/libs.versions.toml
-
-添加了以下依赖版本：
-
-- navigation = "2.9.0"
-- room = "2.7.0-alpha15"
-- ksp = "2.3.10-1.0.30"
-- vico = "2.0.0-alpha.33"
-- lifecycleViewmodel = "2.10.0"
-- kotlinxSerialization = "1.8.0"
-
-### app/build.gradle.kts
-
-添加了以下插件：
-
-- kotlin-serialization
-- ksp
-
-添加了以下依赖：
-
-- Navigation Compose
-- Room (runtime, ktx, compiler)
-- Vico (compose, compose-m3, core)
-- ViewModel Compose
-- Kotlinx Serialization JSON
-
-## 注意事项
-
-1. **体重配置**: 目前体重硬编码为 65kg，未来可以添加用户设置页面
-2. **时间范围自定义**: 目前显示范围固定为当前时刻±15天，可以添加用户自定义功能
-3. **给药点标记**: ConcentrationChart.kt 中接收了 doseTimePoints 参数，但完整的标记实现需要进一步增强 Vico 图表配置
-4. **当前时刻线**: 类似给药点标记，需要在 Vico 图表中添加垂直线支持
-
-## 下一步建议
-
-1. **增强图表功能**:
-   - 实现给药点的醒目标记（可以使用 Vico 的 marker 功能）
-   - 添加当前时刻的垂直线指示器
-   - 实现 X 轴范围的用户自定义
-
-2. **添加用户设置**:
-   - 体重设置
-   - 显示单位偏好
-   - 浓度等级阈值自定义
-
-3. **数据导入导出**:
-   - 导出用药记录为 JSON/CSV
-   - 从文件导入用药记录
-
-4. **通知提醒**:
-   - 定时用药提醒
-   - 低浓度警告
-
-## 编译和运行
-
-项目已准备就绪，可以直接构建运行：
-
-```bash
-# 同步 Gradle
-./gradlew build
-
-# 运行应用
-./gradlew installDebug
-```
-
-或者在 Android Studio 中直接点击 Run 按钮。
+最终 v1.1 Owner 设备验收、Widget/Experience-core/App/Wear 测试、Widget
+instrumentation 和 post-merge main CI 均通过；Room schema、JSON v1、Wear
+protocol、PK 数值算法和受保护根完整性保持不变。

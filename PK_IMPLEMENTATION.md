@@ -1,5 +1,8 @@
 # Evolune 药代动力学（PK）模块实现文档
 
+本文记录当前生产 PK 模块、其科学参数和领域集成边界。v1.1 Phone Widget
+Completion 没有修改 PK 数值算法或参数；`PK_NUMERICAL_ALGORITHM_DIFF = ZERO`。
+
 ## 概述
 
 本模块实现了完整的雌二醇药代动力学模拟系统，严格遵循以下参考资料：
@@ -160,6 +163,21 @@ ka            ke
 - 梯形法计算AUC
 - 量-浓度转换（mg → pg/mL）
 
+## 当前数据集成边界
+
+生产路径按以下顺序把实际领域记录交给 PK：
+
+```text
+DoseEvent domain
+  → DomainDoseEventToPkAdapter
+  → PK model / SimulationEngine
+  → Home concentration chart and Widget consumers
+```
+
+`DoseEvent.occurredAt` 是实际记录时间的权威字段；legacy `timeH` 只存在于兼容
+边界。计划预测和历史记录都先形成领域事件，再由同一个 adapter 投影为 PK 输入。
+Widget、Wear 和 UI 不直接读取或重算 PK 参数，也不创建第二份事件事实来源。
+
 ## 单元测试
 
 完整的单元测试套件，覆盖所有功能：
@@ -228,9 +246,9 @@ ka            ke
 - 灵活的参数系统
 
 ### 5. 测试覆盖
-- 100%的公共API测试覆盖
-- 边界条件测试
-- 实际使用场景测试
+- 数学模型、参数解析、模拟引擎和边界条件均有 JVM 回归测试
+- v1.1 关闭验收确认 PK 数值算法 diff 为 ZERO
+- 实际设备/Widget 验收消费同一 PK adapter 输出，不改变科学参数
 
 ## 数学模型说明
 
@@ -323,7 +341,7 @@ AUC = Σ (C(tᵢ) + C(tᵢ₋₁))/2 × (tᵢ - tᵢ₋₁)
 
 ---
 
-**实现日期**: 2026年2月28日  
-**版本**: 1.0  
+**实现日期**: 持续维护（当前公开稳定 Release 为 v1.0.0；v1.1 开发里程碑已完成）
+**版本**: 1.1 implementation baseline
 **语言**: Kotlin  
-**最低API级别**: Android SDK 24+
+**最低API级别**: Phone Android SDK 31+（Wear SDK 30+）

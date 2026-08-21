@@ -1,78 +1,67 @@
-# 设置页面功能文档
+# 设置功能
 
-## 概述
-已成功创建设置页面，提供体重输入、夜间模式选择和颜色主题选择功能。
+设置页是当前 Phone Compose UI 的一部分，由 `SettingsScreen`、`SettingsViewModel`
+和 `SettingsDataStore` 组成。本文只记录已经实现的设置，不把未来 v1.2 集成写成
+当前功能。
 
-## 实现的功能
+## 已实现设置
 
-### 1. 体重输入
-- **位置**: [SettingsScreen.kt](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
-- **功能**: 允许用户输入体重（单位：kg）
-- **作用**: 影响血药浓度计算
-- **验证**: 输入范围 0-300 kg
-- **默认值**: 55.0 kg
+### 体重
 
-### 2. 夜间模式选择
-- **选项**:
-  - **浅色**: 始终使用浅色主题
-  - **深色**: 始终使用深色主题
-  - **系统默认**: 跟随系统设置
-- **默认值**: 系统默认
+体重以 kg 保存，默认值为 55 kg，并用于 PK 浓度换算。输入在 0–300 kg 范围内校验；
+修改后通过 Flow 传递给主页/PK 计算。
 
-### 3. 颜色主题选择
-- **选项**:
-  - **动态着色**: 跟随系统动态着色（Android 12+）
-  - **内置配色**: 使用应用内置配色方案
-- **默认值**: 动态着色
+### 应用主题
 
-## 技术实现
+`ThemeMode` 支持：
 
-### 数据持久化
-- 使用 **DataStore Preferences** 存储用户设置
-- 文件: [SettingsDataStore.kt](app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt)
-- 自动持久化，应用重启后保持设置
+- `LIGHT`：浅色；
+- `DARK`：深色；
+- `AMOLED`：深色背景；
+- `SYSTEM`：跟随系统。
 
-### ViewModel
-- 文件: [SettingsViewModel.kt](app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt)
-- 使用 Kotlin Flow 提供响应式数据流
-- 提供更新设置的方法
+### 应用颜色主题
 
-### 主题系统
-- 更新 [Theme.kt](app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt)
-- 支持根据用户设置动态切换主题
-- 集成系统动态着色（Material You）
+`ColorTheme` 支持 `DYNAMIC`（Android 12+ Material You）和应用内置配色。该选择只
+影响 Evolune Phone Compose UI。
 
-### 导航集成
-- 更新 [Screen.kt](app/src/main/java/io/github/yingqiu0871/evolune/navigation/Screen.kt)
-- 更新 [AppNavigation.kt](app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt)
-- 在底部导航栏添加设置图标
+### 时间制式
 
-## 使用方式
+时间显示支持 `SYSTEM`、`HOUR_12` 和 `HOUR_24`。计划时间仍以本地分钟精度保存。
 
-1. **访问设置**: 点击底部导航栏的"设置"图标
-2. **修改体重**: 直接在输入框中输入新的体重值
-3. **切换夜间模式**: 点击对应的模式选项
-4. **切换颜色主题**: 点击对应的主题选项
-5. **自动保存**: 所有更改会立即自动保存
+### 自动检查更新
 
-## 文件清单
+用户可以开启或关闭从 GitHub Releases 检查新稳定版本的功能；该检查不上传用药内容。
 
-### 新增文件
-- `app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt` - 设置数据存储
-- `app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt` - 设置 ViewModel
-- `app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt` - 设置页面 UI
+### 数据与帮助入口
 
-### 修改文件
-- `gradle/libs.versions.toml` - 添加 DataStore 依赖版本
-- `app/build.gradle.kts` - 添加 DataStore 依赖
-- `app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt` - 支持主题设置
-- `app/src/main/java/io/github/yingqiu0871/evolune/navigation/Screen.kt` - 添加设置路由
-- `app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt` - 集成设置页面
-- `app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt` - 集成设置数据流
+设置页提供 Mahiro JSON v1 文件/剪贴板导入导出、更新检查、关于、版权和免责声明
+入口。导出文件由用户自行保存；当前 Phone/Wear 私有数据不使用 Android Auto Backup
+或设备迁移复制。
 
-## 注意事项
+## Phone Widget 是独立配置
 
-1. **体重同步**: MainActivity 现在会从用户设置中读取体重并传递给 HRTViewModel
-2. **主题实时更新**: 主题更改会立即生效，无需重启应用
-3. **动态着色**: 仅在 Android 12+ 设备上可用
-4. **Preview**: SettingsScreen 包含浅色和深色预览
+桌面 Widget 外观不是全局应用主题的副作用。用户在官方 AppWidget 配置路径中对每个
+Widget 实例单独选择：
+
+- Auto/Light/Dark；
+- Material You 或 curated Monet 调色板；
+- 30%–100% 背景透明度。
+
+`WidgetAppearance` 按 `appWidgetId` 隔离保存；`WidgetConfigurationActivity` 的
+预览与生产 RemoteViews 共享同一调色板、背景合成和前景对比度解析。修改应用主题
+不会覆盖已配置 Widget 的独立外观。
+
+## 持久化边界
+
+`SettingsDataStore` 只保存设置偏好。计划、槽位和 DoseEvent 仍由 Phone Room 与
+Repository 管理；Widget 配置是展示偏好，不是第二份用药数据源。Health Connect、
+Google backup/restore、完整 Wear App 和 Widget Gallery 均不是当前设置功能，分别
+规划在 v1.2、v1.3 和 v1.6。
+
+## 相关实现
+
+- [SettingsScreen.kt](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
+- [SettingsViewModel.kt](app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt)
+- [SettingsDataStore.kt](app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt)
+- [WidgetConfigurationActivity.kt](app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetConfigurationActivity.kt)

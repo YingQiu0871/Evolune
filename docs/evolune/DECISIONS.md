@@ -10,10 +10,10 @@ This file preserves historical decision context. Statuses below describe the pos
 | ADR-002 | Implemented in v1.0 | Third-party source and assets require verified provenance and compatible terms. |
 | ADR-003 | Implemented in v1.0 | Room v3 is the local source of truth. |
 | ADR-004 | Accepted / planned v1.2 | Health Connect remains an optional future integration and is not implemented. |
-| ADR-005 | Accepted / partially implemented | v1.0 has tested Data Layer replay/conflict behavior; a general versioned protocol remains for the v1.1 gap audit. |
+| ADR-005 | Accepted / partially implemented | v1.0/v1.1 Data Layer replay/conflict behavior is tested; a general versioned protocol remains future work. |
 | ADR-006 | Accepted / ongoing | Logical package boundaries are implemented; further Gradle module extraction is deferred. |
 | ADR-007 | Implemented in part / deferred | Phone/Wear backup exclusions shipped in v1.0; SQLCipher and encrypted backup remain deferred. |
-| ADR-008 | Deferred | RemoteViews shipped; Widget technology and enhancement scope return to the v1.1 gap audit. |
+| ADR-008 | Deferred | RemoteViews and the v1.1 occurrence-driven enhancement are shipped; a future Glance evaluation remains optional. |
 | ADR-009 | Accepted / planned v1.2 | Google cloud backup remains separate from local export and Wear transport. |
 | ADR-010 | Implemented in v1.0 | Domain, Room entity and external DTO boundaries are explicit; PK uses an adapter. |
 | ADR-011 | Deferred | Tracked Date did not enter v1.0 and has no current entity or product surface. |
