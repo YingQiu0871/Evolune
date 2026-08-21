@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
-import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.WearableListenerService
 import androidx.wear.tiles.TileService
 
@@ -21,14 +20,6 @@ class WearPlanListenerService : WearableListenerService() {
 
         TileService.getUpdater(this)
             .requestUpdate(DoseTileService::class.java)
-    }
-
-    override fun onPeerConnected(peer: Node) {
-        WearSyncManager.requestPlansFromPhone(applicationContext, force = true)
-    }
-
-    override fun onPeerDisconnected(peer: Node) {
-        WearSyncManager.markPeerDisconnected(applicationContext)
     }
 
     private fun applySnapshot(dataItem: com.google.android.gms.wearable.DataItem) {
