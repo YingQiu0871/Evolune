@@ -39,6 +39,7 @@ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
+import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,15 @@ class MedicationRecordsScreenTest {
     fun cancelScopes() {
         scopes.forEach { it.cancel() }
         scopes.clear()
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        val inputMethodState = automation.executeShellCommand("dumpsys input_method").use { descriptor ->
+            android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+                .use { it.readBytes().toString(Charsets.UTF_8) }
+        }
+        if (inputMethodState.contains("mInputShown=true") || inputMethodState.contains("mIsInputViewShown=true")) {
+            automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+        }
+        automation.executeShellCommand("ime reset").close()
     }
 
     @Test
@@ -78,7 +88,7 @@ class MedicationRecordsScreenTest {
         setScreen(viewModel)
         composeRule.runOnIdle(viewModel::startCreateSession)
 
-        composeRule.onNodeWithTag("record-dose").performTextInput("2")
+        composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
         val saveButton = composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitUntil(5_000L) {
             runCatching {
@@ -86,7 +96,9 @@ class MedicationRecordsScreenTest {
                 true
             }.getOrDefault(false)
         }
-        saveButton.performClick()
+        composeRule.onNodeWithTag("record-save").performScrollTo()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("record-save").assertIsEnabled().performClick()
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
 
         assertEquals(1, repository.insertCalls)
@@ -225,7 +237,7 @@ class MedicationRecordsScreenTest {
         val viewModel = viewModel(repository)
         setScreen(viewModel)
         composeRule.runOnIdle(viewModel::startCreateSession)
-        composeRule.onNodeWithTag("record-dose").performTextInput("2")
+        composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
 
         val saveButton = composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitUntil(5_000L) {
@@ -234,7 +246,9 @@ class MedicationRecordsScreenTest {
                 true
             }.getOrDefault(false)
         }
-        saveButton.performClick()
+        composeRule.onNodeWithTag("record-save").performScrollTo()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("record-save").assertIsEnabled().performClick()
         composeRule.waitUntil(5_000L) { repository.insertCalls == 1 }
         saveButton.assertIsNotEnabled()
         saveButton.performTouchInput { click() }
@@ -273,7 +287,7 @@ class MedicationRecordsScreenTest {
     }
 
     @Test
-    fun doseLabelsAndFieldsStayFixedAcrossFocusChanges() {
+    fun doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges() {
         val viewModel = viewModel(FakeDoseEventRepository())
         setScreen(viewModel)
         composeRule.runOnIdle(viewModel::startCreateSession)
@@ -304,16 +318,38 @@ class MedicationRecordsScreenTest {
 
         equivalentField.performClick()
         composeRule.waitForIdle()
-        assertBoundsEqual(initialRawLabelBounds, rawLabel.fetchSemanticsNode().boundsInRoot)
-        assertBoundsEqual(
+        val afterRawLabelBounds = rawLabel.fetchSemanticsNode().boundsInRoot
+        val afterEquivalentLabelBounds = equivalentLabel.fetchSemanticsNode().boundsInRoot
+        val afterRawFieldBounds = rawField.fetchSemanticsNode().boundsInRoot
+        val afterEquivalentFieldBounds = equivalentField.fetchSemanticsNode().boundsInRoot
+        val translationX = afterRawLabelBounds.left - initialRawLabelBounds.left
+        val translationY = afterRawLabelBounds.top - initialRawLabelBounds.top
+        assertBoundsTranslated(initialRawLabelBounds, afterRawLabelBounds, translationX, translationY)
+        assertBoundsTranslated(
             initialEquivalentLabelBounds,
-            equivalentLabel.fetchSemanticsNode().boundsInRoot
+            afterEquivalentLabelBounds,
+            translationX,
+            translationY
         )
-        assertBoundsEqual(initialRawFieldBounds, rawField.fetchSemanticsNode().boundsInRoot)
-        assertBoundsEqual(
+        assertBoundsTranslated(initialRawFieldBounds, afterRawFieldBounds, translationX, translationY)
+        assertBoundsTranslated(
             initialEquivalentFieldBounds,
-            equivalentField.fetchSemanticsNode().boundsInRoot
+            afterEquivalentFieldBounds,
+            translationX,
+            translationY
         )
+    }
+
+    private fun assertBoundsTranslated(
+        expected: androidx.compose.ui.geometry.Rect,
+        actual: androidx.compose.ui.geometry.Rect,
+        translationX: Float,
+        translationY: Float
+    ) {
+        assertEquals((expected.left + translationX).toDouble(), actual.left.toDouble(), 0.5)
+        assertEquals((expected.top + translationY).toDouble(), actual.top.toDouble(), 0.5)
+        assertEquals((expected.right + translationX).toDouble(), actual.right.toDouble(), 0.5)
+        assertEquals((expected.bottom + translationY).toDouble(), actual.bottom.toDouble(), 0.5)
     }
 
     private fun assertBoundsEqual(

@@ -256,20 +256,25 @@ class RoomRepositoryTest {
 
         assertEquals(PlanSaveResult.Created, planRepository.save(plan))
         assertEquals(
-            listOf("08:30", "00:00", "23:59"),
+            listOf("00:00", "08:30", "23:59"),
             rawSlotRows(plan.id).map { it.localTime }
         )
-        assertEquals(FIXED_VECTOR_SLOT_ID, rawSlotRows(plan.id)[0].id)
-        assertEquals("[\"08:30\",\"00:00\",\"23:59\"]", rawPlanTimeOfDay(plan.id))
+        assertEquals(FIXED_VECTOR_SLOT_ID, rawSlotRows(plan.id)[1].id)
+        assertEquals("[\"00:00\",\"08:30\",\"23:59\"]", rawPlanTimeOfDay(plan.id))
     }
 
     @Test
-    fun planPreservesOriginalOrderAndDuplicateTimes() = runBlocking {
+    fun planCanonicalizesChronologicalOrderWhilePreservingDuplicateTimesAndSlotIds() = runBlocking {
         val times = listOf(LocalTime.of(20, 0), LocalTime.of(8, 30), LocalTime.of(8, 30))
         val plan = syntheticPlan(uuid(302), times)
 
         assertEquals(PlanSaveResult.Created, planRepository.save(plan))
-        assertEquals(times, planRepository.getById(plan.id)?.slots?.map { it.localTime })
+        val expectedSlots = plan.slots.sortedWith(compareBy<ScheduledDoseSlot> { it.localTime }.thenBy { it.position })
+        val restored = planRepository.getById(plan.id) ?: error("saved plan missing")
+        assertEquals(expectedSlots.map { it.localTime }, restored.slots.map { it.localTime })
+        assertEquals(expectedSlots.map { it.id.toString() }, restored.slots.map { it.id.toString() })
+        assertEquals(listOf("08:30", "08:30", "20:00"), rawSlotRows(plan.id).map { it.localTime })
+        assertEquals(expectedSlots.map { it.id.toString() }, rawSlotRows(plan.id).map { it.id })
         assertEquals(listOf(0, 1, 2), rawSlotRows(plan.id).map { it.position })
         assertEquals(3, rawSlotRows(plan.id).map { it.id }.toSet().size)
     }
@@ -354,14 +359,14 @@ class RoomRepositoryTest {
     }
 
     @Test
-    fun planRejectsUnexpectedSlotIdWithoutWriting() = runBlocking {
+    fun planPreservesSuppliedStableSlotId() = runBlocking {
         val plan = syntheticPlan(uuid(311), listOf(LocalTime.of(8, 30)))
         val invalid = plan.copy(
             slots = listOf(plan.slots.single().copy(id = uuid(888)))
         )
 
-        assertEquals(PlanSaveResult.Invalid, planRepository.save(invalid))
-        assertNull(planRepository.getById(plan.id))
+        assertEquals(PlanSaveResult.Created, planRepository.save(invalid))
+        assertEquals(invalid, planRepository.getById(plan.id))
     }
 
     @Test

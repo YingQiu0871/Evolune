@@ -2,8 +2,12 @@ package io.github.yingqiu0871.evolune.data
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.testing.MigrationTestHelper
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
+import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
@@ -22,7 +26,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.DayOfWeek
@@ -32,17 +37,47 @@ import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class Batch8CPreservedUpgradeTest {
-    private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val instrumentation = InstrumentationRegistry.getInstrumentation()
+    private val context: Context = instrumentation.targetContext
+
+    @get:Rule
+    val migrationHelper = MigrationTestHelper(instrumentation, AppDatabase::class.java)
+
+    @Before
+    fun deleteBatch8cDatabase() {
+        context.deleteDatabase(BATCH8C_DATABASE_NAME)
+        context.deleteDatabase(FRESH_DATABASE)
+    }
 
     @After
-    fun deleteFreshControlDatabase() {
+    fun deleteTestDatabases() {
+        context.deleteDatabase(BATCH8C_DATABASE_NAME)
         context.deleteDatabase(FRESH_DATABASE)
     }
 
     @Test
     fun preservedV2DatabaseMigratesAndEveryAggregateIsRepositoryReadable() = runBlocking {
-        val database = AppDatabase.getDatabase(context)
-        assertMigratedState(database)
+        val expectedEvents = eventFixture()
+        val expectedPlans = planFixture()
+
+        migrationHelper.createDatabase(BATCH8C_DATABASE_NAME, 2).use { database ->
+            seedV2State(database, expectedEvents, expectedPlans)
+            assertEquals(2, pragmaVersion(database))
+            assertEquals(expectedEvents.size, rowCount(database, "dose_events"))
+            assertEquals(expectedPlans.size, rowCount(database, "medication_plans"))
+            assertEquals(expectedEvents.map { it.id }.toSet(), queryIds(database, "dose_events"))
+            assertEquals(expectedPlans.map { it.id }.toSet(), queryIds(database, "medication_plans"))
+        }
+
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, BATCH8C_DATABASE_NAME)
+            .addMigrations(io.github.yingqiu0871.evolune.data.migration.MIGRATION_2_3)
+            .allowMainThreadQueries()
+            .build()
+        try {
+            assertMigratedState(database)
+        } finally {
+            database.close()
+        }
     }
 
     @Test
@@ -110,6 +145,71 @@ class Batch8CPreservedUpgradeTest {
     private fun rowCount(database: androidx.sqlite.db.SupportSQLiteDatabase, table: String): Int =
         database.query("SELECT COUNT(*) FROM `$table`").use { it.moveToFirst(); it.getInt(0) }
 
+    private fun seedV2State(
+        database: SupportSQLiteDatabase,
+        events: List<DoseEvent>,
+        plans: List<MedicationPlan>
+    ) {
+        events.forEach { event ->
+            val timeH = when (val result = LegacyTimeAdapter.instantToTimeH(event.occurredAt)) {
+                is LegacyTimeResult.Success -> result.value
+                is LegacyTimeResult.Failure -> error("Synthetic event time cannot be encoded: ${event.id}")
+            }
+            database.execSQL(
+                """
+                INSERT INTO dose_events(id, route, timeH, doseMG, ester, extras)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """.trimIndent(),
+                arrayOf<Any?>(
+                    event.id.toString(),
+                    event.route.name,
+                    timeH,
+                    event.doseMG,
+                    event.ester.name,
+                    Converters().fromMap(event.extras.mapKeys { it.key.name })
+                )
+            )
+        }
+
+        plans.forEach { plan ->
+            database.execSQL(
+                """
+                INSERT INTO medication_plans(
+                    id, name, route, ester, doseMG, scheduleType, timeOfDay,
+                    daysOfWeek, intervalDays, isEnabled, extras, createdAt
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """.trimIndent(),
+                arrayOf<Any?>(
+                    plan.id.toString(),
+                    plan.name,
+                    plan.route.name,
+                    plan.ester.name,
+                    plan.doseMG,
+                    plan.scheduleType.name,
+                    Converters().fromStringList(plan.slots.map { it.localTime.toString() }),
+                    Converters().fromIntSet(plan.daysOfWeek.map { it.value }.toSet()),
+                    plan.intervalDays,
+                    if (plan.isEnabled) 1 else 0,
+                    Converters().fromMap(plan.extras.mapKeys { it.key.name }),
+                    plan.createdAt.toEpochMilli()
+                )
+            )
+        }
+    }
+
+    private fun queryIds(database: SupportSQLiteDatabase, table: String): Set<UUID> =
+        database.query("SELECT id FROM `$table`").use { cursor ->
+            buildSet {
+                while (cursor.moveToNext()) add(UUID.fromString(cursor.getString(0)))
+            }
+        }
+
+    private fun pragmaVersion(database: SupportSQLiteDatabase): Int =
+        database.query("PRAGMA user_version").use {
+            it.moveToFirst()
+            it.getInt(0)
+        }
+
     private fun eventFixture() = listOf(
         event(1, Route.ORAL, 0L, 1.0, Ester.E2),
         event(2, Route.SUBLINGUAL, 45_000_000L, 2.0, Ester.E2, mapOf(ExtraKey.SUBLINGUAL_TIER to 2.0)),
@@ -168,6 +268,7 @@ class Batch8CPreservedUpgradeTest {
     }
 
     private companion object {
+        const val BATCH8C_DATABASE_NAME = "batch8c_preserved_upgrade_test"
         const val FRESH_DATABASE = "phase1-batch8c-fresh-control"
     }
 }

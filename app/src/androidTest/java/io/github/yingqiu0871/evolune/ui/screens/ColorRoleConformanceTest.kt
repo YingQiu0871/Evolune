@@ -10,9 +10,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.MainActivity
@@ -65,7 +65,27 @@ class ColorRoleConformanceTest {
         val titleNode = composeRule.onAllNodesWithText("设置").fetchSemanticsNodes()
             .first { it.boundsInWindow.top < 500 }
         val bounds = titleNode.boundsInWindow
-        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        val roots = composeRule.onAllNodes(isRoot(), useUnmergedTree = true).fetchSemanticsNodes()
+        val appRootIndex = roots.withIndex()
+            .filter { (_, root) ->
+                val rootBounds = root.boundsInWindow
+                bounds.center.x >= rootBounds.left && bounds.center.x <= rootBounds.right &&
+                    bounds.center.y >= rootBounds.top && bounds.center.y <= rootBounds.bottom
+            }
+            .maxByOrNull { (_, root) ->
+                root.boundsInWindow.width * root.boundsInWindow.height
+            }
+            ?.index
+            ?: error("Settings title is not contained by a Compose root: $roots")
+        Log.i(
+            TAG,
+            "$mode composeRoots=${roots.size} selectedAppRoot=${roots[appRootIndex].id} " +
+                "rootBounds=${roots[appRootIndex].boundsInWindow}"
+        )
+        val bitmap = composeRule
+            .onAllNodes(isRoot(), useUnmergedTree = true)[appRootIndex]
+            .captureToImage()
+            .asAndroidBitmap()
         val left = bounds.left.toInt().coerceIn(0, bitmap.width - 1)
         val top = bounds.top.toInt().coerceIn(0, bitmap.height - 1)
         val right = bounds.right.toInt().coerceIn(0, bitmap.width)

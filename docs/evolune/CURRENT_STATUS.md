@@ -6,9 +6,9 @@ This document is the canonical quick reference for the current public release an
 
 - Stable version: [`v1.1.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 - Release date: 2026-08-21
-- Release commit: `7289f97ea94e3c70be4df0605a5a9a9a5129a50c`
+- Release reference: the immutable [`v1.1.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 - Previous sealed stable release: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
-- Current development baseline: `main @ 7289f97ea94e3c70be4df0605a5a9a9a5129a50c`
+- Current development baseline: `main` after the v1.1.0 release
 - Release downloads: signed Phone and Wear APKs are attached to the GitHub Release.
 
 The `v1.0.0` tag and its published Release are sealed. Development after v1.0 continues from `main` without changing that tag.
@@ -18,18 +18,17 @@ The `v1.0.0` tag and its published Release are sealed. Development after v1.0 co
 | Target | Application ID | Minimum API |
 |---|---|---:|
 | Phone | `io.github.yingqiu0871.evolune` | 31 (Android 12) |
-| Wear | `io.github.yingqiu0871.evolune.wear` | 30 |
+| Wear | `io.github.yingqiu0871.evolune` | 30 |
 
-Both targets use `versionName = 1.0.0` and `versionCode = 10060` in the stable release. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
+The v1.1.0 stable release uses `versionName = 1.1.0`, Phone `versionCode = 101010000`, and Wear `versionCode = 1101010000`. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
 
 ## v1.1 Milestone State
 
 The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
 
 Phone Widget Completion is **CLOSED / COMPLETE** and is published in v1.1.0. The v1.1
-implementation merge is `7531af3fdb73b5ecfc2bfe5af65771d670945bdc`; the release-preparation
-merge/tag candidate is `7289f97ea94e3c70be4df0605a5a9a9a5129a50c`. Owner, physical-device
-and post-merge CI gates passed. `v1.0.0` remains the previous sealed stable release.
+implementation and release preparation are published under the immutable `v1.1.0` tag. Owner,
+physical-device and post-merge CI gates passed. `v1.0.0` remains the previous sealed stable release.
 
 Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
 
