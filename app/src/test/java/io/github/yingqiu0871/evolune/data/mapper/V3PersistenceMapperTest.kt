@@ -99,13 +99,17 @@ class V3PersistenceMapperTest {
                 .toDomainMedicationPlan() as MappingResult.Success
             ).value
 
-        assertEquals(plan, roundTrip)
-        assertEquals(listOf("20:00", "08:30", "08:30"), persistence.plan.timeOfDay)
+        assertEquals(
+            listOf(LocalTime.of(8, 30), LocalTime.of(8, 30), LocalTime.of(20, 0)),
+            roundTrip.slots.map { it.localTime }
+        )
+        assertEquals(plan.slots.map { it.id }.toSet(), roundTrip.slots.map { it.id }.toSet())
+        assertEquals(listOf("08:30", "08:30", "20:00"), persistence.plan.timeOfDay)
         assertEquals(listOf(0, 1, 2), persistence.slots.map { it.position })
     }
 
     @Test
-    fun domainPlanWithUnexpectedSlotIdIsRejected() {
+    fun domainPlanWithExistingNonDerivedSlotIdPreservesIdentity() {
         val plan = validPlan(listOf(LocalTime.of(8, 30))).copy(
             slots = listOf(
                 ScheduledDoseSlot(
@@ -119,7 +123,8 @@ class V3PersistenceMapperTest {
 
         val result = plan.toPersistenceAggregate()
 
-        assertTrue((result as MappingResult.Failure).error is MappingError.UnexpectedSlotId)
+        val persistence = (result as MappingResult.Success).value
+        assertEquals(plan.slots.single().id, persistence.slots.single().id)
     }
 
     @Test

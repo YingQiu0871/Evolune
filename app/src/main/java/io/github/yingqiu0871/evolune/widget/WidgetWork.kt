@@ -10,27 +10,34 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
+import io.github.yingqiu0871.evolune.data.TimeFormat
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
+import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.pk.SimulationEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
-import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
 internal data class WidgetSnapshot(
     val presentation: WidgetPresentationState,
-    val concentration: Double?
+    val concentration: Double?,
+    val timeFormat: TimeFormat = TimeFormat.SYSTEM
 )
 
 internal class WidgetSnapshotLoader(
     private val medicationPlans: MedicationPlanRepository,
     private val doseEvents: DoseEventRepository,
     private val bodyWeight: suspend () -> Double,
+    private val timeFormat: suspend () -> TimeFormat = { TimeFormat.SYSTEM },
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: () -> ZoneId = ZoneId::systemDefault,
     private val presentationMapper: WidgetPresentationMapper = WidgetPresentationMapper()
@@ -64,12 +71,16 @@ internal class WidgetSnapshotLoader(
                 numberOfSteps = 2
             ).run().concPGmL.lastOrNull()
         }
-        return WidgetSnapshot(presentation = presentation, concentration = concentration)
+        return WidgetSnapshot(
+            presentation = presentation,
+            concentration = concentration,
+            timeFormat = timeFormat()
+        )
     }
 }
 
 internal fun interface WidgetSnapshotRenderer {
-    fun render(appWidgetId: Int, snapshot: WidgetSnapshot)
+    fun render(appWidgetId: Int, state: WidgetRenderState)
 }
 
 internal fun interface WidgetUpdateWork {
@@ -85,6 +96,7 @@ internal enum class WidgetUpdateReason {
     ACCEPTED_NOTIFICATION_DOSE_EVENT,
     ACCEPTED_WEAR_DOSE_EVENT,
     DATE_OR_TIMEZONE_CHANGED,
+    APPEARANCE_CHANGED,
     MANUAL_APP_REFRESH
 }
 
@@ -103,13 +115,26 @@ internal class ContractWidgetUpdateWork(
     private val renderer: WidgetSnapshotRenderer
 ) : WidgetUpdateWork {
     override suspend fun handle(appWidgetIds: IntArray) {
+        if (appWidgetIds.isEmpty()) return
+        val state = try {
+            WidgetRenderState.Loaded(snapshotLoader.load())
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            WidgetRenderState.ReadFailure()
+        }
         appWidgetIds.forEach { appWidgetId ->
-            renderer.render(appWidgetId, snapshotLoader.load())
+            renderer.render(appWidgetId, state)
         }
     }
 }
 
-internal data class WidgetQuickActionCommand(val planId: String?)
+internal data class WidgetQuickActionCommand(
+    val planId: String?,
+    val slotId: String?,
+    val scheduledLocalDate: String?,
+    val occurrenceId: String?
+)
 
 internal sealed interface WidgetQuickActionOutcome {
     data class Accepted(val replayed: Boolean) : WidgetQuickActionOutcome
@@ -141,16 +166,35 @@ internal class ContractWidgetQuickActionWork(
     private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
 
     override suspend fun handle(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
-        val planId = command.planId
-            ?.let { value -> runCatching { UUID.fromString(value) }.getOrNull() }
+        val parsed = command.parsed()
             ?: return WidgetQuickActionOutcome.Invalid
         val recordedAtMillis = clock.millis()
+        val actionZoneId = zoneId()
+        val recordedAt = Instant.ofEpochMilli(recordedAtMillis)
+        if (parsed.scheduledLocalDate != recordedAt.atZone(actionZoneId).toLocalDate()) {
+            return WidgetQuickActionOutcome.Invalid
+        }
+        val derivedOccurrenceId = MedicationOccurrenceIdentity.derive(
+            parsed.planId,
+            parsed.slotId,
+            parsed.scheduledLocalDate
+        ).value
+        if (derivedOccurrenceId != parsed.occurrenceId) {
+            return WidgetQuickActionOutcome.Invalid
+        }
         return when (
             val result = recordAction.recordWidget(
-                planId = planId,
-                recordedAtMillis = recordedAtMillis,
+                planId = parsed.planId,
+                occurrenceId = parsed.occurrenceId,
+                validatePlan = { plan -> parsed.existsIn(plan, actionZoneId) }
             ) { plan, eventId ->
-                createWidgetDoseEvent(plan, eventId, recordedAtMillis, zoneId())
+                createWidgetDoseEvent(
+                    plan = plan,
+                    eventId = eventId,
+                    recordedAtMillis = recordedAtMillis,
+                    zoneId = actionZoneId,
+                    slotId = parsed.slotId
+                )
             }
         ) {
             is RecordDoseEventActionResult.Accepted -> accepted(
@@ -167,6 +211,24 @@ internal class ContractWidgetQuickActionWork(
         }
     }
 
+    private fun WidgetQuickActionCommand.parsed(): ParsedWidgetQuickAction? {
+        val parsedPlanId = planId?.let(::parseUuid) ?: return null
+        val parsedSlotId = slotId?.let(::parseUuid) ?: return null
+        val parsedDate = scheduledLocalDate
+            ?.let { value -> runCatching { LocalDate.parse(value) }.getOrNull() }
+            ?: return null
+        val parsedOccurrenceId = occurrenceId?.let(::parseUuid) ?: return null
+        return ParsedWidgetQuickAction(
+            parsedPlanId,
+            parsedSlotId,
+            parsedDate,
+            parsedOccurrenceId
+        )
+    }
+
+    private fun parseUuid(value: String): UUID? =
+        runCatching { UUID.fromString(value) }.getOrNull()
+
     private suspend fun accepted(
         planName: String,
         replayed: Boolean
@@ -181,17 +243,35 @@ internal class ContractWidgetQuickActionWork(
     }
 }
 
-internal fun widgetDoseEventId(planId: UUID, recordedAtMillis: Long): UUID =
-    UUID.nameUUIDFromBytes(
-        "widget:$planId:${recordedAtMillis / 60_000L}"
-            .toByteArray(StandardCharsets.UTF_8)
-    )
+private data class ParsedWidgetQuickAction(
+    val planId: UUID,
+    val slotId: UUID,
+    val scheduledLocalDate: LocalDate,
+    val occurrenceId: UUID
+) {
+    fun existsIn(plan: MedicationPlan, zoneId: ZoneId): Boolean {
+        val start = scheduledLocalDate.atStartOfDay(zoneId).toInstant()
+        val end = scheduledLocalDate.plusDays(1L).atStartOfDay(zoneId).toInstant()
+        val matches = MedicationOccurrenceGenerator.generate(
+            schedules = listOf(plan.toMedicationSchedule()),
+            window = OccurrenceGenerationWindow(start, end),
+            zoneId = zoneId
+        ).filter { occurrence ->
+            occurrence.id.value == occurrenceId &&
+                occurrence.planId == planId &&
+                occurrence.slotId == slotId &&
+                occurrence.scheduledLocalDateTime.toLocalDate() == scheduledLocalDate
+        }
+        return matches.size == 1
+    }
+}
 
 internal fun createWidgetDoseEvent(
     plan: MedicationPlan,
     eventId: UUID,
     recordedAtMillis: Long,
-    zoneId: ZoneId
+    zoneId: ZoneId,
+    slotId: UUID
 ): DoseEvent {
     require(recordedAtMillis > 0L)
     val occurredAt = Instant.ofEpochMilli(recordedAtMillis)
@@ -204,7 +284,7 @@ internal fun createWidgetDoseEvent(
         doseMG = plan.doseMG,
         ester = plan.ester,
         extras = plan.extras,
-        slotId = null,
+        slotId = slotId,
         source = DoseEventSource.WIDGET,
         status = DoseEventStatus.RECORDED,
         revision = 1L

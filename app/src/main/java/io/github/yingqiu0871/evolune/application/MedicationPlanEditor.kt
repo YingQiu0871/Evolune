@@ -53,7 +53,8 @@ data class MedicationPlanEditorInput(
     val daysOfWeek: Set<DayOfWeek>,
     val intervalDaysText: String,
     val isEnabled: Boolean,
-    val sublingualTier: SublingualTier
+    val sublingualTier: SublingualTier,
+    val slotIds: List<UUID?> = emptyList()
 )
 
 sealed interface MedicationPlanInputResult {
@@ -108,6 +109,11 @@ fun MedicationPlanEditorInput.toMedicationPlanDraft(
         extras[ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.toStableCode()
     }
 
+    val resolvedSlotIds = resolveEditorSlotIds(session)
+    val orderedSlots = times.mapIndexed { index, time ->
+        EditorSlot(time, resolvedSlotIds.getOrNull(index), index)
+    }.sortedWith(compareBy<EditorSlot> { it.time }.thenBy { it.originalPosition })
+
     return MedicationPlanInputResult.Success(
         MedicationPlanDraft(
             id = session.id,
@@ -116,15 +122,49 @@ fun MedicationPlanEditorInput.toMedicationPlanDraft(
             ester = if (route == Route.ANTIANDROGEN) Ester.E2 else ester,
             doseMG = requireNotNull(doseMG),
             scheduleType = scheduleType,
-            times = times,
+            times = orderedSlots.map { it.time },
             daysOfWeek = daysOfWeek,
             intervalDays = requireNotNull(intervalDays),
             isEnabled = isEnabled,
             extras = extras,
-            createdAt = session.createdAt
+            createdAt = session.createdAt,
+            slotIds = orderedSlots.map { it.id }
         )
     )
 }
+
+private fun MedicationPlanEditorInput.resolveEditorSlotIds(
+    session: MedicationPlanEditSession
+): List<UUID?> {
+    if (slotIds.size == times.size) return slotIds
+    if (slotIds.isNotEmpty()) return List(times.size) { null }
+
+    val unmatchedExisting = session.existingPlan?.slots
+        ?.sortedBy { it.position }
+        ?.toMutableList()
+        ?: return List(times.size) { null }
+    val resolved = MutableList<UUID?>(times.size) { null }
+
+    times.forEachIndexed { index, time ->
+        val matchingIndex = unmatchedExisting.indexOfFirst { it.localTime == time }
+        if (matchingIndex >= 0) {
+            resolved[index] = unmatchedExisting.removeAt(matchingIndex).id
+        }
+    }
+    val unresolvedIndexes = resolved.indices.filter { resolved[it] == null }
+    if (unresolvedIndexes.size == unmatchedExisting.size) {
+        unresolvedIndexes.forEachIndexed { index, inputIndex ->
+            resolved[inputIndex] = unmatchedExisting[index].id
+        }
+    }
+    return resolved
+}
+
+private data class EditorSlot(
+    val time: LocalTime,
+    val id: UUID?,
+    val originalPosition: Int
+)
 
 fun MedicationPlan.selectedAntiAndrogen(): AntiAndrogen =
     when (extras[ExtraKey.ANTI_ANDROGEN_TYPE]) {

@@ -2,6 +2,7 @@ package io.github.yingqiu0871.evolune.experience
 
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.abs
 
@@ -9,7 +10,8 @@ data class RecordedMedicationEvent(
     val eventId: UUID,
     val occurredAt: Instant,
     val slotId: UUID?,
-    val matchKey: MedicationMatchKey
+    val matchKey: MedicationMatchKey,
+    val localDate: LocalDate? = null
 )
 
 enum class MedicationOccurrenceStatus {
@@ -93,16 +95,35 @@ object MedicationOccurrencePresentation {
     ): Map<MedicationOccurrenceId, RecordedMedicationEvent> {
         val result = mutableMapOf<MedicationOccurrenceId, RecordedMedicationEvent>()
 
-        // Slot-bearing events have the strongest available identity. Resolve them
-        // first in stable event order so fallback cannot reuse their occurrences.
+        // A persisted slot/date pair identifies one logical occurrence independently
+        // from the actual dose time. Resolve it before all time-window fallbacks.
         val exactConsumed = mutableSetOf<MedicationOccurrenceId>()
         events.asSequence()
-            .filter { it.slotId != null }
+            .filter { it.slotId != null && it.localDate != null }
             .sortedWith(EVENT_ORDER)
             .forEach { event ->
                 val candidates = occurrences.filter { occurrence ->
                     occurrence.id !in exactConsumed &&
-                        matchCandidate(occurrence, event, policy) != null
+                        occurrence.slotId == event.slotId &&
+                        occurrence.scheduledLocalDateTime.toLocalDate() == event.localDate
+                }
+                if (candidates.size == 1) {
+                    val occurrence = candidates.single()
+                    exactConsumed += occurrence.id
+                    result[occurrence.id] = event
+                }
+            }
+
+        // Older slot-bearing events do not have a trustworthy local date. Preserve
+        // their previous slot plus inclusive time-window behavior without inferring
+        // an exact cross-date association.
+        events.asSequence()
+            .filter { it.slotId != null && it.localDate == null }
+            .sortedWith(EVENT_ORDER)
+            .forEach { event ->
+                val candidates = occurrences.filter { occurrence ->
+                    occurrence.id !in exactConsumed &&
+                        fallbackMatchCandidate(occurrence, event, policy) != null
                 }
                 if (candidates.size == 1) {
                     val occurrence = candidates.single()
@@ -120,7 +141,7 @@ object MedicationOccurrencePresentation {
             .mapNotNull { event ->
                 val candidates = occurrences.filter { occurrence ->
                     occurrence.id !in exactConsumed &&
-                        matchCandidate(occurrence, event, policy) != null
+                        fallbackMatchCandidate(occurrence, event, policy) != null
                 }
                 if (candidates.size == 1) {
                     MatchCandidate(candidates.single(), event)
@@ -139,7 +160,7 @@ object MedicationOccurrencePresentation {
         return result
     }
 
-    private fun matchCandidate(
+    private fun fallbackMatchCandidate(
         occurrence: MedicationOccurrence,
         event: RecordedMedicationEvent,
         policy: MedicationOccurrencePolicy

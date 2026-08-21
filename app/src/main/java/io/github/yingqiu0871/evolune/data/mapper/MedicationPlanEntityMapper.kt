@@ -97,7 +97,7 @@ fun MedicationPlanAggregateEntity.toDomainMedicationPlan(): MappingResult<Domain
         is MappingResult.Success -> result.value
         is MappingResult.Failure -> return result
     }
-    val mappedSlots = when (val result = slots.toDomainSlots(plan.id)) {
+    val storedSlots = when (val result = slots.toDomainSlots(plan.id)) {
         is MappingResult.Success -> result.value
         is MappingResult.Failure -> return result
     }
@@ -105,9 +105,10 @@ fun MedicationPlanAggregateEntity.toDomainMedicationPlan(): MappingResult<Domain
         is MappingResult.Success -> result.value
         is MappingResult.Failure -> return result
     }
-    if (legacyTimes != mappedSlots.map { canonicalLocalTime(it.localTime) }) {
+    if (legacyTimes != storedSlots.map { canonicalLocalTime(it.localTime) }) {
         return MappingResult.Failure(MappingError.InconsistentPlanTimes(plan.id))
     }
+    val mappedSlots = storedSlots.chronologicallyOrdered()
 
     return try {
         MappingResult.Success(
@@ -142,24 +143,14 @@ fun DomainMedicationPlan.toPersistenceAggregate(): MappingResult<MedicationPlanP
         )
     }
 
+    val orderedSlots = slots.chronologicallyOrdered()
     val slotEntities = mutableListOf<ScheduledDoseSlotEntity>()
-    slots.forEachIndexed { index, slot ->
+    orderedSlots.forEachIndexed { index, slot ->
         if (slot.planId != id) {
             return MappingResult.Failure(MappingError.InvalidSlotPlan(index))
         }
         if (slot.position != index) {
             return MappingResult.Failure(MappingError.InvalidSlotPosition(slot.position))
-        }
-        val expectedId = when (
-            val result = ScheduledDoseSlotId.generate(id, index, slot.localTime)
-        ) {
-            is SlotIdResult.Success -> result.id
-            is SlotIdResult.Failure -> {
-                return MappingResult.Failure(MappingError.InvalidSlot(index, result.error))
-            }
-        }
-        if (slot.id != expectedId) {
-            return MappingResult.Failure(MappingError.UnexpectedSlotId(index))
         }
         slotEntities += ScheduledDoseSlotEntity(
             id = slot.id,
@@ -176,7 +167,7 @@ fun DomainMedicationPlan.toPersistenceAggregate(): MappingResult<MedicationPlanP
         ester = ester.toLegacyStorageEster(),
         doseMG = doseMG,
         scheduleType = scheduleType.toLegacyStorageScheduleType(),
-        timeOfDay = slots.map { canonicalLocalTime(it.localTime) },
+        timeOfDay = orderedSlots.map { canonicalLocalTime(it.localTime) },
         daysOfWeek = daysOfWeek.mapTo(linkedSetOf()) { it.value },
         intervalDays = intervalDays,
         isEnabled = isEnabled,
@@ -221,7 +212,7 @@ private fun MedicationPlanEntity.slotsFromLegacyStorage(): MappingResult<List<Sc
         }
         slots += slot
     }
-    return MappingResult.Success(slots)
+    return MappingResult.Success(slots.chronologicallyOrdered())
 }
 
 private fun List<ScheduledDoseSlotEntity>.toDomainSlots(
@@ -251,19 +242,6 @@ private fun List<ScheduledDoseSlotEntity>.toDomainSlots(
                 MappingError.InvalidSlotLocalTime(slot.position, slot.localTime)
             )
         }
-        val expectedId = when (
-            val result = ScheduledDoseSlotId.generate(planId, slot.position, parsedTime)
-        ) {
-            is SlotIdResult.Success -> result.id
-            is SlotIdResult.Failure -> {
-                return MappingResult.Failure(
-                    MappingError.InvalidSlot(slot.position, result.error)
-                )
-            }
-        }
-        if (slot.id != expectedId) {
-            return MappingResult.Failure(MappingError.UnexpectedSlotId(slot.position))
-        }
         mapped += ScheduledDoseSlot(
             id = slot.id,
             planId = slot.planId,
@@ -273,6 +251,10 @@ private fun List<ScheduledDoseSlotEntity>.toDomainSlots(
     }
     return MappingResult.Success(mapped)
 }
+
+private fun List<ScheduledDoseSlot>.chronologicallyOrdered(): List<ScheduledDoseSlot> =
+    sortedWith(compareBy<ScheduledDoseSlot> { it.localTime }.thenBy { it.position })
+        .mapIndexed { position, slot -> slot.copy(position = position) }
 
 private fun List<String>.toCanonicalLegacyTimes(): MappingResult<List<String>> {
     val canonical = mutableListOf<String>()

@@ -6,7 +6,7 @@
     android:background="@drawable/widget_background"
     android:clipToOutline="true"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
             android:includeFontPadding="false"
             android:maxLines="1"
             android:text="@string/widget_daily_progress_empty"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
 
         <TextView
             android:id="@+id/widget_concentration"
@@ -34,21 +34,21 @@
             android:fontFamily="sans-serif-medium"
             android:includeFontPadding="false"
             android:maxLines="1"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/widget_progress_container"
         android:layout_width="match_parent"
         android:layout_height="5dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:orientation="horizontal" />
 
     <ListView
         android:id="@+id/widget_rows_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="3dp"
         android:layout_weight="1"
         android:clipToPadding="false"
         android:divider="@null"
@@ -60,9 +60,9 @@
         android:id="@+id/widget_empty_area"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="3dp"
         android:layout_weight="1"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
         <TextView
@@ -71,22 +71,19 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="sans-serif-medium"
-            android:gravity="center"
             android:includeFontPadding="false"
             android:maxLines="1"
             android:text="@string/widget_loading"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <TextView
             android:id="@+id/widget_empty_meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
             android:ellipsize="end"
-            android:gravity="center"
             android:includeFontPadding="false"
-            android:maxLines="2"
+            android:maxLines="1"
             android:text="@string/widget_loading_desc"
-            android:textSize="10sp" />
+            android:textSize="9sp" />
     </LinearLayout>
 </LinearLayout>

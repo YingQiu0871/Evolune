@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class MedicationOccurrencePresentationTest {
@@ -280,6 +281,77 @@ class MedicationOccurrencePresentationTest {
         ).single()
 
         assertEquals(MedicationOccurrenceStatus.DUE, item.status)
+    }
+
+    @Test
+    fun `slot and local date exactly associate a late actual dose time`() {
+        val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
+        val eventId = UUID(9L, 20L)
+        val item = MedicationOccurrencePresentation.derive(
+            listOf(occurrence),
+            listOf(
+                RecordedMedicationEvent(
+                    eventId = eventId,
+                    occurredAt = now.plusSeconds(5 * 3_600L),
+                    slotId = occurrence.slotId,
+                    localDate = LocalDate.parse("2025-01-02"),
+                    matchKey = occurrence.presentation.matchKey.copy(routeKey = "LEGACY")
+                )
+            ),
+            now.plusSeconds(5 * 3_600L)
+        ).single()
+
+        assertEquals(MedicationOccurrenceStatus.RECORDED, item.status)
+        assertEquals(eventId, item.recordedEventId)
+    }
+
+    @Test
+    fun `slot date exact association rejects another slot or local date`() {
+        val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
+        fun derive(slotId: UUID, localDate: LocalDate) =
+            MedicationOccurrencePresentation.derive(
+                listOf(occurrence),
+                listOf(
+                    RecordedMedicationEvent(
+                        eventId = UUID(9L, localDate.dayOfMonth.toLong()),
+                        occurredAt = now.plusSeconds(5 * 3_600L),
+                        slotId = slotId,
+                        localDate = localDate,
+                        matchKey = occurrence.presentation.matchKey
+                    )
+                ),
+                now.plusSeconds(5 * 3_600L)
+            ).single()
+
+        assertEquals(
+            MedicationOccurrenceStatus.PAST_UNRECORDED,
+            derive(UUID(8L, 20L), LocalDate.parse("2025-01-02")).status
+        )
+        assertEquals(
+            MedicationOccurrenceStatus.PAST_UNRECORDED,
+            derive(occurrence.slotId, LocalDate.parse("2025-01-03")).status
+        )
+    }
+
+    @Test
+    fun `slot event without local date retains the legacy time window`() {
+        val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
+        val item = MedicationOccurrencePresentation.derive(
+            listOf(occurrence),
+            listOf(
+                RecordedMedicationEvent(
+                    eventId = UUID(9L, 21L),
+                    occurredAt = now.plusSeconds(5 * 3_600L),
+                    slotId = occurrence.slotId,
+                    localDate = null,
+                    matchKey = occurrence.presentation.matchKey
+                )
+            ),
+            now.plusSeconds(5 * 3_600L)
+        ).single()
+
+        assertEquals(MedicationOccurrenceStatus.PAST_UNRECORDED, item.status)
+        assertNull(item.recordedEventId)
     }
 
     private fun occurrenceAt(instant: String): MedicationOccurrence = occurrences(

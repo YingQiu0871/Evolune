@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.application.RecordAcceptance
 import io.github.yingqiu0871.evolune.application.RecordDoseEventActionResult
 import io.github.yingqiu0871.evolune.application.WearActionRecorder
+import io.github.yingqiu0871.evolune.application.widgetOccurrenceActionEventId
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
@@ -19,6 +20,7 @@ import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotId
 import io.github.yingqiu0871.evolune.core.model.SlotIdResult
 import io.github.yingqiu0871.evolune.data.AppDatabase
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.reminder.ContractNotificationActionWork
@@ -30,7 +32,6 @@ import io.github.yingqiu0871.evolune.widget.ContractWidgetQuickActionWork
 import io.github.yingqiu0871.evolune.widget.WidgetQuickActionCommand
 import io.github.yingqiu0871.evolune.widget.WidgetQuickActionOutcome
 import io.github.yingqiu0871.evolune.widget.WidgetQuickActionSideEffects
-import io.github.yingqiu0871.evolune.widget.widgetDoseEventId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -124,7 +125,7 @@ class ReceiverWidgetProductionCutoverTest {
             clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
         )
-        val widgetCommand = WidgetQuickActionCommand(PLAN_ID.toString())
+        val widgetCommand = widgetCommand()
         assertEquals(WidgetQuickActionOutcome.Accepted(false), widgetWork.handle(widgetCommand))
         val replayWidgetWork = ContractWidgetQuickActionWork(
             medicationPlans = provider.medicationPlans,
@@ -134,13 +135,13 @@ class ReceiverWidgetProductionCutoverTest {
             zoneId = { TEST_ZONE }
         )
         assertEquals(WidgetQuickActionOutcome.Accepted(true), replayWidgetWork.handle(widgetCommand))
-        val widgetId = widgetDoseEventId(PLAN_ID, WIDGET_OCCURRED_AT.toEpochMilli())
+        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId())
         val widget = requireNotNull(provider.doseEvents.getById(widgetId))
         assertEquals(DoseEventSource.WIDGET, widget.source)
         assertEquals(WIDGET_OCCURRED_AT, widget.occurredAt)
         assertEquals(TEST_ZONE, widget.zoneId)
         assertEquals(WIDGET_OCCURRED_AT.atZone(TEST_ZONE).toLocalDate(), widget.localDate)
-        assertNull(widget.slotId)
+        assertEquals(plan().slots.first().id, widget.slotId)
         assertEquals(1L, widget.revision)
         assertEquals(2, widgetEffects.refreshes)
         assertEquals(2, widgetEffects.toasts)
@@ -180,7 +181,7 @@ class ReceiverWidgetProductionCutoverTest {
         assertEquals(0, notificationEffects.refreshes)
         assertEquals(0, notificationEffects.cancellations)
 
-        val widgetId = widgetDoseEventId(PLAN_ID, WIDGET_OCCURRED_AT.toEpochMilli())
+        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId())
         opened.openHelper.writableDatabase.execSQL(
             """
             CREATE TRIGGER batch6b_widget_insert_failure
@@ -198,7 +199,7 @@ class ReceiverWidgetProductionCutoverTest {
             sideEffects = widgetEffects,
             clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
-        ).handle(WidgetQuickActionCommand(PLAN_ID.toString()))
+        ).handle(widgetCommand())
         assertEquals(WidgetQuickActionOutcome.StorageFailure, widgetResult)
         assertNull(provider.doseEvents.getById(widgetId))
         assertEquals(0, widgetEffects.refreshes)
@@ -334,6 +335,24 @@ class ReceiverWidgetProductionCutoverTest {
         extras = mapOf(ExtraKey.SUBLINGUAL_TIER to 2.0),
         createdAt = Instant.parse("2026-01-02T03:04:05Z")
     )
+
+    private fun widgetCommand(): WidgetQuickActionCommand {
+        val scheduledLocalDate = WIDGET_OCCURRED_AT.atZone(TEST_ZONE).toLocalDate()
+        val slotId = plan().slots.first().id
+        return WidgetQuickActionCommand(
+            planId = PLAN_ID.toString(),
+            slotId = slotId.toString(),
+            scheduledLocalDate = scheduledLocalDate.toString(),
+            occurrenceId = MedicationOccurrenceIdentity.derive(
+                PLAN_ID,
+                slotId,
+                scheduledLocalDate
+            ).value.toString()
+        )
+    }
+
+    private fun widgetOccurrenceId(): UUID =
+        UUID.fromString(requireNotNull(widgetCommand().occurrenceId))
 
     private fun event(
         id: UUID,

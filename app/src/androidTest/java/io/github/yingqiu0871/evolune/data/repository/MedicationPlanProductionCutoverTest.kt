@@ -139,8 +139,12 @@ class MedicationPlanProductionCutoverTest {
                 )
             )
         }
-        assertEquals(duplicateTimes, rawSlots(FIXED_PLAN_ID).map { LocalTime.parse(it.time) })
-        assertEquals("[\"20:00\",\"08:30\",\"08:30\"]", rawTimeOfDay(FIXED_PLAN_ID))
+        val chronologicalDuplicateTimes = duplicateTimes.sorted()
+        assertEquals(
+            chronologicalDuplicateTimes,
+            rawSlots(FIXED_PLAN_ID).map { LocalTime.parse(it.time) }
+        )
+        assertEquals("[\"08:30\",\"08:30\",\"20:00\"]", rawTimeOfDay(FIXED_PLAN_ID))
 
         assertSuccess(reopenedViewModel, MedicationPlanOperation.SAVE) {
             reopenedViewModel.saveDraft(initialDraft.copy(times = emptyList()))
@@ -235,6 +239,45 @@ class MedicationPlanProductionCutoverTest {
         assertEquals(beforeSlots, rawSlots(FIXED_PLAN_ID))
         assertEquals(1, rawPlanCount(FIXED_PLAN_ID))
         assertEquals(3, opened.openHelper.readableDatabase.version)
+    }
+
+    @Test
+    fun repositoryPersistsChronologicalPositionsWhileKeepingEditedSlotIdentity() = runBlocking {
+        val opened = openDatabase()
+        val repository = ProductionRepositoryProvider(opened).medicationPlans
+        val initialDraft = draft(
+            name = "Synthetic stable slot plan",
+            times = listOf(
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                LocalTime.of(22, 0)
+            )
+        )
+        assertEquals(PlanSaveResult.Created, repository.saveDomainDraft(initialDraft))
+        val initial = requireNotNull(repository.getById(FIXED_PLAN_ID))
+        val initialIds = initial.slots.map { it.id }
+
+        val editedDraft = initialDraft.copy(
+            times = listOf(
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                LocalTime.of(8, 0)
+            ),
+            slotIds = initialIds
+        )
+        assertEquals(PlanSaveResult.Updated, repository.saveDomainDraft(editedDraft))
+
+        val restored = requireNotNull(repository.getById(FIXED_PLAN_ID))
+        assertEquals(
+            listOf(LocalTime.of(8, 0), LocalTime.of(9, 0), LocalTime.of(17, 0)),
+            restored.slots.map { it.localTime }
+        )
+        assertEquals(
+            listOf(initialIds[2], initialIds[0], initialIds[1]),
+            restored.slots.map { it.id }
+        )
+        assertEquals(listOf(0, 1, 2), restored.slots.map { it.position })
+        assertEquals("[\"08:00\",\"09:00\",\"17:00\"]", rawTimeOfDay(FIXED_PLAN_ID))
     }
 
     private fun viewModel(
