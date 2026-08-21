@@ -201,7 +201,13 @@ class MedicationPlansScreenTest {
     @Test
     fun busyPlanDisablesOnlyItsOwnSwitch() {
         val first = plan()
-        val second = plan().copy(id = UUID(0L, 302L), name = "Other plan")
+        val secondId = UUID(0L, 302L)
+        val secondBase = plan()
+        val second = secondBase.copy(
+            id = secondId,
+            name = "Other plan",
+            slots = secondBase.slots.map { it.copy(planId = secondId) }
+        )
         composeRule.setContent {
             EvoluneTheme {
                 MedicationPlansScreenContent(

@@ -1,9 +1,13 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
+import android.os.Build
+import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
+import android.view.View
 import android.view.WindowInsets
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -14,8 +18,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.testime.ProbeTestIme
@@ -61,10 +64,22 @@ class RealAppImeFrameProbeTest {
     @Before
     fun useDeterministicIme() {
         originalIme = shell("settings get secure default_input_method").trim()
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val inputMethodManager = composeRule.activity.getSystemService(InputMethodManager::class.java)
+            inputMethodManager?.hideSoftInputFromWindow(
+                composeRule.activity.window.decorView.windowToken,
+                InputMethodManager.HIDE_NOT_ALWAYS
+            )
+        }
+        shell("ime reset")
         shell("ime enable ${ProbeTestIme.ID}")
         shell("ime set ${ProbeTestIme.ID}")
         SystemClock.sleep(1_500)
-        Log.i(TAG, "IME switched from=$originalIme to=${ProbeTestIme.ID}")
+        Log.i(
+            TAG,
+            "IME switched from=$originalIme to=${ProbeTestIme.ID} " +
+                "windowFocus=${composeRule.activity.window.decorView.hasWindowFocus()}"
+        )
     }
 
     @After
@@ -83,14 +98,14 @@ class RealAppImeFrameProbeTest {
 
     private fun readViewHeight(): Int {
         var h = 0
-        InstrumentationRegistry.getInstrumentation().runOnMainSync { h = composeRule.activity.window.decorView.height }
+        InstrumentationRegistry.getInstrumentation().runOnMainSync { h = activeWindowRoot().height }
         return h
     }
 
     private fun readImeInset(): Int {
         var imeBottom = 0
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            imeBottom = composeRule.activity.window.decorView.rootWindowInsets
+            imeBottom = activeWindowRoot().rootWindowInsets
                 ?.getInsets(WindowInsets.Type.ime())
                 ?.bottom
                 ?: 0
@@ -107,13 +122,68 @@ class RealAppImeFrameProbeTest {
      */
     private fun setImeVisible(visible: Boolean) {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val window = composeRule.activity.window
-            val controller = WindowInsetsControllerCompat(window, window.decorView)
-            if (visible) {
-                controller.show(WindowInsetsCompat.Type.ime())
-            } else {
-                controller.hide(WindowInsetsCompat.Type.ime())
+            val root = activeWindowRoot()
+            val focused = root.findFocus() ?: root
+            Log.i(
+                TAG,
+                "setImeVisible visible=$visible root=${root.javaClass.name} " +
+                    "focus=$focused rootFocus=${root.hasWindowFocus()}"
+            )
+            if (Build.VERSION.SDK_INT >= 30) {
+                root.windowInsetsController?.let { controller ->
+                    if (visible) controller.show(WindowInsets.Type.ime())
+                    else controller.hide(WindowInsets.Type.ime())
+                }
             }
+            val inputMethodManager = root.context.getSystemService(InputMethodManager::class.java)
+            if (visible) {
+                inputMethodManager?.showSoftInput(focused, InputMethodManager.SHOW_IMPLICIT)
+            } else {
+                inputMethodManager?.hideSoftInputFromWindow(root.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+            }
+        }
+    }
+
+    /**
+     * The record editor is a Compose Dialog, so its focused window is not the
+     * Activity window exposed by createAndroidComposeRule. Resolve the actual
+     * focused root from WindowManagerGlobal for both insets and IME control.
+     */
+    private fun activeWindowRoot(): View {
+        val roots = windowRootsOnMainThread()
+        val focused = roots.filter { it.hasWindowFocus() && it.isShown }
+        val root = (focused.ifEmpty { roots.filter { it.isShown } })
+            .maxByOrNull { it.width.toLong() * it.height.toLong() }
+            ?: composeRule.activity.window.decorView
+        if (roots.size > 1) {
+            Log.i(
+                TAG,
+                "windowRoots selected=${root.javaClass.name} focus=${root.hasWindowFocus()} " +
+                    "size=${root.width}x${root.height} all=" +
+                    roots.joinToString { view ->
+                        "${view.javaClass.simpleName}:${view.width}x${view.height}:" +
+                            "focus=${view.hasWindowFocus()} ime=${view.rootWindowInsets?.getInsets(WindowInsets.Type.ime())?.bottom}"
+                    }
+            )
+        }
+        return root
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun windowRootsOnMainThread(): List<View> {
+        check(Looper.myLooper() == Looper.getMainLooper())
+        return runCatching {
+            val type = Class.forName("android.view.WindowManagerGlobal")
+            val global = type.getMethod("getInstance").invoke(null)
+            val method = type.getDeclaredMethod("getWindowViews").apply { isAccessible = true }
+            (method.invoke(global) as? List<*>)?.filterIsInstance<View>().orEmpty()
+        }.getOrElse {
+            runCatching {
+                val type = Class.forName("android.view.WindowManagerGlobal")
+                val global = type.getMethod("getInstance").invoke(null)
+                val field = type.getDeclaredField("mViews").apply { isAccessible = true }
+                (field.get(global) as? List<*>)?.filterIsInstance<View>().orEmpty()
+            }.getOrDefault(emptyList())
         }
     }
 
@@ -304,7 +374,10 @@ class RealAppImeFrameProbeTest {
     fun frameLevelImeMotionAnalysis() {
         openRecordEditor()
         val focusMetrics = mutableListOf<Metrics>()
-        composeRule.onNodeWithTag("record-dose").performScrollTo().performClick()
+        composeRule.onNodeWithTag("record-dose")
+            .performScrollTo()
+            .performClick()
+            .performTextInput("2")
         composeRule.waitForIdle()
         // Focusing already opened the keyboard, so close it before measuring:
         // the baseline must be the field's resting position with no IME on screen.

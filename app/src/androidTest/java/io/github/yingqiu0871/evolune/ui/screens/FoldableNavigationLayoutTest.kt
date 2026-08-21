@@ -9,8 +9,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.isRoot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
@@ -52,7 +52,12 @@ class FoldableNavigationLayoutTest {
         val railNodes = composeRule.onAllNodesWithTag("navigation-rail").fetchSemanticsNodes()
         assumeTrue("Navigation rail requires a non-compact window", railNodes.isNotEmpty())
 
-        val rootBounds = composeRule.onRoot().fetchSemanticsNode().boundsInRoot
+        val rootBounds = composeRule
+            .onAllNodes(isRoot(), useUnmergedTree = true)
+            .fetchSemanticsNodes()
+            .maxByOrNull { it.boundsInRoot.width * it.boundsInRoot.height }
+            ?.boundsInRoot
+            ?: error("No Compose app root found")
         val topBarBounds = composeRule.onNodeWithTag("app-top-bar").fetchSemanticsNode().boundsInRoot
         val railBounds = composeRule.onNodeWithTag("navigation-rail").fetchSemanticsNode().boundsInRoot
         val contentBounds = composeRule.onNodeWithTag("app-content").fetchSemanticsNode().boundsInRoot
