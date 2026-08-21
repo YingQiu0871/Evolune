@@ -25,7 +25,8 @@ data class MedicationPlanDraft(
     val intervalDays: Int,
     val isEnabled: Boolean,
     val extras: Map<ExtraKey, Double>,
-    val createdAt: Instant
+    val createdAt: Instant,
+    val slotIds: List<UUID?> = emptyList()
 )
 
 sealed interface DraftMappingResult<out T> {
@@ -54,23 +55,43 @@ fun MedicationPlanDraft.toDomainMedicationPlan(): DraftMappingResult<MedicationP
         issues += DraftIssue.MissingRequiredField(DraftField.NAME)
     }
 
+    if (slotIds.isNotEmpty() && slotIds.size != times.size) {
+        issues += DraftIssue.DomainValidationFailure
+    }
+    val orderedTimes = times.mapIndexed { index, localTime ->
+        DraftSlot(localTime, slotIds.getOrNull(index), index)
+    }.sortedWith(compareBy<DraftSlot> { it.localTime }.thenBy { it.originalPosition })
+
     val slots = buildList {
-        times.forEachIndexed { position, localTime ->
+        orderedTimes.forEachIndexed { position, draftSlot ->
+            val localTime = draftSlot.localTime
             if (!localTime.hasMinutePrecision()) {
                 issues += DraftIssue.NonMinuteTime(position)
                 return@forEachIndexed
             }
-            when (val result = ScheduledDoseSlotId.generate(id, position, localTime)) {
-                is SlotIdResult.Success -> add(
+            val stableId = draftSlot.id
+            if (stableId != null) {
+                add(
                     ScheduledDoseSlot(
-                        id = result.id,
+                        id = stableId,
                         planId = id,
                         localTime = localTime,
                         position = position
                     )
                 )
-                is SlotIdResult.Failure -> {
-                    issues += DraftIssue.SlotIdGenerationFailure(position)
+            } else {
+                when (val result = ScheduledDoseSlotId.generate(id, position, localTime)) {
+                    is SlotIdResult.Success -> add(
+                        ScheduledDoseSlot(
+                            id = result.id,
+                            planId = id,
+                            localTime = localTime,
+                            position = position
+                        )
+                    )
+                    is SlotIdResult.Failure -> {
+                        issues += DraftIssue.SlotIdGenerationFailure(position)
+                    }
                 }
             }
         }
@@ -121,22 +142,15 @@ fun MedicationPlan.toMedicationPlanDraft(): DraftMappingResult<MedicationPlanDra
             issues += DraftIssue.NonMinuteTime(index)
             return@forEachIndexed
         }
-        when (val result = ScheduledDoseSlotId.generate(id, index, slot.localTime)) {
-            is SlotIdResult.Success -> {
-                if (slot.id != result.id) {
-                    issues += DraftIssue.SlotIdMismatch(index)
-                }
-            }
-            is SlotIdResult.Failure -> {
-                issues += DraftIssue.SlotIdGenerationFailure(index)
-            }
-        }
     }
 
     if (issues.isNotEmpty()) {
         return DraftMappingResult.InvalidDraft(issues)
     }
 
+    val chronologicalSlots = slots.sortedWith(
+        compareBy<ScheduledDoseSlot> { it.localTime }.thenBy { it.position }
+    )
     return DraftMappingResult.Success(
         MedicationPlanDraft(
             id = id,
@@ -145,14 +159,21 @@ fun MedicationPlan.toMedicationPlanDraft(): DraftMappingResult<MedicationPlanDra
             ester = ester,
             doseMG = doseMG,
             scheduleType = scheduleType,
-            times = slots.map { it.localTime },
+            times = chronologicalSlots.map { it.localTime },
             daysOfWeek = daysOfWeek,
             intervalDays = intervalDays,
             isEnabled = isEnabled,
             extras = extras,
-            createdAt = createdAt
+            createdAt = createdAt,
+            slotIds = chronologicalSlots.map { it.id }
         )
     )
 }
+
+private data class DraftSlot(
+    val localTime: LocalTime,
+    val id: UUID?,
+    val originalPosition: Int
+)
 
 private fun LocalTime.hasMinutePrecision(): Boolean = second == 0 && nano == 0

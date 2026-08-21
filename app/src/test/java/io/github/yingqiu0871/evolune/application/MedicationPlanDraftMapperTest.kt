@@ -39,12 +39,12 @@ class MedicationPlanDraftMapperTest {
     }
 
     @Test
-    fun multipleTimesKeepOrderAndContinuousPositions() {
+    fun multipleTimesSortChronologicallyWithContinuousPositions() {
         val times = listOf(LocalTime.of(22, 15), LocalTime.of(6, 45), LocalTime.NOON)
 
         val plan = success(draft(times = times).toDomainMedicationPlan())
 
-        assertEquals(times, plan.slots.map { it.localTime })
+        assertEquals(times.sorted(), plan.slots.map { it.localTime })
         assertEquals(listOf(0, 1, 2), plan.slots.map { it.position })
     }
 
@@ -73,7 +73,7 @@ class MedicationPlanDraftMapperTest {
     @Test
     fun nonZeroSecondsAreRejectedAtTheirPosition() {
         assertEquals(
-            listOf(DraftIssue.NonMinuteTime(1)),
+            listOf(DraftIssue.NonMinuteTime(0)),
             invalid(
                 draft(
                     times = listOf(LocalTime.NOON, LocalTime.of(8, 30, 1))
@@ -226,15 +226,16 @@ class MedicationPlanDraftMapperTest {
     }
 
     @Test
-    fun domainToDraftRejectsUnexpectedSlotId() {
+    fun domainToDraftPreservesExistingSlotId() {
         val original = success(draft(times = listOf(LocalTime.of(8, 30))).toDomainMedicationPlan())
         val wrongSlot = original.slots.single().copy(id = uuid(999))
         val mismatched = original.copy(slots = listOf(wrongSlot))
 
-        assertEquals(
-            listOf(DraftIssue.SlotIdMismatch(0)),
-            invalid(mismatched.toMedicationPlanDraft())
-        )
+        val mapped = success(mismatched.toMedicationPlanDraft())
+        val roundTrip = success(mapped.toDomainMedicationPlan())
+
+        assertEquals(uuid(999), mapped.slotIds.single())
+        assertEquals(uuid(999), roundTrip.slots.single().id)
     }
 
     @Test

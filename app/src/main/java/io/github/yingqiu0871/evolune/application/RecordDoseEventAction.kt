@@ -55,6 +55,7 @@ internal class RecordDoseEventEngine(
         expectedSource: DoseEventSource,
         requireEnabledPlan: Boolean,
         policy: ExistingEventPolicy,
+        validatePlan: (MedicationPlan) -> Boolean = { true },
         createEvent: suspend (MedicationPlan) -> DoseEvent
     ): RecordDoseEventActionResult = try {
         when (policy) {
@@ -63,6 +64,7 @@ internal class RecordDoseEventEngine(
                 eventId,
                 expectedSource,
                 requireEnabledPlan,
+                validatePlan,
                 createEvent
             )
             is ExistingEventPolicy.FirstAcceptedBySource -> {
@@ -74,6 +76,7 @@ internal class RecordDoseEventEngine(
                         eventId,
                         expectedSource,
                         requireEnabledPlan,
+                        validatePlan,
                         createEvent
                     )
                 }
@@ -88,6 +91,7 @@ internal class RecordDoseEventEngine(
                         expectedSource,
                         policy.expectedOccurredAt,
                         requireEnabledPlan,
+                        validatePlan,
                         createEvent
                     )
                 }
@@ -106,6 +110,7 @@ internal class RecordDoseEventEngine(
         eventId: UUID,
         expectedSource: DoseEventSource,
         requireEnabledPlan: Boolean,
+        validatePlan: (MedicationPlan) -> Boolean,
         createEvent: suspend (MedicationPlan) -> DoseEvent
     ): RecordDoseEventActionResult {
         val plan = loadPlan(planId)
@@ -113,8 +118,9 @@ internal class RecordDoseEventEngine(
         if (requireEnabledPlan && !plan.isEnabled) {
             return RecordDoseEventActionResult.PlanDisabled
         }
+        if (!validatePlan(plan)) return RecordDoseEventActionResult.Invalid
         val event = createEvent(plan)
-        if (!event.matchesIdentity(eventId, expectedSource)) {
+        if (!event.matchesIdentity(eventId, expectedSource, plan)) {
             return RecordDoseEventActionResult.Invalid
         }
         return insert(event, plan)
@@ -125,6 +131,7 @@ internal class RecordDoseEventEngine(
         eventId: UUID,
         expectedSource: DoseEventSource,
         requireEnabledPlan: Boolean,
+        validatePlan: (MedicationPlan) -> Boolean,
         createEvent: suspend (MedicationPlan) -> DoseEvent
     ): RecordDoseEventActionResult {
         val plan = loadPlan(planId)
@@ -132,13 +139,14 @@ internal class RecordDoseEventEngine(
         if (requireEnabledPlan && !plan.isEnabled) {
             return RecordDoseEventActionResult.PlanDisabled
         }
+        if (!validatePlan(plan)) return RecordDoseEventActionResult.Invalid
         val existing = doseEvents.getById(eventId)
         if (existing != null) {
             return existing.firstAcceptedResult(plan, expectedSource)
         }
 
         val event = createEvent(plan)
-        if (!event.matchesIdentity(eventId, expectedSource)) {
+        if (!event.matchesIdentity(eventId, expectedSource, plan)) {
             return RecordDoseEventActionResult.Invalid
         }
         return when (val result = doseEvents.insert(event)) {
@@ -161,6 +169,7 @@ internal class RecordDoseEventEngine(
         expectedSource: DoseEventSource,
         expectedOccurredAt: Instant,
         requireEnabledPlan: Boolean,
+        validatePlan: (MedicationPlan) -> Boolean,
         createEvent: suspend (MedicationPlan) -> DoseEvent
     ): RecordDoseEventActionResult {
         val existing = doseEvents.getById(eventId)
@@ -173,8 +182,9 @@ internal class RecordDoseEventEngine(
         if (requireEnabledPlan && !plan.isEnabled) {
             return RecordDoseEventActionResult.PlanDisabled
         }
+        if (!validatePlan(plan)) return RecordDoseEventActionResult.Invalid
         val event = createEvent(plan)
-        if (!event.matchesIdentity(eventId, expectedSource) ||
+        if (!event.matchesIdentity(eventId, expectedSource, plan) ||
             event.occurredAt != expectedOccurredAt
         ) {
             return RecordDoseEventActionResult.Invalid
@@ -232,8 +242,13 @@ internal class RecordDoseEventEngine(
 
     private fun DoseEvent.matchesIdentity(
         expectedId: UUID,
-        expectedSource: DoseEventSource
-    ): Boolean = id == expectedId && source == expectedSource
+        expectedSource: DoseEventSource,
+        plan: MedicationPlan
+    ): Boolean = id == expectedId &&
+        source == expectedSource &&
+        (slotId == null || plan.slots.any { slot ->
+            slot.id == slotId && slot.planId == plan.id
+        })
 
     private fun accepted(
         plan: MedicationPlan?,

@@ -8,7 +8,6 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.data.repository.RepositoryPersistenceException
 import io.github.yingqiu0871.evolune.reminder.reminderDoseEventId
-import io.github.yingqiu0871.evolune.widget.widgetDoseEventId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class RecordDoseEventActionTest {
     private val plan = syntheticPlan()
     private val eventId = UUID(0L, 602L)
+    private val widgetOccurrenceId = UUID(0L, 603L)
     private val occurredAt = Instant.parse("2027-01-15T08:30:00Z")
 
     @Test
@@ -167,17 +167,17 @@ class RecordDoseEventActionTest {
         }
 
     @Test
-    fun `Widget facade folds precise timestamps only within its derived minute identity`() =
+    fun `Widget facade folds repeated delivery by occurrence identity across minutes`() =
         runBlocking {
             val firstMillis = occurredAt.toEpochMilli() + 123L
-            val expectedId = widgetDoseEventId(plan.id, firstMillis)
+            val expectedId = widgetOccurrenceActionEventId(widgetOccurrenceId)
             val events = FakeDoseEventRepository()
             val recorder = LocalActionRecorder(
                 FakeMedicationPlanRepository(listOf(plan)),
                 events
             )
 
-            val first = recorder.recordWidget(plan.id, firstMillis) { _, derivedId ->
+            val first = recorder.recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
                 event(
                     DoseEventSource.WIDGET,
                     occurredAt = Instant.ofEpochMilli(firstMillis),
@@ -186,7 +186,7 @@ class RecordDoseEventActionTest {
             }
             assertAcceptance(first, RecordAcceptance.Inserted)
             var replayMaterializerCalls = 0
-            val replay = recorder.recordWidget(plan.id, firstMillis + 1_000L) { _, derivedId ->
+            val replay = recorder.recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
                 replayMaterializerCalls += 1
                 event(
                     DoseEventSource.WIDGET,
@@ -211,7 +211,7 @@ class RecordDoseEventActionTest {
             val result = LocalActionRecorder(
                 FakeMedicationPlanRepository(listOf(plan)),
                 events
-            ).recordWidget(plan.id, occurredAt.toEpochMilli()) { _, derivedId ->
+            ).recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
                 event(DoseEventSource.WIDGET, id = derivedId)
             }
 
@@ -246,7 +246,7 @@ class RecordDoseEventActionTest {
     @Test
     fun `Local insert race rereads once and applies expected source`() = runBlocking {
         val recordedAtMillis = occurredAt.toEpochMilli()
-        val expectedId = widgetDoseEventId(plan.id, recordedAtMillis)
+        val expectedId = widgetOccurrenceActionEventId(widgetOccurrenceId)
         val matching = FakeDoseEventRepository().apply {
             forcedInsertResult = InsertResult.Conflict
             beforeForcedInsertResult = { inserted -> events[expectedId] = inserted }
@@ -254,7 +254,7 @@ class RecordDoseEventActionTest {
         val matchingResult = LocalActionRecorder(
             FakeMedicationPlanRepository(listOf(plan)),
             matching
-        ).recordWidget(plan.id, recordedAtMillis) { _, derivedId ->
+        ).recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
             event(DoseEventSource.WIDGET, id = derivedId)
         }
         assertAcceptance(matchingResult, RecordAcceptance.FirstAcceptedReplay)
@@ -270,7 +270,7 @@ class RecordDoseEventActionTest {
         val mismatchResult = LocalActionRecorder(
             FakeMedicationPlanRepository(listOf(plan)),
             mismatching
-        ).recordWidget(plan.id, recordedAtMillis) { _, derivedId ->
+        ).recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
             event(DoseEventSource.WIDGET, id = derivedId)
         }
         assertSame(RecordDoseEventActionResult.Conflict, mismatchResult)
@@ -289,14 +289,14 @@ class RecordDoseEventActionTest {
         assertSame(
             RecordDoseEventActionResult.StorageFailure,
             LocalActionRecorder(FakeMedicationPlanRepository(listOf(plan)), storage)
-                .recordWidget(plan.id, occurredAt.toEpochMilli()) { _, derivedId ->
+                .recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
                     event(DoseEventSource.WIDGET, id = derivedId)
                 }
         )
         assertSame(
             RecordDoseEventActionResult.UnexpectedFailure,
             LocalActionRecorder(FakeMedicationPlanRepository(listOf(plan)), unexpected)
-                .recordWidget(plan.id, occurredAt.toEpochMilli()) { _, derivedId ->
+                .recordWidget(plan.id, widgetOccurrenceId) { _, derivedId ->
                     event(DoseEventSource.WIDGET, id = derivedId)
                 }
         )

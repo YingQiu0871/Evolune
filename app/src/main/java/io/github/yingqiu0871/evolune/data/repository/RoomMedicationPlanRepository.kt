@@ -6,6 +6,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.data.AppDatabase
 import io.github.yingqiu0871.evolune.data.MedicationPlanAggregateEntity
 import io.github.yingqiu0871.evolune.data.MedicationPlanEntity
@@ -43,15 +44,16 @@ class RoomMedicationPlanRepository(
         }
 
     override suspend fun save(plan: MedicationPlan): PlanSaveResult {
-        val persistence = when (val result = plan.toPersistenceAggregate()) {
+        val canonicalPlan = plan.withChronologicalSlots()
+        val persistence = when (val result = canonicalPlan.toPersistenceAggregate()) {
             is MappingResult.Success -> result.value
             is MappingResult.Failure -> return PlanSaveResult.Invalid
         }
         return runStorageOperation("save medication plan") {
             database.withTransaction {
-                val existingAggregate = planDao.getPlanAggregateById(plan.id)
+                val existingAggregate = planDao.getPlanAggregateById(canonicalPlan.id)
                 val existingPlan = existingAggregate?.toDomainOrThrow()
-                if (existingPlan == plan) {
+                if (existingPlan == canonicalPlan) {
                     return@withTransaction PlanSaveResult.NoChange
                 }
 
@@ -64,7 +66,7 @@ class RoomMedicationPlanRepository(
                 }
 
                 val expectedDeletedSlots = existingAggregate?.slots?.size ?: 0
-                val deletedSlots = slotDao.deleteSlotsForPlan(plan.id)
+                val deletedSlots = slotDao.deleteSlotsForPlan(canonicalPlan.id)
                 if (deletedSlots != expectedDeletedSlots) {
                     throw RepositoryPersistenceException("replace medication plan slots")
                 }
@@ -80,10 +82,10 @@ class RoomMedicationPlanRepository(
                     throw RepositoryPersistenceException("insert medication plan slots")
                 }
 
-                val verified = planDao.getPlanAggregateById(plan.id)
+                val verified = planDao.getPlanAggregateById(canonicalPlan.id)
                     ?.toDomainOrThrow()
                     ?: throw RepositoryPersistenceException("verify medication plan save")
-                if (verified != plan) {
+                if (verified != canonicalPlan) {
                     throw RepositoryPersistenceException("verify medication plan aggregate")
                 }
 
@@ -174,6 +176,14 @@ class RoomMedicationPlanRepository(
 
     private fun MedicationPlanAggregateEntity.toDomainOrThrow(): MedicationPlan =
         toDomainMedicationPlan().orThrowCorrupt()
+
+    private fun MedicationPlan.withChronologicalSlots(): MedicationPlan = copy(
+        slots = slots
+            .sortedWith(
+                compareBy<ScheduledDoseSlot> { it.localTime }.thenBy { it.position }
+            )
+            .mapIndexed { position, slot -> slot.copy(position = position) }
+    )
 
     private companion object {
         const val INSERT_CONFLICT = -1L

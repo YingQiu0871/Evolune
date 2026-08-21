@@ -45,6 +45,7 @@ fun DoseEvent.toRecordedMedicationEvent(): RecordedMedicationEvent? =
             eventId = event.id,
             occurredAt = event.occurredAt,
             slotId = event.slotId,
+            localDate = event.localDate,
             matchKey = MedicationMatchKey(
                 routeKey = event.route.name,
                 medicationKey = event.ester.name,

@@ -32,16 +32,18 @@ internal class LocalActionRecorder(
 
     suspend fun recordWidget(
         planId: UUID,
-        recordedAtMillis: Long,
+        occurrenceId: UUID,
+        validatePlan: (MedicationPlan) -> Boolean = { true },
         createEvent: suspend (MedicationPlan, UUID) -> DoseEvent
     ): RecordDoseEventActionResult {
-        val eventId = localEventId("widget", planId, recordedAtMillis / MILLIS_PER_MINUTE)
+        val eventId = widgetOccurrenceActionEventId(occurrenceId)
         return engine.execute(
             planId = planId,
             eventId = eventId,
             expectedSource = DoseEventSource.WIDGET,
             requireEnabledPlan = true,
             policy = ExistingEventPolicy.FirstAcceptedBySource(DoseEventSource.WIDGET),
+            validatePlan = validatePlan,
             createEvent = { plan -> createEvent(plan, eventId) }
         )
     }
@@ -51,7 +53,9 @@ internal class LocalActionRecorder(
             "$kind:$planId:$occurrence".toByteArray(StandardCharsets.UTF_8)
         )
 
-    private companion object {
-        const val MILLIS_PER_MINUTE = 60_000L
-    }
 }
+
+internal fun widgetOccurrenceActionEventId(occurrenceId: UUID): UUID =
+    UUID.nameUUIDFromBytes(
+        "widget-occurrence-action:v1:$occurrenceId".toByteArray(StandardCharsets.UTF_8)
+    )

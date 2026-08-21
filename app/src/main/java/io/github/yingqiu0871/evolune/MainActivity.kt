@@ -55,6 +55,12 @@ class MainActivity : ComponentActivity() {
             val userSettings by settingsViewModel.userSettings.collectAsState()
             val systemInDarkTheme = isSystemInDarkTheme()
             val isDarkTheme = userSettings.themeMode.usesDarkColors(systemInDarkTheme)
+            LaunchedEffect(userSettings.timeFormat) {
+                requestEvoluneWidgetUpdate(
+                    applicationContext,
+                    WidgetUpdateReason.APPEARANCE_CHANGED
+                )
+            }
             
             // 应用主题
             EvoluneTheme(

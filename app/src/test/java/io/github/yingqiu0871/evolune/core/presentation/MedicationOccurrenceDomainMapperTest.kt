@@ -10,6 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class MedicationOccurrenceDomainMapperTest {
@@ -35,6 +36,7 @@ class MedicationOccurrenceDomainMapperTest {
             id = UUID(0L, 901L),
             route = Route.ORAL,
             occurredAt = Instant.parse("2025-01-02T10:00:00Z"),
+            localDate = LocalDate.parse("2025-01-02"),
             doseMG = 2.0,
             ester = Ester.E2,
             source = DoseEventSource.WEAR
@@ -44,6 +46,7 @@ class MedicationOccurrenceDomainMapperTest {
         assertEquals(event.id, mapped.eventId)
         assertEquals(event.occurredAt, mapped.occurredAt)
         assertEquals(event.slotId, mapped.slotId)
+        assertEquals(event.localDate, mapped.localDate)
         assertEquals(event.route.name, mapped.matchKey.routeKey)
         assertNull(event.slotId)
     }

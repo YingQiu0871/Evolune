@@ -40,6 +40,16 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".widget.WidgetConfigurationActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Evolune"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- 用药提醒广播接收器 -->
         <receiver
             android:name=".reminder.MedicationReminderReceiver"

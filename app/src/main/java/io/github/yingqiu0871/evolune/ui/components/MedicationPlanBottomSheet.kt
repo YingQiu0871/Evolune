@@ -76,8 +76,13 @@ fun MedicationPlanBottomSheet(
         mutableStateOf(planToEdit?.doseMG?.toString() ?: "")
     }
 
-    var timeOfDay by remember(planToEdit, showBottomSheet) {
-        mutableStateOf(planToEdit?.slots?.map { it.localTime } ?: listOf(LocalTime.of(9, 0)))
+    var doseTimes by remember(planToEdit, showBottomSheet) {
+        mutableStateOf(
+            planToEdit?.slots
+                ?.map { EditableDoseTime(it.id, it.localTime, it.position) }
+                ?.sortedChronologically()
+                ?: listOf(EditableDoseTime(null, LocalTime.of(9, 0), 0))
+        )
     }
 
     var daysOfWeek by remember(planToEdit, showBottomSheet) {
@@ -250,13 +255,17 @@ fun MedicationPlanBottomSheet(
 
                 // 时间选择
                 TimeOfDaySection(
-                    times = timeOfDay,
+                    times = doseTimes.map { it.localTime },
                     onAddTime = {
-                        timeOfDay = timeOfDay + LocalTime.of(9, 0)
+                        doseTimes = (doseTimes + EditableDoseTime(
+                            slotId = null,
+                            localTime = LocalTime.of(9, 0),
+                            stableOrder = doseTimes.size
+                        )).sortedChronologically()
                     },
                     onRemoveTime = { index ->
-                        if (timeOfDay.size > 1) {
-                            timeOfDay = timeOfDay.filterIndexed { i, _ -> i != index }
+                        if (doseTimes.size > 1) {
+                            doseTimes = doseTimes.filterIndexed { i, _ -> i != index }
                         }
                     },
                     onEditTime = { index ->
@@ -300,11 +309,12 @@ fun MedicationPlanBottomSheet(
                                 selectedAntiAndrogen = selectedAntiAndrogen,
                                 doseMGText = doseMGText,
                                 scheduleType = scheduleType,
-                                times = timeOfDay,
+                                times = doseTimes.map { it.localTime },
                                 daysOfWeek = daysOfWeek,
                                 intervalDaysText = intervalDays,
                                 isEnabled = planToEdit?.isEnabled ?: true,
-                                sublingualTier = sublingualTier
+                                sublingualTier = sublingualTier,
+                                slotIds = doseTimes.map { it.slotId }
                             )
                             when (val result = input.toMedicationPlanDraft(currentSession)) {
                                 is MedicationPlanInputResult.Success -> {
@@ -329,8 +339,8 @@ fun MedicationPlanBottomSheet(
     // 时间选择器
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
-            initialHour = timeOfDay.getOrNull(timeIndexToEdit)?.hour ?: 9,
-            initialMinute = timeOfDay.getOrNull(timeIndexToEdit)?.minute ?: 0,
+            initialHour = doseTimes.getOrNull(timeIndexToEdit)?.localTime?.hour ?: 9,
+            initialMinute = doseTimes.getOrNull(timeIndexToEdit)?.localTime?.minute ?: 0,
             is24Hour = is24Hour
         )
 
@@ -338,9 +348,9 @@ fun MedicationPlanBottomSheet(
             onDismiss = { showTimePicker = false },
             onConfirm = {
                 val newTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
-                timeOfDay = timeOfDay.mapIndexed { index, time ->
-                    if (index == timeIndexToEdit) newTime else time
-                }
+                doseTimes = doseTimes.mapIndexed { index, entry ->
+                    if (index == timeIndexToEdit) entry.copy(localTime = newTime) else entry
+                }.sortedChronologically()
                 showTimePicker = false
             }
         ) {
@@ -348,6 +358,15 @@ fun MedicationPlanBottomSheet(
         }
     }
 }
+
+private data class EditableDoseTime(
+    val slotId: UUID?,
+    val localTime: LocalTime,
+    val stableOrder: Int
+)
+
+private fun List<EditableDoseTime>.sortedChronologically(): List<EditableDoseTime> =
+    sortedWith(compareBy<EditableDoseTime> { it.localTime }.thenBy { it.stableOrder })
 
 /**
  * 给药途径选择组件

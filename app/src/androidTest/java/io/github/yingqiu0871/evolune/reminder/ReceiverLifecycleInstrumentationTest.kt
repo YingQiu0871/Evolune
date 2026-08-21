@@ -268,7 +268,8 @@ class ReceiverLifecycleInstrumentationTest {
     private companion object {
         const val ACTION_REMINDER_TEST = "io.github.yingqiu0871.evolune.test.REMINDER"
         const val ACTION_RESCHEDULE_TEST = "io.github.yingqiu0871.evolune.test.RESCHEDULE"
-        const val ACTION_WIDGET_RECORD = "io.github.yingqiu0871.evolune.widget.RECORD_PLAN"
+        const val ACTION_WIDGET_RECORD =
+            "io.github.yingqiu0871.evolune.widget.RECORD_OCCURRENCE"
         val PLAN_ID: UUID = UUID(0L, 901L)
     }
 }

@@ -74,7 +74,7 @@ class MedicationPlanEntityMapperTest {
     }
 
     @Test
-    fun multipleAndDuplicateTimesPreserveOrderAndReceiveDistinctStableIds() {
+    fun multipleAndDuplicateTimesSortChronologicallyAndReceiveDistinctStableIds() {
         val first = success(
             entity(timeOfDay = listOf("22:00", "06:00", "22:00")).toDomainMedicationPlan()
         )
@@ -83,11 +83,11 @@ class MedicationPlanEntityMapperTest {
         )
 
         assertEquals(
-            listOf(LocalTime.of(22, 0), LocalTime.of(6, 0), LocalTime.of(22, 0)),
+            listOf(LocalTime.of(6, 0), LocalTime.of(22, 0), LocalTime.of(22, 0)),
             first.slots.map { it.localTime }
         )
         assertEquals(listOf(0, 1, 2), first.slots.map { it.position })
-        assertNotEquals(first.slots[0].id, first.slots[2].id)
+        assertNotEquals(first.slots[1].id, first.slots[2].id)
         assertEquals(first.slots.map { it.id }, second.slots.map { it.id })
     }
 

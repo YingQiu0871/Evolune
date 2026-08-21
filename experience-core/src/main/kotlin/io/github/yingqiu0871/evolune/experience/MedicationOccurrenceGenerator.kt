@@ -66,10 +66,11 @@ object MedicationOccurrenceGenerator {
             if (date.isOnSchedule(schedule, anchorDate)) {
                 schedule.slots.forEach { slot ->
                     val requestedLocal = LocalDateTime.of(date, slot.localTime)
+                    // Activation is date-based: every authoritative slot on the
+                    // plan's creation date represents a logical occurrence.
                     // java.time resolves gaps forward and chooses the earlier offset for overlaps.
                     val scheduledAt = requestedLocal.atZone(zoneId).toInstant()
                     if (
-                        scheduledAt >= schedule.createdAt &&
                         scheduledAt >= window.startInclusive &&
                         scheduledAt < window.endExclusive
                     ) {

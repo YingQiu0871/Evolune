@@ -96,7 +96,7 @@ class MedicationPlanEditorTest {
         assertEquals(2.75, draft.doseMG, 0.0)
         assertEquals(12, draft.intervalDays)
         assertEquals(
-            listOf(LocalTime.of(20, 0), LocalTime.of(8, 30)),
+            listOf(LocalTime.of(8, 30), LocalTime.of(20, 0)),
             draft.times
         )
     }
@@ -162,6 +162,35 @@ class MedicationPlanEditorTest {
         assertEquals(12.5, extras[ExtraKey.AREA_CM2])
         assertEquals(3.0, extras[ExtraKey.SUBLINGUAL_TIER])
         assertEquals(3.0, extras[ExtraKey.ANTI_ANDROGEN_TYPE])
+    }
+
+    @Test
+    fun `editing a time reorders chronologically without changing its slot identity`() {
+        val base = plan()
+        val firstId = UUID(2L, 1L)
+        val secondId = UUID(2L, 2L)
+        val thirdId = UUID(2L, 3L)
+        val existing = base.copy(
+            slots = listOf(
+                ScheduledDoseSlot(firstId, base.id, LocalTime.of(9, 0), 0),
+                ScheduledDoseSlot(secondId, base.id, LocalTime.of(17, 0), 1),
+                ScheduledDoseSlot(thirdId, base.id, LocalTime.of(22, 0), 2)
+            )
+        )
+
+        val result = input(
+            times = listOf(LocalTime.of(9, 0), LocalTime.of(17, 0), LocalTime.of(8, 0))
+        ).toMedicationPlanDraft(MedicationPlanEditSessionFactory().edit(existing))
+            as MedicationPlanInputResult.Success
+
+        assertEquals(
+            listOf(LocalTime.of(8, 0), LocalTime.of(9, 0), LocalTime.of(17, 0)),
+            result.draft.times
+        )
+        assertEquals(listOf(thirdId, firstId, secondId), result.draft.slotIds)
+        val domain = result.draft.toDomainMedicationPlan() as DraftMappingResult.Success
+        assertEquals(thirdId, domain.value.slots.first().id)
+        assertEquals(listOf(0, 1, 2), domain.value.slots.map { it.position })
     }
 
     @Test

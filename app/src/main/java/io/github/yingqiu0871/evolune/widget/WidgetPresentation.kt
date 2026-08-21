@@ -30,14 +30,29 @@ internal sealed interface WidgetPresentationState {
     data class Timeline(
         override val visiblePlans: List<WidgetPlanPresentation>,
         val window: MedicationTimelineWindow,
+        val todayItems: List<MedicationTimelineItem>,
+        val dailyProgress: WidgetDailyProgress,
         val nextMeaningfulBoundary: Instant?
     ) : WidgetPresentationState
 
     data class NoUpcomingOccurrence(
         override val visiblePlans: List<WidgetPlanPresentation>,
         val window: MedicationTimelineWindow,
+        val todayItems: List<MedicationTimelineItem>,
+        val dailyProgress: WidgetDailyProgress,
         val nextMeaningfulBoundary: Instant?
     ) : WidgetPresentationState
+}
+
+internal data class WidgetDailyProgress(val completed: Int, val total: Int) {
+    init {
+        require(completed >= 0)
+        require(total >= completed)
+    }
+
+    companion object {
+        val Empty = WidgetDailyProgress(0, 0)
+    }
 }
 
 internal data class WidgetPlanPresentation(
@@ -116,11 +131,35 @@ internal class WidgetPresentationMapper {
         )
         val window = MedicationTimelineSelector.select(items, now)
         val nextBoundary = WidgetPresentationPolicy.nextMeaningfulBoundary(items, now)
+        val localToday = now.atZone(zoneId).toLocalDate()
+        val todayItems = items.filter { item ->
+            item.occurrence.scheduledLocalDateTime.toLocalDate() == localToday
+        }
+        val dailyProgress = WidgetDailyProgress(
+            completed = todayItems.count { it.status == MedicationOccurrenceStatus.RECORDED },
+            total = todayItems.size
+        )
 
-        return if (window.current.isEmpty() && window.upcoming.isEmpty()) {
-            WidgetPresentationState.NoUpcomingOccurrence(visiblePlans, window, nextBoundary)
+        return if (
+            window.current.isEmpty() &&
+            window.upcoming.isEmpty() &&
+            todayItems.isEmpty()
+        ) {
+            WidgetPresentationState.NoUpcomingOccurrence(
+                visiblePlans,
+                window,
+                todayItems,
+                dailyProgress,
+                nextBoundary
+            )
         } else {
-            WidgetPresentationState.Timeline(visiblePlans, window, nextBoundary)
+            WidgetPresentationState.Timeline(
+                visiblePlans,
+                window,
+                todayItems,
+                dailyProgress,
+                nextBoundary
+            )
         }
     }
 

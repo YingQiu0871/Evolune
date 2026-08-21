@@ -127,19 +127,29 @@ class MedicationOccurrenceGeneratorTest {
     }
 
     @Test
-    fun `occurrences before plan creation instant are excluded`() {
+    fun `daily plan creation date expands every slot with distinct occurrence identity`() {
         val result = occurrences(
             schedules = listOf(
                 schedule(
-                    times = listOf(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    createdAt = Instant.parse("2025-01-02T12:00:00Z")
+                    times = listOf(
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        LocalTime.of(22, 0)
+                    ),
+                    createdAt = Instant.parse("2025-01-02T18:00:00Z")
                 )
             ),
             start = "2025-01-02T00:00:00Z",
             end = "2025-01-03T00:00:00Z"
         )
 
-        assertEquals(listOf(Instant.parse("2025-01-02T16:00:00Z")), result.map { it.scheduledAt })
+        assertEquals(
+            listOf(LocalTime.of(9, 0), LocalTime.of(17, 0), LocalTime.of(22, 0)),
+            result.map { it.scheduledLocalDateTime.toLocalTime() }
+        )
+        assertEquals(1, result.map { it.planId }.distinct().size)
+        assertEquals(3, result.map { it.slotId }.distinct().size)
+        assertEquals(3, result.map { it.id }.distinct().size)
     }
 
     @Test
