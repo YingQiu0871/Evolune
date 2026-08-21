@@ -1,6 +1,6 @@
 # 功能矩阵
 
-本表以已发布 `v1.0.0` production source 和已关闭的 v1.1 Phone Widget Completion 为准。状态使用 `SHIPPED v1.0`、`COMPLETED v1.1`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以当前已发布的 `v1.1.0` 和上一版封存的 `v1.0.0` production source 为准。v1.1 Phone Widget Completion 已完成并发布。状态使用 `SHIPPED v1.0`、`COMPLETED v1.1`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
 | 功能 | 状态 | v1.0 事实 / 后续边界 |
 |---|---|---|

@@ -2,9 +2,9 @@
 
 ## 文档状态
 
-本文描述 `v1.0.0` 已发布实现及已关闭的 v1.1 Phone Widget Completion。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
+本文描述当前已发布的 `v1.1.0` 实现，以及作为上一版封存记录的 `v1.0.0`。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
 
-`v1.0.0` 仍是当前公开稳定版本；v1.1 完成是开发里程碑，不代表创建了新的公开 Release/tag。
+`v1.1.0` 是当前公开稳定版本；v1.0.0 已封存为上一版发布。v1.1 Phone Widget Completion 已完成并发布。
 
 ## 产品定位
 

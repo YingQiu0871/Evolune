@@ -1,8 +1,8 @@
 # Evolune 快速开始指南
 
 Evolune 是本地优先的 Android/Wear OS 用药记录、提醒和药代动力学趋势工具。当前
-公开稳定版本是 v1.0.0；main 已包含完成的 v1.1 Phone Widget Completion，v1.2
-Google Integration & Data Continuity 尚未开始。
+公开稳定版本是 v1.1.0；v1.0.0 为上一版封存发布，v1.1 Phone Widget Completion
+已正式发布，v1.2 尚未开始。
 
 > 浓度曲线是模型估算，不是化验结果、诊断或治疗建议。
 

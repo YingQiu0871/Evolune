@@ -341,7 +341,7 @@ AUC = Σ (C(tᵢ) + C(tᵢ₋₁))/2 × (tᵢ - tᵢ₋₁)
 
 ---
 
-**实现日期**: 持续维护（当前公开稳定 Release 为 v1.0.0；v1.1 开发里程碑已完成）
+**实现日期**: 持续维护（当前公开稳定 Release 为 v1.1.0；v1.0.0 为上一版封存发布）
 **版本**: 1.1 implementation baseline
 **语言**: Kotlin  
 **最低API级别**: Phone Android SDK 31+（Wear SDK 30+）
