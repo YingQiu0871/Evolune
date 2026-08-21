@@ -7,7 +7,7 @@ This document is the canonical quick reference for the current public release an
 - Stable version: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
 - Release date: 2026-08-15
 - Release commit: `780f167074cc737954c884d375825ef95db605c7`
-- Current development baseline: `main @ 7531af3fdb73b5ecfc2bfe5af65771d670945bdc`
+- Current development baseline: `main @ 5418819ef236d6e815a6bee5b06166e4d2305d40`
 - Release downloads: signed Phone and Wear APKs are attached to the GitHub Release.
 
 The `v1.0.0` tag and its published Release are sealed. Development after v1.0 continues from `main` without changing that tag.
@@ -25,8 +25,9 @@ Both targets use `versionName = 1.0.0` and `versionCode = 10060` in the stable r
 
 The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
 
-Phone Widget Completion is **CLOSED / COMPLETE**. The final main baseline is
-`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`; Owner, physical-device and
+Phone Widget Completion is **CLOSED / COMPLETE**. The v1.1 implementation merge is
+`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`; the current post-closure documentation
+baseline is `5418819ef236d6e815a6bee5b06166e4d2305d40`. Owner, physical-device and
 post-merge CI gates passed. This completed development milestone is not a new
 published release or GitHub tag; `v1.0.0` remains the current stable release.
 

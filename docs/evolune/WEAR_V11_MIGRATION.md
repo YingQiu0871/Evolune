@@ -16,6 +16,9 @@ io.github.yingqiu0871.evolune
 
 Android cannot update one package name in place to another package name. The old and new Wear APKs are separate installed applications even though Evolune retains the same persistent Release certificate.
 
+This guide describes the v1.1+ main-line Wear identity and does not assert that a separate
+v1.1 GitHub Release or tag exists; `v1.0.0` remains the published stable release.
+
 ## Migration steps
 
 1. Keep the Evolune Phone app installed. Do not clear its data.

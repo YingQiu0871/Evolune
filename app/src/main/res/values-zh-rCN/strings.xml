@@ -218,5 +218,5 @@
 
     <!-- Widget strings -->
     <string name="widget_combined_label">月序用药微件</string>
-    <string name="widget_combined_desc">显示当前血药浓度，并通过两个方案按钮快速记录用药</string>
+    <string name="widget_combined_desc">显示当天用药安排和血药浓度，并按每次用药时间提供快捷记录</string>
 </resources>
