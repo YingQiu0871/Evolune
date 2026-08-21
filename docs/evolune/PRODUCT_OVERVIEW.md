@@ -2,7 +2,9 @@
 
 ## 文档状态
 
-本文描述 `v1.0.0` 已发布实现。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
+本文描述 `v1.0.0` 已发布实现及已关闭的 v1.1 Phone Widget Completion。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
+
+`v1.0.0` 仍是当前公开稳定版本；v1.1 完成是开发里程碑，不代表创建了新的公开 Release/tag。
 
 ## 产品定位
 
@@ -34,7 +36,7 @@ PK 计算通过 `DomainDoseEventToPkAdapter` 将当前领域事件投影为 PK �
 
 ### Phone Widget
 
-当前实现是 RemoteViews AppWidget。它通过 Repository contract 加载最多两个启用方案及当前 PK 浓度，支持一键记录。Widget 事件使用稳定的分钟级动作 ID 处理重复投递，并在持久化成功后刷新和显示反馈。
+当前实现是 RemoteViews AppWidget。它通过 Repository contract 加载启用方案的今日 occurrence，按时间顺序提供响应式、可滚动的行集合及当前 PK 浓度。每个未记录 occurrence 都有独立的记录动作；动作使用 occurrence identity、实际点击时间和精确 slot/date 关联，并在持久化成功后刷新和显示反馈。
 
 ### Wear Tile 与 Data Layer
 
@@ -72,6 +74,7 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 | Room v3、schema、严格 migration | SHIPPED v1.0 |
 | Repository/data boundary | SHIPPED v1.0（当前为 app 内 package 边界） |
 | RemoteViews Widget | SHIPPED v1.0 |
+| Phone Widget Completion（occurrence、响应式布局、配置与隔离） | COMPLETED v1.1 |
 | Wear Tile/Data Layer 和 dose actions | SHIPPED v1.0 |
 | 通用版本化 Wear 协议、完整 Wear App | PARTIAL / future enhancement |
 | Health Connect | NOT IMPLEMENTED |
@@ -88,8 +91,8 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 
 ## 后续方向
 
-- `v1.1`: 完成 Phone Widget。
-- `v1.2`: Health Connect 与 Google 数据连续性，作为独立批次。
+- `v1.1`: Phone Widget Completion，已完成并关闭。
+- `v1.2`: Health Connect 与 Google 数据连续性，作为独立批次；规划中，尚未开始。
 - `v1.3`: 轻量级 Wear OS 伴侣应用，同时保留现有 Tile。
 - `v1.4`: 首次使用引导、条款、隐私与权限说明。
 - `v1.5`: 稳定性、性能与代码清理。

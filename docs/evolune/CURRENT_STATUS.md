@@ -21,9 +21,14 @@ The `v1.0.0` tag and its published Release are sealed. Development after v1.0 co
 
 Both targets use `versionName = 1.0.0` and `versionCode = 10060` in the stable release. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
 
-## v1.1 Development State
+## v1.1 Milestone State
 
-The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged. The remaining planned v1.1 product scope is Phone Widget Completion.
+The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
+
+Phone Widget Completion is **CLOSED / COMPLETE**. The final main baseline is
+`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`; Owner, physical-device and
+post-merge CI gates passed. This completed development milestone is not a new
+published release or GitHub tag; `v1.0.0` remains the current stable release.
 
 Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
 
@@ -58,7 +63,7 @@ Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cann
 - Google cloud backup or cloud synchronization is not implemented.
 - Auto Backup and device transfer intentionally exclude private app data; user-controlled Mahiro JSON export/import is the available migration path.
 - The Wear transport uses the shipped `/hrt/*` Data Layer payloads and does not yet provide a general versioned envelope, acknowledgement protocol, or full Wear application experience.
-- The current RemoteViews widget is functional; broader size, configuration, privacy, and interaction enhancements remain future work.
+- The v1.1 RemoteViews widget completion is functional and closed; broader widget gallery surfaces remain future work.
 - Tracked Date is deferred and has no current entity or product surface.
 - Personalized calibration and PK 2.0 are not part of v1.0.
 - The Room database is not encrypted with SQLCipher.
@@ -77,8 +82,8 @@ This scoped permission does not relicense the entire upstream repository, grant 
 
 ## Next Milestones
 
-- `v1.1`: Phone Widget Completion.
-- `v1.2`: Google Integration & Data Continuity — Health Connect and Google backup delivered as separately gated batches.
+- `v1.1`: Phone Widget Completion — **CLOSED / COMPLETE**.
+- `v1.2`: Google Integration & Data Continuity — **PLANNED, NOT STARTED**; Health Connect and Google backup are separately gated batches.
 - `v1.3`: Wear OS Companion App.
 - `v1.4`: Onboarding, Terms & Permission Guidance.
 - `v1.5`: Stability, Performance & Code Cleanup.

@@ -25,30 +25,32 @@
 
 `v1.0.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
 
-## In progress
+## Completed milestones
 
 ### v1.1 — Phone Widget Completion
 
-v1.1 在当前 Phone Widget 优化通过最终验收后即结束，不再扩展新的大型功能。
+v1.1 已于 2026-08-21 完成并关闭。最终 main merge 为
+`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`；Owner、真实设备和 CI
+最终门均已通过。v1.1 是已完成的开发里程碑，不代表创建了新的公开
+Release/tag；`v1.0.0` 仍是当前发布的稳定版本。
 
-目标：把手机桌面 Widget 从“可用”收敛为稳定、完整、适合日常使用的今日服药入口。
+完成范围：把手机桌面 Widget 从“可用”收敛为稳定、完整、适合日常使用的今日服药入口。
 
-计划边界：
+实现边界：
 
 - 保持 Phone Room/domain/repository 为唯一事实来源，Widget 只做派生展示和动作入口。
-- 以 2×2 为最低完整规格：至少完整显示两条今日 occurrence；尺寸允许时优先显示三条。
-- 同一 MedicationPlan 的多个 scheduled slots 必须按 occurrence 独立展示和记录。
-- 超出当前尺寸可容纳行数时，优先使用 Android AppWidget/RemoteViews 官方 collection/list 能力提供纵向滚动；顶部今日完成数、E2 浓度和进度区域保持固定。
+- occurrence-driven rows 按时间顺序展示；同一 MedicationPlan 的多个 scheduled slots 作为独立 occurrence 展示和记录。
+- 以 2×2 为最低完整规格，尺寸允许时显示更多 occurrence；超出容量时使用 RemoteViews collection/list 纵向滚动，顶部完成数、E2 浓度和进度区域保持固定。
 - 今日完成数和进度条只依据实际已记录 occurrence，不因计划时间已过自动完成。
-- 未记录 occurrence 使用明确的勾选动作；动作继续走 Phone 权威 repository、稳定 occurrence identity、幂等和 persistence-before-side-effects。
+- 未记录 occurrence 使用明确的勾选动作；记录使用 occurrence-scoped identity、实际点击时间、精确 slot/date 关联、幂等和 persistence-before-side-effects。
 - 维持响应式尺寸、Material 3、Material You、Monet 预设、Light/Dark、每 Widget 独立透明度和长按重新配置。
-- 保持多 Widget 隔离、进程重建、日期/时区变化和 OEM Launcher 行为可验证。
+- 保持多 Widget 隔离、进程重建、日期/时区变化和 OEM Launcher 行为可验证；配置预览与实际 Widget 保持一致。
 
-v1.1 退出条件：当前 Widget 候选在自动化、真实设备、2×2/多 occurrence/滚动、动作幂等、配色和配置矩阵上通过最终 Owner 验收，然后立即封版。
-
-## Planned
+## Next planned milestone
 
 ### v1.2 — Google Integration & Data Continuity
+
+v1.2 尚未开始实现，仍是下一开发里程碑。
 
 目标：让 Evolune 在不改变本地权威模型的前提下融入 Android/Google 数据生态，并解决换机、重装和长期数据保存问题。
 
