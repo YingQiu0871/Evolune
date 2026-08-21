@@ -16,14 +16,14 @@ io.github.yingqiu0871.evolune
 
 Android cannot update one package name in place to another package name. The old and new Wear APKs are separate installed applications even though Evolune retains the same persistent Release certificate.
 
-This guide describes the v1.1+ main-line Wear identity and does not assert that a separate
-v1.1 GitHub Release or tag exists; `v1.0.0` remains the published stable release.
+This guide describes the v1.1.0 main-line Wear identity. `v1.1.0` is the current published
+stable release; `v1.0.0` remains the previous sealed release.
 
 ## Migration steps
 
 1. Keep the Evolune Phone app installed. Do not clear its data.
 2. Remove the legacy v1.0 Wear app `io.github.yingqiu0871.evolune.wear` from the watch.
-3. Install the v1.1 Wear app `io.github.yingqiu0871.evolune`.
+3. Install the v1.1.0 Wear app `io.github.yingqiu0871.evolune`.
 4. Re-add or reopen the Evolune Tile if the watch does not retain the Tile placement.
 5. Keep the watch connected to the Phone while the new Wear app requests and rebuilds its dashboard state.
 

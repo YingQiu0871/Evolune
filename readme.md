@@ -9,13 +9,13 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 ## 发布与开发基线
 
-当前公开稳定版本仍是 **v1.0.0**，发布于 2026-08-15。
+当前公开稳定版本是 **v1.1.0**，发布于 2026-08-21；`v1.0.0` 是上一版已封存的稳定发布。
 
-[前往 Evolune v1.0.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
+[前往 Evolune v1.1.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 
 Release 提供经过签名的 Phone APK 与 Wear APK。GitHub Actions 中的 Debug APK 仅供开发和测试，不是正式版本的主要下载渠道；Debug 与 Release 的应用 ID、签名和本地数据相互独立。
 
-`main` 已包含于 2026-08-21 完成的 v1.1 Phone Widget Completion 开发里程碑。v1.1 是已完成的开发里程碑，不代表创建了新的 GitHub Release 或 tag。
+当前 `main` 对应已发布的 **v1.1.0**。其中的 v1.1 Phone Widget Completion 开发里程碑已完成并正式发布；`v1.0.0` 保持为上一版封存发布。
 
 ## 已发布能力
 

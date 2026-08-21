@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图从已发布的 v1.0.0 向后规划。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
+本路线图从已发布的 v1.1.0 向后规划；v1.0.0 作为上一版封存发布保留。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
 
 路线图描述的是产品目标和版本边界，不自动授权实现。每个版本进入开发前仍需完成独立设计、来源审查、回归门槛和真实设备验收。
 
@@ -29,10 +29,10 @@
 
 ### v1.1 — Phone Widget Completion
 
-v1.1 已于 2026-08-21 完成并关闭。最终 main merge 为
-`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`；Owner、真实设备和 CI
-最终门均已通过。v1.1 是已完成的开发里程碑，不代表创建了新的公开
-Release/tag；`v1.0.0` 仍是当前发布的稳定版本。
+v1.1 已于 2026-08-21 完成并发布为 v1.1.0。Phone Widget 最终实现合并为
+`7531af3fdb73b5ecfc2bfe5af65771d670945bdc`，发布准备合并提交为
+`7289f97ea94e3c70be4df0605a5a9a9a5129a50c`；Owner、真实设备和 CI 最终门均已通过。
+`v1.0.0` 仍作为上一版封存稳定发布。
 
 完成范围：把手机桌面 Widget 从“可用”收敛为稳定、完整、适合日常使用的今日服药入口。
 
