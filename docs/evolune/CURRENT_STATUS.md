@@ -7,7 +7,7 @@ This document is the canonical quick reference for the current public release an
 - Stable version: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
 - Release date: 2026-08-15
 - Release commit: `780f167074cc737954c884d375825ef95db605c7`
-- Current development branch baseline: `main`
+- Current development baseline: `main @ 7531af3fdb73b5ecfc2bfe5af65771d670945bdc`
 - Release downloads: signed Phone and Wear APKs are attached to the GitHub Release.
 
 The `v1.0.0` tag and its published Release are sealed. Development after v1.0 continues from `main` without changing that tag.
