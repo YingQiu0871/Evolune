@@ -10,79 +10,123 @@ import androidx.wear.tiles.TileService
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
 
-private const val REQUEST_PLANS_PATH = "/hrt/request-plans"
+internal const val REQUEST_PLANS_PATH = "/hrt/request-plans"
+
+internal sealed interface WearSyncOutcome {
+    data object QueryFailed : WearSyncOutcome
+    data object NoConnectedNodes : WearSyncOutcome
+    data object ConnectedWithoutDispatch : WearSyncOutcome
+    data class DispatchRequest(val nodeIds: List<String>) : WearSyncOutcome
+}
+
+internal fun decideWearSyncOutcome(
+    connectedNodeIds: List<String>?,
+    force: Boolean,
+    wasDisconnected: Boolean,
+    shouldRequestPlans: Boolean
+): WearSyncOutcome {
+    if (connectedNodeIds == null) return WearSyncOutcome.QueryFailed
+    if (connectedNodeIds.isEmpty()) return WearSyncOutcome.NoConnectedNodes
+    val shouldDispatch = force || wasDisconnected || shouldRequestPlans
+    return if (shouldDispatch) {
+        WearSyncOutcome.DispatchRequest(connectedNodeIds)
+    } else {
+        WearSyncOutcome.ConnectedWithoutDispatch
+    }
+}
 
 object WearSyncManager {
     fun requestPlansFromPhone(context: Context, force: Boolean = false) {
         Wearable.getNodeClient(context).connectedNodes
             .addOnSuccessListener { nodes ->
-                if (nodes.isEmpty()) {
-                    WearPlanStore.markNotConnected(context)
-                    Log.w(TAG, "No connected phone node")
-                    requestTileUpdate(context)
-                    return@addOnSuccessListener
-                }
                 val requestAt = System.currentTimeMillis()
-                val wasDisconnected = WearPlanStore.getSyncMetadata(context)
-                    .connectionState == WearConnectionState.DISCONNECTED
-                val shouldDispatch =
-                    force ||
-                        wasDisconnected ||
+                val metadata = WearPlanStore.getSyncMetadata(context)
+                val wasDisconnected =
+                    metadata.connectionState == WearConnectionState.DISCONNECTED
+                val shouldRequest =
+                    nodes.isNotEmpty() &&
                         WearPlanStore.shouldRequestPlans(context, requestAt)
-                if (!shouldDispatch) {
-                    if (WearPlanStore.markConnected(context)) {
+                val outcome = decideWearSyncOutcome(
+                    connectedNodeIds = nodes.map { it.id },
+                    force = force,
+                    wasDisconnected = wasDisconnected,
+                    shouldRequestPlans = shouldRequest
+                )
+                when (outcome) {
+                    WearSyncOutcome.QueryFailed -> {
+                        WearPlanStore.markSyncFailure(
+                            context,
+                            requestAt,
+                            WearConnectionState.UNKNOWN
+                        )
+                        Log.w(TAG, "Unable to determine connected phone nodes")
                         requestTileUpdate(context)
                     }
-                    return@addOnSuccessListener
-                }
-                if (force || wasDisconnected) {
-                    WearPlanStore.markPlansRequested(context, requestAt)
-                }
-                val pendingAfterUpdatedAt =
-                    WearPlanStore.getDashboard(context).updatedAt
-                val sendTasks = runCatching {
-                    nodes.map { node ->
-                        Wearable.getMessageClient(context)
-                        .sendMessage(node.id, REQUEST_PLANS_PATH, byteArrayOf())
-                        .addOnSuccessListener {
-                            Log.d(TAG, "Requested plans from ${node.displayName}")
+                    WearSyncOutcome.NoConnectedNodes -> {
+                        WearPlanStore.markNotConnected(context)
+                        Log.w(TAG, "No connected phone node")
+                        requestTileUpdate(context)
+                    }
+                    WearSyncOutcome.ConnectedWithoutDispatch -> {
+                        if (WearPlanStore.markConnected(context)) {
+                            requestTileUpdate(context)
                         }
                     }
-                }.getOrElse { error ->
-                    WearPlanStore.markSyncFailure(
-                        context,
-                        System.currentTimeMillis(),
-                        WearConnectionState.CONNECTED
-                    )
-                    Log.w(TAG, "Unable to dispatch plan request", error)
-                    requestTileUpdate(context)
-                    return@addOnSuccessListener
-                }
+                    is WearSyncOutcome.DispatchRequest -> {
+                        if (force || wasDisconnected) {
+                            WearPlanStore.markPlansRequested(context, requestAt)
+                        }
+                        val pendingAfterUpdatedAt =
+                            WearPlanStore.getDashboard(context).updatedAt
+                        val sendTasks = runCatching {
+                            outcome.nodeIds.map { nodeId ->
+                                Wearable.getMessageClient(context)
+                                    .sendMessage(
+                                        nodeId,
+                                        REQUEST_PLANS_PATH,
+                                        byteArrayOf()
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d(TAG, "Requested plans from $nodeId")
+                                    }
+                            }
+                        }.getOrElse { error ->
+                            WearPlanStore.markSyncFailure(
+                                context,
+                                System.currentTimeMillis(),
+                                WearConnectionState.CONNECTED
+                            )
+                            Log.w(TAG, "Unable to dispatch plan request", error)
+                            requestTileUpdate(context)
+                            return@addOnSuccessListener
+                        }
 
-                val pendingSince = System.currentTimeMillis()
-                WearPlanStore.markSyncPending(
-                    context = context,
-                    pendingSince = pendingSince,
-                    pendingAfterDashboardUpdatedAt = pendingAfterUpdatedAt
-                )
-                val responseAlreadyArrived =
-                    WearPlanStore.completePendingIfNewerSnapshot(
-                        context,
-                        pendingSince
-                    )
-                requestTileUpdate(context)
-                if (!responseAlreadyArrived) {
-                    scheduleTimeout(context, pendingSince)
-                }
-                Tasks.whenAllComplete(sendTasks).addOnCompleteListener {
-                    if (sendTasks.none { it.isSuccessful }) {
-                        WearPlanStore.markSyncFailureIfPending(
-                            context,
-                            pendingSince,
-                            System.currentTimeMillis()
+                        val pendingSince = System.currentTimeMillis()
+                        WearPlanStore.markSyncPending(
+                            context = context,
+                            pendingSince = pendingSince,
+                            pendingAfterDashboardUpdatedAt = pendingAfterUpdatedAt
                         )
-                        Log.w(TAG, "Unable to request plans from connected phone")
+                        val responseAlreadyArrived =
+                            WearPlanStore.completePendingIfNewerSnapshot(
+                                context,
+                                pendingSince
+                            )
                         requestTileUpdate(context)
+                        if (!responseAlreadyArrived) {
+                            scheduleTimeout(context, pendingSince)
+                        }
+                        Tasks.whenAllComplete(sendTasks).addOnCompleteListener {
+                            if (sendTasks.none { it.isSuccessful }) {
+                                WearPlanStore.markSyncFailureIfPending(
+                                    context,
+                                    pendingSince,
+                                    System.currentTimeMillis()
+                                )
+                                Log.w(TAG, "Unable to request plans from connected phone")
+                                requestTileUpdate(context)
+                            }
+                        }
                     }
                 }
             }
@@ -118,11 +162,6 @@ object WearSyncManager {
     private fun requestTileUpdate(context: Context) {
         TileService.getUpdater(context.applicationContext)
             .requestUpdate(DoseTileService::class.java)
-    }
-
-    fun markPeerDisconnected(context: Context) {
-        WearPlanStore.markNotConnected(context)
-        requestTileUpdate(context)
     }
 
     private const val TAG = "HRTWearSync"
