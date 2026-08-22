@@ -135,6 +135,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.play.services.wearable)
+    implementation(libs.androidx.health.connect.client)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
