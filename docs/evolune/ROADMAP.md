@@ -25,14 +25,19 @@
 
 `v1.0.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
 
+### v1.1.0 — 2026-08-22
+
+当前公开稳定版本已发布并封存；`v1.1.0` tag 的 peeled commit 为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`。发布范围见下文「v1.1 — Phone Widget Completion」；`v1.1.0` tag 与 GitHub Release 保持封存，后续工作不会移动或重建该 tag。
+
 ## Completed milestones
 
 ### v1.1 — Phone Widget Completion
 
-v1.1 已于 2026-08-21 完成并发布为 v1.1.0。Phone Widget 最终实现合并为
+v1.1 已于 2026-08-22 完成并发布为 v1.1.0。Phone Widget 最终实现合并为
 `7531af3fdb73b5ecfc2bfe5af65771d670945bdc`，发布准备合并提交为
-`7289f97ea94e3c70be4df0605a5a9a9a5129a50c`；Owner、真实设备和 CI 最终门均已通过。
-`v1.0.0` 仍作为上一版封存稳定发布。
+`7289f97ea94e3c70be4df0605a5a9a9a5129a50c`，最终发布 merge commit（`v1.1.0` tag
+peeled target）为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`；Owner、真实设备和 CI
+最终门均已通过。`v1.0.0` 仍作为上一版封存稳定发布。
 
 完成范围：把手机桌面 Widget 从“可用”收敛为稳定、完整、适合日常使用的今日服药入口。
 

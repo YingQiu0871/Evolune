@@ -74,7 +74,7 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 | Room v3、schema、严格 migration | SHIPPED v1.0 |
 | Repository/data boundary | SHIPPED v1.0（当前为 app 内 package 边界） |
 | RemoteViews Widget | SHIPPED v1.0 |
-| Phone Widget Completion（occurrence、响应式布局、配置与隔离） | COMPLETED v1.1 |
+| Phone Widget Completion（occurrence、响应式布局、配置与隔离） | SHIPPED v1.1 |
 | Wear Tile/Data Layer 和 dose actions | SHIPPED v1.0 |
 | 通用版本化 Wear 协议、完整 Wear App | PARTIAL / future enhancement |
 | Health Connect | NOT IMPLEMENTED |

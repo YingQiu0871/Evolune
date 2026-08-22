@@ -5,7 +5,8 @@ This document is the canonical quick reference for the current public release an
 ## Current Release
 
 - Stable version: [`v1.1.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
-- Release date: 2026-08-21
+- Release date: 2026-08-22
+- Published source baseline: `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`
 - Release reference: the immutable [`v1.1.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 - Previous sealed stable release: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
 - Current development baseline: `main` after the v1.1.0 release
@@ -31,6 +32,8 @@ implementation and release preparation are published under the immutable `v1.1.0
 physical-device and post-merge CI gates passed. `v1.0.0` remains the previous sealed stable release.
 
 Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
+
+Wear background delivery uses the filtered `DATA_CHANGED` manifest listener scoped to `wear://*/hrt/plans`; the deprecated `BIND_LISTENER` registration was removed release-safely, with connectivity derived on demand through `NodeClient.connectedNodes`.
 
 Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cannot update in place to the v1.1 Wear package. See [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md) for the one-time uninstall/reinstall procedure. The Phone package and Phone data are unaffected.
 
