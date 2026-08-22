@@ -9,7 +9,7 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 ## 发布与开发基线
 
-当前公开稳定版本是 **v1.1.0**，发布于 2026-08-21；`v1.0.0` 是上一版已封存的稳定发布。
+当前公开稳定版本是 **v1.1.0**，发布于 2026-08-22；`v1.0.0` 是上一版已封存的稳定发布。
 
 [前往 Evolune v1.1.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 

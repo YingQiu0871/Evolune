@@ -1,9 +1,9 @@
 # Evolune Implementation Summary — through completed v1.1
 
 本文总结当前 `main` 已包含的实现。`v1.1.0` 是当前公开稳定 Release；`v1.0.0`
-为上一版封存发布。v1.1 Phone Widget Completion 已于 2026-08-21 完成并发布，v1.2 尚未开始。
+为上一版封存发布。v1.1 Phone Widget Completion 已于 2026-08-22 完成并发布，v1.2 尚未开始。
 
-当前文档基线为 `main @ 7289f97ea94e3c70be4df0605a5a9a9a5129a50c`；v1.1
+当前文档基线为已发布 v1.1.0 的 `main @ ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`；v1.1
 Phone Widget 最终实现合并提交仍记录为 `7531af3fdb73b5ecfc2bfe5af65771d670945bdc`。
 
 ## Domain and persistence

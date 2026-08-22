@@ -18,7 +18,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ## 当前稳定版本
 
-**Evolune v1.1.0** 已于 2026-08-21 发布。请从 [Evolune v1.1.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0) 下载经过签名的 Phone APK 与 Wear APK。`v1.0.0` 为上一版封存发布。
+**Evolune v1.1.0** 已于 2026-08-22 发布。请从 [Evolune v1.1.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0) 下载经过签名的 Phone APK 与 Wear APK。`v1.0.0` 为上一版封存发布。
 
 v1.1 Phone Widget Completion 已作为开发里程碑完成并正式发布为 v1.1.0。下一里程碑 v1.2 仍处于规划阶段，尚未开始实现。
 
@@ -41,7 +41,7 @@ v1.0 的生产代码仍由 `app` 和 `wear` 两个 Android application 模块组
 ## 系统要求与身份
 
 - 手机端：Android 12 及以上（`minSdk = 31`），应用 ID `io.github.yingqiu0871.evolune`
-- 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune.wear`
+- 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune`（Kotlin namespace `io.github.yingqiu0871.evolune.wear`）
 - v1.1.0：Phone `versionCode = 101010000`；Wear `versionCode = 1101010000`
 - v1.0.0：上一版 Phone/Wear 稳定发布使用 `versionCode = 10060`
 
@@ -94,7 +94,7 @@ reviews/  外部审阅报告和逐项处置记录
 
 - Health Connect 与 Google 云备份计划用于 v1.2，尚未实现；v1.2 尚未开始。
 - Phone Widget Completion 已在 v1.1 完成并关闭；更大范围的 Widget Gallery 计划用于 v1.6。
-- 轻量级完整 Wear OS 伴侣应用计划用于 v1.3；当前公开 v1.0 能力仍为 Tile/Data Layer。
+- 轻量级完整 Wear OS 伴侣应用计划用于 v1.3；当前公开 v1.1 能力仍为 Tile/Data Layer。
 - 其他后续版本（v1.4–v1.7）以 [Roadmap](ROADMAP.md) 为准，不在 README 过度展开。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
 - 个性化 calibration/PK 2.0 不属于 v1.0。

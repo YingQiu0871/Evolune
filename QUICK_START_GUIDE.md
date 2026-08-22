@@ -66,6 +66,6 @@ Room 仍是唯一事实来源；断连或重连时 Wear 使用可重建缓存，
 .\gradlew.bat test assembleDebug
 ```
 
-Debug APK 仅用于开发/测试；正式下载请使用 v1.0.0 GitHub Release。生产代码保持
+Debug APK 仅用于开发/测试；正式下载请使用 [v1.1.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)。生产代码保持
 Room/domain/repository 权威边界，Widget 使用 Android RemoteViews，Wear 使用 Tile 和
 Data Layer。

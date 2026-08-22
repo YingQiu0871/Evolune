@@ -1,6 +1,6 @@
 # 功能矩阵
 
-本表以当前已发布的 `v1.1.0` 和上一版封存的 `v1.0.0` production source 为准。v1.1 Phone Widget Completion 已完成并发布。状态使用 `SHIPPED v1.0`、`COMPLETED v1.1`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以当前已发布的 `v1.1.0` 和上一版封存的 `v1.0.0` production source 为准。v1.1 Phone Widget Completion 已完成并发布。状态使用 `SHIPPED v1.0`、`SHIPPED v1.1`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.4`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
 | 功能 | 状态 | v1.0 事实 / 后续边界 |
 |---|---|---|
@@ -16,11 +16,11 @@
 | Room v3 migration/schema | SHIPPED v1.0 | 三实体、schema 2/3 导出、严格迁移矩阵和 copy-based repair tool |
 | Android backup exclusions | SHIPPED v1.0 | Phone/Wear 私有数据均排除于 cloud backup 与 device transfer |
 | RemoteViews phone Widget | SHIPPED v1.0 | 基础 RemoteViews Widget、浓度展示、方案展示和快速记录 |
-| Widget advanced layouts/config/privacy | COMPLETED v1.1 | occurrence-driven 多 slot 行、响应式/可滚动尺寸、配置预览、配色/透明度/对比度与多 Widget 隔离 |
+| Widget advanced layouts/config/privacy | SHIPPED v1.1 | occurrence-driven 多 slot 行、响应式/可滚动尺寸、配置预览、配色/透明度/对比度与多 Widget 隔离 |
 | Wear plan/concentration snapshot | SHIPPED v1.0 | Phone `/hrt/plans` DataItem，Wear 本地缓存和 Tile 刷新 |
 | Wear Tile dose actions | SHIPPED v1.0 | 稳定 action/event ID、persist-first、eligible replay、conflict 与精确 DataItem 删除边界 |
 | General versioned Wear protocol | PARTIAL | 当前 transport 可用但没有通用 envelope/version/checksum/ack；未来协议演进按 v1.3 Wear App 需要评估 |
-| Full future Wear experience | PLANNED v1.3 | v1.0 ships Tile/Data Layer；v1.3 规划轻量完整 Wear App |
+| Full future Wear experience | PLANNED v1.3 | v1.1 ships Tile/Data Layer；v1.3 规划轻量完整 Wear App |
 | Update checker | SHIPPED v1.0 | 从 GitHub Releases 检查较新稳定版本 |
 | Health Connect | PLANNED v1.2 | 当前无 SDK/权限/provider；必须作为显式授权的可选 adapter 独立实施 |
 | Google cloud backup | PLANNED v1.2 | 当前无 OAuth/provider/cloud sync；与 Health Connect 分为不同 batch |
