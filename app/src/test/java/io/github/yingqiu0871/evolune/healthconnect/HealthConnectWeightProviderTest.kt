@@ -3,8 +3,11 @@ package io.github.yingqiu0871.evolune.healthconnect
 import androidx.health.connect.client.HealthConnectClient
 import java.time.Duration
 import java.time.Instant
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
+import org.junit.Assert.fail
 import org.junit.Test
 
 class HealthConnectWeightProviderTest {
@@ -74,6 +77,16 @@ class HealthConnectWeightProviderTest {
                 HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED
             ),
             provider.readLatestWeight(now)
+        )
+    }
+
+    @Test
+    fun `permission unavailable is forwarded as weight unavailable`() = runBlocking {
+        val availability = HealthConnectAvailability.UNAVAILABLE
+
+        assertEquals(
+            HealthConnectWeightResult.Unavailable(availability),
+            provider(status = availability).readLatestWeight(now)
         )
     }
 
@@ -182,6 +195,69 @@ class HealthConnectWeightProviderTest {
             HealthConnectWeightResult.Error(HealthConnectError.WEIGHT_READ_FAILED),
             readFailure.readLatestWeight(now)
         )
+    }
+
+    @Test
+    fun `permission error is forwarded as weight read error`() = runBlocking {
+        val provider = AndroidHealthConnectWeightProvider(
+            FakeHealthConnectClientGateway(
+                permissions = setOf(READ_WEIGHT_PERMISSION),
+                permissionFailure = SecurityException()
+            )
+        )
+
+        assertEquals(
+            HealthConnectWeightResult.Error(HealthConnectError.PERMISSION_CHECK_FAILED),
+            provider.readLatestWeight(now)
+        )
+    }
+
+    @Test
+    fun `availability cancellation is rethrown`() = runBlocking {
+        val cancellation = CancellationException("availability cancelled")
+        val provider = AndroidHealthConnectWeightProvider(
+            FakeHealthConnectClientGateway(statusFailure = cancellation)
+        )
+
+        try {
+            provider.availability()
+            fail("availability cancellation must be rethrown")
+        } catch (actual: CancellationException) {
+            assertSame(cancellation, actual)
+        }
+    }
+
+    @Test
+    fun `permission check cancellation is rethrown`() = runBlocking {
+        val cancellation = CancellationException("permission check cancelled")
+        val provider = AndroidHealthConnectWeightProvider(
+            FakeHealthConnectClientGateway(permissionFailure = cancellation)
+        )
+
+        try {
+            provider.permissionState()
+            fail("permission check cancellation must be rethrown")
+        } catch (actual: CancellationException) {
+            assertSame(cancellation, actual)
+        }
+    }
+
+    @Test
+    fun `weight read cancellation is rethrown`() = runBlocking {
+        val cancellation = CancellationException("weight read cancelled")
+        val provider = AndroidHealthConnectWeightProvider(
+            FakeHealthConnectClientGateway(
+                permissions = setOf(READ_WEIGHT_PERMISSION),
+                readFailure = cancellation
+            )
+        )
+
+        try {
+            provider.readLatestWeight(now)
+            fail("weight read cancellation must be rethrown")
+        } catch (actual: CancellationException) {
+            assertSame(cancellation, actual)
+        }
     }
 
     @Test

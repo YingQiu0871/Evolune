@@ -6,6 +6,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import kotlinx.coroutines.CancellationException
 import java.time.Duration
 import java.time.Instant
 
@@ -82,6 +83,8 @@ internal class AndroidHealthConnectWeightProvider internal constructor(
     override suspend fun availability(): HealthConnectAvailabilityResult =
         try {
             HealthConnectAvailabilityResult.Status(gateway.availability())
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             HealthConnectAvailabilityResult.Error(HealthConnectError.STATUS_CHECK_FAILED)
         }
@@ -131,6 +134,8 @@ internal class AndroidHealthConnectWeightProvider internal constructor(
         val startInclusive = now.minus(window)
         val records = try {
             gateway.readWeightRecords(startInclusive, now)
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             return HealthConnectWeightResult.Error(HealthConnectError.WEIGHT_READ_FAILED)
         }
@@ -154,6 +159,8 @@ internal class AndroidHealthConnectWeightProvider internal constructor(
             } else {
                 HealthConnectPermissionResult.NotGranted
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             HealthConnectPermissionResult.Error(HealthConnectError.PERMISSION_CHECK_FAILED)
         }
