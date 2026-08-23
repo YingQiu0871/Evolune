@@ -8,6 +8,24 @@
     <string name="settings_weight_label">体重 (kg)</string>
     <string name="settings_weight_error">请输入有效的体重 (0–300 kg)</string>
 
+    <string name="settings_health_connect_title">Health Connect 体重</string>
+    <string name="settings_health_connect_desc">仅在你点击后读取最近 30 天记录；采用前不会修改本地体重</string>
+    <string name="settings_health_connect_read">读取 Health Connect 体重</string>
+    <string name="settings_health_connect_checking">正在检查 Health Connect...</string>
+    <string name="settings_health_connect_loading">正在读取最近 30 天体重...</string>
+    <string name="settings_health_connect_permission_needed">需要读取体重权限，请点击按钮后授权</string>
+    <string name="settings_health_connect_preview_weight">预览体重：%1$.1f kg</string>
+    <string name="settings_health_connect_preview_time">记录时间：%1$s</string>
+    <string name="settings_health_connect_preview_source">来源：%1$s</string>
+    <string name="settings_health_connect_use">使用此体重</string>
+    <string name="settings_health_connect_no_data">最近 30 天没有可用体重记录</string>
+    <string name="settings_health_connect_unavailable">Health Connect 当前不可用</string>
+    <string name="settings_health_connect_update_required">Health Connect 需要更新</string>
+    <string name="settings_health_connect_error">读取 Health Connect 体重失败，请稍后重试</string>
+    <string name="settings_health_connect_invalid">该体重不在有效范围内</string>
+    <string name="settings_health_connect_adopting">正在保存体重...</string>
+    <string name="settings_health_connect_adopted">已将 %1$.1f kg 保存为本地体重</string>
+
     <string name="settings_theme_mode_title">夜间模式</string>
     <string name="settings_theme_mode_light">浅色</string>
     <string name="settings_theme_mode_dark">深色</string>

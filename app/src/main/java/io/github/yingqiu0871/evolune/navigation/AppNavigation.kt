@@ -12,6 +12,9 @@ import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.records.WeightRecord
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -126,8 +129,25 @@ fun AppNavigation(
     val uriHandler = LocalUriHandler.current
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
     val userSettings by settingsViewModel.userSettings.collectAsState()
+    val healthConnectWeightState by settingsViewModel.healthConnectWeightState.collectAsState()
+    val healthConnectPermissionRequestVersion by
+        settingsViewModel.healthConnectPermissionRequestVersion.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
     val scope = rememberCoroutineScope()
+
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract()
+    ) {
+        settingsViewModel.onHealthConnectPermissionResult()
+    }
+
+    LaunchedEffect(healthConnectPermissionRequestVersion) {
+        if (healthConnectPermissionRequestVersion > 0) {
+            healthConnectPermissionLauncher.launch(
+                setOf(HealthPermission.getReadPermission(WeightRecord::class))
+            )
+        }
+    }
 
     // 根据用户设置和设备语言区域计算是否使用24小时制
     val is24Hour = when (userSettings.timeFormat) {
@@ -399,6 +419,9 @@ fun AppNavigation(
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
                     updateCheckResult = updateCheckResult,
+                    healthConnectWeightState = healthConnectWeightState,
+                    onReadHealthConnectWeight = settingsViewModel::readHealthConnectWeight,
+                    onUseHealthConnectWeight = settingsViewModel::useHealthConnectWeight,
                     onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
                     onImportFromClipboard = { importFromClipboard() },
                     onExportClick = {

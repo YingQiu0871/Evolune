@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -53,6 +54,32 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 class HRTViewModelTest {
+    @Test
+    fun `authoritative body weight changes trigger simulation without rebuilding view model`() =
+        runBlocking {
+            val bodyWeight = MutableStateFlow(60.0)
+            val observedWeight = MutableStateFlow<Double?>(null)
+            val fixture = fixture(
+                repository = FakeDoseEventRepository(),
+                simulationDispatcher = Dispatchers.Unconfined,
+                bodyWeightFlow = bodyWeight,
+                simulationCalculator = PkSimulationCalculator { input ->
+                    observedWeight.value = input.bodyWeightKG
+                    PKState(currentTimeH = input.currentTimeH)
+                }
+            )
+            try {
+                withTimeout(5_000L) { observedWeight.first { it == 60.0 } }
+
+                bodyWeight.value = 55.0
+
+                withTimeout(5_000L) { observedWeight.first { it == 55.0 } }
+            } finally {
+                fixture.close()
+            }
+            Unit
+        }
+
     @Test
     fun `initial simulation triggers are coalesced and calculation runs off caller thread`() =
         runBlocking {
@@ -604,7 +631,8 @@ class HRTViewModelTest {
             zoneIdSupplier = { TEST_ZONE }
         ),
         simulationDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default,
-        simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator
+        simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
+        bodyWeightFlow: Flow<Double> = flowOf(55.0)
     ): ViewModelFixture {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         return ViewModelFixture(
@@ -615,7 +643,8 @@ class HRTViewModelTest {
                 clock = Clock.fixed(NOW, ZoneOffset.UTC),
                 simulationDispatcher = simulationDispatcher,
                 simulationCalculator = simulationCalculator,
-                operationScope = scope
+                operationScope = scope,
+                bodyWeightFlow = bodyWeightFlow
             ),
             scope = scope
         )

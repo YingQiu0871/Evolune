@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.reminder.ReminderManager
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
@@ -44,11 +45,15 @@ class MainActivity : ComponentActivity() {
         
         // 初始化设置数据存储
         val settingsDataStore = SettingsDataStore(applicationContext)
+        val healthConnectWeightProvider = AndroidHealthConnectWeightProvider(applicationContext)
         
         setContent {
             // 创建 SettingsViewModel
             val settingsViewModel: SettingsViewModel = viewModel(
-                factory = SettingsViewModelFactory(settingsDataStore)
+                factory = SettingsViewModelFactory(
+                    settingsDataStore,
+                    healthConnectWeightProvider
+                )
             )
             
             // 获取用户设置
@@ -89,12 +94,12 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                // 创建 HRTViewModel，使用用户设置的体重
+                // 创建 HRTViewModel，观察 SettingsDataStore 的权威体重
                 val hrtViewModel: HRTViewModel = viewModel(
                     factory = HRTViewModelFactory(
                         repository = productionRepositoryProvider.doseEvents,
                         medicationPlanRepository = productionRepositoryProvider.medicationPlans,
-                        bodyWeightKG = userSettings.bodyWeight
+                        settingsDataStore = settingsDataStore
                     )
                 )
                 val doseEvents by hrtViewModel.events.collectAsState()

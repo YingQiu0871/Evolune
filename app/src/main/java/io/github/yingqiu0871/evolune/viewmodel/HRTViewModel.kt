@@ -22,6 +22,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.pk.Route
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -30,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +39,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
@@ -108,13 +111,13 @@ sealed interface DoseEventUiEvent {
 private data class SimulationTrigger(
     val events: List<DoseEvent>,
     val plans: List<MedicationPlan>,
+    val bodyWeightKG: Double,
     val refresh: Long
 )
 
 class HRTViewModel internal constructor(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
-    private val bodyWeightKG: Double = 55.0,
     private val sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(),
     private val clock: Clock = Clock.systemUTC(),
     private val jsonImportService: MahiroJsonV1ImportService =
@@ -123,7 +126,8 @@ class HRTViewModel internal constructor(
         MahiroJsonV1ExportService(clock = clock),
     private val simulationDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
-    operationScope: CoroutineScope? = null
+    operationScope: CoroutineScope? = null,
+    private val bodyWeightFlow: Flow<Double> = flowOf(55.0)
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
     private val operationLock = Any()
@@ -198,12 +202,14 @@ class HRTViewModel internal constructor(
 
     init {
         scope.launch {
-            combine(eventUpdates, enabledPlanUpdates, simulationRefresh) {
-                    eventList, planList, refresh ->
-                SimulationTrigger(eventList, planList, refresh)
+            combine(eventUpdates, enabledPlanUpdates, bodyWeightFlow, simulationRefresh) {
+                    eventList, planList, weight, refresh ->
+                SimulationTrigger(eventList, planList, weight, refresh)
             }
                 .distinctUntilChanged()
-                .collectLatest { trigger -> calculateAndPublish(trigger.plans) }
+                .collectLatest { trigger ->
+                    calculateAndPublish(trigger.plans, trigger.bodyWeightKG)
+                }
         }
     }
 
@@ -338,7 +344,7 @@ class HRTViewModel internal constructor(
         simulationRefresh.update { it + 1L }
     }
 
-    private suspend fun calculateAndPublish(plans: List<MedicationPlan>) {
+    private suspend fun calculateAndPublish(plans: List<MedicationPlan>, bodyWeightKG: Double) {
         try {
             _pkState.update { it.copy(isSimulating = true, error = null) }
             val now = clock.instant()
@@ -468,12 +474,16 @@ class HRTViewModel internal constructor(
 class HRTViewModelFactory(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
-    private val bodyWeightKG: Double = 65.0
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HRTViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HRTViewModel(repository, medicationPlanRepository, bodyWeightKG) as T
+            return HRTViewModel(
+                repository = repository,
+                medicationPlanRepository = medicationPlanRepository,
+                bodyWeightFlow = settingsDataStore.userSettings.map { it.bodyWeight }
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

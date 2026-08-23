@@ -52,10 +52,25 @@ data class UserSettings(
     val timeFormat: TimeFormat = TimeFormat.SYSTEM  // 默认跟随系统时间制式
 )
 
+const val MAX_BODY_WEIGHT_KG = 300.0
+
+fun isValidBodyWeight(weight: Double): Boolean =
+    weight.isFinite() && weight > 0.0 && weight <= MAX_BODY_WEIGHT_KG
+
+interface SettingsStore {
+    val userSettings: Flow<UserSettings>
+
+    suspend fun updateBodyWeight(weight: Double): Boolean
+    suspend fun updateThemeMode(mode: ThemeMode)
+    suspend fun updateColorTheme(theme: ColorTheme)
+    suspend fun updateAutoCheckUpdates(enabled: Boolean)
+    suspend fun updateTimeFormat(format: TimeFormat)
+}
+
 /**
  * 设置数据存储管理类
  */
-class SettingsDataStore(private val context: Context) {
+class SettingsDataStore(private val context: Context) : SettingsStore {
     
     companion object {
         private val BODY_WEIGHT_KEY = doublePreferencesKey("body_weight")
@@ -68,7 +83,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 获取用户设置的 Flow
      */
-    val userSettings: Flow<UserSettings> = context.dataStore.data.map { preferences ->
+    override val userSettings: Flow<UserSettings> = context.dataStore.data.map { preferences ->
         UserSettings(
             bodyWeight = preferences[BODY_WEIGHT_KEY] ?: 55.0,
             themeMode = preferences[THEME_MODE_KEY]?.let { 
@@ -99,16 +114,19 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存体重
      */
-    suspend fun updateBodyWeight(weight: Double) {
+    override suspend fun updateBodyWeight(weight: Double): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
         context.dataStore.edit { preferences ->
             preferences[BODY_WEIGHT_KEY] = weight
         }
+        return true
     }
     
     /**
      * 保存主题模式
      */
-    suspend fun updateThemeMode(mode: ThemeMode) {
+    override suspend fun updateThemeMode(mode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[THEME_MODE_KEY] = mode.name
         }
@@ -117,7 +135,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存颜色主题
      */
-    suspend fun updateColorTheme(theme: ColorTheme) {
+    override suspend fun updateColorTheme(theme: ColorTheme) {
         context.dataStore.edit { preferences ->
             preferences[COLOR_THEME_KEY] = theme.name
         }
@@ -126,7 +144,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存自动检查更新开关
      */
-    suspend fun updateAutoCheckUpdates(enabled: Boolean) {
+    override suspend fun updateAutoCheckUpdates(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[AUTO_CHECK_UPDATES_KEY] = enabled
         }
@@ -135,7 +153,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存时间制式
      */
-    suspend fun updateTimeFormat(format: TimeFormat) {
+    override suspend fun updateTimeFormat(format: TimeFormat) {
         context.dataStore.edit { preferences ->
             preferences[TIME_FORMAT_KEY] = format.name
         }
