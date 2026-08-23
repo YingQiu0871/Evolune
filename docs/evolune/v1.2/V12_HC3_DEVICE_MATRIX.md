@@ -1,8 +1,16 @@
 # Evolune v1.2 HC3 Device Matrix
 
 - Date: 2026-08-23
-- App commit: HC3 working tree based on `5930801e289e47243300cfa490c16c18f58ce58a`
+- App commit: `608406e4c79fabb3e93d2996820d7d1a31ecd9ca`
 - Scope: Health Connect read-only weight observation; `SettingsDataStore` remains authoritative; adoption remains explicit.
+
+## Evidence taxonomy
+
+- `UNIT`: JVM/unit-test evidence.
+- `INSTRUMENTATION`: Android instrumentation-test evidence.
+- `EMULATOR`: manual behavior observed on an Android emulator.
+- `PHYSICAL DEVICE`: manual behavior observed on a physical Android device.
+- `NOT TESTED`: the scenario was not verified in the available environment.
 
 | Device / API | Health Connect implementation | Scenario | Result | Notes |
 |---|---|---|---|---|
@@ -20,3 +28,35 @@
 | JVM / instrumentation automation | Fake gateway and package resolver | Cancellation, one-shot permission event, status mapping, and manifest entry points | PASS | Automated PASS is not a device PASS; see the HC provider and adoption tests plus the manifest instrumentation test. |
 
 The initial API 35 permission request reproduced a platform contract failure (`App should support rationale intent, finishing!`). HC3 adds the required rationale/usage entry points and the request then opened normally. The initial API 33 missing-provider state also reproduced an incorrect update-required mapping; HC3 now distinguishes missing provider from update-required on API 31–33.
+
+## v1.2 RC Owner-Device Acceptance Gate
+
+These checks do not block B2 development. All of them block v1.2 RC publication until the RC owner records evidence for each applicable item.
+
+- [ ] API31/32 Health Connect compatibility
+  - provider installed/current
+  - permission grant/deny
+  - weight read where environment permits
+- [ ] API33 provider installed/current
+  - availability
+  - permission
+  - read/no-data behavior
+- [ ] API31–33 provider update-required on an actual device/emulator
+  - verify it is distinct from provider missing
+- [ ] Physical Android device
+  - Health Connect availability
+  - grant
+  - revoke
+  - re-read after revoke
+- [ ] Valid Health Connect `WeightRecord`
+  - preview displays weight/time/source
+  - preview alone does not change local weight
+  - explicit “Use this weight” adopts it
+- [ ] Adopted-weight restart persistence
+  - adopt B
+  - force-stop/restart Evolune
+  - `SettingsDataStore` remains B
+  - PK uses B after restart
+- [ ] Activity recreation during/after permission request
+  - no unsolicited second permission dialog
+  - retry remains available after denial
