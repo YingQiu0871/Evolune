@@ -10,6 +10,9 @@ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupId
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupResult
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadMetadata
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -104,6 +107,67 @@ class GoogleDriveBackupProviderTest {
             assertTrue("existingCount=$existingCount remaining=$remaining", remaining.size <= 3)
             assertTrue("existingCount=$existingCount remaining=$remaining", "new-1" in remaining)
         }
+    }
+
+    @Test
+    fun `verified current is retained when equal timestamps and its id sorts first`() = runBlocking {
+        val remote = FakeDriveRemoteGateway().apply {
+            addValidFile("A", SAME_TIME, byteArrayOf(1))
+            addValidFile("B", SAME_TIME, byteArrayOf(2))
+            addValidFile("C", SAME_TIME, byteArrayOf(3))
+            // D is the newly verified generation; its Drive id sorts before A/B/C.
+            nextCreateIds.add("0")
+        }
+
+        val result = provider(remote).uploadBackup(BYTES, metadata(SAME_TIME))
+
+        assertTrue(result is CloudBackupResult.Success)
+        val remaining = remote.files.keys.filterNot { it in remote.deleteCalls }
+        assertEquals(listOf("0", "B", "C"), remaining.sorted())
+        assertEquals(listOf("A"), remote.deleteCalls)
+        assertTrue("0" in remaining)
+    }
+
+    @Test
+    fun `verified current is retained with ten existing generations`() = runBlocking {
+        val remote = FakeDriveRemoteGateway().apply {
+            repeat(10) { index ->
+                addValidFile("old-$index", SAME_TIME, byteArrayOf(index.toByte()))
+            }
+            nextCreateIds.add("current")
+        }
+
+        val result = provider(remote).uploadBackup(BYTES, metadata(SAME_TIME))
+
+        assertTrue(result is CloudBackupResult.Success)
+        val remaining = remote.files.keys.filterNot { it in remote.deleteCalls }
+        assertEquals(3, remaining.size)
+        assertTrue("current" in remaining)
+    }
+
+    @Test
+    fun `upload mutex prevents second create until first upload completes`() = runBlocking {
+        val remote = FakeDriveRemoteGateway().apply {
+            nextCreateIds.addAll(listOf("A", "B"))
+            firstCreateRelease = CompletableDeferred()
+        }
+        val provider = provider(remote)
+        val uploadA = async(start = CoroutineStart.UNDISPATCHED) {
+            provider.uploadBackup(BYTES, metadata(SAME_TIME))
+        }
+        remote.firstCreateEntered.await()
+        val uploadB = async(start = CoroutineStart.UNDISPATCHED) {
+            provider.uploadBackup(byteArrayOf(5, 6), metadata(SAME_TIME))
+        }
+
+        assertEquals(1, remote.createCalls)
+        assertFalse(remote.secondCreateEntered.isCompleted)
+        remote.firstCreateRelease!!.complete(Unit)
+        assertTrue(uploadA.await() is CloudBackupResult.Success)
+        assertTrue(uploadB.await() is CloudBackupResult.Success)
+        assertEquals(2, remote.createCalls)
+        assertFalse("A" in remote.deleteCalls)
+        assertFalse("B" in remote.deleteCalls)
     }
 
     @Test
@@ -207,6 +271,30 @@ class GoogleDriveBackupProviderTest {
             CloudBackupErrorCode.DOWNLOAD_FAILED,
             failureCode(provider(remote).downloadBackup(CloudBackupId("interrupted")))
         )
+    }
+
+    @Test
+    fun `download sha mismatch is rejected instead of returning bytes`() = runBlocking {
+        val remote = FakeDriveRemoteGateway()
+        remote.addValidFile("mismatch", SAME_TIME, byteArrayOf(1, 2, 3))
+        remote.downloadOverrides["mismatch"] = byteArrayOf(4, 5, 6)
+
+        val result = provider(remote).downloadBackup(CloudBackupId("mismatch"))
+
+        assertEquals(CloudBackupErrorCode.DOWNLOAD_FAILED, failureCode(result))
+    }
+
+    @Test
+    fun `pagination token loop returns malformed metadata without another page request`() = runBlocking {
+        val remote = FakeDriveRemoteGateway().apply {
+            pageResponses[null] = DriveFileListPage(emptyList(), "abc")
+            pageResponses["abc"] = DriveFileListPage(emptyList(), "abc")
+        }
+
+        val result = provider(remote).listBackups()
+
+        assertEquals(CloudBackupErrorCode.MALFORMED_REMOTE_METADATA, failureCode(result))
+        assertEquals(2, remote.listCalls)
     }
 
     @Test
@@ -319,7 +407,6 @@ class GoogleDriveBackupProviderTest {
         val spec = GoogleAuthorizationRequestFactory.requestSpec()
 
         assertEquals(listOf(GOOGLE_DRIVE_APPDATA_SCOPE), spec.requestedScopes)
-        assertFalse(spec.offlineAccess)
     }
 
     private fun provider(remote: FakeDriveRemoteGateway, maxBytes: Int = 1024): GoogleDriveBackupProvider =
@@ -376,6 +463,11 @@ class GoogleDriveBackupProviderTest {
         val interruptedDownloadIds = mutableSetOf<String>()
         val metadataFailures = mutableMapOf<String, DriveRemoteErrorCategory>()
         val createFailures = ArrayDeque<DriveRemoteErrorCategory>()
+        val nextCreateIds = ArrayDeque<String>()
+        val pageResponses = mutableMapOf<String?, DriveFileListPage>()
+        val firstCreateEntered = CompletableDeferred<Unit>()
+        val secondCreateEntered = CompletableDeferred<Unit>()
+        var firstCreateRelease: CompletableDeferred<Unit>? = null
         var openDownloadFailure: DriveRemoteErrorCategory? = null
         var createCancellation = false
         var createCalls = 0
@@ -389,12 +481,17 @@ class GoogleDriveBackupProviderTest {
             request: DriveFileCreateRequest
         ): DriveRemoteResult<DriveFileMetadata> {
             createCalls++
+            if (createCalls == 1 && firstCreateRelease != null) {
+                firstCreateEntered.complete(Unit)
+                firstCreateRelease!!.await()
+            }
+            if (createCalls == 2) secondCreateEntered.complete(Unit)
             if (createCancellation) throw CancellationException("test")
             if (createFailures.isNotEmpty()) {
                 val it = createFailures.removeFirst()
                 return DriveRemoteResult.Failure(DriveRemoteError(it))
             }
-            val id = "new-$createCalls"
+            val id = if (nextCreateIds.isEmpty()) "new-$createCalls" else nextCreateIds.removeFirst()
             val metadata = validMetadata(
                 id = id,
                 createdAt = request.createdAt,
@@ -423,6 +520,7 @@ class GoogleDriveBackupProviderTest {
             pageToken: String?
         ): DriveRemoteResult<DriveFileListPage> {
             listCalls++
+            pageResponses[pageToken]?.let { return DriveRemoteResult.Success(it) }
             val configuredPages = pages
             if (configuredPages != null) {
                 val pageIndex = pageToken?.removePrefix("page-")?.toIntOrNull() ?: 0
@@ -524,6 +622,7 @@ class GoogleDriveBackupProviderTest {
             ZoneOffset.UTC
         )
         private val BYTES = byteArrayOf(1, 2, 3, 4)
+        private const val SAME_TIME = "2026-08-23T00:00:00Z"
         private const val BYTE_CAP = 8
         private val BYTE_CAP_PLUS_ONE = ByteArray(BYTE_CAP + 1) { it.toByte() }
 

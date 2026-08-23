@@ -3,13 +3,12 @@ package io.github.yingqiu0871.evolune.backup.cloud.google
 const val GOOGLE_DRIVE_APPDATA_SCOPE = "https://www.googleapis.com/auth/drive.appdata"
 
 data class AuthorizationRequestSpec(
-    val requestedScopes: List<String>,
-    val offlineAccess: Boolean
+    val requestedScopes: List<String>
 )
 
 object GoogleDriveAuthorizationContract {
+    /** No offline-access or server-auth-code option exists in this contract. */
     fun requestSpec(): AuthorizationRequestSpec = AuthorizationRequestSpec(
-        requestedScopes = listOf(GOOGLE_DRIVE_APPDATA_SCOPE),
-        offlineAccess = false
+        requestedScopes = listOf(GOOGLE_DRIVE_APPDATA_SCOPE)
     )
 }

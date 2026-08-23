@@ -107,7 +107,7 @@ class GoogleDriveBackupProvider(
             return@withLock verificationFailure(cleanupPending)
         }
 
-        val retentionCleanupPending = pruneOldGenerations()
+        val retentionCleanupPending = pruneOldGenerations(protectedGenerationId = generation.id)
         CloudBackupResult.Success(
             CloudBackupUploadResult(
                 generation = generation,
@@ -206,10 +206,16 @@ class GoogleDriveBackupProvider(
             )
         }
 
-    private suspend fun pruneOldGenerations(): Boolean {
+    private suspend fun pruneOldGenerations(protectedGenerationId: CloudBackupId): Boolean {
         val listed = listBackups()
         if (listed is CloudBackupResult.Failure) return true
-        val oldGenerations = (listed as CloudBackupResult.Success).value.drop(RETENTION_LIMIT)
+        val sortedGenerations = (listed as CloudBackupResult.Success).value
+        val otherGenerations = sortedGenerations.filterNot { it.id == protectedGenerationId }
+        val retainedIds = buildSet {
+            add(protectedGenerationId)
+            otherGenerations.take(RETENTION_LIMIT - 1).forEach { add(it.id) }
+        }
+        val oldGenerations = otherGenerations.filterNot { it.id in retainedIds }
         var pending = false
         for (generation in oldGenerations) {
             if (deleteBackup(generation.id) is CloudBackupResult.Failure) {
