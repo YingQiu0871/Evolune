@@ -20,6 +20,7 @@ glance = "1.2.0-rc01"
 wearTiles = "1.6.1"
 wearProtoLayout = "1.4.1"
 playServicesWearable = "20.0.1"
+playServicesAuth = "21.6.0"
 guava = "33.5.0-android"
 healthConnect = "1.1.0"
 
@@ -56,6 +57,7 @@ androidx-wear-protolayout = { group = "androidx.wear.protolayout", name = "proto
 androidx-wear-protolayout-material3 = { group = "androidx.wear.protolayout", name = "protolayout-material3", version.ref = "wearProtoLayout" }
 androidx-wear-protolayout-expression = { group = "androidx.wear.protolayout", name = "protolayout-expression", version.ref = "wearProtoLayout" }
 play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 androidx-health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 
