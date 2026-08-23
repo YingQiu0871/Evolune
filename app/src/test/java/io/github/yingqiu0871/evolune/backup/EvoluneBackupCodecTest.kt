@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -39,6 +40,36 @@ class EvoluneBackupCodecTest {
         val decoded = requireDecoded(encoded)
 
         assertEquals(payload, decoded.payload)
+    }
+
+    @Test
+    fun `historical dangling event slot id round trips without being rewritten`() {
+        val danglingSlotId = "99999999-9999-4999-8999-999999999999"
+        val payload = representativePayload().copy(
+            doseEvents = representativePayload().doseEvents.mapIndexed { index, event ->
+                if (index == 0) event.copy(slotId = danglingSlotId) else event
+            }
+        )
+
+        val decoded = requireDecoded(requireEncoded(payload))
+
+        assertEquals(payload, decoded.payload)
+    }
+
+    @Test
+    fun `escaped strings are not mistaken for JSON object keys`() {
+        val payload = minimalPayloadJson(
+            plan = minimalPlanJson(
+                nameJson = "\"text containing \\\"id\\\": and { } [ ]\""
+            )
+        )
+
+        val result = EvoluneBackupCodec().decodeAndValidate(
+            replaceCiphertextWithPayload(requireEncoded(representativePayload()), payload),
+            passphrase
+        )
+
+        assertTrue(result is BackupDecodeResult.Success)
     }
 
     @Test
@@ -102,6 +133,36 @@ class EvoluneBackupCodecTest {
             EvoluneBackupCodec().decodeAndValidate(tamperedHeader, passphrase),
             BackupCodecErrorCode.AUTHENTICATION_FAILED
         )
+
+        val tamperedKdfIterations = replaceEnvelopeField(
+            encoded,
+            "kdfIterations",
+            JsonPrimitive(100_001)
+        )
+        assertFailure(
+            EvoluneBackupCodec().decodeAndValidate(tamperedKdfIterations, passphrase),
+            BackupCodecErrorCode.AUTHENTICATION_FAILED
+        )
+
+        val tamperedSalt = replaceEnvelopeField(
+            encoded,
+            "salt",
+            JsonPrimitive(Base64.getEncoder().encodeToString(ByteArray(EvoluneBackupFormat.SALT_BYTES) { 9 }))
+        )
+        assertFailure(
+            EvoluneBackupCodec().decodeAndValidate(tamperedSalt, passphrase),
+            BackupCodecErrorCode.AUTHENTICATION_FAILED
+        )
+
+        val tamperedNonce = replaceEnvelopeField(
+            encoded,
+            "nonce",
+            JsonPrimitive(Base64.getEncoder().encodeToString(ByteArray(EvoluneBackupFormat.NONCE_BYTES) { 8 }))
+        )
+        assertFailure(
+            EvoluneBackupCodec().decodeAndValidate(tamperedNonce, passphrase),
+            BackupCodecErrorCode.AUTHENTICATION_FAILED
+        )
     }
 
     @Test
@@ -142,6 +203,13 @@ class EvoluneBackupCodecTest {
             BackupCodecErrorCode.UNSUPPORTED_CRYPTO
         )
         assertFailure(
+            EvoluneBackupCodec().decodeAndValidate(
+                replaceEnvelopeField(encoded, "kdfAlgorithm", JsonPrimitive("PBKDF2-HMAC-SHA512")),
+                passphrase
+            ),
+            BackupCodecErrorCode.UNSUPPORTED_CRYPTO
+        )
+        assertFailure(
             EvoluneBackupCodec().decodeAndValidate(encoded.copyOf(encoded.size / 2), passphrase),
             BackupCodecErrorCode.MALFORMED_ENVELOPE
         )
@@ -174,6 +242,13 @@ class EvoluneBackupCodecTest {
                     "kdfIterations",
                     JsonPrimitive(EvoluneBackupFormat.MAX_KDF_ITERATIONS + 1)
                 ),
+                passphrase
+            ),
+            BackupCodecErrorCode.INVALID_KDF_PARAMETERS
+        )
+        assertFailure(
+            codec.decodeAndValidate(
+                replaceEnvelopeField(encoded, "kdfIterations", JsonPrimitive(Int.MAX_VALUE)),
                 passphrase
             ),
             BackupCodecErrorCode.INVALID_KDF_PARAMETERS
@@ -227,6 +302,68 @@ class EvoluneBackupCodecTest {
     }
 
     @Test
+    fun `duplicate JSON object keys fail closed at every supported nesting level`() {
+        val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
+
+        val duplicateEnvelope = duplicateEnvelopeField(encoded, "magic", "\"EVOLUNE_BACKUP\"")
+        assertFailure(
+            EvoluneBackupCodec().decodeAndValidate(duplicateEnvelope, passphrase),
+            BackupCodecErrorCode.MALFORMED_ENVELOPE
+        )
+
+        val duplicatePayloads = listOf(
+            minimalPayloadJson(
+                payloadPrefix = "\"payloadSchemaVersion\":1,\"payloadSchemaVersion\":1,"
+            ),
+            minimalPayloadJson(
+                plan = minimalPlanJson(fieldsPrefix = "\"id\":\"$PLAN_ID\",")
+            ),
+            minimalPayloadJson(
+                event = minimalEventJson(fieldsPrefix = "\"id\":\"$EVENT_ID\",")
+            ),
+            minimalPayloadJson(
+                settings = minimalSettingsJson(fieldsPrefix = "\"bodyWeightKg\":55.0,")
+            ),
+            minimalPayloadJson(
+                plan = minimalPlanJson(
+                    extras = "{\"AREA_CM2\":1.0,\"\\u0041REA_CM2\":2.0}"
+                )
+            )
+        )
+
+        duplicatePayloads.forEach { duplicatePayload ->
+            assertFailure(
+                EvoluneBackupCodec().decodeAndValidate(
+                    replaceCiphertextWithPayload(encoded, duplicatePayload),
+                    passphrase
+                ),
+                BackupCodecErrorCode.MALFORMED_PAYLOAD
+            )
+        }
+    }
+
+    @Test
+    fun `unknown root and nested payload fields are rejected`() {
+        val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
+        val unknownRoot = minimalPayloadJson(
+            payloadPrefix = "\"payloadSchemaVersion\":1,\"unexpected\":true,"
+        )
+        val unknownNested = minimalPayloadJson(
+            plan = minimalPlanJson(fieldsPrefix = "\"unexpected\":true,")
+        )
+
+        listOf(unknownRoot, unknownNested).forEach { payload ->
+            assertFailure(
+                EvoluneBackupCodec().decodeAndValidate(
+                    replaceCiphertextWithPayload(encoded, payload),
+                    passphrase
+                ),
+                BackupCodecErrorCode.MALFORMED_PAYLOAD
+            )
+        }
+    }
+
+    @Test
     fun `authenticated malformed payload is rejected before domain validation`() {
         val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
         val malformedPayload = replaceCiphertextWithPayload(
@@ -251,15 +388,16 @@ class EvoluneBackupCodecTest {
         assertInvalid(
             codec.validate(payload.copy(scheduledDoseSlots = listOf(payload.scheduledDoseSlots[0], payload.scheduledDoseSlots[0])))
         )
-        assertInvalid(
-            codec.validate(
-                payload.copy(
-                    scheduledDoseSlots = listOf(
-                        payload.scheduledDoseSlots[0].copy(planId = ORPHAN_PLAN_ID)
-                    )
-                )
+        val orphanSlotPayload = payload.copy(
+            scheduledDoseSlots = listOf(
+                payload.scheduledDoseSlots[0].copy(planId = ORPHAN_PLAN_ID)
             )
         )
+        assertInvalid(codec.validate(orphanSlotPayload))
+        val orphanEncode = codec.encode(orphanSlotPayload, passphrase, metadata, 100_000)
+        val orphanFailure = orphanEncode as? BackupEncodeResult.Failure
+            ?: throw AssertionError("expected orphan slot plan reference to fail: $orphanEncode")
+        assertEquals(BackupCodecErrorCode.INVALID_PAYLOAD, orphanFailure.error.code)
         assertInvalid(
             codec.validate(payload.copy(doseEvents = listOf(payload.doseEvents[0], payload.doseEvents[0])))
         )
@@ -306,6 +444,57 @@ class EvoluneBackupCodecTest {
                 )
             )
         )
+        assertInvalid(
+            codec.validate(
+                payload.copy(
+                    medicationPlans = listOf(payload.medicationPlans[0].copy(intervalDays = 0))
+                )
+            )
+        )
+        assertInvalid(
+            codec.validate(
+                payload.copy(
+                    medicationPlans = listOf(payload.medicationPlans[0].copy(daysOfWeek = listOf(3, 1)))
+                )
+            )
+        )
+        assertInvalid(
+            codec.validate(
+                payload.copy(
+                    scheduledDoseSlots = payload.scheduledDoseSlots.map { slot ->
+                        if (slot.id == SECOND_SLOT_ID) slot.copy(position = 3) else slot
+                    }
+                )
+            )
+        )
+        assertInvalid(
+            codec.validate(
+                payload.copy(
+                    doseEvents = listOf(payload.doseEvents[0].copy(revision = 0L))
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `non finite JSON numbers fail closed`() {
+        val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
+
+        listOf("NaN", "1e999").forEach { number ->
+            val result = EvoluneBackupCodec().decodeAndValidate(
+                replaceCiphertextWithPayload(
+                    encoded,
+                    minimalPayloadJson(plan = minimalPlanJson(doseMg = number))
+                ),
+                passphrase
+            )
+            val failure = result as? BackupDecodeResult.Failure
+                ?: throw AssertionError("expected non-finite number to fail: $result")
+            assertTrue(
+                failure.error.code == BackupCodecErrorCode.MALFORMED_PAYLOAD ||
+                    failure.error.code == BackupCodecErrorCode.INVALID_PAYLOAD
+            )
+        }
     }
 
     private fun representativePayload(): EvoluneBackupPayloadV1 =
@@ -485,6 +674,54 @@ class EvoluneBackupCodecTest {
             JsonPrimitive(Base64.getEncoder().encodeToString(ciphertext))
         )
     }
+
+    private fun duplicateEnvelopeField(
+        bytes: ByteArray,
+        field: String,
+        rawValue: String
+    ): ByteArray {
+        val text = String(bytes, StandardCharsets.UTF_8).trimEnd()
+        return (text.removeSuffix("}") + ",\"$field\":$rawValue}")
+            .toByteArray(StandardCharsets.UTF_8)
+    }
+
+    private fun minimalPayloadJson(
+        payloadPrefix: String = "\"payloadSchemaVersion\":1,",
+        plan: String = minimalPlanJson(),
+        event: String = minimalEventJson(),
+        settings: String = minimalSettingsJson()
+    ): String =
+        "{$payloadPrefix\"medicationPlans\":[$plan],\"scheduledDoseSlots\":[" +
+            "{\"id\":\"$SLOT_ID\",\"planId\":\"$PLAN_ID\",\"localTime\":\"08:00\",\"position\":0}" +
+            "],\"doseEvents\":[$event],\"settings\":$settings}"
+
+    private fun minimalPlanJson(
+        fieldsPrefix: String = "",
+        id: String = PLAN_ID,
+        nameJson: String = "\"minimal\"",
+        doseMg: String = "1.0",
+        extras: String = "{}"
+    ): String =
+        "{$fieldsPrefix\"id\":\"$id\",\"name\":$nameJson,\"route\":\"ORAL\",\"ester\":\"E2\"," +
+            "\"doseMG\":$doseMg,\"scheduleType\":\"DAILY\",\"daysOfWeek\":[]," +
+            "\"intervalDays\":1,\"isEnabled\":true,\"extras\":$extras," +
+            "\"createdAt\":\"2026-08-20T08:00:00Z\"}"
+
+    private fun minimalEventJson(
+        fieldsPrefix: String = "",
+        doseMg: String = "0.5"
+    ): String =
+        "{$fieldsPrefix\"id\":\"$EVENT_ID\",\"route\":\"ORAL\"," +
+            "\"occurredAt\":\"2026-08-22T10:15:00Z\",\"zoneId\":null,\"localDate\":null," +
+            "\"doseMG\":$doseMg,\"ester\":\"E2\",\"extras\":{}," +
+            "\"slotId\":\"$SLOT_ID\",\"source\":\"MANUAL\",\"status\":\"RECORDED\",\"revision\":1}"
+
+    private fun minimalSettingsJson(
+        fieldsPrefix: String = "",
+        bodyWeightJson: String = "55.0"
+    ): String =
+        "{$fieldsPrefix\"bodyWeightKg\":$bodyWeightJson,\"themeMode\":\"DARK\"," +
+            "\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":false,\"timeFormat\":\"HOUR_24\"}"
 
     private fun authenticatedHeaderJson(root: JsonObject): String =
         json.encodeToString(

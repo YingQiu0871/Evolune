@@ -138,7 +138,6 @@ class EvoluneBackupCodec(
                 validateUuid(event.slotId, "doseEvents[$index].slotId")?.let {
                     return BackupValidationResult.Invalid(it)
                 }
-                if (event.slotId !in slotIds) return invalid("doseEvents[$index].slotId")
             }
             if (event.source !in SUPPORTED_EVENT_SOURCES) {
                 return invalid("doseEvents[$index].source")
@@ -256,6 +255,11 @@ class EvoluneBackupCodec(
         val jsonText = decodeUtf8(bytes) ?: return BackupDecodeResult.Failure(
             BackupCodecError(BackupCodecErrorCode.MALFORMED_ENVELOPE)
         )
+        if (hasDuplicateJsonObjectKeys(jsonText)) {
+            return BackupDecodeResult.Failure(
+                BackupCodecError(BackupCodecErrorCode.MALFORMED_ENVELOPE)
+            )
+        }
         val root = try {
             json.parseToJsonElement(jsonText)
         } catch (_: SerializationException) {
@@ -360,6 +364,11 @@ class EvoluneBackupCodec(
         val payloadText = decodeUtf8(plaintext) ?: return BackupDecodeResult.Failure(
             BackupCodecError(BackupCodecErrorCode.MALFORMED_PAYLOAD)
         )
+        if (hasDuplicateJsonObjectKeys(payloadText)) {
+            return BackupDecodeResult.Failure(
+                BackupCodecError(BackupCodecErrorCode.MALFORMED_PAYLOAD)
+            )
+        }
         val payload = try {
             parsePayload(payloadText)
         } catch (error: UnsupportedPayloadVersionException) {
@@ -571,6 +580,13 @@ class EvoluneBackupCodec(
         json.encodeToString(JsonElement.serializer(), envelopeJson(envelope))
             .toByteArray(StandardCharsets.UTF_8)
 
+    /**
+     * V1 AAD is the canonical JSON object with these fields in this order:
+     * magic, envelopeFormatVersion, payloadSchemaVersion, createdAt,
+     * producerAppVersionName, producerAppVersionCode, encryptionAlgorithm,
+     * kdfAlgorithm, kdfIterations, derivedKeyLengthBits, salt, nonce.
+     * Changing this canonical representation requires a new envelope format version.
+     */
     private fun canonicalAuthenticatedHeaderBytes(envelope: EvoluneBackupEnvelopeV1): ByteArray =
         json.encodeToString(JsonElement.serializer(), authenticatedHeaderJson(envelope))
             .toByteArray(StandardCharsets.UTF_8)
@@ -750,6 +766,132 @@ class EvoluneBackupCodec(
         Base64.getDecoder().decode(value)
     } catch (_: IllegalArgumentException) {
         null
+    }
+
+    private fun hasDuplicateJsonObjectKeys(text: String): Boolean =
+        JsonObjectKeyScanner(text).scan()
+
+    /** Lightweight lexical scan; kotlinx.serialization remains the semantic JSON parser. */
+    private class JsonObjectKeyScanner(
+        private val text: String
+    ) {
+        private var index = 0
+        private var duplicateFound = false
+
+        fun scan(): Boolean {
+            if (!scanValue()) return false
+            skipWhitespace()
+            return index == text.length && duplicateFound
+        }
+
+        private fun scanValue(): Boolean {
+            skipWhitespace()
+            if (index >= text.length) return false
+            return when (text[index]) {
+                '"' -> readString() != null
+                '{' -> scanObject()
+                '[' -> scanArray()
+                else -> scanPrimitive()
+            }
+        }
+
+        private fun scanObject(): Boolean {
+            index++
+            skipWhitespace()
+            if (consume('}')) return true
+
+            val keys = mutableSetOf<String>()
+            while (true) {
+                skipWhitespace()
+                val key = readString() ?: return false
+                if (!keys.add(key)) duplicateFound = true
+                skipWhitespace()
+                if (!consume(':')) return false
+                if (!scanValue()) return false
+                skipWhitespace()
+                when {
+                    consume('}') -> return true
+                    consume(',') -> Unit
+                    else -> return false
+                }
+            }
+        }
+
+        private fun scanArray(): Boolean {
+            index++
+            skipWhitespace()
+            if (consume(']')) return true
+
+            while (true) {
+                if (!scanValue()) return false
+                skipWhitespace()
+                when {
+                    consume(']') -> return true
+                    consume(',') -> Unit
+                    else -> return false
+                }
+            }
+        }
+
+        private fun scanPrimitive(): Boolean {
+            val start = index
+            while (index < text.length && text[index] !in " \t\r\n,]}") {
+                index++
+            }
+            return index > start
+        }
+
+        private fun readString(): String? {
+            if (!consume('"')) return null
+            val value = StringBuilder()
+            while (index < text.length) {
+                when (val character = text[index++]) {
+                    '"' -> return value.toString()
+                    '\\' -> if (!readEscape(value)) return null
+                    else -> {
+                        if (character.code < 0x20) return null
+                        value.append(character)
+                    }
+                }
+            }
+            return null
+        }
+
+        private fun readEscape(value: StringBuilder): Boolean {
+            if (index >= text.length) return false
+            when (val escape = text[index++]) {
+                '"', '\\', '/' -> value.append(escape)
+                'b' -> value.append('\b')
+                'f' -> value.append('\u000C')
+                'n' -> value.append('\n')
+                'r' -> value.append('\r')
+                't' -> value.append('\t')
+                'u' -> {
+                    if (index + 4 > text.length) return false
+                    var codePoint = 0
+                    repeat(4) {
+                        val digit = Character.digit(text[index++], 16)
+                        if (digit < 0) return false
+                        codePoint = (codePoint shl 4) or digit
+                    }
+                    value.append(codePoint.toChar())
+                }
+                else -> return false
+            }
+            return true
+        }
+
+        private fun skipWhitespace() {
+            while (index < text.length && text[index] in " \t\r\n") index++
+        }
+
+        private fun consume(expected: Char): Boolean =
+            if (index < text.length && text[index] == expected) {
+                index++
+                true
+            } else {
+                false
+            }
     }
 
     private fun requireExactEnvelopeFields(objectValue: JsonObject) {
