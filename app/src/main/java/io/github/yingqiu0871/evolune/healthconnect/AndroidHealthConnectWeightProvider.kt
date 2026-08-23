@@ -1,6 +1,8 @@
 package io.github.yingqiu0871.evolune.healthconnect
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.WeightRecord
@@ -30,8 +32,30 @@ internal interface HealthConnectClientGateway {
 internal class AndroidHealthConnectClientGateway(
     private val context: Context
 ) : HealthConnectClientGateway {
-    override fun availability(): HealthConnectAvailability =
-        mapHealthConnectSdkStatus(HealthConnectClient.getSdkStatus(context))
+    override fun availability(): HealthConnectAvailability {
+        val sdkStatus = HealthConnectClient.getSdkStatus(context)
+        val providerInstalled = if (
+            Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.TIRAMISU &&
+            sdkStatus == HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED
+        ) {
+            isHealthConnectProviderInstalled()
+        } else {
+            true
+        }
+        return resolveHealthConnectAvailability(
+            sdkStatus = sdkStatus,
+            apiLevel = Build.VERSION.SDK_INT,
+            providerInstalled = providerInstalled
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun isHealthConnectProviderInstalled(): Boolean = try {
+        context.packageManager.getApplicationInfo(HEALTH_CONNECT_PROVIDER_PACKAGE, 0)
+        true
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
 
     override suspend fun grantedPermissions(): Set<String> =
         HealthConnectClient.getOrCreate(context)
@@ -173,6 +197,25 @@ internal fun mapHealthConnectSdkStatus(status: Int): HealthConnectAvailability =
             HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED
         else -> HealthConnectAvailability.UNAVAILABLE
     }
+
+internal fun resolveHealthConnectAvailability(
+    sdkStatus: Int,
+    apiLevel: Int,
+    providerInstalled: Boolean
+): HealthConnectAvailability {
+    val mapped = mapHealthConnectSdkStatus(sdkStatus)
+    return if (
+        apiLevel in Build.VERSION_CODES.S..Build.VERSION_CODES.TIRAMISU &&
+        mapped == HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED &&
+        !providerInstalled
+    ) {
+        HealthConnectAvailability.UNAVAILABLE
+    } else {
+        mapped
+    }
+}
+
+private const val HEALTH_CONNECT_PROVIDER_PACKAGE = "com.google.android.apps.healthdata"
 
 private fun HealthConnectWeightRecordData.toObservationOrNull(): HealthConnectWeightObservation? {
     if (!weightKg.isFinite() || weightKg <= 0.0 || weightKg > 300.0) {

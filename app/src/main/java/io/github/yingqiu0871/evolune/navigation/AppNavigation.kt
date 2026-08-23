@@ -130,8 +130,6 @@ fun AppNavigation(
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
     val userSettings by settingsViewModel.userSettings.collectAsState()
     val healthConnectWeightState by settingsViewModel.healthConnectWeightState.collectAsState()
-    val healthConnectPermissionRequestVersion by
-        settingsViewModel.healthConnectPermissionRequestVersion.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
     val scope = rememberCoroutineScope()
 
@@ -141,8 +139,8 @@ fun AppNavigation(
         settingsViewModel.onHealthConnectPermissionResult()
     }
 
-    LaunchedEffect(healthConnectPermissionRequestVersion) {
-        if (healthConnectPermissionRequestVersion > 0) {
+    LaunchedEffect(settingsViewModel) {
+        settingsViewModel.healthConnectPermissionRequests.collect {
             healthConnectPermissionLauncher.launch(
                 setOf(HealthPermission.getReadPermission(WeightRecord::class))
             )

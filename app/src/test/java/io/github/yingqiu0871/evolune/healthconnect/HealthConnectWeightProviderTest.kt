@@ -36,6 +36,38 @@ class HealthConnectWeightProviderTest {
     }
 
     @Test
+    fun `missing provider on Android 12 through 13 is unavailable`() {
+        assertEquals(
+            HealthConnectAvailability.UNAVAILABLE,
+            resolveHealthConnectAvailability(
+                sdkStatus = HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED,
+                apiLevel = 33,
+                providerInstalled = false
+            )
+        )
+        assertEquals(
+            HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED,
+            resolveHealthConnectAvailability(
+                sdkStatus = HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED,
+                apiLevel = 33,
+                providerInstalled = true
+            )
+        )
+    }
+
+    @Test
+    fun `Android 14 and newer keeps SDK status authoritative`() {
+        assertEquals(
+            HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED,
+            resolveHealthConnectAvailability(
+                sdkStatus = HealthConnectClient.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED,
+                apiLevel = 34,
+                providerInstalled = false
+            )
+        )
+    }
+
+    @Test
     fun `required permissions contain only read weight`() {
         val provider = provider()
 

@@ -21,11 +21,13 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -103,12 +105,12 @@ class SettingsViewModel(
     val healthConnectWeightState: StateFlow<HealthConnectWeightUiState> =
         _healthConnectWeightState.asStateFlow()
 
-    private val _healthConnectPermissionRequestVersion = MutableStateFlow(0)
-    val healthConnectPermissionRequestVersion: StateFlow<Int> =
-        _healthConnectPermissionRequestVersion.asStateFlow()
+    private val healthConnectPermissionRequestChannel = Channel<Unit>(Channel.BUFFERED)
+    val healthConnectPermissionRequests = healthConnectPermissionRequestChannel.receiveAsFlow()
 
     private var healthConnectReadJob: Job? = null
     private var healthConnectAdoptionJob: Job? = null
+    private var healthConnectPermissionRequestInFlight = false
 
     /**
      * 更新体重
@@ -124,6 +126,7 @@ class SettingsViewModel(
     }
 
     fun onHealthConnectPermissionResult() {
+        healthConnectPermissionRequestInFlight = false
         readHealthConnectWeightInternal(requestPermission = false)
     }
 
@@ -161,7 +164,11 @@ class SettingsViewModel(
     }
 
     private fun readHealthConnectWeightInternal(requestPermission: Boolean) {
-        if (healthConnectReadJob?.isActive == true || healthConnectAdoptionJob?.isActive == true) {
+        if (
+            healthConnectReadJob?.isActive == true ||
+            healthConnectAdoptionJob?.isActive == true ||
+            (requestPermission && healthConnectPermissionRequestInFlight)
+        ) {
             return
         }
 
@@ -186,9 +193,7 @@ class SettingsViewModel(
                     HealthConnectPermissionResult.NotGranted -> {
                         _healthConnectWeightState.value =
                             HealthConnectWeightUiState.PermissionNeeded
-                        if (requestPermission) {
-                            _healthConnectPermissionRequestVersion.value++
-                        }
+                        requestHealthConnectPermission(requestPermission)
                         return@launch
                     }
 
@@ -219,9 +224,7 @@ class SettingsViewModel(
                     HealthConnectWeightResult.PermissionNotGranted -> {
                         _healthConnectWeightState.value =
                             HealthConnectWeightUiState.PermissionNeeded
-                        if (requestPermission) {
-                            _healthConnectPermissionRequestVersion.value++
-                        }
+                        requestHealthConnectPermission(requestPermission)
                     }
 
                     is HealthConnectWeightResult.Unavailable -> {
@@ -240,6 +243,13 @@ class SettingsViewModel(
                 _healthConnectWeightState.value =
                     HealthConnectWeightUiState.Error(HealthConnectWeightUiError.READ_FAILED)
             }
+        }
+    }
+
+    private fun requestHealthConnectPermission(requestPermission: Boolean) {
+        if (!requestPermission || healthConnectPermissionRequestInFlight) return
+        if (healthConnectPermissionRequestChannel.trySend(Unit).isSuccess) {
+            healthConnectPermissionRequestInFlight = true
         }
     }
 

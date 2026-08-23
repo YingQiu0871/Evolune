@@ -18,8 +18,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -70,24 +72,47 @@ class HealthConnectWeightAdoptionTest {
     }
 
     @Test
-    fun `permission denial requests permission only after read and does not loop`() {
+    fun `permission denial requests permission only after read and does not loop`() = runBlocking {
         val provider = FakeHealthConnectWeightProvider().apply {
             permissionResult = HealthConnectPermissionResult.NotGranted
         }
         val fixture = fixture(provider)
         try {
+            val firstRequest = CompletableDeferred<Unit>()
+            val firstCollector = fixture.scope.launch {
+                fixture.viewModel.healthConnectPermissionRequests.first()
+                firstRequest.complete(Unit)
+            }
+
             fixture.viewModel.readHealthConnectWeight()
 
             assertEquals(
                 HealthConnectWeightUiState.PermissionNeeded,
                 fixture.viewModel.healthConnectWeightState.value
             )
-            assertEquals(1, fixture.viewModel.healthConnectPermissionRequestVersion.value)
+            firstRequest.await()
+            firstCollector.join()
 
-            fixture.viewModel.onHealthConnectPermissionResult()
+            val secondRequest = CompletableDeferred<Unit>()
+            val secondCollector = fixture.scope.launch {
+                fixture.viewModel.healthConnectPermissionRequests.first()
+                secondRequest.complete(Unit)
+            }
+            fixture.viewModel.readHealthConnectWeight()
 
             assertEquals(HealthConnectWeightUiState.PermissionNeeded, fixture.viewModel.healthConnectWeightState.value)
-            assertEquals(1, fixture.viewModel.healthConnectPermissionRequestVersion.value)
+            assertTrue(!secondRequest.isCompleted)
+            secondCollector.cancel()
+
+            fixture.viewModel.onHealthConnectPermissionResult()
+            val retryRequest = CompletableDeferred<Unit>()
+            val retryCollector = fixture.scope.launch {
+                fixture.viewModel.healthConnectPermissionRequests.first()
+                retryRequest.complete(Unit)
+            }
+            fixture.viewModel.readHealthConnectWeight()
+            retryRequest.await()
+            retryCollector.join()
             assertTrue(fixture.store.bodyWeightWrites.isEmpty())
         } finally {
             fixture.close()
