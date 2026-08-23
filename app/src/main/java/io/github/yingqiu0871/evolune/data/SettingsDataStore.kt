@@ -68,9 +68,18 @@ interface SettingsStore {
 }
 
 /**
+ * Atomic replacement seam used by crash-safe restore. Implementations must
+ * update all settings in one DataStore edit.
+ */
+interface AtomicSettingsStore {
+    /** Replace all restore-owned scalar settings in one DataStore edit. */
+    suspend fun replaceSettings(settings: UserSettings): Boolean
+}
+
+/**
  * 设置数据存储管理类
  */
-class SettingsDataStore(private val context: Context) : SettingsStore {
+class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSettingsStore {
     
     companion object {
         private val BODY_WEIGHT_KEY = doublePreferencesKey("body_weight")
@@ -157,5 +166,18 @@ class SettingsDataStore(private val context: Context) : SettingsStore {
         context.dataStore.edit { preferences ->
             preferences[TIME_FORMAT_KEY] = format.name
         }
+    }
+
+    override suspend fun replaceSettings(settings: UserSettings): Boolean {
+        if (!isValidBodyWeight(settings.bodyWeight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[BODY_WEIGHT_KEY] = settings.bodyWeight
+            preferences[THEME_MODE_KEY] = settings.themeMode.name
+            preferences[COLOR_THEME_KEY] = settings.colorTheme.name
+            preferences[AUTO_CHECK_UPDATES_KEY] = settings.autoCheckUpdates
+            preferences[TIME_FORMAT_KEY] = settings.timeFormat.name
+        }
+        return true
     }
 }

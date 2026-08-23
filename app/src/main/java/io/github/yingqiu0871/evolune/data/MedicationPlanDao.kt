@@ -72,6 +72,12 @@ interface MedicationPlanDao {
     @Query("DELETE FROM medication_plans")
     suspend fun deleteAllPlansIfPresent(): Int
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertPlansForRestore(plans: List<MedicationPlanEntity>)
+
+    @Query("SELECT * FROM medication_plans ORDER BY createdAt DESC, id ASC")
+    suspend fun getAllPlansForRestore(): List<MedicationPlanEntity>
+
     @Query("SELECT COUNT(*) FROM medication_plans")
     suspend fun countPlans(): Int
 

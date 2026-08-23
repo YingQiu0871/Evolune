@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune
 
+import android.util.Log
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -17,6 +18,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
+import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
@@ -40,11 +43,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val productionRepositoryProvider =
-            ProductionRepositoryProvider.get(applicationContext)
-        
         // 初始化设置数据存储
         val settingsDataStore = SettingsDataStore(applicationContext)
+        val recovery = recoverInterruptedRestoreAtStartup(
+            context = applicationContext,
+            settingsStore = settingsDataStore
+        )
+        if (recovery is RestoreRecoveryResult.Failure) {
+            Log.e("EvoluneRestore", "Startup restore recovery required", recovery.error.cause)
+            finish()
+            return
+        }
+
+        val productionRepositoryProvider =
+            ProductionRepositoryProvider.get(applicationContext)
         val healthConnectWeightProvider = AndroidHealthConnectWeightProvider(applicationContext)
         
         setContent {
