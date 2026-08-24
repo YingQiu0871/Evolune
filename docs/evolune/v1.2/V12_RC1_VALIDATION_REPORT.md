@@ -286,3 +286,97 @@ JVM regression after the correction:
 
 - `:app:testDebugUnitTest --rerun-tasks`: `BUILD SUCCESSFUL`.
 - `:app:assembleDebug --rerun-tasks`: `BUILD SUCCESSFUL`.
+
+## RC1-T2 result — API33-B IME frame-probe triage
+
+Evidence date: `2026-08-24`. The triage branch started from
+`4bb00aebcaca4376fcb601effac9bcb90c283efe`. No Kotlin, manifest, Gradle, or
+test source was changed; this is a documentation-only triage record.
+
+### Finding and classification
+
+Primary classification: `T2-B — test/probe bug`.
+
+The first divergence happens in `RealAppImeFrameProbeTest`'s window-root
+selection, before its IME geometry assertions. `activeWindowRoot()` selects a
+focused transient `840x555` root on API33-B (and a `466px`-high root on API37),
+but the Compose semantics field remains in the full app window's
+`boundsInWindow` coordinates. Thus `readViewHeight()` and `readImeInset()` are
+not measured in the same root as `record-dose` and `record-editor-scroll`.
+The resulting values (`viewHeight=555`, `ime=1307`,
+`endViewportBottom=-752`) are geometrically impossible for one window.
+
+The probe's green path is also vacuous: `imeOpenedCycles=0/5` can still yield
+`occludingCycles=5/5` from the mismatched baseline, after which no cycle is
+available to the bounce assertion. The intermittent root choice is recorded
+as a probe synchronization symptom, not as a primary production race (`T2-D`)
+or a production IME defect.
+
+### Raw repeated matrix
+
+| Device | Raw outcome | Evidence interpretation |
+|---|---:|---|
+| API33-A `evolune-hc3-api33` | 4 PASS / 1 FAIL (x5) | 0 trustworthy passes; every run used `viewHeight=555`; PASS runs had no full IME geometry, while the failure reached `endViewportBottom=-752` |
+| API33-B `Evolune_API33_Migration` | 8 PASS / 2 FAIL (x10) | Only runs 1–2 were valid full-window observations (`viewHeight=2400`, `imeMax=1307`, 5/5 opened); other PASS runs were vacuous; failures included `bottom=1030 / viewport=555` and an impossible negative viewport |
+| API37 `Pixel_10_Pro_Fold` | 4 PASS / 1 FAIL (x5) | 0 trustworthy passes; PASS runs were vacuous with `viewHeight=466`, `imeMax=0`, 0/5 opened; failure reached `endViewportBottom=-630` |
+| API35 | NOT AVAILABLE | NOT TESTED |
+
+Exact assertion examples:
+
+- `Field ended occluded by the keyboard in 1/1 cycles: bottom=1030.0 viewport=555`.
+- `Field bounced in 1/4 cycles: dirChanges=[1,0,0,0] motionPhases=[1,1,1,1] lateScrollAt=[-1,-1,-1,-1]`, with `endViewportBottom=-752`.
+
+### API33-B clean-state retest
+
+After `pm clear io.github.yingqiu0871.evolune.debug`, reinstalling both APKs,
+and resetting the instrumentation process, five completed runs produced
+`3` raw PASS and `2` raw FAIL. All three raw PASS runs were invalid/vacuous:
+`viewHeight=555`, `imeOpenedCycles=0/5`, `occludingCycles=5/5`,
+`maxImeInset=0`. The failures reproduced the same root mismatch, including
+`bottom=1030 / viewport=555` and `imeOpenedCycles=1/5`, `maxImeInset=417`.
+One interrupted process-reset attempt was not counted.
+
+### Environment and live window evidence
+
+| Device | Display / density | App bounds / cutout | IME environment |
+|---|---|---|---|
+| API33-A | `1080x1920` / `420` | `1080x1857`, no cutout | Gboard LatinIME, nav mode `2`, rotation `0`, animation scales `1.0` |
+| API33-B | `1080x2400` / `420` | `1080x2337`, top cutout `128px` | Same Gboard LatinIME, nav mode `2`, rotation `0`, animation scales `1.0` |
+| API37 | `2076x2152` / `390` | top cutout `136px` | Same Gboard LatinIME, nav mode `2`, rotation `0`, animation scales `1.0` |
+
+API33-A/API33-B share the same API 33 model; their meaningful difference is
+the display height and API33-B top cutout. The direct probe log included:
+
+```text
+windowRoots selected=com.android.internal.policy.DecorView focus=true size=840x555
+all=DecorView:1080x2400:focus=false ime=1307, DecorView:840x555:focus=true ime=0
+```
+
+The manual live window dump showed MainActivity as the IME target,
+`ITYPE_IME: visible`, `ADJUST_RESIZE`, `mInputShown=true`, and a served Compose
+view at `0,0-1080,2400`. This separates the probe's mismatched measurement
+from the actual app/IME connection.
+
+### Manual API33-B UX validation
+
+On the real debug app, `记录 → add menu → 手动添加` opened the editor. Focusing
+`EV 剂量` showed Gboard and resized the scroll container from approximately
+`[63,181][1017,2274]` to `[63,181][1017,1454]`. Typing `2` produced the
+equivalent value `1.528`; saving produced a list card reading
+`戊酸雌二醇 · 2.0 mg` with time/date. No crash or unsolicited second dialog
+was observed. This confirms the basic editor/IME/input/save path, not the
+invalid frame-level probe claim.
+
+### Normalization and disposition
+
+No AVD normalization experiment was run: the same wrong-root evidence was
+directly reproduced on all three available devices and after API33-B
+`pm clear`, so changing device variables would not distinguish the cause.
+No device settings were changed.
+
+Recommended next step is a separate test-only probe correction: keep height,
+IME insets, and semantics coordinates in one application/Compose window;
+require all expected IME cycles to open; reject `imeBottom > viewHeight`; and
+do not accept `occludingCycles > 0` as a standalone proof. No production fix
+is indicated. RC2/live-service gates, owner-device gates, release signing/R8,
+tags, and releases remain paused. The project remains stopped at RC1-T2.
