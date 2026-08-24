@@ -9,10 +9,10 @@
 - Build target: v1.2.0 RC validation; no tag or release publication
 - RC1 production-code changes: none
 
-RC1 followed validation-first and no-silent-fixes policy. No production bug
-was fixed on this branch. No `FAIL` reproduction was observed; the unresolved
-release items below are `BLOCKED` or `NOT TESTED` because the required signing,
-device, or live-service resources were unavailable.
+RC1 followed validation-first and no-silent-fixes policy. No production code
+was fixed on this branch. The connected instrumentation run produced an
+`RC1_BLOCKER` on one API33 emulator; validation stopped immediately as
+required. No production diagnosis or workaround was applied.
 
 ## Signed release and R8
 
@@ -33,16 +33,50 @@ signing gate stops before APK production.
 
 ## Device matrix and Health Connect
 
-Status: `NOT TESTED`.
+The online emulator inventory on `2026-08-24` was:
 
-On `2026-08-24`, `adb devices -l` returned no connected device or emulator.
-Therefore no manufacturer/model, Android version, API level, Health Connect
-implementation, build installation, permission flow, revoke/re-read,
-WeightRecord preview/adoption, restart persistence, Activity recreation, or
-API31–33 provider matrix evidence exists.
+| Serial | AVD | API / Android | Manufacturer / model | Google service evidence |
+|---|---|---|---|---|
+| `emulator-5554` | `evolune-hc3-api33` | API33 / Android 13 | Google / `sdk_gphone64_x86_64` | GMS packages present |
+| `emulator-5556` | `Evolune_API33_Migration` | API33 / Android 13 | Google / `sdk_gphone64_x86_64` | GMS packages present |
+| `emulator-5558` | `Pixel_10_Pro_Fold` | API37 / Android 17 | Google / `sdk_gphone16k_x86_64` | GMS and Health Connect packages present |
+
+Status: `NOT TESTED` for the manual Health Connect UI gates. The connected
+instrumentation run was stopped after the first API33 failure, before manual
+provider-missing, permission lifecycle, recreation, WeightRecord, or fold UI
+validation.
 
 The provider-missing mapping remains covered by unit tests only. An installed
 but outdated provider case was not constructed and remains `NOT TESTED`.
+
+## RC1_BLOCKER — API33 instrumentation failure
+
+- Severity: release-blocking validation failure.
+- Device: `emulator-5554` / `evolune-hc3-api33` / API33 / Android 13.
+- Build/commit: debug instrumentation / `99ee3618fe8e5e84451bd010bfdd58281fd1ca90`.
+- Suite: `:app:connectedDebugAndroidTest --rerun-tasks`.
+- Device progress when stopped: 123 completed, 117 passed, 3 failed,
+  3 skipped; 23 tests were not reached.
+- Exact failures:
+  - `MedicationPlansScreenTest.invalidDraftSkipsRepositoryAndKeepsEditorOpen`
+    at `MedicationPlansScreenTest.kt:107`;
+  - `MedicationPlansScreenTest.saveFailureKeepsEditorOpenAndShowsError` at
+    `MedicationPlansScreenTest.kt:127`;
+  - `MedicationPlansScreenTest.deleteFailureKeepsEditorOpen` at
+    `MedicationPlansScreenTest.kt:197`.
+- Expected: the plan editor remains open and the `plan-name` field is
+  displayed.
+- Actual: `java.lang.AssertionError: Assert failed: The component with
+  TestTag = 'plan-name' is not displayed!`.
+- Logs: per-test local logcat contained only the assertion and stack trace;
+  no token, passphrase, or medication payload was recorded.
+- Suspected component: unresolved; requires independent triage of API33
+  Compose editor/test state. No production fix was attempted on RC1.
+
+The other two devices were also stopped at the same point: API33 migration
+AVD had 123/146 completed, 120 passed, 0 failed, 3 skipped; API37 Fold had
+123/146 completed, 120 passed, 0 failed, 3 skipped. Their remaining 23 tests
+are `NOT TESTED`, not PASS.
 
 ## Google OAuth and live Drive
 
@@ -129,6 +163,22 @@ server-auth-code, `drive.file`, or `drive.readonly` production path was found.
 4. Run the real-device 600k KDF benchmark and large-history sanity.
 5. Run API33/API35 instrumentation when targets are available.
 6. Complete owner evidence review.
+
+## Foldable UI and remaining emulator gates
+
+Status: `NOT TESTED`. The Pixel 10 Pro Fold AVD was online and its Google
+packages were present, but fold/rotate UI sanity and Health Connect UI flows
+were not started after the API33 instrumentation blocker.
+
+## Final status
+
+- Newly closed release gates: none.
+- API33 instrumentation: `FAIL` and recorded above.
+- API37 instrumentation: partial execution only; `NOT TESTED` for remaining
+  tests.
+- API33/API37 Health Connect manual gates: `NOT TESTED`.
+- Live Drive, full live restore, signed release, physical-device HC, physical
+  KDF, and Wear signed R8 runtime: still `BLOCKED` or `NOT TESTED`.
 
 No tag, GitHub Release, Play release, or production-code fix was created by
 RC1.

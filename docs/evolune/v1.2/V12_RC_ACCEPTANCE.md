@@ -21,11 +21,19 @@ the owner-device, live Drive, KDF-device, end-to-end, or signed release gates.
 - [x] `PASS` — Wear unit tests — evidence: `2026-08-24 | local Windows | :wear:testDebugUnitTest --rerun-tasks | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | BUILD SUCCESSFUL; 27 tests, 0 failures/errors`
 - [x] `PASS` — App debug assemble — evidence: `2026-08-24 | local Windows | :app:assembleDebug --rerun-tasks | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | BUILD SUCCESSFUL`
 - [x] `PASS` — Wear debug assemble — evidence: `2026-08-24 | local Windows | :wear:assembleDebug --rerun-tasks | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | BUILD SUCCESSFUL`
-- [ ] `NOT TESTED` — API33 instrumentation — evidence: `2026-08-24 | no connected Android device/AVD | connected test unavailable | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | adb devices -l returned no devices`
-- [ ] `NOT TESTED` — API35 instrumentation — evidence: `2026-08-24 | no connected Android device/AVD | connected test unavailable | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | adb devices -l returned no devices`
+- [ ] `FAIL` — API33 instrumentation on `evolune-hc3-api33` — evidence: `2026-08-24 | Google AVD emulator-5554, API33/Android 13 | connectedDebugAndroidTest debug | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | 123 completed, 117 passed, 3 failed, 3 skipped before stop; MedicationPlansScreenTest editor field assertion failed`
+- [ ] `NOT TESTED` — API33 instrumentation on `Evolune_API33_Migration` — evidence: `2026-08-24 | Google AVD emulator-5556, API33/Android 13 | connectedDebugAndroidTest debug | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | 123 completed, 120 passed, 0 failed, 3 skipped; 23 remaining tests not run after sibling API33 failure`
+- [ ] `NOT TESTED` — API35+ instrumentation on `Pixel_10_Pro_Fold` — evidence: `2026-08-24 | Google AVD emulator-5558, API37/Android 17 | connectedDebugAndroidTest debug | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | 123 completed, 120 passed, 0 failed, 3 skipped; 23 remaining tests not run after API33 failure`
 - [x] `PASS` — HC1, HC2 R-09, HC3, B1 golden, B2 crash matrix, B3, B4, Mahiro v1, and Room/schema JVM slices — evidence: `2026-08-24 | local Windows | App/Wear unit regression | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | relevant suites passed; no failures/errors`
 
 ## B. Health Connect owner-device gate
+
+The online emulator inventory was recorded on `2026-08-24`: `emulator-5554`
+(`evolune-hc3-api33`, API33, Android 13, GMS present), `emulator-5556`
+(`Evolune_API33_Migration`, API33, Android 13, GMS present), and
+`emulator-5558` (`Pixel_10_Pro_Fold`, API37, Android 17, GMS and Health
+Connect packages present). The instrumentation failure stopped manual HC UI
+validation before any HC emulator gate could be closed.
 
 - [ ] `NOT TESTED` — API31/32 provider installed/current, permission grant/deny, and weight read — evidence: `2026-08-24 | no owner device or emulator | no build installed | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | no qualifying device evidence`
 - [ ] `NOT TESTED` — API33 provider installed/current, availability, permission, and read/no-data behavior — evidence: `2026-08-24 | no owner device or emulator | no build installed | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | no qualifying device evidence`
@@ -95,3 +103,14 @@ it does not close this live gate.
 6. final owner evidence review.
 
 RC1 is a validation branch and is not a release publication.
+
+## RC1 blocker
+
+- `RC1_BLOCKER` — severity: release-blocking validation failure.
+- Device/API: `evolune-hc3-api33` / `emulator-5554` / API33 / Android 13.
+- Build/commit: debug instrumentation / `99ee3618fe8e5e84451bd010bfdd58281fd1ca90`.
+- Exact tests: `MedicationPlansScreenTest.invalidDraftSkipsRepositoryAndKeepsEditorOpen` at `MedicationPlansScreenTest.kt:107`, `saveFailureKeepsEditorOpenAndShowsError` at `MedicationPlansScreenTest.kt:127`, and `deleteFailureKeepsEditorOpen` at `MedicationPlansScreenTest.kt:197`.
+- Expected: the plan editor remains open and the `plan-name` field is displayed.
+- Actual: `java.lang.AssertionError: Assert failed: The component with TestTag = 'plan-name' is not displayed!`
+- Logs: local per-test logcat contained only the assertion and stack trace; no token, passphrase, or medication payload was recorded.
+- Suspected component: unresolved; requires independent triage of the API33 Compose test/editor state. No production fix was attempted on RC1.
