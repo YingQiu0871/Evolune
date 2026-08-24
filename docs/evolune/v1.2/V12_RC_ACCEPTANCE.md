@@ -358,3 +358,80 @@ require `imeOpenedCycles == CYCLES`, reject impossible `imeBottom > viewHeight`,
 and never treat `occludingCycles > 0` alone as evidence. No production UI
 change is indicated by this triage. RC2/live-service gates, owner-device
 gates, release signing/R8, tags, and releases remain paused.
+
+## RC Preflight — T2 probe closure
+
+Evidence date: 2026-08-24. This test-only follow-up was run on branch
+`v1.2/rc-preflight-t2-ime-probe-fix`, created from the exact HC4 commit
+`6b6cc2a7b283fc0cf9286c68a8cb0c5293c9f37d`. It closes the historical RC1-T2
+probe blocker only; it is not a new RC owner-device validation cycle.
+
+### Exact test fix and coordinate invariant
+
+- `activeWindowRoot()` is no longer used as the geometry source. It could
+  select a focused auxiliary IME root (`840x555`) while Compose semantics
+  remained in the full application window.
+- `applicationContentRoot()` is the activity decor view hosting the Compose
+  semantics. Application dimensions, `WindowInsets.Type.ime()` visibility and
+  bottom inset, `record-dose` and `record-editor-scroll` window bounds, and
+  viewport calculations now all use that same application content window.
+- The probe fails diagnostically if the IME inset exceeds the application
+  root height, or if the scroll bounds leave that root. It does not use a
+  hardcoded resolution, device-specific branch, or fixed root index.
+- A single focused auxiliary root may be used only to issue platform IME
+  show/hide commands. It is never used for geometry or inset measurement; more
+  than one such root is an explicit failure rather than a guess.
+- Every shown and hidden state must settle, and every cycle must be observed:
+  `imeOpenedCycles == CYCLES` (`5/5`). A run with no observed IME is not green
+  evidence.
+
+### Repeated credible probe matrix
+
+| Device | Application root / maximum IME inset | Repeated result |
+|---|---|---|
+| API33-A `evolune-hc3-api33` / `emulator-5554` | `1080x1920` / `1307` | `10/10 PASS`; each run had `5/5` shown, `5/5` hidden, and bounce `0/5` |
+| API33-B `Evolune_API33_Migration` / `emulator-5556` | `1080x2400` / `1307` | `10/10 PASS`; each run had `5/5` shown, `5/5` hidden, and bounce `0/5` |
+| API37 `Pixel_10_Pro_Fold` / `emulator-5558` | `2076x2152` / `1096` | `10/10 PASS`; each run had `5/5` shown, `5/5` hidden, and bounce `0/5` |
+
+### API33-B clean-state retest
+
+The requested base-package command `pm clear io.github.yingqiu0871.evolune`
+returned `Failed` because connected debug instrumentation installs the debug
+application id `io.github.yingqiu0871.evolune.debug`. After reinstalling the
+debug and test APKs, `pm clear io.github.yingqiu0871.evolune.debug` returned
+`Success`. Five further final-probe runs then passed (`5/5`), each observing
+the full `5/5` shown and `5/5` hidden cycles with the `1080x2400` application
+root and `1307` maximum IME inset.
+
+### Full instrumentation and focused HC4 evidence
+
+The full `:app:connectedDebugAndroidTest --rerun-tasks` completed on all three
+devices. JUnit XML reported zero failures and errors:
+
+| Device | Total | Passed | Skipped |
+|---|---:|---:|---:|
+| API33-A | 152 | 149 | 3 |
+| API33-B | 152 | 149 | 3 |
+| API37 Fold | 152 | 150 | 2 |
+
+The focused `HealthConnectSyncScreenTest` also completed `6/6` on each of the
+three devices. No skipped or failed focused HC4 test was observed.
+
+### JVM, build, and historical regression evidence
+
+The required JVM and build suite completed successfully:
+
+- app unit tests: `575/575`
+- `experience-core`: `38/38`
+- wear unit tests: `27/27`
+- `:app:assembleDebug`: PASS
+- `:wear:assembleDebug`: PASS
+
+The focused historical slices also completed `100/100`: HC4 coordinator,
+HRT R-09, B1 golden codec, B2 restore transaction, backup/restore coordinator,
+and B3 Google Drive provider/gateway tests all reported zero failures and
+errors.
+
+This closes the historical RC1-T2-B test/probe blocker only. It does not
+change production code, start a new RC cycle, close owner-device or live-Drive
+gates, change release signing/R8 status, create a tag, or create a release.

@@ -89,6 +89,9 @@ class RealAppImeFrameProbeTest {
 
     private data class Frame(
         val tMs: Long,
+        val appRootWidth: Int,
+        val appRootHeight: Int,
+        val imeVisible: Boolean,
         val imeBottom: Int,
         val fieldTop: Float,
         val fieldBottom: Float,
@@ -96,77 +99,115 @@ class RealAppImeFrameProbeTest {
         val scrollMax: Float
     )
 
-    private fun readViewHeight(): Int {
-        var h = 0
-        InstrumentationRegistry.getInstrumentation().runOnMainSync { h = activeWindowRoot().height }
-        return h
+    private data class ApplicationWindowMetrics(
+        val width: Int,
+        val height: Int,
+        val imeVisible: Boolean,
+        val imeBottom: Int
+    )
+
+    /**
+     * Returns the stable application window that hosts the Compose semantics.
+     *
+     * The focused WindowManager root is not an application-root identity: when
+     * the test IME is shown, Android can focus the IME's auxiliary window. Its
+     * 840x555 geometry must never be combined with the app's full-window
+     * semantics bounds. The Activity decor view is the explicit owner of the
+     * content under test and receives the corresponding app WindowInsets.
+     */
+    private fun applicationContentRoot(): View {
+        check(android.os.Looper.myLooper() == android.os.Looper.getMainLooper())
+        return composeRule.activity.window.decorView
     }
 
-    private fun readImeInset(): Int {
-        var imeBottom = 0
+    private fun readApplicationWindowMetrics(): ApplicationWindowMetrics {
+        var metrics: ApplicationWindowMetrics? = null
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            imeBottom = activeWindowRoot().rootWindowInsets
-                ?.getInsets(WindowInsets.Type.ime())
-                ?.bottom
-                ?: 0
+            val root = applicationContentRoot()
+            val insets = root.rootWindowInsets
+            val imeInsets = insets?.getInsets(WindowInsets.Type.ime())
+            metrics = ApplicationWindowMetrics(
+                width = root.width,
+                height = root.height,
+                imeVisible = insets?.isVisible(WindowInsets.Type.ime()) == true,
+                imeBottom = imeInsets?.bottom ?: 0
+            )
         }
-        return imeBottom
+        val result = requireNotNull(metrics) { "Application window metrics were not read" }
+        check(result.imeBottom in 0..result.height) {
+            "Coordinate-space mismatch: IME bottom=${result.imeBottom} exceeds " +
+                "application content root height=${result.height}; " +
+                "imeVisible=${result.imeVisible}"
+        }
+        return result
     }
 
     /**
-     * Drives the real platform IME animation. Clicking an already-focused field
-     * does not re-show a hidden keyboard, so each cycle asks the window insets
-     * controller directly. The app's scroll response to the resulting inset
-     * change is what this probe measures - the trigger is not faked, only made
-     * deterministic.
+     * Drives the real platform IME animation. Each visible cycle re-activates
+     * the editor field through Compose semantics, then asks the app's actual
+     * IME control root to issue the platform show/hide command. That control
+     * root is never used for geometry: the app window's scroll response to the
+     * resulting inset change is what this probe measures; the trigger is real
+     * user-facing focus, only made deterministic for repetition.
      */
     private fun setImeVisible(visible: Boolean) {
+        if (visible) {
+            // Re-activate the real editor target after the previous hide. This
+            // restores the app window's input connection without selecting an
+            // auxiliary IME root or bypassing the user-facing focus path.
+            composeRule.onNodeWithTag("record-dose").performClick()
+            composeRule.waitForIdle()
+        }
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            val root = activeWindowRoot()
-            val focused = root.findFocus() ?: root
+            val appRoot = applicationContentRoot()
+            val controlRoot = imeControlRoot()
+            val focused = controlRoot.findFocus() ?: appRoot.findFocus() ?: appRoot
             Log.i(
                 TAG,
-                "setImeVisible visible=$visible root=${root.javaClass.name} " +
-                    "focus=$focused rootFocus=${root.hasWindowFocus()}"
+                "setImeVisible visible=$visible appRoot=${appRoot.javaClass.name} " +
+                    "controlRoot=${controlRoot.javaClass.name} focus=$focused " +
+                    "controlRootFocus=${controlRoot.hasWindowFocus()}"
             )
             if (Build.VERSION.SDK_INT >= 30) {
-                root.windowInsetsController?.let { controller ->
+                controlRoot.windowInsetsController?.let { controller ->
                     if (visible) controller.show(WindowInsets.Type.ime())
                     else controller.hide(WindowInsets.Type.ime())
                 }
             }
-            val inputMethodManager = root.context.getSystemService(InputMethodManager::class.java)
+            val inputMethodManager = controlRoot.context
+                .getSystemService(InputMethodManager::class.java)
             if (visible) {
                 inputMethodManager?.showSoftInput(focused, InputMethodManager.SHOW_IMPLICIT)
             } else {
-                inputMethodManager?.hideSoftInputFromWindow(root.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+                inputMethodManager?.hideSoftInputFromWindow(
+                    controlRoot.windowToken,
+                    InputMethodManager.HIDE_NOT_ALWAYS
+                )
             }
         }
     }
 
     /**
-     * The record editor is a Compose Dialog, so its focused window is not the
-     * Activity window exposed by createAndroidComposeRule. Resolve the actual
-     * focused root from WindowManagerGlobal for both insets and IME control.
+     * Finds a root only for sending show/hide commands to the test IME. This
+     * helper is intentionally not used for any geometry or insets measurement.
+     * If Android exposes more than one non-application focused root, failing is
+     * safer than guessing which auxiliary window owns IME control.
      */
-    private fun activeWindowRoot(): View {
-        val roots = windowRootsOnMainThread()
-        val focused = roots.filter { it.hasWindowFocus() && it.isShown }
-        val root = (focused.ifEmpty { roots.filter { it.isShown } })
-            .maxByOrNull { it.width.toLong() * it.height.toLong() }
-            ?: composeRule.activity.window.decorView
-        if (roots.size > 1) {
-            Log.i(
-                TAG,
-                "windowRoots selected=${root.javaClass.name} focus=${root.hasWindowFocus()} " +
-                    "size=${root.width}x${root.height} all=" +
-                    roots.joinToString { view ->
-                        "${view.javaClass.simpleName}:${view.width}x${view.height}:" +
-                            "focus=${view.hasWindowFocus()} ime=${view.rootWindowInsets?.getInsets(WindowInsets.Type.ime())?.bottom}"
-                    }
+    private fun imeControlRoot(): View {
+        check(Looper.myLooper() == Looper.getMainLooper())
+        val appRoot = applicationContentRoot()
+        val auxiliaryRoots = windowRootsOnMainThread().filter {
+            it !== appRoot && it.hasWindowFocus() && it.isShown
+        }
+        return when (auxiliaryRoots.size) {
+            0 -> appRoot
+            1 -> auxiliaryRoots.single()
+            else -> error(
+                "Ambiguous IME control roots: ${auxiliaryRoots.joinToString { root ->
+                    "${root.javaClass.simpleName}:${root.width}x${root.height}"
+                }}"
             )
         }
-        return root
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -188,19 +229,75 @@ class RealAppImeFrameProbeTest {
     }
 
     private fun readFrame(): Frame {
-        val imeBottom = readImeInset()
+        val window = readApplicationWindowMetrics()
         val now = SystemClock.elapsedRealtime()
         val field = composeRule.onNodeWithTag("record-dose").fetchSemanticsNode()
         val scroll = composeRule.onNodeWithTag("record-editor-scroll").fetchSemanticsNode()
+        requireSameApplicationWindow(
+            label = "record-editor-scroll",
+            bounds = scroll.boundsInWindow,
+            window = window,
+            requireFullyWithinWindow = true
+        )
+        requireSameApplicationWindow(
+            label = "record-dose",
+            bounds = field.boundsInWindow,
+            window = window,
+            requireFullyWithinWindow = false
+        )
         val range = scroll.config[SemanticsProperties.VerticalScrollAxisRange]
         return Frame(
             now,
-            imeBottom,
+            window.width,
+            window.height,
+            window.imeVisible,
+            window.imeBottom,
             field.boundsInWindow.top,
             field.boundsInWindow.bottom,
             range.value(),
             range.maxValue()
         )
+    }
+
+    private fun requireSameApplicationWindow(
+        label: String,
+        bounds: androidx.compose.ui.geometry.Rect,
+        window: ApplicationWindowMetrics,
+        requireFullyWithinWindow: Boolean
+    ) {
+        check(window.width > 0 && window.height > 0) {
+            "Application content root is not laid out: ${window.width}x${window.height}; " +
+                "$label bounds=$bounds"
+        }
+        val outsideLeft = -bounds.right
+        val outsideTop = -bounds.bottom
+        val outsideRight = bounds.left - window.width
+        val outsideBottom = bounds.top - window.height
+        val isOutside = outsideLeft > 0f || outsideTop > 0f ||
+            outsideRight > 0f || outsideBottom > 0f
+        if (requireFullyWithinWindow && isOutside) {
+            error(
+                "Coordinate-space mismatch: $label boundsInWindow=$bounds are outside " +
+                    "application content root ${window.width}x${window.height}; " +
+                    "imeVisible=${window.imeVisible} imeBottom=${window.imeBottom}"
+            )
+        }
+        if (!requireFullyWithinWindow && isOutside) {
+            val outsideDistance = maxOf(
+                outsideLeft.coerceAtLeast(0f),
+                outsideTop.coerceAtLeast(0f),
+                outsideRight.coerceAtLeast(0f),
+                outsideBottom.coerceAtLeast(0f)
+            )
+            val nodeExtent = maxOf(bounds.width, bounds.height)
+            if (outsideDistance > nodeExtent) {
+                error(
+                    "Coordinate-space mismatch: $label boundsInWindow=$bounds are not " +
+                        "in application content root ${window.width}x${window.height}; " +
+                        "imeVisible=${window.imeVisible} imeBottom=${window.imeBottom}"
+                )
+            }
+        }
     }
 
     /**
@@ -225,7 +322,7 @@ class RealAppImeFrameProbeTest {
             val f = readFrame()
             frames += f
             if (!stateReached && requireImeState != null) {
-                stateReached = if (requireImeState) f.imeBottom > 0 else f.imeBottom == 0
+                stateReached = if (requireImeState) f.imeVisible else !f.imeVisible
             }
             val moved = f.imeBottom != lastIme ||
                 lastField.isNaN() || kotlin.math.abs(f.fieldTop - lastField) > 0.5f ||
@@ -239,7 +336,21 @@ class RealAppImeFrameProbeTest {
         return frames
     }
 
+    private fun assertImeSettled(
+        label: String,
+        frames: List<Frame>,
+        expectedVisible: Boolean
+    ) {
+        assertTrue(
+            "$label did not settle with imeVisible=$expectedVisible; " +
+                "lastFrame=${frames.lastOrNull()}",
+            frames.lastOrNull()?.imeVisible == expectedVisible
+        )
+    }
+
     private data class Metrics(
+        val appRootWidth: Int,
+        val appRootHeight: Int,
         val imeFirstOpenMs: Long,
         val imeSettledMs: Long,
         val dirChanges: Int,
@@ -262,7 +373,6 @@ class RealAppImeFrameProbeTest {
     private fun analyse(
         label: String,
         frames: List<Frame>,
-        viewHeight: Int,
         baselineFieldBottom: Float
     ): Metrics {
         Log.i(TAG, "=== $label frames=${frames.size} ===")
@@ -304,7 +414,7 @@ class RealAppImeFrameProbeTest {
             if (dir != 0 && lastDir != 0 && dir != lastDir) dirChanges += 1
             if (dir != 0) lastDir = dir
 
-            if (imeSettledMs < 0 && f.imeBottom > 0 && index > 0 && kotlin.math.abs(imeVel) <= 0.05f) {
+            if (imeSettledMs < 0 && f.imeVisible && index > 0 && kotlin.math.abs(imeVel) <= 0.05f) {
                 imeSettledMs = f.tMs - t0
             }
             if (imeSettledMs >= 0 && lateScrollMs < 0 &&
@@ -316,34 +426,39 @@ class RealAppImeFrameProbeTest {
             if (index == 0 || index == frames.lastIndex || moving || imeVel != 0f) {
                 Log.i(
                     TAG,
-                    "F%03d t=%d ime=%d(%+.2f) field=%.0f(%+.2f) scroll=%.0f/%.0f".format(
-                        index, f.tMs - t0, f.imeBottom, imeVel, f.fieldTop, fieldVel,
-                        f.scroll, f.scrollMax
-                    )
+                    "F${index.toString().padStart(3, '0')} t=${f.tMs - t0} " +
+                        "appRoot=${f.appRootWidth}x${f.appRootHeight} " +
+                        "imeVisible=${f.imeVisible} ime=${f.imeBottom}($imeVel) " +
+                        "field=${f.fieldTop}..${f.fieldBottom}($fieldVel) " +
+                        "viewport=${f.appRootHeight - f.imeBottom} " +
+                        "scroll=${f.scroll}/${f.scrollMax}"
                 )
             }
             prev = f
         }
-        val imeOpen = frames.firstOrNull { it.imeBottom > 0 }?.let { it.tMs - t0 } ?: -1L
+        val imeOpen = frames.firstOrNull { it.imeVisible }?.let { it.tMs - t0 } ?: -1L
         val imeMax = frames.maxOf { it.imeBottom }
         // Would the keyboard cover where the field rests when unscrolled?
-        val occluded = viewHeight > 0 && baselineFieldBottom > 0f &&
-            (viewHeight - imeMax) < baselineFieldBottom
+        val occlusionFrame = frames.maxByOrNull { it.imeBottom } ?: frames.last()
+        val occluded = baselineFieldBottom > 0f &&
+            (occlusionFrame.appRootHeight - imeMax) < baselineFieldBottom
         val last = frames.last()
         val m = Metrics(
+            last.appRootWidth,
+            last.appRootHeight,
             imeOpen, imeSettledMs, dirChanges, motionPhases, lateScrollMs, travel,
             maxFieldSpeed, imeMax, occluded, last.fieldBottom, last.imeBottom,
-            viewHeight - last.imeBottom
+            last.appRootHeight - last.imeBottom
         )
         Log.i(
             TAG,
-            ("SUMMARY $label imeFirstOpen=%dms imeSettled=%dms dirChanges=%d motionPhases=%d " +
-                "lateScrollAt=%dms fieldTravel=%.0fpx maxFieldSpeed=%.2fpx/ms imeMax=%d " +
-                "occludesField=%b endFieldBottom=%.0f endViewportBottom=%d").format(
-                m.imeFirstOpenMs, m.imeSettledMs, m.dirChanges, m.motionPhases,
-                m.lateScrollMs, m.fieldTravel, m.maxFieldSpeed, imeMax, occluded,
-                m.endFieldBottom, m.endViewportBottom
-            )
+            "SUMMARY $label appRoot=${m.appRootWidth}x${m.appRootHeight} " +
+                "imeFirstOpen=${m.imeFirstOpenMs}ms imeSettled=${m.imeSettledMs}ms " +
+                "dirChanges=${m.dirChanges} motionPhases=${m.motionPhases} " +
+                "lateScrollAt=${m.lateScrollMs}ms fieldTravel=${m.fieldTravel}px " +
+                "maxFieldSpeed=${m.maxFieldSpeed}px/ms imeMax=$imeMax " +
+                "occludesField=$occluded endFieldBottom=${m.endFieldBottom} " +
+                "endViewportBottom=${m.endViewportBottom}"
         )
         Log.i(TAG, "=== end $label ===")
         return m
@@ -382,19 +497,35 @@ class RealAppImeFrameProbeTest {
         // Focusing already opened the keyboard, so close it before measuring:
         // the baseline must be the field's resting position with no IME on screen.
         setImeVisible(false)
-        sampleUntilStill(maxMs = 6_000L, stableMs = 600L, requireImeState = false)
-        val viewHeight = readViewHeight()
-        val baselineFieldBottom = readFrame().fieldBottom
-        Log.i(TAG, "BASELINE viewHeight=$viewHeight fieldBottom=$baselineFieldBottom imeClosed")
+        val baselineFrames = sampleUntilStill(
+            maxMs = 6_000L,
+            stableMs = 600L,
+            requireImeState = false
+        )
+        assertImeSettled("baseline hide", baselineFrames, expectedVisible = false)
+        val baseline = readFrame()
+        val baselineFieldBottom = baseline.fieldBottom
+        Log.i(
+            TAG,
+            "BASELINE appRoot=${baseline.appRootWidth}x${baseline.appRootHeight} " +
+                "fieldBounds=${baseline.fieldTop}..${baseline.fieldBottom} " +
+                "imeVisible=${baseline.imeVisible} imeBottom=${baseline.imeBottom}"
+        )
         repeat(CYCLES) { cycle ->
             setImeVisible(true)
             val up = sampleUntilStill(maxMs = 8_000L, stableMs = 600L, requireImeState = true)
-            focusMetrics += analyse("cycle-${cycle + 1}-focus", up, viewHeight, baselineFieldBottom)
+            assertImeSettled("cycle-${cycle + 1}-focus", up, expectedVisible = true)
+            focusMetrics += analyse("cycle-${cycle + 1}-focus", up, baselineFieldBottom)
             setImeVisible(false)
+            val down = sampleUntilStill(
+                maxMs = 8_000L,
+                stableMs = 600L,
+                requireImeState = false
+            )
+            assertImeSettled("cycle-${cycle + 1}-hide", down, expectedVisible = false)
             analyse(
                 "cycle-${cycle + 1}-hide",
-                sampleUntilStill(maxMs = 8_000L, stableMs = 600L, requireImeState = false),
-                viewHeight,
+                down,
                 baselineFieldBottom
             )
         }
@@ -407,7 +538,16 @@ class RealAppImeFrameProbeTest {
         Log.i(
             TAG,
             "VERDICT imeOpenedCycles=$opened/$CYCLES occludingCycles=$occluding/$CYCLES " +
-                "maxImeInset=${maxIme}px viewHeight=${viewHeight}px baselineFieldBottom=$baselineFieldBottom"
+                "maxImeInset=${maxIme}px appRoot=" +
+                "${focusMetrics.firstOrNull()?.appRootWidth}x${focusMetrics.firstOrNull()?.appRootHeight} " +
+                "baselineFieldBottom=$baselineFieldBottom"
+        )
+
+        assertTrue(
+            "INCONCLUSIVE: IME was stably shown in only $opened/$CYCLES cycles; " +
+                "maxImeInset=${maxIme}px. Every cycle must observe the real app " +
+                "IME before motion analysis is considered evidence.",
+            opened == CYCLES
         )
 
         // A suggestion strip (~63px on an AVD with hw.keyboard=yes) satisfies
@@ -415,7 +555,9 @@ class RealAppImeFrameProbeTest {
         // bounce at all, so it must fail as INCONCLUSIVE rather than pass green.
         assertTrue(
             "INCONCLUSIVE: IME never occluded the dose field (maxImeInset=${maxIme}px, " +
-                "viewHeight=${viewHeight}px, baselineFieldBottom=$baselineFieldBottom). " +
+                "appRoot=${focusMetrics.firstOrNull()?.appRootWidth}x" +
+                "${focusMetrics.firstOrNull()?.appRootHeight}, " +
+                "baselineFieldBottom=$baselineFieldBottom). " +
                 "The app had no reason to scroll, so dirChanges=0 is not evidence of a fix. " +
                 "Use a device/AVD where a full soft keyboard renders (hw.keyboard=no).",
             occluding > 0
