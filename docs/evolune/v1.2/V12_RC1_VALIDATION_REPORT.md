@@ -78,6 +78,56 @@ AVD had 123/146 completed, 120 passed, 0 failed, 3 skipped; API37 Fold had
 123/146 completed, 120 passed, 0 failed, 3 skipped. Their remaining 23 tests
 are `NOT TESTED`, not PASS.
 
+## RC1-T1 triage result
+
+Triage date: `2026-08-24`. Temporary diagnostic assertions and
+`printToLog` semantics output were added only for the triage run and reverted
+before commit.
+
+| Test | API33-A `emulator-5554` | API33-B `emulator-5556` | API37 `emulator-5558` |
+|---|---|---|---|
+| `invalidDraftSkipsRepositoryAndKeepsEditorOpen` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+| `saveFailureKeepsEditorOpenAndShowsError` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+| `deleteFailureKeepsEditorOpen` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+
+API35 was `NOT TESTED`: no API35 target was online and the local shell did not
+provide an `emulator` launcher to start the available AVD.
+
+### Semantics and first divergence
+
+Before each action, `plan-editor-surface` and `plan-name` existed, with
+`plan-name` approximately at `l=63, t=271, r=1017, b=439`. The save/delete
+action completed, the expected fake repository call count was reached, and
+the ViewModel failure state was reached.
+
+After each failure, `editSession` remained non-null and the editor surface
+remained in composition. `plan-name` remained in the semantics tree with its
+text and editable actions, but after the test's `performScrollTo()` on the
+bottom action its bounds were approximately
+`l=63, t=-318, r=1017, b=-150`; the scroll range was at its end
+(`value=589`, `maxValue=674`). `plan-error` was present and displayed.
+
+The first divergent step is the final assertion's interpretation of physical
+visibility. The editor was logically open; the node was merely outside the
+clipped viewport. No editor close, missing composition, animation deadlock,
+IME obstruction, or repository state transition was observed.
+
+### AVD configuration and clean-state retest
+
+- API33-A: `1080x1920`, density `420`, rotation `0`, navigation mode `2`,
+  transition/window animation `1.0`, IME hidden.
+- API33-B: `1080x2400`, density `420`, rotation `0`, navigation mode `2`,
+  transition/window animation `1.0`, IME hidden, top display cutout present.
+- After `pm clear io.github.yingqiu0871.evolune.debug` and reinstalling the
+  debug/test APKs on API33-A, all three tests failed once again with the same
+  assertion. Stale app state is excluded.
+
+Classification: `T1-B — test harness/test assertion bug`, reproduced across
+both API33 AVDs and API37. The narrow next action is a separate RC1-Fix-Test
+change: use `assertExists()` for the logical-editor-open contract, or scroll
+the field into view before asserting display if physical visibility is the
+intended contract. No production UI change is indicated by this triage.
+
 ## Google OAuth and live Drive
 
 Status: `BLOCKED`.

@@ -114,3 +114,59 @@ RC1 is a validation branch and is not a release publication.
 - Actual: `java.lang.AssertionError: Assert failed: The component with TestTag = 'plan-name' is not displayed!`
 - Logs: local per-test logcat contained only the assertion and stack trace; no token, passphrase, or medication payload was recorded.
 - Suspected component: unresolved; requires independent triage of the API33 Compose test/editor state. No production fix was attempted on RC1.
+
+## RC1-T1 API33 MedicationPlans instrumentation triage
+
+Evidence date: `2026-08-24`. Temporary diagnostic assertions and semantics
+logging were used only during triage and were reverted before documentation
+commit.
+
+| Test | API33-A `emulator-5554` | API33-B `emulator-5556` | API37 `emulator-5558` |
+|---|---|---|---|
+| `invalidDraftSkipsRepositoryAndKeepsEditorOpen` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+| `saveFailureKeepsEditorOpenAndShowsError` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+| `deleteFailureKeepsEditorOpen` | 5/5 FAIL | 3/3 FAIL | 3/3 FAIL |
+
+API35 was `NOT TESTED`: no API35 device was online and the local shell did not
+provide an `emulator` launcher to start the available AVD.
+
+### First divergent state and semantics evidence
+
+- Before each action, `plan-editor-surface` and `plan-name` both existed;
+  `plan-name` bounds were approximately `l=63, t=271, r=1017, b=439`.
+- The save/delete click completed: the expected repository call count and
+  `MedicationPlanOperationState.Failure` were reached.
+- After each failure, `editSession` remained non-null,
+  `plan-editor-surface` remained in composition, and `plan-name` remained in
+  the semantics tree with its text and editable actions.
+- After `performScrollTo()` on the bottom action, the scroll range was at its
+  end (`value=589`, `maxValue=674`) and `plan-name` bounds were approximately
+  `l=63, t=-318, r=1017, b=-150`. The node existed but was outside the clipped
+  viewport, so `assertIsDisplayed()` failed.
+- `plan-error` remained present and displayed for the failure paths.
+
+The first divergence is therefore the assertion semantic, not editor state:
+the test asks for physical visibility of a field after deliberately scrolling
+to a bottom action, while the test name requires logical editor persistence.
+There was no evidence of editor dismissal, missing composition, animation
+deadlock, IME obstruction, or repository-driven state closure.
+
+### AVD configuration and clean-state check
+
+- API33-A: `1080x1920`, density `420`, rotation `0`, navigation mode `2`,
+  transition/window animation `1.0`, IME hidden.
+- API33-B: `1080x2400`, density `420`, rotation `0`, navigation mode `2`,
+  transition/window animation `1.0`, IME hidden, top display cutout present.
+- After `pm clear io.github.yingqiu0871.evolune.debug` and reinstalling the
+  debug/test APKs on API33-A, all three tests still failed once each with the
+  same `plan-name` not displayed assertion. Stale app state is not the cause.
+
+### T1 classification and next action
+
+Classification: `T1-B — test harness/test assertion bug`.
+
+Recommended narrow follow-up on a separate RC1-Fix-Test branch: preserve the
+existing logical-open assertions and replace only the post-operation
+`plan-name.assertIsDisplayed()` checks with `assertExists()`, or explicitly
+scroll the field into view before asserting display if physical visibility is
+intended. Do not change production UI code based on this evidence.
