@@ -208,3 +208,80 @@ minified App/Wear release and R8 smoke, and final owner review.
 No production code was modified. No tag or release was created. The protected
 `D:\Evolune` root and the old linked worktree
 `D:\Evolune-Workspace\current\Evolune` were not touched.
+
+## RC1-R2B — Live Google Drive Validation
+
+### Scope and lineage
+
+This is a docs-only post-HC4 validation follow-up. The approved RC1 base was
+`da2c0142a8de40735ef52ae7a14948ef716cffee`, and the validation branch was
+`v1.2/rc1-r2b-live-google-drive`. The separate R2A API35 triage commit was
+`b8ad70ea7dad2feab79407848ab1195078a63e24` (docs-only, sibling lineage); R2B
+was intentionally based on the approved RC1 commit rather than guessing a new
+ancestry. No Kotlin, Java, XML, Manifest, Gradle, or test source was modified.
+
+### API37 Fold and Google account evidence
+
+| Item | Evidence |
+|---|---|
+| Target | `Pixel_10_Pro_Fold`, `emulator-5554`, API37 / Android 17 |
+| Display | 2076x2152, density 390, font scale 1.0 |
+| Package | `io.github.yingqiu0871.evolune.debug` |
+| Debug SHA-1 | `9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B` |
+| GMS | `pm path com.google.android.gms` returned installed APK paths |
+| Account | GMS account chooser displayed the owner-provided test account; report-masked as `g***@gmail.com` |
+| Service evidence level | `LIVE GOOGLE SERVICE` for the real AuthorizationClient flow; no token value was logged or persisted in the report |
+
+The account chooser displayed `Evolune` requesting access, the test account
+was selected, and Evolune resumed with `已连接（当前会话）`. No
+`DEVELOPER_ERROR` or error code 10 was observed. This is authorization-flow
+evidence only; it does not prove a Drive file write.
+
+### OAuth scope and isolation audit
+
+The production contract/factory audit found only
+`https://www.googleapis.com/auth/drive.appdata`. No `drive`, `drive.file`,
+`drive.readonly`, offline access, refresh token, or server-auth-code path was
+found. The intended isolation semantics are per-user Google Drive
+`appDataFolder`, hidden from normal My Drive UI, Evolune-only, and
+client-side-encrypted. No Evolune server storage is claimed.
+
+### Gate results
+
+Every R2B gate uses exactly one of `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED`.
+
+| Gate | Status | Evidence level and result |
+|---|---|---|
+| Real OAuth authorization | `PASS` | `LIVE GOOGLE SERVICE` — account chooser completed and app returned connected |
+| `drive.appdata`-only scope audit | `PASS` | `LIVE GOOGLE SERVICE` — source contract/factory audit; no broader or offline scope path |
+| First live upload | `FAIL` | `LIVE GOOGLE SERVICE` — synthetic non-sensitive state and passphrase were submitted; app returned `备份上传失败` |
+| Readback byte/SHA verification | `NOT TESTED` | `LIVE GOOGLE SERVICE` — no verified generation after upload failure |
+| List/download/decrypt/preview | `NOT TESTED` | `LIVE GOOGLE SERVICE` — stopped before remote generation selection |
+| G1/G2/G3/G4 retention | `NOT TESTED` | `LIVE GOOGLE SERVICE` — no generation sequence or deletion pass attempted |
+| Disconnect/reauthorization | `NOT TESTED` | `LIVE GOOGLE SERVICE` — stopped before disconnect |
+| A→B→A preview and destructive restore | `NOT TESTED` | `LIVE GOOGLE SERVICE` — no download or restore reached |
+| HC4 device-local preference after restore | `NOT TESTED` | `LIVE GOOGLE SERVICE` — no restore reached |
+
+The first upload failure is an `RC1_BLOCKER` under the requested policy:
+authorization had succeeded, but the app’s real backup action did not complete.
+The user-visible result was the stable generic `备份上传失败`; no fileId,
+remote generation, readback hash, or remote HTTP response category was
+available to promote. A read-only diagnostic TCP probe to
+`www.googleapis.com:443` and `oauth2.googleapis.com:443` succeeded from the
+Fold, but this is not proof of a successful authenticated Drive write. The
+run therefore stopped without retrying or changing production code.
+
+### Regression result and stop condition
+
+The requested fresh regression could not start a new trustworthy result in
+this environment. `:app:assembleDebug --rerun-tasks` reached dependency
+resolution and failed on a TLS handshake while resolving
+`com.android.tools.build:builder-test-api:9.0.1`; the later
+`:app:testDebugUnitTest --rerun-tasks` was blocked by Gradle 9.2.1 distribution
+download `SocketException: Permission denied: getsockopt`. Previously accepted
+RC1-HC4 unit/build results remain historical and are not counted as R2B reruns.
+
+No production or test source change was made, no diagnostic source diff was
+left behind, and no tag/release or RC2 was created. R2B stops here with the
+live-upload `RC1_BLOCKER` and the pre-existing release/device gates still
+open.

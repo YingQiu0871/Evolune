@@ -693,5 +693,100 @@ release gate.
    verification, and signed smoke.
 7. Final owner evidence review.
 
-No production behavior failure was observed in this cycle. No tag, GitHub
-Release, Play publication, or RC2 was created.
+No production behavior failure was observed in the earlier RC1-HC4 cycle. The
+subsequent R2B live gate is recorded below. No tag, GitHub Release, Play
+publication, or RC2 was created.
+
+## RC1-R2B — Live Google Drive Validation
+
+This is the current post-HC4 live-service validation record. The branch is
+based on the approved RC1 commit `da2c0142a8de40735ef52ae7a14948ef716cffee`.
+The separate R2A API35 triage produced the docs-only sibling commit
+`b8ad70ea7dad2feab79407848ab1195078a63e24`; it is not an ancestor of this
+validation branch. No production source or test source was changed for R2B.
+
+The pre-R2B Google Drive rows above remain historical context. The rows below
+are the current R2B results and use only `PASS`, `FAIL`, `BLOCKED`, or
+`NOT TESTED`.
+
+### Owner configuration and authorization
+
+- [x] `PASS` — debug OAuth identity matched the owner configuration — evidence:
+  `2026-08-24 | API37 Pixel_10_Pro_Fold / emulator-5554 | package
+  io.github.yingqiu0871.evolune.debug | LIVE GOOGLE SERVICE | installed debug
+  APK SHA-1 9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B;
+  owner-provided Android OAuth client used the same package and SHA-1`.
+- [x] `PASS` — Google account authorization flow — evidence:
+  `2026-08-24 | GMS account chooser displayed the owner-provided test account
+  (masked as g***@gmail.com) and the user-selected account | LIVE GOOGLE
+  SERVICE | AuthorizationClient account UI completed; Evolune resumed with
+  “已连接（当前会话）”; no DEVELOPER_ERROR/10 was observed`.
+- [x] `PASS` — Google Play Services availability — evidence:
+  `2026-08-24 | emulator-5554 | pm path com.google.android.gms returned
+  installed GMS APK paths | LIVE GOOGLE SERVICE`.
+- [x] `PASS` — scope contract audit — evidence:
+  `2026-08-24 | source audit of GoogleDriveAuthorizationContract and
+  GoogleAuthorizationRequestFactory | LIVE GOOGLE SERVICE | requested scope
+  is drive.appdata only; no drive, drive.file, drive.readonly, offline access,
+  refresh-token, or server-auth-code path`.
+
+### Live backup and restore gates
+
+- [ ] `FAIL` — first live encrypted upload — evidence:
+  `2026-08-24 | API37 Pixel_10_Pro_Fold / emulator-5554 | synthetic
+  non-sensitive state and passphrase entered after successful authorization |
+  LIVE GOOGLE SERVICE | app returned “备份上传失败”; no fileId was promoted
+  and no upload/readback success is claimed`.
+- [ ] `NOT TESTED` — remote readback byte/SHA verification — evidence:
+  `2026-08-24 | R2B stopped immediately after upload failure | LIVE GOOGLE
+  SERVICE | no verified generation`.
+- [ ] `NOT TESTED` — remote list and bounded download/decrypt/preview —
+  evidence: `2026-08-24 | R2B stopped by fail policy | LIVE GOOGLE SERVICE |
+  no generation was selected or downloaded`.
+- [ ] `NOT TESTED` — four-generation retention G1/G2/G3/G4 — evidence:
+  `2026-08-24 | no verified G1 generation; no G2/G3/G4 sequence attempted |
+  LIVE GOOGLE SERVICE | no retention or deletion operation was attempted`.
+- [ ] `NOT TESTED` — disconnect and reauthorization preservation — evidence:
+  `2026-08-24 | R2B stopped before disconnect/reconnect | LIVE GOOGLE SERVICE |
+  remote backup preservation and explicit reauthorization were not exercised`.
+- [ ] `NOT TESTED` — A→B→A preview, destructive confirm, and final semantic
+  state — evidence: `2026-08-24 | no live generation/readback; no destructive
+  restore confirmation | LIVE GOOGLE SERVICE | plans, slots, events,
+  bodyWeight, and supported settings were not promoted as restored evidence`.
+- [ ] `NOT TESTED` — Health Connect weight-sync preference remains device-local
+  across B1 restore — evidence: `2026-08-24 | no restore reached | LIVE GOOGLE
+  SERVICE | no post-restore preference result`.
+
+The upload failure is an `RC1_BLOCKER`: authorization succeeded in the real
+Google account flow, but the first backup action did not complete. The app
+exposed only the stable “备份上传失败” result, and no remote HTTP category or
+response body was available in the user-visible evidence. TCP connectivity to
+`www.googleapis.com:443` and `oauth2.googleapis.com:443` was reachable from
+the Fold at diagnostic time, but that is not evidence of a successful Drive
+write. Per the R2B policy, no retry or workaround was used and all subsequent
+live gates were stopped.
+
+### Remote isolation semantics
+
+The intended backup boundary remains: each backup is stored in the signed-in
+user’s own Google Drive `appDataFolder`, hidden from normal My Drive UI,
+Evolune-only, and client-side encrypted before upload. R2B did not complete a
+verified upload, so this run makes no claim that a remote generation was
+created or that retention state was observed. No Evolune server storage is
+claimed.
+
+### R2B regression and release state
+
+The requested fresh Gradle regression was blocked before a new result could be
+promoted. `:app:assembleDebug --rerun-tasks` reached Gradle dependency
+resolution in an isolated Gradle home and failed on the TLS handshake for
+`com.android.tools.build:builder-test-api:9.0.1`; a subsequent
+`:app:testDebugUnitTest --rerun-tasks` was blocked while downloading the Gradle
+9.2.1 distribution with `SocketException: Permission denied: getsockopt`.
+The previously accepted RC1-HC4 unit/build results remain historical evidence;
+they are not relabeled as an R2B rerun.
+
+No production code, tests, manifest, Gradle configuration, tag, release, or
+RC2 was changed or created in R2B. The live upload blocker, release signing
+gate, physical-device gates, and remaining Health Connect owner gates remain
+open.
