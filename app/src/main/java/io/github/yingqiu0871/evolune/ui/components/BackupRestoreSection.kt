@@ -346,6 +346,5 @@ private fun backupRestoreErrorText(code: BackupRestoreErrorCode): String = when 
     BackupRestoreErrorCode.INVALID_OR_CORRUPT_BACKUP -> stringResource(R.string.settings_backup_error_corrupt)
     BackupRestoreErrorCode.RESTORE_FAILED -> stringResource(R.string.settings_backup_error_restore)
     BackupRestoreErrorCode.RECOVERY_REQUIRED -> stringResource(R.string.settings_backup_error_recovery)
-    BackupRestoreErrorCode.RESTORE_SUCCEEDED_REFRESH_PENDING -> stringResource(R.string.settings_restore_success_refresh_warning)
     BackupRestoreErrorCode.DISCONNECT_FAILED -> stringResource(R.string.settings_backup_error_disconnect)
 }

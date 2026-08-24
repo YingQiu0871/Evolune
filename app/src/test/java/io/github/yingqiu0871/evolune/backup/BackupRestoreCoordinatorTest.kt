@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.backup
 
 import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationOperationResult
+import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationResolution
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationGateway
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
@@ -10,7 +11,11 @@ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupResult
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadMetadata
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadResult
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
@@ -30,6 +35,73 @@ class BackupRestoreCoordinatorTest {
         assertEquals(0, fixture.provider.listCalls)
         assertEquals(0, fixture.provider.uploadCalls)
         assertEquals(0, fixture.provider.downloadCalls)
+    }
+
+    @Test
+    fun `view model ignores a second backup submission while busy`() = runBlocking {
+        val fixture = Fixture()
+        val uploadEntered = CompletableDeferred<Unit>()
+        val releaseUpload = CompletableDeferred<Unit>()
+        fixture.provider.beforeUpload = {
+            uploadEntered.complete(Unit)
+            releaseUpload.await()
+        }
+        val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+        try {
+            val viewModel = BackupRestoreViewModel(fixture.coordinator, scope)
+            viewModel.backUpNow()
+            assertEquals(
+                BackupRestoreUiState.AwaitingBackupPassphrase,
+                viewModel.uiState.value
+            )
+
+            viewModel.submitBackupPassphrase("first".toCharArray(), "first".toCharArray())
+            uploadEntered.await()
+            assertEquals(BackupRestoreUiState.PreparingBackup, viewModel.uiState.value)
+
+            viewModel.submitBackupPassphrase("second".toCharArray(), "second".toCharArray())
+            assertEquals(1, fixture.provider.uploadCalls)
+
+            releaseUpload.complete(Unit)
+            assertTrue(viewModel.uiState.value is BackupRestoreUiState.BackupSuccess)
+        } finally {
+            scope.cancel()
+        }
+    }
+
+    @Test
+    fun `cancel interactive operation clears authorization and pending restore state`() = runBlocking {
+        val fixture = Fixture()
+        val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+        try {
+            val viewModel = BackupRestoreViewModel(fixture.coordinator, scope)
+            fixture.authorization.outcome = CloudAuthorizationOutcome.UserResolutionRequired(
+                object : AuthorizationResolution {}
+            )
+            viewModel.backUpNow()
+            assertEquals(
+                BackupRestoreUiState.Authorizing(BackupRestoreOperation.BACKUP),
+                viewModel.uiState.value
+            )
+            viewModel.cancelInteractiveOperation()
+            assertEquals(BackupRestoreUiState.Idle, viewModel.uiState.value)
+
+            fixture.authorization.outcome = CloudAuthorizationOutcome.Authorized("token")
+            fixture.provider.uploadedBytes = fixture.encodedBackup()
+            fixture.provider.generations = listOf(fixture.provider.generation)
+            viewModel.restoreFromBackup()
+            viewModel.selectGeneration(fixture.provider.generation)
+            viewModel.submitRestorePassphrase("secret".toCharArray())
+            assertTrue(viewModel.uiState.value is BackupRestoreUiState.Preview)
+
+            viewModel.cancelInteractiveOperation()
+            viewModel.confirmRestore()
+            assertEquals(BackupRestoreUiState.Idle, viewModel.uiState.value)
+            assertEquals(0, fixture.persistence.replaceRoomCalls)
+            assertEquals(0, fixture.persistence.replaceSettingsCalls)
+        } finally {
+            scope.cancel()
+        }
     }
 
     @Test
@@ -54,6 +126,37 @@ class BackupRestoreCoordinatorTest {
             String(fixture.provider.uploadedBytes!!, Charsets.UTF_8)
                 .contains("medicationPlans")
         )
+    }
+
+    @Test
+    fun `representative large history completes backup and restore preview`() = runBlocking {
+        val fixture = Fixture()
+        val template = samplePayload().doseEvents.single()
+        val largeEvents = (10..2_009).map { index ->
+            template.copy(
+                id = "00000000-0000-0000-0000-${index.toString().padStart(12, '0')}"
+            )
+        }
+        val payload = samplePayload().copy(doseEvents = largeEvents)
+        fixture.persistence.room = RestoreRoomState.fromPayload(payload)
+        fixture.persistence.settings = payload.settings
+
+        val backup = fixture.coordinator.createBackup(
+            "large-history-secret".toCharArray(),
+            "large-history-secret".toCharArray()
+        )
+
+        assertTrue(backup is BackupCreationResult.Success)
+        assertTrue(fixture.provider.uploadedBytes!!.size > 100_000)
+
+        val preview = fixture.coordinator.prepareRestore(
+            fixture.provider.generation,
+            "large-history-secret".toCharArray()
+        ) as RestorePreparationResult.Success
+
+        assertEquals(2_000, preview.preview.doseEventCount)
+        assertEquals(0, fixture.persistence.replaceRoomCalls)
+        assertEquals(0, fixture.persistence.replaceSettingsCalls)
     }
 
     @Test
@@ -307,9 +410,10 @@ class BackupRestoreCoordinatorTest {
 
     private class FakeAuthorization : CloudAuthorizationGateway {
         var authorizeCalls = 0
+        var outcome: CloudAuthorizationOutcome = CloudAuthorizationOutcome.Authorized("token")
         override suspend fun authorize(): CloudAuthorizationOutcome {
             authorizeCalls++
-            return CloudAuthorizationOutcome.Authorized("token")
+            return outcome
         }
 
         override suspend fun clearToken(accessToken: String): AuthorizationOperationResult =

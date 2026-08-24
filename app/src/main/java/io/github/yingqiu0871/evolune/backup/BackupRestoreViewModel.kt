@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,8 @@ sealed interface BackupRestoreUiEvent {
 }
 
 class BackupRestoreViewModel internal constructor(
-    private val coordinator: BackupRestoreCoordinator
+    private val coordinator: BackupRestoreCoordinator,
+    private val operationScopeOverride: CoroutineScope? = null
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<BackupRestoreUiState>(BackupRestoreUiState.Idle)
     val uiState: StateFlow<BackupRestoreUiState> = _uiState.asStateFlow()
@@ -55,6 +57,8 @@ class BackupRestoreViewModel internal constructor(
     private var pendingAuthorizationOperation: BackupRestoreOperation? = null
     private var pendingRestore: PreparedRestore? = null
     private var selectedGeneration: CloudBackupGeneration? = null
+    private val operationScope: CoroutineScope
+        get() = operationScopeOverride ?: viewModelScope
 
     fun backUpNow() {
         authorize(BackupRestoreOperation.BACKUP)
@@ -103,7 +107,7 @@ class BackupRestoreViewModel internal constructor(
             return
         }
         _uiState.value = BackupRestoreUiState.PreparingBackup
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             try {
                 val result = coordinator.createBackup(passphrase, confirmation)
                 _uiState.value = when (result) {
@@ -153,7 +157,7 @@ class BackupRestoreViewModel internal constructor(
             return
         }
         _uiState.value = BackupRestoreUiState.PreparingRestorePreview
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             try {
                 when (val result = coordinator.prepareRestore(generation, passphrase)) {
                     RestorePreparationResult.InvalidPassphrase ->
@@ -187,7 +191,7 @@ class BackupRestoreViewModel internal constructor(
         val prepared = pendingRestore ?: return
         if (_uiState.value !is BackupRestoreUiState.Preview || operationJob?.isActive == true) return
         _uiState.value = BackupRestoreUiState.Restoring
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             when (val result = coordinator.confirmRestore(prepared)) {
                 RestoreCompletionResult.Success -> {
                     pendingRestore = null
@@ -199,15 +203,18 @@ class BackupRestoreViewModel internal constructor(
                     selectedGeneration = null
                     _uiState.value = BackupRestoreUiState.RestoreSuccessRefreshWarning
                 }
-                is RestoreCompletionResult.Failure -> _uiState.value =
-                    BackupRestoreUiState.Error(result.error)
+                is RestoreCompletionResult.Failure -> {
+                    pendingRestore = null
+                    selectedGeneration = null
+                    _uiState.value = BackupRestoreUiState.Error(result.error)
+                }
             }
         }
     }
 
     fun disconnect() {
         if (operationJob?.isActive == true || _uiState.value !is BackupRestoreUiState.Idle) return
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             if (coordinator.disconnect()) {
                 _connected.value = false
                 _uiState.value = BackupRestoreUiState.Idle
@@ -245,7 +252,7 @@ class BackupRestoreViewModel internal constructor(
         if (operationJob?.isActive == true || _uiState.value !is BackupRestoreUiState.Idle) return
         pendingAuthorizationOperation = operation
         _uiState.value = BackupRestoreUiState.Authorizing(operation)
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             when (val result = coordinator.authorizeFor(operation)) {
                 AuthorizationGateResult.Authorized -> {
                     _connected.value = true
@@ -281,7 +288,7 @@ class BackupRestoreViewModel internal constructor(
 
     private fun loadBackupsAfterAuthorization() {
         _uiState.value = BackupRestoreUiState.LoadingBackups()
-        operationJob = viewModelScope.launch {
+        operationJob = operationScope.launch {
             when (val result = coordinator.listBackups()) {
                 BackupListResult.NoBackups -> _uiState.value = BackupRestoreUiState.Error(
                     BackupRestoreError(
