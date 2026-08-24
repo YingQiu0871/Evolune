@@ -502,3 +502,196 @@ The lint command still reports the known repository baseline of `45` errors,
 no HC4-specific lint delta was found. The release remains `NOT RELEASED`.
 No tag, GitHub Release, Play publication, live Drive session, or new RC1
 cycle is created by this freeze.
+
+## RC1-HC4 Owner-device / Live-service Validation
+
+This is the current post-HC4 RC1 validation cycle. It starts from the accepted
+RC0-HC4 integration-freeze commit below. Historical RC0/RC1 rows above are not
+inherited as current release evidence.
+
+- Base commit: `4cce293ff2f298f95ecf49617b9ab5f215a62f3b`
+- Branch: `v1.2/rc1-hc4-live-validation`
+- Validation date: `2026-08-24`
+- Target version: `1.2.0`
+- Release state: `NOT RELEASED`
+- Production/test source changes in this cycle: none
+
+Every current row uses exactly one of these statuses: `PASS`, `FAIL`,
+`NOT TESTED`, or `BLOCKED`. Evidence levels are: `UNIT`, `INSTRUMENTATION`,
+`EMULATOR`, `PHYSICAL DEVICE`, `LIVE GOOGLE SERVICE`, and `SIGNED RELEASE`.
+No emulator result closes a physical-device, live-service, KDF, or signed
+release gate.
+
+### Current automated and instrumentation evidence
+
+- [x] `PASS` — App JVM unit tests — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows | debug unit
+  build | UNIT | :app:testDebugUnitTest --rerun-tasks BUILD SUCCESSFUL`.
+- [x] `PASS` — experience-core tests — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows JVM | test task
+  | UNIT | :experience-core:test BUILD SUCCESSFUL`.
+- [x] `PASS` — Wear JVM unit tests — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows | debug unit
+  build | UNIT | :wear:testDebugUnitTest BUILD SUCCESSFUL`.
+- [x] `PASS` — App and Wear debug assemble — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows | debug APK
+  build | UNIT | :app:assembleDebug and :wear:assembleDebug BUILD SUCCESSFUL`.
+- [x] `PASS` — full connected app instrumentation on online AVDs — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | debug
+  instrumentation | INSTRUMENTATION | JUnit XML: API33-A 152 total/149
+  passed/0 failed/3 skipped; API33-B 152/149/0/3; API37 Fold 152/150/0/2`.
+- [x] `PASS` — `RealAppImeFrameProbeTest` focused regression — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | debug
+  instrumentation | INSTRUMENTATION | 1/1 per online device; application
+  decor/content root and same-coordinate IME insets; no auxiliary-root green`.
+- [x] `PASS` — historical HC4/B1/B2/B3/HRT and backup/restore JVM slices —
+  evidence: `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local
+  Windows | debug unit build | UNIT | prior accepted focused suites remain
+  green; no production source changed in this cycle`.
+
+### Device matrix
+
+- [x] `PASS` — API33-A `emulator-5554` / `evolune-hc3-api33` — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API33 Android
+  13, 1080x1920, density 420 | debug instrumentation | INSTRUMENTATION |
+  152 total, 149 passed, 0 failed, 3 skipped`.
+- [x] `PASS` — API33-B `emulator-5556` / `Evolune_API33_Migration` — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API33 Android
+  13, 1080x2400, density 420 | debug instrumentation | INSTRUMENTATION |
+  152 total, 149 passed, 0 failed, 3 skipped`.
+- [ ] `NOT TESTED` — API35 `emulator-5559` / `evolune-hc3-api35` — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | target AVD
+  remained offline | instrumentation unavailable | INSTRUMENTATION | no
+  device result recorded or promoted`.
+- [x] `PASS` — API37 Fold `emulator-5558` / `Pixel_10_Pro_Fold` — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Android
+  17, 2076x2152, density 390, GMS and Health Connect packages present |
+  debug instrumentation | INSTRUMENTATION | 152 total, 150 passed, 0 failed,
+  2 skipped`.
+
+### Current Health Connect evidence
+
+- [x] `PASS` — API33 provider-missing behavior and Settings UX — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API33-B
+  emulator-5556 | debug app | EMULATOR | Health Connect entry visible,
+  legacy Read/Preview/Use UI absent, medication row disabled with
+  “v1.8” copy, status resolved to unavailable with provider-missing message`.
+- [x] `PASS` — API37 provider-installed/current no-data behavior — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold
+  emulator-5558 | debug app | EMULATOR | Health Connect controller and
+  backup/restore packages present; connected state and “no new weight record”
+  shown after grant; medication sync disabled`.
+- [ ] `NOT TESTED` — API31/32 provider compatibility and record read —
+  evidence: `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | no
+  API31/32 device | no qualifying run | EMULATOR | no evidence`.
+- [ ] `NOT TESTED` — API31–33 provider update-required case distinct from
+  provider missing — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | no constructible target |
+  no qualifying run | EMULATOR | no evidence`.
+- [x] `PASS` — first enable, deny, retry, grant — evidence: `2026-08-24 |
+  base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold |
+  debug app | EMULATOR | OFF→ON opened one user-triggered Health Connect
+  request; deny returned to permission-required/off; a second explicit ON
+  reopened the request; grant produced connected/no-data state`.
+- [x] `PASS` — system revoke and explicit reauthorization — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold |
+  debug app | EMULATOR | official MANAGE_HEALTH_PERMISSIONS set selected body
+  measurements to 0; app returned permission-required with user-intent switch
+  retained, no automatic dialog after force-stop/relaunch, and only a later
+  explicit switch action reopened one request`.
+- [x] `PASS` — no unintended write/read on no-record path — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold |
+  debug app | EMULATOR | local weight remained 55.0 kg and the UI remained
+  “no new weight record”; source audit found READ_WEIGHT only and no
+  WRITE_WEIGHT/background/history permission`.
+- [x] `PASS` — enabled preference after force-stop/relaunch — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold |
+  debug app | EMULATOR | after reauthorization and force-stop/relaunch,
+  connected state, enabled switch, and no-data status remained visible without
+  an unsolicited permission dialog`.
+- [ ] `NOT TESTED` — actual Health Connect `WeightRecord` preview/adoption,
+  local-vs-adopted weight, PK update, and real watermark freshness sequence —
+  evidence: `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37
+  Health Connect official data view | debug app | EMULATOR | no legal
+  WRITE_WEIGHT producer or manual record-entry tool was available; no record
+  was fabricated and no Evolune WRITE_WEIGHT permission was added`.
+- [ ] `NOT TESTED` — physical Android Health Connect gate — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | no physical
+  Android device | no qualifying build | PHYSICAL DEVICE | grant/revoke and
+  real-record owner evidence still required`.
+
+### Fold UI and B4 smoke
+
+- [x] `PASS` — Fold narrow/folded-like and wide/opened HC4 page — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold |
+  debug app | EMULATOR | official CLOSED state 1080x2364 and OPENED state
+  2076x2152 both showed visible status/permission/weight/medication rows,
+  enabled switch, scrolling content, and no clipped button`.
+- [ ] `NOT TESTED` — independent landscape Fold layout — evidence: `2026-08-24
+  | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | Fold orientation remained
+  fixed while the reversible rotation/size probe was attempted | debug app |
+  EMULATOR | no landscape result promoted`.
+- [x] `PASS` — B4 Backup & Restore Settings entry — evidence: `2026-08-24 |
+  base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold | debug app |
+  EMULATOR | Settings page showed Backup & Restore entry and actions; live
+  action was not executed because the external upload gate was blocked`.
+
+### Google Drive live gate and restore E2E
+
+- [ ] `BLOCKED` — OAuth authorization, live upload/readback/list/download,
+  retention, and disconnect — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | API37 Fold has GMS; no approved
+  Google Cloud OAuth/test-account session and no safe external-data upload
+  authorization in this run | debug app | LIVE GOOGLE SERVICE | external
+  Google Cloud/service gate not exercised; no code failure asserted`.
+- [ ] `BLOCKED` — live A→B→A backup/restore, HC device-local preference after
+  restore, and post-restore PK/reminders/widgets/Wear — evidence: `2026-08-24
+  | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | Drive live gate blocked |
+  no live build session | LIVE GOOGLE SERVICE | no live generation or restore
+  result promoted`.
+- [ ] `NOT TESTED` — actual Drive retention current-generation proof and
+  disconnect preservation — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | no approved live Drive session |
+  no live service run | LIVE GOOGLE SERVICE | owner evidence required`.
+
+### Security, KDF, signing, and Wear release gates
+
+- [ ] `NOT TESTED` — physical-device PBKDF2-HMAC-SHA256 600,000-iteration
+  warmup plus five measured encode/decode runs and large-history device sanity
+  — evidence: `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b
+  | no physical device and no benchmark helper required | no device run |
+  PHYSICAL DEVICE | no median/max evidence`.
+- [ ] `BLOCKED` — signed/minified App and Wear release, R8 runtime, signer
+  verification, and release smoke — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows | signingReport |
+  SIGNED RELEASE | EVOLUNE_KEYSTORE_PATH, PASSWORD, ALIAS, and KEY_PASSWORD
+  unset; release signing config null; no release APK or R8 smoke`.
+- [x] `PASS` — debug signing identity recorded without secrets — evidence:
+  `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local
+  Windows | :app:signingReport | SIGNED RELEASE | applicationId
+  io.github.yingqiu0871.evolune.debug; debug SHA-1
+  9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B; debug
+  SHA-256 2C:F0:A5:0C:33:B5:40:4A:85:36:3E:42:DC:15:78:1C:5C:7E:4C:36:BB:5F:0E:8C:C0:4A:0E:5D:26:AD:A7:72`.
+- [x] `PASS` — Wear JVM/build regression — evidence: `2026-08-24 | base
+  4cce293ff2f298f95ecf49617b9ab5f215a62f3b | local Windows | debug unit and
+  assemble | UNIT | both tasks BUILD SUCCESSFUL`.
+- [ ] `NOT TESTED` — physical Wear runtime, signed Wear R8 smoke, and Data
+  Layer — evidence: `2026-08-24 | base 4cce293ff2f298f95ecf49617b9ab5f215a62f3b
+  | no physical Wear device and no signed APK | no runtime run | PHYSICAL
+  DEVICE | no evidence`.
+
+### Current release blockers
+
+1. API31/32 and provider update-required Health Connect evidence.
+2. Physical Android Health Connect record, adoption, watermark, and restart
+   evidence.
+3. Fold landscape evidence, if required by the owner-device matrix.
+4. Approved live Google OAuth/Drive session and synthetic-data A→B→A E2E,
+   including retention and disconnect.
+5. Physical-device KDF and large-history sanity.
+6. Release keystore, signed/minified App/Wear APKs, R8 runtime, signer
+   verification, and signed smoke.
+7. Final owner evidence review.
+
+No production behavior failure was observed in this cycle. No tag, GitHub
+Release, Play publication, or RC2 was created.
