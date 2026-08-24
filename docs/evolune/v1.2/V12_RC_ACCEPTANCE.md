@@ -1,6 +1,14 @@
 # Evolune v1.2 Release Candidate Acceptance
 
-## RC1 identity and evidence rule
+## HISTORICAL — PRE-HC4
+
+All acceptance records before `## Post-HC4 RC Cycle`, including the earlier
+RC0/RC1 cycle and its `PASS` rows, are historical investigation records only.
+They are not current v1.2 release acceptance evidence and must not be treated
+as inherited release gates. The current cycle is defined only by the
+post-HC4 baseline and evidence recorded below.
+
+## HISTORICAL — PRE-HC4: RC1 identity and evidence rule
 
 - Validation date: `2026-08-24`
 - RC1 branch: `v1.2/rc1-live-validation`
@@ -435,3 +443,62 @@ errors.
 This closes the historical RC1-T2-B test/probe blocker only. It does not
 change production code, start a new RC cycle, close owner-device or live-Drive
 gates, change release signing/R8 status, create a tag, or create a release.
+
+## Post-HC4 RC Cycle
+
+This is the current RC0-HC4 integration-freeze cycle. It starts from the exact
+RC-Preflight T2 fix commit and does not inherit any old RC0/RC1 `PASS` row:
+
+- Base commit: `19b8e8b873938e59a30274038243a21cc141842d`
+- Branch: `v1.2/rc0-hc4-integration-freeze`
+- Validation date: `2026-08-24`
+- Target version: `1.2.0`
+- Release state: `NOT RELEASED`
+- Scope: documentation-only post-HC4 integration freeze; no production or
+  test source changes
+
+### Current automated evidence
+
+- [x] `PASS` — App unit tests: `575/575`, zero failures/errors.
+- [x] `PASS` — `experience-core` tests: `38/38`, zero failures/errors.
+- [x] `PASS` — Wear unit tests: `27/27`, zero failures/errors.
+- [x] `PASS` — `:app:assembleDebug` and `:wear:assembleDebug`.
+- [x] `PASS` — focused HC4, B1, B2, B3, HRT, and backup/restore slices:
+  `100/100`.
+- [x] `PASS` — full connected instrumentation on all three online AVDs:
+  API33-A `152` total / `149` passed / `0` failed / `3` skipped; API33-B
+  `152/149/0/3`; API37 Fold `152/150/0/2`.
+- [x] `PASS` — `HealthConnectSyncScreenTest`: `6/6` on each online AVD.
+- [x] `PASS` — `validateEvoluneIdentityAndVersioning`.
+
+### Current release gates
+
+The following remain open for the current release and are not changed to
+`PASS` by unit, emulator, or source evidence:
+
+- [ ] `NOT TESTED` — API31/32 Health Connect provider compatibility,
+  permissions, and weight read.
+- [ ] `NOT TESTED` — API33 provider installed/current, permission, and
+  read/no-data behavior.
+- [ ] `NOT TESTED` — API31–33 update-required case distinct from provider
+  missing.
+- [ ] `NOT TESTED` — physical Android device grant, revoke, and re-read.
+- [ ] `NOT TESTED` — real `WeightRecord` preview, non-mutating preview, and
+  explicit adoption.
+- [ ] `NOT TESTED` — adopted-weight restart persistence and PK use after
+  restart.
+- [ ] `NOT TESTED` — Activity recreation during/after permission request.
+- [ ] `BLOCKED` — live Google Drive OAuth, app-data scope, retention, and
+  disconnect/revoke validation.
+- [ ] `BLOCKED` — live Backup → Restore end-to-end validation.
+- [ ] `NOT TESTED` — real-device KDF benchmark and large-history device
+  sanity.
+- [ ] `BLOCKED` — signed/minified App and Wear release, R8 runtime, signer
+  verification, and release smoke.
+- [ ] `NOT TESTED` — final owner evidence review.
+
+The lint command still reports the known repository baseline of `45` errors,
+`97` warnings, and `1` hint, led by historical `MissingTranslation` findings;
+no HC4-specific lint delta was found. The release remains `NOT RELEASED`.
+No tag, GitHub Release, Play publication, live Drive session, or new RC1
+cycle is created by this freeze.
