@@ -4,12 +4,24 @@ import android.content.Context
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.data.AppDatabase
+import io.github.yingqiu0871.evolune.data.AtomicSettingsStore
+import io.github.yingqiu0871.evolune.data.RoomRestorePersistence
+import io.github.yingqiu0871.evolune.data.SettingsStore
 
 class ProductionRepositoryProvider internal constructor(
-    database: AppDatabase
+    private val database: AppDatabase
 ) {
     val doseEvents: DoseEventRepository = RoomDoseEventRepository(database)
     val medicationPlans: MedicationPlanRepository = RoomMedicationPlanRepository(database)
+
+    internal fun createRestorePersistence(
+        settingsStore: SettingsStore,
+        atomicSettingsStore: AtomicSettingsStore
+    ): RoomRestorePersistence = RoomRestorePersistence(
+        database = database,
+        settingsStore = settingsStore,
+        atomicSettingsStore = atomicSettingsStore
+    )
 
     companion object {
         @Volatile

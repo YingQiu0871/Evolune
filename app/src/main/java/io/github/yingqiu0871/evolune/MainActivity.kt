@@ -19,6 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
+import io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinator
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModelFactory
+import io.github.yingqiu0871.evolune.backup.EvoluneBackupCodec
+import io.github.yingqiu0871.evolune.backup.FileRestoreJournalStore
+import io.github.yingqiu0871.evolune.backup.PostRestoreCoordinator
+import io.github.yingqiu0871.evolune.backup.RestorePersistenceSnapshotSource
+import io.github.yingqiu0871.evolune.backup.RestoreTransaction
+import io.github.yingqiu0871.evolune.backup.cloud.google.GoogleAuthorizationGateway
+import io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProvider
+import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveRemoteGateway
 import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
@@ -57,6 +68,44 @@ class MainActivity : ComponentActivity() {
 
         val productionRepositoryProvider =
             ProductionRepositoryProvider.get(applicationContext)
+        val roomRestorePersistence = productionRepositoryProvider.createRestorePersistence(
+            settingsStore = settingsDataStore,
+            atomicSettingsStore = settingsDataStore
+        )
+        val googleAuthorizationGateway = GoogleAuthorizationGateway(applicationContext)
+        val googleDriveProvider = GoogleDriveBackupProvider(
+            authorization = googleAuthorizationGateway,
+            remote = HttpUrlConnectionDriveRemoteGateway()
+        )
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val reminderManager = ReminderManager(applicationContext)
+        val postRestoreCoordinator = PostRestoreCoordinator(
+            effects = listOf(
+                {
+                    val plans = productionRepositoryProvider.medicationPlans.observeAll().first()
+                    reminderManager.rescheduleDomainReminders(plans)
+                },
+                {
+                    requestEvoluneWidgetUpdate(
+                        applicationContext,
+                        WidgetUpdateReason.MANUAL_APP_REFRESH
+                    )
+                }
+            )
+        )
+        val backupRestoreCoordinator = BackupRestoreCoordinator(
+            snapshotSource = RestorePersistenceSnapshotSource(roomRestorePersistence),
+            codec = EvoluneBackupCodec(),
+            authorization = googleAuthorizationGateway,
+            provider = googleDriveProvider,
+            restoreTransaction = RestoreTransaction(
+                persistence = roomRestorePersistence,
+                journalStore = FileRestoreJournalStore(applicationContext)
+            ),
+            postRestoreCoordinator = postRestoreCoordinator,
+            producerAppVersionName = packageInfo.versionName.orEmpty(),
+            producerAppVersionCode = packageInfo.longVersionCode.toInt()
+        )
         val healthConnectWeightProvider = AndroidHealthConnectWeightProvider(applicationContext)
         
         setContent {
@@ -66,6 +115,9 @@ class MainActivity : ComponentActivity() {
                     settingsDataStore,
                     healthConnectWeightProvider
                 )
+            )
+            val backupRestoreViewModel: BackupRestoreViewModel = viewModel(
+                factory = BackupRestoreViewModelFactory(backupRestoreCoordinator)
             )
             
             // 获取用户设置
@@ -125,7 +177,6 @@ class MainActivity : ComponentActivity() {
                 }
                 
                 // 创建 MedicationPlanViewModel
-                val reminderManager = ReminderManager(applicationContext)
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
                         productionRepositoryProvider.medicationPlans,
@@ -170,7 +221,9 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         hrtViewModel = hrtViewModel,
                         settingsViewModel = settingsViewModel,
-                        medicationPlanViewModel = medicationPlanViewModel
+                        medicationPlanViewModel = medicationPlanViewModel,
+                        backupRestoreViewModel = backupRestoreViewModel,
+                        authorizationResultFromIntent = googleAuthorizationGateway::outcomeFromIntent
                     )
                 }
             }

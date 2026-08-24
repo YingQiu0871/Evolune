@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.navigation
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -12,6 +13,7 @@ import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.IntentSenderRequest
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.WeightRecord
@@ -82,6 +84,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.backup.BackupRestoreUiEvent
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
+import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
@@ -122,7 +127,9 @@ private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
     settingsViewModel: SettingsViewModel,
-    medicationPlanViewModel: MedicationPlanViewModel
+    medicationPlanViewModel: MedicationPlanViewModel,
+    backupRestoreViewModel: BackupRestoreViewModel,
+    authorizationResultFromIntent: (Intent) -> CloudAuthorizationOutcome
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -130,6 +137,8 @@ fun AppNavigation(
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
     val userSettings by settingsViewModel.userSettings.collectAsState()
     val healthConnectWeightState by settingsViewModel.healthConnectWeightState.collectAsState()
+    val backupRestoreState by backupRestoreViewModel.uiState.collectAsState()
+    val backupRestoreConnected by backupRestoreViewModel.connected.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
     val scope = rememberCoroutineScope()
 
@@ -139,11 +148,44 @@ fun AppNavigation(
         settingsViewModel.onHealthConnectPermissionResult()
     }
 
+    val backupAuthorizationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            backupRestoreViewModel.onAuthorizationOutcome(
+                authorizationResultFromIntent(requireNotNull(result.data))
+            )
+        } else {
+            backupRestoreViewModel.onAuthorizationOutcome(CloudAuthorizationOutcome.Cancelled)
+        }
+    }
+
     LaunchedEffect(settingsViewModel) {
         settingsViewModel.healthConnectPermissionRequests.collect {
             healthConnectPermissionLauncher.launch(
                 setOf(HealthPermission.getReadPermission(WeightRecord::class))
             )
+        }
+    }
+
+    LaunchedEffect(backupRestoreViewModel) {
+        backupRestoreViewModel.uiEvents.collect { event ->
+            when (event) {
+                is BackupRestoreUiEvent.LaunchAuthorization -> {
+                    val resolution = event.resolution
+                    if (resolution is io.github.yingqiu0871.evolune.backup.cloud.google.GoogleAuthorizationResolution) {
+                        backupAuthorizationLauncher.launch(
+                            IntentSenderRequest.Builder(resolution.pendingIntent).build()
+                        )
+                    } else {
+                        backupRestoreViewModel.onAuthorizationOutcome(
+                            CloudAuthorizationOutcome.Error(
+                                io.github.yingqiu0871.evolune.backup.cloud.AuthorizationErrorCode.FAILED
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -420,6 +462,17 @@ fun AppNavigation(
                     healthConnectWeightState = healthConnectWeightState,
                     onReadHealthConnectWeight = settingsViewModel::readHealthConnectWeight,
                     onUseHealthConnectWeight = settingsViewModel::useHealthConnectWeight,
+                    backupRestoreConnected = backupRestoreConnected,
+                    backupRestoreState = backupRestoreState,
+                    onBackupNow = backupRestoreViewModel::backUpNow,
+                    onRestoreFromBackup = backupRestoreViewModel::restoreFromBackup,
+                    onDisconnectGoogleDrive = backupRestoreViewModel::disconnect,
+                    onSelectBackupGeneration = backupRestoreViewModel::selectGeneration,
+                    onSubmitBackupPassphrase = backupRestoreViewModel::submitBackupPassphrase,
+                    onSubmitRestorePassphrase = backupRestoreViewModel::submitRestorePassphrase,
+                    onConfirmRestore = backupRestoreViewModel::confirmRestore,
+                    onCancelBackupRestore = backupRestoreViewModel::cancelInteractiveOperation,
+                    onDismissBackupRestoreMessage = backupRestoreViewModel::dismissMessage,
                     onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
                     onImportFromClipboard = { importFromClipboard() },
                     onExportClick = {

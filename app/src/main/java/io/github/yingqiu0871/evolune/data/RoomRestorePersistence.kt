@@ -26,11 +26,11 @@ internal class RoomRestorePersistence(
     private val settingsStore: SettingsStore,
     private val atomicSettingsStore: AtomicSettingsStore
 ) : RestorePersistence {
-    override suspend fun readRoomState(): RestoreRoomState {
+    override suspend fun readRoomState(): RestoreRoomState = database.withTransaction {
         val plans = database.medicationPlanDao().getAllPlansForRestore()
         val slots = database.scheduledDoseSlotDao().getAllSlotsForRestore()
         val events = database.doseEventDao().getAllEventsForRestore()
-        return RestoreRoomState(
+        RestoreRoomState(
             medicationPlans = plans.toBackupPlans(slots),
             scheduledDoseSlots = slots.map { it.toBackupSlot() },
             doseEvents = events.map { it.toBackupEvent() }

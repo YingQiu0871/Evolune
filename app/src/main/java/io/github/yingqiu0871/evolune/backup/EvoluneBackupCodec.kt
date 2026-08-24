@@ -381,7 +381,14 @@ class EvoluneBackupCodec(
             )
         }
         return when (val validation = validate(payload)) {
-            is BackupValidationResult.Valid -> BackupDecodeResult.Success(validation.payload)
+            is BackupValidationResult.Valid -> BackupDecodeResult.Success(
+                payload = validation.payload,
+                metadata = BackupProducerMetadataV1(
+                    createdAt = envelope.createdAt,
+                    producerAppVersionName = envelope.producerAppVersionName,
+                    producerAppVersionCode = envelope.producerAppVersionCode
+                )
+            )
             is BackupValidationResult.Invalid -> BackupDecodeResult.Failure(
                 BackupCodecError(BackupCodecErrorCode.INVALID_PAYLOAD, validation.error.field)
             )

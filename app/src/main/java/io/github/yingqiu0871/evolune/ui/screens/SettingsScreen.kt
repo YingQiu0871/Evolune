@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
 import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
@@ -40,6 +41,7 @@ import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.data.isValidBodyWeight
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectAvailability
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+import io.github.yingqiu0871.evolune.ui.components.BackupRestoreSection
 import io.github.yingqiu0871.evolune.viewmodel.HealthConnectWeightUiError
 import io.github.yingqiu0871.evolune.viewmodel.HealthConnectWeightUiState
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
@@ -65,6 +67,17 @@ fun SettingsScreen(
     healthConnectWeightState: HealthConnectWeightUiState = HealthConnectWeightUiState.Idle,
     onReadHealthConnectWeight: () -> Unit = {},
     onUseHealthConnectWeight: () -> Unit = {},
+    backupRestoreConnected: Boolean = false,
+    backupRestoreState: BackupRestoreUiState = BackupRestoreUiState.Idle,
+    onBackupNow: () -> Unit = {},
+    onRestoreFromBackup: () -> Unit = {},
+    onDisconnectGoogleDrive: () -> Unit = {},
+    onSelectBackupGeneration: (io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration) -> Unit = {},
+    onSubmitBackupPassphrase: (CharArray, CharArray) -> Unit = { _, _ -> },
+    onSubmitRestorePassphrase: (CharArray) -> Unit = {},
+    onConfirmRestore: () -> Unit = {},
+    onCancelBackupRestore: () -> Unit = {},
+    onDismissBackupRestoreMessage: () -> Unit = {},
     onImportClick: () -> Unit = {},
     onImportFromClipboard: () -> Unit = {},
     onExportClick: () -> Unit = {},
@@ -127,6 +140,20 @@ fun SettingsScreen(
                 state = healthConnectWeightState,
                 onRead = onReadHealthConnectWeight,
                 onUse = onUseHealthConnectWeight
+            )
+
+            BackupRestoreSection(
+                connected = backupRestoreConnected,
+                state = backupRestoreState,
+                onBackupNow = onBackupNow,
+                onRestoreFromBackup = onRestoreFromBackup,
+                onDisconnect = onDisconnectGoogleDrive,
+                onSelectGeneration = onSelectBackupGeneration,
+                onSubmitBackupPassphrase = onSubmitBackupPassphrase,
+                onSubmitRestorePassphrase = onSubmitRestorePassphrase,
+                onConfirmRestore = onConfirmRestore,
+                onCancel = onCancelBackupRestore,
+                onDismissMessage = onDismissBackupRestoreMessage
             )
 
             // 夜间模式选择

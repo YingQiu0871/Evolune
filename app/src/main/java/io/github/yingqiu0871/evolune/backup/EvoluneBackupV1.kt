@@ -121,7 +121,9 @@ sealed interface BackupEncodeResult {
 
 sealed interface BackupDecodeResult {
     data class Success(
-        val payload: ValidatedEvoluneBackupPayloadV1
+        val payload: ValidatedEvoluneBackupPayloadV1,
+        /** Available only after the envelope has passed authenticated decode and payload validation. */
+        val metadata: BackupProducerMetadataV1
     ) : BackupDecodeResult
 
     data class Failure(val error: BackupCodecError) : BackupDecodeResult
