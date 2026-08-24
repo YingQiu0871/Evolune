@@ -9,18 +9,13 @@ import io.github.yingqiu0871.evolune.data.SettingsStore
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
-import io.github.yingqiu0871.evolune.data.isValidBodyWeight
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectAvailability
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectAvailabilityResult
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectPermissionResult
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightObservation
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProvider
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightResult
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinator
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncEnableResult
 import io.github.yingqiu0871.evolune.utils.UpdateChecker
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,28 +41,6 @@ sealed class UpdateCheckResult {
     data object Error : UpdateCheckResult()
 }
 
-enum class HealthConnectWeightUiError {
-    AVAILABILITY_CHECK_FAILED,
-    PERMISSION_CHECK_FAILED,
-    READ_FAILED,
-    ADOPTION_FAILED,
-    INVALID_WEIGHT
-}
-
-sealed interface HealthConnectWeightUiState {
-    data object Idle : HealthConnectWeightUiState
-    data object Checking : HealthConnectWeightUiState
-    data object PermissionNeeded : HealthConnectWeightUiState
-    data object Loading : HealthConnectWeightUiState
-    data class Preview(val observation: HealthConnectWeightObservation) : HealthConnectWeightUiState
-    data object NoData : HealthConnectWeightUiState
-    data class Unavailable(val availability: HealthConnectAvailability) : HealthConnectWeightUiState
-    data object UpdateRequired : HealthConnectWeightUiState
-    data class Adopting(val observation: HealthConnectWeightObservation) : HealthConnectWeightUiState
-    data class Adopted(val weightKg: Double) : HealthConnectWeightUiState
-    data class Error(val reason: HealthConnectWeightUiError) : HealthConnectWeightUiState
-}
-
 /**
  * 设置 ViewModel
  * 管理用户设置和偏好
@@ -83,6 +56,12 @@ class SettingsViewModel(
     }
 
     private val scope = operationScope ?: viewModelScope
+
+    private val healthConnectWeightSyncCoordinator = HealthConnectWeightSyncCoordinator(
+        settingsStore = settingsDataStore,
+        provider = healthConnectWeightProvider,
+        scope = scope
+    )
 
     /**
      * 用户设置状态
@@ -100,17 +79,18 @@ class SettingsViewModel(
     private val _updateCheckResult = MutableStateFlow<UpdateCheckResult>(UpdateCheckResult.Idle)
     val updateCheckResult: StateFlow<UpdateCheckResult> = _updateCheckResult.asStateFlow()
 
-    private val _healthConnectWeightState =
-        MutableStateFlow<HealthConnectWeightUiState>(HealthConnectWeightUiState.Idle)
-    val healthConnectWeightState: StateFlow<HealthConnectWeightUiState> =
-        _healthConnectWeightState.asStateFlow()
+    val healthConnectWeightSyncState: StateFlow<HealthConnectWeightSyncState> =
+        healthConnectWeightSyncCoordinator.state
 
     private val healthConnectPermissionRequestChannel = Channel<Unit>(Channel.BUFFERED)
     val healthConnectPermissionRequests = healthConnectPermissionRequestChannel.receiveAsFlow()
 
-    private var healthConnectReadJob: Job? = null
-    private var healthConnectAdoptionJob: Job? = null
     private var healthConnectPermissionRequestInFlight = false
+    private var pendingPermissionAction: HealthConnectPermissionAction? = null
+
+    fun onForeground() {
+        healthConnectWeightSyncCoordinator.onForeground()
+    }
 
     /**
      * 更新体重
@@ -121,148 +101,50 @@ class SettingsViewModel(
         }
     }
 
-    fun readHealthConnectWeight() {
-        readHealthConnectWeightInternal(requestPermission = true)
+    fun setHealthConnectWeightSyncEnabled(enabled: Boolean) {
+        if (!enabled) {
+            pendingPermissionAction = null
+            scope.launch { healthConnectWeightSyncCoordinator.disableWeightSync() }
+            return
+        }
+        if (healthConnectPermissionRequestInFlight) return
+        scope.launch {
+            when (healthConnectWeightSyncCoordinator.enableWeightSync()) {
+                HealthConnectWeightSyncEnableResult.ENABLED,
+                HealthConnectWeightSyncEnableResult.BLOCKED -> Unit
+                HealthConnectWeightSyncEnableResult.PERMISSION_REQUIRED ->
+                    requestHealthConnectPermission(HealthConnectPermissionAction.ENABLE)
+            }
+        }
+    }
+
+    fun requestHealthConnectReauthorization() {
+        requestHealthConnectPermission(HealthConnectPermissionAction.REAUTHORIZE)
     }
 
     fun onHealthConnectPermissionResult() {
+        val action = pendingPermissionAction
+        pendingPermissionAction = null
         healthConnectPermissionRequestInFlight = false
-        readHealthConnectWeightInternal(requestPermission = false)
-    }
-
-    fun useHealthConnectWeight() {
-        val preview = _healthConnectWeightState.value as? HealthConnectWeightUiState.Preview
-            ?: return
-        if (healthConnectAdoptionJob?.isActive == true || healthConnectReadJob?.isActive == true) {
-            return
-        }
-
-        val observation = preview.observation
-        if (!isValidBodyWeight(observation.weightKg)) {
-            _healthConnectWeightState.value =
-                HealthConnectWeightUiState.Error(HealthConnectWeightUiError.INVALID_WEIGHT)
-            return
-        }
-
-        healthConnectAdoptionJob = scope.launch {
-            _healthConnectWeightState.value = HealthConnectWeightUiState.Adopting(observation)
-            try {
-                if (settingsDataStore.updateBodyWeight(observation.weightKg)) {
-                    _healthConnectWeightState.value =
-                        HealthConnectWeightUiState.Adopted(observation.weightKg)
-                } else {
-                    _healthConnectWeightState.value =
-                        HealthConnectWeightUiState.Error(HealthConnectWeightUiError.ADOPTION_FAILED)
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                _healthConnectWeightState.value =
-                    HealthConnectWeightUiState.Error(HealthConnectWeightUiError.ADOPTION_FAILED)
+        when (action) {
+            HealthConnectPermissionAction.ENABLE -> scope.launch {
+                healthConnectWeightSyncCoordinator.completeEnableAfterPermission()
             }
-        }
-    }
-
-    private fun readHealthConnectWeightInternal(requestPermission: Boolean) {
-        if (
-            healthConnectReadJob?.isActive == true ||
-            healthConnectAdoptionJob?.isActive == true ||
-            (requestPermission && healthConnectPermissionRequestInFlight)
-        ) {
-            return
-        }
-
-        healthConnectReadJob = scope.launch {
-            _healthConnectWeightState.value = HealthConnectWeightUiState.Checking
-            try {
-                when (val availability = healthConnectWeightProvider.availability()) {
-                    is HealthConnectAvailabilityResult.Error -> {
-                        _healthConnectWeightState.value = HealthConnectWeightUiState.Error(
-                            HealthConnectWeightUiError.AVAILABILITY_CHECK_FAILED
-                        )
-                        return@launch
-                    }
-
-                    is HealthConnectAvailabilityResult.Status -> {
-                        if (applyAvailability(availability.availability)) return@launch
-                    }
-                }
-
-                when (val permission = healthConnectWeightProvider.permissionState()) {
-                    HealthConnectPermissionResult.Granted -> Unit
-                    HealthConnectPermissionResult.NotGranted -> {
-                        _healthConnectWeightState.value =
-                            HealthConnectWeightUiState.PermissionNeeded
-                        requestHealthConnectPermission(requestPermission)
-                        return@launch
-                    }
-
-                    is HealthConnectPermissionResult.Unavailable -> {
-                        applyAvailability(permission.availability)
-                        return@launch
-                    }
-
-                    is HealthConnectPermissionResult.Error -> {
-                        _healthConnectWeightState.value = HealthConnectWeightUiState.Error(
-                            HealthConnectWeightUiError.PERMISSION_CHECK_FAILED
-                        )
-                        return@launch
-                    }
-                }
-
-                _healthConnectWeightState.value = HealthConnectWeightUiState.Loading
-                when (val result = healthConnectWeightProvider.readLatestWeight()) {
-                    is HealthConnectWeightResult.Success -> {
-                        _healthConnectWeightState.value =
-                            HealthConnectWeightUiState.Preview(result.observation)
-                    }
-
-                    HealthConnectWeightResult.NoData -> {
-                        _healthConnectWeightState.value = HealthConnectWeightUiState.NoData
-                    }
-
-                    HealthConnectWeightResult.PermissionNotGranted -> {
-                        _healthConnectWeightState.value =
-                            HealthConnectWeightUiState.PermissionNeeded
-                        requestHealthConnectPermission(requestPermission)
-                    }
-
-                    is HealthConnectWeightResult.Unavailable -> {
-                        applyAvailability(result.availability)
-                    }
-
-                    is HealthConnectWeightResult.Error -> {
-                        _healthConnectWeightState.value = HealthConnectWeightUiState.Error(
-                            HealthConnectWeightUiError.READ_FAILED
-                        )
-                    }
-                }
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                _healthConnectWeightState.value =
-                    HealthConnectWeightUiState.Error(HealthConnectWeightUiError.READ_FAILED)
+            HealthConnectPermissionAction.REAUTHORIZE -> scope.launch {
+                healthConnectWeightSyncCoordinator.syncIfEnabled()
             }
+            null -> Unit
         }
     }
 
-    private fun requestHealthConnectPermission(requestPermission: Boolean) {
-        if (!requestPermission || healthConnectPermissionRequestInFlight) return
+    private fun requestHealthConnectPermission(action: HealthConnectPermissionAction) {
+        if (healthConnectPermissionRequestInFlight) return
+        pendingPermissionAction = action
         if (healthConnectPermissionRequestChannel.trySend(Unit).isSuccess) {
             healthConnectPermissionRequestInFlight = true
+        } else {
+            pendingPermissionAction = null
         }
-    }
-
-    private fun applyAvailability(availability: HealthConnectAvailability): Boolean {
-        when (availability) {
-            HealthConnectAvailability.AVAILABLE -> return false
-            HealthConnectAvailability.UNAVAILABLE ->
-                _healthConnectWeightState.value =
-                    HealthConnectWeightUiState.Unavailable(availability)
-            HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED ->
-                _healthConnectWeightState.value = HealthConnectWeightUiState.UpdateRequired
-        }
-        return true
     }
 
     /**
@@ -354,6 +236,11 @@ class SettingsViewModel(
             _updateCheckResult.value = UpdateCheckResult.Error
         }
     }
+
+    override fun onCleared() {
+        healthConnectWeightSyncCoordinator.close()
+        super.onCleared()
+    }
 }
 
 /**
@@ -366,8 +253,16 @@ class SettingsViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            return SettingsViewModel(settingsDataStore, healthConnectWeightProvider) as T
+            return SettingsViewModel(
+                settingsDataStore,
+                healthConnectWeightProvider
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
+}
+
+private enum class HealthConnectPermissionAction {
+    ENABLE,
+    REAUTHORIZE
 }

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
 // DataStore 实例
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -49,7 +50,12 @@ data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val colorTheme: ColorTheme = ColorTheme.DYNAMIC,
     val autoCheckUpdates: Boolean = true,    // 默认开启自动检查更新
-    val timeFormat: TimeFormat = TimeFormat.SYSTEM  // 默认跟随系统时间制式
+    val timeFormat: TimeFormat = TimeFormat.SYSTEM,  // 默认跟随系统时间制式
+    /** User intent for foreground-only Health Connect weight adoption. */
+    val healthConnectWeightSyncEnabled: Boolean = false,
+    /** Sync metadata only; [bodyWeight] remains the local authority. */
+    val lastHealthConnectWeightKg: Double? = null,
+    val lastHealthConnectWeightAdoptedAt: Instant? = null
 )
 
 const val MAX_BODY_WEIGHT_KG = 300.0
@@ -65,6 +71,9 @@ interface SettingsStore {
     suspend fun updateColorTheme(theme: ColorTheme)
     suspend fun updateAutoCheckUpdates(enabled: Boolean)
     suspend fun updateTimeFormat(format: TimeFormat)
+    suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean)
+    suspend fun updateBodyWeightFromHealthConnect(weight: Double, adoptedAt: Instant): Boolean
+    suspend fun updateHealthConnectWeightMetadata(weight: Double, adoptedAt: Instant): Boolean
 }
 
 /**
@@ -87,6 +96,12 @@ class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSet
         private val COLOR_THEME_KEY = stringPreferencesKey("color_theme")
         private val AUTO_CHECK_UPDATES_KEY = booleanPreferencesKey("auto_check_updates")
         private val TIME_FORMAT_KEY = stringPreferencesKey("time_format")
+        private val HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY =
+            booleanPreferencesKey("health_connect_weight_sync_enabled")
+        private val LAST_HEALTH_CONNECT_WEIGHT_KG_KEY =
+            doublePreferencesKey("last_health_connect_weight_kg")
+        private val LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY =
+            stringPreferencesKey("last_health_connect_weight_adopted_at")
     }
     
     /**
@@ -116,7 +131,12 @@ class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSet
                 } catch (e: IllegalArgumentException) {
                     TimeFormat.SYSTEM
                 }
-            } ?: TimeFormat.SYSTEM
+            } ?: TimeFormat.SYSTEM,
+            healthConnectWeightSyncEnabled =
+                preferences[HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY] ?: false,
+            lastHealthConnectWeightKg = preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY],
+            lastHealthConnectWeightAdoptedAt = preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY]
+                ?.let { value -> runCatching { Instant.parse(value) }.getOrNull() }
         )
     }
     
@@ -166,6 +186,39 @@ class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSet
         context.dataStore.edit { preferences ->
             preferences[TIME_FORMAT_KEY] = format.name
         }
+    }
+
+    override suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY] = enabled
+        }
+    }
+
+    override suspend fun updateBodyWeightFromHealthConnect(
+        weight: Double,
+        adoptedAt: Instant
+    ): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[BODY_WEIGHT_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = adoptedAt.toString()
+        }
+        return true
+    }
+
+    override suspend fun updateHealthConnectWeightMetadata(
+        weight: Double,
+        adoptedAt: Instant
+    ): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = adoptedAt.toString()
+        }
+        return true
     }
 
     override suspend fun replaceSettings(settings: UserSettings): Boolean {

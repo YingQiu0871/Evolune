@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -39,11 +40,10 @@ import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.data.isValidBodyWeight
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectAvailability
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.ui.components.BackupRestoreSection
-import io.github.yingqiu0871.evolune.viewmodel.HealthConnectWeightUiError
-import io.github.yingqiu0871.evolune.viewmodel.HealthConnectWeightUiState
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
 import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 import kotlinx.coroutines.launch
@@ -64,9 +64,8 @@ fun SettingsScreen(
     onAutoCheckUpdatesChange: (Boolean) -> Unit,
     onCheckForUpdates: () -> Unit,
     updateCheckResult: UpdateCheckResult,
-    healthConnectWeightState: HealthConnectWeightUiState = HealthConnectWeightUiState.Idle,
-    onReadHealthConnectWeight: () -> Unit = {},
-    onUseHealthConnectWeight: () -> Unit = {},
+    healthConnectWeightSyncState: HealthConnectWeightSyncState = HealthConnectWeightSyncState(),
+    onOpenHealthConnectSync: () -> Unit = {},
     backupRestoreConnected: Boolean = false,
     backupRestoreState: BackupRestoreUiState = BackupRestoreUiState.Idle,
     onBackupNow: () -> Unit = {},
@@ -136,10 +135,10 @@ fun SettingsScreen(
                 onBodyWeightChange = onBodyWeightChange
             )
 
-            HealthConnectWeightSection(
-                state = healthConnectWeightState,
-                onRead = onReadHealthConnectWeight,
-                onUse = onUseHealthConnectWeight
+            HealthConnectSyncEntry(
+                enabled = settings.healthConnectWeightSyncEnabled,
+                state = healthConnectWeightSyncState,
+                onClick = onOpenHealthConnectSync
             )
 
             BackupRestoreSection(
@@ -407,108 +406,40 @@ private fun BodyWeightSection(
 }
 
 @Composable
-private fun HealthConnectWeightSection(
-    state: HealthConnectWeightUiState,
-    onRead: () -> Unit,
-    onUse: () -> Unit
+private fun HealthConnectSyncEntry(
+    enabled: Boolean,
+    state: HealthConnectWeightSyncState,
+    onClick: () -> Unit
 ) {
-    val isBusy = state is HealthConnectWeightUiState.Checking ||
-        state is HealthConnectWeightUiState.Loading ||
-        state is HealthConnectWeightUiState.Adopting
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.settings_health_connect_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Text(
-            text = stringResource(R.string.settings_health_connect_desc),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        when (val current = state) {
-            HealthConnectWeightUiState.Idle -> Unit
-            HealthConnectWeightUiState.Checking ->
-                Text(stringResource(R.string.settings_health_connect_checking))
-            HealthConnectWeightUiState.PermissionNeeded ->
-                Text(stringResource(R.string.settings_health_connect_permission_needed))
-            HealthConnectWeightUiState.Loading ->
-                Text(stringResource(R.string.settings_health_connect_loading))
-            is HealthConnectWeightUiState.Preview -> {
-                Text(
-                    stringResource(
-                        R.string.settings_health_connect_preview_weight,
-                        current.observation.weightKg
-                    )
-                )
-                Text(
-                    stringResource(
-                        R.string.settings_health_connect_preview_time,
-                        current.observation.timestamp.toString()
-                    )
-                )
-                Text(
-                    stringResource(
-                        R.string.settings_health_connect_preview_source,
-                        current.observation.sourcePackageName ?: "-"
-                    )
-                )
-                Button(
-                    modifier = Modifier.testTag("health-connect-use-weight"),
-                    onClick = onUse,
-                    enabled = !isBusy
-                ) {
-                    Text(stringResource(R.string.settings_health_connect_use))
-                }
-            }
-            HealthConnectWeightUiState.NoData ->
-                Text(stringResource(R.string.settings_health_connect_no_data))
-            is HealthConnectWeightUiState.Unavailable ->
-                Text(
-                    when (current.availability) {
-                        HealthConnectAvailability.UNAVAILABLE ->
-                            stringResource(R.string.settings_health_connect_unavailable)
-                        HealthConnectAvailability.PROVIDER_UPDATE_REQUIRED ->
-                            stringResource(R.string.settings_health_connect_update_required)
-                        HealthConnectAvailability.AVAILABLE ->
-                            stringResource(R.string.settings_health_connect_error)
-                    }
-                )
-            HealthConnectWeightUiState.UpdateRequired ->
-                Text(stringResource(R.string.settings_health_connect_update_required))
-            is HealthConnectWeightUiState.Adopting ->
-                Text(stringResource(R.string.settings_health_connect_adopting))
-            is HealthConnectWeightUiState.Adopted ->
-                Text(
-                    stringResource(
-                        R.string.settings_health_connect_adopted,
-                        current.weightKg
-                    )
-                )
-            is HealthConnectWeightUiState.Error ->
-                Text(
-                    when (current.reason) {
-                        HealthConnectWeightUiError.INVALID_WEIGHT ->
-                            stringResource(R.string.settings_health_connect_invalid)
-                        else -> stringResource(R.string.settings_health_connect_error)
-                    }
-                )
-        }
-
-        OutlinedButton(
-            modifier = Modifier.testTag("health-connect-read-weight"),
-            onClick = onRead,
-            enabled = !isBusy
-        ) {
-            Text(stringResource(R.string.settings_health_connect_read))
-        }
+    val summary = when {
+        !enabled -> stringResource(R.string.settings_health_connect_sync_status_disabled)
+        state.status == HealthConnectWeightSyncStatus.PERMISSION_REQUIRED ->
+            stringResource(R.string.settings_health_connect_sync_status_permission)
+        state.status == HealthConnectWeightSyncStatus.UNAVAILABLE ->
+            stringResource(R.string.settings_health_connect_sync_status_unavailable)
+        state.status == HealthConnectWeightSyncStatus.UPDATE_REQUIRED ->
+            stringResource(R.string.settings_health_connect_sync_status_update_required)
+        state.status == HealthConnectWeightSyncStatus.NO_DATA ->
+            stringResource(R.string.settings_health_connect_sync_status_no_data)
+        state.status == HealthConnectWeightSyncStatus.ERROR ->
+            stringResource(R.string.settings_health_connect_sync_status_error)
+        state.status == HealthConnectWeightSyncStatus.CHECKING ||
+            state.status == HealthConnectWeightSyncStatus.SYNCING ->
+            stringResource(R.string.settings_health_connect_sync_status_checking)
+        else -> stringResource(R.string.settings_health_connect_sync_status_connected)
     }
+
+    ListItem(
+        modifier = Modifier
+            .testTag("settings-health-connect-sync-entry")
+            .clickable(onClick = onClick),
+        headlineContent = {
+            Text(stringResource(R.string.settings_health_connect_sync_title))
+        },
+        supportingContent = { Text(summary) },
+        trailingContent = { Text("›", style = MaterialTheme.typography.headlineMedium) },
+        colors = settingsListItemColors()
+    )
 }
 
 /**

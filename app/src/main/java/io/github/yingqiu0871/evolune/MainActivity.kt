@@ -18,6 +18,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
 import io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinator
 import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
@@ -50,6 +51,15 @@ import io.github.yingqiu0871.evolune.wear.WearDataLayer
 import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
+    private lateinit var settingsViewModel: SettingsViewModel
+
+    override fun onStart() {
+        super.onStart()
+        if (::settingsViewModel.isInitialized) {
+            settingsViewModel.onForeground()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -107,15 +117,13 @@ class MainActivity : ComponentActivity() {
             producerAppVersionCode = packageInfo.longVersionCode.toInt()
         )
         val healthConnectWeightProvider = AndroidHealthConnectWeightProvider(applicationContext)
+        settingsViewModel = ViewModelProvider(
+            this,
+            SettingsViewModelFactory(settingsDataStore, healthConnectWeightProvider)
+        )[SettingsViewModel::class.java]
         
         setContent {
-            // 创建 SettingsViewModel
-            val settingsViewModel: SettingsViewModel = viewModel(
-                factory = SettingsViewModelFactory(
-                    settingsDataStore,
-                    healthConnectWeightProvider
-                )
-            )
+            val settingsViewModel = this@MainActivity.settingsViewModel
             val backupRestoreViewModel: BackupRestoreViewModel = viewModel(
                 factory = BackupRestoreViewModelFactory(backupRestoreCoordinator)
             )

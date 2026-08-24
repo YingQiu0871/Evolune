@@ -14,6 +14,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.IntentSenderRequest
+import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.WeightRecord
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MedicalServices
@@ -99,6 +101,7 @@ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
+import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
@@ -116,6 +119,7 @@ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -136,7 +140,7 @@ fun AppNavigation(
     val uriHandler = LocalUriHandler.current
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
     val userSettings by settingsViewModel.userSettings.collectAsState()
-    val healthConnectWeightState by settingsViewModel.healthConnectWeightState.collectAsState()
+    val healthConnectWeightSyncState by settingsViewModel.healthConnectWeightSyncState.collectAsState()
     val backupRestoreState by backupRestoreViewModel.uiState.collectAsState()
     val backupRestoreConnected by backupRestoreViewModel.connected.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
@@ -340,7 +344,8 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.HOME
+    val isHealthConnectSyncRoute = currentRoute == HEALTH_CONNECT_SYNC_ROUTE
+    val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
     // The top-level Scaffold stays intact beneath full-screen editor layers so its
@@ -351,15 +356,25 @@ fun AppNavigation(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
             bottomBar = {
-                if (!useNavigationRail) {
+                if (!useNavigationRail && !isHealthConnectSyncRoute) {
                     BottomNavigationBar(navController = navController)
                 }
             },
             topBar = {
                 AppTopBar(
                     currentScreen = currentScreen,
-                    alignWithNavigationRail = useNavigationRail,
-                    onRefresh = hrtViewModel::runSimulation
+                    alignWithNavigationRail = useNavigationRail && !isHealthConnectSyncRoute,
+                    onRefresh = hrtViewModel::runSimulation,
+                    titleOverride = if (isHealthConnectSyncRoute) {
+                        stringResource(R.string.settings_health_connect_sync_title)
+                    } else {
+                        null
+                    },
+                    onNavigateUp = if (isHealthConnectSyncRoute) {
+                        { navController.popBackStack() }
+                    } else {
+                        null
+                    }
                 )
             }
         ) { innerPadding ->
@@ -375,7 +390,7 @@ fun AppNavigation(
                 .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            if (useNavigationRail) {
+            if (useNavigationRail && !isHealthConnectSyncRoute) {
                 NavigationRailBar(navController = navController)
             }
             Box(
@@ -459,9 +474,10 @@ fun AppNavigation(
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
                     updateCheckResult = updateCheckResult,
-                    healthConnectWeightState = healthConnectWeightState,
-                    onReadHealthConnectWeight = settingsViewModel::readHealthConnectWeight,
-                    onUseHealthConnectWeight = settingsViewModel::useHealthConnectWeight,
+                    healthConnectWeightSyncState = healthConnectWeightSyncState,
+                    onOpenHealthConnectSync = {
+                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE)
+                    },
                     backupRestoreConnected = backupRestoreConnected,
                     backupRestoreState = backupRestoreState,
                     onBackupNow = backupRestoreViewModel::backUpNow,
@@ -485,6 +501,22 @@ fun AppNavigation(
                     clipboardExportMessage = clipboardExportMessage,
                     onClipboardExportMessageShown = { clipboardExportMessage = null },
                     showTopBar = false
+                )
+            }
+            composable(HEALTH_CONNECT_SYNC_ROUTE) {
+                HealthConnectSyncScreen(
+                    settings = userSettings,
+                    state = healthConnectWeightSyncState,
+                    onWeightSyncEnabledChange = settingsViewModel::setHealthConnectWeightSyncEnabled,
+                    onReauthorize = settingsViewModel::requestHealthConnectReauthorization,
+                    onManagePermissions = {
+                        context.startActivity(
+                            HealthConnectClient.getHealthConnectManageDataIntent(
+                                context,
+                                context.packageName
+                            )
+                        )
+                    }
                 )
             }
         }
@@ -653,7 +685,9 @@ private fun DoseEventOperationError.displayMessage(): String = when (this) {
 private fun AppTopBar(
     currentScreen: Screen,
     alignWithNavigationRail: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    titleOverride: String? = null,
+    onNavigateUp: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -666,9 +700,19 @@ private fun AppTopBar(
         }
         CenterAlignedTopAppBar(
             modifier = Modifier.weight(1f),
+            navigationIcon = {
+                if (onNavigateUp != null) {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back)
+                        )
+                    }
+                }
+            },
             title = {
                 Text(
-                    text = when (currentScreen) {
+                    text = titleOverride ?: when (currentScreen) {
                         Screen.HOME -> stringResource(R.string.nav_home)
                         Screen.RECORDS -> stringResource(R.string.records_title)
                         Screen.MEDICATION_PLANS -> stringResource(R.string.plans_title)

@@ -11,6 +11,7 @@ import io.github.yingqiu0871.evolune.data.SettingsStore
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
+import java.time.Instant
 import io.github.yingqiu0871.evolune.data.RoomRestorePersistence
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -156,6 +157,35 @@ class B2RoomRestorePersistenceTest {
 
         override suspend fun updateTimeFormat(format: TimeFormat) {
             userSettings.value = userSettings.value.copy(timeFormat = format)
+        }
+
+        override suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean) {
+            userSettings.value = userSettings.value.copy(
+                healthConnectWeightSyncEnabled = enabled
+            )
+        }
+
+        override suspend fun updateBodyWeightFromHealthConnect(
+            weight: Double,
+            adoptedAt: Instant
+        ): Boolean {
+            userSettings.value = userSettings.value.copy(
+                bodyWeight = weight,
+                lastHealthConnectWeightKg = weight,
+                lastHealthConnectWeightAdoptedAt = adoptedAt
+            )
+            return true
+        }
+
+        override suspend fun updateHealthConnectWeightMetadata(
+            weight: Double,
+            adoptedAt: Instant
+        ): Boolean {
+            userSettings.value = userSettings.value.copy(
+                lastHealthConnectWeightKg = weight,
+                lastHealthConnectWeightAdoptedAt = adoptedAt
+            )
+            return true
         }
 
         override suspend fun replaceSettings(settings: UserSettings): Boolean {

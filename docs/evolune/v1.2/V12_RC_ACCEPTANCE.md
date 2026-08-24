@@ -14,6 +14,27 @@ context, commit, and the observed evidence. `PASS` is used only where the
 listed evidence exists. Unit or fake-provider evidence never substitutes for
 the owner-device, live Drive, KDF-device, end-to-end, or signed release gates.
 
+## HC4 validation-cycle reset
+
+The previously documented RC1 validation cycle is invalidated for the HC4
+feature scope. Its evidence remains historical investigation record only and
+must not be reused as acceptance evidence for foreground Health Connect weight
+sync. HC4 starts a new validation cycle from the accepted RC1-T2 functional
+baseline `94c5c54c9d4ce8836485e63e3aeacd7b9a33f490` on branch
+`v1.2/hc4-foreground-weight-sync`.
+
+The new cycle covers the foreground-only sync contract documented in
+`V12_HC4_WEIGHT_SYNC.md`: Settings entry/page IA, default-off enable flow,
+one-shot permission request, silent foreground checks, strict observation
+watermark, restart persistence, manual-weight protection, and the disabled
+medication placeholder. The HC4 implementation commit is the commit carrying
+this cycle's code and documentation; owner-device, live-service, signed
+release, and RC acceptance evidence must be recorded against that new commit.
+
+The RC remains `NOT RELEASED`. No prior RC1 `PASS` row closes an HC4-specific
+gate, and the owner-device Health Connect checklist below remains release
+blocking until revalidated against the new cycle.
+
 ## A. Automated regression
 
 - [x] `PASS` — App unit tests — evidence: `2026-08-24 | local Windows | :app:testDebugUnitTest --rerun-tasks | 99ee3618fe8e5e84451bd010bfdd58281fd1ca90 | BUILD SUCCESSFUL; 574 tests, 0 failures/errors`
