@@ -208,3 +208,98 @@ minified App/Wear release and R8 smoke, and final owner review.
 No production code was modified. No tag or release was created. The protected
 `D:\Evolune` root and the old linked worktree
 `D:\Evolune-Workspace\current\Evolune` were not touched.
+
+## RC1-R2A — API35 MedicationRecords instrumentation triage
+
+### Scope and environment
+
+- Validation base: `da2c0142a8de40735ef52ae7a14948ef716cffee`
+- AVD: `evolune-hc3-api35`, serial `emulator-5560`
+- Platform: API35 / Android 15, 1080x1920, density 420
+- Settings: font scale 1.0, navigation mode 2, rotation 0, LatinIME default,
+  transition/window animation scale 1.0
+
+The first focused API35 runs were made with four online AVD/qemu pairs. A
+true single-AVD comparison was then made after the other three guests were
+powered down; only one emulator/qemu pair remained. The later attempt to
+restore the other guests was blocked by the host emulator's existing
+`C:\Users\1\.android\emu-last-feature-flags.protobuf.lock` access error;
+no lock was deleted or changed. This host condition does not affect the
+already-collected multi-AVD evidence.
+
+### `rapidDoubleTapInvokesOneInsert`
+
+- API35 focused standalone: 10/10 PASS while the multi-AVD set was online.
+- API35 `MedicationRecordsScreenTest` suite: 5 rounds; 2 PASS and 3 FAIL,
+  but all three failures were the geometry test; rapid double-tap did not
+  fail.
+- API35 true single-AVD: 5/5 PASS.
+- API35 clean-state after app clear and reinstall: 5/5 PASS.
+- Cross-API: API33-A 5/5 PASS, API33-B 5/5 PASS, API35 10/10 PASS,
+  API37 5/5 PASS.
+
+The second tap never became the first divergent step in the reproduced runs.
+The repository insert count reached one, the save action became disabled, and
+the second click did not create another insert. No semantics-idle or
+repository-call failure was observed. Classification is provisional `D` for
+the historical, unreproduced synchronization/host-contention timeout; the
+available evidence does not support a production race. Recommended next
+action: retain the existing focused regression and only re-open if the
+timeout is reproduced with its first divergent wait state captured.
+
+### `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges`
+
+Repeated matrix:
+
+| Target | Result |
+|---|---:|
+| API33-A | 5/5 PASS |
+| API33-B | 5/5 PASS |
+| API35 | 3/10 PASS, 7/10 FAIL |
+| API37 Fold | 5/5 PASS |
+
+API35 class-suite evidence was 2/5 PASS and 3/5 FAIL. The clean-state
+post-clear/reinstall result was 2/5 PASS and 3/5 FAIL. The first divergent
+step is the assertion immediately after the first dose-field focus and idle
+wait; the second-field focus is never reached on a failing run. There was no
+Compose timeout. Diagnostic logs showed:
+
+- root bounds stayed `Rect(0,0,1080,1920)`;
+- initial label top `1167`, field top `1224`;
+- after IME/bring-into-view, label top `781`, field top `838`;
+- the common translation was exactly `-386px`;
+- scroll range changed from value/max `0/0` to about `386/643`;
+- `mInputShown=true` and `mIsInputViewShown=true`.
+
+Therefore `1224` and `838` are the absolute root-coordinate top edges of the
+EV dose field before and after focus. `1167` and `781` are the corresponding
+absolute root-coordinate top edges of the dose labels. The relative geometry
+was preserved by the common translation, while the test's absolute-coordinate
+assertion rejected the expected IME-induced scroll. Classification is `B` —
+test assertion/harness bug; API35 IME/bring-into-view behavior is the
+platform-specific trigger, not evidence of a production layout defect.
+
+Manual API35 UX was completed with the debug app: focus dose field, show IME,
+switch to equivalent E2, scroll, and save. The controls remained visible and
+operable; the saved record displayed `戊酸雌二醇 · 2.0 mg`. No production UX
+failure was observed. Recommended next action is a minimal test-only change
+to compare relative relations after focus/common translation, with no
+production modification in this triage.
+
+### Full API35 suite and HC4/T2 sanity
+
+API35-only full instrumentation was run three times:
+
+| Round | Total | Passed | Failed | Skipped | Result |
+|---|---:|---:|---:|---:|---|
+| 1 | 152 | 148 | 1 | 3 | aggregate failure; individual name was not retained by the summary capture; focused evidence identifies the geometry family |
+| 2 | 152 | 149 | 0 | 3 | `OK (152 tests)` |
+| 3 | 152 | 149 | 0 | 3 | `OK (152 tests)` |
+
+HC4/T2 were only sanity-checked as requested: `HealthConnectSyncScreenTest`
+6/6 PASS and `RealAppImeFrameProbeTest` 1/1 PASS on API35. No HC4/T2
+investigation was reopened.
+
+No production or permanent `androidTest` diff remains; temporary diagnostic
+logging was reverted before documentation changes. This triage does not
+enter RC2 and does not create a tag or release.

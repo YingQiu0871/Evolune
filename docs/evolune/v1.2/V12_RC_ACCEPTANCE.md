@@ -695,3 +695,82 @@ release gate.
 
 No production behavior failure was observed in this cycle. No tag, GitHub
 Release, Play publication, or RC2 was created.
+
+## RC1-R2A — API35 MedicationRecords instrumentation triage
+
+- Validation base: `da2c0142a8de40735ef52ae7a14948ef716cffee`
+- Target: `evolune-hc3-api35`, API35 / Android 15
+- Device: `emulator-5560`, 1080x1920, density 420, font scale 1.0,
+  navigation mode 2, rotation 0, default IME LatinIME
+- Evidence state: focused instrumentation and emulator/manual evidence only;
+  no production or permanent `androidTest` source was changed.
+
+### Repeated matrix
+
+| Test | API33-A | API33-B | API35 | API37 Fold |
+|---|---:|---:|---:|---:|
+| `rapidDoubleTapInvokesOneInsert` | 5/5 PASS | 5/5 PASS | 10/10 PASS | 5/5 PASS |
+| `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges` | 5/5 PASS | 5/5 PASS | 3/10 PASS, 7/10 FAIL | 5/5 PASS |
+
+API35 `MedicationRecordsScreenTest` class runs were 2/5 PASS and 3/5
+FAIL; every observed class failure was the geometry assertion, not the
+double-tap test. With all four AVDs online, the API35 double-tap focused run
+was 10/10 PASS. With only API35 online, it was 5/5 PASS. Thus multi-AVD
+online state did not reproduce the reported double-tap failure or establish a
+host-contention effect.
+
+### Clean-state and first divergence
+
+After the raw evidence, `io.github.yingqiu0871.evolune.debug` was cleared and
+the debug app/test APKs were reinstalled on API35. Clean-state results were:
+
+- `rapidDoubleTapInvokesOneInsert`: 5/5 PASS.
+- `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges`: 2/5 PASS,
+  3/5 FAIL.
+
+The geometry divergence occurs immediately after the first dose field receives
+focus and `waitForIdle()` returns, before the second field is focused. The
+initial absolute `boundsInRoot` tops are label `1167` and field `1224`; after
+the IME/bring-into-view scroll they become label `781` and field `838`.
+Both pairs moved upward by exactly `386px`. The root remained
+`1080x1920`; the scroll range changed from `0/0` to approximately `386/643`,
+and the IME was shown. The test compares absolute coordinates to the initial
+coordinates instead of checking the invariant relative relation in the same
+focus state.
+
+Classification:
+
+- `rapidDoubleTapInvokesOneInsert`: `D` provisional — the historical
+  timeout remains an unreproduced synchronization/host-contention flake;
+  direct, suite, clean-state, and cross-API runs provide no production-race
+  evidence.
+- `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges`: `B` —
+  test assertion/harness bug, with API35 IME/bring-into-view behavior as the
+  platform-specific trigger (`C` context, not a production defect).
+
+Manual API35 UX was usable: the dose field was focused, the IME appeared, the
+equivalent E2 field was focused, the editor was scrolled, and the record was
+saved and displayed as `戊酸雌二醇 · 2.0 mg`. No visible label/field overlap,
+loss of input, or unusable control was observed.
+
+### API35 full-suite and sanity evidence
+
+Three API35-only full instrumentation rounds each ran 152 tests with 3
+skipped assumptions:
+
+| Round | Total | Passed | Failed | Skipped | Exact result |
+|---|---:|---:|---:|---:|---|
+| 1 | 152 | 148 | 1 | 3 | one failure; same MedicationRecords geometry failure family was reproduced in focused suite runs |
+| 2 | 152 | 149 | 0 | 3 | `OK (152 tests)` |
+| 3 | 152 | 149 | 0 | 3 | `OK (152 tests)` |
+
+The first-round summary capture retained the aggregate failure but not its
+individual test name; the focused class evidence above retains the exact
+geometry assertion and coordinate values. HC4/T2 sanity was not re-opened:
+`HealthConnectSyncScreenTest` was 6/6 PASS and
+`RealAppImeFrameProbeTest` was 1/1 PASS on API35.
+
+The temporary geometry logging was fully reverted. Production source and
+permanent `androidTest` source have zero diff. Recommended next action is a
+narrow test-only correction to assert relative geometry after the common IME
+translation; no production fix is indicated by this triage.
