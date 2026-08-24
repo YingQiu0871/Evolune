@@ -104,7 +104,8 @@ class MedicationPlansScreenTest {
 
         assertEquals(0, repository.saveCalls)
         assertSame(session, viewModel.editSession.value)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.plan_error_invalid_input)).assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
@@ -124,7 +125,8 @@ class MedicationPlansScreenTest {
 
         assertEquals(1, repository.saveCalls)
         assertTrue(viewModel.editSession.value != null)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.plan_error_invalid_plan)).assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
@@ -194,7 +196,8 @@ class MedicationPlansScreenTest {
 
         assertEquals(1, repository.deleteCalls)
         assertTrue(viewModel.editSession.value != null)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
     }
 

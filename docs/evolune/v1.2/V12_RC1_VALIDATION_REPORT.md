@@ -232,3 +232,57 @@ were not started after the API33 instrumentation blocker.
 
 No tag, GitHub Release, Play release, or production-code fix was created by
 RC1.
+
+## RC1-Fix-Test result — MedicationPlans editor-open assertions
+
+Evidence date: `2026-08-24`. A narrow fix branch was created from the T1
+triage commit `7891ec7e40da5f67c5afcc421dd9a1238e2fe574`. The finding remains
+classified as `T1-B — test harness/test assertion bug`, and is closed by a
+test-only change:
+
+1. `invalidDraftSkipsRepositoryAndKeepsEditorOpen`,
+   `saveFailureKeepsEditorOpenAndShowsError`, and
+   `deleteFailureKeepsEditorOpen` now use
+   `plan-name.assertExists()` after the bottom action scroll.
+2. Each test also asserts `plan-editor-surface.assertExists()` so logical
+   editor persistence is checked independently of viewport clipping.
+3. `plan-error.assertIsDisplayed()` remains unchanged and still proves the
+   failure message is visible. Repository call counts, non-null edit session,
+   operation failure state, and specific error messages remain asserted.
+
+No Kotlin/Java/XML production source, manifest, Gradle configuration, or UI
+behavior was modified. The temporary semantics diagnostics used during T1
+triage were reverted and are not part of this fix.
+
+### Focused repeated matrix
+
+The corrected three tests passed repeatedly on the available devices:
+
+| Device | Invalid draft | Save failure | Delete failure |
+|---|---:|---:|---:|
+| API33-A `evolune-hc3-api33` / `emulator-5554` | 5/5 PASS | 5/5 PASS | 5/5 PASS |
+| API33-B `Evolune_API33_Migration` / `emulator-5556` | 3/3 PASS | 3/3 PASS | 3/3 PASS |
+| API37 `Pixel_10_Pro_Fold` / `emulator-5558` | 3/3 PASS | 3/3 PASS | 3/3 PASS |
+| API35 | NOT AVAILABLE | NOT AVAILABLE | NOT AVAILABLE |
+
+### Full instrumentation result
+
+`:app:connectedDebugAndroidTest --rerun-tasks` completed on every online
+device:
+
+| Device | Total | Passed | Failed | Skipped | Result |
+|---|---:|---:|---:|---:|---|
+| API33-A `evolune-hc3-api33` | 146 | 143 | 0 | 3 | PASS |
+| API33-B `Evolune_API33_Migration` | 146 | 142 | 1 | 3 | FAIL — `RealAppImeFrameProbeTest.frameLevelImeMotionAnalysis` reported field keyboard occlusion |
+| API37 `Pixel_10_Pro_Fold` | 146 | 144 | 0 | 2 | PASS |
+
+The remaining API33-B failure is unrelated to MedicationPlans and was not
+altered in this scope. The focused T1-B correction is therefore validated,
+while the overall automated instrumentation gate remains blocked by that
+independent UI/IME regression. No live Drive or other paused RC gate was
+resumed, and no tag or release was created.
+
+JVM regression after the correction:
+
+- `:app:testDebugUnitTest --rerun-tasks`: `BUILD SUCCESSFUL`.
+- `:app:assembleDebug --rerun-tasks`: `BUILD SUCCESSFUL`.

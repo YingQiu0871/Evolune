@@ -170,3 +170,51 @@ existing logical-open assertions and replace only the post-operation
 `plan-name.assertIsDisplayed()` checks with `assertExists()`, or explicitly
 scroll the field into view before asserting display if physical visibility is
 intended. Do not change production UI code based on this evidence.
+
+## RC1-Fix-Test — corrected MedicationPlans editor assertions
+
+Evidence date: `2026-08-24`. The fix branch was created from the exact T1
+triage commit `7891ec7e40da5f67c5afcc421dd9a1238e2fe574`. The T1-B finding is
+closed by a test-only correction:
+
+- In `invalidDraftSkipsRepositoryAndKeepsEditorOpen`,
+  `saveFailureKeepsEditorOpenAndShowsError`, and
+  `deleteFailureKeepsEditorOpen`, the post-operation
+  `plan-name.assertIsDisplayed()` assertion was changed to
+  `plan-name.assertExists()`.
+- Each of those paths now also asserts
+  `plan-editor-surface.assertExists()` to prove the logical editor remains
+  composed/open.
+- The `plan-error.assertIsDisplayed()` assertions remain strong, as do the
+  repository-call, operation-state, and error-message assertions.
+- No Kotlin production source, manifest, Gradle file, or production UI
+  behavior was changed. Temporary triage diagnostics are not retained.
+
+### Focused repeated instrumentation matrix
+
+| Device | `invalidDraft...` | `saveFailure...` | `deleteFailure...` | Result |
+|---|---:|---:|---:|---|
+| API33-A `evolune-hc3-api33` / `emulator-5554` | 5/5 PASS | 5/5 PASS | 5/5 PASS | PASS |
+| API33-B `Evolune_API33_Migration` / `emulator-5556` | 3/3 PASS | 3/3 PASS | 3/3 PASS | PASS |
+| API37 `Pixel_10_Pro_Fold` / `emulator-5558` | 3/3 PASS | 3/3 PASS | 3/3 PASS | PASS |
+| API35 | NOT AVAILABLE | NOT AVAILABLE | NOT AVAILABLE | NOT TESTED |
+
+### Full connected instrumentation
+
+The full `:app:connectedDebugAndroidTest --rerun-tasks` run completed on all
+three online devices. Results are recorded per device; no device was stopped
+early:
+
+| Device | Total | Passed | Failed | Skipped | Result |
+|---|---:|---:|---:|---:|---|
+| API33-A `evolune-hc3-api33` | 146 | 143 | 0 | 3 | PASS |
+| API33-B `Evolune_API33_Migration` | 146 | 142 | 1 | 3 | FAIL — existing `RealAppImeFrameProbeTest.frameLevelImeMotionAnalysis` keyboard-occlusion assertion |
+| API37 `Pixel_10_Pro_Fold` | 146 | 144 | 0 | 2 | PASS |
+
+The API33-B full-suite failure is outside MedicationPlans and is not caused
+by this assertion-only change. Therefore the focused T1-B gate is `PASS`, but
+the full automated RC instrumentation gate remains `BLOCKED` until the
+unrelated `RealAppImeFrameProbeTest` failure is separately resolved or
+accepted by the RC owner. API35, physical Health Connect, live Drive, signed
+release/R8, KDF-device, and other owner-device gates remain unchanged and are
+not reclassified by this fix.
