@@ -790,3 +790,84 @@ No production code, tests, manifest, Gradle configuration, tag, release, or
 RC2 was changed or created in R2B. The live upload blocker, release signing
 gate, physical-device gates, and remaining Health Connect owner gates remain
 open.
+
+## RC1-R2B-T1 — Live Drive upload failure triage
+
+This docs-only triage is based on the approved R2B baseline
+`c68bf920ee3b6ee336c1597d413b2235463ebb15` and branch
+`v1.2/rc1-r2b-t1-drive-upload-triage`. No production, test, Manifest, or
+Gradle source was changed. The protected `D:\Evolune` root and the old linked
+worktree were not touched.
+
+### Live evidence and repeated result
+
+The target was the API37 `Pixel_10_Pro_Fold` AVD (`emulator-5554`,
+2076x2152, density 390, font scale 1.0) with package
+`io.github.yingqiu0871.evolune.debug`. GMS was installed. The real account
+chooser completed for the owner-provided test account (report-masked as
+`g***@gmail.com`), Evolune returned `已连接（当前会话）`, and no
+`DEVELOPER_ERROR/10` was observed. This is `LIVE GOOGLE SERVICE` evidence for
+authorization only, not proof of a Drive write.
+
+| Repeat | Setup and result | Sanitized observation |
+|---|---|---|
+| 1 | Connected session, synthetic non-sensitive local state, backup submitted | `FAIL` — UI showed `备份上传失败`; no app HTTP/error line, fileId, or readback marker |
+| 2 | Same Fold target and flow after dismissing the prior error | `FAIL` — same UI result; no app HTTP/error line, fileId, or readback marker |
+| 3 | Same Fold target and flow after dismissing the prior error | `FAIL` — same UI result; no app HTTP/error line, fileId, or readback marker |
+
+The three attempts used sanitized logcat captures. No access token, passphrase,
+encrypted payload, or full account address was recorded. The first observable
+divergence is the final generic UI error after submission. The exact live
+sub-stage is not observable from this build: the coordinator maps a non-invalid
+B1 encode failure and the provider `UPLOAD_FAILED` path to the same stable
+`备份上传失败` message. A readback verification failure has a distinct
+`备份上传后验证失败` message, so the observed text does not prove that
+readback began or that a remote file was created.
+
+### Upload path and request audit
+
+Source audit confirms the following path:
+
+`snapshot → B1 encode → AuthorizationClient/access token → provider upload →
+Drive v3 multipart POST → create response → readback → byte/SHA verification`.
+
+| Item | Evidence |
+|---|---|
+| Authorization | `PASS` — real AuthorizationClient flow completed; no token value was logged |
+| Scope | `PASS` — `https://www.googleapis.com/auth/drive.appdata` only; no broader scope, offline access, refresh token, or server-auth-code path |
+| Request mode | Drive v3 multipart upload: `POST https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=...` |
+| Metadata shape | JSON contains `name`, `mimeType: application/octet-stream`, `parents: ["appDataFolder"]`, and Evolune `appProperties` including format versions, created time, and `contentSha256` |
+| Bearer token | `YES` by the source path: AuthorizationClient result is passed as `Authorization: Bearer <token>`; live token value and length were not recorded |
+| Encrypted payload length | `UNKNOWN` live; the source passes the encoded B1 bytes into the multipart body, but this build records no byte length |
+| HTTP status/reason/body | `UNKNOWN` / not emitted; the adapter maps status to a broad category and discards `errorStream` |
+| Remote file created | `UNKNOWN`; no fileId was exposed and no list diagnostic was run |
+| Readback attempted | `UNKNOWN` live; it is entered only after a successful create response, and no readback marker was logged |
+
+The owner configuration states that Google Drive API is enabled, but this run
+did not receive an HTTP response category or Google reason/message. Therefore
+Drive API enablement/project mismatch is not asserted as a root cause. TCP
+connectivity to `www.googleapis.com:443` and `oauth2.googleapis.com:443` was
+reachable from the Fold, which is not authenticated Drive-write evidence.
+
+### Triage classification and next action
+
+Primary classification is **`T1-C — Production Drive provider/upload path
+blocker (provisional)`**. The real post-authorization failure is repeatable in
+the provider-facing backup path, while T1-A, T1-B, T1-D, and T1-E lack their
+required concrete evidence: no Google error reason, no network/TLS exception,
+no proven successful create/readback, and no 5xx/429 response. This is not a
+claim that the endpoint or metadata is malformed; the exact create-versus-encode
+root cause remains unresolved because the current adapter does not preserve
+the needed evidence.
+
+The next narrow action is a separate diagnostic/fix decision: preserve a
+sanitized structured HTTP status/reason and upload-stage marker (encode/create/
+readback/SHA) without logging secrets, then repeat one live upload. Do not
+continue to retention, disconnect, or A→B→A until that blocker is classified.
+
+### T1 stop state
+
+The live upload gate remains `FAIL` and an `RC1_BLOCKER`. Readback, list,
+download, retention, disconnect/reauthorization, and A→B→A remain `NOT TESTED`.
+No production behavior fix, diagnostic source diff, RC2, tag, or release was
+created.
