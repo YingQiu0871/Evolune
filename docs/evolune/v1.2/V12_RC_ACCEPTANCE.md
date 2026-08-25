@@ -923,3 +923,68 @@ failure.
 The owner must restore the approved Google test account on `emulator-5554` and
 leave a usable signed-in session before T3 can resume. Retention, disconnect,
 reauthorization testing, A→B→A, RC2, and release remain paused.
+
+## RC1-R2B-T4A — Authorization state discrepancy
+
+T4A was based on `2a1e7ed84d09f57812b30dde926fb3e18fc28f99` on branch
+`v1.2/rc1-r2b-t4a-auth-state-triage`. The current Pixel 10 Pro Fold was
+identified by AVD name, not by a reused emulator serial: adb serial
+`emulator-5558`, AVD `Pixel_10_Pro_Fold`, product
+`sdk_gphone16k_x86_64`, Android 17 / API 37. The current Android user/profile
+was user `0`; the only running user was `0`.
+
+### Independent account and identity evidence
+
+| Check | Evidence | Result |
+|---|---|---|
+| System Google account | `dumpsys account` for user 0; one Google account, reported only as `g***@gmail.com` | `PASS` |
+| Play Store/GMS session | Play Store was foreground and showed the signed-in account avatar | `PASS` |
+| Current user/profile match | Google account and Evolune package are both installed for user 0 | `PASS` |
+| APK package | Installed production package `io.github.yingqiu0871.evolune.debug`, version `1.2.0-debug` | `PASS` |
+| Installed APK SHA-1 | `9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B` | `PASS` |
+| Installed APK SHA-256 | `2C:F0:A5:0C:33:B5:40:4A:85:36:3E:42:DC:15:78:1C:5C:7E:4C:36:BB:5F:0E:8C:C0:4A:0E:5D:26:AD:A7:72` | `PASS` |
+| Configured OAuth identity | Same package and SHA-1 as the installed production APK | `PASS` |
+| Instrumentation identity | `io.github.yingqiu0871.evolune.debug.test` targets the debug app and is signed by the same debug certificate; no release package was observed | `PASS` |
+| Clock/profile preconditions | Automatic time and timezone enabled; no user/profile mismatch observed | `PASS` |
+
+The installed APK was verified from the device APK itself, not inferred from a
+Gradle signing report. No `pm clear`, uninstall, account removal, GMS reset, or
+AVD wipe was performed.
+
+### AuthorizationClient state
+
+The real production path was exercised once from Settings → Backup & Restore →
+立即备份. No Google account chooser, consent, sign-in, or reauthentication UI
+appeared. The app moved directly to its local backup-passphrase dialog. The
+source-audited coordinator requests authorization before showing that dialog,
+and cancelling the dialog returned to a state showing `已连接（当前会话）`.
+
+| State-machine item | T4A result |
+|---|---|
+| Initial `authorize(request)` | `success / Authorized` |
+| `hasResolution` | `false` for this call; no `PendingIntent` was launched |
+| Resolution UI classification | `NONE` |
+| Existing account offered | Not applicable; no Google UI appeared |
+| Google password required | `false`; only the local backup-passphrase dialog appeared |
+| Post-resolution result | Not applicable |
+| GMS status/error | No `ApiException`, status code, status message, or cause observed |
+| Token presence | `true` by the `Authorized` outcome and connected UI; token value was not recorded |
+
+The local passphrase was not submitted, so no encrypted backup was created and
+no Drive operation was started.
+
+### Final classification and T3 correction
+
+Final classification: **`B — account exists, normal OAuth authorization state
+was previously misclassified`**. The system account is present in the same
+Android user as Evolune, the installed APK identity matches the configured
+OAuth client, and the current Fold's production call is already authorized.
+
+The previous T3 statement that the Fold lacked an active system Google account
+is **rejected**. A Google login/account UI can mean that authorization
+resolution or consent is required; it does not prove that the system account is
+absent. The historical serial cannot be used as device identity across rounds,
+so T3's exact prior device state is not re-inferred from `emulator-5554`.
+
+No Drive request was executed after S4. Retention, disconnect, reauthorization
+testing, A→B→A, RC2, tag, and release remain paused.

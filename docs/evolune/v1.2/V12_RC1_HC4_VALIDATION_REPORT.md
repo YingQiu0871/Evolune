@@ -565,3 +565,79 @@ result.
 No production or test source was changed; no diagnostic source diff exists.
 Retention, delete, G1–G4, disconnect, reauthorization testing, A→B→A, UI1,
 RC2, tag, and release remain paused.
+
+## RC1-R2B-T4A — Authorization state discrepancy
+
+### Device, account, and installed identity
+
+T4A started from `2a1e7ed84d09f57812b30dde926fb3e18fc28f99` on branch
+`v1.2/rc1-r2b-t4a-auth-state-triage`. The target was identified as adb serial
+`emulator-5558`, AVD `Pixel_10_Pro_Fold`, product
+`sdk_gphone16k_x86_64`, Android 17 / API 37. The current Android user/profile
+was user `0`; `pm list users` showed only that running user.
+
+Read-only account evidence found one Google account under user 0. The account
+was recorded only as `g***@gmail.com`; its full address was not written to the
+report. Play Store was also foreground and showed the signed-in account avatar.
+The account and both Evolune packages were installed for the same user 0.
+
+The actual installed production APK was pulled only for certificate inspection:
+
+| Field | Observed |
+|---|---|
+| package | `io.github.yingqiu0871.evolune.debug` |
+| version | `1.2.0-debug` |
+| installed SHA-1 | `9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B` |
+| expected OAuth SHA-1 | `9F:FD:E8:2F:21:6E:C5:06:BD:CE:BC:3D:B2:4F:BB:62:82:A5:85:0B` |
+| installed SHA-256 | `2C:F0:A5:0C:33:B5:40:4A:85:36:3E:42:DC:15:78:1C:5C:7E:4C:36:BB:5F:0E:8C:C0:4A:0E:5D:26:AD:A7:72` |
+| expected OAuth SHA-256 | `2C:F0:A5:0C:33:B5:40:4A:85:36:3E:42:DC:15:78:1C:5C:7E:4C:36:BB:5F:0E:8C:C0:4A:0E:5D:26:AD:A7:72` |
+| identity match | `true` |
+
+The installed instrumentation package was
+`io.github.yingqiu0871.evolune.debug.test`, targeting the debug app and using
+the same debug certificate. No release package was observed. T4A did not
+uninstall, reinstall, clear package data, remove the account, reset GMS, or
+wipe the AVD.
+
+### AuthorizationClient evidence
+
+One real production attempt was started from Settings → Backup & Restore →
+立即备份. The foreground app stayed in Evolune and immediately displayed the
+local backup-passphrase dialog; no Google chooser, consent, sign-in, or
+reauthentication UI appeared. Source audit confirms the coordinator calls
+`authorize()` before displaying that local dialog. After the dialog was
+cancelled, the settings screen reported `已连接（当前会话）`.
+
+| Item | Result |
+|---|---|
+| Initial result | `success / Authorized` |
+| `hasResolution` | `false`; no pending intent launched |
+| Resolution UI | `NONE` |
+| Existing account offered | Not applicable; Google UI did not appear |
+| Password actually required | `false` for Google; the visible prompt was only the local backup passphrase |
+| Post-resolution result | Not applicable |
+| GMS status/error | No `ApiException`, status code, message, or cause observed |
+| tokenPresent | `true` by the authorized result/connected state; token value not recorded |
+
+The local passphrase was cancelled before submission. Consequently T4A made no
+Drive request, created no encrypted payload, and produced no remote file,
+readback, HTTP evidence, or upload-stage evidence.
+
+### Classification and correction
+
+Final classification: **`B — account exists, normal OAuth authorization state
+was previously misclassified`**. The system account is present, the Android
+user/profile matches the installed app, the installed signer matches the
+configured OAuth client, and the current Fold's production call is already
+authorized.
+
+The T3 claim that the Fold lacked an active system account is rejected. A
+Google login/account UI proves only that resolution may be required; it does
+not prove that a system account is absent. Because emulator serials can change,
+the historical `emulator-5554` label is not treated as durable device identity
+and no new historical device claim is made.
+
+No production or test source was changed. No temporary source diagnostics were
+needed or applied in T4A; pulled certificate-inspection APKs and temporary UI
+dumps were removed after inspection. Drive upload, retention, disconnect,
+reauthorization, restore, A→B→A, RC2, tag, and release remain paused.
