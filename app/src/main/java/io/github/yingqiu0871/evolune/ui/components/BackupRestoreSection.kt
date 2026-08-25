@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -81,14 +82,18 @@ fun BackupRestoreSection(
             Button(
                 onClick = onBackupNow,
                 enabled = state == BackupRestoreUiState.Idle,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("google-drive-backup-now")
             ) {
                 Text(stringResource(R.string.settings_backup_now))
             }
             Button(
                 onClick = onRestoreFromBackup,
                 enabled = state == BackupRestoreUiState.Idle,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .testTag("google-drive-restore-from-backup")
             ) {
                 Text(stringResource(R.string.settings_restore_from_backup))
             }
@@ -96,7 +101,8 @@ fun BackupRestoreSection(
         if (connected) {
             TextButton(
                 onClick = onDisconnect,
-                enabled = state == BackupRestoreUiState.Idle
+                enabled = state == BackupRestoreUiState.Idle,
+                modifier = Modifier.testTag("google-drive-disconnect")
             ) {
                 Text(stringResource(R.string.settings_disconnect_google_drive))
             }

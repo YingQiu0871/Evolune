@@ -881,3 +881,46 @@ two dispatcher tests and the required asynchronous Preview wait in the
 existing Coordinator/ViewModel regression. No UI1, Drive protocol, retention,
 OAuth, backup-format, Room, DataStore, Manifest, or Gradle change was made.
 No RC2, tag, or release was created.
+
+## UI1 — Sync & Backup Settings Information Architecture
+
+UI1 is the post-F2 Settings IA refactor based on
+`4dbde12e2c0ff4d58d2f02559866b5a0bd2ae2eb`, on branch
+`v1.2/ui1-sync-backup-settings`. The Settings home contains one
+`同步与备份` navigation row. Its secondary page groups three passive entries:
+
+- `导入与导出数据` — existing Mahiro file/clipboard actions moved without
+  changing callbacks, dialogs, or clipboard/file-picker behavior;
+- `Health Connect 同步` — existing HC4 route and status model, moved behind the
+  new page;
+- `Google Drive 备份与恢复` — existing B4 controls and ViewModel callbacks,
+  moved behind the new page.
+
+The refactor added route/page composition, shared settings-list presentation,
+localized strings, and focused tests only. It did not change HC4 production
+behavior, B1/B2 wire or restore semantics, B3 Drive behavior, B4 coordinator or
+ViewModel behavior, crypto, OAuth, retention, Room, DataStore, Manifest, or
+Gradle.
+
+### UI1 validation matrix
+
+| Check | Evidence | Result |
+|---|---|---|
+| Home hides direct HC/Drive/import-export controls | `HealthConnectSyncScreenTest` | PASS |
+| Secondary page has passive Data/HC/Drive rows | `SyncAndBackupScreenTest` | PASS |
+| Mahiro import/export actions | `SyncAndBackupScreenTest` | PASS |
+| B4 backup/restore/disconnect actions | `SyncAndBackupScreenTest` | PASS |
+| Route transitions and back navigation | `SyncAndBackupNavigationTest` | PASS |
+| API33-A focused suite | 10/10, 0 skipped, 0 failed | PASS |
+| API33-B focused suite | 10/10, 0 skipped, 0 failed | PASS |
+| API37 Fold focused suite | 10/10, 0 skipped, 0 failed | PASS |
+| API35 focused suite | No API35 AVD online | NOT TESTED |
+| Fold OPENED manual check | 2076×2152, density 390; no clipping/overlap | PASS |
+| Fold CLOSED manual check | 1080×2364; no clipping/overlap | PASS |
+
+The focused suite included the existing six HC4 screen tests, three new
+secondary-page tests, and one route/back-navigation test. Manual checks
+confirmed Settings → Sync & Backup → each child route and return navigation in
+both Fold postures. UI1 is pending independent reviewer acceptance; it is not a
+final RC release decision. No retention, live G1–G4, A→B→A, RC2, tag, or
+release activity was performed.

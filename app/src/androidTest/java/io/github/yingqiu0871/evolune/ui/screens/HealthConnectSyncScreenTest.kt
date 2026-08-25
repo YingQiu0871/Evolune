@@ -6,6 +6,8 @@ import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.hasNoClickAction
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,6 +20,7 @@ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import java.time.Instant
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Assert.assertTrue
 
 class HealthConnectSyncScreenTest {
     @get:Rule
@@ -40,7 +43,7 @@ class HealthConnectSyncScreenTest {
     }
 
     @Test
-    fun settingsHomeHasOneHealthConnectSyncEntry() {
+    fun settingsHomeRoutesSyncAndBackupWithoutDirectFeatureControls() {
         var opened = false
         composeRule.setContent {
             EvoluneTheme {
@@ -53,15 +56,25 @@ class HealthConnectSyncScreenTest {
                     onAutoCheckUpdatesChange = {},
                     onCheckForUpdates = {},
                     updateCheckResult = UpdateCheckResult.Idle,
-                    onOpenHealthConnectSync = { opened = true },
+                    onOpenSyncAndBackup = { opened = true },
                     showTopBar = false
                 )
             }
         }
-        composeRule.onNodeWithTag("settings-health-connect-sync-entry").performScrollTo()
-        composeRule.onNodeWithTag("settings-health-connect-sync-entry").assertIsDisplayed()
-        composeRule.onNodeWithText("Health Connect 同步").assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-health-connect-sync-entry").performClick()
+        composeRule.onNodeWithTag("settings-sync-backup-entry").performScrollTo()
+        composeRule.onNodeWithTag("settings-sync-backup-entry").assertIsDisplayed()
+        composeRule.onNodeWithText("同步与备份").assertIsDisplayed()
+        assertTrue(
+            composeRule.onAllNodesWithTag("settings-health-connect-sync-entry")
+                .fetchSemanticsNodes().isEmpty()
+        )
+        assertTrue(
+            composeRule.onAllNodesWithText("立即备份").fetchSemanticsNodes().isEmpty()
+        )
+        assertTrue(
+            composeRule.onAllNodesWithText("从备份恢复").fetchSemanticsNodes().isEmpty()
+        )
+        composeRule.onNodeWithTag("settings-sync-backup-entry").performClick()
         composeRule.runOnIdle { check(opened) }
     }
 

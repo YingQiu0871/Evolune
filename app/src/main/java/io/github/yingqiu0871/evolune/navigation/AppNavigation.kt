@@ -101,10 +101,13 @@ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
+import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
+import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
 import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
+import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
@@ -119,7 +122,10 @@ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+private const val SYNC_AND_BACKUP_ROUTE = "sync_and_backup"
+private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
 private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
+private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -344,7 +350,10 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isHealthConnectSyncRoute = currentRoute == HEALTH_CONNECT_SYNC_ROUTE
+    val isSettingsSubroute = currentRoute == SYNC_AND_BACKUP_ROUTE ||
+        currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
+        currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
+        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -356,21 +365,24 @@ fun AppNavigation(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
             bottomBar = {
-                if (!useNavigationRail && !isHealthConnectSyncRoute) {
+                if (!useNavigationRail && !isSettingsSubroute) {
                     BottomNavigationBar(navController = navController)
                 }
             },
             topBar = {
                 AppTopBar(
                     currentScreen = currentScreen,
-                    alignWithNavigationRail = useNavigationRail && !isHealthConnectSyncRoute,
+                    alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
                     onRefresh = hrtViewModel::runSimulation,
-                    titleOverride = if (isHealthConnectSyncRoute) {
-                        stringResource(R.string.settings_health_connect_sync_title)
-                    } else {
-                        null
+                    titleOverride = when (currentRoute) {
+                        SYNC_AND_BACKUP_ROUTE -> stringResource(R.string.settings_sync_backup_title)
+                        DATA_IMPORT_EXPORT_ROUTE -> stringResource(R.string.settings_data_import_export_title)
+                        HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
+                        GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
+                            stringResource(R.string.settings_google_drive_backup_restore_title)
+                        else -> null
                     },
-                    onNavigateUp = if (isHealthConnectSyncRoute) {
+                    onNavigateUp = if (isSettingsSubroute) {
                         { navController.popBackStack() }
                     } else {
                         null
@@ -390,7 +402,7 @@ fun AppNavigation(
                 .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            if (useNavigationRail && !isHealthConnectSyncRoute) {
+            if (useNavigationRail && !isSettingsSubroute) {
                 NavigationRailBar(navController = navController)
             }
             Box(
@@ -474,33 +486,51 @@ fun AppNavigation(
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
                     updateCheckResult = updateCheckResult,
-                    healthConnectWeightSyncState = healthConnectWeightSyncState,
-                    onOpenHealthConnectSync = {
-                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE)
+                    onOpenSyncAndBackup = {
+                        navController.navigate(SYNC_AND_BACKUP_ROUTE) {
+                            launchSingleTop = true
+                        }
                     },
+                    showTopBar = false
+                )
+            }
+            composable(SYNC_AND_BACKUP_ROUTE) {
+                SyncAndBackupScreen(
+                    settings = userSettings,
+                    healthConnectWeightSyncState = healthConnectWeightSyncState,
                     backupRestoreConnected = backupRestoreConnected,
-                    backupRestoreState = backupRestoreState,
-                    onBackupNow = backupRestoreViewModel::backUpNow,
-                    onRestoreFromBackup = backupRestoreViewModel::restoreFromBackup,
-                    onDisconnectGoogleDrive = backupRestoreViewModel::disconnect,
-                    onSelectBackupGeneration = backupRestoreViewModel::selectGeneration,
-                    onSubmitBackupPassphrase = backupRestoreViewModel::submitBackupPassphrase,
-                    onSubmitRestorePassphrase = backupRestoreViewModel::submitRestorePassphrase,
-                    onConfirmRestore = backupRestoreViewModel::confirmRestore,
-                    onCancelBackupRestore = backupRestoreViewModel::cancelInteractiveOperation,
-                    onDismissBackupRestoreMessage = backupRestoreViewModel::dismissMessage,
-                    onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+                    onOpenData = {
+                        navController.navigate(DATA_IMPORT_EXPORT_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenHealthConnect = {
+                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenGoogleDrive = {
+                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+            composable(DATA_IMPORT_EXPORT_ROUTE) {
+                DataImportExportScreen(
+                    importResult = importResult,
+                    onDismissImportResult = hrtViewModel::dismissImportResult,
+                    clipboardExportMessage = clipboardExportMessage,
+                    onClipboardExportMessageShown = { clipboardExportMessage = null },
+                    onImportClick = {
+                        importLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
                     onImportFromClipboard = { importFromClipboard() },
                     onExportClick = {
                         pendingExportJson = hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
                         exportLauncher.launch(strExportFilename)
                     },
-                    onExportToClipboard = { exportToClipboard() },
-                    importResult = importResult,
-                    onDismissImportResult = hrtViewModel::dismissImportResult,
-                    clipboardExportMessage = clipboardExportMessage,
-                    onClipboardExportMessageShown = { clipboardExportMessage = null },
-                    showTopBar = false
+                    onExportToClipboard = { exportToClipboard() }
                 )
             }
             composable(HEALTH_CONNECT_SYNC_ROUTE) {
@@ -517,6 +547,21 @@ fun AppNavigation(
                             )
                         )
                     }
+                )
+            }
+            composable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                GoogleDriveBackupRestoreScreen(
+                    connected = backupRestoreConnected,
+                    state = backupRestoreState,
+                    onBackupNow = backupRestoreViewModel::backUpNow,
+                    onRestoreFromBackup = backupRestoreViewModel::restoreFromBackup,
+                    onDisconnect = backupRestoreViewModel::disconnect,
+                    onSelectGeneration = backupRestoreViewModel::selectGeneration,
+                    onSubmitBackupPassphrase = backupRestoreViewModel::submitBackupPassphrase,
+                    onSubmitRestorePassphrase = backupRestoreViewModel::submitRestorePassphrase,
+                    onConfirmRestore = backupRestoreViewModel::confirmRestore,
+                    onCancel = backupRestoreViewModel::cancelInteractiveOperation,
+                    onDismissMessage = backupRestoreViewModel::dismissMessage
                 )
             }
         }

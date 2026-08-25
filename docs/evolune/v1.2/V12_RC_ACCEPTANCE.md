@@ -1216,3 +1216,50 @@ No API37 instrumentation source was changed.
 F2 changed only the crypto dispatcher boundary, its focused/unit regression
 tests, and this report plus the HC4 validation report. UI1 was not implemented;
 retention was not executed; no RC2, tag, or release was created.
+
+## UI1 — Sync & Backup Settings Information Architecture
+
+UI1 starts from the accepted RC1-F2 target
+`4dbde12e2c0ff4d58d2f02559866b5a0bd2ae2eb` on branch
+`v1.2/ui1-sync-backup-settings`.
+
+The Settings home now exposes one high-level `同步与备份` entry. The former
+direct Health Connect entry, Google Drive backup controls, and Mahiro import /
+export controls are no longer rendered on the home page. The new hierarchy is:
+
+```text
+设置
+└── 同步与备份
+    ├── 导入与导出数据
+    ├── Health Connect 同步
+    └── Google Drive 备份与恢复
+```
+
+The secondary page contains passive summaries and navigation rows only. The
+Health Connect route remains the existing HC4 screen. The Google Drive route
+reuses the existing B4 `BackupRestoreSection` state and callbacks. The local
+data route reuses the existing Mahiro import/export callbacks, result dialogs,
+clipboard feedback, and file-picker behavior. No Health Connect, Drive,
+backup/restore, crypto, Room, DataStore, Manifest, or Gradle business logic was
+changed.
+
+### UI1 verification evidence
+
+| Gate | Evidence | Result |
+|---|---|---|
+| Settings home has one Sync & Backup entry and no direct feature controls | Focused Compose/instrumentation | PASS |
+| Sync & Backup → Data / Health Connect / Google Drive | Focused navigation instrumentation | PASS |
+| Import/export actions remain available | Focused Compose test | PASS |
+| B4 backup/restore/disconnect controls remain available | Focused Compose test | PASS |
+| Back navigation across all new routes | Focused navigation instrumentation | PASS |
+| Focused UI1 + HC4 tests on API33-A | `emulator-5554`, 10/10 | PASS |
+| Focused UI1 + HC4 tests on API33-B | `emulator-5556`, 10/10 | PASS |
+| Focused UI1 + HC4 tests on API37 Fold | `emulator-5558`, 10/10 | PASS |
+| API35 focused instrumentation | No API35 AVD online in this run | NOT TESTED |
+| API37 Fold OPENED visual/layout check | 2076×2152, no clipping/overlap observed | PASS |
+| API37 Fold CLOSED visual/layout check | 1080×2364, no clipping/overlap observed | PASS |
+
+UI1 is implementation-complete for this cycle but remains **pending
+independent reviewer acceptance**. This evidence does not close the existing
+RC owner-device, live-service, signing/R8, or other release gates. Retention,
+live G1–G4, A→B→A, RC2, tag, and release were not executed.
