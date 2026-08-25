@@ -806,3 +806,78 @@ Health Connect device-local preference after restore, UI1, RC2, tag, and
 release remain paused. The remaining release gates are the explicitly tracked
 device/Health Connect evidence, release signing/R8/signed smoke, broader live
 Drive acceptance, and final owner review.
+
+## RC1-F2 — Backup crypto CPU dispatcher confinement
+
+F2 starts from the formally accepted RC1-F1 commit
+`58451cd45a9e2d94a7b00719e4aba9675345fd58` on branch
+`v1.2/rc1-f2-backup-crypto-dispatcher`.
+
+The pre-F2 backup path was
+`BackupRestoreViewModel.submitBackupPassphrase` (Main-scoped operation) →
+`BackupRestoreCoordinator.createBackup` → synchronous
+`EvoluneBackupCodec.encode` → PBKDF2-HMAC-SHA256 600,000 → AES-GCM. Restore
+had the equivalent synchronous `decodeAndValidate` path after the Drive
+download. F2 confines only these synchronous codec calls with an injected
+`cryptoDispatcher`, defaulting to `Dispatchers.Default`:
+
+```text
+snapshot / UI orchestration          existing caller boundary
+backup codec encode                   withContext(cryptoDispatcher)
+restore codec decode/authenticate     withContext(cryptoDispatcher)
+Drive blocking network                existing F1 Dispatchers.IO boundary
+restore persistence transaction       existing B2 boundary
+```
+
+The codec boundary includes canonical serialization, envelope parsing and
+validation, PBKDF2, AES-GCM, and authenticated-header handling. Room/DataStore
+reads, Drive protocol/retention, restore preview, and destructive persistence
+were not moved or redesigned. `withContext` preserves structured cancellation;
+no detached coroutine or cancellation swallowing was added.
+
+### Crypto invariants
+
+PBKDF2-HMAC-SHA256, default iterations `600000`, 256-bit derived key,
+AES-256-GCM, salt/nonce generation, authenticated header/AAD, version and KDF
+parameters, and canonical envelope bytes are unchanged. The B1 golden fixture
+remains byte-for-byte stable with SHA-256
+`5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9`.
+
+### Dispatcher evidence
+
+The focused tests are:
+
+- `EvoluneBackupCodecTest.encode runs on injected crypto dispatcher from main-like caller`
+- `EvoluneBackupCodecTest.decode runs on injected crypto dispatcher from main-like caller`
+
+Both tests call the suspend codec boundary from a dedicated Main-like
+executor, inject a separate worker executor, and assert that the worker
+executed the boundary. The B1 codec suite plus B2 restore transaction/
+coordinator, B3 Drive gateway/provider, and B4 coordinator/ViewModel focused
+tests passed. The full requested JVM regression also passed:
+
+| Check | Result |
+|---|---|
+| `:app:testDebugUnitTest --rerun-tasks` | PASS |
+| `:experience-core:test --rerun-tasks` | PASS |
+| `:wear:testDebugUnitTest --rerun-tasks` | PASS |
+| `:app:assembleDebug --rerun-tasks` | PASS |
+| `:wear:assembleDebug --rerun-tasks` | PASS |
+
+### API37 Fold sanity
+
+On `emulator-5558` (Pixel 10 Pro Fold profile, API 37 / Android 17,
+2076×2152, density 390, font scale 1.0, gesture navigation, Latin IME), a
+clean debug install used synthetic empty state/body weight 55.0 kg and a
+disposable passphrase. Backup passphrase submission reached the production
+`备份已完成` UI, and restore passphrase submission reached the production
+`恢复预览` UI. During the observed windows the app remained responsive and
+logcat contained no ANR, `NetworkOnMainThreadException`, StrictMode, or fatal
+exception markers. This sanity check did not rerun G1–G4 retention.
+
+Production changes were limited to `EvoluneBackupCodec`'s injected crypto
+dispatcher boundary and the two Coordinator call sites. Test changes were the
+two dispatcher tests and the required asynchronous Preview wait in the
+existing Coordinator/ViewModel regression. No UI1, Drive protocol, retention,
+OAuth, backup-format, Room, DataStore, Manifest, or Gradle change was made.
+No RC2, tag, or release was created.

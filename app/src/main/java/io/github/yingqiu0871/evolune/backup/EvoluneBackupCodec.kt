@@ -21,6 +21,9 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.CodingErrorAction
@@ -52,7 +55,8 @@ object SecureBackupRandomSource : BackupRandomSource {
 }
 
 class EvoluneBackupCodec(
-    private val randomSource: BackupRandomSource = SecureBackupRandomSource
+    private val randomSource: BackupRandomSource = SecureBackupRandomSource,
+    private val cryptoDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
     private val json = Json
 
@@ -168,6 +172,20 @@ class EvoluneBackupCodec(
         return BackupValidationResult.Valid(
             ValidatedEvoluneBackupPayloadV1(payload)
         )
+    }
+
+    /**
+     * Runs the synchronous envelope encoding boundary on the CPU dispatcher.
+     * Snapshot reads remain owned by the caller; this boundary covers validation,
+     * canonical serialization, PBKDF2, and AES-GCM only.
+     */
+    suspend fun encodeOnCryptoDispatcher(
+        payload: EvoluneBackupPayloadV1,
+        passphrase: CharArray,
+        metadata: BackupProducerMetadataV1,
+        kdfIterations: Int = EvoluneBackupFormat.DEFAULT_KDF_ITERATIONS
+    ): BackupEncodeResult = withContext(cryptoDispatcher) {
+        encode(payload, passphrase, metadata, kdfIterations)
     }
 
     fun encode(
@@ -393,6 +411,17 @@ class EvoluneBackupCodec(
                 BackupCodecError(BackupCodecErrorCode.INVALID_PAYLOAD, validation.error.field)
             )
         }
+    }
+
+    /**
+     * Runs the synchronous envelope decode boundary on the CPU dispatcher.
+     * Download and restore persistence remain owned by the caller.
+     */
+    suspend fun decodeAndValidateOnCryptoDispatcher(
+        bytes: ByteArray,
+        passphrase: CharArray
+    ): BackupDecodeResult = withContext(cryptoDispatcher) {
+        decodeAndValidate(bytes, passphrase)
     }
 
     private fun parseEnvelope(root: JsonObject): EvoluneBackupEnvelopeV1 {

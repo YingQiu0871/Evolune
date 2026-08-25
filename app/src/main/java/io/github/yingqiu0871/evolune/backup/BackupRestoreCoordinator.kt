@@ -202,7 +202,7 @@ internal class BackupRestoreCoordinator(
                         producerAppVersionName = producerAppVersionName,
                         producerAppVersionCode = producerAppVersionCode
                     )
-                    val encoded = when (val result = codec.encode(
+                    val encoded = when (val result = codec.encodeOnCryptoDispatcher(
                         snapshot.payload,
                         secret,
                         metadata
@@ -269,7 +269,7 @@ internal class BackupRestoreCoordinator(
                 )
             }
             try {
-                val decoded = when (val result = codec.decodeAndValidate(downloaded, secret)) {
+                val decoded = when (val result = codec.decodeAndValidateOnCryptoDispatcher(downloaded, secret)) {
                     is BackupDecodeResult.Success -> result
                     is BackupDecodeResult.Failure -> return@withLock RestorePreparationResult.Failure(
                         error(mapCodecError(result.error.code))

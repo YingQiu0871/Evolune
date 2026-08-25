@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
@@ -92,7 +93,7 @@ class BackupRestoreCoordinatorTest {
             viewModel.restoreFromBackup()
             viewModel.selectGeneration(fixture.provider.generation)
             viewModel.submitRestorePassphrase("secret".toCharArray())
-            assertTrue(viewModel.uiState.value is BackupRestoreUiState.Preview)
+            viewModel.uiState.first { it is BackupRestoreUiState.Preview }
 
             viewModel.cancelInteractiveOperation()
             viewModel.confirmRestore()

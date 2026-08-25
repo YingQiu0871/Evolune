@@ -1131,3 +1131,88 @@ disconnect/reauthorization preservation, A→B→A restore semantics, physical
 Health Connect gates, device KDF/large-history gates, signed/minified release
 validation, and final owner review remain open. No RC2, tag, or release was
 created.
+
+## RC1-F2 — Backup crypto CPU dispatcher confinement
+
+F2 was based on the accepted RC1-F1 commit
+`58451cd45a9e2d94a7b00719e4aba9675345fd58` and was implemented on
+`v1.2/rc1-f2-backup-crypto-dispatcher`.
+
+### CPU boundary
+
+Before F2, the ViewModel's Main-scoped operation reached the synchronous
+codec directly:
+
+`BackupRestoreViewModel.submitBackupPassphrase` →
+`BackupRestoreCoordinator.createBackup` → `EvoluneBackupCodec.encode` →
+PBKDF2-HMAC-SHA256 → AES-GCM.
+
+Restore had the corresponding synchronous path through
+`BackupRestoreCoordinator.prepareRestore` →
+`EvoluneBackupCodec.decodeAndValidate` → PBKDF2-HMAC-SHA256 → AES-GCM.
+
+The F2 boundary is now the narrow codec call only:
+
+- `encodeOnCryptoDispatcher()` wraps validation, canonical serialization,
+  salt/nonce generation, PBKDF2, AES-GCM, and envelope encoding in
+  `withContext(cryptoDispatcher)`.
+- `decodeAndValidateOnCryptoDispatcher()` wraps envelope parsing, PBKDF2,
+  AES-GCM authentication/decryption, payload parsing, and validation in the
+  same boundary.
+- The injected production default is `Dispatchers.Default`.
+- Room/DataStore snapshot reads, Drive operations, restore preview, and the
+  B2 persistence transaction were not moved or redesigned. F1's Drive
+  blocking-I/O `Dispatchers.IO` boundary remains unchanged.
+
+Structured coroutine cancellation is preserved by `withContext`; no detached
+coroutine or cancellation-to-business-error conversion was introduced. The
+synchronous PBKDF2/Cipher body is not made artificially cooperative.
+
+### Crypto compatibility
+
+No wire or cryptographic semantics changed:
+
+| Contract | F2 result |
+|---|---|
+| KDF | PBKDF2-HMAC-SHA256, default 600,000 iterations — unchanged |
+| Derived key | 256-bit — unchanged |
+| Cipher | AES-256-GCM — unchanged |
+| Salt/nonce | generated with the existing sizes and random source — unchanged |
+| Authenticated header/AAD, version, KDF parameters, canonical JSON | unchanged |
+| B1 golden SHA-256 | `5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9` — unchanged |
+
+### Focused and regression evidence
+
+`EvoluneBackupCodecTest` added two direct dispatcher tests. Each invokes the
+codec from a dedicated Main-like executor with an injected worker executor and
+asserts that the worker executed the encode/decode boundary:
+
+- `encode runs on injected crypto dispatcher from main-like caller`
+- `decode runs on injected crypto dispatcher from main-like caller`
+
+The B1 codec suite, B2 restore transaction/coordinator tests, B3 Drive gateway
+and provider tests, and B4 coordinator/ViewModel tests all passed. The one
+existing ViewModel assertion that assumed same-stack Preview publication was
+made to await the Preview state after the now-suspending crypto boundary; no
+production behavior was changed by that test synchronization correction.
+
+### API37 Fold responsiveness sanity
+
+Target: `Pixel_10_Pro_Fold`, API 37 / Android 17, adb serial
+`emulator-5558`, debug package `io.github.yingqiu0871.evolune.debug`, display
+2076×2152, density 390, font scale 1.0, gesture navigation, Latin IME. A clean
+debug install used an empty synthetic local state with body weight 55.0 kg and
+a disposable passphrase.
+
+| Flow | Result |
+|---|---|
+| Backup passphrase submit | PASS — UI stayed responsive; production UI reached `备份已完成` |
+| Restore passphrase submit/decrypt | PASS — UI stayed responsive; production UI reached `恢复预览` |
+| ANR / `NetworkOnMainThreadException` / StrictMode / fatal markers | PASS — none observed in the sanitized logcat observation windows |
+
+This was a responsiveness sanity check only; G1–G4 retention was not rerun.
+No API37 instrumentation source was changed.
+
+F2 changed only the crypto dispatcher boundary, its focused/unit regression
+tests, and this report plus the HC4 validation report. UI1 was not implemented;
+retention was not executed; no RC2, tag, or release was created.

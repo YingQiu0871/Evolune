@@ -10,6 +10,8 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -17,6 +19,8 @@ import org.junit.Test
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Base64
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
@@ -40,6 +44,73 @@ class EvoluneBackupCodecTest {
         val decoded = requireDecoded(encoded)
 
         assertEquals(payload, decoded.payload)
+    }
+
+    @Test
+    fun `encode runs on injected crypto dispatcher from main-like caller`() {
+        val workerRan = AtomicBoolean(false)
+        val mainExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "backup-crypto-main-test")
+        }
+        val workerExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread({
+                workerRan.set(true)
+                runnable.run()
+            }, "backup-crypto-worker-test")
+        }
+        val mainDispatcher = mainExecutor.asCoroutineDispatcher()
+        val workerDispatcher = workerExecutor.asCoroutineDispatcher()
+        try {
+            val result = runBlocking(mainDispatcher) {
+                codecWith(workerDispatcher).encodeOnCryptoDispatcher(
+                    representativePayload(),
+                    passphrase.copyOf(),
+                    metadata,
+                    kdfIterations = 100_000
+                )
+            }
+
+            assertTrue(result is BackupEncodeResult.Success)
+            assertTrue("encode did not execute on the injected worker", workerRan.get())
+        } finally {
+            mainDispatcher.close()
+            workerDispatcher.close()
+            mainExecutor.shutdownNow()
+            workerExecutor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `decode runs on injected crypto dispatcher from main-like caller`() {
+        val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
+        val workerRan = AtomicBoolean(false)
+        val mainExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "backup-crypto-main-test")
+        }
+        val workerExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread({
+                workerRan.set(true)
+                runnable.run()
+            }, "backup-crypto-worker-test")
+        }
+        val mainDispatcher = mainExecutor.asCoroutineDispatcher()
+        val workerDispatcher = workerExecutor.asCoroutineDispatcher()
+        try {
+            val result = runBlocking(mainDispatcher) {
+                codecWith(workerDispatcher).decodeAndValidateOnCryptoDispatcher(
+                    encoded,
+                    passphrase.copyOf()
+                )
+            }
+
+            assertTrue(result is BackupDecodeResult.Success)
+            assertTrue("decode did not execute on the injected worker", workerRan.get())
+        } finally {
+            mainDispatcher.close()
+            workerDispatcher.close()
+            mainExecutor.shutdownNow()
+            workerExecutor.shutdownNow()
+        }
     }
 
     @Test
@@ -586,6 +657,9 @@ class EvoluneBackupCodecTest {
         is BackupEncodeResult.Success -> result.bytes
         is BackupEncodeResult.Failure -> error("encode failed: ${result.error}")
     }
+
+    private fun codecWith(dispatcher: kotlinx.coroutines.CoroutineDispatcher): EvoluneBackupCodec =
+        EvoluneBackupCodec(cryptoDispatcher = dispatcher)
 
     private fun requireDecoded(bytes: ByteArray): ValidatedEvoluneBackupPayloadV1 =
         when (val result = EvoluneBackupCodec().decodeAndValidate(bytes, passphrase)) {
