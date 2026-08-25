@@ -13,6 +13,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -26,6 +27,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneOffset
 import java.util.ArrayDeque
+import java.util.concurrent.Executors
 
 class GoogleDriveBackupProviderTest {
     @Test
@@ -285,6 +287,43 @@ class GoogleDriveBackupProviderTest {
     }
 
     @Test
+    fun `download body is consumed on injected io dispatcher`() {
+        val mainExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "drive-main-test")
+        }
+        val ioExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "drive-io-test")
+        }
+        val mainDispatcher = mainExecutor.asCoroutineDispatcher()
+        val ioDispatcher = ioExecutor.asCoroutineDispatcher()
+        try {
+            runBlocking(mainDispatcher) {
+                val remote = FakeDriveRemoteGateway().apply {
+                    addValidFile("tracked", SAME_TIME, BYTES)
+                    trackDownloadReads = true
+                }
+                val provider = GoogleDriveBackupProvider(
+                    authorization = FakeAuthorizationGateway(),
+                    remote = remote,
+                    clock = FIXED_CLOCK,
+                    idSource = { "id" },
+                    ioDispatcher = ioDispatcher
+                )
+
+                val result = provider.downloadBackup(CloudBackupId("tracked"))
+
+                assertTrue(result is CloudBackupResult.Success)
+                assertTrue(remote.downloadReadThread?.startsWith("drive-io-test") == true)
+            }
+        } finally {
+            mainDispatcher.close()
+            ioDispatcher.close()
+            mainExecutor.shutdownNow()
+            ioExecutor.shutdownNow()
+        }
+    }
+
+    @Test
     fun `pagination token loop returns malformed metadata without another page request`() = runBlocking {
         val remote = FakeDriveRemoteGateway().apply {
             pageResponses[null] = DriveFileListPage(emptyList(), "abc")
@@ -469,6 +508,8 @@ class GoogleDriveBackupProviderTest {
         val secondCreateEntered = CompletableDeferred<Unit>()
         var firstCreateRelease: CompletableDeferred<Unit>? = null
         var openDownloadFailure: DriveRemoteErrorCategory? = null
+        var trackDownloadReads = false
+        var downloadReadThread: String? = null
         var createCancellation = false
         var createCalls = 0
         var openDownloadCalls = 0
@@ -549,7 +590,14 @@ class GoogleDriveBackupProviderTest {
                 ?: return DriveRemoteResult.Failure(
                     DriveRemoteError(DriveRemoteErrorCategory.NOT_FOUND)
                 )
-            return DriveRemoteResult.Success(DriveDownload(ByteArrayInputStream(bytes)))
+            val input = if (trackDownloadReads) {
+                ThreadRecordingInputStream(ByteArrayInputStream(bytes)) {
+                    downloadReadThread = Thread.currentThread().name
+                }
+            } else {
+                ByteArrayInputStream(bytes)
+            }
+            return DriveRemoteResult.Success(DriveDownload(input))
         }
 
         override suspend fun deleteFile(
@@ -614,6 +662,23 @@ class GoogleDriveBackupProviderTest {
 
     private class ThrowingInputStream : InputStream() {
         override fun read(): Int = throw IOException("interrupted")
+    }
+
+    private class ThreadRecordingInputStream(
+        private val delegate: InputStream,
+        private val onRead: () -> Unit
+    ) : InputStream() {
+        override fun read(): Int {
+            onRead()
+            return delegate.read()
+        }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            onRead()
+            return delegate.read(buffer, offset, length)
+        }
+
+        override fun close() = delegate.close()
     }
 
     companion object {

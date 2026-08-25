@@ -723,3 +723,86 @@ first failing stage now identified. Temporary diagnostics and the temporary
 retention bypass were reverted; a clean debug APK was rebuilt and reinstalled.
 No production/test source diff remains. Drive retention, disconnect,
 reauthorization, A→B→A, UI1, RC2, tag, and release remain paused.
+
+## RC1-F1 — Drive blocking I/O dispatcher fix
+
+F1 was executed from T4B base
+`0d7670c82b5c87b23cb3088894e63fa2ea59e5f3` on
+`v1.2/rc1-f1-drive-io-dispatcher`. The T4B root cause was a blocking
+`HttpURLConnection` request-body write on the Main dispatcher:
+
+`BackupRestoreViewModel.submitBackupPassphrase` →
+`BackupRestoreCoordinator.createBackup` →
+`GoogleDriveBackupProvider.uploadBackup` →
+`HttpUrlConnectionDriveRemoteGateway.executeJson/configure`.
+
+### Narrow production change
+
+`HttpUrlConnectionDriveRemoteGateway` now accepts an injected
+`CoroutineDispatcher` whose production default is `Dispatchers.IO`. Its
+complete synchronous JSON HTTP boundary covers connection creation,
+configuration, request-body output, `responseCode`, JSON/error-stream reads,
+response-body reads, and disconnect. `openDownload` uses the same boundary for
+connection setup and response acquisition. Because the gateway returns a
+network stream for bounded provider-side validation, `GoogleDriveBackupProvider`
+also confines the actual bounded download reads and close to its injected IO
+dispatcher. The ViewModel remains lifecycle-aware on its existing scope; no
+provider-neutral model, B1/B2 protocol, encryption, authorization, or error
+mapping was changed.
+
+### Focused and regression tests
+
+- `GoogleDriveRestGatewayTest.all blocking gateway operations run on injected io dispatcher`
+  runs create/upload, metadata GET, list, download open, and delete from a
+  Main-like executor and asserts observed connection work uses the injected IO
+  executor.
+- `GoogleDriveBackupProviderTest.download body is consumed on injected io dispatcher`
+  asserts the returned network stream is consumed on the injected IO executor.
+- Existing Drive provider tests continue to cover upload/readback verification,
+  retention, upload serialization, pagination loops, SHA mismatch, bounded
+  downloads, and 401 retry behavior.
+
+### API37 live result
+
+Device: `Pixel_10_Pro_Fold`, API 37 / Android 17, adb serial
+`emulator-5558`, user 0, debug package
+`io.github.yingqiu0871.evolune.debug`. Device facts were 2076×2152, density
+390, font scale 1.0, gesture navigation, default Latin IME, animation scales
+1.0, and current rotation value 1. The clean debug APK was installed after
+package-data clear. The counted synthetic state had no medication plans or
+scheduled slots, zero dose events, and body weight 55.0 kg.
+
+| Stage | #1 | #2 | #3 |
+|---|---|---|---|
+| S0 snapshot | PASS | PASS | PASS |
+| S1 B1 payload | PASS | PASS | PASS |
+| S2 encode | PASS | PASS | PASS |
+| S3 encrypt | PASS | PASS | PASS |
+| S4 authorization | PASS — test account selected/authorized | PASS — authorized session | PASS — authorized session |
+| S5 multipart | PASS | PASS | PASS |
+| S6 HTTP send | PASS — no Main-thread exception | PASS | PASS |
+| S7 create response | PASS | PASS | PASS |
+| S8 fileId | PASS — subsequent readback path completed | PASS | PASS |
+| S9 readback request | PASS | PASS | PASS |
+| S10 response | PASS | PASS | PASS |
+| S11 SHA/byte verification | PASS | PASS | PASS |
+
+All three valid attempts ended with the production UI `备份已完成`. The
+per-attempt logcat checks contained no `NetworkOnMainThreadException`, fatal
+exception, or Drive I/O error. No temporary production diagnostics were added;
+the stage matrix uses the successful end-to-end result plus the existing
+production call order, with S6 additionally checked by sanitized logcat.
+
+F1 result: `NetworkOnMainThreadException = CLOSED`; `S0–S11 complete PASS`
+3/3. No new first failing stage was observed. The earlier T4B S6 failure is
+closed, and no post-fix HTTP/readback blocker was exposed.
+
+The requested sanity checks were also green on the same API37 Fold:
+`HealthConnectSyncScreenTest` 6/6 and `RealAppImeFrameProbeTest` 1/1. No
+large-scale HC4 or T2 triage was repeated.
+
+Retention G1–G4, disconnect/reauthorization preservation, A→B→A restore,
+Health Connect device-local preference after restore, UI1, RC2, tag, and
+release remain paused. The remaining release gates are the explicitly tracked
+device/Health Connect evidence, release signing/R8/signed smoke, broader live
+Drive acceptance, and final owner review.

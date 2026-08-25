@@ -13,8 +13,11 @@ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupResult
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadMetadata
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadResult
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -36,7 +39,8 @@ class GoogleDriveBackupProvider(
     private val remote: DriveRemoteGateway,
     private val clock: Clock = Clock.systemUTC(),
     private val idSource: () -> String = { UUID.randomUUID().toString() },
-    private val maxBackupBytes: Int = DEFAULT_MAX_BACKUP_BYTES
+    private val maxBackupBytes: Int = DEFAULT_MAX_BACKUP_BYTES,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CloudBackupProvider {
     private val uploadMutex = Mutex()
     private var activeAccessToken: String? = null
@@ -400,12 +404,14 @@ class GoogleDriveBackupProvider(
         return "evolune-backup-$timestamp-${idSource()}.evbackup"
     }
 
-    private fun readDownload(download: DriveDownload): BoundedRead = try {
-        download.use { readBounded(it.input) }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: IOException) {
-        BoundedRead.Failed
+    private suspend fun readDownload(download: DriveDownload): BoundedRead = withContext(ioDispatcher) {
+        try {
+            download.use { readBounded(it.input) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: IOException) {
+            BoundedRead.Failed
+        }
     }
 
     private fun readBounded(input: InputStream): BoundedRead {

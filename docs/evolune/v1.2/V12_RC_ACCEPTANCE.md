@@ -1061,3 +1061,73 @@ classified at a concrete first stage rather than reported as an undifferentiated
 upload failure. Retention was explicitly not exercised; temporary diagnostics
 and the retention bypass were reverted, and a clean debug APK was reinstalled.
 Disconnect, A→B→A, UI1, RC2, tag, and release remain paused.
+
+## RC1-F1 — Drive blocking I/O dispatcher fix
+
+F1 started from the accepted T4B commit
+`0d7670c82b5c87b23cb3088894e63fa2ea59e5f3` on branch
+`v1.2/rc1-f1-drive-io-dispatcher`. T4B's repeated S6
+`NetworkOnMainThreadException` was fixed without moving the ViewModel or the
+backup/restore coordinator wholesale to a background dispatcher.
+
+### Production boundary
+
+| Path | Before F1 | After F1 |
+|---|---|---|
+| Drive JSON request/response | `HttpURLConnection` work ran in the caller context, including Main | `HttpUrlConnectionDriveRemoteGateway.executeJson()` confines the complete blocking operation to injected `ioDispatcher`, default `Dispatchers.IO` |
+| Drive download open/response | connection setup, `responseCode`, `inputStream`, and error-stream handling ran in the caller context | `openDownload()` confines connection setup and response acquisition to the same injected dispatcher |
+| Download body consumption | provider read the returned network stream in the caller context | `GoogleDriveBackupProvider` confines bounded stream reads and close to its injected IO dispatcher, default `Dispatchers.IO` |
+
+The affected remote operations are create/upload, metadata GET used for
+download, download response acquisition and body read, list, and delete/prune.
+Authorization, ViewModel lifecycle ownership, B1 bytes, encryption, restore
+journal, error mapping, appDataFolder semantics, and retention policy were not
+redesigned.
+
+### Dispatcher regression evidence
+
+`GoogleDriveRestGatewayTest` invokes create, metadata GET, list, download, and
+delete from a dedicated Main-like executor and asserts that the injected IO
+executor performed the observed blocking connection work. The download body
+boundary is covered by `GoogleDriveBackupProviderTest`, which records the
+thread consuming the returned stream. Existing provider, pagination, retention,
+401, bounded-download, SHA-mismatch, B1, B2, and B4 assertions remain active.
+
+### F1 live revalidation
+
+Target: `Pixel_10_Pro_Fold`, API 37, adb serial `emulator-5558`, Android user
+0, debug package `io.github.yingqiu0871.evolune.debug`. The clean debug APK was
+installed after package-data clear. The counted state was synthetic and
+non-sensitive: no medication plans or scheduled slots, zero dose events, and
+body weight `55.0 kg`. The disposable passphrase was entered only on-device
+and is not recorded here.
+
+| Stage | #1 | #2 | #3 |
+|---|---|---|---|
+| S0 snapshot | PASS — clean local state | PASS | PASS |
+| S1 B1 payload | PASS — end-to-end completion | PASS | PASS |
+| S2 encode | PASS — end-to-end completion | PASS | PASS |
+| S3 encrypt | PASS — end-to-end completion | PASS | PASS |
+| S4 authorization | PASS — approved test account/session | PASS — existing authorized session | PASS — existing authorized session |
+| S5 multipart | PASS — production upload path completed | PASS | PASS |
+| S6 HTTP send | PASS — no `NetworkOnMainThreadException` | PASS — no exception | PASS — no exception |
+| S7 create response | PASS — backup completed UI | PASS | PASS |
+| S8 fileId | PASS — required for subsequent readback path | PASS | PASS |
+| S9 readback request | PASS — backup completed UI | PASS | PASS |
+| S10 readback response | PASS — backup completed UI | PASS | PASS |
+| S11 byte/SHA verification | PASS — backup completed UI | PASS | PASS |
+
+The app displayed `备份已完成` in all three counted attempts. Per-stage runtime
+markers were not added to production; S0–S5 and S7–S11 are therefore promoted
+from the successful production end-to-end result and the existing stage order,
+while the former S6 exception was directly absent from sanitized per-attempt
+logcat. No token, passphrase, encrypted payload, account address, fileId, or
+remote response body was recorded.
+
+`NetworkOnMainThreadException = CLOSED`. There was no new first failing stage;
+S0–S11 completed successfully in 3/3 attempts. This closes the T4B RC1
+blocker for the blocking Drive I/O boundary. Standalone G1–G4 retention,
+disconnect/reauthorization preservation, A→B→A restore semantics, physical
+Health Connect gates, device KDF/large-history gates, signed/minified release
+validation, and final owner review remain open. No RC2, tag, or release was
+created.

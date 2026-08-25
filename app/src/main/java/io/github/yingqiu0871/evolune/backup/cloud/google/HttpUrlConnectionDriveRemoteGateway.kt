@@ -1,6 +1,9 @@
 package io.github.yingqiu0871.evolune.backup.cloud.google
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
@@ -32,7 +35,8 @@ class HttpUrlConnectionDriveRemoteGateway(
     private val connectionFactory: DriveUrlConnectionFactory =
         DriveUrlConnectionFactory { it.openConnection() as HttpURLConnection },
     private val filesUrl: String = DRIVE_FILES_URL,
-    private val uploadUrl: String = DRIVE_UPLOAD_URL
+    private val uploadUrl: String = DRIVE_UPLOAD_URL,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : DriveRemoteGateway {
     override suspend fun createFile(
         accessToken: String,
@@ -114,6 +118,13 @@ class HttpUrlConnectionDriveRemoteGateway(
     override suspend fun openDownload(
         accessToken: String,
         id: CloudDriveFileId
+    ): DriveRemoteResult<DriveDownload> = withContext(ioDispatcher) {
+        openDownloadBlocking(accessToken, id)
+    }
+
+    private fun openDownloadBlocking(
+        accessToken: String,
+        id: CloudDriveFileId
     ): DriveRemoteResult<DriveDownload> {
         val connection = try {
             connectionFactory.open(URL("$filesUrl/${urlEncode(id.value)}?alt=media"))
@@ -176,7 +187,17 @@ class HttpUrlConnectionDriveRemoteGateway(
         }
     }
 
-    private fun executeJson(
+    private suspend fun executeJson(
+        method: String,
+        url: String,
+        accessToken: String,
+        requestBody: ByteArray? = null,
+        contentType: String? = null
+    ): JsonResponse = withContext(ioDispatcher) {
+        executeJsonBlocking(method, url, accessToken, requestBody, contentType)
+    }
+
+    private fun executeJsonBlocking(
         method: String,
         url: String,
         accessToken: String,
