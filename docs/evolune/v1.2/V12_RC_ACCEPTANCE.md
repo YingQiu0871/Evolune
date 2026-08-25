@@ -1263,3 +1263,40 @@ UI1 is implementation-complete for this cycle but remains **pending
 independent reviewer acceptance**. This evidence does not close the existing
 RC owner-device, live-service, signing/R8, or other release gates. Retention,
 live G1–G4, A→B→A, RC2, tag, and release were not executed.
+
+## UI1-R1 — zh-rCN string parity
+
+The UI1 independent review approved the implementation with a non-blocking
+quality note: the ten UI1 strings added to the default resources were missing
+from `values-zh-rCN/strings.xml`, increasing the existing MissingTranslation
+count from 45 to 55. R1 adds only the following exact Chinese mirrors:
+
+- `settings_sync_backup_title`
+- `settings_sync_backup_desc`
+- `settings_sync_backup_local_title`
+- `settings_sync_backup_data_title`
+- `settings_sync_backup_data_desc`
+- `settings_sync_backup_health_title`
+- `settings_sync_backup_cloud_title`
+- `settings_sync_backup_google_drive_title`
+- `settings_data_import_export_title`
+- `settings_google_drive_backup_restore_title`
+
+Lint evidence:
+
+| Check | Before R1 | After R1 |
+|---|---:|---:|
+| Total lint errors | 55 | 45 historical |
+| MissingTranslation | 55 | 45 historical |
+| Warnings | 97 | 97 |
+| Hints | 1 | 1 |
+| UI1-introduced MissingTranslation delta | 10 | 0 |
+
+The `lintDebug` task still exits non-zero because the 45 historical widget
+translations remain; the UI1 delta is closed. No UI, navigation, business,
+HC4, B1, B2, B3, B4, or test semantics changed. The existing UI1 focused suite
+remains composed of HealthConnectSyncScreenTest = 6,
+SyncAndBackupScreenTest = 3, and SyncAndBackupNavigationTest = 1; it passed
+10/10 on API33-A, API33-B, and API37 Fold. API35 remains NOT TESTED because no
+API35 AVD was online. No retention, A→B→A, RC2, tag, or release activity was
+performed.

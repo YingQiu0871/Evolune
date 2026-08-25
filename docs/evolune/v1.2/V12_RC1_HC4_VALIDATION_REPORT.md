@@ -924,3 +924,38 @@ confirmed Settings → Sync & Backup → each child route and return navigation 
 both Fold postures. UI1 is pending independent reviewer acceptance; it is not a
 final RC release decision. No retention, live G1–G4, A→B→A, RC2, tag, or
 release activity was performed.
+
+## UI1-R1 — zh-rCN string parity
+
+The UI1 independent review approved the target with a non-blocking P2 note:
+the ten UI1 strings added to `values/strings.xml` had no corresponding
+`values-zh-rCN/strings.xml` entries. This raised the MissingTranslation count
+from the historical 45 to 55. R1 adds exact Chinese mirrors for:
+
+- `settings_sync_backup_title`
+- `settings_sync_backup_desc`
+- `settings_sync_backup_local_title`
+- `settings_sync_backup_data_title`
+- `settings_sync_backup_data_desc`
+- `settings_sync_backup_health_title`
+- `settings_sync_backup_cloud_title`
+- `settings_sync_backup_google_drive_title`
+- `settings_data_import_export_title`
+- `settings_google_drive_backup_restore_title`
+
+| Lint measure | Before R1 | After R1 |
+|---|---:|---:|
+| Total errors | 55 | 45 historical |
+| MissingTranslation | 55 | 45 historical |
+| Warnings | 97 | 97 |
+| Hints | 1 | 1 |
+| UI1-introduced delta | 10 | 0 |
+
+After R1, `lintDebug` still reports the unchanged historical widget
+translation debt and exits non-zero; no UI1 translation error remains. The
+only production change is the zh-rCN resource parity. UI, navigation, business
+logic, HC4, B1/B2/B3/B4 semantics, and tests are unchanged. The existing ten
+focused UI1 tests are HC4 = 6, SyncAndBackup = 3, Navigation = 1; all passed
+10/10 on API33-A, API33-B, and API37 Fold. API35 remains NOT TESTED because no
+API35 AVD was online. No retention, A→B→A, RC2, tag, or release activity was
+performed.

@@ -2,6 +2,15 @@
     <string name="app_name">Evolune</string>
 
     <string name="settings_title">设置</string>
+    <string name="settings_sync_backup_title">同步与备份</string>
+    <string name="settings_sync_backup_desc">导入导出、健康数据与云端备份</string>
+    <string name="settings_sync_backup_local_title">本地数据</string>
+    <string name="settings_sync_backup_data_title">导入与导出数据</string>
+    <string name="settings_sync_backup_data_desc">管理本地数据文件</string>
+    <string name="settings_sync_backup_health_title">健康数据</string>
+    <string name="settings_sync_backup_cloud_title">云备份</string>
+    <string name="settings_sync_backup_google_drive_title">Google Drive 备份与恢复</string>
+    <string name="settings_data_import_export_title">导入与导出数据</string>
 
     <string name="settings_weight_title">体重</string>
     <string name="settings_weight_desc">用于血药浓度计算</string>
@@ -40,6 +49,7 @@
     <string name="settings_health_connect_sync_no_data">最近 30 天没有新的体重记录</string>
 
     <string name="settings_backup_restore_title">备份与恢复</string>
+    <string name="settings_google_drive_backup_restore_title">Google Drive 备份与恢复</string>
     <string name="settings_backup_restore_desc">仅在你点击后使用 Google Drive；备份内容经过加密，不会自动同步</string>
     <string name="settings_backup_restore_google_drive">Google Drive</string>
     <string name="settings_backup_restore_connected">已连接（当前会话）</string>
