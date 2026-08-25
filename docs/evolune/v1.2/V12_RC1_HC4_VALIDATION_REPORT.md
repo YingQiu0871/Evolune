@@ -959,3 +959,116 @@ focused UI1 tests are HC4 = 6, SyncAndBackup = 3, Navigation = 1; all passed
 10/10 on API33-A, API33-B, and API37 Fold. API35 remains NOT TESTED because no
 API35 AVD was online. No retention, A→B→A, RC2, tag, or release activity was
 performed.
+
+## RC1-R3-Fix — Disconnect session clear and Settings/picker polish
+
+### Baseline and scope
+
+Base: `f6345c622affba7f87e7f2519ed67e0e51311f5a`
+
+Branch: `v1.2/rc1-r3-disconnect-ui-polish`
+
+This cycle contains only the RC1 Disconnect blocker fix, the requested
+Settings information-architecture polish, the generation-picker presentation
+change, focused tests, and this documentation update. No B1/B2/B3/HC4
+protocol or semantic change was made.
+
+### Goal A — Disconnect root cause and fix
+
+The previous owner-device run had already completed real OAuth authorization
+and displayed `已连接（当前会话）`, but clicking `断开 Google Drive` produced
+`断开 Google Drive 失败`.
+
+The traced call chain was:
+
+```text
+GoogleDriveBackupRestoreScreen
+  → BackupRestoreViewModel.disconnect()
+  → BackupRestoreCoordinator.disconnect()
+  → GoogleDriveBackupProvider.disconnect()
+  → GoogleAuthorizationGateway.disconnect()
+  → AuthorizationClient.revokeAccess(...).awaitTask()
+```
+
+The first failing boundary was the final `revokeAccess` operation. It used
+authorization-grant revocation for a feature whose contract is current-session
+disconnect. The fix removes that revoke path and makes the gateway call the
+existing `clearToken(currentToken)` operation instead. Cancellation and error
+mapping remain in the existing clear-token implementation; no detached
+coroutine or token/account logging was added.
+
+The resulting semantics are:
+
+- current in-memory authorization session is cleared;
+- remote appDataFolder backups are not deleted;
+- local Room/DataStore data is not deleted;
+- `drive.appdata` remains the only requested scope;
+- offline access, refresh tokens, and server auth codes remain absent.
+
+Focused evidence:
+
+- `disconnect never deletes cloud backups`
+- `disconnect failure preserves connected state and never deletes cloud backups`
+- `successful disconnect clears connected state without deleting cloud backups`
+- `disconnect clears current authorization session without deleting remote backups`
+- `disconnect authorization failure is mapped without deleting remote backups`
+
+On the owner Fold (`Pixel_10_Pro_Fold`, API 37 / Android 17, serial
+`emulator-5558`), the owner manually completed the Google authorization
+account UI. The app then showed `已连接（当前会话）`. The real Disconnect click
+completed successfully and the same screen returned to `需要授权后才能使用`.
+No live upload, restore, retention, or delete operation was performed in this
+sanity pass. The successful live result closes the prior Disconnect blocker;
+remote-preservation is established by the no-delete production path and
+focused tests, not by a new remote generation experiment.
+
+### Goal B — Settings and generation picker
+
+Settings home order is now:
+
+```text
+体重
+夜间模式 / 颜色主题 / 时间制式 / other existing settings
+同步与备份
+更新
+```
+
+Only Compose child order changed. The existing route and callbacks remain
+unchanged. The home entry and the three Sync & Backup child entries all use
+the pre-existing `SettingsNavigationRow` shared component, colors, and
+`stableSegmentedShapes`; no second list-item visual system was introduced.
+
+`GenerationPickerDialog` now renders each generation as a complete clickable
+MD3 segmented row rather than a vertically stacked bare `TextButton`. It
+preserves the provider's current list order and generation identity, shows
+localized numbered labels (`备份 1`, `备份 2`, `备份 3`), and formats valid ISO
+timestamps using the device time zone as supporting text. Invalid metadata
+still falls back to the original value. The cancel action and
+generation→passphrase→preview→confirm flow are unchanged.
+
+The added UI test
+`backupPickerUsesNumberedRowsWithReadableTimesAndPreservesSelection` verifies
+all three numbered rows and selection of the middle generation. Final
+focused instrumentation passed 4/4 on the API37 Fold for
+`SyncAndBackupScreenTest`; the preceding run passed the same 4/4 suite on
+API33-A, API33-B, and the Fold. The existing `HealthConnectSyncScreenTest`
+passed 6/6 on the Fold. No HC4 production code was changed.
+
+### Regression and release gates
+
+| Check | Result |
+|---|---|
+| App focused Disconnect/coordinator/provider tests | PASS |
+| `:app:testDebugUnitTest --rerun-tasks` | PASS |
+| `:experience-core:test --rerun-tasks` | PASS |
+| `:wear:testDebugUnitTest --rerun-tasks` | PASS |
+| `:app:assembleDebug --rerun-tasks` | PASS |
+| `:wear:assembleDebug --rerun-tasks` | PASS |
+| `:app:lintDebug` | 45 historical errors / 97 warnings / 1 hint; no new delta |
+| Settings/Sync & Backup focused instrumentation | PASS |
+| Real owner-device authorize → connected → Disconnect | PASS |
+| Retention G3/G4 | NOT TESTED / remains paused |
+| RC2, tag, release | NOT STARTED |
+
+No production diagnostics were left behind. No A→B→A re-run was performed in
+this cycle; the previously accepted restore evidence remains unchanged.

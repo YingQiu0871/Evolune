@@ -1300,3 +1300,59 @@ SyncAndBackupScreenTest = 3, and SyncAndBackupNavigationTest = 1; it passed
 10/10 on API33-A, API33-B, and API37 Fold. API35 remains NOT TESTED because no
 API35 AVD was online. No retention, A→B→A, RC2, tag, or release activity was
 performed.
+
+## RC1-R3-Fix — Disconnect session clear and Settings/picker polish
+
+This narrow cycle is based on `f6345c622affba7f87e7f2519ed67e0e51311f5a`
+and is implemented on `v1.2/rc1-r3-disconnect-ui-polish`.
+
+### Goal A — Disconnect blocker
+
+The prior RC1 live blocker was the real-device failure shown as
+`断开 Google Drive 失败`. Code tracing identified the first failing stage as
+`GoogleAuthorizationGateway.disconnect()` calling
+`AuthorizationClient.revokeAccess(...).awaitTask()`. That API revokes the
+authorization grant rather than clearing only the current app session.
+
+The minimal fix now delegates Disconnect to the existing
+`clearToken(currentToken)` seam. A missing current token is already a
+successful no-op. The provider/coordinator path still has no remote-delete
+call, and no local Room/DataStore data is deleted. The requested OAuth
+contract remains `drive.appdata` only; no offline access, refresh token, or
+server auth code was introduced.
+
+Focused tests cover successful and failed Disconnect, connected-state update,
+failure-state preservation, and the invariant that Disconnect never deletes a
+cloud backup.
+
+Owner-device live evidence on the API37 Pixel 10 Pro Fold (`emulator-5558`):
+the owner manually completed the Google account authorization UI, the app
+displayed `已连接（当前会话）`, and the real Disconnect action returned the
+page to `需要授权后才能使用`. This sanity pass did not upload or delete a
+backup; remote/local non-deletion is covered by the production call path and
+focused tests.
+
+### Goal B — Settings and backup picker
+
+- The Settings home `同步与备份` row now appears after the existing settings
+  sections and immediately above `更新`; route and click behavior are
+  unchanged.
+- The home entry and all three Sync & Backup hub entries continue to reuse
+  `SettingsNavigationRow`, `settingsListItemColors`, and
+  `stableSegmentedShapes`, preserving one MD3 visual treatment.
+- The generation picker now uses full-width shared MD3 segmented list rows,
+  keeps the existing generation order and selection callback, and displays
+  localized `备份 1` / `备份 2` / `备份 3` labels with readable local date-time
+  supporting text. Malformed timestamps retain the existing raw-value
+  fallback; no generation or backup protocol changed.
+
+The final focused Sync & Backup instrumentation passed 4/4 on the API37
+Fold, including `backupPickerUsesNumberedRowsWithReadableTimesAndPreservesSelection`.
+The preceding focused run passed 4/4 on API33-A, API33-B, and the Fold. The
+existing Health Connect Settings suite passed 6/6 on the Fold. Full app,
+experience-core, and Wear JVM regression plus app/Wear debug builds passed.
+`app:lintDebug` remains the documented historical baseline of 45 errors, 97
+warnings, and 1 hint; this cycle introduced no additional lint delta.
+
+This cycle did not execute retention G3/G4, re-run A→B→A, RC2, signing/R8,
+tag, or release activity. Those gates remain paused.

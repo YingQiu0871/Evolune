@@ -5,6 +5,8 @@ import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationResolution
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationGateway
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
+import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupError
+import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupErrorCode
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupId
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupProvider
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupResult
@@ -367,6 +369,53 @@ class BackupRestoreCoordinatorTest {
         assertEquals(0, fixture.provider.deleteCalls)
     }
 
+    @Test
+    fun `disconnect failure preserves connected state and never deletes cloud backups`() = runBlocking {
+        val fixture = Fixture().apply {
+            provider.disconnectResult = CloudBackupResult.Failure(
+                CloudBackupError(CloudBackupErrorCode.AUTHORIZATION_FAILED)
+            )
+        }
+        val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+        try {
+            val viewModel = BackupRestoreViewModel(fixture.coordinator, scope)
+            viewModel.backUpNow()
+            assertTrue(viewModel.connected.value)
+            viewModel.cancelInteractiveOperation()
+
+            viewModel.disconnect()
+
+            assertTrue(viewModel.connected.value)
+            assertEquals(
+                BackupRestoreErrorCode.DISCONNECT_FAILED,
+                (viewModel.uiState.value as BackupRestoreUiState.Error).error.code
+            )
+            assertEquals(0, fixture.provider.deleteCalls)
+        } finally {
+            scope.cancel()
+        }
+    }
+
+    @Test
+    fun `successful disconnect clears connected state without deleting cloud backups`() = runBlocking {
+        val fixture = Fixture()
+        val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
+        try {
+            val viewModel = BackupRestoreViewModel(fixture.coordinator, scope)
+            viewModel.backUpNow()
+            assertTrue(viewModel.connected.value)
+            viewModel.cancelInteractiveOperation()
+
+            viewModel.disconnect()
+
+            assertFalse(viewModel.connected.value)
+            assertEquals(BackupRestoreUiState.Idle, viewModel.uiState.value)
+            assertEquals(0, fixture.provider.deleteCalls)
+        } finally {
+            scope.cancel()
+        }
+    }
+
     private class Fixture {
         val persistence = FakeRestorePersistence()
         val authorization = FakeAuthorization()
@@ -430,6 +479,7 @@ class BackupRestoreCoordinatorTest {
         var listCalls = 0
         var deleteCalls = 0
         var disconnectCalls = 0
+        var disconnectResult: CloudBackupResult<Unit> = CloudBackupResult.Success(Unit)
         var uploadedBytes: ByteArray? = null
         var beforeUpload: (suspend () -> Unit)? = null
         var generations: List<CloudBackupGeneration> = emptyList()
@@ -471,7 +521,7 @@ class BackupRestoreCoordinatorTest {
 
         override suspend fun disconnect(): CloudBackupResult<Unit> {
             disconnectCalls++
-            return CloudBackupResult.Success(Unit)
+            return disconnectResult
         }
     }
 

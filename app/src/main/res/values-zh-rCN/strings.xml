@@ -68,6 +68,7 @@
     <string name="settings_passphrase_label">密码短语</string>
     <string name="settings_passphrase_confirm_label">确认密码短语</string>
     <string name="settings_restore_choose_backup">选择备份</string>
+    <string name="settings_restore_backup_item">备份 %1$d</string>
     <string name="settings_restore_preview_title">恢复预览</string>
     <string name="settings_restore_preview_created">备份创建时间：%1$s</string>
     <string name="settings_restore_preview_version">生成版本：%1$s</string>

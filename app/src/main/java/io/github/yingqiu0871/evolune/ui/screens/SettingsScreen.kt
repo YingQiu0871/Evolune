@@ -103,14 +103,6 @@ fun SettingsScreen(
                 onBodyWeightChange = onBodyWeightChange
             )
 
-            SettingsNavigationRow(
-                modifier = Modifier.testTag("settings-sync-backup-entry"),
-                title = stringResource(R.string.settings_sync_backup_title),
-                description = stringResource(R.string.settings_sync_backup_desc),
-                icon = Icons.Outlined.Sync,
-                onClick = onOpenSyncAndBackup
-            )
-
             // 夜间模式选择
             ThemeModeSection(
                 currentMode = settings.themeMode,
@@ -127,6 +119,14 @@ fun SettingsScreen(
             TimeFormatSection(
                 currentFormat = settings.timeFormat,
                 onFormatChange = onTimeFormatChange
+            )
+
+            SettingsNavigationRow(
+                modifier = Modifier.testTag("settings-sync-backup-entry"),
+                title = stringResource(R.string.settings_sync_backup_title),
+                description = stringResource(R.string.settings_sync_backup_desc),
+                icon = Icons.Outlined.Sync,
+                onClick = onOpenSyncAndBackup
             )
 
             // 检查更新

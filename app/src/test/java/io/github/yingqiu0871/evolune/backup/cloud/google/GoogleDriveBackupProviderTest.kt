@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.backup.cloud.google
 
 import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationErrorCode
+import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationOperationErrorCode
 import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationOperationResult
 import io.github.yingqiu0871.evolune.backup.cloud.AuthorizationResolution
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationGateway
@@ -448,6 +449,43 @@ class GoogleDriveBackupProviderTest {
         assertEquals(listOf(GOOGLE_DRIVE_APPDATA_SCOPE), spec.requestedScopes)
     }
 
+    @Test
+    fun `disconnect clears current authorization session without deleting remote backups`() = runBlocking {
+        val auth = FakeAuthorizationGateway()
+        val remote = FakeDriveRemoteGateway()
+
+        val result = GoogleDriveBackupProvider(
+            authorization = auth,
+            remote = remote,
+            clock = FIXED_CLOCK,
+            idSource = { "id" }
+        ).disconnect()
+
+        assertTrue(result is CloudBackupResult.Success)
+        assertEquals(1, auth.disconnectCalls)
+        assertTrue(remote.deleteCalls.isEmpty())
+    }
+
+    @Test
+    fun `disconnect authorization failure is mapped without deleting remote backups`() = runBlocking {
+        val auth = FakeAuthorizationGateway().apply {
+            disconnectResult = AuthorizationOperationResult.Failure(
+                AuthorizationOperationErrorCode.FAILED
+            )
+        }
+        val remote = FakeDriveRemoteGateway()
+
+        val result = GoogleDriveBackupProvider(
+            authorization = auth,
+            remote = remote,
+            clock = FIXED_CLOCK,
+            idSource = { "id" }
+        ).disconnect()
+
+        assertEquals(CloudBackupErrorCode.AUTHORIZATION_FAILED, failureCode(result))
+        assertTrue(remote.deleteCalls.isEmpty())
+    }
+
     private fun provider(remote: FakeDriveRemoteGateway, maxBytes: Int = 1024): GoogleDriveBackupProvider =
         GoogleDriveBackupProvider(
             authorization = FakeAuthorizationGateway(),
@@ -475,6 +513,8 @@ class GoogleDriveBackupProviderTest {
     ) : CloudAuthorizationGateway {
         var authorizeCalls = 0
         val clearedTokens = mutableListOf<String>()
+        var disconnectCalls = 0
+        var disconnectResult: AuthorizationOperationResult = AuthorizationOperationResult.Success
 
         override suspend fun authorize(): CloudAuthorizationOutcome {
             authorizeCalls++
@@ -490,8 +530,10 @@ class GoogleDriveBackupProviderTest {
             return AuthorizationOperationResult.Success
         }
 
-        override suspend fun disconnect(): AuthorizationOperationResult =
-            AuthorizationOperationResult.Success
+        override suspend fun disconnect(): AuthorizationOperationResult {
+            disconnectCalls++
+            return disconnectResult
+        }
     }
 
     private class FakeDriveRemoteGateway : DriveRemoteGateway {

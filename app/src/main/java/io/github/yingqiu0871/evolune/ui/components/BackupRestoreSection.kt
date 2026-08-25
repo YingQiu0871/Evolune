@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +33,9 @@ import io.github.yingqiu0871.evolune.backup.BackupRestoreOperation
 import io.github.yingqiu0871.evolune.backup.BackupRestorePreview
 import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun BackupRestoreSection(
@@ -270,6 +275,7 @@ private fun PassphraseDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun GenerationPickerDialog(
     generations: List<CloudBackupGeneration>,
@@ -281,12 +287,24 @@ private fun GenerationPickerDialog(
         title = { Text(stringResource(R.string.settings_restore_choose_backup)) },
         text = {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(generations, key = { it.id.value }) { generation ->
-                    TextButton(
+                itemsIndexed(generations, key = { _, generation -> generation.id.value }) { index, generation ->
+                    SegmentedListItem(
                         onClick = { onSelect(generation) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("backup-generation-$index"),
+                        shapes = stableSegmentedShapes(index = index, count = generations.size),
+                        colors = settingsListItemColors(),
+                        supportingContent = {
+                            Text(formatGenerationCreatedAt(generation.createdAt))
+                        }
                     ) {
-                        Text(generation.createdAt)
+                        Text(
+                            stringResource(
+                                R.string.settings_restore_backup_item,
+                                index + 1
+                            )
+                        )
                     }
                 }
             }
@@ -298,6 +316,12 @@ private fun GenerationPickerDialog(
         }
     )
 }
+
+private fun formatGenerationCreatedAt(value: String): String = runCatching {
+    Instant.parse(value)
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+}.getOrElse { value }
 
 @Composable
 private fun RestorePreviewDialog(

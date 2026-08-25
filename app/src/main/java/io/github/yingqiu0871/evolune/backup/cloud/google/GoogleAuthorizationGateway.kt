@@ -8,7 +8,6 @@ import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.auth.api.identity.ClearTokenRequest
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.RevokeAccessRequest
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Scope
@@ -80,18 +79,10 @@ class GoogleAuthorizationGateway(
         AuthorizationOperationResult.Failure(AuthorizationOperationErrorCode.FAILED)
     }
 
-    override suspend fun disconnect(): AuthorizationOperationResult = try {
-        client.revokeAccess(
-            RevokeAccessRequest.builder()
-                .setScopes(listOf(Scope(GOOGLE_DRIVE_APPDATA_SCOPE)))
-                .build()
-        ).awaitTask()
-        currentToken = null
-        AuthorizationOperationResult.Success
-    } catch (e: CancellationException) {
-        throw e
-    } catch (_: Exception) {
-        AuthorizationOperationResult.Failure(AuthorizationOperationErrorCode.FAILED)
+    override suspend fun disconnect(): AuthorizationOperationResult {
+        // Disconnect is a current-session operation; do not revoke the user's grant.
+        val token = currentToken ?: return AuthorizationOperationResult.Success
+        return clearToken(token)
     }
 
     /** B4 may launch this resolution and feed its result back later. */
