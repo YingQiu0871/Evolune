@@ -1356,3 +1356,33 @@ warnings, and 1 hint; this cycle introduced no additional lint delta.
 
 This cycle did not execute retention G3/G4, re-run A→B→A, RC2, signing/R8,
 tag, or release activity. Those gates remain paused.
+
+## RC1-R3-R1 — Navigation test scroll fix
+
+The independent review found one test-only blocker after the approved R3
+Settings placement: `SyncAndBackupNavigationTest.settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable`
+still clicked `settings-sync-backup-entry` without first bringing the row into
+the visible viewport. Because `同步与备份` now sits immediately above `更新`,
+the entry can be below the initial fold on API33-A, API33-B, and API37 Fold.
+
+R1 adds `performScrollTo()` before the click. The test continues to exercise
+the complete Settings → Sync & Backup → Health Connect / Google Drive / Data
+Import & Export → Back navigation chain and keeps all existing waits and
+assertions.
+
+Focused suite composition after R1:
+
+- `HealthConnectSyncScreenTest` = 6
+- `SyncAndBackupScreenTest` = 4
+- `SyncAndBackupNavigationTest` = 1
+- Total = 11 tests per device
+
+Pre-R1: navigation test failed deterministically because the entry was
+offscreen and the test attempted to click without scrolling. Post-R1,
+API33-A, API33-B, and API37 Fold all passed the 11-test focused suite. The
+API37 Fold navigation test also passed three consecutive standalone runs.
+
+This R1 contains no production Kotlin, resource, navigation, backup,
+Health Connect, Room, DataStore, Wear, or UI behavior change. Disconnect live
+evidence and the approved R3 production fix are unchanged. Retention, RC2,
+tag, and release activity remain paused.

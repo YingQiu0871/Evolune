@@ -1072,3 +1072,57 @@ passed 6/6 on the Fold. No HC4 production code was changed.
 
 No production diagnostics were left behind. No A→B→A re-run was performed in
 this cycle; the previously accepted restore evidence remains unchanged.
+
+## RC1-R3-R1 — Navigation test scroll fix
+
+### Reviewer blocker and test-only correction
+
+The independent R3 review identified one deterministic test failure:
+`SyncAndBackupNavigationTest.settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable`
+called `performClick()` directly on `settings-sync-backup-entry`. The approved
+R3 Settings placement puts `同步与备份` immediately above `更新`, which places
+the entry below the initial fold on API33-A, API33-B, and API37 Fold. The
+production placement and UI behavior were correct; the test did not model the
+required user scroll.
+
+R1 adds `performScrollTo()` before `performClick()`. No timeout was increased,
+no wait or back-navigation assertion was removed, and no production code was
+changed. The test still covers:
+
+```text
+Settings
+  → scroll to Sync & Backup
+  → Sync & Backup
+  → Health Connect → Back
+  → Google Drive → Back
+  → Data Import & Export → Back
+  → Settings
+```
+
+### Focused instrumentation evidence
+
+The post-R1 focused composition is:
+
+| Test class | Count |
+|---|---:|
+| `HealthConnectSyncScreenTest` | 6 |
+| `SyncAndBackupScreenTest` | 4 |
+| `SyncAndBackupNavigationTest` | 1 |
+| **Total per device** | **11** |
+
+Pre-R1, the navigation test failed because the entry was offscreen and was
+clicked without scrolling. Post-R1 results:
+
+| Device | Focused result |
+|---|---|
+| API33-A | 11/11 PASS |
+| API33-B | 11/11 PASS |
+| API37 Fold | 11/11 PASS |
+
+The standalone `SyncAndBackupNavigationTest` also passed three consecutive
+runs on API37 Fold. This closes the reviewer test blocker without changing
+Disconnect live evidence or any approved R3 production behavior.
+
+R1 is test + documentation only. No production Kotlin/resource/navigation,
+backup, Health Connect, Room, DataStore, Wear, retention, RC2, tag, or release
+change was made.

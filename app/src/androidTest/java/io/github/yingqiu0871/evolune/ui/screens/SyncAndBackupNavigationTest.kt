@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
@@ -26,7 +27,9 @@ class SyncAndBackupNavigationTest {
         composeRule.waitForIdle()
         openSettings()
 
-        composeRule.onNodeWithTag("settings-sync-backup-entry").performClick()
+        composeRule.onNodeWithTag("settings-sync-backup-entry")
+            .performScrollTo()
+            .performClick()
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("settings-sync-backup-data-entry")
                 .fetchSemanticsNodes().isNotEmpty()
