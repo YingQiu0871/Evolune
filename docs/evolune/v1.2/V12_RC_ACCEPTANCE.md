@@ -871,3 +871,35 @@ The live upload gate remains `FAIL` and an `RC1_BLOCKER`. Readback, list,
 download, retention, disconnect/reauthorization, and A→B→A remain `NOT TESTED`.
 No production behavior fix, diagnostic source diff, RC2, tag, or release was
 created.
+
+## RC1-R2B-T2 — Live Drive failure observability and stage isolation
+
+This docs-only T2 attempt is based on `ad3c5f62ee3723c390b8ed5cf74ae8d7d3786c54`
+and branch `v1.2/rc1-r2b-t2-drive-observability`. A temporary diagnostic APK
+was built and installed on the API37 Fold, but the Google Play Services
+authorization precondition was unavailable: the real authorization flow
+stopped at `登录 - Google 账号` and required an account to be added. No
+credentials were entered or guessed.
+
+The temporary source diagnostics compiled successfully and were fully reverted.
+The current T2 run therefore did not reach the prior live-upload failure again;
+it cannot promote a Drive HTTP status or classify the earlier T1-C provisional
+blocker.
+
+| Attempt | S0–S3 | S4 authorization | S5–S13 | Result |
+|---|---|---|---|---|
+| 1 | `BLOCKED` — not reached | `BLOCKED` — GMS account sign-in screen | `NOT TESTED` | `BLOCKED` |
+| 2 | `NOT TESTED` | `BLOCKED` by the same unresolved precondition; not run | `NOT TESTED` | `BLOCKED` |
+| 3 | `NOT TESTED` | `BLOCKED` by the same unresolved precondition; not run | `NOT TESTED` | `BLOCKED` |
+
+T2 classification is **`T2-B — Environment/network`**, specifically the
+missing signed-in owner test-account precondition on the Fold. This classifies
+the current diagnostic blocker only; it is not evidence that the original
+Drive upload failure was a network failure. The original first-live-upload
+blocker remains unresolved and no T2-A/C/D/E/F/G classification is asserted.
+
+Required next action: the owner must restore/sign in the approved Google test
+user on the Fold, after which this observability branch can rerun the same
+temporary stage logging and obtain the first failing stage, HTTP status, and
+Google reason. Drive retention, disconnect, reauthorization testing, and
+A→B→A remain paused.

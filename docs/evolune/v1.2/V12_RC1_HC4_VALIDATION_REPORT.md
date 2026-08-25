@@ -401,3 +401,106 @@ The first live upload remains `FAIL` and an `RC1_BLOCKER`; readback/list/
 download, G1–G4 retention, disconnect/reauthorization, and A→B→A remain
 `NOT TESTED`. No production diff, diagnostic diff, tag, release, or RC2 was
 created.
+
+## RC1-R2B-T2 — Live Drive failure observability and stage isolation
+
+### Scope and environment result
+
+This docs-only T2 attempt is based on
+`ad3c5f62ee3723c390b8ed5cf74ae8d7d3786c54` and branch
+`v1.2/rc1-r2b-t2-drive-observability`. The target was the API37
+`Pixel_10_Pro_Fold` / `emulator-5554`, package
+`io.github.yingqiu0871.evolune.debug`. Temporary diagnostic logging compiled
+successfully in `:app:assembleDebug --rerun-tasks`, and the debug APK installed
+successfully. No diagnostic source remains.
+
+After installation, the first real authorization attempt opened Google Play
+Services' `登录 - Google 账号` screen and required an account to be added to
+the device. The owner test account was not available as an active signed-in
+session in this run. No credentials were entered or guessed, and the account
+address was not recorded. Because AuthorizationClient did not return an access
+token, no backup operation reached S0.
+
+### S0–S13 stage map
+
+| Stage | File | Class / method | Current T2 evidence |
+|---|---|---|---|
+| S0 Room/DataStore snapshot | `backup/LocalBackupSnapshotSource.kt` | `RestorePersistenceSnapshotSource.capture` | `BLOCKED` before invocation |
+| S1 B1 payload construction | `backup/LocalBackupSnapshotSource.kt` | `capture`; `room.toPayload(settings)` | `NOT TESTED` |
+| S2 canonical encode | `backup/EvoluneBackupCodec.kt` | `EvoluneBackupCodec.encode`; `canonicalPayloadBytes` | `NOT TESTED` |
+| S3 PBKDF2 + AES-GCM encrypt | `backup/EvoluneBackupCodec.kt` | `encode`; `deriveKey`; `Cipher.doFinal` | `NOT TESTED` |
+| S4 AuthorizationClient/token | `backup/cloud/google/GoogleAuthorizationGateway.kt` and `backup/BackupRestoreCoordinator.kt` | `authorize`; `AuthorizationClient.authorize` | `BLOCKED` at GMS account sign-in; no token returned |
+| S5 multipart metadata/body | `backup/cloud/google/HttpUrlConnectionDriveRemoteGateway.kt` | `createFile`; `multipartBody` | `NOT TESTED` |
+| S6 HTTP send | same gateway | `executeJson`; `configure` | `NOT TESTED` |
+| S7 Drive files.create response | same gateway | `executeJson`; `createFile` | `NOT TESTED` |
+| S8 fileId parse | same gateway | `parseMetadata`; provider `toGeneration` | `NOT TESTED` |
+| S9 readback request | `backup/cloud/google/GoogleDriveBackupProvider.kt` and gateway | `uploadBackup`; `openDownload` | `NOT TESTED` |
+| S10 readback response | same provider/gateway | `readDownload`; `openDownload` response handling | `NOT TESTED` |
+| S11 SHA/byte verification | `backup/cloud/google/GoogleDriveBackupProvider.kt` | `uploadBackup`; `MessageDigest.isEqual` | `NOT TESTED` |
+| S12 retention/list | same provider | `pruneOldGenerations`; `listBackups` | `NOT TESTED` |
+| S13 success/UI | `backup/BackupRestoreCoordinator.kt`, `BackupRestoreViewModel.kt`, `ui/components/BackupRestoreSection.kt` | `createBackup`; `BackupSuccess`; `settings_backup_error_upload` mapping | `NOT TESTED` |
+
+The UI text `备份上传失败` can cover a non-invalid S2/S3 encode failure or
+the provider `UPLOAD_FAILED` mapping. It was not shown in this T2 run because
+the authorization precondition stopped the flow first. The earlier T1 UI
+result remains the only live upload failure evidence.
+
+### Three-attempt diagnostic matrix
+
+| Stage | Attempt 1 | Attempt 2 | Attempt 3 |
+|---|---|---|---|
+| S0 snapshot | `BLOCKED` — not reached | `NOT TESTED` | `NOT TESTED` |
+| S1 payload | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S2 encode | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S3 encrypt | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S4 authorization | `BLOCKED` — GMS login screen | `BLOCKED` — same precondition, not run | `BLOCKED` — same precondition, not run |
+| S5 multipart | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S6 HTTP send | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S7 create response | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S8 fileId | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S9 readback request | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S10 readback response | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+| S11 SHA verify | `NOT TESTED` | `NOT TESTED` | `NOT TESTED` |
+
+### Exception, HTTP, and request evidence
+
+There was no application exception, cause chain, HTTP status, Google reason,
+or sanitized Google message in this T2 run: the GMS account screen prevented
+AuthorizationClient from returning to the app. Consequently:
+
+- first failing stage: `S4` precondition blocked; no Drive stage was reached;
+- exception: `NONE OBSERVED`;
+- HTTP status / Google reason / message: `NONE — no request was sent`;
+- endpoint, method, metadata, and `parents: ["appDataFolder"]`: source audit
+  only; no live request was constructed;
+- payload bytes and request content length: `NOT TESTED`;
+- token present: `NO LIVE TOKEN`; AuthorizationClient did not return one;
+- remote file created: `NO EVIDENCE / NOT TESTED`;
+- readback attempted: `NO / NOT TESTED`.
+
+The temporary diagnostic logs were designed to record only stage, exception
+class, sanitized message, HTTP code/reason, byte lengths, token presence and
+fileId presence. They emitted no S0–S13 stage event because the app did not
+get past authorization. No token, passphrase, key, plaintext, medication data,
+full email, or raw backup bytes were logged.
+
+### Classification and next action
+
+The sole T2 classification is **`T2-B — Environment/network`**, narrowed to a
+missing signed-in owner test-account precondition on the Fold. This is a direct
+environment observation from the GMS `登录 - Google 账号` screen. It does not
+classify the prior T1 upload failure, and no evidence supports T2-A, T2-C,
+T2-D, T2-E, T2-F, or T2-G in this run.
+
+The minimal next action is owner-side: restore/sign in the approved Google test
+user on `emulator-5554`, then rerun the same temporary diagnostics three times
+without changing scopes or production behavior. Until that happens, the
+original Drive blocker remains unresolved and all post-upload gates stay
+paused.
+
+### Stop and cleanup state
+
+Temporary production diagnostics were reverted; `app/src/main/**`,
+`app/src/test/**`, and `app/src/androidTest/**` have zero diff. No production
+behavior, provider contract, OAuth scope, test code, retention, delete,
+disconnect, reauthorization test, restore, RC2, tag, or release was changed.
