@@ -641,3 +641,85 @@ No production or test source was changed. No temporary source diagnostics were
 needed or applied in T4A; pulled certificate-inspection APKs and temporary UI
 dumps were removed after inspection. Drive upload, retention, disconnect,
 reauthorization, restore, A→B→A, RC2, tag, and release remain paused.
+
+## RC1-R2B-T4B — Live Drive S0–S11 stage isolation
+
+### Scope and call order
+
+T4B started from 3ad9b146a30d5e47a6fe08394216722464e82dd8 on branch
+v1.2/rc1-r2b-t4b-drive-live-isolation, using the API37
+Pixel_10_Pro_Fold under Android user 0. The test state was synthetic and
+non-sensitive: one medication plan, one scheduled slot, zero dose events, and
+body weight 55.0 kg. A disposable RC-only passphrase was entered on-device and
+was not recorded in logs or this report.
+
+The actual production order was passphrase validation, then S4 authorization,
+then S0/S1 snapshot and B1 payload, S2 native canonical encoding, S3 PBKDF2 +
+AES-256-GCM encryption, S5 multipart construction, S6 HTTP setup/send, S7
+response, S8 fileId, S9 readback, S10 response, and S11 byte/SHA verification.
+This reflects the call graph; S4 is not assumed to occur after S0 merely because
+of its logical stage number.
+
+### Three live attempts
+
+| Stage | Attempt 1 | Attempt 2 | Attempt 3 |
+|---|---|---|---|
+| S0 authoritative snapshot | PASS — plans=1, slots=1, events=0 | PASS | PASS |
+| S1 B1 payload | PASS | PASS | PASS |
+| S2 canonical/native encode | PASS — 610 canonical bytes | PASS | PASS |
+| S3 PBKDF2 + AES-GCM | PASS — 1225 encrypted envelope bytes | PASS | PASS |
+| S4 AuthorizationClient/token | PASS — token present, length=324 | PASS | PASS |
+| S5 multipart request | PASS — POST multipart, parents=[appDataFolder], media=1225 bytes | PASS | PASS |
+| S6 HTTP request | FAIL — NetworkOnMainThreadException | FAIL — same | FAIL — same |
+| S7 create response | NOT REACHED | NOT REACHED | NOT REACHED |
+| S8 fileId | NOT REACHED | NOT REACHED | NOT REACHED |
+| S9 readback request | NOT REACHED | NOT REACHED | NOT REACHED |
+| S10 readback response | NOT REACHED | NOT REACHED | NOT REACHED |
+| S11 bytes/SHA verification | NOT REACHED | NOT REACHED | NOT REACHED |
+
+S4 was Authorized in all three attempts. The constructed endpoint was
+https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,size,appProperties;
+the method was POST, multipart boundary/content type was constructed,
+parents was ["appDataFolder"], media length was 1225 bytes, and the
+Authorization header was present.
+
+### First divergence and evidence boundary
+
+The first divergence was S6 during the blocking connection/request-body setup
+inside HttpUrlConnectionDriveRemoteGateway.executeJson → configure. The exact
+exception was NetworkOnMainThreadException; cause class and message were
+absent. Because the exception occurred before responseCode, no HTTP request was
+sent. HTTP status, Google error.code, error.message, errors[].reason, and
+sanitized error body are therefore NOT OBSERVED.
+
+No fileId was returned, no remote file was created, readback was not attempted,
+downloaded bytes are not applicable, and expected/actual SHA-256 are not
+applicable. Retention/list/delete was not exercised; the temporary diagnostic
+build bypassed S12 and that bypass was reverted before cleanup.
+
+### Classification and exact production finding
+
+Classification: T4B-F — B4 orchestration/error-mapping bug.
+
+The exact reachable path is:
+
+1. BackupRestoreViewModel.submitBackupPassphrase launches in the default
+   viewModelScope, whose dispatcher is Main.
+2. BackupRestoreCoordinator.createBackup calls
+   GoogleDriveBackupProvider.uploadBackup on that context.
+3. HttpUrlConnectionDriveRemoteGateway.executeJson, through its blocking
+   configure request-body write, runs on Main and throws
+   NetworkOnMainThreadException.
+4. The failure is mapped to the generic BACKUP_UPLOAD_FAILED /
+   备份上传失败 result.
+
+The minimal next action is a separate narrow RC fix that dispatches blocking
+Drive I/O to Dispatchers.IO at the chosen orchestration/transport boundary,
+plus a regression test that exercises the production path off Main and checks
+stable error mapping. T4B did not modify or fix production behavior.
+
+The original T1 generic upload failure is reproducible 3/3, with the concrete
+first failing stage now identified. Temporary diagnostics and the temporary
+retention bypass were reverted; a clean debug APK was rebuilt and reinstalled.
+No production/test source diff remains. Drive retention, disconnect,
+reauthorization, A→B→A, UI1, RC2, tag, and release remain paused.

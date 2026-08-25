@@ -988,3 +988,76 @@ so T3's exact prior device state is not re-inferred from `emulator-5554`.
 
 No Drive request was executed after S4. Retention, disconnect, reauthorization
 testing, A→B→A, RC2, tag, and release remain paused.
+
+## RC1-R2B-T4B — Live Drive S0–S11 stage isolation
+
+T4B was based on 3ad9b146a30d5e47a6fe08394216722464e82dd8 on branch
+v1.2/rc1-r2b-t4b-drive-live-isolation. The target remained
+Pixel_10_Pro_Fold / API 37 / Android user 0. A minimal non-sensitive local
+state was used: one plan, one scheduled slot, zero dose events, and body weight
+55.0 kg. A disposable RC-only passphrase was submitted only in the device UI;
+it is not recorded here.
+
+### Actual production call order
+
+The stage numbering is logical; the actual call order was:
+
+passphrase validation → S4 authorize → S0 authoritative snapshot → S1 B1
+payload → S2 canonical/native encode → S3 PBKDF2 + AES-256-GCM → S5 multipart
+construction → S6 HTTP setup/send → S7 response → S8 fileId → S9 readback →
+S10 response → S11 verification.
+
+### Three-attempt matrix
+
+| Stage | #1 | #2 | #3 |
+|---|---|---|---|
+| S0 snapshot | PASS — plans=1, slots=1, events=0 | PASS | PASS |
+| S1 payload | PASS | PASS | PASS |
+| S2 encode | PASS — canonical bytes=610 | PASS | PASS |
+| S3 encrypt | PASS — encrypted envelope bytes=1225 | PASS | PASS |
+| S4 authorization | PASS — token present, length=324 | PASS | PASS |
+| S5 multipart | PASS — POST, uploadType=multipart, parents=[appDataFolder], media=1225 bytes | PASS | PASS |
+| S6 HTTP send | FAIL — NetworkOnMainThreadException | FAIL — same | FAIL — same |
+| S7 create response | NOT REACHED | NOT REACHED | NOT REACHED |
+| S8 fileId | NOT REACHED | NOT REACHED | NOT REACHED |
+| S9 readback | NOT REACHED | NOT REACHED | NOT REACHED |
+| S10 response | NOT REACHED | NOT REACHED | NOT REACHED |
+| S11 SHA verify | NOT REACHED | NOT REACHED | NOT REACHED |
+
+### First failing stage and production finding
+
+The first failing stage was S6, before HttpURLConnection.responseCode and
+before any HTTP request was sent. The exception was
+NetworkOnMainThreadException; cause chain and exception message were empty.
+Therefore HTTP status, Google error code/reason/message, and error body are
+NOT OBSERVED, not UNKNOWN.
+
+The constructed endpoint was
+https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,createdTime,size,appProperties.
+The metadata parent was exactly appDataFolder; the request method was POST,
+multipart content type was present, and the Authorization header was present.
+No remote file was created, no fileId was returned, no readback was attempted,
+and expected/actual SHA values are NOT APPLICABLE.
+
+The concrete production finding is T4B-F — B4 orchestration/error-mapping
+bug:
+
+- BackupRestoreViewModel.submitBackupPassphrase launches the operation in the
+  default viewModelScope (Main dispatcher).
+- BackupRestoreCoordinator.createBackup reaches
+  GoogleDriveBackupProvider.uploadBackup on that context.
+- HttpUrlConnectionDriveRemoteGateway.executeJson, specifically the blocking
+  connection/request-body setup in configure, is therefore executed on the
+  main thread and throws NetworkOnMainThreadException.
+- The resulting failure is surfaced as the generic 备份上传失败 UI error.
+
+The minimal next action is a separate narrow RC fix to move blocking Drive I/O
+to an IO dispatcher at the appropriate orchestration/transport boundary, with a
+regression test proving the live transport is not run on Main and that the
+failure mapping remains stable. No fix was made in T4B.
+
+The original generic T1 upload failure is reproducible 3/3, but it is now
+classified at a concrete first stage rather than reported as an undifferentiated
+upload failure. Retention was explicitly not exercised; temporary diagnostics
+and the retention bypass were reverted, and a clean debug APK was reinstalled.
+Disconnect, A→B→A, UI1, RC2, tag, and release remain paused.
