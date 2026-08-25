@@ -1126,3 +1126,105 @@ Disconnect live evidence or any approved R3 production behavior.
 R1 is test + documentation only. No production Kotlin/resource/navigation,
 backup, Health Connect, Room, DataStore, Wear, retention, RC2, tag, or release
 change was made.
+
+## RC1-R3-F2-T1 — Post-disconnect state-machine isolation
+
+### Scope and baseline
+
+Base: `4c7c7c1e50ad69d3e412906af5f6a33ddd569d8d`
+
+This T1 is a post-R3-R1 triage of the suspected Disconnect state-machine
+blocker. It produced no production diff and no permanent test diff. A
+temporary deterministic ViewModel trace was reverted after execution.
+
+### State transition table
+
+| State | Entry | Exit/reset | User-action behavior |
+|---|---|---|---|
+| `Idle` | initial; cancel; terminal-message dismissal; successful Disconnect | backup/restore/Disconnect or remains Idle | backup/restore enabled; Disconnect shown only while connected |
+| `Authorizing` | explicit backup/restore action or reauthorization request | authorization outcome, resolution result, or cancel | all three top-level actions blocked |
+| `AwaitingBackupPassphrase` | authorized backup | passphrase submit/cancel | backup passphrase only |
+| `PreparingBackup` / `Uploading` | backup submission / reserved upload state | codec/provider result or cancellation | blocked |
+| `BackupSuccess` | verified upload result | dismissal/cancel → `Idle` | blocked |
+| `LoadingBackups` | authorized restore/list | list result, authorization event, error, or cancel | blocked |
+| `SelectingBackup` | list success | generation selection/cancel | generation selection only |
+| `AwaitingRestorePassphrase` | generation selection | passphrase submit/cancel | restore passphrase only |
+| `PreparingRestorePreview` | restore submission | preview, authorization, error, or cancellation | blocked |
+| `Preview` | prepared restore | confirm/cancel | confirm/cancel only |
+| `Restoring` | restore confirmation | success/warning/error/cancellation | blocked |
+| `RestoreSuccess` / warning | successful persistence outcome | dismissal/cancel → `Idle` | blocked |
+| `Error` | operation failure | dismissal/cancel → `Idle` | blocked |
+
+`connected` is a separate `StateFlow`. The backup and restore buttons use
+`state == Idle` as their enabled condition; they are not disabled merely
+because `connected` is false. Explicit authorization is the reconnect path.
+
+### Disconnect sequence and guard audit
+
+The actual successful sequence is:
+
+```text
+Idle (connected=true, before Disconnect)
+  → Idle (during Disconnect; no separate Disconnecting state)
+  → Idle (connected=false, after coordinator/provider success)
+```
+
+The ViewModel owns the post-success reset. The coordinator's existing mutex
+protects the provider call and is released when that call completes. The
+ViewModel checks `operationJob?.isActive`, so the completed job reference does
+not keep a stale busy guard. Failure maps to `Error(DISCONNECT_FAILED)` while
+preserving `connected=true`; no remote-delete operation is present.
+
+The temporary fake-backed trace recorded:
+
+```text
+[Idle, AwaitingBackupPassphrase, Idle, Idle,
+ Error(error=BackupRestoreError(operation=RESTORE, code=NO_BACKUPS))]
+connectedAfterDisconnect=false
+```
+
+After successful Disconnect, a direct `restoreFromBackup()` call was accepted
+and reached the existing authorization/list path. The fake's `NO_BACKUPS`
+result was the terminal error, not an action-gate rejection. Existing retained
+tests also cover successful and failed Disconnect, connected-state behavior,
+and no cloud-backup deletion.
+
+### UI relocation and first live divergence
+
+The UI1 relocation did not alter the state reset owner or event consumption.
+The current Google Drive route still collects `uiEvents` and supplies the
+same ViewModel callbacks; comparison with the pre-UI1 route shows the same
+authorization event handoff and dismissal/cancel wiring.
+
+The earlier Fold live observation after an explicit restore action showed no
+Google Play Services `AuthorizationActivity` and no token/list evidence. The
+first observed divergence is therefore after the ViewModel action dispatch,
+at the live `GoogleAuthorizationGateway.authorize()` /
+`AuthorizationClient` resolution-to-activity-result boundary. The source
+authorization path is reached by the deterministic fake, but live activity
+reachability was not observed. The exact internal Google failure remains
+unresolved and must not be inferred from the post-action screen alone.
+
+### T1 classification
+
+| Class | Result | Evidence |
+|---|---|---|
+| T1-A — `connected=false` disables actions | **Not reproduced** | buttons are gated by `Idle`, not `connected`; direct restore remained callable |
+| T1-B — stale busy/in-flight guard | **Not reproduced** | successful Disconnect returns `Idle`; completed job is inactive |
+| T1-C — UI relocation removed reset/event consumption | **Not reproduced** | route/event/callback wiring matches the pre-UI1 path |
+| T1-D — restore action not callable | **Not reproduced** | fake-backed direct call entered authorization/list logic |
+| T1-E — UI state/action gate healthy; authorization boundary fails | **Confirmed remaining boundary** | no live GMS authorization activity or token/list result observed |
+| T1-F — production/device-only race | **Not indicated** | no deterministic state race reproduced |
+
+The minimal next action is a separate live authorization-boundary triage:
+capture the `AuthorizationClient` task outcome and exactly-once
+`LaunchAuthorization`/activity-result handoff, with no token/account/secret
+logging. Required focused coverage is successful and failed Disconnect state
+transitions, action callability after Disconnect, exactly-once restore
+authorization event emission, and a live assertion for the authorization
+activity/result stage. No button-gate or state-machine rewrite is justified by
+T1 evidence.
+
+Retention G3/G4 and another A→B→A run were not performed. The accepted
+retention and A→B→A evidence is carried forward. RC2, tags, and release remain
+paused; the live authorization blocker remains open.

@@ -1386,3 +1386,118 @@ This R1 contains no production Kotlin, resource, navigation, backup,
 Health Connect, Room, DataStore, Wear, or UI behavior change. Disconnect live
 evidence and the approved R3 production fix are unchanged. Retention, RC2,
 tag, and release activity remain paused.
+
+## RC1-R3-F2-T1 — Post-disconnect state-machine isolation
+
+T1 is based on the accepted R3-R1 commit
+`4c7c7c1e50ad69d3e412906af5f6a33ddd569d8d` and is a state-machine and live
+failure-boundary triage only. No production or permanent test change was
+made.
+
+### Actual UI state and action table
+
+The current `BackupRestoreViewModel` state machine is:
+
+| State | Entered by | Exit/reset behavior | Action gate |
+|---|---|---|---|
+| `Idle` | initial state; cancel; message dismissal; successful Disconnect | starts backup, restore, or Disconnect | backup/restore enabled; Disconnect is shown only when `connected` and enabled in `Idle` |
+| `Authorizing(operation)` | backup/restore authorization start or reauthorization request | authorization outcome, activity-result callback, or cancel | backup/restore/Disconnect blocked while non-Idle |
+| `AwaitingBackupPassphrase` | backup authorization succeeds | backup passphrase submit or cancel | only backup passphrase submission is valid |
+| `PreparingBackup` | backup passphrase submission | codec/provider result or cancellation | interactive actions blocked |
+| `Uploading` | reserved upload state in the sealed model; no current ViewModel assignment | terminal result/cancellation if entered | interactive actions blocked |
+| `BackupSuccess` | verified backup success | message dismissal/cancel → `Idle` | interactive actions blocked |
+| `LoadingBackups` | restore authorization succeeds or backup list starts | list result, authorization event, error, or cancel | interactive actions blocked |
+| `SelectingBackup` | backup list succeeds | generation selection or cancel | only generation selection is valid |
+| `AwaitingRestorePassphrase` | generation selection | restore passphrase submit or cancel | only restore passphrase submission is valid |
+| `PreparingRestorePreview` | restore passphrase submission | preview, authorization, error, or cancellation | interactive actions blocked |
+| `Preview` | restore preparation succeeds | confirm or cancel | only confirm/cancel is valid |
+| `Restoring` | restore confirmation | restore success/warning/error or cancellation | interactive actions blocked |
+| `RestoreSuccess` / `RestoreSuccessRefreshWarning` | restore persistence completes | message dismissal/cancel → `Idle` | interactive actions blocked |
+| `Error` | operation failure | message dismissal/cancel → `Idle` | interactive actions blocked |
+
+The `connected` flow is separate from the UI-state enum. Backup and restore
+buttons are gated by `state == Idle`, not by `connected == true`; an
+authorization attempt is the intended way to reconnect after a successful
+Disconnect.
+
+### Disconnect trace and deterministic evidence
+
+The successful Disconnect path is:
+
+```text
+Idle (connected=true, before call)
+  → Idle (during coordinator/provider call; no separate Disconnecting state)
+  → Idle (connected=false, after success)
+```
+
+`BackupRestoreViewModel.disconnect()` owns the successful reset: it calls the
+coordinator, clears `connected`, and writes `Idle`. The coordinator holds its
+existing operation mutex only around the provider operation. The ViewModel's
+`operationJob` reference is inactive after completion, and guards check
+`operationJob?.isActive`, so a completed Disconnect does not leave a permanent
+busy lock. A failed Disconnect instead preserves the connected state and emits
+`Error(DISCONNECT_FAILED)`; it does not delete remote generations.
+
+The temporary deterministic trace used the existing ViewModel fakes and was
+reverted before this documentation-only change. Its exact observed sequence
+was:
+
+```text
+[Idle, AwaitingBackupPassphrase, Idle, Idle,
+ Error(error=BackupRestoreError(operation=RESTORE, code=NO_BACKUPS))]
+connectedAfterDisconnect=false
+```
+
+The first `Idle → AwaitingBackupPassphrase` is the setup authorization, the
+next `Idle` is cancellation, and the following `Idle` is successful
+Disconnect. A direct `restoreFromBackup()` call after Disconnect was accepted
+by the ViewModel and reached the existing authorization/list path; the fake
+then returned `NO_BACKUPS`. This proves the restore action is callable after
+Disconnect and is not blocked by `connected=false`.
+
+### UI relocation and live failure boundary
+
+The UI1 Settings relocation did not remove or relocate the reset owner. The
+current Google Drive route still collects `BackupRestoreViewModel.uiEvents`
+and passes the same backup, restore, Disconnect, cancel, and dismissal
+callbacks; the pre-UI1 Settings-hosted route used the same event collector and
+callback wiring. There is therefore no evidence that the UI relocation caused
+the post-Disconnect authorization failure.
+
+The prior Fold live attempt must be classified separately from the deterministic
+state evidence: after the explicit restore action, no Google Play Services
+`AuthorizationActivity` was observable and no token/list result was observed.
+The first observed failing boundary is therefore the live
+`GoogleAuthorizationGateway.authorize()` / AuthorizationClient resolution and
+activity-result handoff. The source path is reachable in the deterministic
+fake, but the live GMS activity was not observed; this triage does not claim a
+more specific internal Google error.
+
+Classification:
+
+- **T1-A:** not reproduced — `connected=false` does not disable the backup or
+  restore buttons.
+- **T1-B:** not reproduced — successful Disconnect returns the state to
+  `Idle` and releases the active-operation guard.
+- **T1-C:** not reproduced — UI relocation did not remove the existing event
+  collector or reset callback wiring.
+- **T1-D:** not reproduced by deterministic ViewModel evidence — direct
+  restore after Disconnect is accepted and reaches authorization/list logic.
+- **T1-E:** confirmed as the remaining live boundary — authorization/event
+  handoff must be isolated before another live reauthorization attempt.
+- **T1-F:** not indicated — no production race or device-only UI state race
+  was demonstrated.
+
+The minimal next fix is not a button or state-gate change. The next narrow
+investigation should instrument the live `AuthorizationClient` task outcome
+and the single `LaunchAuthorization` → activity-result handoff, without
+logging tokens, accounts, or secrets. Required follow-up tests are: successful
+Disconnect state reset, failed Disconnect state preservation, direct backup
+and restore callability after Disconnect, exactly-once authorization event
+emission, and a live instrumentation assertion for the actual authorization
+activity/result boundary.
+
+Retention evidence and the previously accepted A→B→A restore evidence are
+carried forward unchanged. No G3/G4 retention rerun, RC2 work, tag, or release
+activity was performed. The RC1 blocker remains open at the live authorization
+boundary; this T1 does not claim it closed.
