@@ -903,3 +903,23 @@ user on the Fold, after which this observability branch can rerun the same
 temporary stage logging and obtain the first failing stage, HTTP status, and
 Google reason. Drive retention, disconnect, reauthorization testing, and
 A→B→A remain paused.
+
+## RC1-R2B-T3 — Post-account-recovery Drive stage isolation
+
+T3 was based on `4578d6dc30ed934bd835af83c392ee768f156e60` on branch
+`v1.2/rc1-r2b-t3-drive-stage-resume`. The owner-reported account recovery was
+not visible on the target Fold at execution time: the account check reported
+`accountSessionPresent=false`, and the top activity remained the GMS account
+sign-in flow. GMS and Play Store packages were present. No credentials were
+entered or guessed.
+
+Per the T3 stop rule, no backup was submitted after this check. All S0–S3 and
+S5–S13 gates are `NOT TESTED`; S4 is `BLOCKED`. No Drive HTTP request, token,
+payload, fileId, readback, or error body was produced. T3 classification is
+**`T3-B — Environment/network`**, limited to the missing active Google test
+account prerequisite; it is not a classification of the original T1 upload
+failure.
+
+The owner must restore the approved Google test account on `emulator-5554` and
+leave a usable signed-in session before T3 can resume. Retention, disconnect,
+reauthorization testing, A→B→A, RC2, and release remain paused.

@@ -504,3 +504,64 @@ Temporary production diagnostics were reverted; `app/src/main/**`,
 `app/src/test/**`, and `app/src/androidTest/**` have zero diff. No production
 behavior, provider contract, OAuth scope, test code, retention, delete,
 disconnect, reauthorization test, restore, RC2, tag, or release was changed.
+
+## RC1-R2B-T3 — Post-account-recovery Drive stage isolation
+
+### Scope and prerequisite result
+
+T3 was started from `4578d6dc30ed934bd835af83c392ee768f156e60` on branch
+`v1.2/rc1-r2b-t3-drive-stage-resume`, targeting API37
+`Pixel_10_Pro_Fold` / `emulator-5554`. The requested account prerequisite was
+not present at execution time: a sanitized account check returned
+`accountSessionPresent=false`, and the top activity was still the Google Play
+Services account sign-in flow. GMS and Play Store packages were available. No
+credentials were entered, requested, or guessed.
+
+The T3 rule says to stop if the Fold is still at Google login. Therefore no
+temporary stage instrumentation was applied, no backup was submitted, and no
+Drive request was made.
+
+### T3 stage result
+
+| Stage | Result | Evidence |
+|---|---|---|
+| S0 Room/DataStore snapshot | `NOT TESTED` | stopped before backup |
+| S1 B1 payload construction | `NOT TESTED` | stopped before backup |
+| S2 canonical encode | `NOT TESTED` | stopped before backup |
+| S3 PBKDF2 + AES-GCM encrypt | `NOT TESTED` | stopped before backup |
+| S4 AuthorizationClient/token | `BLOCKED` | GMS account sign-in flow; `accountSessionPresent=false` |
+| S5 multipart metadata/body | `NOT TESTED` | no token/request |
+| S6 HTTP send | `NOT TESTED` | no request |
+| S7 Drive files.create response | `NOT TESTED` | no request |
+| S8 fileId parse | `NOT TESTED` | no response |
+| S9 readback request | `NOT TESTED` | no fileId |
+| S10 readback response | `NOT TESTED` | no readback |
+| S11 SHA/byte verification | `NOT TESTED` | no readback |
+| S12 retention/list | `NOT TESTED` | explicitly out of scope |
+| S13 success/UI | `NOT TESTED` | no backup submission |
+
+No first failing Drive stage exists for this run. Exception, cause chain,
+HTTP status, Google reason, sanitized Google message, endpoint, parents,
+encrypted bytes, token presence, remote file creation, and readback are all
+`NOT OBSERVED` because S4 did not return an authorization result. The previous
+T1 three-attempt upload failure remains unresolved; it is not relabeled from
+the new T3 evidence.
+
+### T3 classification and next action
+
+The sole T3 classification is **`T3-B — Environment/network`**, narrowly for
+the missing active Google test-account session on the Fold. This does not claim
+that the original Drive upload was a network failure and provides no evidence
+for T3-A, T3-C, T3-D, T3-E, T3-F, or T3-G.
+
+The owner must restore/sign in the approved Google test account on
+`emulator-5554`. After the account check returns true and the GMS flow no
+longer shows login, rerun the same temporary S0–S11 diagnostics and three live
+backup attempts. No scope expansion or production fix is authorized by this
+result.
+
+### Stop state
+
+No production or test source was changed; no diagnostic source diff exists.
+Retention, delete, G1–G4, disconnect, reauthorization testing, A→B→A, UI1,
+RC2, tag, and release remain paused.
