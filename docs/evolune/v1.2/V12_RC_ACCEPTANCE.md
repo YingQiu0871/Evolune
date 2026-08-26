@@ -2169,3 +2169,90 @@ revoke/reauthorize sequence, 30-day boundary, retention, RC2, tag, and release
 remain unexecuted. No app JVM/build or focused suite was started after the
 failure gate. Existing accepted Drive/live evidence remains unchanged; no
 Drive, B1/B2/B3/B4, or API35 work was reopened.
+
+## HC4-F1 — Local-authority freshness barrier fix
+
+This implementation branch starts from the accepted failure record
+`cb1e2d2fde9084af568d601e586ad0934c518fcf`. It fixes the P1 defect recorded
+in RC1-R5-R2: a manual local body-weight edit could be followed by an older
+than-manual HC observation that was still newer than the previous HC
+watermark. The historical `RC1-R5-R2` real-provider result remains **FAIL**;
+this section records code and automated evidence only. Real-provider live
+revalidation is still required.
+
+### Fix boundary
+
+The frozen decision is Option A: the existing persisted key
+`last_health_connect_weight_adopted_at` is reused as the shared freshness
+barrier. The key name and DataStore compatibility are unchanged. Production
+`SettingsDataStore` now receives `Clock.systemUTC()` by default; tests inject
+`Clock.fixed(...)`. The clock is not persisted, global, or exposed to UI.
+
+`updateBodyWeight` writes the local `body_weight` and the local clock's
+barrier timestamp in one DataStore edit. It deliberately does not change
+`last_health_connect_weight_kg`, which remains HC-only metadata.
+`replaceSettings`, used by native restore/rollback/recovery through
+`RoomRestorePersistence`, writes the restored settings and a new local clock
+barrier in the same DataStore edit while preserving the existing HC weight
+metadata. The Room transaction, restore journal, compensation order, and B1
+payload are unchanged.
+
+HC adoption still writes body weight, HC-only weight metadata, and the barrier
+from the real observation timestamp in one edit. Same-value newer HC records
+still update only HC metadata and advance the observation barrier. The
+coordinator's strict `observation.timestamp.isAfter(barrier)` rule is
+unchanged; equal timestamps remain ineligible.
+
+### Automated evidence
+
+The mandatory counterexample is covered with deterministic timestamps:
+
+| Case | Result |
+|---|---|
+| HC-A 61.1 @ 10:00 → local 62.2 @ 10:10 | Local body weight and barrier become 62.2 / 10:10; **PASS** |
+| HC-X 61.5 @ 10:05 | Rejected because it is older than the local barrier; 62.2 remains; **PASS** |
+| HC-B 63.3 @ 10:11 | Adopted because it is newer than the local barrier; **PASS** |
+| HC-C 63.3 @ 10:12 | Body value stays unchanged and barrier advances; **PASS** |
+| Equal timestamp | Rejected by strict comparison; **PASS** |
+| Last HC weight | Remains HC-only and is not replaced by 62.2; **PASS** |
+
+Actual `SettingsDataStore` instrumentation covered manual update atomic
+state, native restore replacement barrier, HC observation-time sourcing, and
+same-value metadata-only advancement: 4/4 on API33 and 4/4 on API37 Fold.
+The existing HC4 screen instrumentation remained mock/composable-backed and
+passed 6/6 on API33 and 6/6 on API37 Fold.
+
+Mahiro file and clipboard import both pass their imported weight through the
+existing `AppNavigation` callback to `SettingsViewModel.updateBodyWeight`,
+which reaches the corrected `SettingsStore.updateBodyWeight` seam. The
+Mahiro JSON schema is unchanged and HC freshness metadata is neither exported
+nor imported. Existing Mahiro JVM tests passed.
+
+The B1 golden remains
+`5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9`.
+HC weight metadata, the HC sync preference, and the freshness barrier are not
+serialized into the native backup payload.
+
+### HC4-F1 validation result
+
+| Area | Result |
+|---|---|
+| Local manual barrier and atomic DataStore writes | **PASS** |
+| Native restore barrier | **PASS** |
+| HC newer / same-value-newer / equal timestamp semantics | **PASS** |
+| P1 counterexample | **PASS** |
+| B1 golden and legacy Mahiro format | **PASS / unchanged** |
+| app JVM | **PASS** |
+| experience-core JVM | **PASS** |
+| wear JVM | **PASS** |
+| app debug build | **PASS** |
+| wear debug build | **PASS** |
+| HC4 screen instrumentation | **PASS** — 6/6 per API33 and API37 Fold |
+| Production functional scope | `SettingsDataStore.kt` only |
+
+No Health Connect permission, WRITE_WEIGHT, background-sync, HRT/PK, Drive,
+backup format, Room, Wear, Settings UI, or navigation behavior changed. The
+historical `RC1-R5-R2` real-provider failure remains preserved. The HC4 real
+live gate is **OPEN — REVALIDATION REQUIRED**; this implementation evidence
+does not close it. Drive remains **CLOSED / PASS**. API35 remains
+environment-blocked. No RC2, tag, or release activity was performed.

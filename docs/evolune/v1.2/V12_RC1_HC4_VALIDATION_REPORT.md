@@ -1680,6 +1680,99 @@ not run after this environment gate. The Google Drive live core remains
 **CLOSED / PASS** and was not rerun. No RC2, tag, or release activity was
 performed.
 
+## HC4-F1 — Local-authority freshness barrier fix
+
+This implementation follows the accepted failure record
+`cb1e2d2fde9084af568d601e586ad0934c518fcf` and addresses the P1 defect from
+RC1-R5-R2. The real-provider failure is retained as historical evidence; F1
+does not rewrite it as a pass. This round changes production code and tests
+only for the local-authority freshness barrier. Real-provider HC4
+revalidation remains required.
+
+### Root cause and implementation
+
+The prior implementation advanced `last_health_connect_weight_adopted_at`
+only for HC observations. After HC-A at `T_A`, a local manual edit at a later
+time did not advance the barrier, so an HC-X record with
+`T_A < T_X < T_MANUAL` remained eligible. The coordinator's strict
+`observation.timestamp.isAfter(barrier)` comparison itself was correct.
+
+F1 uses Option A: the existing persisted key
+`last_health_connect_weight_adopted_at` is the shared freshness barrier, with
+no new key or migration. `SettingsDataStore` has a narrow injectable
+`java.time.Clock`; production defaults to `Clock.systemUTC()` and tests use
+fixed clocks. The clock is not persisted, global, or exposed to UI.
+
+`updateBodyWeight` now atomically writes the new authoritative body weight and
+the local clock timestamp in one DataStore edit. It leaves
+`last_health_connect_weight_kg` unchanged. `replaceSettings`, the persistence
+seam used by native restore/rollback/recovery, performs the same local barrier
+write in its single DataStore edit and preserves HC-only weight metadata. No
+Room transaction, journal state machine, restore compensation order, or B1
+payload changed.
+
+HC adoption continues to use the observation timestamp rather than the local
+clock, and its body/HC metadata/barrier update remains atomic. Same-value
+newer HC records still advance the barrier without a body-weight write. Equal
+timestamps remain rejected by the unchanged strict comparison.
+
+### Required regression evidence
+
+| Scenario | Result |
+|---|---|
+| HC-A 61.1 @ 10:00, then local 62.2 @ 10:10 | Barrier persisted at 10:10; **PASS** |
+| HC-X 61.5 @ 10:05 | Rejected; body weight remains 62.2 and barrier remains 10:10; **PASS** |
+| HC-B 63.3 @ 10:11 | Adopted; **PASS** |
+| HC-C 63.3 @ 10:12 | Visible body value unchanged; barrier advances to 10:12; **PASS** |
+| HC timestamp equal to current barrier | Rejected; **PASS** |
+| Last HC weight remains HC-only | 61.1 is not replaced by manual 62.2; **PASS** |
+
+The actual `SettingsDataStore` instrumentation test covered manual update,
+native restore replacement, HC timestamp sourcing, and same-value metadata
+advancement: 4/4 on `evolune-hc3-api33` and 4/4 on `Pixel_10_Pro_Fold`.
+The existing HC4 screen class remained mock/composable-backed and passed 6/6
+on each of those devices.
+
+Both Mahiro file-import and clipboard-import paths retain the existing
+`SettingsViewModel.updateBodyWeight` callback seam in `AppNavigation`, so they
+reach the corrected DataStore mutation. No Mahiro JSON schema change was
+made; HC metadata is not exported or imported. Existing Mahiro JVM coverage
+passed.
+
+The B1 golden remains
+`5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9`.
+`last_health_connect_weight_adopted_at`,
+`last_health_connect_weight_kg`, and the HC sync preference remain outside
+the native backup payload.
+
+### Validation and scope
+
+| Gate | Result |
+|---|---|
+| app focused JVM (HC coordinator, B1/B2, Mahiro) | **PASS** |
+| app full `testDebugUnitTest` | **PASS** |
+| experience-core test | **PASS** |
+| wear `testDebugUnitTest` | **PASS** |
+| app `assembleDebug` | **PASS** |
+| wear `assembleDebug` | **PASS** |
+| SettingsDataStore instrumentation | **PASS** — 4/4 per API33 and API37 Fold |
+| HC4 screen instrumentation | **PASS** — 6/6 per API33 and API37 Fold |
+| Production functional file | `app/src/main/.../data/SettingsDataStore.kt` only |
+| Test files | coordinator fake/regressions, B2 restore fake alignment, SettingsDataStore instrumentation |
+
+No Seeder was installed and no live Health Connect record, permission, or
+provider dataset was changed in F1. No permission scope, WRITE_WEIGHT,
+background sync, HRT/PK, Drive, backup format, Room, Wear, Settings UI, or
+navigation behavior changed.
+
+### F1 disposition
+
+The P1 production defect is **FIXED in code**, with deterministic automated
+evidence passing. The historical `RC1-R5-R2` live result remains
+**FAIL**, and the HC4 real-provider live gate is
+**OPEN — REVALIDATION REQUIRED**. Drive remains **CLOSED / PASS** and API35
+remains environment-blocked. No RC2, tag, or release activity was performed.
+
 ## RC1-R5-R2 — HC4 Real Provider Freshness Watermark Live Acceptance
 
 ### Review scope and stop policy

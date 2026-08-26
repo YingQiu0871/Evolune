@@ -5,6 +5,7 @@ import io.github.yingqiu0871.evolune.data.SettingsStore
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
+import io.github.yingqiu0871.evolune.data.isValidBodyWeight
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModel
 import java.time.Clock
 import java.time.Duration
@@ -183,7 +184,7 @@ class HealthConnectWeightSyncCoordinatorTest {
     fun `watermark prevents stale observation from overwriting manual local weight`() = runBlocking {
         val first = observation(60.0, "2026-08-23T00:00:00Z")
         val stale = first
-        val newer = observation(58.0, "2026-08-24T00:00:00Z")
+        val newer = observation(58.0, "2026-08-25T00:00:00Z")
         val provider = FakeHealthConnectWeightProvider().apply {
             weightResults += HealthConnectWeightResult.Success(first)
             weightResults += HealthConnectWeightResult.Success(stale)
@@ -193,7 +194,7 @@ class HealthConnectWeightSyncCoordinatorTest {
         val coordinator = coordinator(store, provider)
 
         coordinator.syncIfEnabled()
-        store.userSettings.value = store.userSettings.value.copy(bodyWeight = 55.0)
+        store.updateBodyWeight(55.0)
         coordinator.syncIfEnabled()
         assertEquals(55.0, store.userSettings.value.bodyWeight, 0.0)
         coordinator.syncIfEnabled()
@@ -201,6 +202,77 @@ class HealthConnectWeightSyncCoordinatorTest {
         assertEquals(listOf(60.0, 58.0), store.bodyWeightWrites)
         assertEquals(58.0, store.userSettings.value.bodyWeight, 0.0)
         assertEquals(newer.timestamp, store.userSettings.value.lastHealthConnectWeightAdoptedAt)
+    }
+
+    @Test
+    fun `manual local barrier rejects intermediate HC record and later newer HC still adopts`() =
+        runBlocking {
+            val hcA = observation(61.1, "2026-08-23T10:00:00Z")
+            val hcX = observation(61.5, "2026-08-23T10:05:00Z")
+            val hcB = observation(63.3, "2026-08-23T10:11:00Z")
+            val hcC = observation(63.3, "2026-08-23T10:12:00Z")
+            val provider = FakeHealthConnectWeightProvider().apply {
+                weightResults += HealthConnectWeightResult.Success(hcA)
+                weightResults += HealthConnectWeightResult.Success(hcX)
+                weightResults += HealthConnectWeightResult.Success(hcB)
+                weightResults += HealthConnectWeightResult.Success(hcC)
+            }
+            val store = FakeSettingsStore(
+                initial = UserSettings(bodyWeight = 60.0, healthConnectWeightSyncEnabled = true),
+                localMutationAt = Instant.parse("2026-08-23T10:10:00Z")
+            )
+            val coordinator = coordinator(store, provider)
+
+            coordinator.syncIfEnabled()
+            assertEquals(hcA.timestamp, store.userSettings.value.lastHealthConnectWeightAdoptedAt)
+
+            store.localMutationAt = Instant.parse("2026-08-23T10:10:00Z")
+            assertTrue(store.updateBodyWeight(62.2))
+            assertEquals(62.2, store.userSettings.value.bodyWeight, 0.0)
+            assertEquals(
+                Instant.parse("2026-08-23T10:10:00Z"),
+                store.userSettings.value.lastHealthConnectWeightAdoptedAt
+            )
+
+            coordinator.syncIfEnabled()
+            assertEquals(62.2, store.userSettings.value.bodyWeight, 0.0)
+            assertEquals(
+                Instant.parse("2026-08-23T10:10:00Z"),
+                store.userSettings.value.lastHealthConnectWeightAdoptedAt
+            )
+            assertEquals(61.1, requireNotNull(store.userSettings.value.lastHealthConnectWeightKg), 0.0)
+
+            coordinator.syncIfEnabled()
+            assertEquals(63.3, store.userSettings.value.bodyWeight, 0.0)
+            assertEquals(hcB.timestamp, store.userSettings.value.lastHealthConnectWeightAdoptedAt)
+
+            coordinator.syncIfEnabled()
+            assertEquals(63.3, store.userSettings.value.bodyWeight, 0.0)
+            assertEquals(hcC.timestamp, store.userSettings.value.lastHealthConnectWeightAdoptedAt)
+            assertEquals(63.3, requireNotNull(store.userSettings.value.lastHealthConnectWeightKg), 0.0)
+            assertEquals(listOf(61.1, 63.3), store.bodyWeightWrites)
+        }
+
+    @Test
+    fun `observation at the current barrier is rejected`() = runBlocking {
+        val barrier = Instant.parse("2026-08-23T10:00:00Z")
+        val provider = FakeHealthConnectWeightProvider().apply {
+            weightResult = HealthConnectWeightResult.Success(observation(63.3, barrier.toString()))
+        }
+        val initial = UserSettings(
+            bodyWeight = 61.1,
+            healthConnectWeightSyncEnabled = true,
+            lastHealthConnectWeightKg = 61.1,
+            lastHealthConnectWeightAdoptedAt = barrier
+        )
+        val store = FakeSettingsStore(initial)
+        val coordinator = coordinator(store, provider)
+
+        coordinator.syncIfEnabled()
+
+        assertEquals(initial, store.userSettings.value)
+        assertTrue(store.bodyWeightWrites.isEmpty())
+        assertTrue(store.metadataWrites.isEmpty())
     }
 
     @Test
@@ -343,7 +415,8 @@ class HealthConnectWeightSyncCoordinatorTest {
 }
 
 private class FakeSettingsStore(
-    initial: UserSettings = UserSettings()
+    initial: UserSettings = UserSettings(),
+    var localMutationAt: Instant = Instant.parse("2026-08-24T12:00:00Z")
 ) : SettingsStore {
     override val userSettings = MutableStateFlow(initial)
     val bodyWeightWrites = mutableListOf<Double>()
@@ -351,7 +424,11 @@ private class FakeSettingsStore(
     val enabledWrites = mutableListOf<Boolean>()
 
     override suspend fun updateBodyWeight(weight: Double): Boolean {
-        userSettings.value = userSettings.value.copy(bodyWeight = weight)
+        if (!isValidBodyWeight(weight)) return false
+        userSettings.value = userSettings.value.copy(
+            bodyWeight = weight,
+            lastHealthConnectWeightAdoptedAt = localMutationAt
+        )
         return true
     }
 

@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Clock
 import java.time.Instant
 
 // DataStore 实例
@@ -55,6 +56,7 @@ data class UserSettings(
     val healthConnectWeightSyncEnabled: Boolean = false,
     /** Sync metadata only; [bodyWeight] remains the local authority. */
     val lastHealthConnectWeightKg: Double? = null,
+    /** Shared freshness barrier for HC observations and local authority writes. */
     val lastHealthConnectWeightAdoptedAt: Instant? = null
 )
 
@@ -88,7 +90,10 @@ interface AtomicSettingsStore {
 /**
  * 设置数据存储管理类
  */
-class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSettingsStore {
+class SettingsDataStore(
+    private val context: Context,
+    private val clock: Clock = Clock.systemUTC()
+) : SettingsStore, AtomicSettingsStore {
     
     companion object {
         private val BODY_WEIGHT_KEY = doublePreferencesKey("body_weight")
@@ -148,6 +153,7 @@ class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSet
 
         context.dataStore.edit { preferences ->
             preferences[BODY_WEIGHT_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = clock.instant().toString()
         }
         return true
     }
@@ -226,6 +232,7 @@ class SettingsDataStore(private val context: Context) : SettingsStore, AtomicSet
 
         context.dataStore.edit { preferences ->
             preferences[BODY_WEIGHT_KEY] = settings.bodyWeight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = clock.instant().toString()
             preferences[THEME_MODE_KEY] = settings.themeMode.name
             preferences[COLOR_THEME_KEY] = settings.colorTheme.name
             preferences[AUTO_CHECK_UPDATES_KEY] = settings.autoCheckUpdates

@@ -137,9 +137,13 @@ class B2RoomRestorePersistenceTest {
     private class FakeAtomicSettingsStore : SettingsStore, AtomicSettingsStore {
         override val userSettings = MutableStateFlow(UserSettings())
         var replaceCalls = 0
+        private val localMutationAt = Instant.parse("2026-08-23T10:10:00Z")
 
         override suspend fun updateBodyWeight(weight: Double): Boolean {
-            userSettings.value = userSettings.value.copy(bodyWeight = weight)
+            userSettings.value = userSettings.value.copy(
+                bodyWeight = weight,
+                lastHealthConnectWeightAdoptedAt = localMutationAt
+            )
             return true
         }
 
@@ -190,7 +194,11 @@ class B2RoomRestorePersistenceTest {
 
         override suspend fun replaceSettings(settings: UserSettings): Boolean {
             replaceCalls++
-            userSettings.value = settings
+            val previous = userSettings.value
+            userSettings.value = settings.copy(
+                lastHealthConnectWeightKg = previous.lastHealthConnectWeightKg,
+                lastHealthConnectWeightAdoptedAt = localMutationAt
+            )
             return true
         }
     }
