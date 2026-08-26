@@ -2344,3 +2344,121 @@ The mandatory post-live JVM/build and existing HC4 focused checks passed:
 No production or test source changed in this revalidation; only this document
 and the companion HC4 validation report were updated. Retention/G3-G4, RC2,
 tagging, and release remain outside this round.
+
+## RC1-R6 — Physical KDF 600k + Large-History
+
+This physical validation was run on branch
+`v1.2/rc1-r6-physical-kdf-large-history`, based on accepted core commit
+`e5417ca6b6457f542e6f05a74ac886c72359e292`. The scope was limited to the
+test-only physical performance harness and this acceptance record. No
+production fix was required.
+
+### Harness history
+
+The first instrumentation attempt was stopped by a JUnit4 harness issue:
+expression-bodied test methods were not emitted as `void`; both methods were
+changed to block-bodied `()V` methods. The next attempt reached the test body
+and exposed a second harness issue: the test compared the generated insertion
+order with the codec's canonical decoded order. The assertion was corrected
+with an independent expected-value construction; the production codec,
+comparators, B1 schema, and golden format were not changed. Both issues were
+test-only harness issues.
+
+### Device and condition
+
+| Field | Evidence |
+|---|---|
+| Manufacturer / model | Samsung `SM-F976B` |
+| Serial | `R3GL70HNHDE` |
+| Physical-device proof | Android `ro.kernel.qemu=0` |
+| Android / API | Android 17 / API 37 |
+| ABI | `arm64-v8a` |
+| RAM | `11,351,448 kB` |
+| SoC | QTI `SM8850` |
+| Condition | 80% battery, USB powered, 30.3°C battery sample, Thermal Status 0 |
+
+The explicitly selected device was the physical Samsung device; connected
+emulators were not used for this gate.
+
+### Canonical order and semantic comparison
+
+| Collection | Production behavior | Independent expected construction | Result |
+|---|---|---|---|
+| `MedicationPlan` | `id` ascending | explicit `sortedBy { id }` | PASS |
+| `ScheduledDoseSlot` | `planId`, then `position`, then `id` | explicit comparator with the same contract keys | PASS |
+| `DoseEvent` | canonical `occurredAt`, then `id` | explicit `Instant.parse(...).toString()` time key, then `id` | PASS |
+| Settings / body weight | scalar fields preserved | settings object compared as a whole | PASS |
+
+The source payload, decoded payload, and preview contained exactly 100 plans,
+1,000 slots, and 10,000 events. Full decoded semantic equality verified every
+record field, ID, timestamp, dose, relationship, setting, and body weight
+after applying the documented canonical collection order. Slot `planId`
+references remained valid, and event `slotId` values preserved their optional
+historical semantics.
+
+### Physical gate evidence
+
+| Gate | Result |
+|---|---|
+| PBKDF2-HMAC-SHA256 on physical device | **PASS** |
+| Native large-history encode/decode/validation/preview | **PASS** |
+| OOM | **NO** |
+| Process death | **NO** |
+| ANR | **NO** |
+| Wrong passphrase | **NOT RUN** |
+
+KDF used the production primitive and parameters: PBKDF2-HMAC-SHA256,
+600,000 iterations, 256-bit output. The run used 2 warmups and 7 monotonic
+measured runs:
+
+| Sample | Elapsed |
+|---|---:|
+| Warmup 1 | 1,971.666 ms |
+| Warmup 2 | 1,952.338 ms |
+| Measured 1 | 2,031.545 ms |
+| Measured 2 | 1,945.660 ms |
+| Measured 3 | 1,970.627 ms |
+| Measured 4 | 1,988.304 ms |
+| Measured 5 | 1,941.504 ms |
+| Measured 6 | 1,990.119 ms |
+| Measured 7 | 1,941.309 ms |
+
+Statistics: min `1,941.309 ms`, median `1,970.627 ms`, max `2,031.545 ms`,
+mean `1,972.724 ms`. Crypto ran on the named worker thread and not the main
+looper.
+
+Large-history evidence:
+
+| Metric | Result |
+|---|---:|
+| Plaintext serialized size | 2,800,747 bytes / 2,735.104 KiB / 2.671 MiB |
+| Encrypted backup size | 3,734,737 bytes / 3,647.204 KiB / 3.562 MiB |
+| Snapshot / materialization | 111.759 ms |
+| Encode / encrypt pipeline | 4,569.095 ms |
+| Decrypt / auth / parse / validation | 2,963.309 ms |
+| Preview generation | 0.307 ms |
+| Decrypt-to-preview | 2,963.616 ms |
+| Full source-to-preview total | **NOT SEPARATELY MEASURED** |
+
+The isolated test used synthetic data only. No Room replacement, DataStore
+replacement, destructive confirmation, Drive operation, Health Connect
+operation, or real-user state mutation occurred.
+
+### Regression and release disposition
+
+| Check | Result |
+|---|---|
+| `:app:testDebugUnitTest --rerun-tasks` | **PASS** |
+| `:experience-core:test --rerun-tasks` | **PASS** |
+| `:wear:testDebugUnitTest --rerun-tasks` | **PASS** |
+| `:app:assembleDebug --rerun-tasks` | **PASS** |
+| `:wear:assembleDebug --rerun-tasks` | **PASS** |
+| Production diff | **ZERO** |
+| Test diff | `PhysicalBackupPerformanceTest.kt` only |
+| Documentation diff | This section only |
+| Drive | **CLOSED / PASS** |
+| HC4 | **CLOSED / PASS** |
+| API35 | **ENVIRONMENT-BLOCKED** |
+
+Retention/G3-G4 were not executed. RC2, tag, and release activity remain
+paused. No release claim is made by this performance gate.
