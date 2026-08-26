@@ -1569,3 +1569,40 @@ future environment-recovery validation.
 RC1-R3 and the Google Drive v1.2 live core remain **CLOSED / PASS** and were
 not reopened. No OAuth, upload, G1/G2/G3/G4 retention, Disconnect, reconnect,
 A→B→A, RC2, tag, or release operation was performed.
+
+## RC1-R4-R1 — API35 current-lineage full validation
+
+This validation attempt is based on the current-lineage triage commit
+`cc7febe3d7d8510366eb83d520432e91a05f6993`. The independent reviewer’s API35
+UI3 focused result of 16/16 PASS is acknowledged as separate reviewer
+evidence, not as author R1 evidence. No production or test source was changed.
+
+The existing `evolune-hc3-api35.ini` was present. The emulator client listed
+the AVD when given process-local `ANDROID_SDK_HOME` and `ANDROID_AVD_HOME`
+paths; no registration file, AVD data, system image, or hardware profile was
+modified. A cold boot with `-no-snapshot-load` found the Android 35 Google APIs
+x86_64 system image, but QEMU repeatedly failed before boot while creating
+`C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock` with `error: 5`.
+No API35 serial appeared and `boot_completed=1` was not reached.
+
+This is **R4-R1-C — emulator/environment failure**, not an application or
+test failure. The API35 process was stopped after it failed to produce a
+device; no AVD data was wiped and no configuration was changed.
+
+| Gate | Result | Evidence |
+|---|---|---|
+| API35 device identity | **BLOCKED** | AVD known, but no serial/API35 device appeared |
+| Current-lineage APK install | **NOT TESTED** | No API35 device |
+| Reviewer UI3 focused evidence | **PASS — reviewer evidence** | Independent reviewer reported 16/16 PASS |
+| Author R1 UI3 focused suite | **NOT TESTED** | Stopped at boot environment gate |
+| Rapid double-tap / geometry tests | **NOT TESTED** | No API35 device |
+| MedicationPlansScreenTest | **NOT TESTED** | No API35 device |
+| Corrected IME frame probe | **NOT TESTED** | No API35 device |
+| Health Connect API35 sanity | **NOT TESTED** | No API35 device |
+| Full API35 instrumentation | **NOT TESTED** | No API35 device |
+| Manual API35 Settings sanity | **NOT TESTED** | No API35 device |
+| API35 current-lineage gate | **BLOCKED** | R4-R1-C — emulator/environment failure |
+
+The API35 gate remains open and is not promoted to `PASS`. The earlier R4-E1
+point-in-time record remains historical and unchanged. RC1-R3 and the Google
+Drive v1.2 live core remain **CLOSED / PASS**; no Drive operation was reopened.
