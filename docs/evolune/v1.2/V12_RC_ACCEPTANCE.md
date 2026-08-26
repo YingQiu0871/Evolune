@@ -1944,3 +1944,76 @@ produce a device; no AVD data was wiped and no configuration was changed.
 The API35 gate remains open and is not promoted to `PASS`. The earlier R4-E1
 point-in-time record remains historical and unchanged. RC1-R3 and the Google
 Drive v1.2 live core remain **CLOSED / PASS**; no Drive operation was reopened.
+
+## RC1-R4-R2 — API35 environment recovery and current-lineage validation
+
+This is a documentation-only continuation from the accepted R4 environment
+triage commit `cc7febe3d7d8510366eb83d520432e91a05f6993`. The earlier R4-E1
+missing-registration record and R4-R1-C feature-lock record are preserved as
+historical evidence and are not rewritten.
+
+### Recovery map and environment result
+
+The pre-recovery online map was:
+
+| AVD | Serial | API | Boot state | Result |
+|---|---|---:|---|---|
+| `evolune-hc3-api33` | `emulator-5554` | 33 | `boot_completed=1` | online |
+| `Evolune_API33_Migration` | none | 33 | not reached | recovery attempted, no serial |
+| `Pixel_10_Pro_Fold` | `emulator-5556` | 37 | `boot_completed=1` | online |
+
+The API33-B recovery attempt used the existing `Evolune_API33_Migration` AVD
+without wiping or changing its configuration. It produced no adb serial and
+did not reach `boot_completed=1`; no tests were run on API33-B. The two
+pre-existing online devices remained online. Process command-line inspection
+through `Get-CimInstance Win32_Process` was access-denied in this environment;
+the recovery and later cleanup used the explicitly mapped emulator/qemu PIDs
+and known AVD launch commands only.
+
+Before the API35 retry, the feature-lock path
+`C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock` did not exist.
+No absent lock file was created or deleted by this validation.
+
+The existing `evolune-hc3-api35` AVD was launched directly with explicit
+process-local SDK/AVD paths, `-no-snapshot-load`, and no AVD data changes. The
+Android 35 Google APIs x86_64 system image was found, but QEMU failed before
+adb registration while repeatedly reporting:
+
+```text
+Unexpected error while creating:
+C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock (error: 5)
+```
+
+No API35 serial appeared and `boot_completed=1` was not reached. The exact
+API35 retry process pair was stopped after the failure; temporary diagnostic
+logs were removed. No permissions, ACLs, lock files, snapshots, AVD data, or
+system images were modified.
+
+This is classified as **R4-R2-C — emulator/environment failure**, not as an
+application or test failure. The owner/ACL root cause was not proven and no
+permission workaround was attempted.
+
+### R4-R2 validation gate
+
+| Gate | Result | Evidence |
+|---|---|---|
+| API33-A recovery identity | **PASS — environment only** | `emulator-5554`, API33, `boot_completed=1` |
+| API33-B recovery identity | **BLOCKED** | No serial after mapped recovery attempt; no tests run |
+| API37 Fold identity | **PASS — environment only** | `emulator-5556`, API37, `boot_completed=1` |
+| API35 boot / device identity | **BLOCKED** | Reproduced QEMU feature-lock error; no serial |
+| Current-lineage APK install | **NOT TESTED** | API35 did not boot |
+| Reviewer UI3 focused 16-test evidence | **PASS — reviewer evidence** | Separate reviewer result, 16/16 PASS |
+| Author UI3 focused suite | **NOT TESTED** | Stopped at API35 environment gate |
+| Sensitive MedicationRecords tests | **NOT TESTED** | No API35 device |
+| `MedicationPlansScreenTest` | **NOT TESTED** | No API35 device |
+| Corrected IME frame probe | **NOT TESTED** | No API35 device |
+| Health Connect API35 sanity | **NOT TESTED** | No API35 device |
+| Full API35 instrumentation | **NOT TESTED** | No API35 device |
+| API35 manual Settings sanity | **NOT TESTED** | No API35 device |
+| API35 current-lineage release gate | **BLOCKED** | R4-R2-C |
+
+No APK was installed, and no author-side API35 UI, instrumentation, IME,
+Health Connect, or manual validation was claimed. App JVM/build validation was
+also not run after the environment gate because this round is blocked at
+device recovery. The Google Drive live core remains **CLOSED / PASS**; no Drive
+rerun was performed. No RC2, tag, or release activity was performed.

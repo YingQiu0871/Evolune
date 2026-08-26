@@ -1606,3 +1606,70 @@ device; no AVD data was wiped and no configuration was changed.
 The API35 gate remains open and is not promoted to `PASS`. The earlier R4-E1
 point-in-time record remains historical and unchanged. RC1-R3 and the Google
 Drive v1.2 live core remain **CLOSED / PASS**; no Drive operation was reopened.
+
+## RC1-R4-R2 — API35 environment recovery and current-lineage validation
+
+This documentation-only record continues from `cc7febe3d7d8510366eb83d520432e91a05f6993`.
+The prior R4-E1 missing-registration record and R4-R1-C feature-lock record
+remain intact as historical evidence. No production or test source was
+changed.
+
+### Recovery map
+
+| Device line | AVD | Serial | API | Boot state | Validation |
+|---|---|---|---:|---|---|
+| API33-A | `evolune-hc3-api33` | `emulator-5554` | 33 | `boot_completed=1` | online |
+| API33-B | `Evolune_API33_Migration` | none | 33 | not reached | recovery attempted, no tests |
+| API37 Fold | `Pixel_10_Pro_Fold` | `emulator-5556` | 37 | `boot_completed=1` | online |
+
+The API33-B attempt used the existing AVD only and did not wipe, recreate, or
+modify it. Because no serial appeared, API33-B tests were not run. The process
+command-line query through `Get-CimInstance Win32_Process` was access-denied;
+only explicitly mapped emulator/qemu PIDs and known AVD launch commands were
+used for the recovery cleanup.
+
+### API35 retry
+
+Before retry, the lock path
+`C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock` was absent;
+after the failed retry it remained absent. No absent lock file was created or
+deleted, and no permission or ACL change was attempted.
+
+The existing `evolune-hc3-api35` AVD was launched directly with explicit
+process-local SDK/AVD paths and `-no-snapshot-load`. The Android 35 Google APIs
+x86_64 system image was found, but QEMU failed before adb registration with
+repeated:
+
+```text
+Unexpected error while creating:
+C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock (error: 5)
+```
+
+No API35 serial appeared and `boot_completed=1` was never reached. The mapped
+API35 emulator/qemu pair was stopped after the failed boot and temporary
+diagnostic logs were removed. This is **R4-R2-C — emulator/environment
+failure**. The exact owner/ACL cause remains unproven; no workaround was
+applied.
+
+### R4-R2 result matrix
+
+| Gate | Result | Evidence |
+|---|---|---|
+| API35 boot / identity | **BLOCKED** | Reproduced feature-lock creation error; no serial |
+| Current-lineage APK install | **NOT TESTED** | No API35 device |
+| Reviewer UI3 focused result | **PASS — reviewer evidence** | 16/16 PASS, separate evidence |
+| Author UI3 focused result | **NOT TESTED** | Boot gate blocked |
+| `rapidDoubleTapInvokesOneInsert` | **NOT TESTED** | No API35 device |
+| `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges` | **NOT TESTED** | No API35 device |
+| `MedicationPlansScreenTest` | **NOT TESTED** | No API35 device |
+| Corrected `RealAppImeFrameProbeTest` | **NOT TESTED** | No API35 device |
+| API35 Health Connect sanity | **NOT TESTED** | No API35 device |
+| Full API35 instrumentation | **NOT TESTED** | No API35 device |
+| Manual Settings sanity | **NOT TESTED** | No API35 device |
+| API35 current-lineage gate | **BLOCKED** | R4-R2-C |
+
+No author-side API35 tests, IME probe, HC sanity, full instrumentation, or
+manual UX evidence is claimed. The app JVM and debug-build regression set was
+not run after this environment gate. The Google Drive live core remains
+**CLOSED / PASS** and was not rerun. No RC2, tag, or release activity was
+performed.
