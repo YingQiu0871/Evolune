@@ -1318,3 +1318,58 @@ third Restore click was made after this successful picker result.
 G3/G4 retention, latest-three retention, current-generation protection,
 Disconnect session clear, and A→B→A evidence are carried forward unchanged.
 No retention or A→B→A rerun, RC2, tag, or release activity was performed.
+
+## UI2 — Single-item MD3 segmented shape parity
+
+UI2 is a narrow visual correction based on the accepted T2 commit
+`02af42ad732524f45f4b984146ba5111631ff76d`. UI1/R3 documentation correctly
+recorded reuse of the shared `SettingsNavigationRow`, colors, and segmented
+shape helper. Owner-device review nevertheless found that standalone rows
+were still visibly less rounded than the grouped Settings rows: the existing
+`stableSegmentedShapes(index = 0, count = 1)` path returned the ordinary
+Expressive list-item shape rather than a full segmented container shape.
+This section records that delta without rewriting the earlier UI1/R3 history.
+
+### Shape correction
+
+Before UI2, the shared helper delegated every position directly to Material 3
+`segmentedShapes`; its effective semantics were `count = 1` for a standalone
+row and first/middle/last positions for grouped rows. After UI2, the same
+shared helper explicitly distinguishes `SINGLE`, `TOP`, `MIDDLE`, and
+`BOTTOM`. `SINGLE` composes the existing Material 3 top and bottom segmented
+shapes so all four corners use the segmented container treatment. No new
+hard-coded corner dp value or second shape-constant system was introduced.
+State shapes used for selected, pressed, focused, hovered, and dragged states
+are the same resolved shape, so `SegmentedListItem` continues to clip its
+container and interaction/ripple surface to the corrected outline.
+
+The Settings-home `同步与备份` position is unchanged: it remains immediately
+above `更新`. Only its standalone shape changed. On the Sync & Backup page,
+the three separate navigation sections—`导入与导出数据`, `Health Connect
+同步`, and `Google Drive 备份与恢复`—all continue to use the shared
+`SettingsNavigationRow` and now resolve to `SINGLE`. Existing grouped settings
+for 夜间模式、颜色主题、时间制式、更新、关于 retain their top/middle/bottom
+segmentation and ordering.
+
+### UI2 verification
+
+| Gate | Evidence | Result |
+|---|---|---|
+| API33-A focused suite | `HealthConnectSyncScreenTest` 6 + `SyncAndBackupScreenTest` 4 + `SyncAndBackupNavigationTest` 1 | **11/11 PASS** |
+| API33-B focused suite | device not online in this run | **NOT TESTED** |
+| API37 Fold focused suite | same 11-test composition | **11/11 PASS** |
+| API37 Fold navigation stability | standalone navigation class, three consecutive runs | **3/3 PASS** |
+| API37 Fold OPENED visual gate | standalone Settings and Sync & Backup rows; grouped rows preserved; no visible square edge or ripple overflow | **PASS** |
+| API37 Fold CLOSED visual gate | standalone Settings and Sync & Backup rows; grouped rows preserved; no visible square edge or ripple overflow | **PASS** |
+| app JVM / experience-core / wear JVM | `testDebugUnitTest`, `:experience-core:test`, `wear:testDebugUnitTest` | **PASS** |
+| app / wear debug build | `assembleDebug` | **PASS** |
+| app lint | historical baseline: 45 errors, 97 warnings, 1 hint | **EXPECTED BASELINE FAILURE**; no UI2 delta |
+
+The connected focused and standalone Gradle invocations also executed on the
+online API33-A device; all its standalone navigation runs were 1/1 PASS. No
+API33-B AVD was available, so it is not represented as a pass.
+
+UI2 changed only the shared Settings shape component and this RC
+documentation. There is zero authorization, Drive/Disconnect, B1, B2, B3,
+B4, or HC4 behavior diff. T2 live authorization evidence is carried forward.
+No retention rerun, RC2, tag, or release activity was performed.
