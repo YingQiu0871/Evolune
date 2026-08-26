@@ -1373,3 +1373,45 @@ UI2 changed only the shared Settings shape component and this RC
 documentation. There is zero authorization, Drive/Disconnect, B1, B2, B3,
 B4, or HC4 behavior diff. T2 live authorization evidence is carried forward.
 No retention rerun, RC2, tag, or release activity was performed.
+
+## UI3 — Settings category information architecture
+
+UI3 is based on accepted UI2 commit
+`03ff78856e2184b38d39d4453090f9a4917788ed`. Before UI3, the Settings home
+combined direct controls with category navigation, and the owner identified
+that hierarchy as inconsistent. UI3 turns the home into exactly five passive
+category entries and relocates the existing controls without redesigning
+their semantics.
+
+The home entries are:
+
+1. 基础数据 — 体重及计算相关数据
+2. 外观与格式 — 主题、配色与时间显示
+3. 同步与备份 — 导入导出、健康数据与云端备份
+4. 更新 — 自动更新、版本检查与当前版本
+5. 关于 — 版权信息与免责声明
+
+All five use the shared `SettingsNavigationRow` with one MD3 single-item
+shape, shared colors, equal spacing, leading icon, supporting text, and
+chevron. Operational controls are absent from the home. The relocated pages
+retain the existing body-weight validation/authority, appearance selectors,
+Sync & Backup behavior, update actions, and About dialogs. The same
+SettingsViewModel remains the single state owner; category entry has no
+implicit side effects.
+
+### UI3 focused evidence
+
+| Device/gate | Result |
+|---|---|
+| API33-A | **16/16 PASS** — HC4 6, Sync & Backup 4, navigation 2, category behavior 4 |
+| API33-B | **NOT TESTED** — no device online |
+| API37 Fold | **16/16 PASS** — same composition |
+| API37 Fold OPENED | **PASS** — five uniform home rows and category page bounds inspected; no clipping/overlap observed |
+| API37 Fold CLOSED | **PASS** — five uniform home rows and category page bounds inspected; no clipping/overlap observed |
+| app JVM / experience-core / wear JVM | **PASS** |
+| app / wear debug builds | **PASS** |
+| app lint | **EXPECTED BASELINE FAILURE** — 45 errors, 97 warnings, 1 hint; no UI3 delta |
+
+No OAuth, Drive, Disconnect, retention, A→B→A, HC weight, RC2, tag, or
+release gate was rerun. All earlier accepted live-service and HC4 evidence
+is carried forward unchanged.

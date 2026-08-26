@@ -100,6 +100,9 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
+import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
+import io.github.yingqiu0871.evolune.ui.screens.AppearanceAndFormatScreen
+import io.github.yingqiu0871.evolune.ui.screens.BasicDataScreen
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
 import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
 import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
@@ -108,6 +111,7 @@ import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
+import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
@@ -122,7 +126,11 @@ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+private const val BASIC_DATA_ROUTE = "settings_basic_data"
+private const val APPEARANCE_FORMAT_ROUTE = "settings_appearance_format"
 private const val SYNC_AND_BACKUP_ROUTE = "sync_and_backup"
+private const val UPDATE_ROUTE = "settings_update"
+private const val ABOUT_ROUTE = "settings_about"
 private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
 private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
 private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
@@ -350,7 +358,11 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isSettingsSubroute = currentRoute == SYNC_AND_BACKUP_ROUTE ||
+    val isSettingsSubroute = currentRoute == BASIC_DATA_ROUTE ||
+        currentRoute == APPEARANCE_FORMAT_ROUTE ||
+        currentRoute == SYNC_AND_BACKUP_ROUTE ||
+        currentRoute == UPDATE_ROUTE ||
+        currentRoute == ABOUT_ROUTE ||
         currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
         currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
         currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
@@ -375,7 +387,12 @@ fun AppNavigation(
                     alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
                     onRefresh = hrtViewModel::runSimulation,
                     titleOverride = when (currentRoute) {
+                        BASIC_DATA_ROUTE -> stringResource(R.string.settings_basic_data_title)
+                        APPEARANCE_FORMAT_ROUTE ->
+                            stringResource(R.string.settings_appearance_format_title)
                         SYNC_AND_BACKUP_ROUTE -> stringResource(R.string.settings_sync_backup_title)
+                        UPDATE_ROUTE -> stringResource(R.string.settings_update_title)
+                        ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
                         DATA_IMPORT_EXPORT_ROUTE -> stringResource(R.string.settings_data_import_export_title)
                         HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
                         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
@@ -478,20 +495,38 @@ fun AppNavigation(
             }
             composable(Screen.SETTINGS.route) {
                 SettingsScreen(
-                    settings = userSettings,
-                    onBodyWeightChange = settingsViewModel::updateBodyWeight,
-                    onThemeModeChange = settingsViewModel::updateThemeMode,
-                    onColorThemeChange = settingsViewModel::updateColorTheme,
-                    onTimeFormatChange = settingsViewModel::updateTimeFormat,
-                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
-                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
-                    updateCheckResult = updateCheckResult,
+                    onOpenBasicData = {
+                        navController.navigate(BASIC_DATA_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenAppearanceAndFormat = {
+                        navController.navigate(APPEARANCE_FORMAT_ROUTE) { launchSingleTop = true }
+                    },
                     onOpenSyncAndBackup = {
                         navController.navigate(SYNC_AND_BACKUP_ROUTE) {
                             launchSingleTop = true
                         }
                     },
+                    onOpenUpdate = {
+                        navController.navigate(UPDATE_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenAbout = {
+                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                    },
                     showTopBar = false
+                )
+            }
+            composable(BASIC_DATA_ROUTE) {
+                BasicDataScreen(
+                    bodyWeight = userSettings.bodyWeight,
+                    onBodyWeightChange = settingsViewModel::updateBodyWeight
+                )
+            }
+            composable(APPEARANCE_FORMAT_ROUTE) {
+                AppearanceAndFormatScreen(
+                    settings = userSettings,
+                    onThemeModeChange = settingsViewModel::updateThemeMode,
+                    onColorThemeChange = settingsViewModel::updateColorTheme,
+                    onTimeFormatChange = settingsViewModel::updateTimeFormat
                 )
             }
             composable(SYNC_AND_BACKUP_ROUTE) {
@@ -515,6 +550,17 @@ fun AppNavigation(
                         }
                     }
                 )
+            }
+            composable(UPDATE_ROUTE) {
+                UpdateScreen(
+                    autoCheckUpdates = userSettings.autoCheckUpdates,
+                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
+                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
+                    updateCheckResult = updateCheckResult
+                )
+            }
+            composable(ABOUT_ROUTE) {
+                AboutScreen()
             }
             composable(DATA_IMPORT_EXPORT_ROUTE) {
                 DataImportExportScreen(

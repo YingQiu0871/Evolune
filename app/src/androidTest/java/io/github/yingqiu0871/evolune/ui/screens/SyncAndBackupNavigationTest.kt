@@ -23,6 +23,27 @@ class SyncAndBackupNavigationTest {
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
+    fun settingsCategoryPagesNavigateBackToSettings() {
+        composeRule.waitForIdle()
+        openSettings()
+
+        openCategory("settings-basic-data-entry", "settings-basic-data-screen")
+        pressBackToSettings()
+
+        openCategory("settings-appearance-format-entry", "settings-appearance-format-screen")
+        pressBackToSettings()
+
+        openCategory("settings-sync-backup-entry", "settings-sync-backup-data-entry")
+        pressBackToSettings()
+
+        openCategory("settings-update-entry", "settings-update-screen")
+        pressBackToSettings()
+
+        openCategory("settings-about-entry", "settings-about-screen")
+        pressBackToSettings()
+    }
+
+    @Test
     fun settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable() {
         composeRule.waitForIdle()
         openSettings()
@@ -76,9 +97,25 @@ class SyncAndBackupNavigationTest {
             composeRule.onNodeWithTag("nav-bar-settings").performClick()
         }
         composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-sync-backup-entry")
+            composeRule.onAllNodesWithTag("settings-basic-data-entry")
                 .fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    private fun openCategory(entryTag: String, destinationTag: String) {
+        composeRule.onNodeWithTag(entryTag)
+            .performScrollTo()
+            .performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag(destinationTag)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag(destinationTag).assertIsDisplayed()
+    }
+
+    private fun pressBackToSettings() {
+        pressBack()
+        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
     }
 
     private fun pressBack() {

@@ -1659,3 +1659,66 @@ UI2 changed only the shared Settings shape component and this RC
 documentation. There is zero authorization, Drive/Disconnect, B1, B2, B3,
 B4, or HC4 behavior diff. T2 live authorization evidence is carried forward.
 No retention rerun, RC2, tag, or release activity was performed.
+
+## UI3 — Settings category information architecture
+
+UI3 is based on the accepted UI2 head `03ff78856e2184b38d39d4453090f9a4917788ed`.
+The pre-UI3 Settings home mixed direct controls for body weight, appearance,
+updates, and About with category navigation. The owner found that hierarchy
+inconsistent. UI3 makes the home a passive navigation hub and relocates the
+existing semantics into five category pages; it does not redesign the
+underlying behavior.
+
+### Information architecture
+
+The Settings home now contains exactly five same-style `SettingsNavigationRow`
+entries, in this order:
+
+1. `基础数据` — `体重及计算相关数据`
+2. `外观与格式` — `主题、配色与时间显示`
+3. `同步与备份` — `导入导出、健康数据与云端备份`
+4. `更新` — `自动更新、版本检查与当前版本`
+5. `关于` — `版权信息与免责声明`
+
+Each home entry uses the shared single-item MD3 shape, colors, spacing,
+leading icon, supporting text, and trailing chevron. No TextField, radio
+button, switch, update action, version-copy action, import/export action,
+Health Connect action, Drive action, or About dialog control is rendered on
+the home.
+
+The five destinations preserve the existing behavior:
+
+| Category | Relocated behavior | State/semantics result |
+|---|---|---|
+| 基础数据 | body weight input and validation | existing SettingsViewModel/DataStore authority and body-weight consumers unchanged |
+| 外观与格式 | theme mode, color theme, time format | existing selection callbacks and grouped TOP/MIDDLE/BOTTOM shapes unchanged |
+| 同步与备份 | existing import/export, Health Connect, and Drive hub | existing HC4/B1/B2/B3 behavior unchanged |
+| 更新 | auto-check toggle, explicit check, current-version copy | existing update and clipboard semantics unchanged |
+| 关于 | copyright and disclaimer dialogs | existing dialog content and dismissal semantics unchanged |
+
+Navigation is `Settings → category → Back → Settings` for all five pages and
+continues to use one SettingsViewModel owner. Category entry is passive: no
+authorization, Drive list, backup/restore, Health Connect permission/read,
+update check, file picker, or clipboard side effect occurs until its explicit
+action is selected.
+
+### UI3 verification
+
+| Gate | Evidence | Result |
+|---|---|---|
+| API33-A focused UI3 set | HealthConnectSyncScreenTest 6 + SyncAndBackupScreenTest 4 + SyncAndBackupNavigationTest 2 + SettingsCategoryScreenTest 4 | **16/16 PASS** |
+| API33-B focused UI3 set | no API33-B device online | **NOT TESTED** |
+| API37 Fold focused UI3 set | same 16-test composition | **16/16 PASS** |
+| API37 Fold OPENED manual gate | five uniform passive rows; category pages structurally bounded with no clipped text/overlap in UI hierarchy inspection | **PASS** |
+| API37 Fold CLOSED manual gate | five uniform passive rows; category pages structurally bounded with no clipped text/overlap in UI hierarchy inspection | **PASS** |
+| app JVM | `:app:testDebugUnitTest --rerun-tasks` | **PASS** |
+| experience-core JVM | `:experience-core:test --rerun-tasks` | **PASS** |
+| wear JVM | `:wear:testDebugUnitTest --rerun-tasks` | **PASS** |
+| app debug build | `:app:assembleDebug --rerun-tasks` | **PASS** |
+| wear debug build | `:wear:assembleDebug --rerun-tasks` | **PASS** |
+| app lint | 45 errors, 97 warnings, 1 hint; same accepted historical baseline | **EXPECTED BASELINE FAILURE**; UI3 delta 0 |
+
+The new category strings were added to both default and `values-zh-rCN`
+resources. No HC4, body-weight authority, HRT/PK, B1/B2/B3/B4, Drive/Auth,
+Room, DataStore semantics, Wear, retention, RC2, tag, or release activity was
+performed.

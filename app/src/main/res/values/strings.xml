@@ -4,6 +4,13 @@
     <string name="settings_title">设置</string>
     <string name="settings_sync_backup_title">同步与备份</string>
     <string name="settings_sync_backup_desc">导入导出、健康数据与云端备份</string>
+    <string name="settings_basic_data_title">基础数据</string>
+    <string name="settings_basic_data_desc">体重及计算相关数据</string>
+    <string name="settings_appearance_format_title">外观与格式</string>
+    <string name="settings_appearance_format_desc">主题、配色与时间显示</string>
+    <string name="settings_update_desc">自动更新、版本检查与当前版本</string>
+    <string name="settings_about_title">关于</string>
+    <string name="settings_about_desc">版权信息与免责声明</string>
     <string name="settings_sync_backup_local_title">本地数据</string>
     <string name="settings_sync_backup_data_title">导入与导出数据</string>
     <string name="settings_sync_backup_data_desc">管理本地数据文件</string>

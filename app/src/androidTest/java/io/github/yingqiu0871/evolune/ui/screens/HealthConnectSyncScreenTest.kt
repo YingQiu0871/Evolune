@@ -12,7 +12,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
@@ -48,22 +47,28 @@ class HealthConnectSyncScreenTest {
         composeRule.setContent {
             EvoluneTheme {
                 SettingsScreen(
-                    settings = UserSettings(),
-                    onBodyWeightChange = {},
-                    onThemeModeChange = {},
-                    onColorThemeChange = {},
-                    onTimeFormatChange = {},
-                    onAutoCheckUpdatesChange = {},
-                    onCheckForUpdates = {},
-                    updateCheckResult = UpdateCheckResult.Idle,
+                    onOpenBasicData = {},
+                    onOpenAppearanceAndFormat = {},
                     onOpenSyncAndBackup = { opened = true },
+                    onOpenUpdate = {},
+                    onOpenAbout = {},
                     showTopBar = false
                 )
             }
         }
+        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-appearance-format-entry").performScrollTo()
+        composeRule.onNodeWithTag("settings-appearance-format-entry").assertIsDisplayed()
         composeRule.onNodeWithTag("settings-sync-backup-entry").performScrollTo()
         composeRule.onNodeWithTag("settings-sync-backup-entry").assertIsDisplayed()
-        composeRule.onNodeWithText("同步与备份").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-update-entry").performScrollTo()
+        composeRule.onNodeWithTag("settings-update-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-about-entry").performScrollTo()
+        composeRule.onNodeWithTag("settings-about-entry").assertIsDisplayed()
+        assertTrue(
+            composeRule.onAllNodesWithTag("settings-basic-data-entry")
+                .fetchSemanticsNodes().size == 1
+        )
         assertTrue(
             composeRule.onAllNodesWithTag("settings-health-connect-sync-entry")
                 .fetchSemanticsNodes().isEmpty()
@@ -74,6 +79,29 @@ class HealthConnectSyncScreenTest {
         assertTrue(
             composeRule.onAllNodesWithText("从备份恢复").fetchSemanticsNodes().isEmpty()
         )
+        assertTrue(
+            composeRule.onAllNodesWithTag("settings-weight-input")
+                .fetchSemanticsNodes().isEmpty()
+        )
+        assertTrue(
+            composeRule.onAllNodesWithTag("settings-auto-check-updates")
+                .fetchSemanticsNodes().isEmpty()
+        )
+        listOf(
+            "体重 (kg)",
+            "自动检查更新",
+            "检查更新",
+            "版权信息",
+            "免责声明",
+            "浅色",
+            "动态着色",
+            "12小时制"
+        ).forEach { text ->
+            assertTrue(
+                "Direct Settings control leaked onto the navigation hub: $text",
+                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty()
+            )
+        }
         composeRule.onNodeWithTag("settings-sync-backup-entry").performClick()
         composeRule.runOnIdle { check(opened) }
     }
