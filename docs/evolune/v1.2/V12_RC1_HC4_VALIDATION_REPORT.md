@@ -1679,3 +1679,62 @@ manual UX evidence is claimed. The app JVM and debug-build regression set was
 not run after this environment gate. The Google Drive live core remains
 **CLOSED / PASS** and was not rerun. No RC2, tag, or release activity was
 performed.
+
+## RC1-R5 — HC4 Real WeightRecord & Freshness Watermark Validation
+
+This round is based on accepted R4-R2 commit
+`1365aea899c063450f3bbe831e2415a133db86c9`. It stopped at the explicit
+real-source gate as **R5-E1 — no real HC WeightRecord injection source**.
+There were no production or test changes and no temporary writer fixture.
+
+### Real-provider source check
+
+API37 Fold was the selected stable device: AVD `Pixel_10_Pro_Fold`, serial
+`emulator-5556`, API37, Android 17, model `sdk_gphone16k_x86_64`, display
+2076x2152, density 390. The installed Health Connect controller was
+`com.google.android.healthconnect.controller` version 17. Evolune was
+`io.github.yingqiu0871.evolune.debug` version 1.2.0-debug; its
+`READ_WEIGHT` permission was declared but not granted at inspection, and
+`WRITE_WEIGHT` was not declared.
+
+The installed third-party inventory contained no package requesting
+`android.permission.health.WRITE_WEIGHT`. `com.mkx.hrttracker` requested only
+notification permission. The Health Connect shell interface exposed only
+step-record insertion/read/delete commands, not WeightRecord insertion. No
+existing owner health app, toolbox, or physical-device writer was available.
+Consequently, no real `WeightRecord` was injected and no mock, fake gateway,
+JVM fixture, or hard-coded response was used as a substitute.
+
+### HC4 source inspection evidence
+
+| Concern | Current source result |
+|---|---|
+| `bodyWeight` authority | `SettingsDataStore.bodyWeight` |
+| Freshness owner | `SettingsDataStore` / `settings` DataStore |
+| Freshness keys | `last_health_connect_weight_kg` and `last_health_connect_weight_adopted_at` |
+| Sync toggle key | `health_connect_weight_sync_enabled` |
+| Comparison unit | `Instant`, using `isAfter`, persisted as ISO-8601 text |
+| Trigger | foreground `HealthConnectWeightSyncCoordinator.onForeground()` |
+| Same-value newer record | metadata-only update; local body weight remains unchanged |
+| Provider path | Health Connect SDK `WeightRecord.time` and data-origin package |
+
+### RC1-R5 result
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Real WeightRecord writer | **BLOCKED** | R5-E1; no qualifying source |
+| Toggle-OFF hard gate | **NOT TESTED** | No real record |
+| First adoption | **NOT TESTED** | No real record |
+| Restart #1 / #2 | **NOT TESTED** | Source gate blocked |
+| Stale HC-A protection | **NOT TESTED** | No real record |
+| Newer HC-B adoption | **NOT TESTED** | No real record |
+| Same-value HC-C watermark proof | **NOT TESTED** | No real record or live proof |
+| Permission revoke sanity | **NOT TESTED** | Source gate blocked |
+| 30-day query sanity | **NOT RUN** | Optional; source unavailable |
+| HC4 real live gate | **BLOCKED** | R5-E1 |
+
+No app state, permission, or DataStore values were changed. Existing HC4
+automated/mock-backed tests remain separate evidence and do not close the real
+provider gate. API35 remains parked and environment-blocked. Drive remains
+**CLOSED / PASS** and was not rerun. No RC2, tag, or release activity was
+performed.

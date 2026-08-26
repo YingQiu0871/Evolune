@@ -2023,3 +2023,75 @@ Health Connect, or manual validation was claimed. App JVM/build validation was
 also not run after the environment gate because this round is blocked at
 device recovery. The Google Drive live core remains **CLOSED / PASS**; no Drive
 rerun was performed. No RC2, tag, or release activity was performed.
+
+## RC1-R5 — HC4 Real WeightRecord & Freshness Watermark Validation
+
+This validation branch starts from the accepted R4-R2 documentation commit
+`1365aea899c063450f3bbe831e2415a133db86c9`. The round stopped at the required
+source-availability gate as **R5-E1 — no real HC WeightRecord injection
+source**. No production or test source was changed, and no temporary fixture
+was created.
+
+### Device and provider inspection
+
+The stable API37 Fold environment was online at inspection time:
+
+| Field | Result |
+|---|---|
+| AVD / serial | `Pixel_10_Pro_Fold` / `emulator-5556` |
+| API / Android | API37 / Android 17 |
+| Model / display / density | `sdk_gphone16k_x86_64` / 2076x2152 / 390 |
+| Health Connect controller | `com.google.android.healthconnect.controller`, version 17 |
+| Evolune package | `io.github.yingqiu0871.evolune.debug`, 1.2.0-debug |
+| Evolune READ_WEIGHT | declared; currently not granted at inspection |
+| Evolune WRITE_WEIGHT | not declared |
+
+The installed third-party package inventory contained no app requesting
+`android.permission.health.WRITE_WEIGHT`. The Health Connect shell command
+surface exposed only step-record insertion/read/delete commands, not a legal
+WeightRecord writer. The installed `com.mkx.hrttracker` package requested only
+notification permission and was not a WeightRecord source. No physical device
+or existing owner health app was available in this environment.
+
+No Evolune `WRITE_WEIGHT`, PHR, medication, export, background, or WorkManager
+capability was added. No external fixture was created because the required
+real-source check failed.
+
+### HC4 source inspection
+
+| Concern | Current implementation evidence |
+|---|---|
+| Authoritative body weight | `SettingsDataStore.bodyWeight` |
+| Freshness metadata owner | same `SettingsDataStore` / `settings` DataStore |
+| Metadata keys | `last_health_connect_weight_kg`, `last_health_connect_weight_adopted_at` |
+| Sync preference | `health_connect_weight_sync_enabled` in the same DataStore |
+| Comparison semantics | `java.time.Instant.isAfter`; persisted as ISO-8601 text |
+| Foreground trigger | `HealthConnectWeightSyncCoordinator.onForeground()` only |
+| Same-value newer record | updates metadata without changing `bodyWeight` |
+| Manual local value | remains the authority consumed by PK/HRT flows |
+
+The provider reads actual `WeightRecord` timestamps and source package metadata
+through the Health Connect SDK, but no real record was available to exercise
+that path in this round.
+
+### RC1-R5 gate status
+
+| Gate | Result | Evidence |
+|---|---|---|
+| Real external WeightRecord writer | **BLOCKED** | No qualifying writer installed |
+| Toggle-OFF no-adoption | **NOT TESTED** | No real record to inject |
+| First real adoption | **NOT TESTED** | No real record to inject |
+| Restart persistence | **NOT TESTED** | R5 stopped at source gate |
+| Stale-record protection | **NOT TESTED** | No real record to inject |
+| Newer HC override | **NOT TESTED** | No real record to inject |
+| Same-value newer watermark advance | **NOT TESTED** | No real record or live proof |
+| Permission revoke passive behavior | **NOT TESTED** | R5 stopped at source gate |
+| 30-day boundary sanity | **NOT RUN** | Optional and source unavailable |
+| HC4 real WeightRecord/watermark gate | **BLOCKED** | R5-E1 |
+
+Existing automated HC4 evidence remains automated/mock-backed evidence and is
+not promoted to real-provider acceptance. No bodyWeight, sync preference,
+permission state, or DataStore state was changed for this round. API35 remains
+parked as an environment-blocked release gate. RC1-R3 and the Google Drive
+live core remain **CLOSED / PASS**; no Drive operation was reopened. No RC2,
+tag, or release activity was performed.
