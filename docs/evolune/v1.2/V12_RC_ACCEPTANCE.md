@@ -1501,3 +1501,106 @@ Retention evidence and the previously accepted A→B→A restore evidence are
 carried forward unchanged. No G3/G4 retention rerun, RC2 work, tag, or release
 activity was performed. The RC1 blocker remains open at the live authorization
 boundary; this T1 does not claim it closed.
+
+## RC1-R3-F2-T2 — Live authorization handoff stage isolation
+
+T2 is based on `ce121ea9e7d7db19ec4308d9fae2441d2ef6d7aa` and uses temporary,
+脱敏 stage observability only. All temporary production logging and diagnostic
+tests were reverted before this documentation-only commit. No production
+behavior, authorization scope, backup protocol, or restore behavior changed.
+
+### Authorization call graph
+
+The current source call graph is:
+
+```text
+GoogleDriveBackupRestoreScreen
+  → BackupRestoreViewModel.restoreFromBackup()
+  → BackupRestoreViewModel.authorize(RESTORE)
+  → BackupRestoreCoordinator.authorizeFor(RESTORE)
+  → GoogleAuthorizationGateway.authorize()
+  → AuthorizationClient.authorize(AuthorizationRequest)
+```
+
+For a direct `Authorized` result, the ViewModel sets the connected session
+state and invokes `loadBackupsAfterAuthorization()`, which calls
+`BackupRestoreCoordinator.listBackups()` and then renders
+`SelectingBackup`.
+
+For `UserResolutionRequired`, the ViewModel emits one
+`BackupRestoreUiEvent.LaunchAuthorization`; `AppNavigation` collects it,
+launches `StartIntentSenderForResult`, and sends the result through
+`GoogleAuthorizationGateway.outcomeFromIntent()` to
+`BackupRestoreViewModel.onAuthorizationOutcome()`.
+
+### Automated handoff seam evidence
+
+Temporary tests using the existing fake authorization/provider seam passed
+21/21 for the focused `BackupRestoreCoordinatorTest` class:
+
+- disconnected + `Idle` + direct `Authorized`: no authorization event, one
+  provider list call, `SelectingBackup` reached;
+- disconnected + `Idle` + `UserResolutionRequired`: exactly one
+  `LaunchAuthorization` event, simulated result callback accepted, one provider
+  list call, `SelectingBackup` reached;
+- authorization error: stable `AUTHORIZATION_FAILED`, zero provider list calls.
+
+The temporary tests were removed after the run; no permanent test diff remains.
+
+### API37 Fold counted live attempt
+
+Device: API37 Fold `emulator-5556`, Android 17, debug build. Before the single
+counted attempt, the Drive page showed `需要授权后才能使用` and the explicit
+Restore action was enabled. Passive navigation into the page produced zero
+observed authorization/list stage logs.
+
+The one counted explicit Restore attempt produced this complete trace:
+
+| Stage | Result |
+|---|---|
+| A0 — explicit Restore action | PASS; `Idle`, `connected=false`, no active job |
+| A1 — ViewModel guard and `Authorizing` | PASS |
+| A2 — gateway invoked | PASS; `tokenPresent=false` at entry |
+| A3 — `AuthorizationClient` task | PASS; task completed successfully |
+| A4 — first result classification | `DIRECT_AUTHORIZED` |
+| A5D — access token accepted | PASS; only boolean presence observed |
+| A6D — session/connected update | PASS; `connected=true` |
+| A7D — `listBackups` invoked | PASS |
+| A8D — list result | PASS; three generations returned |
+| A9D — picker shown | PASS; `选择备份` rendered with three backup rows |
+
+The HasResolution branch was not entered in this live attempt:
+
+```text
+A5R/A6R/A7R/A8R/A9R/A10R/A11R/A12R/A13R = NOT APPLICABLE
+LaunchAuthorization emitted = 0
+collector received = 0
+launcher invoked = 0
+activity result returned = NOT APPLICABLE
+```
+
+No AuthorizationClient exception or status code was observed. No token value,
+account identifier, passphrase, or backup payload was logged.
+
+### T2 result and classification
+
+There was no first failing stage in the counted live attempt. The earlier
+observation of no Google authorization UI is now explained as compatible with
+the `DIRECT_AUTHORIZED` branch: a valid grant can produce a token directly and
+skip the resolution UI. Absence of `AuthorizationActivity` is not a failure
+signal by itself.
+
+No T2-A through T2-K failure was reproduced. T1-E remains a boundary label for
+the earlier uninstrumented observation, not a proven Google root cause. T2
+provides no evidence for a missing event collector, duplicated ViewModel,
+launcher failure, missing activity result, or list/picker failure.
+
+No inline fix is justified. If the live issue recurs, repeat this same narrow
+stage map before changing buttons, Disconnect, the state machine, or the
+authorization architecture. No second or third real Restore click was made
+because the first attempt reached the picker successfully.
+
+The accepted G3/G4 retention, latest-three retention, protected-current
+generation, Disconnect session-clear, and A→B→A evidence are carried forward
+unchanged. No retention rerun, A→B→A rerun, RC2, tag, or release activity was
+performed.

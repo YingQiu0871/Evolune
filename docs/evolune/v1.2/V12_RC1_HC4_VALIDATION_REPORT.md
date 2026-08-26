@@ -1228,3 +1228,93 @@ T1 evidence.
 Retention G3/G4 and another A→B→A run were not performed. The accepted
 retention and A→B→A evidence is carried forward. RC2, tags, and release remain
 paused; the live authorization blocker remains open.
+
+## RC1-R3-F2-T2 — Live authorization handoff stage isolation
+
+### Scope
+
+Base: `ce121ea9e7d7db19ec4308d9fae2441d2ef6d7aa`
+
+This was a temporary observability-only triage. Temporary logging and temporary
+fake-seam tests were removed before the docs-only commit. Production behavior,
+authorization scopes, backup format, restore semantics, and UI behavior are
+unchanged.
+
+### Source call graph
+
+```text
+GoogleDriveBackupRestoreScreen
+  → BackupRestoreViewModel.restoreFromBackup()
+  → BackupRestoreViewModel.authorize(RESTORE)
+  → BackupRestoreCoordinator.authorizeFor(RESTORE)
+  → GoogleAuthorizationGateway.authorize()
+  → AuthorizationClient.authorize(AuthorizationRequest)
+```
+
+`DIRECT_AUTHORIZED` sets the session as connected and enters
+`loadBackupsAfterAuthorization()`; this calls `listBackups()` and renders
+`SelectingBackup`. `UserResolutionRequired` emits one
+`LaunchAuthorization` event. `AppNavigation` consumes that event, invokes the
+`StartIntentSenderForResult` launcher, and sends the activity result through
+`outcomeFromIntent()` and `onAuthorizationOutcome()`.
+
+### Deterministic fake-seam coverage
+
+The temporary focused tests passed 21/21:
+
+| Branch | Evidence |
+|---|---|
+| Direct `Authorized` after Disconnect | no event; exactly one provider list call; picker state reached |
+| `UserResolutionRequired` | exactly one `LaunchAuthorization`; simulated authorization result; exactly one provider list call; picker state reached |
+| Authorization error | `AUTHORIZATION_FAILED`; no provider list call |
+
+The test source was reverted; no permanent test change remains.
+
+### Live API37 Fold trace
+
+Device: `emulator-5556`, API37 / Android 17. The page was revisited passively
+with `connected=false` and `Idle`; no authorization or list stage was observed
+until the one counted Restore click.
+
+| Stage | Observed result |
+|---|---|
+| A0 | PASS — Restore action received with `Idle`, `connected=false`, inactive job |
+| A1 | PASS — ViewModel entered `Authorizing` |
+| A2 | PASS — gateway invoked, `tokenPresent=false` |
+| A3 | PASS — `AuthorizationClient` task completed successfully |
+| A4 | `DIRECT_AUTHORIZED` |
+| A5D | PASS — token presence accepted; value never logged |
+| A6D | PASS — `connected=true` |
+| A7D | PASS — `listBackups` invoked |
+| A8D | PASS — list success, count 3 |
+| A9D | PASS — `选择备份` picker shown with three rows |
+
+Resolution stages A5R through A13R were not entered. Consequently:
+
+```text
+LaunchAuthorization emitted: 0
+collector received: 0
+launcher invoked: 0
+activity result returned: NOT APPLICABLE
+AuthorizationClient exception/status: none observed
+```
+
+### T2 conclusion
+
+The counted live attempt had no first failing stage. The absence of a Google
+authorization UI was not a failure: the task completed as
+`DIRECT_AUTHORIZED`, and the flow reached the live remote list and picker.
+This is also why no `AuthorizationActivity` should be required for this run.
+
+T1-E remains a boundary classification for the earlier uninstrumented
+observation, not a proven Google or production root cause. T2-A through T2-K
+were not reproduced. No UI gate, Disconnect, ViewModel state-machine,
+collector, launcher, or provider fix is justified by this evidence.
+
+The minimal next action, if the live flow fails again, is to repeat the same
+sanitized stage map once and classify the first actual divergence. No second or
+third Restore click was made after this successful picker result.
+
+G3/G4 retention, latest-three retention, current-generation protection,
+Disconnect session clear, and A→B→A evidence are carried forward unchanged.
+No retention or A→B→A rerun, RC2, tag, or release activity was performed.
