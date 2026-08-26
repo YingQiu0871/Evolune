@@ -1974,6 +1974,12 @@ Before the API35 retry, the feature-lock path
 `C:\\Users\\1\\.android\\emu-last-feature-flags.protobuf.lock` did not exist.
 No absent lock file was created or deleted by this validation.
 
+Separate reviewer evidence had confirmed that the `evolune-hc3-api35` AVD
+registration was present, that the same AVD had previously cold-booted
+successfully, and that the feature-lock path was absent. Those observations
+are acknowledged as reviewer evidence and are distinct from this author-side
+retry.
+
 The existing `evolune-hc3-api35` AVD was launched directly with explicit
 process-local SDK/AVD paths, `-no-snapshot-load`, and no AVD data changes. The
 Android 35 Google APIs x86_64 system image was found, but QEMU failed before

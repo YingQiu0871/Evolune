@@ -1636,6 +1636,11 @@ Before retry, the lock path
 after the failed retry it remained absent. No absent lock file was created or
 deleted, and no permission or ACL change was attempted.
 
+Separate reviewer evidence confirmed that the `evolune-hc3-api35` registration
+was present, that the same AVD had previously cold-booted successfully, and
+that the lock path was absent. This is reviewer evidence, not a claim that the
+author-side retry booted successfully.
+
 The existing `evolune-hc3-api35` AVD was launched directly with explicit
 process-local SDK/AVD paths and `-no-snapshot-load`. The Android 35 Google APIs
 x86_64 system image was found, but QEMU failed before adb registration with
