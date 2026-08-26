@@ -1415,3 +1415,65 @@ implicit side effects.
 No OAuth, Drive, Disconnect, retention, A→B→A, HC weight, RC2, tag, or
 release gate was rerun. All earlier accepted live-service and HC4 evidence
 is carried forward unchanged.
+
+## RC1-R3-R3 — Final live Drive closure on UI3
+
+This docs-only closure is based on accepted UI3 commit
+`a6ced2730714653e44e3666aa5bd810b2318fe99` on branch
+`v1.2/rc1-r3-r3-final-live-closure`. No Kotlin, resource, test, Manifest,
+Gradle, or protocol file was changed.
+
+The UI3 author evidence recorded API33-B as `NOT TESTED`. An independent UI3
+reviewer subsequently ran the same 16-test composition on API33-B and reported
+**16/16 PASS**. This section records that as independent reviewer evidence;
+the original author record is intentionally not rewritten. API33-A and API37
+Fold author evidence remain **16/16 PASS**, and API35 remains `NOT TESTED`.
+
+### Owner-Fold final live closure
+
+The final production path was exercised on the available API37 Pixel 10 Pro
+Fold (`emulator-5556`):
+
+`Settings → 同步与备份 → Google Drive 备份与恢复`.
+
+The explicit restore action initiated the Google account authorization UI;
+after the owner account was selected, the app displayed the current remote
+list of exactly three generations. The picker showed `备份 1`, `备份 2`, and
+`备份 3`, formatted readable timestamps, full-width clickable rows, and the
+shared MD3 segmented list-row treatment. The picker was cancelled; no
+generation was selected and no restore or backup write was performed.
+
+| Gate | Evidence | Result |
+|---|---|---|
+| Existing remote list | Exactly 3 generations shown by the production picker; no new backup created | **PASS — LIVE GOOGLE SERVICE** |
+| Picker rows | Numbered rows, formatted timestamps, full-row click targets, preserved order | **PASS — LIVE GOOGLE SERVICE** |
+| Disconnect / clear current session | `已连接（当前会话）` changed to `需要授权后才能使用`; no remote delete or local-data mutation | **PASS — LIVE GOOGLE SERVICE** |
+| Passive Drive revisit | Re-entering the Drive page after disconnect did not authorize, list, or auto-recover | **PASS — LIVE GOOGLE SERVICE** |
+| Explicit restore reauthorization | Explicit `从备份恢复` re-established the current session and reopened the 3-generation picker | **PASS — LIVE GOOGLE SERVICE** |
+| RC1-R3 live core | All final closure gates | **PASS — not a release decision** |
+
+The prior Disconnect blocker is therefore closed. In this report, Disconnect
+means clearing the current app authorization session. It does not delete the
+user's encrypted remote appDataFolder backups or local Room/DataStore data.
+The accepted A→B→A restore, HC4 device-local preference, T2 evidence, and
+retention status are carried forward; this closure did not rerun or relabel
+those gates.
+
+### Closure scope and remaining release gates
+
+The closure branch contains documentation only. The prior UI3 focused
+instrumentation and the independent API33-B 16/16 review are preserved as
+their original evidence sources. The closure regression also passed
+`:app:testDebugUnitTest`, `:experience-core:test`,
+`:wear:testDebugUnitTest`, `:app:assembleDebug`, and
+`:wear:assembleDebug`. The UI3 publication retry was attempted once but
+remained pending because the environment could not connect to GitHub; no
+alternate credential or bypass was used.
+
+The following remain release blockers even though the RC1 Drive live core is
+closed: real Health Connect `WeightRecord` acceptance and watermark evidence;
+physical-device KDF benchmark and large-history sanity; API35 status; release
+signing credentials and signed/minified App/Wear artifacts; R8 runtime and
+signer verification; signed smoke; physical Wear Data Layer evidence; and
+final owner review. No G3/G4 retention rerun, RC2, tag, or release activity
+was performed.

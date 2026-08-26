@@ -686,8 +686,9 @@ release gate.
 2. Physical Android Health Connect record, adoption, watermark, and restart
    evidence.
 3. Fold landscape evidence, if required by the owner-device matrix.
-4. Approved live Google OAuth/Drive session and synthetic-data A→B→A E2E,
-   including retention and disconnect.
+4. Four-generation live retention (G1–G4), including latest-three pruning and
+   protected-current verification. Current-session disconnect and the accepted
+   synthetic-data A→B→A restore are closed below.
 5. Physical-device KDF and large-history sanity.
 6. Release keystore, signed/minified App/Wear APKs, R8 runtime, signer
    verification, and signed smoke.
@@ -1722,3 +1723,84 @@ The new category strings were added to both default and `values-zh-rCN`
 resources. No HC4, body-weight authority, HRT/PK, B1/B2/B3/B4, Drive/Auth,
 Room, DataStore semantics, Wear, retention, RC2, tag, or release activity was
 performed.
+
+## RC1-R3-R3 — Final live Drive closure on UI3
+
+This is a docs-only closure record based on the accepted UI3 commit
+`a6ced2730714653e44e3666aa5bd810b2318fe99`, using branch
+`v1.2/rc1-r3-r3-final-live-closure`. No production or test source was changed.
+
+### Evidence provenance
+
+The UI3 author run originally recorded API33-B as `NOT TESTED`. The independent
+UI3 reviewer later supplied separate API33-B evidence of **16/16 PASS**. That
+reviewer evidence is identified here explicitly and does not rewrite the
+original author-run result. API33-A and API37 Fold remain the accepted author
+evidence of **16/16 PASS** each; API35 remains `NOT TESTED`.
+
+### Final owner-Fold live path
+
+On the available API37 Pixel 10 Pro Fold (`emulator-5556`), the final path was
+exercised as:
+
+`Settings → 同步与备份 → Google Drive 备份与恢复`.
+
+The existing remote list contained exactly three generations. The explicit
+`从备份恢复` action opened the production picker without creating a backup;
+the rows were `备份 1`, `备份 2`, and `备份 3`, with readable formatted
+timestamps, deterministic current ordering, full-row click targets, and the
+shared MD3 segmented-row treatment. The picker was cancelled and no generation
+was selected or restored, so local data remained unchanged.
+
+The live state gates were:
+
+| Gate | Evidence | Result |
+|---|---|---|
+| Existing remote generations | 3 rows in the production picker; no new backup created | **PASS — LIVE GOOGLE SERVICE** |
+| Picker presentation | `备份 1/2/3`, formatted timestamps, full-row clickable MD3 rows | **PASS — LIVE GOOGLE SERVICE** |
+| Current-session disconnect | Connected state changed to `需要授权后才能使用`; no remote delete action and no local-data mutation | **PASS — LIVE GOOGLE SERVICE** |
+| Passive revisit after disconnect | Returning to the Drive page did not authorize, list, or auto-recover | **PASS — LIVE GOOGLE SERVICE** |
+| Explicit reauthorization/restore action | Explicit `从备份恢复` re-established `已连接（当前会话）` and reopened the three-generation picker | **PASS — LIVE GOOGLE SERVICE** |
+| RC1-R3 live Drive core closure | All closure gates above | **PASS — not a release decision** |
+
+This closes the RC1 Disconnect blocker and closes `RC1-R3` for the live core.
+“Disconnect” means disconnect/clear the current app session; it does not mean
+deleting remote appDataFolder backups or local data. The existing accepted
+A→B→A restore, G3/G4 retention status, HC4 preference, and T2 evidence are
+carried forward unchanged; this closure did not rerun or relabel them.
+
+### Regression and publication status
+
+The UI3 focused instrumentation and the previously accepted app,
+experience-core, Wear, and debug-build results are carried forward. The
+closure branch ran no production/test source change and required no new
+instrumentation. The docs-only closure regression completed as follows:
+
+| Check | Result |
+|---|---|
+| `:app:testDebugUnitTest` | **PASS** |
+| `:experience-core:test` | **PASS** |
+| `:wear:testDebugUnitTest` | **PASS** |
+| `:app:assembleDebug` | **PASS** |
+| `:wear:assembleDebug` | **PASS** |
+
+The UI3 branch publication retry was attempted once and remains
+`PENDING` because the environment could not connect to GitHub. The closure
+branch push is subject to the same network result. No alternate credentials or
+unsafe bypass was used.
+
+### Remaining v1.2 release blockers
+
+This live core closure is not a release approval. Remaining owner/release gates
+are:
+
+- real Health Connect `WeightRecord` acceptance and watermark evidence;
+- physical-device KDF benchmark and large-history sanity;
+- API35 instrumentation status;
+- release signing credentials, signed/minified App/Wear artifacts, and R8
+  runtime verification;
+- signer verification and signed smoke;
+- physical Wear Data Layer runtime evidence; and
+- final owner review.
+
+No retention G3/G4 rerun, RC2, tag, or release activity was performed.
