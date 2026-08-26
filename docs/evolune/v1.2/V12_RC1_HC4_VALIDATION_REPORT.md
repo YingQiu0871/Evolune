@@ -1446,6 +1446,7 @@ generation was selected and no restore or backup write was performed.
 | Gate | Evidence | Result |
 |---|---|---|
 | Existing remote list | Exactly 3 generations shown by the production picker; no new backup created | **PASS — LIVE GOOGLE SERVICE** |
+| Four-generation retention | Prior accepted live run: verified G3/G4 completed; after G4 exactly three managed generations remained (`G4`, `G3`, and the prior retained generation); the older generation was pruned and verified current `G4` was retained/protected | **PASS — CARRIED FORWARD; not rerun in R3-R3** |
 | Picker rows | Numbered rows, formatted timestamps, full-row click targets, preserved order | **PASS — LIVE GOOGLE SERVICE** |
 | Disconnect / clear current session | `已连接（当前会话）` changed to `需要授权后才能使用`; no remote delete or local-data mutation | **PASS — LIVE GOOGLE SERVICE** |
 | Passive Drive revisit | Re-entering the Drive page after disconnect did not authorize, list, or auto-recover | **PASS — LIVE GOOGLE SERVICE** |
@@ -1455,9 +1456,9 @@ generation was selected and no restore or backup write was performed.
 The prior Disconnect blocker is therefore closed. In this report, Disconnect
 means clearing the current app authorization session. It does not delete the
 user's encrypted remote appDataFolder backups or local Room/DataStore data.
-The accepted A→B→A restore, HC4 device-local preference, T2 evidence, and
-retention status are carried forward; this closure did not rerun or relabel
-those gates.
+The accepted A→B→A restore, HC4 device-local preference, and T2 evidence are
+carried forward. Retention is **PASS — carried forward from prior accepted
+live retention evidence**; it was not rerun in R3-R3 and is not `NOT TESTED`.
 
 ### Closure scope and remaining release gates
 
@@ -1477,3 +1478,44 @@ signing credentials and signed/minified App/Wear artifacts; R8 runtime and
 signer verification; signed smoke; physical Wear Data Layer evidence; and
 final owner review. No G3/G4 retention rerun, RC2, tag, or release activity
 was performed.
+
+## RC1-R3-R4 — Retention acceptance consistency closure
+
+This docs-only correction is based on `44a7afc4d2cd2c95e0f237217fe333068e43afd8`.
+No live Google Drive operation, production source, or test source was changed.
+The purpose is to make the current acceptance state agree with the previously
+accepted live evidence while preserving every historical point-in-time result.
+
+### Current Google Drive live core acceptance
+
+| Gate | Evidence source | Current result |
+|---|---|---|
+| OAuth / AuthorizationClient | Prior accepted live authorization plus R3-R3 explicit restore authorization | **PASS — carried forward/current live evidence** |
+| `drive.appdata`-only scope | Prior accepted scope audit | **PASS — carried forward** |
+| Upload | Prior accepted verified live backup upload | **PASS — carried forward** |
+| Readback verification | Prior accepted byte/SHA-verified live readback | **PASS — carried forward** |
+| List | Prior accepted live list plus the R3-R3 production picker | **PASS — carried forward/current live evidence** |
+| Download/decrypt | Prior accepted live A→B→A restore evidence | **PASS — carried forward** |
+| Preview | Prior accepted non-mutating live restore preview | **PASS — carried forward** |
+| A→B→A | Prior accepted synthetic-data restore evidence | **PASS — carried forward; not rerun in R3-R3** |
+| Latest-three retention | Prior accepted G3/G4 live retention evidence: exactly three managed generations remained after G4 and the older generation was pruned | **PASS — carried forward; not rerun in R3-R3** |
+| Current-generation protection | Prior accepted live evidence verified current G4 was retained/protected during its retention pass | **PASS — carried forward; not rerun in R3-R3** |
+| Disconnect / clear current session | R3-R3 owner-Fold live action | **PASS — LIVE GOOGLE SERVICE** |
+| Passive post-disconnect behavior | R3-R3 passive Drive-page revisit | **PASS — LIVE GOOGLE SERVICE** |
+| Explicit reconnect | R3-R3 explicit restore action re-established the current session | **PASS — LIVE GOOGLE SERVICE** |
+| Remote backup persistence across Disconnect | Prior accepted no-delete semantics plus R3-R3 list remained available after reconnect | **PASS — carried forward/current live evidence** |
+| Picker | R3-R3 production picker showed `备份 1/2/3`, formatted timestamps, and full-row MD3 items | **PASS — LIVE GOOGLE SERVICE** |
+
+The current Google Drive v1.2 live core is **PASS** and `RC1-R3` is
+**CLOSED**. Retention is **PASS — carried forward** and is not a current
+release blocker. The retention sequence was **not rerun in R3-R3**. This is
+distinct from the historical `NOT TESTED` and `BLOCKED` rows retained above.
+
+### Current remaining release blockers
+
+Remaining release gates are Health Connect real `WeightRecord`/watermark
+evidence, physical-device KDF 600k benchmarking, physical large-history
+sanity, API35 current-lineage validation, release signing, App/Wear R8 runtime
+smoke, signer verification, physical Wear runtime/Data Layer evidence if
+required, and final owner review. No RC2, tag, or release activity was
+performed.
