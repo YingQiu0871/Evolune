@@ -1926,3 +1926,82 @@ automated/mock-backed tests remain separate evidence and do not close the real
 provider gate. API35 remains parked and environment-blocked. Drive remains
 **CLOSED / PASS** and was not rerun. No RC2, tag, or release activity was
 performed.
+
+## RC1-R5-R2-R1 — HC4 real-provider live revalidation
+
+This is the post-F1 revalidation of the historical `RC1-R5-R2` failure. The
+historical `R5-R2-E` result remains **FAIL** and is preserved above; this
+section records the new live evidence without changing that record. The run
+was based on F1 commit `eb4c9956df83c9919188778843274b0f418dfdd7` on branch
+`v1.2/rc1-r5-r2-r1-hc4-live-revalidation`.
+
+### Reproduction environment
+
+| Field | Evidence |
+|---|---|
+| Device | API37 Fold, `emulator-5556`, `sdk_gphone16k_x86_64`, Android 17 |
+| Display/state | 2076x2152, density 390, OPENED |
+| Health Connect | `com.google.android.healthconnect.controller`, version 17 |
+| Evolune package | `io.github.yingqiu0871.evolune.debug` |
+| Temporary writer | `D:\Evolune-Workspace\tools\hc-weight-seeder`, frozen commit `a9ae497ea94b8039985f7fb26e2d3673f9cffca2` |
+| Permission separation | Seeder `WRITE_WEIGHT` only; Evolune `READ_WEIGHT` only |
+| Evidence taxonomy | LIVE DEVICE / SYSTEM UI / READ-ONLY DATASTORE / AUTOMATED TEST |
+
+The formal baseline was established with local body weight 60.0 kg via the
+product UI. The exact temporary records created by the Seeder were HC-A
+`832ee626-f4f7-4327-95a8-61db4c407f1e`, HC-X
+`9d35bddf-466d-40ab-a331-e7a0b29442ae`, HC-B
+`015f999c-8078-48fb-b035-146a4007a456`, and HC-C
+`d68848eb-c733-46fa-aa8b-85b689160c3d`. No direct DataStore write, token, or
+secret was used or recorded.
+
+### Live revalidation result
+
+| Gate | Result | Observation |
+|---|---|---|
+| HC-A real WeightRecord | **PASS** | 61.1 kg at `2026-08-26T12:15:32.716868Z`, visible with Seeder source |
+| Toggle OFF passive path | **PASS** | No permission prompt/adoption; local 60.0 kg baseline remained |
+| Explicit READ_WEIGHT flow | **PASS** | Real Health Connect UI granted Weight only |
+| HC-A adopt | **PASS** | Evolune adopted 61.1 kg and persisted metadata |
+| Restart #1 | **PASS** | State persisted |
+| Manual 62.2 kg boundary | **PASS** | Local barrier advanced beyond `T_A`; HC metadata/value remained 61.1 kg |
+| HC-X stale record | **PASS** | 61.5 kg at `2026-08-26T12:20:00Z` was older than `W_MANUAL` and was rejected |
+| Restart #2 | **PASS** | Stale rejection persisted |
+| HC-B newer record | **PASS** | 63.3 kg at `2026-08-26T12:29:16.503150Z` adopted |
+| HC-C same-value newer record | **PASS** | 63.3 kg at `2026-08-26T12:30:13.759225Z` advanced freshness metadata/barrier |
+| Restart #3 | **PASS** | State persisted |
+| Revoke READ_WEIGHT | **PASS** | Actual Health Connect UI revoked the only selected Weight permission |
+| Passive post-revoke | **PASS** | No unsolicited prompt or adoption; local state unchanged |
+| Explicit reauthorization | **PASS** | Product action reopened real permission UI and restored Weight-only access |
+
+This closes the original real-provider blocker: **HC4 real-provider freshness
+watermark gate = PASS / CLOSED**. The close applies to the tested real-provider
+sequence and does not imply that the separately requested 30-day query-boundary
+check was run; that gate remains **NOT RUN**.
+
+### Cleanup evidence
+
+Health Connect displayed exactly the four Seeder-owned records above. They were
+selected and deleted through the Health Connect UI, after which the Weight page
+showed no data. The Seeder was uninstalled successfully. Evolune sync was
+turned OFF, Evolune READ_WEIGHT was revoked, and body weight was restored to
+55.0 kg through the normal UI. The restoration intentionally created a new
+local barrier; no old test watermark was directly restored.
+
+### Post-live automated checks
+
+| Check | Result |
+|---|---|
+| app JVM `:app:testDebugUnitTest --rerun-tasks` | **PASS** |
+| experience-core `:experience-core:test --rerun-tasks` | **PASS** |
+| Wear JVM `:wear:testDebugUnitTest --rerun-tasks` | **PASS** |
+| app debug `:app:assembleDebug --rerun-tasks` | **PASS** |
+| Wear debug `:wear:assembleDebug --rerun-tasks` | **PASS** |
+| API37 Fold existing `HealthConnectSyncScreenTest` | **PASS — 6/6** |
+
+These automated checks are separate from the live-device evidence and are not
+used to substitute for it. No production or test source changed in this
+round. The manifest/provider scope audit remained READ_WEIGHT-only for
+Evolune, with no WRITE_WEIGHT, background sync, Medical Records, medication
+sync, or direct Health Connect dependency in HRT/PK. Retention/G3-G4, the
+30-day check, RC2, tags, and release were not executed.
