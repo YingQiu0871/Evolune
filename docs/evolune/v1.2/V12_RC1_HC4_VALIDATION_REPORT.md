@@ -1519,3 +1519,53 @@ sanity, API35 current-lineage validation, release signing, App/Wear R8 runtime
 smoke, signer verification, physical Wear runtime/Data Layer evidence if
 required, and final owner review. No RC2, tag, or release activity was
 performed.
+
+## RC1-R4 — API35 current-lineage validation
+
+This validation branch is based on the accepted current-lineage commit
+`14660a9eac73aefa89b13e00b94ef669865dc5e7`. The earlier R2A API35 triage is a
+historical sibling and was not used as current-lineage acceptance evidence.
+No production or test source was changed.
+
+The requested existing AVD was `evolune-hc3-api35`. The `.avd` directory was
+present, but its AVD registration `.ini` was absent; `emulator.exe -list-avds`
+did not list it. A non-destructive cold-boot attempt with
+`-no-snapshot-load` failed before boot with `Unknown AVD name
+[evolune-hc3-api35]` and the launcher reported that
+`$HOME\.android\avd\evolune-hc3-api35.ini` was missing. The currently online
+devices were API33, API37, and API33; no API35 serial appeared.
+
+| API35 device field | Result |
+|---|---|
+| AVD | `evolune-hc3-api35` |
+| Serial | NONE — never appeared in `adb devices` |
+| API / Android / display / density / ABI | NOT AVAILABLE — AVD did not boot |
+| GMS / Health Connect provider-controller | NOT AVAILABLE — AVD did not boot |
+
+This is **R4-E1 — AVD launcher unavailable**. It is an environment blocker,
+not a production or test failure. No lock file was deleted, no data was wiped,
+no system image or hardware profile was changed, and no API35 emulator process
+was left running by this validation.
+
+### API35 validation status
+
+| Gate | Result | Evidence |
+|---|---|---|
+| API35 boot / device identity | **BLOCKED / NOT TESTED** | `evolune-hc3-api35` not registered; no API35 serial |
+| Current-lineage APK install | **NOT TESTED** | API35 device unavailable |
+| UI3 focused 16-test suite | **NOT TESTED** | Stopped at environment gate |
+| Historical-sensitive tests | **NOT TESTED** | Stopped at environment gate |
+| Corrected IME frame probe | **NOT TESTED** | No API35 device |
+| Health Connect API35 compatibility sanity | **NOT TESTED** | No API35 device |
+| Full API35 connected instrumentation | **NOT TESTED** | No API35 device |
+| API35 manual Settings sanity | **NOT TESTED** | No API35 device |
+| API35 current-lineage gate | **BLOCKED** | R4-E1 — AVD launcher unavailable |
+
+The API35 gate is not closed and is not promoted to `PASS`. No focused suite,
+full instrumentation, IME cycle evidence, current APK identity evidence, or
+manual UI evidence is claimed. The API35 release gate remains open for a
+future environment-recovery validation.
+
+RC1-R3 and the Google Drive v1.2 live core remain **CLOSED / PASS** and were
+not reopened. No OAuth, upload, G1/G2/G3/G4 retention, Disconnect, reconnect,
+A→B→A, RC2, tag, or release operation was performed.
