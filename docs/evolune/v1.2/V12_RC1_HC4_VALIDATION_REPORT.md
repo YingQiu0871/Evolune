@@ -1609,7 +1609,8 @@ Drive v1.2 live core remain **CLOSED / PASS**; no Drive operation was reopened.
 
 ## RC1-R4-R2 — API35 environment recovery and current-lineage validation
 
-This documentation-only record continues from `cc7febe3d7d8510366eb83d520432e91a05f6993`.
+This documentation-only record continues from the accepted R4-R1 commit
+`03a73e7c9236934728c9dadd6655299d5cc3b9cd`.
 The prior R4-E1 missing-registration record and R4-R1-C feature-lock record
 remain intact as historical evidence. No production or test source was
 changed.
