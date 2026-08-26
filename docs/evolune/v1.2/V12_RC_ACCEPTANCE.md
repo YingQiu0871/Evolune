@@ -2095,3 +2095,77 @@ permission state, or DataStore state was changed for this round. API35 remains
 parked as an environment-blocked release gate. RC1-R3 and the Google Drive
 live core remain **CLOSED / PASS**; no Drive operation was reopened. No RC2,
 tag, or release activity was performed.
+
+## RC1-R5-R2 — HC4 Real Provider Freshness Watermark Live Acceptance
+
+This is the second real-provider attempt after the earlier R5 source gate. It
+was run from branch `v1.2/rc1-r5-r2-hc4-live-watermark`, based on the accepted
+functional baseline `93f32938f40d8873122dba08909ca4337827e324`. The round is
+**FAILED** at the first meaningful failure, `R5-R2-E — manual freshness barrier
+not durable`. No production or test source was changed, and no inline fix was
+attempted.
+
+### Frozen inputs and environment
+
+The external writer was the separately reviewed frozen Seeder repository at
+`D:\Evolune-Workspace\tools\hc-weight-seeder`, commit
+`a9ae497ea94b8039985f7fb26e2d3673f9cffca2`. Its APK was built and installed
+temporarily. Seeder was granted only `WRITE_WEIGHT`; Evolune was granted only
+`READ_WEIGHT` during the formal adoption gate. Evolune declares no
+`WRITE_WEIGHT`, and the Seeder was removed before completion.
+
+The selected device was API37 Fold, serial `emulator-5556`, model
+`sdk_gphone16k_x86_64`, Android 17, display `2076x2152`, density 390,
+font scale 1.0, navigation mode 2 (gestural), animation scales 1.0/1.0,
+default IME `com.google.android.inputmethod.latin/com.android.inputmethod.latin.LatinIME`,
+and rotation 0. Health Connect was
+`com.google.android.healthconnect.controller`, version 17. The provider's
+Weight view was empty before the formal sequence; no unknown or other-app
+records were deleted.
+
+Baseline state was captured through a read-only `adb shell run-as` export of
+`files/datastore/settings.preferences_pb` (base64 decoded locally). The
+original user-visible body weight was 55.0 kg, sync was OFF, Evolune
+`READ_WEIGHT` was not granted, and both HC watermark keys were absent. A
+formal baseline of 60.0 kg was then set through the normal Evolune UI for the
+sequence.
+
+### Formal real-provider sequence
+
+| Gate | Evidence | Result |
+|---|---|---|
+| HC-A insertion | Seeder inserted 61.1 kg at `2026-08-26T09:15:20.133723Z` (epoch `1787735720133`), record ID `778f30b5-cc8b-404a-a334-c9b9913cdc66`; Health Connect Data → Weight showed 61.1 kg from the Seeder | **PASS** |
+| Toggle-OFF gate | With sync OFF and READ_WEIGHT not granted, foreground/launch did not adopt HC-A; local body weight stayed 60.0 kg and no watermark was present | **PASS** |
+| Explicit authorization and first adoption | The real Health Connect UI granted only Weight read access; Evolune adopted 61.1 kg and persisted `2026-08-26T09:15:20.133Z` as the HC watermark | **PASS** |
+| Restart #1 | Force-stop/restart retained body weight 61.1 kg, sync ON, HC metadata, and the watermark | **PASS** |
+| Manual local value | Normal Basic Data UI changed body weight to 62.2 kg; the HC-A watermark remained unchanged | **PASS** |
+| Stale HC-A protection | Foreground reconciliation and restart #2 did not overwrite 62.2 kg with stale 61.1 kg | **PASS** |
+| Manual freshness barrier | Expected manual barrier `W_MANUAL > T_A` was not written; after reconciliation and restart the watermark was still `2026-08-26T09:15:20.133Z` | **FAIL — R5-R2-E** |
+| HC-B newer record | Not inserted after the first meaningful failure | **NOT TESTED** |
+| HC-C same-value newer record | Not inserted after the first meaningful failure | **NOT TESTED** |
+| Revoke/reauthorize behavior gate | Permission was revoked only during cleanup; the formal post-B/C reauthorization gate was not run | **NOT TESTED** |
+
+The first divergence was after the manual 62.2 kg edit, when a foreground
+reconciliation was expected to establish a durable local freshness barrier.
+`HealthConnectWeightSyncCoordinator.adoptIfFresh` compares an HC observation
+with `lastHealthConnectWeightAdoptedAt`; the current production path has no
+manual-local-edit branch that advances that marker. The stale record therefore
+did not corrupt the local value, but the required barrier semantics were not
+demonstrated. The round stopped before HC-B and HC-C as required.
+
+### Cleanup and remaining release status
+
+The formal Seeder record was deleted by its own Seeder UI using the exact
+record ID above. Health Connect's Weight view then showed no data. The Seeder
+package was uninstalled and no package requesting `WRITE_WEIGHT` remained.
+Evolune sync was turned OFF, body weight was restored through the normal UI to
+55.0 kg, and Evolune `READ_WEIGHT` was revoked through the system Health
+Connect permission screen. The test-generated HC metadata remains in the
+read-only captured DataStore because no direct DataStore write was permitted;
+it was not used as acceptance evidence for the restored baseline.
+
+This real-provider HC4 gate is **FAILED**, not closed. HC-B, HC-C, the formal
+revoke/reauthorize sequence, 30-day boundary, retention, RC2, tag, and release
+remain unexecuted. No app JVM/build or focused suite was started after the
+failure gate. Existing accepted Drive/live evidence remains unchanged; no
+Drive, B1/B2/B3/B4, or API35 work was reopened.
