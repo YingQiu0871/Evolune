@@ -2575,3 +2575,89 @@ physical gate.
 | API35 | **ENVIRONMENT-BLOCKED** |
 
 Release ready: **NO**. No RC2, tag, or release activity was performed.
+
+## RC1-R7-R1 — Physical App R8 Runtime Smoke
+
+Validation date: `2026-08-27`
+
+Branch: `v1.2/rc1-r7-r1-app-r8-physical`
+Base commit: `34c055caf3c51efdb142965b3129512632bf33f8`
+
+This was a runtime-only validation of the sealed App release artifact. No
+rebuild, resigning, source-code change, test-code change, or release activity
+was performed.
+
+### Sealed App artifact and target
+
+| Field | Evidence |
+|---|---|
+| APK | `D:\Evolune-Workspace\current\Evolune-v1.2\app\build\outputs\apk\release\app-release.apk` |
+| Size | `5,786,956` bytes |
+| File SHA-256 | `D6ED04BD4A95000D3BA030D687A28F3EC0F46901647A4C4D67A2CA06C0C4025C` |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `101020000` |
+| Signer SHA-256 | `B9:B6:B9:55:2F:A4:C7:B6:56:93:6D:4C:3A:EB:71:C1:22:9A:A1:7C:39:33:37:71:9B:C8:D0:E0:7E:DA:AB:08` |
+| Signature scheme | v2 `true`; one signer; RSA 4096 |
+
+| Device field | Observed value |
+|---|---|
+| Serial / model | `R3GL70HNHDE` / Samsung `SM-F976B` |
+| Android / API | Android `17` / API `37` |
+| ABI | `arm64-v8a` |
+| Emulator marker | `ro.kernel.qemu=0` |
+| Display / density | `2256x2504` / `480` |
+| Font scale | `1.0` |
+| Navigation mode | `2` |
+| Animation scales | window `1`, transition `1`, animator `1` |
+| Default IME | `com.tencent.wetype/.plugin.hld.WxHldService` |
+| Orientation | Rotation `0` |
+
+Only the required physical device was attached during discovery. No residual
+`qemu-system-*` process was present on the host.
+
+### App R8 runtime gates
+
+| Gate | Evidence | Result |
+|---|---|---|
+| Install sealed APK | `adb install -r` returned `Success`; installed package reported versionCode `101020000` | **PASS** |
+| Cold launch | MainActivity reported `Status: ok`, `LaunchState: COLD`, and rendered the main concentration screen | **PASS** |
+| Plans / Records | Both bottom-navigation destinations rendered their expected plan and medication-record content | **PASS** |
+| Settings | Settings home rendered with the expected entries | **PASS** |
+| Basic Data | Basic Data page rendered weight and calculation content | **PASS** |
+| Appearance & Format | Appearance, theme, and time-format controls rendered | **PASS** |
+| Sync & Backup hub | Local data, Health Connect, and Google Drive entries rendered | **PASS** |
+| Import/Export UI | Import/export page rendered its JSON actions | **PASS** |
+| Health Connect UI boundary | Health Connect sync page rendered status and permission content; no grant/revoke or Seeder action was performed | **PASS** |
+| Native backup/restore UI boundary | Backup & Restore page rendered backup and restore controls; no Drive authorization, upload, download, retention, or destructive restore was performed | **PASS** |
+| Update | Update page rendered current version `1.2.0` and “up to date” state | **PASS** |
+| About | About page rendered copyright and disclaimer entries | **PASS** |
+| Force-stop / relaunch | After force-stop, MainActivity cold-launched again and rendered the main screen | **PASS** |
+
+During one intermediate scripted tap, an unrelated foreground application took
+focus. Evolune was relaunched and the affected navigation checks were repeated
+with Evolune foregrounded; no Evolune crash or runtime failure resulted.
+
+### Runtime log audit and scope
+
+The post-clear runtime audit found no Evolune-specific `FATAL EXCEPTION`,
+`AndroidRuntime`, class/linkage, resource, serialization, ANR, or
+`NetworkOnMainThreadException` signal. Unrelated OEM/system and other-package
+log noise was excluded from the app result. No diagnostic XML, logs, screenshots,
+secrets, or other runtime artifacts were added to the repository.
+
+| Check | Result |
+|---|---|
+| App R8 physical runtime gate | **PASS / CLOSED** |
+| Production source diff relative to base | **ZERO** |
+| Test source diff relative to base | **ZERO** |
+| Documentation diff | This section only |
+| HC4 | **CLOSED / PASS**; not rerun beyond UI boundary smoke |
+| Google Drive | **CLOSED / PASS**; no live Drive operation rerun |
+| R6 | **CLOSED / PASS** |
+| Wear R8 runtime | **BLOCKED / OPEN**; no Wear runtime target was available |
+| Physical Wear/Data Layer | **OPEN** |
+| API35 | **ENVIRONMENT-BLOCKED** |
+
+The App R8 gate is closed for this physical target. Release Ready remains
+**NO** because Wear R8 runtime and physical Wear/Data Layer evidence remain
+open, and no RC2, tag, or release activity was performed.
