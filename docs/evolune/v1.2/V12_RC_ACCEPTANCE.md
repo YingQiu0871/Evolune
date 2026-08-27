@@ -2576,6 +2576,106 @@ physical gate.
 
 Release ready: **NO**. No RC2, tag, or release activity was performed.
 
+## RC1-R7-R2-R1 — Physical Wear → Phone Dose Action
+
+Validation date: `2026-08-27`
+
+Branch: `v1.2/rc1-r7-r2-r1-wear-dose-action`
+
+Base commit: `994a88aac86832100683837e16ff974cc6c1ac1c`
+
+This continuation used manual human-operated phone and Wear UI only. No
+production source, test source, APK, or device database was modified by the
+validation process.
+
+### Evidence model
+
+Production logging does not expose success markers for every internal reverse
+Data Layer stage. Closure was therefore based on:
+
+1. the independently audited unique production path;
+2. exactly one physical Wear synthetic dose action;
+3. exactly one uniquely corresponding persisted phone `DoseEvent`;
+4. no duplicate or unrelated state mutation; and
+5. complete normal-product cleanup and restoration.
+
+The evidence does not claim sender/receiver success logs that are not emitted
+by the current production code.
+
+### Physical action and unique production path
+
+The manually confirmed synthetic plan and its dose button were uniquely
+visible on the physical Wear Tile. One and only one dose-button action was
+performed by the owner.
+
+The audited production path is:
+
+`DoseTileService` `loadAction` → next `buildTile()` → `enqueueDoseAction` →
+`UUID.randomUUID()` → `/hrt/dose-actions/<uuid>` →
+`Wearable.getDataClient().putDataItem()` → phone
+`WearDoseListenerService` → `WearDoseActionHandler` → `recorder.record()` →
+`DoseEvent`.
+
+The post-action Tile rebuild was confirmed by the existing plan-request and
+plan-receipt activity after the action boundary. This is rebuild evidence, not
+a fabricated action-success log.
+
+### Black-box outcome
+
+| Check | Result | Evidence |
+|---|---|---|
+| Physical Wear synthetic action | **PASS** | One manual tap on the uniquely identified synthetic button |
+| Phone persisted outcome | **PASS** | Exactly one new record matched the synthetic plan and expected dose |
+| Duplicate action outcome | **PASS** | No duplicate synthetic record observed |
+| Unrelated mutation | **PASS** | No unrelated record or plan mutation observed |
+| Wear → phone physical Data Layer | **PASS / CLOSED** | Unique production path plus physical phone outcome |
+
+The phone record page showed the single expected synthetic result before
+cleanup. The owner then manually removed/undid that result, deleted the
+synthetic plan, and restored the previously disabled existing plan through the
+normal product UI.
+
+### Final restoration
+
+| Final invariant | Result |
+|---|---|
+| Plans | **PASS** — `2` |
+| Enabled plans | **PASS** — `2` |
+| Medication records | **PASS** — restored to the pre-test baseline of `7` |
+| Synthetic marker | **PASS** — absent |
+| User data mutation after cleanup | **NO** |
+
+The final record count was confirmed by the owner in the normal product UI;
+the read-only accessibility hierarchy was not treated as a database count
+because the clipped bottom list item exposed an ambiguous presentation node.
+
+### Runtime and log audit
+
+No action-specific sender/receiver success markers are emitted by this
+release, so the absence of such markers is not classified as a failure. The
+post-action audit found no Evolune `FATAL EXCEPTION`, `AndroidRuntime` crash,
+Data Layer parse/serialization error, ANR, or unexpected Evolune process death
+within the observed boundary.
+
+### R7-R2-R1 disposition
+
+| Gate | Result |
+|---|---|
+| Wear R8 physical runtime | **PASS / CLOSED** |
+| Physical phone → Wear Data Layer | **PASS / CLOSED** |
+| Physical Wear → phone dose action | **PASS / CLOSED** |
+| Physical Wear/Data Layer overall | **PASS / CLOSED** |
+| App R8 physical | **CLOSED / PASS** |
+| R7 static | **CLOSED / PASS** |
+| R6 | **CLOSED / PASS** |
+| HC4 | **CLOSED / PASS** |
+| Drive | **CLOSED / PASS** |
+| API35 | **ENVIRONMENT-BLOCKED** |
+
+Production diff: **ZERO**. Test diff: **ZERO**. Documentation diff: this
+section only. Release Ready remains **NO** because the API35 environment gate
+remains blocked. No retention, RC2, tag, or release activity was performed.
+
 ## RC1-R7-R1 — Physical App R8 Runtime Smoke
 
 Validation date: `2026-08-27`
