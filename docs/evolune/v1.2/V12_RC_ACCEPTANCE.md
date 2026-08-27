@@ -2462,3 +2462,116 @@ operation, or real-user state mutation occurred.
 
 Retention/G3-G4 were not executed. RC2, tag, and release activity remain
 paused. No release claim is made by this performance gate.
+
+## RC1-R7 — Signed/Minified Release + R8 Runtime
+
+Validation date: `2026-08-27`
+
+Branch: `v1.2/rc1-r7-signed-r8-release`
+Base commit: `0c6b31cad0e9888b826e6a989854ce2dfda7507c`
+
+This run started from a clean workspace at the stated base commit. HC4,
+Google Drive, R6 physical KDF, and R6 physical large-history remained
+`CLOSED / PASS`; none of those scopes was modified or rerun. Production and
+test source diffs remained zero. The only intended change from this run is
+this acceptance record.
+
+### Signing and release build
+
+- Original release signer: manually verified before this run; historical
+  expected identity `MATCH`.
+- Signing environment presence: all four approved process-scope variables
+  `YES`; keystore exists `YES`; secret values were not printed or persisted.
+- `./gradlew clean`: **PASS**.
+- App task `:app:assembleRelease`: **PASS**. The task log included
+  `validateSigningRelease`, `minifyReleaseWithR8`, and `packageRelease`.
+- Wear task `:wear:assembleRelease`: **PASS**. The task log included
+  `validateSigningRelease`, `minifyReleaseWithR8`, and `packageRelease`.
+- Release metadata: App/Wear package `io.github.yingqiu0871.evolune`,
+  versionName `1.2.0`, compileSdk `36.1`, targetSdk `36`; App minSdk `31` and
+  versionCode `101020000`; Wear minSdk `30` and versionCode `1101020000`.
+
+### Signed App artifact
+
+| Field | Evidence |
+|---|---|
+| Absolute APK | `D:\Evolune-Workspace\current\Evolune-v1.2\app\build\outputs\apk\release\app-release.apk` |
+| Size | `5,786,956` bytes |
+| File SHA-256 | `D6ED04BD4A95000D3BA030D687A28F3EC0F46901647A4C4D67A2CA06C0C4025C` |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `101020000` |
+| minSdk / targetSdk | `31` / `36` |
+| Minified | **YES**; `:app:minifyReleaseWithR8` ran |
+| Mapping | `D:\Evolune-Workspace\current\Evolune-v1.2\app\build\outputs\mapping\release\mapping.txt`, non-empty, `58,915,028` bytes |
+| `apksigner verify --verbose --print-certs` | **PASS**, exit `0`, v2 `true` |
+| APK certificate SHA-256 | `B9:B6:B9:55:2F:A4:C7:B6:56:93:6D:4C:3A:EB:71:C1:22:9A:A1:7C:39:33:37:71:9B:C8:D0:E0:7E:DA:AB:08` |
+
+### Signed Wear artifact
+
+| Field | Evidence |
+|---|---|
+| Absolute APK | `D:\Evolune-Workspace\current\Evolune-v1.2\wear\build\outputs\apk\release\wear-release.apk` |
+| Size | `1,169,193` bytes |
+| File SHA-256 | `2A6799712B19D3B24122FE4A071C63B35C15F94EF34F50CAFBD58D59E8C561B1` |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `1101020000` |
+| minSdk / targetSdk | `30` / `36` |
+| Minified | **YES**; `:wear:minifyReleaseWithR8` ran |
+| Mapping | `D:\Evolune-Workspace\current\Evolune-v1.2\wear\build\outputs\mapping\release\mapping.txt`, non-empty, `8,430,266` bytes |
+| `apksigner verify --verbose --print-certs` | **PASS**, exit `0`, v2 `true` |
+| APK certificate SHA-256 | `B9:B6:B9:55:2F:A4:C7:B6:56:93:6D:4C:3A:EB:71:C1:22:9A:A1:7C:39:33:37:71:9B:C8:D0:E0:7E:DA:AB:08` |
+
+The App and Wear APK certificates match each other and the expected original
+signer. Signed App artifact: **PASS**. Signed Wear artifact: **PASS**.
+Signer identity: **PASS**.
+
+### Physical phone runtime
+
+The required discovery command `adb devices -l` returned no attached device.
+The requested Samsung `SM-F976B`, serial `R3GL70HNHDE`, Android 17/API 37
+target was therefore not observable in this run; `ro.kernel.qemu` was not
+queried successfully. No APK install, cold launch, navigation, relaunch, App
+runtime log audit, Backup UI boundary, or Health Connect UI boundary was
+claimed. The App R8 physical gate is **BLOCKED** by the unavailable physical
+device. No emulator was used as a substitute.
+
+### Wear runtime
+
+The SDK emulator inventory returned no AVDs, and `adb devices -l` returned no
+physical Wear target. No Wear APK install or Wear runtime smoke was therefore
+performed. The result is `R7-H — no Wear runtime target`; Wear R8 runtime is
+**BLOCKED**. This does not change the signed Wear artifact or signer gates.
+
+### Physical Wear/Data Layer
+
+Physical phone↔watch Data Layer evidence remains **OPEN**. Build success, the
+phone target, and a missing Wear runtime target do not substitute for this
+physical gate.
+
+### Automated regression
+
+| Check | Result |
+|---|---:|
+| `:app:testDebugUnitTest --rerun-tasks` | **PASS** — 585 tests, 0 failures, 0 errors, 0 skipped |
+| `:experience-core:test --rerun-tasks` | **PASS** — 38 tests, 0 failures, 0 errors, 0 skipped |
+| `:wear:testDebugUnitTest --rerun-tasks` | **PASS** — 27 tests, 0 failures, 0 errors, 0 skipped |
+| Production diff | **ZERO** |
+| Test diff | **ZERO** |
+| Documentation diff | This section only |
+
+### R7 disposition
+
+| Gate | Result |
+|---|---|
+| Signed App artifact | **PASS** |
+| Signed Wear artifact | **PASS** |
+| Signer identity | **PASS** |
+| App R8 physical gate | **BLOCKED** — no physical phone target |
+| Wear R8 runtime gate | **BLOCKED** — `R7-H`, no Wear runtime target |
+| Physical Wear/Data Layer | **OPEN** |
+| HC4 | **CLOSED / PASS** |
+| Drive | **CLOSED / PASS** |
+| R6 | **CLOSED / PASS** |
+| API35 | **ENVIRONMENT-BLOCKED** |
+
+Release ready: **NO**. No RC2, tag, or release activity was performed.
