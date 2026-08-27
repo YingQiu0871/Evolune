@@ -14,6 +14,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.res.stringResource
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.R
@@ -87,6 +89,28 @@ class MedicationPlansScreenTest {
         assertSame(session, viewModel.editSession.value)
         assertEquals(0, repository.saveCalls)
         composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+    }
+
+    @Test
+    fun dismissingImeKeepsEditorOpenAndPreservesDraft() {
+        val repository = FakeRepository()
+        val viewModel = viewModel(repository)
+        viewModel.startCreateSession()
+        val session = requireNotNull(viewModel.editSession.value)
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-name")
+            .performClick()
+            .performTextInput("BF1 IME test")
+
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertTextContains("BF1 IME test")
+        assertSame(session, viewModel.editSession.value)
     }
 
     @Test
