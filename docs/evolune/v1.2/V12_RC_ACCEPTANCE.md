@@ -2661,3 +2661,126 @@ secrets, or other runtime artifacts were added to the repository.
 The App R8 gate is closed for this physical target. Release Ready remains
 **NO** because Wear R8 runtime and physical Wear/Data Layer evidence remain
 open, and no RC2, tag, or release activity was performed.
+
+## RC1-R7-R2 — Physical Wear R8 Runtime + Partial Data Layer
+
+Validation date: `2026-08-27`
+
+Branch: `v1.2/rc1-r7-r2-wear-physical`
+
+Base commit: `e2ed283393d4bdad87dad7b262085de011fc8304`
+
+This is a partial-evidence sealing record. The sealed Wear artifact and the
+physical phone-to-Wear Data Layer direction are closed below. The reverse
+Wear-to-phone dose-action direction was not exercised, so the overall
+Physical Wear/Data Layer gate remains **OPEN**. No Wear runtime, Data Layer,
+installation, build, or signing rerun was required for this sealing-only
+record.
+
+### Sealed Wear artifact
+
+| Field | Evidence |
+|---|---|
+| Absolute APK | `D:\Evolune-Workspace\current\Evolune-v1.2\wear\build\outputs\apk\release\wear-release.apk` |
+| Size | `1,169,193` bytes |
+| File SHA-256 | `2A6799712B19D3B24122FE4A071C63B35C15F94EF34F50CAFBD58D59E8C561B1` |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `1101020000` |
+| Signer SHA-256 | `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` |
+| Signature verification | **PASS**; v2 `true`; one signer; RSA 4096 |
+
+### Physical devices and transport
+
+| Device | Observed identity |
+|---|---|
+| Physical phone | Samsung `SM-F976B`, serial `R3GL70HNHDE`, Android/API `17/37`, `ro.kernel.qemu=0` |
+| Physical Wear | Samsung `SM-L500`, serial `RFAY718EEFJ`, Android/Wear OS `16`, API `36`, ABI `armeabi-v7a,armeabi`, `ro.kernel.qemu=0` |
+| Pairing / transport | **CONNECTED**; companion and Wear connectivity transport operational |
+
+### Current Wear product surface
+
+The signed Wear APK has no Activity, widget, or complication surface. The
+current product surface is:
+
+- `DoseTileService` — Wear Tile with concentration chart and dose buttons;
+- `WearPlanListenerService` — receives `/hrt/plans` DataItems;
+- `WearSyncReceiver` — registered existing Wear receiver surface.
+
+No Wear feature beyond this existing surface was introduced or assumed.
+
+### Wear R8 physical runtime
+
+The exact sealed signed/minified Wear APK was installed on the physical Wear
+device and exercised through the normal Tile Host. `DoseTileService` started,
+the real Evolune tile rendered its concentration chart and dose buttons, and
+the component was refreshed after process restart. The runtime audit found no
+Evolune-specific R8/linkage/resource/serialization hard error, ANR, or process
+crash.
+
+| Gate | Result |
+|---|---|
+| Exact sealed APK / signer | **PASS** |
+| Physical Wear install | **PASS** |
+| `DoseTileService` startup | **PASS** |
+| Real Evolune Tile rendering | **PASS** |
+| Dose button rendering | **PASS** |
+| Restart / refresh | **PASS** |
+| Wear R8 physical runtime | **PASS / CLOSED** |
+
+### Phone → Wear physical Data Layer
+
+The existing production direction was exercised using a normal phone cold
+launch and the paired physical transport:
+
+| Stage | Evidence |
+|---|---|
+| Source action/state | Phone cold launch published the current two-plan dashboard state |
+| Sender | `HRTWearDataLayer` logged `Synced 2 plan(s) to Wear OS` |
+| Transport | Paired physical phone ↔ physical Wear Data Layer transport; companion connected |
+| Receiver | Wear `WearPlanListenerService` restarted and logged `Received 2 plan(s) from phone` |
+| Target state/render | Tile Host focused `DoseTileService`; the Wear Tile rendered the received Evolune concentration/plan/dose state |
+| Production path | `/hrt/plans` DataItem with existing plan/dashboard payload; no direct receiver invocation |
+
+Phone → Wear physical Data Layer: **PASS**.
+
+### Wear → phone dose action
+
+The existing reverse production path is `/hrt/dose-actions/<uuid>`, emitted by
+the Wear Tile and consumed by the phone `WearDoseListenerService`. It remains
+**NOT TESTED** in this run because tapping an existing dose button would write
+to the phone's real medication history, and no safely isolated temporary
+synthetic product dataset had been established.
+
+This is classified as:
+
+`R7-R2-J — acceptance incomplete`
+
+This is **not** a confirmed production defect, transport failure, receiver
+failure, or payload/state mismatch.
+
+### Cleanup and scope
+
+- The temporary Evolune Tile was removed through the normal Wear Tile editing
+  UI after validation.
+- No user medication record was created.
+- No Room, DataStore, Health Connect, Drive, or backup mutation occurred.
+- Production diff: **ZERO**.
+- Test diff: **ZERO**.
+- Documentation diff: this section only.
+
+### R7-R2 disposition
+
+| Gate | Result |
+|---|---|
+| Wear R8 physical runtime | **PASS / CLOSED** |
+| Physical phone → Wear Data Layer | **PASS** |
+| Physical Wear → phone dose action | **NOT TESTED** |
+| Physical Wear/Data Layer overall | **OPEN** — `R7-R2-J`, acceptance incomplete only |
+| App R8 physical | **CLOSED / PASS** |
+| R7 static | **CLOSED / PASS** |
+| R6 | **CLOSED / PASS** |
+| HC4 | **CLOSED / PASS** |
+| Drive | **CLOSED / PASS** |
+| API35 | **ENVIRONMENT-BLOCKED** |
+
+Release ready: **NO**. No RC2, tag, or release activity was performed.
