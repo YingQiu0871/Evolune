@@ -2933,7 +2933,7 @@ added to the repository.
 |---|---|
 | Build | `:app:assembleRelease --rerun-tasks` — **BUILD SUCCESSFUL**; `validateSigningRelease`, `minifyReleaseWithR8`, and `packageRelease` executed |
 | APK | `app/build/outputs/apk/release/app-release.apk`; **5,786,956 bytes** |
-| APK SHA-256 | `44C7F6F2C8074C6C4B321AA8B4A86F76AB468AA2C8741F993BD9DD75A5E9714E` |
+| APK SHA-256 | `1077089531728F089F3643076000122D6F2907159895CED959F81E45986DD108` |
 | Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
 | Version code | `101020000` |
 | SDK | min `31`; target `36` |
