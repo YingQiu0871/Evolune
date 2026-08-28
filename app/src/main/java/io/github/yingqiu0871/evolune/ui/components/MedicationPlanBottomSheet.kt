@@ -119,8 +119,8 @@ fun MedicationPlanBottomSheet(
     if (showBottomSheet) {
         val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
         BackHandler(
-            enabled = !operationInProgress && !imeVisible,
-            onBack = onDismiss
+            enabled = !imeVisible,
+            onBack = { if (!operationInProgress) onDismiss() }
         )
         Surface(
             modifier = Modifier
