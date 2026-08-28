@@ -3,7 +3,9 @@ package io.github.yingqiu0871.evolune.ui.screens
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -16,6 +18,9 @@ import androidx.compose.ui.test.click
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
 import io.github.yingqiu0871.evolune.application.DoseEventEditorInput
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
@@ -40,6 +45,7 @@ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,19 +72,45 @@ class MedicationRecordsScreenTest {
 
     private val scopes = mutableListOf<CoroutineScope>()
 
+    @Volatile
+    private var composeImeVisible = false
+
+    private fun readImeState(): String {
+        return InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("dumpsys input_method")
+            .use { descriptor ->
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor)
+                    .use { it.readBytes().toString(Charsets.UTF_8) }
+            }
+    }
+
+    private fun imeIsVisible(): Boolean = readImeState().contains("mInputShown=true")
+
+    private fun imeIsHidden(): Boolean {
+        val state = readImeState()
+        return state.lineSequence()
+            .map(String::trim)
+            .any { it == "mImeWindowVis=0" } && state.contains("mInputShown=false")
+    }
+
+    private fun ensureImeHidden() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        if (imeIsVisible() && composeImeVisible) {
+            automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+        }
+        composeRule.waitUntil(5_000L) { imeIsHidden() && !composeImeVisible }
+        composeRule.waitForIdle()
+    }
+
     @After
     fun cancelScopes() {
         scopes.forEach { it.cancel() }
         scopes.clear()
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        val inputMethodState = automation.executeShellCommand("dumpsys input_method").use { descriptor ->
-            android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor)
-                .use { it.readBytes().toString(Charsets.UTF_8) }
-        }
-        if (inputMethodState.contains("mInputShown=true") || inputMethodState.contains("mIsInputViewShown=true")) {
-            automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
-        }
+        ensureImeHidden()
         automation.executeShellCommand("ime reset").close()
+        composeRule.waitUntil(5_000L) { imeIsHidden() }
+        composeRule.waitForIdle()
     }
 
     @Test
@@ -102,7 +134,66 @@ class MedicationRecordsScreenTest {
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
 
         assertEquals(1, repository.insertCalls)
-        composeRule.onNodeWithTag("record-dose").assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithTag("record-dose").fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun dismissingImeKeepsEditorOpenAndPreservesDraftThenSecondBackCloses() {
+        val repository = FakeDoseEventRepository()
+        val viewModel = viewModel(repository)
+        setScreen(viewModel)
+        composeRule.runOnIdle(viewModel::startCreateSession)
+        val session = requireNotNull(viewModel.editSession.value)
+
+        composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
+
+        composeRule.waitUntil(5_000L) { imeIsVisible() }
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitForIdle()
+
+        composeRule.waitUntil(5_000L) { imeIsHidden() }
+        composeRule.onNodeWithTag("record-editor-surface").assertExists()
+        assertEquals(
+            "2",
+            composeRule.onNodeWithTag("record-dose")
+                .fetchSemanticsNode().config[SemanticsProperties.EditableText].text
+        )
+        assertSame(session, viewModel.editSession.value)
+
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
+        assertTrue(composeRule.onAllNodesWithTag("record-editor-surface").fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun operationInProgressConsumesBackInsteadOfClosingRecordEditor() {
+        val gate = CompletableDeferred<Unit>()
+        val repository = FakeDoseEventRepository().apply { insertGate = gate }
+        val viewModel = viewModel(repository)
+        setScreen(viewModel)
+        composeRule.runOnIdle(viewModel::startCreateSession)
+        val session = requireNotNull(viewModel.editSession.value)
+
+        composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
+        composeRule.onNodeWithTag("record-save").performScrollTo().performClick()
+        composeRule.waitUntil(5_000L) {
+            viewModel.operationState.value is DoseEventOperationState.Running
+        }
+
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitForIdle()
+
+        assertSame(session, viewModel.editSession.value)
+        composeRule.onNodeWithTag("record-editor-surface").assertExists()
+
+        gate.complete(Unit)
+        composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
     }
 
     @Test
@@ -297,6 +388,7 @@ class MedicationRecordsScreenTest {
         val rawField = composeRule.onNodeWithTag("record-dose").performScrollTo()
         val equivalentField = composeRule.onNodeWithTag("record-e2-dose")
         composeRule.waitForIdle()
+        ensureImeHidden()
 
         val initialRawLabelBounds = rawLabel.fetchSemanticsNode().boundsInRoot
         val initialEquivalentLabelBounds = equivalentLabel.fetchSemanticsNode().boundsInRoot
@@ -384,6 +476,8 @@ class MedicationRecordsScreenTest {
                 }
                 val editSession by viewModel.editSession.collectAsState()
                 val operationState by viewModel.operationState.collectAsState()
+                val currentImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                SideEffect { composeImeVisible = currentImeVisible }
                 MedicationRecordBottomSheet(
                     showBottomSheet = editSession != null,
                     onDismiss = {
