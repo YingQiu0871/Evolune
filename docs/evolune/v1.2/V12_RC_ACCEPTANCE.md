@@ -2884,3 +2884,127 @@ failure, or payload/state mismatch.
 | API35 | **ENVIRONMENT-BLOCKED** |
 
 Release ready: **NO**. No RC2, tag, or release activity was performed.
+
+## RC1-BF1 — Add Plan IME Back
+
+BF1 acceptance is carried forward from `v1.2/rc1-bf1-add-plan-ime-back` and remains
+**CLOSED / PASS**.
+
+- Root cause: the Add Plan editor's `BackHandler` unconditionally dismissed the
+  editor, so the first system Back while the IME was visible closed the editor
+  instead of dismissing the IME.
+- Fix: gate the editor BackHandler on `WindowInsets.ime`; while the IME is
+  visible, Back is left to the framework and the editor/draft remain present.
+- Focused BF1 coverage verified the draft-preservation behavior.
+
+## RC1-BF2 — Medication Editor Back/IME Parity
+
+BF2 is sealed on final current lineage `a236790dc9b5268d9ff95265cd4e093e620ae56f`:
+production/test behavior **CLOSED / PASS**. Independent review was
+**APPROVE WITH NON-BLOCKING NOTES**.
+
+The Plan and Record editors share the following three-state Back contract:
+
+| State | Back result | Editor/draft |
+|---|---|---|
+| IME visible | Framework dismisses the IME | Retained |
+| IME hidden + operation running | Editor Back is consumed | Retained |
+| IME hidden + idle | Editor is dismissed exactly once | Closed |
+
+Focused BF2 instrumentation evidence is **24/24 PASS** on the Samsung target.
+The reviewer AOSP inset-portability observation is tracked as a non-blocking P3
+note; the AOSP emulator synchronization timeout was test-harness behavior, not
+a production runtime failure. No BF2 save path was exercised by this acceptance.
+
+## RC1-R8 — Final Current-Lineage App Release Refresh
+
+Validation date: **2026-08-28**
+Branch: `v1.2/rc1-r8-final-app-release`
+Base/HEAD before documentation seal:
+`a236790dc9b5268d9ff95265cd4e093e620ae56f`
+
+The R8 implementation scope is documentation-only after verification. Production
+source diff: **ZERO**. Test diff: **ZERO**. No APK, mapping, or runtime log was
+added to the repository.
+
+### Signed App Release artifact
+
+| Check | Result |
+|---|---|
+| Build | `:app:assembleRelease --rerun-tasks` — **BUILD SUCCESSFUL**; `validateSigningRelease`, `minifyReleaseWithR8`, and `packageRelease` executed |
+| APK | `app/build/outputs/apk/release/app-release.apk`; **5,786,956 bytes** |
+| APK SHA-256 | `44C7F6F2C8074C6C4B321AA8B4A86F76AB468AA2C8741F993BD9DD75A5E9714E` |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `101020000` |
+| SDK | min `31`; target `36` |
+| Release mode | `debuggable=false`; R8 minification present |
+| Mapping | `app/build/outputs/mapping/release/mapping.txt`; **58,921,498 bytes**, non-empty |
+| Signer certificate SHA-256 | `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` — **MATCH** |
+
+Signed artifact gate: **CLOSED / PASS**.
+
+### Physical Samsung App Release
+
+| Check | Result |
+|---|---|
+| Target | serial `R3GL70HNHDE`; model `SM-F976B`; Android `17` / API `37` |
+| Physical-device proof | `ro.kernel.qemu=0`; ADB state `device` |
+| Install | Exact Release APK installed in-place with `adb install -r` — **Success** |
+| Identity | Package `io.github.yingqiu0871.evolune`; version `1.2.0`; versionCode `101020000`; non-debuggable |
+
+Physical App Release gate: **CLOSED / PASS**. No emulator substitution was used.
+
+### Plan editor Release regression
+
+- Opened Add Medication Plan and entered a disposable plan-name draft.
+- First system Back dismissed the IME only; the editor and draft remained.
+- After the IME was confirmed hidden through the API 37 input-method state,
+  second system Back closed the editor exactly once and returned to Plans.
+- Repeated the same contract with the dose field as another input; PASS.
+- Reopened Add Plan after dismissal; editor reopened with its expected inputs; PASS.
+- Top-level app-bar Back was verified from Settings > Basic Data back to Settings;
+  bottom navigation remained healthy. The editor surface is a full-screen sheet
+  and uses the system Back contract above rather than a separate editor app bar.
+- No plan was saved.
+
+Plan Release regression: **PASS**.
+
+### Record editor Release regression
+
+- Opened the manual Add Medication Record editor and entered a disposable dose
+  draft in an editable input.
+- First system Back dismissed the IME only; the Record editor and draft remained.
+- After the IME was confirmed hidden, second system Back closed the editor exactly
+  once and returned to Records.
+- Top-level app-bar Back and bottom-navigation health were covered in the same
+  physical Release session; no record was saved.
+
+Record Release regression: **PASS**.
+
+### Narrow runtime smoke and log boundary
+
+Cold launch, Home, Plans, Records, Settings, Records → Plans → Home navigation,
+force-stop, and relaunch all passed on the physical target. The final app-scoped
+log audit was bounded to the Evolune package/PID and returned zero occurrences of
+the required fatal/runtime/verification/resource/serialization/ANR keywords.
+Shell, OEM, and other-package noise was excluded by the defined audit boundary.
+
+### R8 disposition and carry-forward gates
+
+| Gate | Result |
+|---|---|
+| BF1 | **CLOSED / PASS** |
+| BF2 | **CLOSED / PASS** |
+| App current-lineage signed artifact | **CLOSED / PASS** |
+| App current-lineage physical Release | **CLOSED / PASS** |
+| Wear R8 | **CLOSED / PASS** (sealed carry-forward) |
+| Physical Wear/Data Layer | **CLOSED / PASS** (sealed carry-forward) |
+| R6 | **CLOSED / PASS** |
+| HC4 | **CLOSED / PASS** |
+| Drive | **CLOSED / PASS** |
+| API35 current-lineage runtime | **ENVIRONMENT-BLOCKED**; not rerun |
+| Release ready | **NO** |
+| RC2 / tag / release activity | **NO** |
+
+Remaining gates are the API35 current-lineage runtime environment and final owner
+review. This document section is the only R8 repository change.
