@@ -3002,9 +3002,92 @@ Shell, OEM, and other-package noise was excluded by the defined audit boundary.
 | R6 | **CLOSED / PASS** |
 | HC4 | **CLOSED / PASS** |
 | Drive | **CLOSED / PASS** |
-| API35 current-lineage runtime | **ENVIRONMENT-BLOCKED**; not rerun |
+| API35 current-lineage runtime | **CLOSED / PASS**; closed by RC1-R9 |
 | Release ready | **NO** |
 | RC2 / tag / release activity | **NO** |
 
-Remaining gates are the API35 current-lineage runtime environment and final owner
-review. This document section is the only R8 repository change.
+At the point of the R8 validation, API35 had not yet been rerun. The subsequent
+RC1-R9 fresh isolated runtime validation closed that gate; the earlier R4
+environment-blocked records remain historical and unchanged. The only remaining
+gate is final owner review. This document section was the only R8 repository
+change.
+
+## RC1-R9 — API35 Runtime Final Closure
+
+Validation date: **2026-08-28**
+Branch: `v1.2/rc1-r8-final-app-release`
+Frozen repository HEAD: `ab7d64ec2e755781ebeeed1d425e0715873e78d4`
+
+This is the final current-lineage API35 runtime validation of the frozen signed
+App artifact. No production, test, or repository artifact was modified or
+regenerated. The earlier R4/API35 environment-blocked attempts remain preserved
+as historical evidence; R9 used a new isolated AVD and closed the runtime gate.
+
+### R9 environment and frozen artifact
+
+| Check | Result |
+|---|---|
+| Environment | Android Emulator `37.1.11` |
+| System image | Google APIs API35 x86_64 |
+| AVD | `evolune-r9-api35-fresh2` |
+| AVD path | `D:\Evolune-Workspace\_rc1-r9-api35-avd\evolune-r9-api35-fresh2.avd` |
+| Historical blocker reproduced | **NO** |
+| Fresh isolated runtime | **PASS** |
+| adb | `emulator-5558` online |
+| API / boot completed | `35` / **YES** |
+| `ro.kernel.qemu` | `1` |
+| Frozen App APK SHA-256 | `1077089531728F089F3643076000122D6F2907159895CED959F81E45986DD108` |
+| Install | **PASS** |
+| Package / version | `io.github.yingqiu0871.evolune` / `1.2.0` |
+| Version code | `101020000` |
+| Non-debuggable | **YES** |
+
+The frozen APK hash was rechecked before installation and remained exactly equal
+to the sealed R8 artifact. No APK, mapping, or signing operation was performed.
+
+### R9 runtime smoke
+
+| Runtime check | Result |
+|---|---|
+| Cold launch | **PASS** |
+| Home | **PASS** |
+| Plans | **PASS** |
+| Records | **PASS** |
+| Settings | **PASS** |
+| Add Plan open/close | **PASS** |
+| Record editor open/close | **PASS** |
+| Force-stop/relaunch | **PASS** |
+| App-scoped hard-error audit | **PASS** |
+
+The API35 emulator does not provide the Wearable API, so the app emitted the
+expected Wear Data Layer availability warning. This caused no crash, ANR, or
+App runtime failure and is not an API35 App compatibility failure.
+
+Evolune code executed: **YES**. Product failure observed: **NO**. Product pass
+proven: **YES**. Repository modified during runtime validation: **NO**. Artifact
+regenerated: **NO**.
+
+### Current release disposition
+
+| Gate | Current result |
+|---|---|
+| BF1 | **CLOSED / PASS** |
+| BF2 | **CLOSED / PASS** |
+| App signed artifact | **CLOSED / PASS** |
+| App physical Release | **CLOSED / PASS** |
+| Wear R8 | **CLOSED / PASS** |
+| Physical Wear/Data Layer | **CLOSED / PASS** |
+| R6 | **CLOSED / PASS** |
+| HC4 | **CLOSED / PASS** |
+| Drive | **CLOSED / PASS** |
+| API35 current-lineage runtime | **CLOSED / PASS** |
+| Remaining gate | **final owner review** |
+| Release Ready | **NO** |
+| RC2 | **NO** |
+| Tag | **NO** |
+| Release | **NO** |
+
+R9 closes the last technical API35 runtime gate. Release Ready remains **NO**
+until final owner review is completed. This R9 record is documentation-only;
+production diff is **ZERO**, test diff is **ZERO**, and the frozen APK is
+unchanged.
