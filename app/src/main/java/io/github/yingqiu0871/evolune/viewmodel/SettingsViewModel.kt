@@ -5,17 +5,24 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import android.util.Log
 import io.github.yingqiu0871.evolune.data.ColorTheme
-import io.github.yingqiu0871.evolune.data.SettingsDataStore
+import io.github.yingqiu0871.evolune.data.SettingsStore
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProvider
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinator
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncEnableResult
 import io.github.yingqiu0871.evolune.utils.UpdateChecker
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,19 +46,29 @@ sealed class UpdateCheckResult {
  * 管理用户设置和偏好
  */
 class SettingsViewModel(
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsStore,
+    private val healthConnectWeightProvider: HealthConnectWeightProvider,
+    operationScope: CoroutineScope? = null
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "SettingsViewModel"
     }
 
+    private val scope = operationScope ?: viewModelScope
+
+    private val healthConnectWeightSyncCoordinator = HealthConnectWeightSyncCoordinator(
+        settingsStore = settingsDataStore,
+        provider = healthConnectWeightProvider,
+        scope = scope
+    )
+
     /**
      * 用户设置状态
      */
     val userSettings: StateFlow<UserSettings> = settingsDataStore.userSettings
         .stateIn(
-            scope = viewModelScope,
+            scope = scope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = UserSettings()
         )
@@ -62,12 +79,71 @@ class SettingsViewModel(
     private val _updateCheckResult = MutableStateFlow<UpdateCheckResult>(UpdateCheckResult.Idle)
     val updateCheckResult: StateFlow<UpdateCheckResult> = _updateCheckResult.asStateFlow()
 
+    val healthConnectWeightSyncState: StateFlow<HealthConnectWeightSyncState> =
+        healthConnectWeightSyncCoordinator.state
+
+    private val healthConnectPermissionRequestChannel = Channel<Unit>(Channel.BUFFERED)
+    val healthConnectPermissionRequests = healthConnectPermissionRequestChannel.receiveAsFlow()
+
+    private var healthConnectPermissionRequestInFlight = false
+    private var pendingPermissionAction: HealthConnectPermissionAction? = null
+
+    fun onForeground() {
+        healthConnectWeightSyncCoordinator.onForeground()
+    }
+
     /**
      * 更新体重
      */
     fun updateBodyWeight(weight: Double) {
-        viewModelScope.launch {
+        scope.launch {
             settingsDataStore.updateBodyWeight(weight)
+        }
+    }
+
+    fun setHealthConnectWeightSyncEnabled(enabled: Boolean) {
+        if (!enabled) {
+            pendingPermissionAction = null
+            scope.launch { healthConnectWeightSyncCoordinator.disableWeightSync() }
+            return
+        }
+        if (healthConnectPermissionRequestInFlight) return
+        scope.launch {
+            when (healthConnectWeightSyncCoordinator.enableWeightSync()) {
+                HealthConnectWeightSyncEnableResult.ENABLED,
+                HealthConnectWeightSyncEnableResult.BLOCKED -> Unit
+                HealthConnectWeightSyncEnableResult.PERMISSION_REQUIRED ->
+                    requestHealthConnectPermission(HealthConnectPermissionAction.ENABLE)
+            }
+        }
+    }
+
+    fun requestHealthConnectReauthorization() {
+        requestHealthConnectPermission(HealthConnectPermissionAction.REAUTHORIZE)
+    }
+
+    fun onHealthConnectPermissionResult() {
+        val action = pendingPermissionAction
+        pendingPermissionAction = null
+        healthConnectPermissionRequestInFlight = false
+        when (action) {
+            HealthConnectPermissionAction.ENABLE -> scope.launch {
+                healthConnectWeightSyncCoordinator.completeEnableAfterPermission()
+            }
+            HealthConnectPermissionAction.REAUTHORIZE -> scope.launch {
+                healthConnectWeightSyncCoordinator.syncIfEnabled()
+            }
+            null -> Unit
+        }
+    }
+
+    private fun requestHealthConnectPermission(action: HealthConnectPermissionAction) {
+        if (healthConnectPermissionRequestInFlight) return
+        pendingPermissionAction = action
+        if (healthConnectPermissionRequestChannel.trySend(Unit).isSuccess) {
+            healthConnectPermissionRequestInFlight = true
+        } else {
+            pendingPermissionAction = null
         }
     }
 
@@ -75,7 +151,7 @@ class SettingsViewModel(
      * 更新主题模式
      */
     fun updateThemeMode(mode: ThemeMode) {
-        viewModelScope.launch {
+        scope.launch {
             settingsDataStore.updateThemeMode(mode)
         }
     }
@@ -84,7 +160,7 @@ class SettingsViewModel(
      * 更新颜色主题
      */
     fun updateColorTheme(theme: ColorTheme) {
-        viewModelScope.launch {
+        scope.launch {
             settingsDataStore.updateColorTheme(theme)
         }
     }
@@ -93,7 +169,7 @@ class SettingsViewModel(
      * 更新自动检查更新开关
      */
     fun updateAutoCheckUpdates(enabled: Boolean) {
-        viewModelScope.launch {
+        scope.launch {
             settingsDataStore.updateAutoCheckUpdates(enabled)
         }
     }
@@ -102,7 +178,7 @@ class SettingsViewModel(
      * 更新时间制式
      */
     fun updateTimeFormat(format: TimeFormat) {
-        viewModelScope.launch {
+        scope.launch {
             settingsDataStore.updateTimeFormat(format)
         }
     }
@@ -111,7 +187,7 @@ class SettingsViewModel(
      * 在应用启动时，若自动检查更新已开启则执行检查
      */
     fun triggerAutoCheckOnStartup(versionName: String) {
-        viewModelScope.launch {
+        scope.launch {
             val settings = settingsDataStore.userSettings.first()
             if (settings.autoCheckUpdates) {
                 performUpdateCheck(versionName)
@@ -123,7 +199,7 @@ class SettingsViewModel(
      * 手动触发检查更新
      */
     fun checkForUpdates(versionName: String) {
-        viewModelScope.launch {
+        scope.launch {
             performUpdateCheck(versionName)
         }
     }
@@ -160,19 +236,33 @@ class SettingsViewModel(
             _updateCheckResult.value = UpdateCheckResult.Error
         }
     }
+
+    override fun onCleared() {
+        healthConnectWeightSyncCoordinator.close()
+        super.onCleared()
+    }
 }
 
 /**
  * SettingsViewModel 工厂类
  */
 class SettingsViewModelFactory(
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsStore,
+    private val healthConnectWeightProvider: HealthConnectWeightProvider
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-            return SettingsViewModel(settingsDataStore) as T
+            return SettingsViewModel(
+                settingsDataStore,
+                healthConnectWeightProvider
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
+}
+
+private enum class HealthConnectPermissionAction {
+    ENABLE,
+    REAUTHORIZE
 }

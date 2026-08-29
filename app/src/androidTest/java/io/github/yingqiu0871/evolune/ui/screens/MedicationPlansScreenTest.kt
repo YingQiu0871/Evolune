@@ -1,19 +1,28 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
 import android.Manifest
+import android.os.ParcelFileDescriptor
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.res.stringResource
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.R
@@ -35,6 +44,7 @@ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationError
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationState
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -58,6 +68,30 @@ class MedicationPlansScreenTest {
     val composeRule = createComposeRule()
 
     private val scopes = mutableListOf<CoroutineScope>()
+
+    @Volatile
+    private var composeImeVisible = false
+
+    private fun readImeState(): String {
+        val state = InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("dumpsys input_method")
+            .use { descriptor ->
+                ParcelFileDescriptor.AutoCloseInputStream(descriptor).use {
+                    it.readBytes().toString(Charsets.UTF_8)
+                }
+            }
+        return state
+    }
+
+    private fun imeIsVisible(): Boolean = readImeState().contains("mInputShown=true")
+
+    private fun imeIsHidden(): Boolean {
+        val state = readImeState()
+        val imeWindowHidden = state.lineSequence()
+            .map(String::trim)
+            .any { it == "mImeWindowVis=0" }
+        return imeWindowHidden && state.contains("mInputShown=false")
+    }
 
     @Before
     fun grantNotificationPermission() {
@@ -90,6 +124,66 @@ class MedicationPlansScreenTest {
     }
 
     @Test
+    fun dismissingImeKeepsEditorOpenAndPreservesDraft() {
+        val repository = FakeRepository()
+        val viewModel = viewModel(repository)
+        viewModel.startCreateSession()
+        val session = requireNotNull(viewModel.editSession.value)
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-name")
+            .performClick()
+            .performTextInput("BF1 IME test")
+
+        composeRule.waitUntil(5_000L) { imeIsVisible() && composeImeVisible }
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitForIdle()
+
+        composeRule.waitUntil(5_000L) { imeIsHidden() && !composeImeVisible }
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        assertEquals(
+            "BF1 IME test",
+            composeRule.onNodeWithTag("plan-name")
+                .fetchSemanticsNode().config[SemanticsProperties.EditableText].text
+        )
+        assertSame(session, viewModel.editSession.value)
+
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
+        assertTrue(composeRule.onAllNodesWithTag("plan-editor-surface").fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    fun operationInProgressConsumesBackInsteadOfClosingPlanEditor() {
+        val gate = CompletableDeferred<Unit>()
+        val repository = FakeRepository().apply { saveGate = gate }
+        val viewModel = viewModel(repository)
+        viewModel.startEditSession(plan())
+        val session = requireNotNull(viewModel.editSession.value)
+        setScreen(viewModel)
+
+        composeRule.onNodeWithTag("plan-save").performScrollTo().performClick()
+        composeRule.waitUntil(5_000L) {
+            viewModel.operationState.value is MedicationPlanOperationState.Running
+        }
+
+        InstrumentationRegistry.getInstrumentation().uiAutomation
+            .executeShellCommand("input keyevent KEYCODE_BACK")
+            .close()
+        composeRule.waitForIdle()
+
+        assertSame(session, viewModel.editSession.value)
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+
+        gate.complete(Unit)
+        composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
+    }
+
+    @Test
     fun invalidDraftSkipsRepositoryAndKeepsEditorOpen() {
         val repository = FakeRepository()
         val viewModel = viewModel(repository)
@@ -104,10 +198,14 @@ class MedicationPlansScreenTest {
 
         assertEquals(0, repository.saveCalls)
         assertSame(session, viewModel.editSession.value)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.plan_error_invalid_input)).assertIsDisplayed()
-        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+        assertTrue(
+            composeRule.onAllNodesWithText(string(R.string.common_unknown_error))
+                .fetchSemanticsNodes().isEmpty()
+        )
     }
 
     @Test
@@ -124,10 +222,14 @@ class MedicationPlansScreenTest {
 
         assertEquals(1, repository.saveCalls)
         assertTrue(viewModel.editSession.value != null)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
         composeRule.onNodeWithText(string(R.string.plan_error_invalid_plan)).assertIsDisplayed()
-        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+        assertTrue(
+            composeRule.onAllNodesWithText(string(R.string.common_unknown_error))
+                .fetchSemanticsNodes().isEmpty()
+        )
     }
 
     @Test
@@ -141,8 +243,11 @@ class MedicationPlansScreenTest {
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
 
         assertEquals(1, repository.saveCalls)
-        composeRule.onNodeWithTag("plan-name").assertDoesNotExist()
-        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+        assertTrue(composeRule.onAllNodesWithTag("plan-name").fetchSemanticsNodes().isEmpty())
+        assertTrue(
+            composeRule.onAllNodesWithText(string(R.string.common_unknown_error))
+                .fetchSemanticsNodes().isEmpty()
+        )
     }
 
     @Test
@@ -160,7 +265,10 @@ class MedicationPlansScreenTest {
         }
 
         composeRule.onNodeWithText(string(R.string.plan_error_save_failed)).assertIsDisplayed()
-        composeRule.onNodeWithText(string(R.string.common_unknown_error)).assertDoesNotExist()
+        assertTrue(
+            composeRule.onAllNodesWithText(string(R.string.common_unknown_error))
+                .fetchSemanticsNodes().isEmpty()
+        )
     }
 
     @Test
@@ -194,7 +302,8 @@ class MedicationPlansScreenTest {
 
         assertEquals(1, repository.deleteCalls)
         assertTrue(viewModel.editSession.value != null)
-        composeRule.onNodeWithTag("plan-name").assertIsDisplayed()
+        composeRule.onNodeWithTag("plan-editor-surface").assertExists()
+        composeRule.onNodeWithTag("plan-name").assertExists()
         composeRule.onNodeWithTag("plan-error").assertIsDisplayed()
     }
 
@@ -307,6 +416,8 @@ class MedicationPlansScreenTest {
                 }
                 val editSession by viewModel.editSession.collectAsState()
                 val operationState by viewModel.operationState.collectAsState()
+                val currentImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+                SideEffect { composeImeVisible = currentImeVisible }
                 val submissionFailure = operationState as? MedicationPlanOperationState.Failure
                 val unknownErrorMessage = stringResource(R.string.common_unknown_error)
                 val submissionErrorMessage = submissionFailure?.let { failure ->
@@ -393,6 +504,7 @@ class MedicationPlansScreenTest {
         val plans = MutableStateFlow<List<MedicationPlan>>(emptyList())
         var saveResult: PlanSaveResult = PlanSaveResult.Created
         var saveError: RuntimeException? = null
+        var saveGate: CompletableDeferred<Unit>? = null
         var deleteResult: DeleteResult = DeleteResult.Deleted
         var saveCalls = 0
         var deleteCalls = 0
@@ -408,6 +520,7 @@ class MedicationPlansScreenTest {
         override suspend fun save(plan: MedicationPlan): PlanSaveResult {
             saveCalls += 1
             saveError?.let { throw it }
+            saveGate?.await()
             return saveResult
         }
 

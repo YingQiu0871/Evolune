@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune
 
+import android.util.Log
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -17,8 +18,23 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
+import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
+import io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinator
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModelFactory
+import io.github.yingqiu0871.evolune.backup.EvoluneBackupCodec
+import io.github.yingqiu0871.evolune.backup.FileRestoreJournalStore
+import io.github.yingqiu0871.evolune.backup.PostRestoreCoordinator
+import io.github.yingqiu0871.evolune.backup.RestorePersistenceSnapshotSource
+import io.github.yingqiu0871.evolune.backup.RestoreTransaction
+import io.github.yingqiu0871.evolune.backup.cloud.google.GoogleAuthorizationGateway
+import io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProvider
+import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveRemoteGateway
+import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.reminder.ReminderManager
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
@@ -35,20 +51,81 @@ import io.github.yingqiu0871.evolune.wear.WearDataLayer
 import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
+    private lateinit var settingsViewModel: SettingsViewModel
+
+    override fun onStart() {
+        super.onStart()
+        if (::settingsViewModel.isInitialized) {
+            settingsViewModel.onForeground()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val productionRepositoryProvider =
-            ProductionRepositoryProvider.get(applicationContext)
-        
         // 初始化设置数据存储
         val settingsDataStore = SettingsDataStore(applicationContext)
+        val recovery = recoverInterruptedRestoreAtStartup(
+            context = applicationContext,
+            settingsStore = settingsDataStore
+        )
+        if (recovery is RestoreRecoveryResult.Failure) {
+            Log.e("EvoluneRestore", "Startup restore recovery required", recovery.error.cause)
+            finish()
+            return
+        }
+
+        val productionRepositoryProvider =
+            ProductionRepositoryProvider.get(applicationContext)
+        val roomRestorePersistence = productionRepositoryProvider.createRestorePersistence(
+            settingsStore = settingsDataStore,
+            atomicSettingsStore = settingsDataStore
+        )
+        val googleAuthorizationGateway = GoogleAuthorizationGateway(applicationContext)
+        val googleDriveProvider = GoogleDriveBackupProvider(
+            authorization = googleAuthorizationGateway,
+            remote = HttpUrlConnectionDriveRemoteGateway()
+        )
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val reminderManager = ReminderManager(applicationContext)
+        val postRestoreCoordinator = PostRestoreCoordinator(
+            effects = listOf(
+                {
+                    val plans = productionRepositoryProvider.medicationPlans.observeAll().first()
+                    reminderManager.rescheduleDomainReminders(plans)
+                },
+                {
+                    requestEvoluneWidgetUpdate(
+                        applicationContext,
+                        WidgetUpdateReason.MANUAL_APP_REFRESH
+                    )
+                }
+            )
+        )
+        val backupRestoreCoordinator = BackupRestoreCoordinator(
+            snapshotSource = RestorePersistenceSnapshotSource(roomRestorePersistence),
+            codec = EvoluneBackupCodec(),
+            authorization = googleAuthorizationGateway,
+            provider = googleDriveProvider,
+            restoreTransaction = RestoreTransaction(
+                persistence = roomRestorePersistence,
+                journalStore = FileRestoreJournalStore(applicationContext)
+            ),
+            postRestoreCoordinator = postRestoreCoordinator,
+            producerAppVersionName = packageInfo.versionName.orEmpty(),
+            producerAppVersionCode = packageInfo.longVersionCode.toInt()
+        )
+        val healthConnectWeightProvider = AndroidHealthConnectWeightProvider(applicationContext)
+        settingsViewModel = ViewModelProvider(
+            this,
+            SettingsViewModelFactory(settingsDataStore, healthConnectWeightProvider)
+        )[SettingsViewModel::class.java]
         
         setContent {
-            // 创建 SettingsViewModel
-            val settingsViewModel: SettingsViewModel = viewModel(
-                factory = SettingsViewModelFactory(settingsDataStore)
+            val settingsViewModel = this@MainActivity.settingsViewModel
+            val backupRestoreViewModel: BackupRestoreViewModel = viewModel(
+                factory = BackupRestoreViewModelFactory(backupRestoreCoordinator)
             )
             
             // 获取用户设置
@@ -89,12 +166,12 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                // 创建 HRTViewModel，使用用户设置的体重
+                // 创建 HRTViewModel，观察 SettingsDataStore 的权威体重
                 val hrtViewModel: HRTViewModel = viewModel(
                     factory = HRTViewModelFactory(
                         repository = productionRepositoryProvider.doseEvents,
                         medicationPlanRepository = productionRepositoryProvider.medicationPlans,
-                        bodyWeightKG = userSettings.bodyWeight
+                        settingsDataStore = settingsDataStore
                     )
                 )
                 val doseEvents by hrtViewModel.events.collectAsState()
@@ -108,7 +185,6 @@ class MainActivity : ComponentActivity() {
                 }
                 
                 // 创建 MedicationPlanViewModel
-                val reminderManager = ReminderManager(applicationContext)
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
                         productionRepositoryProvider.medicationPlans,
@@ -153,7 +229,9 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         hrtViewModel = hrtViewModel,
                         settingsViewModel = settingsViewModel,
-                        medicationPlanViewModel = medicationPlanViewModel
+                        medicationPlanViewModel = medicationPlanViewModel,
+                        backupRestoreViewModel = backupRestoreViewModel,
+                        authorizationResultFromIntent = googleAuthorizationGateway::outcomeFromIntent
                     )
                 }
             }

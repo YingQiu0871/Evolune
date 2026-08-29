@@ -28,4 +28,13 @@ interface ScheduledDoseSlotDao {
 
     @Query("SELECT COUNT(*) FROM scheduled_dose_slots")
     suspend fun countAllSlots(): Int
+
+    @Query("DELETE FROM scheduled_dose_slots")
+    suspend fun deleteAllSlotsIfPresent(): Int
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertSlotsForRestore(slots: List<ScheduledDoseSlotEntity>)
+
+    @Query("SELECT * FROM scheduled_dose_slots ORDER BY planId ASC, position ASC, id ASC")
+    suspend fun getAllSlotsForRestore(): List<ScheduledDoseSlotEntity>
 }

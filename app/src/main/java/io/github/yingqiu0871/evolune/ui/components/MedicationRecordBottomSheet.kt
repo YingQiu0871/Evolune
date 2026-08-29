@@ -191,7 +191,11 @@ fun MedicationRecordBottomSheet(
     }
 
     if (showBottomSheet) {
-        BackHandler(onBack = { if (!isOperationRunning) onDismiss() })
+        val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+        BackHandler(
+            enabled = !imeVisible,
+            onBack = { if (!isOperationRunning) onDismiss() }
+        )
         Surface(
             modifier = Modifier
                 .fillMaxSize()

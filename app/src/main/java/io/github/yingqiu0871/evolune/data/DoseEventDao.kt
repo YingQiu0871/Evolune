@@ -90,6 +90,12 @@ interface DoseEventDao {
     @Query("DELETE FROM dose_events")
     suspend fun deleteAllEventsIfPresent(): Int
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertEventsForRestore(events: List<DoseEventEntity>)
+
+    @Query("SELECT * FROM dose_events ORDER BY occurredAtEpochMillis DESC, id ASC")
+    suspend fun getAllEventsForRestore(): List<DoseEventEntity>
+
     /**
      * 获取所有用药事件（按时间排序）
      */

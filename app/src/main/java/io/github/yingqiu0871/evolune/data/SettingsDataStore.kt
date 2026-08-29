@@ -10,6 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Clock
+import java.time.Instant
 
 // DataStore 实例
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -49,13 +51,49 @@ data class UserSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val colorTheme: ColorTheme = ColorTheme.DYNAMIC,
     val autoCheckUpdates: Boolean = true,    // 默认开启自动检查更新
-    val timeFormat: TimeFormat = TimeFormat.SYSTEM  // 默认跟随系统时间制式
+    val timeFormat: TimeFormat = TimeFormat.SYSTEM,  // 默认跟随系统时间制式
+    /** User intent for foreground-only Health Connect weight adoption. */
+    val healthConnectWeightSyncEnabled: Boolean = false,
+    /** Sync metadata only; [bodyWeight] remains the local authority. */
+    val lastHealthConnectWeightKg: Double? = null,
+    /** Shared freshness barrier for HC observations and local authority writes. */
+    val lastHealthConnectWeightAdoptedAt: Instant? = null
 )
+
+const val MAX_BODY_WEIGHT_KG = 300.0
+
+fun isValidBodyWeight(weight: Double): Boolean =
+    weight.isFinite() && weight > 0.0 && weight <= MAX_BODY_WEIGHT_KG
+
+interface SettingsStore {
+    val userSettings: Flow<UserSettings>
+
+    suspend fun updateBodyWeight(weight: Double): Boolean
+    suspend fun updateThemeMode(mode: ThemeMode)
+    suspend fun updateColorTheme(theme: ColorTheme)
+    suspend fun updateAutoCheckUpdates(enabled: Boolean)
+    suspend fun updateTimeFormat(format: TimeFormat)
+    suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean)
+    suspend fun updateBodyWeightFromHealthConnect(weight: Double, adoptedAt: Instant): Boolean
+    suspend fun updateHealthConnectWeightMetadata(weight: Double, adoptedAt: Instant): Boolean
+}
+
+/**
+ * Atomic replacement seam used by crash-safe restore. Implementations must
+ * update all settings in one DataStore edit.
+ */
+interface AtomicSettingsStore {
+    /** Replace all restore-owned scalar settings in one DataStore edit. */
+    suspend fun replaceSettings(settings: UserSettings): Boolean
+}
 
 /**
  * 设置数据存储管理类
  */
-class SettingsDataStore(private val context: Context) {
+class SettingsDataStore(
+    private val context: Context,
+    private val clock: Clock = Clock.systemUTC()
+) : SettingsStore, AtomicSettingsStore {
     
     companion object {
         private val BODY_WEIGHT_KEY = doublePreferencesKey("body_weight")
@@ -63,12 +101,18 @@ class SettingsDataStore(private val context: Context) {
         private val COLOR_THEME_KEY = stringPreferencesKey("color_theme")
         private val AUTO_CHECK_UPDATES_KEY = booleanPreferencesKey("auto_check_updates")
         private val TIME_FORMAT_KEY = stringPreferencesKey("time_format")
+        private val HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY =
+            booleanPreferencesKey("health_connect_weight_sync_enabled")
+        private val LAST_HEALTH_CONNECT_WEIGHT_KG_KEY =
+            doublePreferencesKey("last_health_connect_weight_kg")
+        private val LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY =
+            stringPreferencesKey("last_health_connect_weight_adopted_at")
     }
     
     /**
      * 获取用户设置的 Flow
      */
-    val userSettings: Flow<UserSettings> = context.dataStore.data.map { preferences ->
+    override val userSettings: Flow<UserSettings> = context.dataStore.data.map { preferences ->
         UserSettings(
             bodyWeight = preferences[BODY_WEIGHT_KEY] ?: 55.0,
             themeMode = preferences[THEME_MODE_KEY]?.let { 
@@ -92,23 +136,32 @@ class SettingsDataStore(private val context: Context) {
                 } catch (e: IllegalArgumentException) {
                     TimeFormat.SYSTEM
                 }
-            } ?: TimeFormat.SYSTEM
+            } ?: TimeFormat.SYSTEM,
+            healthConnectWeightSyncEnabled =
+                preferences[HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY] ?: false,
+            lastHealthConnectWeightKg = preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY],
+            lastHealthConnectWeightAdoptedAt = preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY]
+                ?.let { value -> runCatching { Instant.parse(value) }.getOrNull() }
         )
     }
     
     /**
      * 保存体重
      */
-    suspend fun updateBodyWeight(weight: Double) {
+    override suspend fun updateBodyWeight(weight: Double): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
         context.dataStore.edit { preferences ->
             preferences[BODY_WEIGHT_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = clock.instant().toString()
         }
+        return true
     }
     
     /**
      * 保存主题模式
      */
-    suspend fun updateThemeMode(mode: ThemeMode) {
+    override suspend fun updateThemeMode(mode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[THEME_MODE_KEY] = mode.name
         }
@@ -117,7 +170,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存颜色主题
      */
-    suspend fun updateColorTheme(theme: ColorTheme) {
+    override suspend fun updateColorTheme(theme: ColorTheme) {
         context.dataStore.edit { preferences ->
             preferences[COLOR_THEME_KEY] = theme.name
         }
@@ -126,7 +179,7 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存自动检查更新开关
      */
-    suspend fun updateAutoCheckUpdates(enabled: Boolean) {
+    override suspend fun updateAutoCheckUpdates(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[AUTO_CHECK_UPDATES_KEY] = enabled
         }
@@ -135,9 +188,56 @@ class SettingsDataStore(private val context: Context) {
     /**
      * 保存时间制式
      */
-    suspend fun updateTimeFormat(format: TimeFormat) {
+    override suspend fun updateTimeFormat(format: TimeFormat) {
         context.dataStore.edit { preferences ->
             preferences[TIME_FORMAT_KEY] = format.name
         }
+    }
+
+    override suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY] = enabled
+        }
+    }
+
+    override suspend fun updateBodyWeightFromHealthConnect(
+        weight: Double,
+        adoptedAt: Instant
+    ): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[BODY_WEIGHT_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = adoptedAt.toString()
+        }
+        return true
+    }
+
+    override suspend fun updateHealthConnectWeightMetadata(
+        weight: Double,
+        adoptedAt: Instant
+    ): Boolean {
+        if (!isValidBodyWeight(weight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY] = weight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = adoptedAt.toString()
+        }
+        return true
+    }
+
+    override suspend fun replaceSettings(settings: UserSettings): Boolean {
+        if (!isValidBodyWeight(settings.bodyWeight)) return false
+
+        context.dataStore.edit { preferences ->
+            preferences[BODY_WEIGHT_KEY] = settings.bodyWeight
+            preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = clock.instant().toString()
+            preferences[THEME_MODE_KEY] = settings.themeMode.name
+            preferences[COLOR_THEME_KEY] = settings.colorTheme.name
+            preferences[AUTO_CHECK_UPDATES_KEY] = settings.autoCheckUpdates
+            preferences[TIME_FORMAT_KEY] = settings.timeFormat.name
+        }
+        return true
     }
 }

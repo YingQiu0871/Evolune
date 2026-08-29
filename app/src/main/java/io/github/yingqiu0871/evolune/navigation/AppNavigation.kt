@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.navigation
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -12,6 +13,11 @@ import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.IntentSenderRequest
+import androidx.health.connect.client.HealthConnectClient
+import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.PermissionController
+import androidx.health.connect.client.records.WeightRecord
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +42,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MedicalServices
@@ -79,6 +86,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.backup.BackupRestoreUiEvent
+import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
+import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
@@ -90,10 +100,18 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
+import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
+import io.github.yingqiu0871.evolune.ui.screens.AppearanceAndFormatScreen
+import io.github.yingqiu0871.evolune.ui.screens.BasicDataScreen
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
+import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
+import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
+import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
+import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
+import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
@@ -108,6 +126,14 @@ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+private const val BASIC_DATA_ROUTE = "settings_basic_data"
+private const val APPEARANCE_FORMAT_ROUTE = "settings_appearance_format"
+private const val SYNC_AND_BACKUP_ROUTE = "sync_and_backup"
+private const val UPDATE_ROUTE = "settings_update"
+private const val ABOUT_ROUTE = "settings_about"
+private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
+private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
+private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -119,15 +145,67 @@ private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
     settingsViewModel: SettingsViewModel,
-    medicationPlanViewModel: MedicationPlanViewModel
+    medicationPlanViewModel: MedicationPlanViewModel,
+    backupRestoreViewModel: BackupRestoreViewModel,
+    authorizationResultFromIntent: (Intent) -> CloudAuthorizationOutcome
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val updateCheckResult by settingsViewModel.updateCheckResult.collectAsState()
     val userSettings by settingsViewModel.userSettings.collectAsState()
+    val healthConnectWeightSyncState by settingsViewModel.healthConnectWeightSyncState.collectAsState()
+    val backupRestoreState by backupRestoreViewModel.uiState.collectAsState()
+    val backupRestoreConnected by backupRestoreViewModel.connected.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
     val scope = rememberCoroutineScope()
+
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract()
+    ) {
+        settingsViewModel.onHealthConnectPermissionResult()
+    }
+
+    val backupAuthorizationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            backupRestoreViewModel.onAuthorizationOutcome(
+                authorizationResultFromIntent(requireNotNull(result.data))
+            )
+        } else {
+            backupRestoreViewModel.onAuthorizationOutcome(CloudAuthorizationOutcome.Cancelled)
+        }
+    }
+
+    LaunchedEffect(settingsViewModel) {
+        settingsViewModel.healthConnectPermissionRequests.collect {
+            healthConnectPermissionLauncher.launch(
+                setOf(HealthPermission.getReadPermission(WeightRecord::class))
+            )
+        }
+    }
+
+    LaunchedEffect(backupRestoreViewModel) {
+        backupRestoreViewModel.uiEvents.collect { event ->
+            when (event) {
+                is BackupRestoreUiEvent.LaunchAuthorization -> {
+                    val resolution = event.resolution
+                    if (resolution is io.github.yingqiu0871.evolune.backup.cloud.google.GoogleAuthorizationResolution) {
+                        backupAuthorizationLauncher.launch(
+                            IntentSenderRequest.Builder(resolution.pendingIntent).build()
+                        )
+                    } else {
+                        backupRestoreViewModel.onAuthorizationOutcome(
+                            CloudAuthorizationOutcome.Error(
+                                io.github.yingqiu0871.evolune.backup.cloud.AuthorizationErrorCode.FAILED
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     // 根据用户设置和设备语言区域计算是否使用24小时制
     val is24Hour = when (userSettings.timeFormat) {
@@ -280,7 +358,15 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.HOME
+    val isSettingsSubroute = currentRoute == BASIC_DATA_ROUTE ||
+        currentRoute == APPEARANCE_FORMAT_ROUTE ||
+        currentRoute == SYNC_AND_BACKUP_ROUTE ||
+        currentRoute == UPDATE_ROUTE ||
+        currentRoute == ABOUT_ROUTE ||
+        currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
+        currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
+        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
+    val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
     // The top-level Scaffold stays intact beneath full-screen editor layers so its
@@ -291,15 +377,33 @@ fun AppNavigation(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
             bottomBar = {
-                if (!useNavigationRail) {
+                if (!useNavigationRail && !isSettingsSubroute) {
                     BottomNavigationBar(navController = navController)
                 }
             },
             topBar = {
                 AppTopBar(
                     currentScreen = currentScreen,
-                    alignWithNavigationRail = useNavigationRail,
-                    onRefresh = hrtViewModel::runSimulation
+                    alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
+                    onRefresh = hrtViewModel::runSimulation,
+                    titleOverride = when (currentRoute) {
+                        BASIC_DATA_ROUTE -> stringResource(R.string.settings_basic_data_title)
+                        APPEARANCE_FORMAT_ROUTE ->
+                            stringResource(R.string.settings_appearance_format_title)
+                        SYNC_AND_BACKUP_ROUTE -> stringResource(R.string.settings_sync_backup_title)
+                        UPDATE_ROUTE -> stringResource(R.string.settings_update_title)
+                        ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
+                        DATA_IMPORT_EXPORT_ROUTE -> stringResource(R.string.settings_data_import_export_title)
+                        HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
+                        GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
+                            stringResource(R.string.settings_google_drive_backup_restore_title)
+                        else -> null
+                    },
+                    onNavigateUp = if (isSettingsSubroute) {
+                        { navController.popBackStack() }
+                    } else {
+                        null
+                    }
                 )
             }
         ) { innerPadding ->
@@ -315,7 +419,7 @@ fun AppNavigation(
                 .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            if (useNavigationRail) {
+            if (useNavigationRail && !isSettingsSubroute) {
                 NavigationRailBar(navController = navController)
             }
             Box(
@@ -391,26 +495,119 @@ fun AppNavigation(
             }
             composable(Screen.SETTINGS.route) {
                 SettingsScreen(
+                    onOpenBasicData = {
+                        navController.navigate(BASIC_DATA_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenAppearanceAndFormat = {
+                        navController.navigate(APPEARANCE_FORMAT_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenSyncAndBackup = {
+                        navController.navigate(SYNC_AND_BACKUP_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenUpdate = {
+                        navController.navigate(UPDATE_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenAbout = {
+                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                    },
+                    showTopBar = false
+                )
+            }
+            composable(BASIC_DATA_ROUTE) {
+                BasicDataScreen(
+                    bodyWeight = userSettings.bodyWeight,
+                    onBodyWeightChange = settingsViewModel::updateBodyWeight
+                )
+            }
+            composable(APPEARANCE_FORMAT_ROUTE) {
+                AppearanceAndFormatScreen(
                     settings = userSettings,
-                    onBodyWeightChange = settingsViewModel::updateBodyWeight,
                     onThemeModeChange = settingsViewModel::updateThemeMode,
                     onColorThemeChange = settingsViewModel::updateColorTheme,
-                    onTimeFormatChange = settingsViewModel::updateTimeFormat,
+                    onTimeFormatChange = settingsViewModel::updateTimeFormat
+                )
+            }
+            composable(SYNC_AND_BACKUP_ROUTE) {
+                SyncAndBackupScreen(
+                    settings = userSettings,
+                    healthConnectWeightSyncState = healthConnectWeightSyncState,
+                    backupRestoreConnected = backupRestoreConnected,
+                    onOpenData = {
+                        navController.navigate(DATA_IMPORT_EXPORT_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenHealthConnect = {
+                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onOpenGoogleDrive = {
+                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+            composable(UPDATE_ROUTE) {
+                UpdateScreen(
+                    autoCheckUpdates = userSettings.autoCheckUpdates,
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
-                    updateCheckResult = updateCheckResult,
-                    onImportClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+                    updateCheckResult = updateCheckResult
+                )
+            }
+            composable(ABOUT_ROUTE) {
+                AboutScreen()
+            }
+            composable(DATA_IMPORT_EXPORT_ROUTE) {
+                DataImportExportScreen(
+                    importResult = importResult,
+                    onDismissImportResult = hrtViewModel::dismissImportResult,
+                    clipboardExportMessage = clipboardExportMessage,
+                    onClipboardExportMessageShown = { clipboardExportMessage = null },
+                    onImportClick = {
+                        importLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
                     onImportFromClipboard = { importFromClipboard() },
                     onExportClick = {
                         pendingExportJson = hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
                         exportLauncher.launch(strExportFilename)
                     },
-                    onExportToClipboard = { exportToClipboard() },
-                    importResult = importResult,
-                    onDismissImportResult = hrtViewModel::dismissImportResult,
-                    clipboardExportMessage = clipboardExportMessage,
-                    onClipboardExportMessageShown = { clipboardExportMessage = null },
-                    showTopBar = false
+                    onExportToClipboard = { exportToClipboard() }
+                )
+            }
+            composable(HEALTH_CONNECT_SYNC_ROUTE) {
+                HealthConnectSyncScreen(
+                    settings = userSettings,
+                    state = healthConnectWeightSyncState,
+                    onWeightSyncEnabledChange = settingsViewModel::setHealthConnectWeightSyncEnabled,
+                    onReauthorize = settingsViewModel::requestHealthConnectReauthorization,
+                    onManagePermissions = {
+                        context.startActivity(
+                            HealthConnectClient.getHealthConnectManageDataIntent(
+                                context,
+                                context.packageName
+                            )
+                        )
+                    }
+                )
+            }
+            composable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                GoogleDriveBackupRestoreScreen(
+                    connected = backupRestoreConnected,
+                    state = backupRestoreState,
+                    onBackupNow = backupRestoreViewModel::backUpNow,
+                    onRestoreFromBackup = backupRestoreViewModel::restoreFromBackup,
+                    onDisconnect = backupRestoreViewModel::disconnect,
+                    onSelectGeneration = backupRestoreViewModel::selectGeneration,
+                    onSubmitBackupPassphrase = backupRestoreViewModel::submitBackupPassphrase,
+                    onSubmitRestorePassphrase = backupRestoreViewModel::submitRestorePassphrase,
+                    onConfirmRestore = backupRestoreViewModel::confirmRestore,
+                    onCancel = backupRestoreViewModel::cancelInteractiveOperation,
+                    onDismissMessage = backupRestoreViewModel::dismissMessage
                 )
             }
         }
@@ -579,7 +776,9 @@ private fun DoseEventOperationError.displayMessage(): String = when (this) {
 private fun AppTopBar(
     currentScreen: Screen,
     alignWithNavigationRail: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    titleOverride: String? = null,
+    onNavigateUp: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
@@ -592,9 +791,19 @@ private fun AppTopBar(
         }
         CenterAlignedTopAppBar(
             modifier = Modifier.weight(1f),
+            navigationIcon = {
+                if (onNavigateUp != null) {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back)
+                        )
+                    }
+                }
+            },
             title = {
                 Text(
-                    text = when (currentScreen) {
+                    text = titleOverride ?: when (currentScreen) {
                         Screen.HOME -> stringResource(R.string.nav_home)
                         Screen.RECORDS -> stringResource(R.string.records_title)
                         Screen.MEDICATION_PLANS -> stringResource(R.string.plans_title)
