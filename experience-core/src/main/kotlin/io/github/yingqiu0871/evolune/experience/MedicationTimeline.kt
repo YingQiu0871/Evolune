@@ -94,22 +94,24 @@ object MedicationOccurrencePresentation {
         policy: MedicationOccurrencePolicy
     ): Map<MedicationOccurrenceId, RecordedMedicationEvent> {
         val result = mutableMapOf<MedicationOccurrenceId, RecordedMedicationEvent>()
+        val consumedOccurrences = mutableSetOf<MedicationOccurrenceId>()
+        val consumedEvents = mutableSetOf<UUID>()
 
         // A persisted slot/date pair identifies one logical occurrence independently
         // from the actual dose time. Resolve it before all time-window fallbacks.
-        val exactConsumed = mutableSetOf<MedicationOccurrenceId>()
         events.asSequence()
             .filter { it.slotId != null && it.localDate != null }
             .sortedWith(EVENT_ORDER)
             .forEach { event ->
                 val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in exactConsumed &&
+                    occurrence.id !in consumedOccurrences &&
                         occurrence.slotId == event.slotId &&
                         occurrence.scheduledLocalDateTime.toLocalDate() == event.localDate
                 }
                 if (candidates.size == 1) {
                     val occurrence = candidates.single()
-                    exactConsumed += occurrence.id
+                    consumedOccurrences += occurrence.id
+                    consumedEvents += event.eventId
                     result[occurrence.id] = event
                 }
             }
@@ -122,29 +124,27 @@ object MedicationOccurrencePresentation {
             .sortedWith(EVENT_ORDER)
             .forEach { event ->
                 val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in exactConsumed &&
+                    occurrence.id !in consumedOccurrences &&
                         fallbackMatchCandidate(occurrence, event, policy) != null
                 }
                 if (candidates.size == 1) {
                     val occurrence = candidates.single()
-                    exactConsumed += occurrence.id
+                    consumedOccurrences += occurrence.id
+                    consumedEvents += event.eventId
                     result[occurrence.id] = event
                 }
             }
 
-        // Null-slot fallback is accepted only when its candidate is unique after
-        // exact matches. Candidate sets are fixed before fallback assignments, so
-        // iteration order cannot turn a genuine ambiguity into a match.
-        val uniqueFallback = events.asSequence()
-            .filter { it.slotId == null }
+        // Preserve the original null-slot time-window match as its own phase. Its
+        // candidate sets are fixed before any of these matches are assigned, so
+        // input order cannot turn a genuine ambiguity into a match.
+        val uniqueTimeWindowMatches = events.asSequence()
+            .filter { it.slotId == null && it.eventId !in consumedEvents }
             .sortedWith(EVENT_ORDER)
             .mapNotNull { event ->
                 val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in exactConsumed &&
-                        (
-                            fallbackMatchCandidate(occurrence, event, policy) != null ||
-                                sameDayNullSlotMatchCandidate(occurrence, event, policy) != null
-                            )
+                    occurrence.id !in consumedOccurrences &&
+                        fallbackMatchCandidate(occurrence, event, policy) != null
                 }
                 if (candidates.size == 1) {
                     MatchCandidate(candidates.single(), event)
@@ -154,11 +154,43 @@ object MedicationOccurrencePresentation {
             }
             .groupBy { it.occurrence.id }
 
-        uniqueFallback.forEach { (occurrenceId, candidates) ->
-            result[occurrenceId] = candidates
+        uniqueTimeWindowMatches.forEach { (occurrenceId, candidates) ->
+            val event = candidates
                 .sortedWith(compareBy({ it.event.occurredAt }, { it.event.eventId.toString() }))
                 .first()
                 .event
+            consumedOccurrences += occurrenceId
+            consumedEvents += event.eventId
+            result[occurrenceId] = event
+        }
+
+        // Only null-slot events that remain unused after the original window
+        // phase may use the delayed same-day fallback. This deliberately does not
+        // widen the time-window candidate set above.
+        val uniqueSameDayMatches = events.asSequence()
+            .filter { it.slotId == null && it.eventId !in consumedEvents }
+            .sortedWith(EVENT_ORDER)
+            .mapNotNull { event ->
+                val candidates = occurrences.filter { occurrence ->
+                    occurrence.id !in consumedOccurrences &&
+                        sameDayNullSlotMatchCandidate(occurrence, event, policy) != null
+                }
+                if (candidates.size == 1) {
+                    MatchCandidate(candidates.single(), event)
+                } else {
+                    null
+                }
+            }
+            .groupBy { it.occurrence.id }
+
+        uniqueSameDayMatches.forEach { (occurrenceId, candidates) ->
+            val event = candidates
+                .sortedWith(compareBy({ it.event.occurredAt }, { it.event.eventId.toString() }))
+                .first()
+                .event
+            consumedOccurrences += occurrenceId
+            consumedEvents += event.eventId
+            result[occurrenceId] = event
         }
         return result
     }

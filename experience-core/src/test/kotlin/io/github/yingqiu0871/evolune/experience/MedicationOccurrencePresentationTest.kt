@@ -181,6 +181,45 @@ class MedicationOccurrencePresentationTest {
     }
 
     @Test
+    fun `null-slot time-window match takes precedence over same-day fallback`() {
+        val candidates = occurrences(
+            listOf(
+                schedule(number = 1, times = listOf(java.time.LocalTime.of(9, 0))),
+                schedule(number = 2, times = listOf(java.time.LocalTime.of(17, 0)))
+            ),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        )
+        val eventId = UUID(9L, 28L)
+        val occurredAt = Instant.parse("2025-01-02T09:20:00Z")
+        val items = MedicationOccurrencePresentation.derive(
+            candidates,
+            listOf(
+                RecordedMedicationEvent(
+                    eventId = eventId,
+                    occurredAt = occurredAt,
+                    slotId = null,
+                    matchKey = candidates.first().presentation.matchKey,
+                    localDate = LocalDate.parse("2025-01-02")
+                )
+            ),
+            occurredAt
+        )
+
+        val morning = items.single {
+            it.occurrence.scheduledLocalDateTime.toLocalTime() == java.time.LocalTime.of(9, 0)
+        }
+        val evening = items.single {
+            it.occurrence.scheduledLocalDateTime.toLocalTime() == java.time.LocalTime.of(17, 0)
+        }
+
+        assertEquals(MedicationOccurrenceStatus.RECORDED, morning.status)
+        assertEquals(eventId, morning.recordedEventId)
+        assertEquals(MedicationOccurrenceStatus.UPCOMING, evening.status)
+        assertNull(evening.recordedEventId)
+    }
+
+    @Test
     fun `unique null-slot candidate records the only compatible occurrence`() {
         val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
         val eventId = UUID(9L, 8L)
