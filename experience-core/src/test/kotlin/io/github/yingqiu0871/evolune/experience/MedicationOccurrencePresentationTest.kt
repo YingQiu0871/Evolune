@@ -220,6 +220,99 @@ class MedicationOccurrencePresentationTest {
     }
 
     @Test
+    fun `window competitors cannot be recovered by same-day fallback`() {
+        val candidates = occurrences(
+            listOf(
+                schedule(number = 1, times = listOf(java.time.LocalTime.of(9, 0))),
+                schedule(number = 2, times = listOf(java.time.LocalTime.of(17, 0)))
+            ),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        )
+        val earlier = RecordedMedicationEvent(
+            eventId = UUID(9L, 29L),
+            occurredAt = Instant.parse("2025-01-02T09:20:00Z"),
+            slotId = null,
+            matchKey = candidates.first().presentation.matchKey,
+            localDate = LocalDate.parse("2025-01-02")
+        )
+        val later = earlier.copy(
+            eventId = UUID(9L, 30L),
+            occurredAt = Instant.parse("2025-01-02T09:30:00Z")
+        )
+
+        fun derive(events: List<RecordedMedicationEvent>) =
+            MedicationOccurrencePresentation.derive(candidates, events, later.occurredAt)
+
+        fun assertExpected(items: List<MedicationTimelineItem>) {
+            assertEquals(1, items.count { it.status == MedicationOccurrenceStatus.RECORDED })
+            val morning = items.single {
+                it.occurrence.scheduledLocalDateTime.toLocalTime() == java.time.LocalTime.of(9, 0)
+            }
+            val evening = items.single {
+                it.occurrence.scheduledLocalDateTime.toLocalTime() == java.time.LocalTime.of(17, 0)
+            }
+            assertEquals(MedicationOccurrenceStatus.RECORDED, morning.status)
+            assertEquals(earlier.eventId, morning.recordedEventId)
+            assertEquals(MedicationOccurrenceStatus.UPCOMING, evening.status)
+            assertNull(evening.recordedEventId)
+        }
+
+        val forward = derive(listOf(later, earlier))
+        val reverse = derive(listOf(earlier, later))
+
+        assertExpected(forward)
+        assertExpected(reverse)
+        assertEquals(
+            forward.map { it.status to it.recordedEventId },
+            reverse.map { it.status to it.recordedEventId }
+        )
+    }
+
+    @Test
+    fun `window evidence survives exact consumption of its occurrence`() {
+        val candidates = occurrences(
+            listOf(
+                schedule(number = 1, times = listOf(java.time.LocalTime.of(9, 0))),
+                schedule(number = 2, times = listOf(java.time.LocalTime.of(17, 0)))
+            ),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        )
+        val exactId = UUID(9L, 31L)
+        val delayedId = UUID(9L, 32L)
+        val localDate = LocalDate.parse("2025-01-02")
+        val delayedAt = Instant.parse("2025-01-02T09:30:00Z")
+        val exactAt = Instant.parse("2025-01-02T18:00:00Z")
+        val items = MedicationOccurrencePresentation.derive(
+            candidates,
+            listOf(
+                RecordedMedicationEvent(
+                    eventId = delayedId,
+                    occurredAt = delayedAt,
+                    slotId = null,
+                    matchKey = candidates.first().presentation.matchKey,
+                    localDate = localDate
+                ),
+                RecordedMedicationEvent(
+                    eventId = exactId,
+                    occurredAt = exactAt,
+                    slotId = candidates.first().slotId,
+                    matchKey = candidates.first().presentation.matchKey,
+                    localDate = localDate
+                )
+            ),
+            exactAt
+        )
+
+        assertEquals(1, items.count { it.status == MedicationOccurrenceStatus.RECORDED })
+        assertEquals(exactId, items.first { it.occurrence.slotId == candidates.first().slotId }.recordedEventId)
+        val evening = items.first { it.occurrence.slotId == candidates.last().slotId }
+        assertEquals(MedicationOccurrenceStatus.DUE, evening.status)
+        assertNull(evening.recordedEventId)
+    }
+
+    @Test
     fun `unique null-slot candidate records the only compatible occurrence`() {
         val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
         val eventId = UUID(9L, 8L)

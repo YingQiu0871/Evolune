@@ -139,6 +139,56 @@ class WidgetPresentationTest {
     }
 
     @Test
+    fun `window competitors do not complete the later widget occurrence`() {
+        val testNow = Instant.parse("2027-01-15T09:30:00Z")
+        fun planAt(planId: UUID, slotId: UUID, localTime: LocalTime) =
+            syntheticPlan(id = planId, enabled = true, slots = listOf(localTime)).copy(
+                slots = listOf(
+                    ScheduledDoseSlot(
+                        id = slotId,
+                        planId = planId,
+                        localTime = localTime,
+                        position = 0
+                    )
+                )
+            )
+
+        val morning = planAt(UUID(0L, 44L), UUID(1L, 44L), LocalTime.of(9, 0))
+        val evening = planAt(UUID(0L, 45L), UUID(1L, 45L), LocalTime.of(17, 0))
+        val earlier = Instant.parse("2027-01-15T09:20:00Z")
+        val later = Instant.parse("2027-01-15T09:30:00Z")
+        fun event(id: UUID, occurredAt: Instant) = DoseEvent(
+            id = id,
+            route = morning.route,
+            occurredAt = occurredAt,
+            localDate = occurredAt.atZone(ZoneOffset.UTC).toLocalDate(),
+            doseMG = morning.doseMG,
+            ester = morning.ester,
+            slotId = null,
+            source = DoseEventSource.MANUAL,
+            status = DoseEventStatus.RECORDED
+        )
+
+        val state = mapper.map(
+            listOf(morning, evening),
+            listOf(event(UUID(2L, 44L), earlier), event(UUID(2L, 45L), later)),
+            testNow,
+            ZoneOffset.UTC
+        ) as WidgetPresentationState.Timeline
+
+        assertEquals(WidgetDailyProgress(1, 2), state.dailyProgress)
+        val morningItem = state.todayItems.single {
+            it.occurrence.scheduledLocalDateTime.toLocalTime() == LocalTime.of(9, 0)
+        }
+        val eveningItem = state.todayItems.single {
+            it.occurrence.scheduledLocalDateTime.toLocalTime() == LocalTime.of(17, 0)
+        }
+        assertEquals(MedicationOccurrenceStatus.RECORDED, morningItem.status)
+        assertEquals(UUID(2L, 44L), morningItem.recordedEventId)
+        assertEquals(MedicationOccurrenceStatus.UPCOMING, eveningItem.status)
+    }
+
+    @Test
     fun `one plan keeps three same-day slot occurrences and exact sibling recording`() {
         val testNow = Instant.parse("2027-01-15T18:30:00Z")
         val plan = syntheticPlan(

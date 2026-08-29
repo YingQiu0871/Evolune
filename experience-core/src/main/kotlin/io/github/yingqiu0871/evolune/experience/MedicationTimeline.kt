@@ -138,6 +138,15 @@ object MedicationOccurrencePresentation {
         // Preserve the original null-slot time-window match as its own phase. Its
         // candidate sets are fixed before any of these matches are assigned, so
         // input order cannot turn a genuine ambiguity into a match.
+        val windowCandidateEventIds = events.asSequence()
+            .filter { it.slotId == null && it.eventId !in consumedEvents }
+            .filter { event ->
+                occurrences.any { occurrence ->
+                    fallbackMatchCandidate(occurrence, event, policy) != null
+                }
+            }
+            .map { it.eventId }
+            .toSet()
         val uniqueTimeWindowMatches = events.asSequence()
             .filter { it.slotId == null && it.eventId !in consumedEvents }
             .sortedWith(EVENT_ORDER)
@@ -166,9 +175,14 @@ object MedicationOccurrencePresentation {
 
         // Only null-slot events that remain unused after the original window
         // phase may use the delayed same-day fallback. This deliberately does not
-        // widen the time-window candidate set above.
+        // widen the time-window candidate set above. An event with any original
+        // window evidence remains ineligible even if it lost a competition.
         val uniqueSameDayMatches = events.asSequence()
-            .filter { it.slotId == null && it.eventId !in consumedEvents }
+            .filter {
+                it.slotId == null &&
+                    it.eventId !in consumedEvents &&
+                    it.eventId !in windowCandidateEventIds
+            }
             .sortedWith(EVENT_ORDER)
             .mapNotNull { event ->
                 val candidates = occurrences.filter { occurrence ->
