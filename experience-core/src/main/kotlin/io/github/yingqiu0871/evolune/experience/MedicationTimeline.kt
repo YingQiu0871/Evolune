@@ -141,7 +141,10 @@ object MedicationOccurrencePresentation {
             .mapNotNull { event ->
                 val candidates = occurrences.filter { occurrence ->
                     occurrence.id !in exactConsumed &&
-                        fallbackMatchCandidate(occurrence, event, policy) != null
+                        (
+                            fallbackMatchCandidate(occurrence, event, policy) != null ||
+                                sameDayNullSlotMatchCandidate(occurrence, event, policy) != null
+                            )
                 }
                 if (candidates.size == 1) {
                     MatchCandidate(candidates.single(), event)
@@ -177,6 +180,20 @@ object MedicationOccurrencePresentation {
                 return null
             }
         }
+        return MatchCandidate(
+            occurrence = occurrence,
+            event = event
+        )
+    }
+
+    private fun sameDayNullSlotMatchCandidate(
+        occurrence: MedicationOccurrence,
+        event: RecordedMedicationEvent,
+        policy: MedicationOccurrencePolicy
+    ): MatchCandidate? {
+        if (event.slotId != null || event.localDate == null) return null
+        if (occurrence.scheduledLocalDateTime.toLocalDate() != event.localDate) return null
+        if (!event.matchKey.matches(occurrence.presentation.matchKey, policy.doseTolerance)) return null
         return MatchCandidate(
             occurrence = occurrence,
             event = event

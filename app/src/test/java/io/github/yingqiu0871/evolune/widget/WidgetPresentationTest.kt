@@ -103,6 +103,42 @@ class WidgetPresentationTest {
     }
 
     @Test
+    fun `late manual null-slot event completes the unique same-day schedule`() {
+        val planId = UUID(0L, 43L)
+        val slotId = UUID(1L, 43L)
+        val plan = plan(planId, slotId, enabled = true).copy(
+            slots = listOf(
+                ScheduledDoseSlot(
+                    id = slotId,
+                    planId = planId,
+                    localTime = LocalTime.of(9, 0),
+                    position = 0
+                )
+            )
+        )
+        val occurredAt = Instant.parse("2027-01-15T10:01:00Z")
+        val recorded = DoseEvent(
+            id = UUID(2L, 43L),
+            route = plan.route,
+            occurredAt = occurredAt,
+            localDate = occurredAt.atZone(ZoneOffset.UTC).toLocalDate(),
+            doseMG = plan.doseMG,
+            ester = plan.ester,
+            slotId = null,
+            source = DoseEventSource.MANUAL,
+            status = DoseEventStatus.RECORDED
+        )
+
+        val state = mapper.map(listOf(plan), listOf(recorded), occurredAt, ZoneOffset.UTC)
+            as WidgetPresentationState.Timeline
+
+        assertEquals(occurredAt, recorded.occurredAt)
+        assertEquals(WidgetDailyProgress(1, 1), state.dailyProgress)
+        assertEquals(MedicationOccurrenceStatus.RECORDED, state.todayItems.single().status)
+        assertEquals(recorded.id, state.todayItems.single().recordedEventId)
+    }
+
+    @Test
     fun `one plan keeps three same-day slot occurrences and exact sibling recording`() {
         val testNow = Instant.parse("2027-01-15T18:30:00Z")
         val plan = syntheticPlan(
@@ -192,11 +228,13 @@ class WidgetPresentationTest {
         val coordinator = ContractWidgetUpdateCoordinator { reason -> reasons += reason }
 
         coordinator.request(WidgetUpdateReason.PLAN_CHANGED)
+        coordinator.request(WidgetUpdateReason.DOSE_EVENT_CHANGED)
         coordinator.request(WidgetUpdateReason.ACCEPTED_WEAR_DOSE_EVENT)
 
         assertEquals(
             listOf(
                 WidgetUpdateReason.PLAN_CHANGED,
+                WidgetUpdateReason.DOSE_EVENT_CHANGED,
                 WidgetUpdateReason.ACCEPTED_WEAR_DOSE_EVENT
             ),
             reasons

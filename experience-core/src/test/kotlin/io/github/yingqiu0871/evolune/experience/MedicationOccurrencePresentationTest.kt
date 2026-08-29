@@ -142,7 +142,8 @@ class MedicationOccurrencePresentationTest {
                     eventId = UUID(9L, 6L),
                     occurredAt = now,
                     slotId = null,
-                    matchKey = simultaneous.first().presentation.matchKey
+                    matchKey = simultaneous.first().presentation.matchKey,
+                    localDate = LocalDate.parse("2025-01-02")
                 )
             ),
             now
@@ -251,7 +252,8 @@ class MedicationOccurrencePresentationTest {
             eventId = UUID(9L, 11L),
             occurredAt = now,
             slotId = null,
-            matchKey = simultaneous.first().presentation.matchKey
+            matchKey = simultaneous.first().presentation.matchKey,
+            localDate = LocalDate.parse("2025-01-02")
         )
 
         val forward = MedicationOccurrencePresentation.derive(simultaneous, listOf(event), now)
@@ -281,6 +283,182 @@ class MedicationOccurrencePresentationTest {
         ).single()
 
         assertEquals(MedicationOccurrenceStatus.DUE, item.status)
+    }
+
+    @Test
+    fun `same-day null-slot event after one hour still records unique occurrence`() {
+        val occurrence = occurrences(
+            listOf(schedule(times = listOf(java.time.LocalTime.of(9, 0)))),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        ).single()
+        val occurredAt = Instant.parse("2025-01-02T10:01:00Z")
+        val eventId = UUID(9L, 18L)
+
+        val item = MedicationOccurrencePresentation.derive(
+            occurrences = listOf(occurrence),
+            recordedEvents = listOf(
+                RecordedMedicationEvent(
+                    eventId = eventId,
+                    occurredAt = occurredAt,
+                    slotId = null,
+                    matchKey = occurrence.presentation.matchKey,
+                    localDate = LocalDate.parse("2025-01-02")
+                )
+            ),
+            now = occurredAt
+        ).single()
+
+        assertEquals(MedicationOccurrenceStatus.RECORDED, item.status)
+        assertEquals(eventId, item.recordedEventId)
+    }
+
+    @Test
+    fun `same-day null-slot event with a large delay preserves actual event time`() {
+        val occurrence = occurrences(
+            listOf(schedule(times = listOf(java.time.LocalTime.of(9, 0)))),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        ).single()
+        val occurredAt = Instant.parse("2025-01-02T18:45:00Z")
+        val eventId = UUID(9L, 19L)
+        val event = RecordedMedicationEvent(
+            eventId = eventId,
+            occurredAt = occurredAt,
+            slotId = null,
+            matchKey = occurrence.presentation.matchKey,
+            localDate = LocalDate.parse("2025-01-02")
+        )
+
+        val item = MedicationOccurrencePresentation.derive(
+            occurrences = listOf(occurrence),
+            recordedEvents = listOf(event),
+            now = occurredAt
+        ).single()
+
+        assertEquals(MedicationOccurrenceStatus.RECORDED, item.status)
+        assertEquals(eventId, item.recordedEventId)
+        assertEquals(occurredAt, event.occurredAt)
+    }
+
+    @Test
+    fun `same-day null-slot fallback rejects an event from another local date`() {
+        val occurrence = occurrences(
+            listOf(schedule(times = listOf(java.time.LocalTime.of(9, 0)))),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        ).single()
+        val occurredAt = Instant.parse("2025-01-03T10:01:00Z")
+
+        val item = MedicationOccurrencePresentation.derive(
+            occurrences = listOf(occurrence),
+            recordedEvents = listOf(
+                RecordedMedicationEvent(
+                    eventId = UUID(9L, 22L),
+                    occurredAt = occurredAt,
+                    slotId = null,
+                    matchKey = occurrence.presentation.matchKey,
+                    localDate = LocalDate.parse("2025-01-03")
+                )
+            ),
+            now = occurredAt
+        ).single()
+
+        assertEquals(MedicationOccurrenceStatus.PAST_UNRECORDED, item.status)
+        assertNull(item.recordedEventId)
+    }
+
+    @Test
+    fun `same-day null-slot fallback keeps ambiguous matching unresolved`() {
+        val simultaneous = occurrences(
+            listOf(
+                schedule(number = 1, times = listOf(java.time.LocalTime.of(9, 0))),
+                schedule(number = 2, times = listOf(java.time.LocalTime.of(9, 0)))
+            ),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        )
+        val occurredAt = Instant.parse("2025-01-02T18:00:00Z")
+        val items = MedicationOccurrencePresentation.derive(
+            occurrences = simultaneous,
+            recordedEvents = listOf(
+                RecordedMedicationEvent(
+                    eventId = UUID(9L, 23L),
+                    occurredAt = occurredAt,
+                    slotId = null,
+                    matchKey = simultaneous.first().presentation.matchKey,
+                    localDate = LocalDate.parse("2025-01-02")
+                )
+            ),
+            now = occurredAt
+        )
+
+        assertEquals(0, items.count { it.status == MedicationOccurrenceStatus.RECORDED })
+        assertEquals(2, items.count { it.status == MedicationOccurrenceStatus.PAST_UNRECORDED })
+    }
+
+    @Test
+    fun `multiple same-day null-slot events choose one deterministically`() {
+        val occurrence = occurrences(
+            listOf(schedule(times = listOf(java.time.LocalTime.of(9, 0)))),
+            "2025-01-02T00:00:00Z",
+            "2025-01-03T00:00:00Z"
+        ).single()
+        val earlier = RecordedMedicationEvent(
+            eventId = UUID(9L, 24L),
+            occurredAt = Instant.parse("2025-01-02T18:00:00Z"),
+            slotId = null,
+            matchKey = occurrence.presentation.matchKey,
+            localDate = LocalDate.parse("2025-01-02")
+        )
+        val later = earlier.copy(
+            eventId = UUID(9L, 25L),
+            occurredAt = Instant.parse("2025-01-02T19:00:00Z")
+        )
+
+        val forward = MedicationOccurrencePresentation.derive(
+            listOf(occurrence),
+            listOf(later, earlier),
+            later.occurredAt
+        ).single()
+        val reverse = MedicationOccurrencePresentation.derive(
+            listOf(occurrence),
+            listOf(earlier, later),
+            later.occurredAt
+        ).single()
+
+        assertEquals(earlier.eventId, forward.recordedEventId)
+        assertEquals(forward.recordedEventId, reverse.recordedEventId)
+    }
+
+    @Test
+    fun `exact slot and date match reserves occurrence from null-slot fallback`() {
+        val occurrence = occurrenceAt("2025-01-02T10:00:00Z")
+        val exactId = UUID(9L, 26L)
+        val fallbackId = UUID(9L, 27L)
+        val occurredAt = Instant.parse("2025-01-02T18:00:00Z")
+        val items = MedicationOccurrencePresentation.derive(
+            occurrences = listOf(occurrence),
+            recordedEvents = listOf(
+                RecordedMedicationEvent(
+                    eventId = exactId,
+                    occurredAt = occurredAt,
+                    slotId = occurrence.slotId,
+                    localDate = LocalDate.parse("2025-01-02"),
+                    matchKey = occurrence.presentation.matchKey.copy(routeKey = "LEGACY")
+                ),
+                RecordedMedicationEvent(
+                    eventId = fallbackId,
+                    occurredAt = occurredAt.plusSeconds(60L),
+                    slotId = null,
+                    localDate = LocalDate.parse("2025-01-02"),
+                    matchKey = occurrence.presentation.matchKey
+                )
+            ),
+            now = occurredAt
+        )
+
+        assertEquals(exactId, items.single().recordedEventId)
     }
 
     @Test

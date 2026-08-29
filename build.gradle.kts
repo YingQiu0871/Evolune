@@ -10,11 +10,11 @@ plugins {
 val evoluneApplicationId by extra("io.github.yingqiu0871.evolune")
 val evoluneWearNamespace by extra("io.github.yingqiu0871.evolune.wear")
 val evoluneDebugSuffix by extra(".debug")
-val evoluneVersionName by extra("1.2.1")
+val evoluneVersionName by extra("1.2.2")
 
 val evoluneVersionMajor = 1
 val evoluneVersionMinor = 2
-val evoluneVersionPatch = 1
+val evoluneVersionPatch = 2
 val evoluneVersionRevision = 0
 val evoluneReleaseOrdinal =
     evoluneVersionMajor * 1_000_000 +
@@ -37,14 +37,14 @@ tasks.register("validateEvoluneIdentityAndVersioning") {
         check(evoluneApplicationId == "io.github.yingqiu0871.evolune")
         check(evoluneWearNamespace == "io.github.yingqiu0871.evolune.wear")
         check("$evoluneApplicationId$evoluneDebugSuffix" == "io.github.yingqiu0871.evolune.debug")
-        check(evoluneVersionName == "1.2.1")
+        check(evoluneVersionName == "1.2.2")
         check(phoneCode != wearCode)
         check(phoneCode > 0 && wearCode > 0)
         check(phoneCode <= maximumPlayVersionCode && wearCode <= maximumPlayVersionCode)
         check(phoneCode in 100_000_000 until 1_000_000_000)
         check(wearCode in 1_100_000_000 until 2_000_000_000)
         check(phoneCode > priorV1VersionCode && wearCode > priorV1VersionCode)
-        check(phoneCode == 101_020_100)
-        check(wearCode == 1_101_020_100)
+        check(phoneCode == 101_020_200)
+        check(wearCode == 1_101_020_200)
     }
 }
