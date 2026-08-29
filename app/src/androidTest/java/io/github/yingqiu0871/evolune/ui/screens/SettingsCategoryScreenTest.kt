@@ -96,16 +96,29 @@ class SettingsCategoryScreenTest {
     }
 
     @Test
-    fun aboutPageKeepsCopyrightAndDisclaimerDialogs() {
+    fun aboutPageKeepsContactLinksCopyrightAndDisclaimerDialogs() {
+        var websiteOpenCount = 0
+        var developerContactCount = 0
         composeRule.setContent {
-            EvoluneTheme { AboutScreen() }
+            EvoluneTheme {
+                AboutScreen(
+                    onOpenWebsite = { websiteOpenCount += 1 },
+                    onContactDeveloper = { developerContactCount += 1 }
+                )
+            }
         }
 
         composeRule.onNodeWithTag("settings-about-screen").assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-about-copyright").performClick()
+        composeRule.onNodeWithTag("settings-about-website").performClick()
+        composeRule.onNodeWithTag("settings-about-developer-contact").performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, websiteOpenCount)
+            assertEquals(1, developerContactCount)
+        }
+        composeRule.onNodeWithTag("settings-about-copyright").performScrollTo().performClick()
         composeRule.onAllNodesWithText("版权信息").get(1).assertIsDisplayed()
         composeRule.onNodeWithText("关闭").performClick()
-        composeRule.onNodeWithTag("settings-about-disclaimer").performClick()
+        composeRule.onNodeWithTag("settings-about-disclaimer").performScrollTo().performClick()
         composeRule.onAllNodesWithText("免责声明").get(1).assertIsDisplayed()
     }
 }
