@@ -107,6 +107,18 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".wear.WearAppListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:path="/hrt/v1/wear-app/request" />
+            </intent-filter>
+        </service>
+
         <!-- Evolune 组合微件（用药提醒 + 快速添加） -->
         <receiver
             android:name=".widget.EvoluneWidgetReceiver"

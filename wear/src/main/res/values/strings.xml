@@ -1,5 +1,21 @@
 <resources>
     <string name="app_name">Evolune</string>
-<string name="tile_label">月序用药记录</string>
+    <string name="tile_label">月序用药记录</string>
     <string name="tile_description">从手表快速记录手机端的用药方案</string>
+    <string name="wear_app_content_description">Evolune 用药信息</string>
+    <string name="wear_app_recent_title">最近一次已确认服药</string>
+    <string name="wear_app_upcoming_title">接下来</string>
+    <string name="wear_app_recent_format">%1$s\n%2$s mg · %3$s · %4$s</string>
+    <string name="wear_app_upcoming_format">%1$s · %2$s mg\n%3$s · %4$s</string>
+    <string name="wear_app_dose_format">%.2f</string>
+    <string name="wear_app_waiting">正在等待手机端数据</string>
+    <string name="wear_app_syncing">正在同步</string>
+    <string name="wear_app_synced">已同步</string>
+    <string name="wear_app_empty">暂无未完成计划</string>
+    <string name="wear_app_no_upcoming">暂无接下来的计划</string>
+    <string name="wear_app_offline">未连接手机，显示上次数据</string>
+    <string name="wear_app_stale">数据可能已过期</string>
+    <string name="wear_app_sync_error">同步失败，请稍后重试</string>
+    <string name="wear_app_status_upcoming">待服</string>
+    <string name="wear_app_status_due">到期</string>
 </resources>

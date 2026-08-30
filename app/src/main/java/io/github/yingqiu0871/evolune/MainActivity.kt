@@ -48,6 +48,9 @@ import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModelFactory
 import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
 import io.github.yingqiu0871.evolune.widget.requestEvoluneWidgetUpdate
 import io.github.yingqiu0871.evolune.wear.WearDataLayer
+import io.github.yingqiu0871.evolune.wear.WearAppDataLayer
+import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
+import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
 import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
@@ -212,6 +215,27 @@ class MainActivity : ComponentActivity() {
                         io.github.yingqiu0871.evolune.wear.sampleWearCurve(
                             pkState.simulationResult,
                             pkState.currentTimeH
+                        )
+                    )
+                }
+                LaunchedEffect(
+                    domainMedicationPlans,
+                    doseEvents,
+                    pkState.currentConcentration,
+                    pkState.error
+                ) {
+                    WearAppDataLayer.publishSnapshot(
+                        context = applicationContext,
+                        snapshot = WearAppSnapshotBuilder.build(
+                            plans = domainMedicationPlans,
+                            events = doseEvents,
+                            generatedAt = java.time.Instant.now(),
+                            zoneId = java.time.ZoneId.systemDefault(),
+                            snapshotRevision = WearAppSnapshotRevisionStore.next(
+                                applicationContext
+                            ),
+                            currentConcentration = pkState.currentConcentration,
+                            concentrationError = pkState.error != null
                         )
                     )
                 }
