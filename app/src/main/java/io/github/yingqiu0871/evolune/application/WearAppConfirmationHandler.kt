@@ -10,11 +10,9 @@ import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
-import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.data.repository.RepositoryStorageException
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
-import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentation
 import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommand
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommandCodec
@@ -58,7 +56,9 @@ internal class WearAppConfirmationHandler(
     suspend fun handle(command: WearAppConfirmCommand): WearAppConfirmResult =
         try {
             operationMutex.withLock {
-                handleLocked(command)
+                OccurrenceConfirmationCoordinator.withLock {
+                    handleLocked(command)
+                }
             }
         } catch (error: CancellationException) {
             throw error
@@ -130,7 +130,7 @@ internal class WearAppConfirmationHandler(
         val currentPlans = medicationPlans.observeEnabled().first()
         val presentationOccurrences = regeneratePresentationOccurrences(currentPlans, command)
         val events = doseEvents.observeAll().first()
-        val existing = exactPresentationEvent(
+        val existing = findPresentedEventForOccurrence(
             occurrence,
             presentationOccurrences,
             events,
@@ -162,7 +162,7 @@ internal class WearAppConfirmationHandler(
         ) {
             is RecordDoseEventActionResult.Accepted -> {
                 val verifiedEvents = doseEvents.observeAll().first()
-                val verified = exactPresentationEvent(
+                val verified = findPresentedEventForOccurrence(
                     occurrence,
                     presentationOccurrences,
                     verifiedEvents,
@@ -196,7 +196,7 @@ internal class WearAppConfirmationHandler(
             }
             RecordDoseEventActionResult.Conflict -> {
                 val verifiedEvents = doseEvents.observeAll().first()
-                val verified = exactPresentationEvent(
+                val verified = findPresentedEventForOccurrence(
                     occurrence,
                     presentationOccurrences,
                     verifiedEvents,
@@ -294,21 +294,6 @@ internal class WearAppConfirmationHandler(
             window = window,
             zoneId = zone
         )
-    }
-
-    private fun exactPresentationEvent(
-        occurrence: MedicationOccurrence,
-        presentationOccurrences: List<MedicationOccurrence>,
-        events: List<DoseEvent>,
-        now: Instant
-    ): DoseEvent? {
-        val item = MedicationOccurrencePresentation.derive(
-            occurrences = presentationOccurrences,
-            recordedEvents = events.mapNotNull(DoseEvent::toRecordedMedicationEvent),
-            now = now
-        ).singleOrNull { it.occurrence.id == occurrence.id }
-        val eventId = item?.recordedEventId ?: return null
-        return events.firstOrNull { it.id == eventId }
     }
 
     private fun createConfirmationEvent(
