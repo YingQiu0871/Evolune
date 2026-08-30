@@ -1,10 +1,14 @@
 package io.github.yingqiu0871.evolune.wear
 
+import android.content.Context
+import android.content.Intent
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 
 internal const val WEAR_APP_SYNC_TIMEOUT_MILLIS = 30_000L
 internal const val WEAR_APP_STALE_AFTER_MILLIS = 15 * 60_000L
+internal const val WEAR_APP_STATE_CHANGED_ACTION =
+    "io.github.yingqiu0871.evolune.wear.ACTION_STATE_CHANGED"
 
 internal enum class WearAppConnectionState {
     UNKNOWN,
@@ -35,6 +39,43 @@ internal data class WearAppPresentation(
     val state: WearAppDisplayState
 )
 
+/**
+ * Returns the next wall-clock boundary that can change the displayed state.
+ * No periodic polling is needed: pending requests wake at timeout and a
+ * received snapshot wakes at the freshness boundary.
+ */
+internal fun nextWearAppRefreshDeadline(
+    nowMillis: Long,
+    metadata: WearAppCacheMetadata,
+    snapshot: WearAppSnapshot?
+): Long? {
+    val deadlines = buildList {
+        futureDeadline(metadata.pendingSince, WEAR_APP_SYNC_TIMEOUT_MILLIS, nowMillis)
+            ?.let(::add)
+        if (snapshot != null) {
+            futureDeadline(metadata.receivedAt, WEAR_APP_STALE_AFTER_MILLIS, nowMillis)
+                ?.let(::add)
+        }
+    }
+    return deadlines.minOrNull()
+}
+
+internal fun shouldHandleWearAppRotaryScroll(
+    isVisible: Boolean,
+    isRotaryEncoder: Boolean,
+    isScrollAction: Boolean,
+    axisValue: Float
+): Boolean =
+    isVisible && isRotaryEncoder && isScrollAction && axisValue.isFinite() && axisValue != 0f
+
+internal fun shouldRunWearAppRefreshCallback(isVisible: Boolean): Boolean = isVisible
+
+internal fun notifyWearAppStateChanged(context: Context) {
+    context.sendBroadcast(
+        Intent(WEAR_APP_STATE_CHANGED_ACTION).setPackage(context.packageName)
+    )
+}
+
 internal fun deriveWearAppPresentation(
     snapshot: WearAppSnapshot?,
     metadata: WearAppCacheMetadata,
@@ -44,8 +85,8 @@ internal fun deriveWearAppPresentation(
         return WearAppPresentation(snapshot, WearAppDisplayState.OFFLINE)
     }
     if (metadata.pendingSince > 0L) {
-        val age = nowMillis - metadata.pendingSince
-        return if (age in 0 until WEAR_APP_SYNC_TIMEOUT_MILLIS) {
+        val age = elapsedSince(nowMillis, metadata.pendingSince)
+        return if (age == null || age < WEAR_APP_SYNC_TIMEOUT_MILLIS) {
             WearAppPresentation(snapshot, WearAppDisplayState.SYNCING)
         } else {
             WearAppPresentation(snapshot, WearAppDisplayState.ERROR)
@@ -57,7 +98,8 @@ internal fun deriveWearAppPresentation(
     if (snapshot == null || metadata.receivedAt <= 0L) {
         return WearAppPresentation(snapshot, WearAppDisplayState.WAITING_FOR_PHONE)
     }
-    if (nowMillis - metadata.receivedAt !in 0..WEAR_APP_STALE_AFTER_MILLIS) {
+    val age = elapsedSince(nowMillis, metadata.receivedAt)
+    if (age == null || age >= WEAR_APP_STALE_AFTER_MILLIS) {
         return WearAppPresentation(snapshot, WearAppDisplayState.STALE)
     }
     return WearAppPresentation(
@@ -68,4 +110,17 @@ internal fun deriveWearAppPresentation(
             WearAppDisplayState.READY
         }
     )
+}
+
+private fun elapsedSince(nowMillis: Long, thenMillis: Long): Long? =
+    if (nowMillis < thenMillis) null else nowMillis - thenMillis
+
+private fun futureDeadline(startMillis: Long, durationMillis: Long, nowMillis: Long): Long? {
+    if (startMillis <= 0L) return null
+    val deadline = if (startMillis > Long.MAX_VALUE - durationMillis) {
+        Long.MAX_VALUE
+    } else {
+        startMillis + durationMillis
+    }
+    return deadline.takeIf { it > nowMillis }
 }

@@ -6,32 +6,53 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
 class WearAppActivity : android.app.Activity() {
+    private lateinit var scrollView: ScrollView
     private lateinit var syncState: TextView
     private lateinit var recentCard: LinearLayout
     private lateinit var recentDose: TextView
     private lateinit var upcomingList: LinearLayout
     private lateinit var emptyState: TextView
     private val dateFormatter = DateTimeFormatter.ofPattern("MM-dd HH:mm")
+    private val refreshHandler = Handler(Looper.getMainLooper())
+    private var isActivityVisible = false
+    private var receiverRegistered = false
+
+    private val refreshRunnable = Runnable {
+        if (shouldRunWearAppRefreshCallback(isActivityVisible)) {
+            render()
+            scheduleNextRefresh()
+        }
+    }
 
     private val snapshotReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            render()
+            if (shouldRunWearAppRefreshCallback(isActivityVisible)) {
+                render()
+                scheduleNextRefresh()
+            }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wear_app)
+        scrollView = findViewById(R.id.wear_app_scroll)
         syncState = findViewById(R.id.wear_app_sync_state)
         recentCard = findViewById(R.id.wear_app_recent_card)
         recentDose = findViewById(R.id.wear_app_recent_dose)
@@ -42,20 +63,68 @@ class WearAppActivity : android.app.Activity() {
 
     override fun onStart() {
         super.onStart()
-        val filter = IntentFilter(WEAR_APP_SNAPSHOT_CHANGED_ACTION)
+        isActivityVisible = true
+        val filter = IntentFilter(WEAR_APP_STATE_CHANGED_ACTION)
         ContextCompat.registerReceiver(
             this,
             snapshotReceiver,
             filter,
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
+        receiverRegistered = true
         render()
         WearAppDataLayer.requestSnapshot(this)
+        scheduleNextRefresh()
     }
 
     override fun onStop() {
-        unregisterReceiver(snapshotReceiver)
+        isActivityVisible = false
+        refreshHandler.removeCallbacks(refreshRunnable)
+        if (receiverRegistered) {
+            unregisterReceiver(snapshotReceiver)
+            receiverRegistered = false
+        }
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        isActivityVisible = false
+        refreshHandler.removeCallbacks(refreshRunnable)
+        super.onDestroy()
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        val sourceIsRotary = event.source and InputDevice.SOURCE_ROTARY_ENCODER ==
+            InputDevice.SOURCE_ROTARY_ENCODER
+        val isScrollAction = event.action == MotionEvent.ACTION_SCROLL
+        val axisValue = event.getAxisValue(MotionEvent.AXIS_SCROLL)
+        if (shouldHandleWearAppRotaryScroll(
+                isVisible = isActivityVisible,
+                isRotaryEncoder = sourceIsRotary,
+                isScrollAction = isScrollAction,
+                axisValue = axisValue
+            )
+        ) {
+            val scrollFactor = ViewConfigurationCompat.verticalScrollFactor(this)
+            scrollView.scrollBy(0, (-axisValue * scrollFactor).roundToInt())
+            return true
+        }
+        return super.dispatchGenericMotionEvent(event)
+    }
+
+    private fun scheduleNextRefresh() {
+        refreshHandler.removeCallbacks(refreshRunnable)
+        if (!isActivityVisible) return
+        val nowMillis = System.currentTimeMillis()
+        val deadline = WearAppStore.getNextRefreshDeadline(this, nowMillis) ?: return
+        refreshHandler.postDelayed(refreshRunnable, delayUntil(deadline, nowMillis))
+    }
+
+    private fun delayUntil(deadlineMillis: Long, nowMillis: Long): Long = when {
+        deadlineMillis <= nowMillis -> 0L
+        nowMillis >= 0L -> deadlineMillis - nowMillis
+        deadlineMillis > Long.MAX_VALUE + nowMillis -> Long.MAX_VALUE
+        else -> deadlineMillis - nowMillis
     }
 
     private fun render() {
@@ -136,4 +205,11 @@ class WearAppActivity : android.app.Activity() {
 
     private fun formatDose(dose: Double): String =
         getString(R.string.wear_app_dose_format, dose)
+}
+
+private object ViewConfigurationCompat {
+    fun verticalScrollFactor(context: Context): Float =
+        android.view.ViewConfiguration.get(context).scaledVerticalScrollFactor
+            .takeIf { it > 0f }
+            ?: (context.resources.displayMetrics.density * 48f)
 }

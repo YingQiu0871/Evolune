@@ -18,7 +18,8 @@
         <activity
             android:name=".WearAppActivity"
             android:exported="true"
-            android:taskAffinity="${applicationId}.wear-app">
+            android:taskAffinity="${applicationId}.wear-app"
+            android:theme="@style/WearAppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

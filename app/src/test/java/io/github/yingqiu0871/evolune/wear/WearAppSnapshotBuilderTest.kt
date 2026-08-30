@@ -186,6 +186,22 @@ class WearAppSnapshotBuilderTest {
     }
 
     @Test
+    fun `cached concentration does not invent a calculated timestamp`() {
+        val snapshot = WearAppSnapshotBuilder.build(
+            plans = listOf(plan(UUID(8L, 1L))),
+            events = emptyList(),
+            generatedAt = now,
+            zoneId = zone,
+            snapshotRevision = 1L,
+            currentConcentration = 12.5
+        )
+
+        assertEquals(WearAppConcentrationStatus.AVAILABLE, snapshot.concentrationState.status)
+        assertEquals(12.5, requireNotNull(snapshot.concentrationState.value), 0.0)
+        assertEquals(null, snapshot.concentrationState.calculatedAt)
+    }
+
+    @Test
     fun `DST gap keeps phone local date while resolving scheduled instant`() {
         val dstPlan = plan(
             id = UUID(7L, 1L),

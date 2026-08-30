@@ -74,6 +74,11 @@ data class WearAppConcentration(
     val calculatedAt: Instant? = null
 )
 
+data class WearAppProducerIdentity(
+    val producerInstanceId: UUID,
+    val producerGeneration: Long
+)
+
 data class WearAppSnapshot(
     val protocolVersion: Int,
     val snapshotRevision: Long,
@@ -82,7 +87,14 @@ data class WearAppSnapshot(
     val overallStatus: WearAppOverallStatus,
     val recentDose: WearAppRecentDose?,
     val upcomingOccurrences: List<WearAppUpcomingOccurrence>,
-    val concentrationState: WearAppConcentration
+    val concentrationState: WearAppConcentration,
+    /**
+     * Identity of the Phone producer instance. This is intentionally part of
+     * the transport contract, but is not rendered by either app.
+     */
+    val producerInstanceId: UUID = UUID(0L, 0L),
+    /** Monotonic generation assigned when the producer instance is created. */
+    val producerGeneration: Long = 1L
 )
 
 object WearAppSnapshotRules {
@@ -99,9 +111,18 @@ object WearAppSnapshotRules {
         occurrences: Iterable<WearAppUpcomingOccurrence>
     ): List<WearAppUpcomingOccurrence> = occurrences.sortedWith(upcomingOrder)
 
+    /**
+     * Orders producer generations independently from snapshot revisions. The
+     * producer id tie-break makes simultaneous generations deterministic.
+     */
+    fun compareProducers(left: WearAppSnapshot, right: WearAppSnapshot): Int =
+        compareValues(left.producerGeneration, right.producerGeneration).takeIf { it != 0 }
+            ?: left.producerInstanceId.toString().compareTo(right.producerInstanceId.toString())
+
     fun isValid(snapshot: WearAppSnapshot): Boolean = runCatching {
         require(snapshot.protocolVersion == WearAppProtocol.PROTOCOL_VERSION)
         require(snapshot.snapshotRevision > 0L)
+        require(snapshot.producerGeneration > 0L)
         require(snapshot.generatedAt.toEpochMilli() > 0L)
         ZoneId.of(snapshot.zoneId)
         require(snapshot.upcomingOccurrences.size <= MAX_UPCOMING_OCCURRENCES)
@@ -168,6 +189,8 @@ object WearAppSnapshotCodec {
             snapshot.recentDose?.let { bytes(6, encodeRecent(it)) }
             bytes(7, encodeUpcoming(snapshot.upcomingOccurrences))
             bytes(8, encodeConcentration(snapshot.concentrationState))
+            string(9, snapshot.producerInstanceId.toString())
+            long(10, snapshot.producerGeneration)
         }.prependMagic()
     }
 
@@ -184,7 +207,9 @@ object WearAppSnapshotCodec {
             overallStatus = enumValue(top.required(5).readString()),
             recentDose = top.optional(6)?.let(::decodeRecent),
             upcomingOccurrences = decodeUpcoming(top.required(7)),
-            concentrationState = decodeConcentration(top.required(8))
+            concentrationState = decodeConcentration(top.required(8)),
+            producerInstanceId = UUID.fromString(top.required(9).readString()),
+            producerGeneration = top.required(10).readLong()
         )
         require(WearAppSnapshotRules.isValid(snapshot))
         snapshot

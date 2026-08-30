@@ -12,6 +12,7 @@ import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
@@ -19,6 +20,7 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import java.util.UUID
 
 internal object WearAppSnapshotBuilder {
     private val recentOrder = compareBy<DoseEvent>(
@@ -33,7 +35,11 @@ internal object WearAppSnapshotBuilder {
         zoneId: ZoneId,
         snapshotRevision: Long,
         currentConcentration: Double?,
-        concentrationError: Boolean = false
+        concentrationError: Boolean = false,
+        producerIdentity: WearAppProducerIdentity = WearAppProducerIdentity(
+            producerInstanceId = UUID(0L, 0L),
+            producerGeneration = 1L
+        )
     ): WearAppSnapshot {
         val enabledPlans = plans
             .filter { plan ->
@@ -123,7 +129,9 @@ internal object WearAppSnapshotBuilder {
             },
             recentDose = recentDose,
             upcomingOccurrences = upcoming,
-            concentrationState = concentration
+            concentrationState = concentration,
+            producerInstanceId = producerIdentity.producerInstanceId,
+            producerGeneration = producerIdentity.producerGeneration
         ).also { snapshot ->
             check(WearAppSnapshotRules.isValid(snapshot))
         }

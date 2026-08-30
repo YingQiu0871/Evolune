@@ -49,6 +49,7 @@ import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
 import io.github.yingqiu0871.evolune.widget.requestEvoluneWidgetUpdate
 import io.github.yingqiu0871.evolune.wear.WearDataLayer
 import io.github.yingqiu0871.evolune.wear.WearAppDataLayer
+import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
 import kotlinx.coroutines.flow.first
@@ -235,7 +236,10 @@ class MainActivity : ComponentActivity() {
                                 applicationContext
                             ),
                             currentConcentration = pkState.currentConcentration,
-                            concentrationError = pkState.error != null
+                            concentrationError = pkState.error != null,
+                            producerIdentity = WearAppProducerIdentityStore.current(
+                                applicationContext
+                            )
                         )
                     )
                 }

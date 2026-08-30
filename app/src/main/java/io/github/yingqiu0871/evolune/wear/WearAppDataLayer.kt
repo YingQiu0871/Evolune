@@ -50,13 +50,15 @@ internal object WearAppDataLayer {
             Context.MODE_PRIVATE
         ).getString("cached_current", null)?.toDoubleOrNull()
         val now = Instant.now()
+        val producerIdentity = WearAppProducerIdentityStore.current(context)
         val snapshot = WearAppSnapshotBuilder.build(
             plans = plans,
             events = events,
             generatedAt = now,
             zoneId = ZoneId.systemDefault(),
             snapshotRevision = WearAppSnapshotRevisionStore.next(context),
-            currentConcentration = cachedCurrent
+            currentConcentration = cachedCurrent,
+            producerIdentity = producerIdentity
         )
         publishSnapshot(context, snapshot)
     }
