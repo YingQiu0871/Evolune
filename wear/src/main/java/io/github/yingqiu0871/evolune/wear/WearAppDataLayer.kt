@@ -4,12 +4,19 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.Wearable
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
 import java.util.concurrent.atomic.AtomicInteger
 
 internal object WearAppDataLayer {
     fun requestSnapshot(context: Context, nowMillis: Long = System.currentTimeMillis()) {
         if (!WearAppStore.beginRequest(context, nowMillis)) return
         val appContext = context.applicationContext
+        val request = WearAppStore.getRequest(appContext, nowMillis)
+        if (request == null) {
+            WearAppStore.markFailure(appContext, nowMillis)
+            return
+        }
+        val payload = WearAppRequestCodec.encode(request)
         Wearable.getNodeClient(appContext).connectedNodes
             .addOnSuccessListener { nodes ->
                 if (nodes.isEmpty()) {
@@ -20,7 +27,7 @@ internal object WearAppDataLayer {
                 val successes = AtomicInteger(0)
                 nodes.forEach { node ->
                     Wearable.getMessageClient(appContext)
-                        .sendMessage(node.id, WearAppProtocol.REQUEST_PATH, byteArrayOf())
+                        .sendMessage(node.id, WearAppProtocol.REQUEST_PATH, payload)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) successes.incrementAndGet()
                             if (remaining.decrementAndGet() == 0) {

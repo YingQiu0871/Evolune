@@ -7,6 +7,7 @@ import io.github.yingqiu0871.evolune.core.model.ScheduleType
 import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import org.junit.Assert.assertEquals
@@ -23,6 +24,10 @@ import java.util.UUID
 class WearAppSnapshotBuilderTest {
     private val now = Instant.parse("2026-08-30T10:00:00Z")
     private val zone = ZoneId.of("UTC")
+    private val producerIdentity = WearAppProducerIdentity(
+        producerInstanceId = UUID(0L, 9L),
+        producerGeneration = 1L
+    )
 
     @Test
     fun `recent dose uses real event id and is independent of input order`() {
@@ -70,7 +75,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = now,
             zoneId = zone,
             snapshotRevision = 1L,
-            currentConcentration = null
+            currentConcentration = null,
+            producerIdentity = producerIdentity
         )
         val reversed = WearAppSnapshotBuilder.build(
             plans = listOf(secondPlan, firstPlan),
@@ -78,7 +84,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = now,
             zoneId = zone,
             snapshotRevision = 1L,
-            currentConcentration = null
+            currentConcentration = null,
+            producerIdentity = producerIdentity
         )
 
         assertEquals(first, reversed)
@@ -116,7 +123,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = now,
             zoneId = zone,
             snapshotRevision = 1L,
-            currentConcentration = null
+            currentConcentration = null,
+            producerIdentity = producerIdentity
         )
 
         assertEquals(WearAppSnapshotRules.MAX_UPCOMING_OCCURRENCES, snapshot.upcomingOccurrences.size)
@@ -178,7 +186,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = now,
             zoneId = zone,
             snapshotRevision = 1L,
-            currentConcentration = Double.NaN
+            currentConcentration = Double.NaN,
+            producerIdentity = producerIdentity
         )
 
         assertEquals(WearAppConcentrationStatus.EMPTY, snapshot.concentrationState.status)
@@ -193,7 +202,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = now,
             zoneId = zone,
             snapshotRevision = 1L,
-            currentConcentration = 12.5
+            currentConcentration = 12.5,
+            producerIdentity = producerIdentity
         )
 
         assertEquals(WearAppConcentrationStatus.AVAILABLE, snapshot.concentrationState.status)
@@ -222,7 +232,8 @@ class WearAppSnapshotBuilderTest {
             generatedAt = Instant.parse("2026-03-08T06:00:00Z"),
             zoneId = ZoneId.of("America/New_York"),
             snapshotRevision = 1L,
-            currentConcentration = null
+            currentConcentration = null,
+            producerIdentity = producerIdentity
         )
 
         assertEquals(LocalDate.of(2026, 3, 8), snapshot.upcomingOccurrences.first().localDate)
@@ -241,7 +252,8 @@ class WearAppSnapshotBuilderTest {
         generatedAt = now,
         zoneId = zone,
         snapshotRevision = 1L,
-        currentConcentration = null
+        currentConcentration = null,
+        producerIdentity = producerIdentity
     )
 
     private fun doseEvent(id: UUID, occurredAt: Instant) = DoseEvent(

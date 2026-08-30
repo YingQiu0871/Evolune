@@ -8,6 +8,9 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerNegotiationResult
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import kotlinx.coroutines.CancellationException
@@ -41,7 +44,25 @@ internal object WearAppDataLayer {
         }
     }
 
-    suspend fun publishCurrentSnapshot(context: Context) {
+    suspend fun publishCurrentSnapshot(
+        context: Context,
+        request: WearAppRequest? = null
+    ) {
+        val producerIdentity = if (request == null) {
+            WearAppProducerIdentityStore.current(context)
+        } else {
+            when (val result = WearAppProducerIdentityStore.negotiate(context, request)) {
+                is WearAppProducerNegotiationResult.Accepted -> result.identity
+                WearAppProducerNegotiationResult.GenerationExhausted -> {
+                    Log.w(TAG, "Wear App producer generation exhausted")
+                    return
+                }
+                WearAppProducerNegotiationResult.InvalidObservedProducer -> {
+                    Log.w(TAG, "Wear App producer request was invalid")
+                    return
+                }
+            }
+        }
         val repositories = ProductionRepositoryProvider.get(context)
         val plans = repositories.medicationPlans.observeAll().first()
         val events = repositories.doseEvents.observeAll().first()
@@ -50,7 +71,6 @@ internal object WearAppDataLayer {
             Context.MODE_PRIVATE
         ).getString("cached_current", null)?.toDoubleOrNull()
         val now = Instant.now()
-        val producerIdentity = WearAppProducerIdentityStore.current(context)
         val snapshot = WearAppSnapshotBuilder.build(
             plans = plans,
             events = events,
@@ -72,9 +92,13 @@ class WearAppListenerService : WearableListenerService() {
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
         if (messageEvent.path != WearAppProtocol.REQUEST_PATH) return
+        val request = when {
+            messageEvent.data.isEmpty() -> null
+            else -> WearAppRequestCodec.decode(messageEvent.data) ?: return
+        }
         serviceScope.launch {
             try {
-                WearAppDataLayer.publishCurrentSnapshot(applicationContext)
+                WearAppDataLayer.publishCurrentSnapshot(applicationContext, request)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Throwable) {

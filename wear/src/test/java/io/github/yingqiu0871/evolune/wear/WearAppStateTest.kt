@@ -3,6 +3,7 @@ package io.github.yingqiu0871.evolune.wear
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import org.junit.Assert.assertEquals
@@ -10,6 +11,11 @@ import org.junit.Test
 import java.time.Instant
 
 class WearAppStateTest {
+    private val producerIdentity = WearAppProducerIdentity(
+        producerInstanceId = java.util.UUID(0L, 9L),
+        producerGeneration = 1L
+    )
+
     private val snapshot = WearAppSnapshot(
         protocolVersion = 1,
         snapshotRevision = 1L,
@@ -18,7 +24,9 @@ class WearAppStateTest {
         overallStatus = WearAppOverallStatus.READY,
         recentDose = null,
         upcomingOccurrences = emptyList(),
-        concentrationState = WearAppConcentration(WearAppConcentrationStatus.EMPTY)
+        concentrationState = WearAppConcentration(WearAppConcentrationStatus.EMPTY),
+        producerInstanceId = producerIdentity.producerInstanceId,
+        producerGeneration = producerIdentity.producerGeneration
     )
 
     @Test

@@ -36,10 +36,7 @@ internal object WearAppSnapshotBuilder {
         snapshotRevision: Long,
         currentConcentration: Double?,
         concentrationError: Boolean = false,
-        producerIdentity: WearAppProducerIdentity = WearAppProducerIdentity(
-            producerInstanceId = UUID(0L, 0L),
-            producerGeneration = 1L
-        )
+        producerIdentity: WearAppProducerIdentity
     ): WearAppSnapshot {
         val enabledPlans = plans
             .filter { plan ->

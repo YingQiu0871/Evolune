@@ -10,6 +10,11 @@ import java.time.LocalDate
 import java.util.UUID
 
 class WearAppSnapshotCodecTest {
+    private val producerIdentity = WearAppProducerIdentity(
+        producerInstanceId = UUID(0L, 9L),
+        producerGeneration = 1L
+    )
+
     private val snapshot = WearAppSnapshot(
         protocolVersion = WearAppProtocol.PROTOCOL_VERSION,
         snapshotRevision = 7L,
@@ -42,7 +47,9 @@ class WearAppSnapshotCodecTest {
                 status = WearAppOccurrenceStatus.UPCOMING
             )
         ),
-        concentrationState = WearAppConcentration(WearAppConcentrationStatus.EMPTY)
+        concentrationState = WearAppConcentration(WearAppConcentrationStatus.EMPTY),
+        producerInstanceId = producerIdentity.producerInstanceId,
+        producerGeneration = producerIdentity.producerGeneration
     )
 
     @Test

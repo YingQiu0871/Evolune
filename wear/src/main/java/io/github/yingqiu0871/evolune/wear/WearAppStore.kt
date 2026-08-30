@@ -7,6 +7,10 @@ import android.util.Base64
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestRules
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
+import java.time.Instant
 import java.util.UUID
 
 internal sealed interface WearAppSnapshotApplyResult {
@@ -16,54 +20,72 @@ internal sealed interface WearAppSnapshotApplyResult {
     data object Rejected : WearAppSnapshotApplyResult
 }
 
-internal fun classifyWearAppSnapshot(
-    current: WearAppSnapshot?,
+internal data class WearAppSnapshotReducerState(
+    val current: WearAppSnapshot?
+)
+
+internal data class WearAppSnapshotReduction(
+    val state: WearAppSnapshotReducerState,
+    val result: WearAppSnapshotApplyResult
+)
+
+internal fun reduceWearAppSnapshot(
+    state: WearAppSnapshotReducerState,
     incoming: WearAppSnapshot
-): WearAppSnapshotApplyResult {
-    if (current == null) return WearAppSnapshotApplyResult.Applied
+): WearAppSnapshotReduction {
+    val current = state.current
+    if (current == null) {
+        return WearAppSnapshotReduction(
+            state = WearAppSnapshotReducerState(incoming),
+            result = WearAppSnapshotApplyResult.Applied
+        )
+    }
     if (incoming.producerInstanceId != current.producerInstanceId) {
         return if (WearAppSnapshotRules.compareProducers(incoming, current) > 0) {
-            WearAppSnapshotApplyResult.Applied
+            WearAppSnapshotReduction(
+                state = WearAppSnapshotReducerState(incoming),
+                result = WearAppSnapshotApplyResult.Applied
+            )
         } else {
-            WearAppSnapshotApplyResult.Older
+            WearAppSnapshotReduction(state, WearAppSnapshotApplyResult.Older)
         }
     }
     return when {
         incoming.snapshotRevision < current.snapshotRevision ->
-            WearAppSnapshotApplyResult.Older
+            WearAppSnapshotReduction(state, WearAppSnapshotApplyResult.Older)
         incoming.snapshotRevision == current.snapshotRevision ->
-            if (incoming == current) {
-                WearAppSnapshotApplyResult.Duplicate
-            } else {
-                WearAppSnapshotApplyResult.Rejected
-            }
-        else -> WearAppSnapshotApplyResult.Applied
+            WearAppSnapshotReduction(
+                state,
+                if (incoming == current) {
+                    WearAppSnapshotApplyResult.Duplicate
+                } else {
+                    WearAppSnapshotApplyResult.Rejected
+                }
+            )
+        else -> WearAppSnapshotReduction(
+            state = WearAppSnapshotReducerState(incoming),
+            result = WearAppSnapshotApplyResult.Applied
+        )
     }
 }
 
-/**
- * A producer not seen as retired is a valid reset candidate even if its
- * generation timestamp is lower because the Phone clock moved backwards.
- * Once a producer is retired, its delayed snapshots can never become current.
- */
-internal fun shouldAcceptWearAppProducerSwitch(
+internal fun classifyWearAppSnapshot(
     current: WearAppSnapshot?,
-    incoming: WearAppSnapshot,
-    retiredProducerIds: Set<UUID>
-): Boolean =
-    current != null &&
-        current.producerInstanceId != incoming.producerInstanceId &&
-        incoming.producerInstanceId !in retiredProducerIds
+    incoming: WearAppSnapshot
+): WearAppSnapshotApplyResult = reduceWearAppSnapshot(
+    WearAppSnapshotReducerState(current),
+    incoming
+).result
 
 internal object WearAppStore {
     private const val PREFERENCES_NAME = "wear_app_snapshot"
     private const val KEY_PAYLOAD = "payload"
     private const val KEY_RECEIVED_AT = "received_at"
     private const val KEY_LAST_REQUESTED_AT = "last_requested_at"
+    private const val KEY_REQUEST_ID = "request_id"
     private const val KEY_PENDING_SINCE = "pending_since"
     private const val KEY_LAST_FAILURE_AT = "last_failure_at"
     private const val KEY_CONNECTION_STATE = "connection_state"
-    private const val KEY_RETIRED_PRODUCER_IDS = "retired_producer_ids"
     internal const val REQUEST_THROTTLE_MILLIS = 15_000L
 
     fun getSnapshot(context: Context): WearAppSnapshot? {
@@ -89,38 +111,16 @@ internal object WearAppStore {
         val incoming = WearAppSnapshotCodec.decode(payload)
             ?: return WearAppSnapshotApplyResult.Rejected
         val current = getSnapshot(context)
-        val retiredProducerIds = getRetiredProducerIds(context)
-        if (incoming.producerInstanceId in retiredProducerIds) {
-            return WearAppSnapshotApplyResult.Older
-        }
-        val classification = classifyWearAppSnapshot(current, incoming)
-        when (classification) {
-            WearAppSnapshotApplyResult.Applied -> Unit
-            WearAppSnapshotApplyResult.Older -> {
-                if (!shouldAcceptWearAppProducerSwitch(current, incoming, retiredProducerIds)) {
-                    return classification
-                }
-            }
-            else -> return classification
-        }
+        val reduction = reduceWearAppSnapshot(WearAppSnapshotReducerState(current), incoming)
+        if (reduction.result != WearAppSnapshotApplyResult.Applied) return reduction.result
         val encoded = Base64.encodeToString(payload, Base64.NO_WRAP)
-        val updatedRetiredProducerIds = if (
-            current != null && current.producerInstanceId != incoming.producerInstanceId
-        ) {
-            retiredProducerIds + current.producerInstanceId
-        } else {
-            retiredProducerIds
-        }
         check(preferences(context).edit()
             .putString(KEY_PAYLOAD, encoded)
             .putLong(KEY_RECEIVED_AT, receivedAt)
             .putString(KEY_CONNECTION_STATE, WearAppConnectionState.CONNECTED.name)
-            .putString(
-                KEY_RETIRED_PRODUCER_IDS,
-                updatedRetiredProducerIds.joinToString(",")
-            )
             .remove(KEY_PENDING_SINCE)
             .remove(KEY_LAST_FAILURE_AT)
+            .remove(KEY_REQUEST_ID)
             .commit())
         notifyWearAppStateChanged(context)
         return WearAppSnapshotApplyResult.Applied
@@ -133,11 +133,28 @@ internal object WearAppStore {
         val committed = preferences.edit()
             .putLong(KEY_LAST_REQUESTED_AT, nowMillis)
             .putLong(KEY_PENDING_SINCE, nowMillis)
+            .putString(KEY_REQUEST_ID, UUID.randomUUID().toString())
             .remove(KEY_LAST_FAILURE_AT)
             .putString(KEY_CONNECTION_STATE, WearAppConnectionState.UNKNOWN.name)
             .commit()
         if (committed) notifyWearAppStateChanged(context)
         return committed
+    }
+
+    fun getRequest(context: Context, requestedAt: Long): WearAppRequest? {
+        if (requestedAt <= 0L) return null
+        val requestId = runCatching {
+            UUID.fromString(preferences(context).getString(KEY_REQUEST_ID, null) ?: return null)
+        }.getOrNull() ?: return null
+        val snapshot = getSnapshot(context)
+        return WearAppRequest(
+            protocolVersion = WearAppProtocol.PROTOCOL_VERSION,
+            requestId = requestId,
+            observedProducerInstanceId = snapshot?.producerInstanceId,
+            observedProducerGeneration = snapshot?.producerGeneration,
+            observedSnapshotRevision = snapshot?.snapshotRevision,
+            requestedAt = Instant.ofEpochMilli(requestedAt)
+        ).takeIf(WearAppRequestRules::isValid)
     }
 
     fun markDispatched(context: Context) {
@@ -151,6 +168,7 @@ internal object WearAppStore {
         check(preferences(context).edit()
             .putString(KEY_CONNECTION_STATE, WearAppConnectionState.DISCONNECTED.name)
             .remove(KEY_PENDING_SINCE)
+            .remove(KEY_REQUEST_ID)
             .commit())
         notifyWearAppStateChanged(context)
     }
@@ -159,6 +177,7 @@ internal object WearAppStore {
         check(preferences(context).edit()
             .putLong(KEY_LAST_FAILURE_AT, nowMillis)
             .remove(KEY_PENDING_SINCE)
+            .remove(KEY_REQUEST_ID)
             .putString(KEY_CONNECTION_STATE, WearAppConnectionState.CONNECTED.name)
             .commit())
         notifyWearAppStateChanged(context)
@@ -184,16 +203,6 @@ internal object WearAppStore {
             }.getOrDefault(WearAppConnectionState.UNKNOWN)
         )
     }
-
-    private fun getRetiredProducerIds(context: Context): Set<UUID> =
-        preferences(context)
-            .getString(KEY_RETIRED_PRODUCER_IDS, null)
-            .orEmpty()
-            .split(',')
-            .asSequence()
-            .filter(String::isNotBlank)
-            .mapNotNull { value -> runCatching { UUID.fromString(value) }.getOrNull() }
-            .toSet()
 
     private fun preferences(context: Context) = context.getSharedPreferences(
         PREFERENCES_NAME,

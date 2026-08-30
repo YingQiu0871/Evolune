@@ -2,8 +2,12 @@ package io.github.yingqiu0871.evolune.wear
 
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
+import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerNegotiationResult
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
+import io.github.yingqiu0871.evolune.experience.wear.negotiateWearAppProducerIdentity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -54,12 +58,118 @@ class WearAppFollowUpRegressionTest {
     }
 
     @Test
-    fun `unseen producer switch survives phone clock rollback while retired producer is blocked`() {
+    fun `lower generation producer is rejected until phone negotiates a higher generation`() {
         val old = snapshot(producerA, generation = 100, revision = 100)
         val rebuiltPhone = snapshot(producerB, generation = 1, revision = 1)
 
-        assertTrue(shouldAcceptWearAppProducerSwitch(old, rebuiltPhone, emptySet()))
-        assertFalse(shouldAcceptWearAppProducerSwitch(rebuiltPhone, old, setOf(producerA)))
+        assertEquals(
+            WearAppSnapshotApplyResult.Older,
+            reduceWearAppSnapshot(WearAppSnapshotReducerState(old), rebuiltPhone).result
+        )
+    }
+
+    @Test
+    fun `real reducer keeps the highest producer for every three producer permutation`() {
+        val first = snapshot(producerA, generation = 1, revision = 1)
+        val newest = snapshot(producerB, generation = 3, revision = 1)
+        val delayed = snapshot(UUID(0L, 3L), generation = 2, revision = 1)
+
+        val finalStates = listOf(
+            listOf(first, delayed, newest),
+            listOf(first, newest, delayed),
+            listOf(delayed, first, newest),
+            listOf(delayed, newest, first),
+            listOf(newest, first, delayed),
+            listOf(newest, delayed, first),
+        ).map(::reduce)
+
+        assertEquals(6, finalStates.size)
+        assertTrue(finalStates.all { it.current?.producerInstanceId == newest.producerInstanceId })
+        assertEquals(
+            newest.producerInstanceId,
+            reduce(listOf(newest, delayed)).current?.producerInstanceId
+        )
+    }
+
+    @Test
+    fun `same generation producer tie break is stable for every permutation`() {
+        val first = snapshot(producerA, generation = 7, revision = 999)
+        val second = snapshot(producerB, generation = 7, revision = 1)
+        val expected = listOf(first, second).maxWithOrNull(compareBy<WearAppSnapshot> {
+            it.producerGeneration
+        }.thenBy {
+            it.producerInstanceId.toString()
+        })!!
+
+        assertEquals(
+            expected.producerInstanceId,
+            reduce(listOf(first, second)).current?.producerInstanceId
+        )
+        assertEquals(
+            expected.producerInstanceId,
+            reduce(listOf(second, first)).current?.producerInstanceId
+        )
+    }
+
+    @Test
+    fun `phone reset handshake raises generation and recovers without clearing Wear`() {
+        val oldPhone = snapshot(producerA, generation = 100, revision = 100)
+        val rebuiltPhone = snapshot(producerB, generation = 1, revision = 1)
+        val resetRequest = WearAppRequest(
+            protocolVersion = 1,
+            requestId = UUID(0L, 20L),
+            observedProducerInstanceId = producerA,
+            observedProducerGeneration = 100,
+            observedSnapshotRevision = 100,
+            requestedAt = Instant.parse("2026-08-30T00:00:00Z")
+        )
+
+        assertEquals(
+            WearAppSnapshotApplyResult.Older,
+            reduceWearAppSnapshot(WearAppSnapshotReducerState(oldPhone), rebuiltPhone).result
+        )
+        val raised = negotiateWearAppProducerIdentity(
+            current = WearAppProducerIdentity(producerB, producerGeneration = 1),
+            observedProducerInstanceId = resetRequest.observedProducerInstanceId,
+            observedProducerGeneration = resetRequest.observedProducerGeneration
+        )
+        val recoveredIdentity = (raised as WearAppProducerNegotiationResult.Accepted).identity
+        assertEquals(101L, recoveredIdentity.producerGeneration)
+        val recovered = rebuiltPhone.copy(
+            producerGeneration = recoveredIdentity.producerGeneration
+        )
+        assertEquals(
+            WearAppSnapshotApplyResult.Applied,
+            reduceWearAppSnapshot(WearAppSnapshotReducerState(oldPhone), recovered).result
+        )
+        assertEquals(
+            WearAppSnapshotApplyResult.Older,
+            reduceWearAppSnapshot(WearAppSnapshotReducerState(recovered), oldPhone).result
+        )
+
+        val secondWearRaised = negotiateWearAppProducerIdentity(
+            current = recoveredIdentity,
+            observedProducerInstanceId = UUID(0L, 21L),
+            observedProducerGeneration = 150L
+        )
+        val highestIdentity = (secondWearRaised as WearAppProducerNegotiationResult.Accepted).identity
+        assertEquals(151L, highestIdentity.producerGeneration)
+        assertEquals(
+            highestIdentity,
+            (negotiateWearAppProducerIdentity(
+                current = highestIdentity,
+                observedProducerInstanceId = producerA,
+                observedProducerGeneration = 100L
+            ) as WearAppProducerNegotiationResult.Accepted).identity
+        )
+        assertEquals(
+            highestIdentity,
+            (negotiateWearAppProducerIdentity(
+                current = highestIdentity,
+                observedProducerInstanceId = producerB,
+                observedProducerGeneration = 151L
+            ) as WearAppProducerNegotiationResult.Accepted).identity
+        )
     }
 
     @Test
@@ -214,6 +324,11 @@ class WearAppFollowUpRegressionTest {
             status = WearAppConcentrationStatus.EMPTY,
         ),
         )
+
+    private fun reduce(order: List<WearAppSnapshot>): WearAppSnapshotReducerState =
+        order.fold(WearAppSnapshotReducerState(null)) { state, incoming ->
+            reduceWearAppSnapshot(state, incoming).state
+        }
 
     private fun metadata(
         receivedAt: Long = 0L,

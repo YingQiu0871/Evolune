@@ -79,6 +79,76 @@ data class WearAppProducerIdentity(
     val producerGeneration: Long
 )
 
+object WearAppProducerIdentityRules {
+    const val INITIAL_GENERATION = 1L
+
+    fun isValid(identity: WearAppProducerIdentity): Boolean =
+        identity.producerInstanceId != UUID(0L, 0L) && identity.producerGeneration > 0L
+}
+
+data class WearAppRequest(
+    val protocolVersion: Int,
+    val requestId: UUID,
+    val observedProducerInstanceId: UUID?,
+    val observedProducerGeneration: Long?,
+    val observedSnapshotRevision: Long?,
+    val requestedAt: Instant
+)
+
+object WearAppRequestRules {
+    const val MAX_PAYLOAD_BYTES = 4 * 1024
+
+    fun isValid(request: WearAppRequest): Boolean = runCatching {
+        require(request.protocolVersion == WearAppProtocol.PROTOCOL_VERSION)
+        require(request.requestId != UUID(0L, 0L))
+        require(request.requestedAt.toEpochMilli() > 0L)
+        require((request.observedProducerInstanceId == null) ==
+            (request.observedProducerGeneration == null))
+        request.observedProducerInstanceId?.let { instanceId ->
+            require(instanceId != UUID(0L, 0L))
+            require(request.observedProducerGeneration!! > 0L)
+            request.observedSnapshotRevision?.let { require(it > 0L) }
+        } ?: require(request.observedSnapshotRevision == null)
+    }.isSuccess
+}
+
+sealed interface WearAppProducerNegotiationResult {
+    data class Accepted(val identity: WearAppProducerIdentity) : WearAppProducerNegotiationResult
+    data object InvalidObservedProducer : WearAppProducerNegotiationResult
+    data object GenerationExhausted : WearAppProducerNegotiationResult
+}
+
+fun negotiateWearAppProducerIdentity(
+    current: WearAppProducerIdentity,
+    observedProducerInstanceId: UUID?,
+    observedProducerGeneration: Long?
+): WearAppProducerNegotiationResult {
+    if (!WearAppProducerIdentityRules.isValid(current)) {
+        return WearAppProducerNegotiationResult.InvalidObservedProducer
+    }
+    if ((observedProducerInstanceId == null) != (observedProducerGeneration == null)) {
+        return WearAppProducerNegotiationResult.InvalidObservedProducer
+    }
+    if (observedProducerInstanceId == null) {
+        return WearAppProducerNegotiationResult.Accepted(current)
+    }
+    if (observedProducerInstanceId == UUID(0L, 0L) || observedProducerGeneration!! <= 0L) {
+        return WearAppProducerNegotiationResult.InvalidObservedProducer
+    }
+    if (
+        observedProducerInstanceId == current.producerInstanceId ||
+        observedProducerGeneration < current.producerGeneration
+    ) {
+        return WearAppProducerNegotiationResult.Accepted(current)
+    }
+    if (observedProducerGeneration == Long.MAX_VALUE) {
+        return WearAppProducerNegotiationResult.GenerationExhausted
+    }
+    return WearAppProducerNegotiationResult.Accepted(
+        current.copy(producerGeneration = observedProducerGeneration + 1L)
+    )
+}
+
 data class WearAppSnapshot(
     val protocolVersion: Int,
     val snapshotRevision: Long,
@@ -92,9 +162,9 @@ data class WearAppSnapshot(
      * Identity of the Phone producer instance. This is intentionally part of
      * the transport contract, but is not rendered by either app.
      */
-    val producerInstanceId: UUID = UUID(0L, 0L),
+    val producerInstanceId: UUID,
     /** Monotonic generation assigned when the producer instance is created. */
-    val producerGeneration: Long = 1L
+    val producerGeneration: Long
 )
 
 object WearAppSnapshotRules {
@@ -122,7 +192,9 @@ object WearAppSnapshotRules {
     fun isValid(snapshot: WearAppSnapshot): Boolean = runCatching {
         require(snapshot.protocolVersion == WearAppProtocol.PROTOCOL_VERSION)
         require(snapshot.snapshotRevision > 0L)
-        require(snapshot.producerGeneration > 0L)
+        require(WearAppProducerIdentityRules.isValid(
+            WearAppProducerIdentity(snapshot.producerInstanceId, snapshot.producerGeneration)
+        ))
         require(snapshot.generatedAt.toEpochMilli() > 0L)
         ZoneId.of(snapshot.zoneId)
         require(snapshot.upcomingOccurrences.size <= MAX_UPCOMING_OCCURRENCES)
@@ -406,4 +478,109 @@ object WearAppSnapshotCodec {
 
     private inline fun <reified T : Enum<T>> enumValue(value: String): T =
         enumValues<T>().single { it.name == value }
+}
+
+/** Versioned request codec shared by Phone and Wear without Android dependencies. */
+object WearAppRequestCodec {
+    private const val MAGIC = 0x45574152 // "EWAR"
+
+    fun encode(request: WearAppRequest): ByteArray {
+        require(WearAppRequestRules.isValid(request))
+        return fields {
+            int(1, request.protocolVersion)
+            string(2, request.requestId.toString())
+            request.observedProducerInstanceId?.let { string(3, it.toString()) }
+            request.observedProducerGeneration?.let { long(4, it) }
+            request.observedSnapshotRevision?.let { long(5, it) }
+            long(6, request.requestedAt.toEpochMilli())
+        }.prependMagic()
+    }
+
+    fun decode(payload: ByteArray): WearAppRequest? = runCatching {
+        require(payload.size <= WearAppRequestRules.MAX_PAYLOAD_BYTES)
+        val top = readFields(payload.removeMagic())
+        val request = WearAppRequest(
+            protocolVersion = top.required(1).readInt(),
+            requestId = UUID.fromString(top.required(2).readString()),
+            observedProducerInstanceId = top.optional(3)?.readString()?.let(UUID::fromString),
+            observedProducerGeneration = top.optional(4)?.readLong(),
+            observedSnapshotRevision = top.optional(5)?.readLong(),
+            requestedAt = Instant.ofEpochMilli(top.required(6).readLong())
+        )
+        require(WearAppRequestRules.isValid(request))
+        request
+    }.getOrNull()
+
+    private fun fields(block: FieldWriter.() -> Unit): ByteArray =
+        FieldWriter().apply(block).toByteArray()
+
+    private fun ByteArray.prependMagic(): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            DataOutputStream(output).use { data ->
+                data.writeInt(MAGIC)
+                data.write(this)
+            }
+            output.toByteArray()
+        }
+
+    private fun ByteArray.removeMagic(): ByteArray =
+        DataInputStream(ByteArrayInputStream(this)).use { data ->
+            require(data.readInt() == MAGIC)
+            ByteArray(data.available()).also(data::readFully)
+        }
+
+    private class FieldWriter {
+        private val output = ByteArrayOutputStream()
+        private val data = DataOutputStream(output)
+
+        fun int(tag: Int, value: Int) = write(tag) { writeInt(value) }
+        fun long(tag: Int, value: Long) = write(tag) { writeLong(value) }
+        fun string(tag: Int, value: String) =
+            write(tag) { write(value.toByteArray(StandardCharsets.UTF_8)) }
+
+        fun toByteArray(): ByteArray = output.toByteArray()
+
+        private fun write(tag: Int, block: DataOutputStream.() -> Unit) {
+            val value = ByteArrayOutputStream().use { valueOutput ->
+                DataOutputStream(valueOutput).use(block)
+                valueOutput.toByteArray()
+            }
+            data.writeInt(tag)
+            data.writeInt(value.size)
+            data.write(value)
+        }
+    }
+
+    private class FieldSet(private val values: Map<Int, List<ByteArray>>) {
+        fun required(tag: Int): ByteArray = values[tag].orEmpty().single()
+        fun optional(tag: Int): ByteArray? = values[tag]?.also { require(it.size == 1) }?.single()
+    }
+
+    private fun readFields(bytes: ByteArray): FieldSet {
+        require(bytes.size <= WearAppRequestRules.MAX_PAYLOAD_BYTES)
+        val values = mutableMapOf<Int, MutableList<ByteArray>>()
+        DataInputStream(ByteArrayInputStream(bytes)).use { data ->
+            while (data.available() > 0) {
+                require(data.available() >= 8)
+                val tag = data.readInt()
+                val size = data.readInt()
+                require(size in 0..WearAppRequestRules.MAX_PAYLOAD_BYTES && size <= data.available())
+                val value = ByteArray(size).also(data::readFully)
+                values.getOrPut(tag) { mutableListOf() }.add(value)
+            }
+        }
+        return FieldSet(values)
+    }
+
+    private fun ByteArray.readInt(): Int =
+        DataInputStream(ByteArrayInputStream(this)).use { data ->
+            data.readInt().also { require(data.available() == 0) }
+        }
+
+    private fun ByteArray.readLong(): Long =
+        DataInputStream(ByteArrayInputStream(this)).use { data ->
+            data.readLong().also { require(data.available() == 0) }
+        }
+
+    private fun ByteArray.readString(): String = toString(StandardCharsets.UTF_8)
 }
