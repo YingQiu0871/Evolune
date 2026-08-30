@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
@@ -155,6 +156,32 @@ class RoomRepositoryTest {
             eventRepository.update(syntheticEvent(uuid(999), Instant.EPOCH), expectedRevision = 1)
         )
         assertEquals(UpdateResult.Invalid, eventRepository.update(edited, expectedRevision = 0))
+    }
+
+    @Test
+    fun eventConditionalDeleteRequiresTheCurrentRevisionAndDeletesAtomically() = runBlocking {
+        val event = syntheticEvent(uuid(112), Instant.ofEpochMilli(2_000L))
+        assertEquals(InsertResult.Inserted, eventRepository.insert(event))
+
+        assertEquals(
+            ConditionalDeleteResult.RevisionConflict,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 2L)
+        )
+        assertEquals(event, eventRepository.getById(event.id))
+
+        assertEquals(
+            ConditionalDeleteResult.Deleted,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 1L)
+        )
+        assertNull(eventRepository.getById(event.id))
+        assertEquals(
+            ConditionalDeleteResult.NotFound,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 1L)
+        )
+        assertEquals(
+            ConditionalDeleteResult.Invalid,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 0L)
+        )
     }
 
     @Test

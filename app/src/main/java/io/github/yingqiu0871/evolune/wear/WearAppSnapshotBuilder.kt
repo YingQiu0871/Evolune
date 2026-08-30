@@ -159,7 +159,8 @@ internal object WearAppSnapshotBuilder {
             route = route.name,
             dose = doseMG,
             doseUnit = WearAppSnapshotRules.DOSE_UNIT_MILLIGRAM,
-            source = source.name
+            source = source.name,
+            eventRevision = revision
         )
     }
 }

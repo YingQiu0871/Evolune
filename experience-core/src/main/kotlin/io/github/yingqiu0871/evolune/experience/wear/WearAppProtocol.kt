@@ -25,6 +25,8 @@ object WearAppProtocol {
     const val KEY_CONFIRM_COMMAND_PAYLOAD = "confirm_command_payload"
     const val KEY_CONFIRM_ATTEMPT = "confirm_command_attempt"
     const val KEY_CONFIRM_RESULT_PAYLOAD = "confirm_result_payload"
+    const val KEY_UNDO_COMMAND_PAYLOAD = "undo_command_payload"
+    const val KEY_UNDO_RESULT_PAYLOAD = "undo_result_payload"
 }
 
 enum class WearAppOverallStatus {
@@ -54,7 +56,9 @@ data class WearAppRecentDose(
     val route: String,
     val dose: Double,
     val doseUnit: String,
-    val source: String
+    val source: String,
+    /** Null means this is an older display-only snapshot without undo authority. */
+    val eventRevision: Long? = null
 )
 
 data class WearAppUpcomingOccurrence(
@@ -210,6 +214,8 @@ object WearAppSnapshotRules {
     }.isSuccess
 
     private fun validateRecent(recent: WearAppRecentDose) {
+        require(recent.eventId != UUID(0L, 0L))
+        recent.eventRevision?.let { require(it > 0L) }
         require(recent.occurredAt.toEpochMilli() > 0L)
         require(recent.medicationName.isNotBlank())
         require(recent.route.isNotBlank())
@@ -301,6 +307,7 @@ object WearAppSnapshotCodec {
         double(8, recent.dose)
         string(9, recent.doseUnit)
         string(10, recent.source)
+        recent.eventRevision?.let { long(11, it) }
     }
 
     private fun decodeRecent(bytes: ByteArray): WearAppRecentDose {
@@ -315,7 +322,8 @@ object WearAppSnapshotCodec {
             route = fields.required(7).readString(),
             dose = fields.required(8).readDouble(),
             doseUnit = fields.required(9).readString(),
-            source = fields.required(10).readString()
+            source = fields.required(10).readString(),
+            eventRevision = fields.optional(11)?.readLong()
         )
     }
 

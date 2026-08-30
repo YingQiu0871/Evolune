@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.ime
 import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
 import io.github.yingqiu0871.evolune.application.DoseEventEditorInput
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
@@ -592,6 +593,19 @@ class MedicationRecordsScreenTest {
                 events.value = stored.values.toList()
             }
             return deleteResult
+        }
+
+        override suspend fun deleteIfRevisionMatches(
+            id: UUID,
+            expectedRevision: Long
+        ): ConditionalDeleteResult {
+            val event = stored[id] ?: return ConditionalDeleteResult.NotFound
+            if (event.revision != expectedRevision) return ConditionalDeleteResult.RevisionConflict
+            return if (delete(id) == DeleteResult.Deleted) {
+                ConditionalDeleteResult.Deleted
+            } else {
+                ConditionalDeleteResult.NotFound
+            }
         }
 
         override suspend fun deleteAll(): DeleteResult = deleteResult

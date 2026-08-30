@@ -124,6 +124,11 @@ class RepositoryContractTest {
 
         override suspend fun delete(id: UUID): DeleteResult = DeleteResult.NotFound
 
+        override suspend fun deleteIfRevisionMatches(
+            id: UUID,
+            expectedRevision: Long
+        ): ConditionalDeleteResult = ConditionalDeleteResult.NotFound
+
         override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound
     }
 

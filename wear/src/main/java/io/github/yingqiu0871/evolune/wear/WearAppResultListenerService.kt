@@ -10,6 +10,7 @@ import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResultCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultCodec
 import io.github.yingqiu0871.evolune.experience.wear.WEAR_APP_RESULT_PATH_PREFIX
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -36,12 +37,20 @@ class WearAppResultListenerService : WearableListenerService() {
                 if (dataMap.getInt(WearAppProtocol.KEY_PROTOCOL_VERSION) !=
                     WearAppProtocol.PROTOCOL_VERSION
                 ) return@forEach
-                val payload = dataMap.getByteArray(WearAppProtocol.KEY_CONFIRM_RESULT_PAYLOAD)
-                    ?: return@forEach
-                val result = WearAppConfirmResultCodec.decode(payload) ?: return@forEach
+                val confirmPayload = dataMap.getByteArray(WearAppProtocol.KEY_CONFIRM_RESULT_PAYLOAD)
+                val undoPayload = dataMap.getByteArray(WearAppProtocol.KEY_UNDO_RESULT_PAYLOAD)
+                if ((confirmPayload == null) == (undoPayload == null)) return@forEach
                 serviceScope.launch {
                     try {
-                        applyResult(event.dataItem.uri.toString(), result)
+                        if (confirmPayload != null) {
+                            val result = WearAppConfirmResultCodec.decode(confirmPayload)
+                                ?: return@launch
+                            applyConfirmationResult(event.dataItem.uri.toString(), result)
+                        } else {
+                            val result = WearAppUndoResultCodec.decode(undoPayload ?: return@launch)
+                                ?: return@launch
+                            applyUndoResult(event.dataItem.uri.toString(), result)
+                        }
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: Throwable) {
@@ -56,12 +65,34 @@ class WearAppResultListenerService : WearableListenerService() {
         super.onDestroy()
     }
 
-    private suspend fun applyResult(
+    private suspend fun applyConfirmationResult(
         dataItemUri: String,
         result: io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
     ) {
         when (
             WearAppConfirmationStore.applyResult(
+                context = applicationContext,
+                path = android.net.Uri.parse(dataItemUri).path.orEmpty(),
+                result = result
+            )
+        ) {
+            WearAppResultApply.Applied,
+            WearAppResultApply.Duplicate -> {
+                Wearable.getDataClient(applicationContext)
+                    .deleteDataItems(android.net.Uri.parse(dataItemUri))
+                    .awaitSuccess()
+                notifyWearAppStateChanged(applicationContext)
+            }
+            WearAppResultApply.Rejected -> Unit
+        }
+    }
+
+    private suspend fun applyUndoResult(
+        dataItemUri: String,
+        result: io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
+    ) {
+        when (
+            WearAppConfirmationStore.applyUndoResult(
                 context = applicationContext,
                 path = android.net.Uri.parse(dataItemUri).path.orEmpty(),
                 result = result

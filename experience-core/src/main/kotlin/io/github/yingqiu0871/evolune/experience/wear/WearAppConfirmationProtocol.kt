@@ -240,6 +240,17 @@ fun operationIdFromWearAppCommandPath(path: String): UUID? =
 fun operationIdFromWearAppResultPath(path: String): UUID? =
     operationIdFromPath(path, WEAR_APP_RESULT_PATH_PREFIX)
 
+/** Undo uses the same operation-scoped DataItem paths with an independent payload key. */
+fun wearAppUndoCommandPath(operationId: UUID): String = wearAppCommandPath(operationId)
+
+fun wearAppUndoResultPath(operationId: UUID): String = wearAppResultPath(operationId)
+
+fun operationIdFromWearAppUndoCommandPath(path: String): UUID? =
+    operationIdFromWearAppCommandPath(path)
+
+fun operationIdFromWearAppUndoResultPath(path: String): UUID? =
+    operationIdFromWearAppResultPath(path)
+
 private fun operationIdFromPath(path: String, prefix: String): UUID? = runCatching {
     require(path.startsWith(prefix))
     val value = path.removePrefix(prefix)

@@ -18,7 +18,9 @@ import android.widget.Toast
 import android.app.AlertDialog
 import androidx.core.content.ContextCompat
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoMessageCode
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
@@ -132,8 +134,12 @@ class WearAppActivity : android.app.Activity() {
     private fun render() {
         if (!::syncState.isInitialized) return
         val presentation = WearAppStore.getPresentation(this, System.currentTimeMillis())
-        val pending = WearAppConfirmationStore.getPending(this)
-        syncState.text = stateText(presentation.state, pending)
+        val pendingOperation = WearAppConfirmationStore.getPendingOperation(this)
+        syncState.text = stateText(
+            presentation.state,
+            pendingOperation,
+            WearAppConfirmationStore.undoResultMessageCode(this)
+        )
         val snapshot = presentation.snapshot
         val zoneId = snapshot?.let { runCatching { ZoneId.of(it.zoneId) }.getOrNull() }
             ?: ZoneId.systemDefault()
@@ -149,16 +155,43 @@ class WearAppActivity : android.app.Activity() {
                 recent.occurredAt.atZone(zoneId).format(dateFormatter)
             )
             recentDose.contentDescription = recentDose.text
+            val canUndo = WearAppStore.canUndoRecentDose(this, snapshot, recent.eventId)
+            val canRetryUndo = pendingOperation is WearAppPendingUndo &&
+                !pendingOperation.awaitingAuthoritativeSnapshot
+            recentCard.minimumHeight = (48f * resources.displayMetrics.density).roundToInt()
+            recentCard.isFocusable = canUndo || canRetryUndo
+            recentCard.isClickable = canUndo || canRetryUndo
+            recentCard.alpha = if (canUndo || canRetryUndo) 1f else 0.72f
+            recentCard.contentDescription = getString(
+                if (canUndo) R.string.wear_app_undo_action else R.string.wear_app_recent_title
+            )
+            recentCard.setOnClickListener {
+                when {
+                    canUndo -> showUndoDialog(snapshot, recent, zoneId)
+                    canRetryUndo -> {
+                        WearAppDataLayer.retryPending(this@WearAppActivity)
+                        render()
+                    }
+                }
+            }
+        } else {
+            recentCard.isFocusable = false
+            recentCard.isClickable = false
+            recentCard.alpha = 1f
+            recentCard.setOnClickListener(null)
         }
 
         upcomingList.removeAllViews()
         val upcoming = snapshot?.upcomingOccurrences.orEmpty()
+        val pendingConfirmation = pendingOperation as? WearAppPendingConfirmation
         upcoming.forEach { occurrence ->
-            val isPending = pending?.occurrenceId == occurrence.occurrenceId
+            val isPending = pendingConfirmation?.occurrenceId == occurrence.occurrenceId
             val canConfirm = snapshot?.let {
                 WearAppStore.canConfirm(this, it, occurrence.occurrenceId)
             } == true
-            val canRetry = isPending && !pending.awaitingAuthoritativeSnapshot
+            val canRetry = pendingConfirmation?.let {
+                isPending && !it.awaitingAuthoritativeSnapshot
+            } == true
             val row = TextView(this).apply {
                 val description = getString(
                     R.string.wear_app_upcoming_format,
@@ -169,7 +202,7 @@ class WearAppActivity : android.app.Activity() {
                 )
                 text = if (isPending) {
                     "$description · ${getString(
-                        if (pending.awaitingAuthoritativeSnapshot) {
+                        if (pendingConfirmation.awaitingAuthoritativeSnapshot) {
                             R.string.wear_app_confirmation_waiting
                         } else {
                             R.string.wear_app_confirmation_pending
@@ -220,16 +253,33 @@ class WearAppActivity : android.app.Activity() {
 
     private fun stateText(
         state: WearAppDisplayState,
-        pending: WearAppPendingConfirmation?
+        pending: WearAppPendingOperation?,
+        undoMessageCode: WearAppUndoMessageCode?
     ): String {
         if (pending != null) {
-            return getString(
-                if (pending.awaitingAuthoritativeSnapshot) {
-                    R.string.wear_app_confirmation_waiting
-                } else {
-                    R.string.wear_app_confirmation_pending
-                }
-            )
+            return when (pending.operationType) {
+                WearAppPendingOperationType.CONFIRM -> getString(
+                    if (pending.awaitingAuthoritativeSnapshot) {
+                        R.string.wear_app_confirmation_waiting
+                    } else {
+                        R.string.wear_app_confirmation_pending
+                    }
+                )
+                WearAppPendingOperationType.UNDO -> getString(
+                    if (pending.awaitingAuthoritativeSnapshot) {
+                        R.string.wear_app_undo_waiting
+                    } else {
+                        R.string.wear_app_undo_pending
+                    }
+                )
+            }
+        }
+        if (
+            undoMessageCode != null &&
+            undoMessageCode != WearAppUndoMessageCode.UNDONE &&
+            undoMessageCode != WearAppUndoMessageCode.ALREADY_UNDONE
+        ) {
+            return getString(R.string.wear_app_undo_rejected)
         }
         return when (state) {
             WearAppDisplayState.WAITING_FOR_PHONE -> getString(R.string.wear_app_waiting)
@@ -264,6 +314,35 @@ class WearAppActivity : android.app.Activity() {
                     Toast.makeText(
                         this,
                         R.string.wear_app_confirmation_unavailable,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                render()
+            }
+            .show()
+    }
+
+    private fun showUndoDialog(
+        snapshot: WearAppSnapshot,
+        recentDose: WearAppRecentDose,
+        zoneId: ZoneId
+    ) {
+        val details = getString(
+            R.string.wear_app_undo_format,
+            recentDose.medicationName,
+            formatDose(recentDose.dose),
+            recentDose.route,
+            recentDose.occurredAt.atZone(zoneId).format(dateFormatter)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.wear_app_undo_title)
+            .setMessage(details)
+            .setNegativeButton(R.string.wear_app_confirmation_cancel, null)
+            .setPositiveButton(R.string.wear_app_undo_confirm) { _, _ ->
+                if (!WearAppDataLayer.undoRecentDose(this, snapshot, recentDose)) {
+                    Toast.makeText(
+                        this,
+                        R.string.wear_app_undo_unavailable,
                         Toast.LENGTH_SHORT
                     ).show()
                 }

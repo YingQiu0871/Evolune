@@ -31,7 +31,8 @@ class WearAppSnapshotCodecTest {
             route = "ORAL",
             dose = 2.0,
             doseUnit = WearAppSnapshotRules.DOSE_UNIT_MILLIGRAM,
-            source = "MANUAL"
+            source = "MANUAL",
+            eventRevision = 4L
         ),
         upcomingOccurrences = listOf(
             WearAppUpcomingOccurrence(
@@ -79,6 +80,16 @@ class WearAppSnapshotCodecTest {
         assertNotNull(decoded)
         assertEquals(WearAppConcentrationStatus.EMPTY, decoded!!.concentrationState.status)
         assertNull(decoded.concentrationState.value)
+    }
+
+    @Test
+    fun `legacy recent dose without revision remains displayable but has no undo authority`() {
+        val legacy = snapshot.copy(recentDose = requireNotNull(snapshot.recentDose).copy(eventRevision = null))
+
+        val decoded = WearAppSnapshotCodec.decode(WearAppSnapshotCodec.encode(legacy))
+
+        assertEquals(null, decoded?.recentDose?.eventRevision)
+        assertEquals(legacy, decoded)
     }
 
     private fun taggedField(tag: Int, value: ByteArray): ByteArray =

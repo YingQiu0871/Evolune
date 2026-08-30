@@ -24,8 +24,6 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResultType
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.nio.charset.StandardCharsets
 import java.time.Clock
 import java.time.Instant
@@ -55,7 +53,7 @@ internal class WearAppConfirmationHandler(
         ?: WearAppConfirmationOperationStore(requireNotNull(context))
     suspend fun handle(command: WearAppConfirmCommand): WearAppConfirmResult =
         try {
-            operationMutex.withLock {
+            WearAppMutationCoordinator.withLock {
                 OccurrenceConfirmationCoordinator.withLock {
                     handleLocked(command)
                 }
@@ -376,9 +374,6 @@ internal class WearAppConfirmationHandler(
                 .isValid(command)
     }
 
-    private companion object {
-        val operationMutex = Mutex()
-    }
 }
 
 internal fun wearAppConfirmationEventId(operationId: UUID): UUID = UUID.nameUUIDFromBytes(

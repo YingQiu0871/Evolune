@@ -5,6 +5,7 @@ package io.github.yingqiu0871.evolune.wear
 import android.content.Context
 import android.util.Base64
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
@@ -137,13 +138,32 @@ internal object WearAppStore {
         if (getPresentation(context, System.currentTimeMillis()).state !=
             WearAppDisplayState.READY
         ) return false
-        if (WearAppConfirmationStore.getPending(context) != null) return false
+        if (WearAppConfirmationStore.getPendingOperation(context) != null) return false
         return snapshot.upcomingOccurrences.any {
             it.occurrenceId == occurrenceId && (
                 it.status == io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus.UPCOMING ||
                     it.status == io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus.DUE
                 )
         }
+    }
+
+    fun canUndoRecentDose(
+        context: Context,
+        snapshot: WearAppSnapshot,
+        eventId: UUID
+    ): Boolean {
+        if (!WearAppSnapshotRules.isValid(snapshot)) return false
+        if (getSnapshot(context) != snapshot) return false
+        if (getPresentation(context, System.currentTimeMillis()).state !=
+            WearAppDisplayState.READY
+        ) return false
+        if (WearAppConfirmationStore.getPendingOperation(context) != null) return false
+        return canUndoRecentDose(
+            state = WearAppDisplayState.READY,
+            snapshot = snapshot,
+            recentDose = snapshot.recentDose,
+            eventId = eventId
+        )
     }
 
     fun beginRequest(context: Context, nowMillis: Long): Boolean {
@@ -229,6 +249,19 @@ internal object WearAppStore {
         Context.MODE_PRIVATE
     )
 }
+
+internal fun canUndoRecentDose(
+    state: WearAppDisplayState,
+    snapshot: WearAppSnapshot?,
+    recentDose: WearAppRecentDose?,
+    eventId: UUID,
+    pending: WearAppPendingOperation? = null
+): Boolean = state == WearAppDisplayState.READY &&
+    snapshot?.let(WearAppSnapshotRules::isValid) == true &&
+    pending == null &&
+    recentDose == snapshot.recentDose &&
+    recentDose?.eventId == eventId &&
+    recentDose.eventRevision?.let { it > 0L } == true
 
 internal fun shouldThrottleWearAppRequest(nowMillis: Long, lastRequestedAt: Long): Boolean {
     if (lastRequestedAt <= 0L || nowMillis < lastRequestedAt) return false

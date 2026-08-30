@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.data.repository
 
 import androidx.room.withTransaction
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
@@ -152,6 +153,22 @@ class RoomDoseEventRepository(
                 DeleteResult.NotFound
             }
         }
+
+    override suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult {
+        if (expectedRevision < INITIAL_REVISION) return ConditionalDeleteResult.Invalid
+        return runStorageOperation("conditionally delete dose event") {
+            if (dao.deleteEventIfRevisionMatches(id, expectedRevision) == 1) {
+                ConditionalDeleteResult.Deleted
+            } else if (dao.getEventById(id) == null) {
+                ConditionalDeleteResult.NotFound
+            } else {
+                ConditionalDeleteResult.RevisionConflict
+            }
+        }
+    }
 
     override suspend fun deleteAll(): DeleteResult =
         runStorageOperation("delete all dose events") {

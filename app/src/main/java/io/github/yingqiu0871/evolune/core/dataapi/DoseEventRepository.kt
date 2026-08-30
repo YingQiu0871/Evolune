@@ -33,6 +33,12 @@ interface DoseEventRepository {
     /** Physically deletes the event. */
     suspend fun delete(id: UUID): DeleteResult
 
+    /** Atomically deletes only when the stored revision equals expectedRevision. */
+    suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult
+
     /** Physically deletes all events as a maintenance operation. */
     suspend fun deleteAll(): DeleteResult
 }

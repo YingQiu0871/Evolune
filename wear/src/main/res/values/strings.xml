@@ -4,6 +4,14 @@
     <string name="tile_description">从手表快速记录手机端的用药方案</string>
     <string name="wear_app_content_description">Evolune 用药信息</string>
     <string name="wear_app_recent_title">最近一次已确认服药</string>
+    <string name="wear_app_undo_action">撤销最近一次服药</string>
+    <string name="wear_app_undo_title">撤销这次服药？</string>
+    <string name="wear_app_undo_format">%1$s\n%2$s mg · %3$s\n记录时间：%4$s\n确认后将从手机端记录中撤销这次服药。</string>
+    <string name="wear_app_undo_confirm">确认撤销</string>
+    <string name="wear_app_undo_pending">撤销请求处理中（点击重试）</string>
+    <string name="wear_app_undo_waiting">正在撤销，等待手机同步</string>
+    <string name="wear_app_undo_unavailable">当前数据不可撤销，请先刷新</string>
+    <string name="wear_app_undo_rejected">撤销未完成，请刷新手机数据</string>
     <string name="wear_app_upcoming_title">接下来</string>
     <string name="wear_app_recent_format">%1$s\n%2$s mg · %3$s · %4$s</string>
     <string name="wear_app_upcoming_format">%1$s · %2$s mg\n%3$s · %4$s</string>

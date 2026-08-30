@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.application
 
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
@@ -37,6 +38,9 @@ internal class FakeDoseEventRepository(
     var getCalls = 0
     var lastInserted: DoseEvent? = null
     var lastRange: Pair<Instant, Instant>? = null
+    var conditionalDeleteResult: ConditionalDeleteResult? = null
+    var conditionalDeleteCalls = 0
+    var beforeConditionalDelete: ((UUID, Long) -> Unit)? = null
 
     override fun observeAll(): Flow<List<DoseEvent>> = flowOf(events.values.toList())
 
@@ -83,6 +87,22 @@ internal class FakeDoseEventRepository(
         UpdateResult.Invalid
 
     override suspend fun delete(id: UUID): DeleteResult = DeleteResult.NotFound
+
+    override suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult {
+        conditionalDeleteCalls += 1
+        beforeConditionalDelete?.invoke(id, expectedRevision)
+        conditionalDeleteResult?.let { result ->
+            if (result == ConditionalDeleteResult.Deleted) events.remove(id)
+            return result
+        }
+        val existing = events[id] ?: return ConditionalDeleteResult.NotFound
+        if (existing.revision != expectedRevision) return ConditionalDeleteResult.RevisionConflict
+        events.remove(id)
+        return ConditionalDeleteResult.Deleted
+    }
 
     override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound
 }

@@ -20,6 +20,13 @@ sealed interface DeleteResult {
     data object NotFound : DeleteResult
 }
 
+sealed interface ConditionalDeleteResult {
+    data object Deleted : ConditionalDeleteResult
+    data object NotFound : ConditionalDeleteResult
+    data object RevisionConflict : ConditionalDeleteResult
+    data object Invalid : ConditionalDeleteResult
+}
+
 sealed interface PlanSaveResult {
     data object Created : PlanSaveResult
     data object Updated : PlanSaveResult

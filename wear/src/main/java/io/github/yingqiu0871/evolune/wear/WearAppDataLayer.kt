@@ -7,9 +7,13 @@ import com.google.android.gms.wearable.Wearable
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommand
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommandRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
+import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommand
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommandCodec
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommandRules
 import io.github.yingqiu0871.evolune.experience.wear.wearAppCommandPath
 import java.time.Instant
 import java.util.UUID
@@ -55,11 +59,55 @@ internal object WearAppDataLayer {
         return true
     }
 
+    fun undoRecentDose(
+        context: Context,
+        snapshot: WearAppSnapshot,
+        recentDose: WearAppRecentDose
+    ): Boolean {
+        val applicationContext = context.applicationContext
+        if (!WearAppStore.canUndoRecentDose(applicationContext, snapshot, recentDose.eventId)) {
+            return false
+        }
+        val expectedRevision = recentDose.eventRevision ?: return false
+        val existing = WearAppConfirmationStore.getPendingUndo(applicationContext)
+        val command = existing?.command ?: WearAppUndoCommand(
+            protocolVersion = WearAppProtocol.PROTOCOL_VERSION,
+            commandType = io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommandType.UNDO_RECENT_DOSE,
+            operationId = UUID.randomUUID(),
+            createdAt = Instant.now(),
+            sourceSnapshot = io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotIdentity(
+                producerInstanceId = snapshot.producerInstanceId,
+                producerGeneration = snapshot.producerGeneration,
+                snapshotRevision = snapshot.snapshotRevision
+            ),
+            eventId = recentDose.eventId,
+            expectedEventRevision = expectedRevision,
+            expectedOccurredAt = recentDose.occurredAt,
+            expectedSource = recentDose.source
+        )
+        if (
+            existing != null &&
+            (existing.eventId != recentDose.eventId ||
+                existing.sourceSnapshot != command.sourceSnapshot)
+        ) return false
+        if (!WearAppUndoCommandRules.isValid(command)) return false
+        val pending = WearAppConfirmationStore.beginOrReuseUndo(applicationContext, command)
+            ?: return false
+        sendUndoCommand(applicationContext, pending, clearPendingOnFailure = existing == null)
+        notifyWearAppStateChanged(applicationContext)
+        return true
+    }
+
     fun retryPending(context: Context): Boolean {
         val applicationContext = context.applicationContext
-        val pending = WearAppConfirmationStore.getPending(applicationContext) ?: return false
+        val pending = WearAppConfirmationStore.getPendingOperation(applicationContext) ?: return false
         if (pending.awaitingAuthoritativeSnapshot) return false
-        sendCommand(applicationContext, pending, clearPendingOnFailure = false)
+        when (pending) {
+            is WearAppPendingConfirmation ->
+                sendCommand(applicationContext, pending, clearPendingOnFailure = false)
+            is WearAppPendingUndo ->
+                sendUndoCommand(applicationContext, pending, clearPendingOnFailure = false)
+        }
         return true
     }
 
@@ -68,26 +116,69 @@ internal object WearAppDataLayer {
         pending: WearAppPendingConfirmation,
         clearPendingOnFailure: Boolean
     ) {
+        val payload = runCatching {
+            io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommandCodec.encode(
+                pending.command
+            )
+        }.getOrElse {
+            clearPendingAfterSendEncodeFailure(
+                context,
+                pending.operationId,
+                clearPendingOnFailure
+            )
+            return
+        }
+        sendEncodedCommand(
+            context,
+            pending,
+            payload,
+            WearAppProtocol.KEY_CONFIRM_COMMAND_PAYLOAD,
+            clearPendingOnFailure
+        )
+    }
+
+    private fun sendUndoCommand(
+        context: Context,
+        pending: WearAppPendingUndo,
+        clearPendingOnFailure: Boolean
+    ) {
+        val payload = runCatching {
+            WearAppUndoCommandCodec.encode(pending.command)
+        }.getOrElse {
+            clearPendingAfterSendEncodeFailure(
+                context,
+                pending.operationId,
+                clearPendingOnFailure
+            )
+            return
+        }
+        sendEncodedCommand(
+            context,
+            pending,
+            payload,
+            WearAppProtocol.KEY_UNDO_COMMAND_PAYLOAD,
+            clearPendingOnFailure
+        )
+    }
+
+    private fun sendEncodedCommand(
+        context: Context,
+        pending: WearAppPendingOperation,
+        payload: ByteArray,
+        payloadKey: String,
+        clearPendingOnFailure: Boolean
+    ) {
         val sendAttempt = WearAppConfirmationStore.nextSendAttempt(
             context,
             pending.operationId
         ) ?: return
-        val payload = runCatching {
-            io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommandCodec
-                .encode(pending.command)
-        }.getOrElse {
-            if (clearPendingOnFailure) {
-                WearAppConfirmationStore.clearPendingIfOperation(context, pending.operationId)
-            }
-            return
-        }
         runCatching {
             val request = PutDataMapRequest.create(wearAppCommandPath(pending.operationId)).apply {
                 dataMap.putInt(
                     WearAppProtocol.KEY_PROTOCOL_VERSION,
                     WearAppProtocol.PROTOCOL_VERSION
                 )
-                dataMap.putByteArray(WearAppProtocol.KEY_CONFIRM_COMMAND_PAYLOAD, payload)
+                dataMap.putByteArray(payloadKey, payload)
                 dataMap.putLong(WearAppProtocol.KEY_CONFIRM_ATTEMPT, sendAttempt)
             }.asPutDataRequest().setUrgent()
             Wearable.getDataClient(context).putDataItem(request)
@@ -104,6 +195,16 @@ internal object WearAppDataLayer {
                 notifyWearAppStateChanged(context)
             }
             Log.w(TAG, "Unable to prepare Wear App confirmation", error)
+        }
+    }
+
+    private fun clearPendingAfterSendEncodeFailure(
+        context: Context,
+        operationId: UUID,
+        shouldClear: Boolean
+    ) {
+        if (shouldClear) {
+            WearAppConfirmationStore.clearPendingIfOperation(context, operationId)
         }
     }
 

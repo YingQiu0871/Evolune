@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.application
 
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
@@ -319,6 +320,10 @@ class MahiroJsonV1ImportServiceTest {
             UpdateResult.Updated
 
         override suspend fun delete(id: UUID): DeleteResult = DeleteResult.Deleted
+        override suspend fun deleteIfRevisionMatches(
+            id: UUID,
+            expectedRevision: Long
+        ): ConditionalDeleteResult = ConditionalDeleteResult.NotFound
         override suspend fun deleteAll(): DeleteResult = DeleteResult.Deleted
     }
 
