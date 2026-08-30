@@ -129,6 +129,11 @@ class RepositoryContractTest {
             expectedRevision: Long
         ): ConditionalDeleteResult = ConditionalDeleteResult.NotFound
 
+        override suspend fun deleteLatestRecordedIfRevisionMatches(
+            eventId: UUID,
+            eventRevision: Long
+        ): LatestDoseDeleteResult = LatestDoseDeleteResult.EventNotFound
+
         override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound
     }
 

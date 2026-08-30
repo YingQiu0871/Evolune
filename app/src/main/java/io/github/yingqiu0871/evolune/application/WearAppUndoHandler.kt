@@ -3,9 +3,8 @@
 package io.github.yingqiu0871.evolune.application
 
 import android.content.Context
-import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
-import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.data.repository.RepositoryStorageException
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommand
@@ -16,21 +15,16 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultType
-import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
 import java.time.Clock
 import java.time.Instant
-import java.time.ZoneId
 import java.util.Base64
 import java.util.UUID
 
 internal class WearAppUndoHandler(
     private val context: Context?,
-    private val medicationPlans: MedicationPlanRepository,
     private val doseEvents: DoseEventRepository,
     private val clock: Clock = Clock.systemUTC(),
-    private val zoneId: () -> ZoneId = ZoneId::systemDefault,
     private val producerIdentity: () -> WearAppProducerIdentity = {
         io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore.current(
             requireNotNull(context)
@@ -126,67 +120,42 @@ internal class WearAppUndoHandler(
             )
         }
 
-        val currentPlans = medicationPlans.observeAll().first()
-        val currentEvents = doseEvents.observeAll().first()
-        val authoritativeSnapshot = WearAppSnapshotBuilder.build(
-            plans = currentPlans,
-            events = currentEvents,
-            generatedAt = clock.instant(),
-            zoneId = zoneId(),
-            snapshotRevision = latestSnapshotRevision().coerceAtLeast(1L),
-            currentConcentration = null,
-            producerIdentity = currentProducer
-        )
-        val recent = authoritativeSnapshot.recentDose
-        if (
-            recent?.eventId != command.eventId ||
-            recent.eventRevision != command.expectedEventRevision
-        ) {
-            return terminal(
-                command,
-                result(
-                    command,
-                    WearAppUndoResultType.REJECTED_NOT_LATEST,
-                    WearAppUndoMessageCode.NOT_LATEST
-                )
-            )
-        }
-
         if (!operationStore.markDeleteInProgress(command.operationId, fingerprint)) {
             return retryable(command)
         }
-        return when (doseEvents.deleteIfRevisionMatches(
-            id = command.eventId,
-            expectedRevision = command.expectedEventRevision
+        return when (doseEvents.deleteLatestRecordedIfRevisionMatches(
+            eventId = command.eventId,
+            eventRevision = command.expectedEventRevision
         )) {
-            ConditionalDeleteResult.Deleted -> {
-                val verified = doseEvents.getById(command.eventId)
-                if (verified != null) {
-                    retryable(command)
-                } else {
-                    terminal(
-                        command,
-                        result(
-                            command,
-                            WearAppUndoResultType.UNDONE,
-                            WearAppUndoMessageCode.UNDONE,
-                            eventId = command.eventId,
-                            snapshotRefreshExpected = true
-                        )
-                    )
-                }
-            }
-            ConditionalDeleteResult.NotFound -> terminal(
+            LatestDoseDeleteResult.Deleted -> terminal(
                 command,
                 result(
                     command,
-                    WearAppUndoResultType.ALREADY_UNDONE,
-                    WearAppUndoMessageCode.ALREADY_UNDONE,
+                    WearAppUndoResultType.UNDONE,
+                    WearAppUndoMessageCode.UNDONE,
                     eventId = command.eventId,
                     snapshotRefreshExpected = true
                 )
             )
-            ConditionalDeleteResult.RevisionConflict -> terminal(
+            LatestDoseDeleteResult.EventNotFound -> terminal(
+                command,
+                if (previous?.status == WearAppUndoOperationStatus.DELETE_IN_PROGRESS) {
+                    result(
+                        command,
+                        WearAppUndoResultType.ALREADY_UNDONE,
+                        WearAppUndoMessageCode.ALREADY_UNDONE,
+                        eventId = command.eventId,
+                        snapshotRefreshExpected = true
+                    )
+                } else {
+                    result(
+                        command,
+                        WearAppUndoResultType.REJECTED_EVENT_NOT_FOUND,
+                        WearAppUndoMessageCode.EVENT_NOT_FOUND
+                    )
+                }
+            )
+            LatestDoseDeleteResult.EventChanged -> terminal(
                 command,
                 result(
                     command,
@@ -194,7 +163,15 @@ internal class WearAppUndoHandler(
                     WearAppUndoMessageCode.EVENT_CHANGED
                 )
             )
-            ConditionalDeleteResult.Invalid -> terminal(
+            LatestDoseDeleteResult.NotLatest -> terminal(
+                command,
+                result(
+                    command,
+                    WearAppUndoResultType.REJECTED_NOT_LATEST,
+                    WearAppUndoMessageCode.NOT_LATEST
+                )
+            )
+            LatestDoseDeleteResult.Invalid -> terminal(
                 command,
                 result(
                     command,

@@ -4,6 +4,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
@@ -631,6 +632,11 @@ private class CoordinatedDoseEventRepository : DoseEventRepository {
         id: UUID,
         expectedRevision: Long
     ): ConditionalDeleteResult = ConditionalDeleteResult.NotFound
+
+    override suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult = LatestDoseDeleteResult.EventNotFound
 
     override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound
 

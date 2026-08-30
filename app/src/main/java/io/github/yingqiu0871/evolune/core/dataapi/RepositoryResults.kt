@@ -27,6 +27,14 @@ sealed interface ConditionalDeleteResult {
     data object Invalid : ConditionalDeleteResult
 }
 
+sealed interface LatestDoseDeleteResult {
+    data object Deleted : LatestDoseDeleteResult
+    data object EventNotFound : LatestDoseDeleteResult
+    data object EventChanged : LatestDoseDeleteResult
+    data object NotLatest : LatestDoseDeleteResult
+    data object Invalid : LatestDoseDeleteResult
+}
+
 sealed interface PlanSaveResult {
     data object Created : PlanSaveResult
     data object Updated : PlanSaveResult

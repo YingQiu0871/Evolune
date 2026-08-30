@@ -66,7 +66,6 @@ internal suspend fun processWearAppConfirmationDataItem(
         if (command.operationId != operationId) return
         val result = WearAppUndoHandler(
             context = context.applicationContext,
-            medicationPlans = planRepository,
             doseEvents = eventRepository
         ).handle(command)
         resultPayload = WearAppUndoResultCodec.encode(result)

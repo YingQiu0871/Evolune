@@ -4,6 +4,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
@@ -41,6 +42,9 @@ internal class FakeDoseEventRepository(
     var conditionalDeleteResult: ConditionalDeleteResult? = null
     var conditionalDeleteCalls = 0
     var beforeConditionalDelete: ((UUID, Long) -> Unit)? = null
+    var latestDoseDeleteCalls = 0
+    var beforeLatestDoseDelete: (() -> Unit)? = null
+    var latestDoseDeleteResult: LatestDoseDeleteResult? = null
 
     override fun observeAll(): Flow<List<DoseEvent>> = flowOf(events.values.toList())
 
@@ -102,6 +106,39 @@ internal class FakeDoseEventRepository(
         if (existing.revision != expectedRevision) return ConditionalDeleteResult.RevisionConflict
         events.remove(id)
         return ConditionalDeleteResult.Deleted
+    }
+
+    override suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult {
+        latestDoseDeleteCalls += 1
+        val recentBefore = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+            events.values.toList()
+        )
+        beforeLatestDoseDelete?.invoke()
+        latestDoseDeleteResult?.let { result ->
+            if (result == LatestDoseDeleteResult.Deleted) events.remove(eventId)
+            return result
+        }
+        val target = events[eventId]
+            ?: return LatestDoseDeleteResult.EventNotFound
+        if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
+        val recentAfter = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+            events.values.toList()
+        )
+        if (recentBefore?.id != recentAfter?.id ||
+            recentAfter?.id != eventId ||
+            recentAfter.revision != eventRevision
+        ) {
+            return LatestDoseDeleteResult.NotLatest
+        }
+        events.remove(eventId)
+        return if (events[eventId] == null) {
+            LatestDoseDeleteResult.Deleted
+        } else {
+            LatestDoseDeleteResult.EventChanged
+        }
     }
 
     override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound

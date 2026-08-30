@@ -1,6 +1,6 @@
 package io.github.yingqiu0871.evolune.application
 
-import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
@@ -51,7 +51,8 @@ class WearAppUndoHandlerTest {
         assertEquals(WearAppUndoResultType.UNDONE, first.resultType)
         assertEquals(first, replay)
         assertNull(events.events[eventId])
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
         assertEquals(WearAppUndoMessageCode.UNDONE, first.messageCode)
     }
 
@@ -65,7 +66,8 @@ class WearAppUndoHandlerTest {
         val changed = command().copy(expectedSource = "MANUAL")
 
         assertEquals(WearAppUndoResultType.REJECTED_CONFLICT, handler.handle(changed).resultType)
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
     }
 
     @Test
@@ -116,14 +118,35 @@ class WearAppUndoHandlerTest {
     @Test
     fun `conditional delete conflict is surfaced as event changed`() = runBlocking {
         val events = FakeDoseEventRepository(listOf(event())).apply {
-            conditionalDeleteResult = ConditionalDeleteResult.RevisionConflict
+            latestDoseDeleteResult = LatestDoseDeleteResult.EventChanged
         }
 
         val result = handler(events).handle(command())
 
         assertEquals(WearAppUndoResultType.REJECTED_EVENT_CHANGED, result.resultType)
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
         assertTrue(events.events.containsKey(eventId))
+    }
+
+    @Test
+    fun `newer event inserted during transactional recent check prevents deleting the old recent`() = runBlocking {
+        val newerId = UUID(0L, 705L)
+        val newer = event(id = newerId, occurredAt = now.plusSeconds(1L), revision = 1L)
+        val events = FakeDoseEventRepository(listOf(event()))
+        events.beforeLatestDoseDelete = { events.events[newer.id] = newer }
+        val journal = InMemoryUndoJournal()
+        val undoHandler = handler(events, journal)
+
+        val result = undoHandler.handle(command())
+        val replay = undoHandler.handle(command())
+
+        assertEquals(WearAppUndoResultType.REJECTED_NOT_LATEST, result.resultType)
+        assertEquals(result, replay)
+        assertTrue(events.events.containsKey(eventId))
+        assertTrue(events.events.containsKey(newerId))
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
     }
 
     @Test
@@ -150,7 +173,8 @@ class WearAppUndoHandlerTest {
 
         assertEquals(WearAppUndoResultType.RETRYABLE_STORAGE_FAILURE, first.resultType)
         assertEquals(WearAppUndoResultType.ALREADY_UNDONE, recovered.resultType)
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
         assertNull(events.events[eventId])
         assertEquals(recovered, handler.handle(command()))
     }
@@ -158,13 +182,14 @@ class WearAppUndoHandlerTest {
     @Test
     fun `already missing result is terminal and different operation cannot delete it again`() = runBlocking {
         val events = FakeDoseEventRepository(listOf(event()))
-        events.beforeConditionalDelete = { id, _ -> events.events.remove(id) }
+        events.beforeLatestDoseDelete = { events.events.remove(eventId) }
         val first = handler(events).handle(command())
         val second = handler(events).handle(command(UUID(0L, 704L)))
 
-        assertEquals(WearAppUndoResultType.ALREADY_UNDONE, first.resultType)
+        assertEquals(WearAppUndoResultType.REJECTED_EVENT_NOT_FOUND, first.resultType)
         assertEquals(WearAppUndoResultType.REJECTED_EVENT_NOT_FOUND, second.resultType)
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
     }
 
     @Test
@@ -182,7 +207,8 @@ class WearAppUndoHandlerTest {
 
         assertEquals(2, results.count { it.resultType == WearAppUndoResultType.UNDONE })
         assertEquals(2, results.count { it == results.first() })
-        assertEquals(1, events.conditionalDeleteCalls)
+        assertEquals(1, events.latestDoseDeleteCalls)
+        assertEquals(0, events.conditionalDeleteCalls)
     }
 
     private fun handler(
@@ -190,10 +216,8 @@ class WearAppUndoHandlerTest {
         journal: InMemoryUndoJournal = InMemoryUndoJournal()
     ) = WearAppUndoHandler(
         context = null,
-        medicationPlans = FakeMedicationPlanRepository(listOf(plan)),
         doseEvents = events,
         clock = Clock.fixed(now, zone),
-        zoneId = { zone },
         producerIdentity = { producer },
         latestSnapshotRevision = { 11L },
         operationJournal = journal

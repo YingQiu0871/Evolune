@@ -288,6 +288,33 @@ class WearAppStateTest {
         )
     }
 
+    @Test
+    fun `undo rejection is transient and consumed results do not recur after activity recreation`() {
+        val rejected = WearAppUndoResult(
+            protocolVersion = 1,
+            operationId = UUID(0L, 61L),
+            resultType = WearAppUndoResultType.REJECTED_NOT_LATEST,
+            eventId = null,
+            processedAt = Instant.ofEpochMilli(1_001L),
+            messageCode = WearAppUndoMessageCode.NOT_LATEST,
+            snapshotRefreshExpected = false
+        )
+
+        val shown = WearAppUndoTransientUiState().afterResult(rejected)
+        val (consumed, afterConsume) = shown.consume()
+
+        assertEquals(WearAppUndoMessageCode.NOT_LATEST, consumed)
+        assertEquals(null, afterConsume.messageCode)
+        assertEquals(null, afterConsume.afterAuthoritativeSnapshot().messageCode)
+        assertEquals(null, WearAppUndoTransientUiState().afterResult(rejected.copy(
+            resultType = WearAppUndoResultType.UNDONE,
+            eventId = UUID(0L, 62L),
+            messageCode = WearAppUndoMessageCode.UNDONE,
+            snapshotRefreshExpected = true
+        )).messageCode)
+        assertEquals(null, WearAppUndoTransientUiState(afterConsume.messageCode).messageCode)
+    }
+
     private fun metadata(
         receivedAt: Long = 0L,
         pendingSince: Long = 0L,

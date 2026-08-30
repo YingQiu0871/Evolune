@@ -27,6 +27,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
@@ -607,6 +608,11 @@ class MedicationRecordsScreenTest {
                 ConditionalDeleteResult.NotFound
             }
         }
+
+        override suspend fun deleteLatestRecordedIfRevisionMatches(
+            eventId: UUID,
+            eventRevision: Long
+        ): LatestDoseDeleteResult = LatestDoseDeleteResult.EventNotFound
 
         override suspend fun deleteAll(): DeleteResult = deleteResult
     }

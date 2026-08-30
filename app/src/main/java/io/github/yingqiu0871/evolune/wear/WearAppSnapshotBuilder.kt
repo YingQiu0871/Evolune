@@ -1,7 +1,6 @@
 package io.github.yingqiu0871.evolune.wear
 
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
-import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
 import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
@@ -23,11 +22,6 @@ import java.time.ZoneId
 import java.util.UUID
 
 internal object WearAppSnapshotBuilder {
-    private val recentOrder = compareBy<DoseEvent>(
-        { it.occurredAt },
-        { it.id.toString() }
-    )
-
     fun build(
         plans: List<MedicationPlan>,
         events: List<DoseEvent>,
@@ -46,15 +40,7 @@ internal object WearAppSnapshotBuilder {
                     plan.doseMG >= 0.0
             }
             .sortedBy { it.id.toString() }
-        val recordedEvents = events
-            .asSequence()
-            .filter {
-                it.status == DoseEventStatus.RECORDED &&
-                    it.occurredAt.toEpochMilli() > 0L &&
-                    it.doseMG.isFinite() &&
-                    it.doseMG >= 0.0
-            }
-            .toList()
+        val recordedEvents = WearAppRecentDoseSelector.eligible(events)
 
         val occurrences = MedicationOccurrenceGenerator.generate(
             schedules = enabledPlans.map(MedicationPlan::toMedicationSchedule),
@@ -98,8 +84,8 @@ internal object WearAppSnapshotBuilder {
             }
             .toList()
 
-        val recentDose = recordedEvents
-            .maxWithOrNull(recentOrder)
+        val recentDose = WearAppRecentDoseSelector
+            .select(recordedEvents)
             ?.toWearAppRecentDose(plans)
 
         val concentration = when {

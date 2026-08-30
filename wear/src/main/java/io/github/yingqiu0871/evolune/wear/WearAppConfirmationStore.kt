@@ -18,6 +18,7 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultType
+import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoMessageCode
 import io.github.yingqiu0871.evolune.experience.wear.operationIdFromWearAppResultPath
 import io.github.yingqiu0871.evolune.experience.wear.wearAppCommandPath
 import java.util.Base64
@@ -74,6 +75,23 @@ internal enum class WearAppResultApply {
     Rejected
 }
 
+internal data class WearAppUndoTransientUiState(
+    val messageCode: WearAppUndoMessageCode? = null
+) {
+    fun afterResult(result: WearAppUndoResult): WearAppUndoTransientUiState = copy(
+        messageCode = when (result.resultType) {
+            WearAppUndoResultType.UNDONE,
+            WearAppUndoResultType.ALREADY_UNDONE -> null
+            else -> result.messageCode
+        }
+    )
+
+    fun afterAuthoritativeSnapshot(): WearAppUndoTransientUiState = copy(messageCode = null)
+
+    fun consume(): Pair<WearAppUndoMessageCode?, WearAppUndoTransientUiState> =
+        messageCode to afterAuthoritativeSnapshot()
+}
+
 internal object WearAppConfirmationStore {
     private const val PREFERENCES_NAME = "wear_app_confirmations"
     private const val KEY_COMMAND = "command"
@@ -84,6 +102,7 @@ internal object WearAppConfirmationStore {
     private const val KEY_LAST_RESULT = "last_result"
     private const val KEY_LAST_CONFIRM_RESULT = "last_confirm_result"
     private const val KEY_LAST_UNDO_RESULT = "last_undo_result"
+    private const val KEY_UNDO_UI_MESSAGE = "undo_ui_message"
 
     @Synchronized
     fun getPending(context: Context): WearAppPendingConfirmation? =
@@ -141,6 +160,7 @@ internal object WearAppConfirmationStore {
             .putString(KEY_OPERATION_TYPE, WearAppPendingOperationType.UNDO.name)
             .putLong(KEY_SEND_ATTEMPT, 0L)
             .remove(KEY_RESULT)
+            .remove(KEY_UNDO_UI_MESSAGE)
             .commit()
         return if (committed) getPendingUndo(context) else null
     }
@@ -231,12 +251,18 @@ internal object WearAppConfirmationStore {
             WearAppUndoResultCodec.encode(result)
         )
         val editor = preferences.edit().putString(KEY_LAST_UNDO_RESULT, encoded)
+        val transientUi = WearAppUndoTransientUiState().afterResult(result)
+        if (transientUi.messageCode == null) {
+            editor.remove(KEY_UNDO_UI_MESSAGE)
+        } else {
+            editor.putString(KEY_UNDO_UI_MESSAGE, transientUi.messageCode.name)
+        }
         when (result.resultType) {
             WearAppUndoResultType.UNDONE,
-            WearAppUndoResultType.ALREADY_UNDONE,
-            WearAppUndoResultType.RETRYABLE_STORAGE_FAILURE -> {
-                editor.putString(KEY_RESULT, encoded)
-            }
+            WearAppUndoResultType.ALREADY_UNDONE -> editor
+                .putString(KEY_RESULT, encoded)
+            WearAppUndoResultType.RETRYABLE_STORAGE_FAILURE -> editor
+                .putString(KEY_RESULT, encoded)
             else -> clearPending(editor)
         }
         return if (editor.commit()) {
@@ -248,6 +274,7 @@ internal object WearAppConfirmationStore {
 
     @Synchronized
     fun clearAfterAuthoritativeSnapshot(context: Context, snapshot: WearAppSnapshot) {
+        clearTransientUndoMessage(context)
         when (val pending = readPendingOperation(context)) {
             is WearAppPendingConfirmation -> clearConfirmationAfterSnapshot(context, snapshot, pending)
             is WearAppPendingUndo -> clearUndoAfterSnapshot(context, snapshot, pending)
@@ -275,8 +302,22 @@ internal object WearAppConfirmationStore {
                 ?: preferences(context).getString(KEY_LAST_RESULT, null)
         )?.messageCode
 
-    fun undoResultMessageCode(context: Context): io.github.yingqiu0871.evolune.experience.wear.WearAppUndoMessageCode? =
-        decodeUndoResult(preferences(context).getString(KEY_LAST_UNDO_RESULT, null))?.messageCode
+    @Synchronized
+    fun consumeUndoResultMessageCode(context: Context): WearAppUndoMessageCode? {
+        val preferences = preferences(context)
+        val code = runCatching {
+            preferences.getString(KEY_UNDO_UI_MESSAGE, null)
+                ?.let(WearAppUndoMessageCode::valueOf)
+        }.getOrNull() ?: return null
+        val (message, _) = WearAppUndoTransientUiState(code).consume()
+        return message.takeIf {
+            preferences.edit().remove(KEY_UNDO_UI_MESSAGE).commit()
+        }
+    }
+
+    @Synchronized
+    fun clearTransientUndoMessage(context: Context): Boolean =
+        preferences(context).edit().remove(KEY_UNDO_UI_MESSAGE).commit()
 
     private fun clearConfirmationAfterSnapshot(
         context: Context,

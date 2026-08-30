@@ -40,6 +40,8 @@ class WearAppSnapshotBuilderTest {
         assertEquals(latest.id, first.recentDose?.eventId)
         assertEquals(latest.revision, first.recentDose?.eventRevision)
         assertEquals(first.recentDose, reversed.recentDose)
+        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(older, latest)))
+        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(latest, older)))
     }
 
     @Test

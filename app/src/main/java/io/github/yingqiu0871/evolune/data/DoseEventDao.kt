@@ -90,6 +90,9 @@ interface DoseEventDao {
     @Query("DELETE FROM dose_events WHERE id = :id AND revision = :expectedRevision")
     suspend fun deleteEventIfRevisionMatches(id: UUID, expectedRevision: Long): Int
 
+    @Query("SELECT * FROM dose_events ORDER BY occurredAtEpochMillis DESC, id ASC")
+    suspend fun getAllEventsForLatestDose(): List<DoseEventEntity>
+
     @Query("DELETE FROM dose_events")
     suspend fun deleteAllEventsIfPresent(): Int
 

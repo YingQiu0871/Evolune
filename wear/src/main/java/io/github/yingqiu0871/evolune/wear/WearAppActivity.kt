@@ -138,7 +138,7 @@ class WearAppActivity : android.app.Activity() {
         syncState.text = stateText(
             presentation.state,
             pendingOperation,
-            WearAppConfirmationStore.undoResultMessageCode(this)
+            WearAppConfirmationStore.consumeUndoResultMessageCode(this)
         )
         val snapshot = presentation.snapshot
         val zoneId = snapshot?.let { runCatching { ZoneId.of(it.zoneId) }.getOrNull() }
