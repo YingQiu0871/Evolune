@@ -122,8 +122,28 @@ internal object WearAppStore {
             .remove(KEY_LAST_FAILURE_AT)
             .remove(KEY_REQUEST_ID)
             .commit())
+        WearAppConfirmationStore.clearAfterAuthoritativeSnapshot(context, incoming)
         notifyWearAppStateChanged(context)
         return WearAppSnapshotApplyResult.Applied
+    }
+
+    fun canConfirm(
+        context: Context,
+        snapshot: WearAppSnapshot,
+        occurrenceId: UUID
+    ): Boolean {
+        if (!WearAppSnapshotRules.isValid(snapshot)) return false
+        if (getSnapshot(context) != snapshot) return false
+        if (getPresentation(context, System.currentTimeMillis()).state !=
+            WearAppDisplayState.READY
+        ) return false
+        if (WearAppConfirmationStore.getPending(context) != null) return false
+        return snapshot.upcomingOccurrences.any {
+            it.occurrenceId == occurrenceId && (
+                it.status == io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus.UPCOMING ||
+                    it.status == io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus.DUE
+                )
+        }
     }
 
     fun beginRequest(context: Context, nowMillis: Long): Boolean {

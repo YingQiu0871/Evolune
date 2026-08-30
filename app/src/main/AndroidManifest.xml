@@ -117,6 +117,13 @@
                     android:host="*"
                     android:path="/hrt/v1/wear-app/request" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/hrt/v1/wear-app/commands" />
+            </intent-filter>
         </service>
 
         <!-- Evolune 组合微件（用药提醒 + 快速添加） -->

@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.DataEvent
+import com.google.android.gms.wearable.DataEventBuffer
+import com.google.android.gms.wearable.DataItem
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
@@ -105,6 +108,27 @@ class WearAppListenerService : WearableListenerService() {
                 Log.w(TAG, "Unable to publish requested Wear App snapshot")
             }
         }
+    }
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        dataEvents
+            .filter {
+                it.type == DataEvent.TYPE_CHANGED &&
+                    it.dataItem.uri.path?.startsWith(
+                        io.github.yingqiu0871.evolune.experience.wear.WEAR_APP_COMMAND_PATH_PREFIX
+                    ) == true
+            }
+            .forEach { event ->
+                serviceScope.launch {
+                    try {
+                        processWearAppConfirmationDataItem(applicationContext, event.dataItem)
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Throwable) {
+                        Log.w(TAG, "Unable to process Wear App confirmation")
+                    }
+                }
+            }
     }
 
     override fun onDestroy() {

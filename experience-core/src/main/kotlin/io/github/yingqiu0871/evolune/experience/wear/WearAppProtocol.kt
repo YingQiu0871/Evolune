@@ -22,6 +22,9 @@ object WearAppProtocol {
     const val REQUEST_PATH = "/hrt/v1/wear-app/request"
     const val KEY_PAYLOAD = "snapshot_payload"
     const val KEY_PROTOCOL_VERSION = "protocol_version"
+    const val KEY_CONFIRM_COMMAND_PAYLOAD = "confirm_command_payload"
+    const val KEY_CONFIRM_ATTEMPT = "confirm_command_attempt"
+    const val KEY_CONFIRM_RESULT_PAYLOAD = "confirm_result_payload"
 }
 
 enum class WearAppOverallStatus {

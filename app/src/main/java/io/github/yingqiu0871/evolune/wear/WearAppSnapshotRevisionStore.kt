@@ -22,4 +22,10 @@ internal object WearAppSnapshotRevisionStore {
         }
         return next
     }
+
+    @Synchronized
+    fun current(context: Context): Long = context.getSharedPreferences(
+        PREFERENCES_NAME,
+        Context.MODE_PRIVATE
+    ).getLong(KEY_REVISION, 0L)
 }

@@ -69,6 +69,18 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".WearAppResultListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/hrt/v1/wear-app/results" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name=".WearSyncReceiver"
             android:enabled="true"

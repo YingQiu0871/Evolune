@@ -14,6 +14,8 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import android.app.AlertDialog
 import androidx.core.content.ContextCompat
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
@@ -130,7 +132,8 @@ class WearAppActivity : android.app.Activity() {
     private fun render() {
         if (!::syncState.isInitialized) return
         val presentation = WearAppStore.getPresentation(this, System.currentTimeMillis())
-        syncState.text = stateText(presentation.state)
+        val pending = WearAppConfirmationStore.getPending(this)
+        syncState.text = stateText(presentation.state, pending)
         val snapshot = presentation.snapshot
         val zoneId = snapshot?.let { runCatching { ZoneId.of(it.zoneId) }.getOrNull() }
             ?: ZoneId.systemDefault()
@@ -151,20 +154,47 @@ class WearAppActivity : android.app.Activity() {
         upcomingList.removeAllViews()
         val upcoming = snapshot?.upcomingOccurrences.orEmpty()
         upcoming.forEach { occurrence ->
+            val isPending = pending?.occurrenceId == occurrence.occurrenceId
+            val canConfirm = snapshot?.let {
+                WearAppStore.canConfirm(this, it, occurrence.occurrenceId)
+            } == true
+            val canRetry = isPending && !pending.awaitingAuthoritativeSnapshot
             val row = TextView(this).apply {
-                text = getString(
+                val description = getString(
                     R.string.wear_app_upcoming_format,
                     occurrence.medicationName,
                     formatDose(occurrence.dose),
                     occurrence.scheduledAt.atZone(zoneId).format(dateFormatter),
                     statusText(occurrence.status)
                 )
+                text = if (isPending) {
+                    "$description · ${getString(
+                        if (pending.awaitingAuthoritativeSnapshot) {
+                            R.string.wear_app_confirmation_waiting
+                        } else {
+                            R.string.wear_app_confirmation_pending
+                        }
+                    )}"
+                } else {
+                    description
+                }
                 contentDescription = text
                 textSize = 16f
-                setTextColor(Color.WHITE)
+                setTextColor(if (canConfirm || canRetry) Color.WHITE else Color.GRAY)
                 setPadding(0, 18, 0, 18)
-                isFocusable = false
-                isClickable = false
+                minimumHeight = (48f * resources.displayMetrics.density).roundToInt()
+                isFocusable = canConfirm || canRetry
+                isClickable = canConfirm || canRetry
+                alpha = if (canConfirm || canRetry) 1f else 0.72f
+                setOnClickListener {
+                    when {
+                        canConfirm -> showConfirmationDialog(snapshot, occurrence, zoneId)
+                        canRetry -> {
+                            WearAppDataLayer.retryPending(this@WearAppActivity)
+                            render()
+                        }
+                    }
+                }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -188,14 +218,58 @@ class WearAppActivity : android.app.Activity() {
         }
     }
 
-    private fun stateText(state: WearAppDisplayState): String = when (state) {
-        WearAppDisplayState.WAITING_FOR_PHONE -> getString(R.string.wear_app_waiting)
-        WearAppDisplayState.SYNCING -> getString(R.string.wear_app_syncing)
-        WearAppDisplayState.READY -> getString(R.string.wear_app_synced)
-        WearAppDisplayState.EMPTY -> getString(R.string.wear_app_empty)
-        WearAppDisplayState.OFFLINE -> getString(R.string.wear_app_offline)
-        WearAppDisplayState.STALE -> getString(R.string.wear_app_stale)
-        WearAppDisplayState.ERROR -> getString(R.string.wear_app_sync_error)
+    private fun stateText(
+        state: WearAppDisplayState,
+        pending: WearAppPendingConfirmation?
+    ): String {
+        if (pending != null) {
+            return getString(
+                if (pending.awaitingAuthoritativeSnapshot) {
+                    R.string.wear_app_confirmation_waiting
+                } else {
+                    R.string.wear_app_confirmation_pending
+                }
+            )
+        }
+        return when (state) {
+            WearAppDisplayState.WAITING_FOR_PHONE -> getString(R.string.wear_app_waiting)
+            WearAppDisplayState.SYNCING -> getString(R.string.wear_app_syncing)
+            WearAppDisplayState.READY -> getString(R.string.wear_app_synced)
+            WearAppDisplayState.EMPTY -> getString(R.string.wear_app_empty)
+            WearAppDisplayState.OFFLINE -> getString(R.string.wear_app_offline)
+            WearAppDisplayState.STALE -> getString(R.string.wear_app_stale)
+            WearAppDisplayState.ERROR -> getString(R.string.wear_app_sync_error)
+        }
+    }
+
+    private fun showConfirmationDialog(
+        snapshot: WearAppSnapshot,
+        occurrence: io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence,
+        zoneId: ZoneId
+    ) {
+        val details = getString(
+            R.string.wear_app_confirmation_format,
+            occurrence.medicationName,
+            formatDose(occurrence.dose),
+            occurrence.route,
+            occurrence.localDate.toString(),
+            occurrence.scheduledAt.atZone(zoneId).format(dateFormatter)
+        )
+        AlertDialog.Builder(this)
+            .setTitle(R.string.wear_app_confirmation_title)
+            .setMessage(details)
+            .setNegativeButton(R.string.wear_app_confirmation_cancel, null)
+            .setPositiveButton(R.string.wear_app_confirmation_confirm) { _, _ ->
+                if (!WearAppDataLayer.confirmOccurrence(this, snapshot, occurrence)) {
+                    Toast.makeText(
+                        this,
+                        R.string.wear_app_confirmation_unavailable,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                render()
+            }
+            .show()
     }
 
     private fun statusText(status: WearAppOccurrenceStatus): String = when (status) {
