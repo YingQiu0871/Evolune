@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -69,6 +70,35 @@ class LauncherIconResourceTest {
         }
     }
 
+    @Test
+    fun `simulated final adaptive composition keeps website crescent scale`() {
+        val densities = listOf("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
+        val ratios = densities.map { density ->
+            val background = image("src/main/res/mipmap-$density/ic_launcher_background.png")
+            val foreground = image("src/main/res/mipmap-$density/ic_launcher_foreground.png")
+            val monochrome = image("src/main/res/mipmap-$density/ic_launcher_monochrome.png")
+            val backgroundBounds = compositionBounds(background) { true }
+            val foregroundBounds = compositionBounds(foreground, ::isWhitePixel)
+            val monochromeBounds = compositionBounds(monochrome, ::isWhitePixel)
+
+            assertEquals(foregroundBounds, monochromeBounds)
+            val ratio = foregroundBounds.height.toDouble() / backgroundBounds.height
+            assertTrue(
+                "$density final composition ratio was $ratio",
+                ratio in FINAL_RATIO_RANGE
+            )
+            ratio
+        }
+        assertTrue(
+            "density ratios diverged: $ratios",
+            ratios.maxOrNull()!! - ratios.minOrNull()!! <= MAX_DENSITY_RATIO_DRIFT
+        )
+
+        val legacyBounds = requireNotNull(bounds(image("src/main/res/mipmap-mdpi/ic_launcher.png"), ::isWhitePixel))
+        val legacyRatio = legacyBounds.height.toDouble() / 48.0
+        assertTrue("legacy ratio was $legacyRatio", legacyRatio in LEGACY_RATIO_RANGE)
+    }
+
     private fun assertForegroundIsNonEmptyAndInsideSafeZone(image: BufferedImage) {
         val inset = kotlin.math.ceil(image.width * 21.0 / 108.0).toInt()
         val maximum = image.width - inset - 1
@@ -83,6 +113,86 @@ class LauncherIconResourceTest {
             }
         }
         assertTrue("foreground must contain artwork", nonTransparent > 0)
+    }
+
+    private fun compositionBounds(
+        image: BufferedImage,
+        pixel: (Int) -> Boolean = { alpha(it) > 0 }
+    ): Bounds {
+        val result = bounds(image) { rgb ->
+            alpha(rgb) > 0 && pixel(rgb)
+        }
+        return requireNotNull(result)
+    }
+
+    private fun bounds(
+        image: BufferedImage,
+        pixel: (Int) -> Boolean
+    ): Bounds? {
+        val inset = (image.width * FINAL_MASK_INSET / 108.0).roundToInt()
+        val radius = (image.width * FINAL_MASK_RADIUS / 108.0).roundToInt()
+        var minX = image.width
+        var minY = image.height
+        var maxX = -1
+        var maxY = -1
+        for (y in 0 until image.height) {
+            for (x in 0 until image.width) {
+                if (inFinalLauncherMask(x, y, image.width, inset, radius) &&
+                    pixel(image.getRGB(x, y))
+                ) {
+                    minX = minOf(minX, x)
+                    minY = minOf(minY, y)
+                    maxX = maxOf(maxX, x)
+                    maxY = maxOf(maxY, y)
+                }
+            }
+        }
+        return if (maxX < minX || maxY < minY) {
+            null
+        } else {
+            Bounds(minX, minY, maxX, maxY)
+        }
+    }
+
+    private fun inFinalLauncherMask(
+        x: Int,
+        y: Int,
+        size: Int,
+        inset: Int,
+        radius: Int
+    ): Boolean {
+        val left = inset
+        val top = inset
+        val right = size - inset - 1
+        val bottom = size - inset - 1
+        val nearestX = x.coerceIn(left + radius, right - radius)
+        val nearestY = y.coerceIn(top + radius, bottom - radius)
+        val dx = x - nearestX
+        val dy = y - nearestY
+        return dx * dx + dy * dy <= radius * radius
+    }
+
+    private fun isWhitePixel(rgb: Int): Boolean =
+        alpha(rgb) > 0 &&
+            red(rgb) >= WHITE_THRESHOLD &&
+            green(rgb) >= WHITE_THRESHOLD &&
+            blue(rgb) >= WHITE_THRESHOLD
+
+    private fun alpha(rgb: Int): Int = (rgb ushr 24) and 0xff
+
+    private fun red(rgb: Int): Int = (rgb ushr 16) and 0xff
+
+    private fun green(rgb: Int): Int = (rgb ushr 8) and 0xff
+
+    private fun blue(rgb: Int): Int = rgb and 0xff
+
+    private data class Bounds(
+        val minX: Int,
+        val minY: Int,
+        val maxX: Int,
+        val maxY: Int
+    ) {
+        val height: Int get() = maxY - minY + 1
     }
 
     private fun image(path: String): BufferedImage =
@@ -106,5 +216,11 @@ class LauncherIconResourceTest {
 
     private companion object {
         const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
+        const val FINAL_MASK_INSET = 6
+        const val FINAL_MASK_RADIUS = 18
+        const val WHITE_THRESHOLD = 245
+        val FINAL_RATIO_RANGE = 0.58..0.62
+        val LEGACY_RATIO_RANGE = 0.55..0.62
+        const val MAX_DENSITY_RATIO_DRIFT = 0.02
     }
 }
