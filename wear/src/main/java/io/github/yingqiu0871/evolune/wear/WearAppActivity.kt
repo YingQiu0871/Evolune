@@ -28,6 +28,9 @@ import kotlin.math.roundToInt
 class WearAppActivity : android.app.Activity() {
     private lateinit var scrollView: ScrollView
     private lateinit var syncState: TextView
+    private lateinit var concentrationCard: LinearLayout
+    private lateinit var concentrationValue: TextView
+    private lateinit var concentrationFreshness: TextView
     private lateinit var recentCard: LinearLayout
     private lateinit var recentDose: TextView
     private lateinit var upcomingList: LinearLayout
@@ -58,6 +61,9 @@ class WearAppActivity : android.app.Activity() {
         setContentView(R.layout.activity_wear_app)
         scrollView = findViewById(R.id.wear_app_scroll)
         syncState = findViewById(R.id.wear_app_sync_state)
+        concentrationCard = findViewById(R.id.wear_app_concentration_card)
+        concentrationValue = findViewById(R.id.wear_app_concentration_value)
+        concentrationFreshness = findViewById(R.id.wear_app_concentration_freshness)
         recentCard = findViewById(R.id.wear_app_recent_card)
         recentDose = findViewById(R.id.wear_app_recent_dose)
         upcomingList = findViewById(R.id.wear_app_upcoming_list)
@@ -133,7 +139,8 @@ class WearAppActivity : android.app.Activity() {
 
     private fun render() {
         if (!::syncState.isInitialized) return
-        val presentation = WearAppStore.getPresentation(this, System.currentTimeMillis())
+        val nowMillis = System.currentTimeMillis()
+        val presentation = WearAppStore.getPresentation(this, nowMillis)
         val pendingOperation = WearAppConfirmationStore.getPendingOperation(this)
         syncState.text = stateText(
             presentation.state,
@@ -143,6 +150,7 @@ class WearAppActivity : android.app.Activity() {
         val snapshot = presentation.snapshot
         val zoneId = snapshot?.let { runCatching { ZoneId.of(it.zoneId) }.getOrNull() }
             ?: ZoneId.systemDefault()
+        renderConcentration(snapshot, nowMillis)
 
         val recent = snapshot?.recentDose
         recentCard.visibility = if (recent == null) View.GONE else View.VISIBLE
@@ -249,6 +257,42 @@ class WearAppActivity : android.app.Activity() {
                 WearAppDisplayState.READY -> getString(R.string.wear_app_no_upcoming)
             }
         }
+    }
+
+    private fun renderConcentration(snapshot: WearAppSnapshot?, nowMillis: Long) {
+        val concentration = deriveWearAppConcentrationPresentation(snapshot, nowMillis)
+        concentrationCard.contentDescription = getString(R.string.wear_app_concentration_title)
+        when (concentration.state) {
+            WearAppConcentrationDisplayState.FRESH -> {
+                concentrationValue.text = formatWearAppConcentration(
+                    requireNotNull(concentration.value),
+                    requireNotNull(concentration.unit)
+                )
+                concentrationFreshness.text = getString(R.string.wear_app_concentration_updated)
+            }
+            WearAppConcentrationDisplayState.STALE -> {
+                concentrationValue.text = formatWearAppConcentration(
+                    requireNotNull(concentration.value),
+                    requireNotNull(concentration.unit)
+                )
+                concentrationFreshness.text = getString(R.string.wear_app_concentration_outdated)
+            }
+            WearAppConcentrationDisplayState.UNAVAILABLE -> {
+                concentrationValue.text = getString(R.string.wear_app_concentration_unavailable)
+                concentrationFreshness.text = if (snapshot == null) {
+                    getString(R.string.wear_app_waiting)
+                } else {
+                    getString(R.string.wear_app_concentration_unavailable)
+                }
+            }
+        }
+        concentrationCard.contentDescription = getString(
+            R.string.wear_app_concentration_content_description,
+            concentrationValue.text,
+            concentrationFreshness.text
+        )
+        concentrationValue.contentDescription = concentrationCard.contentDescription
+        concentrationFreshness.contentDescription = concentrationFreshness.text
     }
 
     private fun stateText(

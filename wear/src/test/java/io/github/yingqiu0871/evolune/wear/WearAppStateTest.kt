@@ -88,6 +88,143 @@ class WearAppStateTest {
     }
 
     @Test
+    fun `concentration freshness is independent and exact at fifteen minutes`() {
+        val concentrationSnapshot = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 120.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(10_000L)
+            )
+        )
+
+        assertEquals(
+            WearAppConcentrationDisplayState.FRESH,
+            deriveWearAppConcentrationPresentation(
+                concentrationSnapshot,
+                10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS - 1L
+            ).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.STALE,
+            deriveWearAppConcentrationPresentation(
+                concentrationSnapshot,
+                10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS
+            ).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.STALE,
+            deriveWearAppConcentrationPresentation(
+                concentrationSnapshot,
+                10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS + 1L
+            ).state
+        )
+    }
+
+    @Test
+    fun `future concentration and invalid values are unavailable`() {
+        val future = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 120.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(20_000L)
+            )
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(future, 19_999L).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(snapshot, 20_000L).state
+        )
+    }
+
+    @Test
+    fun `concentration freshness survives rollback and extreme clock values`() {
+        val concentrationSnapshot = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 0.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(Long.MAX_VALUE - 100L)
+            )
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(concentrationSnapshot, Long.MAX_VALUE - 101L).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.FRESH,
+            deriveWearAppConcentrationPresentation(concentrationSnapshot, Long.MAX_VALUE).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(concentrationSnapshot, Long.MIN_VALUE).state
+        )
+    }
+
+    @Test
+    fun `fresh plan snapshot does not keep an old concentration fresh`() {
+        val concentrationSnapshot = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 120.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(10_000L)
+            )
+        )
+        val now = 10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS
+
+        assertEquals(
+            WearAppDisplayState.READY,
+            deriveWearAppPresentation(
+                concentrationSnapshot,
+                metadata(receivedAt = now),
+                now
+            ).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.STALE,
+            deriveWearAppConcentrationPresentation(concentrationSnapshot, now).state
+        )
+    }
+
+    @Test
+    fun `concentration deadline is scheduled only while fresh`() {
+        val fresh = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 1.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(10_000L)
+            )
+        )
+        val metadata = metadata(receivedAt = 10_001L)
+
+        assertEquals(
+            10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS,
+            nextWearAppRefreshDeadline(10_000L, metadata, fresh)
+        )
+        assertEquals(
+            10_001L + WEAR_APP_STALE_AFTER_MILLIS,
+            nextWearAppRefreshDeadline(
+                10_000L + WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS,
+                metadata,
+                fresh
+            )
+        )
+    }
+
+    @Test
+    fun `concentration formatting is locale independent and keeps unit adjacent`() {
+        assertEquals("120.50 pg/mL", formatWearAppConcentration(120.5, "pg/mL"))
+        assertEquals("0.00 pg/mL", formatWearAppConcentration(0.0, "pg/mL"))
+        assertEquals("1.00e+09 pg/mL", formatWearAppConcentration(1_000_000_000.0, "pg/mL"))
+    }
+
+    @Test
     fun `disconnected state is offline and keeps cached snapshot`() {
         val presentation = deriveWearAppPresentation(
             snapshot,

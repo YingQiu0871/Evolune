@@ -223,8 +223,11 @@ class MainActivity : ComponentActivity() {
                     domainMedicationPlans,
                     doseEvents,
                     pkState.currentConcentration,
+                    pkState.concentrationCalculatedAt,
+                    pkState.isSimulating,
                     pkState.error
                 ) {
+                    if (pkState.isSimulating) return@LaunchedEffect
                     WearAppDataLayer.publishSnapshot(
                         context = applicationContext,
                         snapshot = WearAppSnapshotBuilder.build(
@@ -236,6 +239,7 @@ class MainActivity : ComponentActivity() {
                                 applicationContext
                             ),
                             currentConcentration = pkState.currentConcentration,
+                            concentrationCalculatedAt = pkState.concentrationCalculatedAt,
                             concentrationError = pkState.error != null,
                             producerIdentity = WearAppProducerIdentityStore.current(
                                 applicationContext

@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.viewmodel
 
 import io.github.yingqiu0871.evolune.pk.SimulationResult
+import java.time.Instant
 
 /**
  * 药代动力学UI状态
@@ -10,6 +11,8 @@ data class PKState(
     val baselineSimulationResult: SimulationResult? = null, // 基线仿真结果（仅历史，不考虑未来计划）
     val currentTimeH: Double = System.currentTimeMillis() / 3600000.0,
     val currentConcentration: Double? = null,
+    /** Instant at which the Phone authoritative concentration was calculated. */
+    val concentrationCalculatedAt: Instant? = null,
     val isSimulating: Boolean = false,
     val error: String? = null
 ) {

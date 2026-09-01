@@ -111,6 +111,20 @@ internal object WearAppStore {
     ): WearAppSnapshotApplyResult {
         val incoming = WearAppSnapshotCodec.decode(payload)
             ?: return WearAppSnapshotApplyResult.Rejected
+        // A Phone calculation timestamp from the future cannot be displayed as
+        // fresh. Rejecting that snapshot preserves any last-known-good value.
+        if (
+            (
+                incoming.concentrationState.status ==
+                    io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.AVAILABLE ||
+                    incoming.concentrationState.status ==
+                    io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.STALE
+            ) &&
+            deriveWearAppConcentrationPresentation(incoming, receivedAt).state ==
+                WearAppConcentrationDisplayState.UNAVAILABLE
+        ) {
+            return WearAppSnapshotApplyResult.Rejected
+        }
         val current = getSnapshot(context)
         val reduction = reduceWearAppSnapshot(WearAppSnapshotReducerState(current), incoming)
         if (reduction.result != WearAppSnapshotApplyResult.Applied) return reduction.result

@@ -198,7 +198,7 @@ class WearAppSnapshotBuilderTest {
     }
 
     @Test
-    fun `cached concentration does not invent a calculated timestamp`() {
+    fun `concentration without a calculated timestamp is unavailable`() {
         val snapshot = WearAppSnapshotBuilder.build(
             plans = listOf(plan(UUID(8L, 1L))),
             events = emptyList(),
@@ -209,9 +209,27 @@ class WearAppSnapshotBuilderTest {
             producerIdentity = producerIdentity
         )
 
+        assertEquals(WearAppConcentrationStatus.EMPTY, snapshot.concentrationState.status)
+        assertEquals(null, snapshot.concentrationState.value)
+        assertEquals(null, snapshot.concentrationState.calculatedAt)
+    }
+
+    @Test
+    fun `authoritative concentration carries its calculation instant`() {
+        val snapshot = WearAppSnapshotBuilder.build(
+            plans = listOf(plan(UUID(9L, 1L))),
+            events = emptyList(),
+            generatedAt = now,
+            zoneId = zone,
+            snapshotRevision = 1L,
+            currentConcentration = 12.5,
+            concentrationCalculatedAt = now,
+            producerIdentity = producerIdentity
+        )
+
         assertEquals(WearAppConcentrationStatus.AVAILABLE, snapshot.concentrationState.status)
         assertEquals(12.5, requireNotNull(snapshot.concentrationState.value), 0.0)
-        assertEquals(null, snapshot.concentrationState.calculatedAt)
+        assertEquals(now, snapshot.concentrationState.calculatedAt)
     }
 
     @Test

@@ -10,12 +10,15 @@ import com.google.android.gms.wearable.DataItem
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerNegotiationResult
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
+import io.github.yingqiu0871.evolune.viewmodel.DefaultPkSimulationCalculator
+import io.github.yingqiu0871.evolune.viewmodel.PkSimulationInput
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +26,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
@@ -49,7 +53,8 @@ internal object WearAppDataLayer {
 
     suspend fun publishCurrentSnapshot(
         context: Context,
-        request: WearAppRequest? = null
+        request: WearAppRequest? = null,
+        clock: Clock = Clock.systemUTC()
     ) {
         val producerIdentity = if (request == null) {
             WearAppProducerIdentityStore.current(context)
@@ -69,18 +74,34 @@ internal object WearAppDataLayer {
         val repositories = ProductionRepositoryProvider.get(context)
         val plans = repositories.medicationPlans.observeAll().first()
         val events = repositories.doseEvents.observeAll().first()
-        val cachedCurrent = context.getSharedPreferences(
-            "wear_dashboard_cache",
-            Context.MODE_PRIVATE
-        ).getString("cached_current", null)?.toDoubleOrNull()
-        val now = Instant.now()
+        val now = clock.instant()
+        val zoneId = ZoneId.systemDefault()
+        val bodyWeight = SettingsDataStore(context.applicationContext).userSettings.first().bodyWeight
+        val pkEvents = repositories.doseEvents.getEventsForPk(now)
+        val pkCalculation = runCatching {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                DefaultPkSimulationCalculator.calculate(
+                    PkSimulationInput(
+                        now = now,
+                        currentTimeH = now.toEpochMilli() / 3_600_000.0,
+                        historicalDoseEvents = pkEvents,
+                        enabledPlans = plans.filter { it.isEnabled },
+                        bodyWeightKG = bodyWeight,
+                        zoneId = zoneId
+                    )
+                )
+            }
+        }
+        val computedPkState = pkCalculation.getOrNull()
         val snapshot = WearAppSnapshotBuilder.build(
             plans = plans,
             events = events,
             generatedAt = now,
-            zoneId = ZoneId.systemDefault(),
+            zoneId = zoneId,
             snapshotRevision = WearAppSnapshotRevisionStore.next(context),
-            currentConcentration = cachedCurrent,
+            currentConcentration = computedPkState?.currentConcentration,
+            concentrationCalculatedAt = computedPkState?.concentrationCalculatedAt,
+            concentrationError = pkCalculation.isFailure,
             producerIdentity = producerIdentity
         )
         publishSnapshot(context, snapshot)

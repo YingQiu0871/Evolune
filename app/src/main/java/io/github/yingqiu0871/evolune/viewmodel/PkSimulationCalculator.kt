@@ -54,7 +54,10 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
         currentCoroutineContext().ensureActive()
 
         if (historicalEvents.isEmpty() && futureEvents.isEmpty()) {
-            return PKState(currentTimeH = input.currentTimeH)
+            return PKState(
+                currentTimeH = input.currentTimeH,
+                concentrationCalculatedAt = input.now
+            )
         }
 
         val startTimeH = input.currentTimeH - 24.0 * 15
@@ -95,7 +98,8 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
             simulationResult = fullResult,
             baselineSimulationResult = baselineResult,
             currentConcentration = currentConcentration,
-            currentTimeH = input.currentTimeH
+            currentTimeH = input.currentTimeH,
+            concentrationCalculatedAt = input.now
         )
     }
 }

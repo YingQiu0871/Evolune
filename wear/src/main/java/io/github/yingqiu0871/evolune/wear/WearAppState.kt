@@ -4,9 +4,12 @@ import android.content.Context
 import android.content.Intent
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
+import java.util.Locale
 
 internal const val WEAR_APP_SYNC_TIMEOUT_MILLIS = 30_000L
 internal const val WEAR_APP_STALE_AFTER_MILLIS = 15 * 60_000L
+/** Independent freshness window for the Phone-calculated concentration. */
+internal const val WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS = 15 * 60_000L
 internal const val WEAR_APP_STATE_CHANGED_ACTION =
     "io.github.yingqiu0871.evolune.wear.ACTION_STATE_CHANGED"
 
@@ -39,6 +42,68 @@ internal data class WearAppPresentation(
     val state: WearAppDisplayState
 )
 
+internal enum class WearAppConcentrationDisplayState {
+    FRESH,
+    STALE,
+    UNAVAILABLE
+}
+
+internal data class WearAppConcentrationPresentation(
+    val state: WearAppConcentrationDisplayState,
+    val value: Double? = null,
+    val unit: String? = null,
+    val calculatedAtMillis: Long? = null
+)
+
+internal fun formatWearAppConcentration(value: Double, unit: String): String =
+    String.format(
+        Locale.ROOT,
+        if (value != 0.0 && (value < 0.01 || value >= 1_000_000.0)) {
+            "%.2e %s"
+        } else {
+            "%.2f %s"
+        },
+        value,
+        unit
+    )
+
+internal fun deriveWearAppConcentrationPresentation(
+    snapshot: WearAppSnapshot?,
+    nowMillis: Long
+): WearAppConcentrationPresentation {
+    val concentration = snapshot?.concentrationState
+        ?: return WearAppConcentrationPresentation(WearAppConcentrationDisplayState.UNAVAILABLE)
+    if (concentration.status != io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.AVAILABLE &&
+        concentration.status != io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.STALE
+    ) {
+        return WearAppConcentrationPresentation(WearAppConcentrationDisplayState.UNAVAILABLE)
+    }
+    val value = concentration.value
+    val calculatedAtMillis = concentration.calculatedAt
+        ?.let { runCatching { it.toEpochMilli() }.getOrNull() }
+    if (
+        value == null ||
+        !value.isFinite() ||
+        value < 0.0 ||
+        concentration.unit != io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules.CONCENTRATION_UNIT_PG_ML ||
+        calculatedAtMillis == null ||
+        calculatedAtMillis <= 0L ||
+        nowMillis < calculatedAtMillis
+    ) {
+        return WearAppConcentrationPresentation(WearAppConcentrationDisplayState.UNAVAILABLE)
+    }
+    val ageMillis = nowMillis - calculatedAtMillis
+    val state = if (
+        concentration.status == io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.STALE ||
+        ageMillis >= WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS
+    ) {
+        WearAppConcentrationDisplayState.STALE
+    } else {
+        WearAppConcentrationDisplayState.FRESH
+    }
+    return WearAppConcentrationPresentation(state, value, concentration.unit, calculatedAtMillis)
+}
+
 /**
  * Returns the next wall-clock boundary that can change the displayed state.
  * No periodic polling is needed: pending requests wake at timeout and a
@@ -55,6 +120,14 @@ internal fun nextWearAppRefreshDeadline(
         if (snapshot != null) {
             futureDeadline(metadata.receivedAt, WEAR_APP_STALE_AFTER_MILLIS, nowMillis)
                 ?.let(::add)
+            val concentration = deriveWearAppConcentrationPresentation(snapshot, nowMillis)
+            if (concentration.state == WearAppConcentrationDisplayState.FRESH) {
+                futureDeadline(
+                    requireNotNull(concentration.calculatedAtMillis),
+                    WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS,
+                    nowMillis
+                )?.let(::add)
+            }
         }
     }
     return deadlines.minOrNull()

@@ -79,7 +79,11 @@ data class WearAppConcentration(
     val value: Double? = null,
     val unit: String? = null,
     val calculatedAt: Instant? = null
-)
+) {
+    companion object {
+        fun unavailable() = WearAppConcentration(WearAppConcentrationStatus.EMPTY)
+    }
+}
 
 data class WearAppProducerIdentity(
     val producerInstanceId: UUID,
@@ -233,19 +237,20 @@ object WearAppSnapshotRules {
     }
 
     private fun validateConcentration(concentration: WearAppConcentration) {
-        concentration.value?.let { value ->
-            require(value.isFinite() && value >= 0.0)
-            require(concentration.unit == CONCENTRATION_UNIT_PG_ML)
-        }
-        concentration.calculatedAt?.let { require(it.toEpochMilli() > 0L) }
         when (concentration.status) {
-            WearAppConcentrationStatus.AVAILABLE -> {
-                require(concentration.value != null)
+            WearAppConcentrationStatus.AVAILABLE,
+            WearAppConcentrationStatus.STALE -> {
+                val value = requireNotNull(concentration.value)
+                require(value.isFinite() && value >= 0.0)
                 require(concentration.unit == CONCENTRATION_UNIT_PG_ML)
+                require(concentration.calculatedAt?.toEpochMilli()?.let { it > 0L } == true)
             }
             WearAppConcentrationStatus.EMPTY,
-            WearAppConcentrationStatus.ERROR -> require(concentration.value == null)
-            WearAppConcentrationStatus.STALE -> Unit
+            WearAppConcentrationStatus.ERROR -> {
+                require(concentration.value == null)
+                require(concentration.unit == null)
+                require(concentration.calculatedAt == null)
+            }
         }
     }
 }
@@ -288,7 +293,10 @@ object WearAppSnapshotCodec {
             overallStatus = enumValue(top.required(5).readString()),
             recentDose = top.optional(6)?.let(::decodeRecent),
             upcomingOccurrences = decodeUpcoming(top.required(7)),
-            concentrationState = decodeConcentration(top.required(8)),
+            // Field 8 was reserved by the v1 snapshot shape. Older v1 payloads
+            // may omit it, so absence is an explicit unavailable value.
+            concentrationState = top.optional(8)?.let(::decodeConcentration)
+                ?: WearAppConcentration.unavailable(),
             producerInstanceId = UUID.fromString(top.required(9).readString()),
             producerGeneration = top.required(10).readLong()
         )

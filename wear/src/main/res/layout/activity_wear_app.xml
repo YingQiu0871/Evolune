@@ -35,6 +35,42 @@
             android:textSize="13sp" />
 
         <LinearLayout
+            android:id="@+id/wear_app_concentration_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:minHeight="48dp"
+            android:orientation="vertical"
+            android:contentDescription="@string/wear_app_concentration_title">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/wear_app_concentration_title"
+                android:textColor="#BDBDBD"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/wear_app_concentration_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/wear_app_concentration_unavailable"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/wear_app_concentration_freshness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/wear_app_concentration_unavailable"
+                android:textColor="#BDBDBD"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/wear_app_recent_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

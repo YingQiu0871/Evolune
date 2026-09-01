@@ -29,6 +29,7 @@ internal object WearAppSnapshotBuilder {
         zoneId: ZoneId,
         snapshotRevision: Long,
         currentConcentration: Double?,
+        concentrationCalculatedAt: Instant? = null,
         concentrationError: Boolean = false,
         producerIdentity: WearAppProducerIdentity
     ): WearAppSnapshot {
@@ -92,12 +93,14 @@ internal object WearAppSnapshotBuilder {
             concentrationError -> WearAppConcentration(WearAppConcentrationStatus.ERROR)
             currentConcentration != null &&
                 currentConcentration.isFinite() &&
-                currentConcentration >= 0.0 -> WearAppConcentration(
+                currentConcentration >= 0.0 &&
+                concentrationCalculatedAt?.let(::hasValidCalculationInstant) == true -> WearAppConcentration(
                 status = WearAppConcentrationStatus.AVAILABLE,
                 value = currentConcentration,
-                unit = WearAppSnapshotRules.CONCENTRATION_UNIT_PG_ML
+                unit = WearAppSnapshotRules.CONCENTRATION_UNIT_PG_ML,
+                calculatedAt = concentrationCalculatedAt
             )
-            else -> WearAppConcentration(WearAppConcentrationStatus.EMPTY)
+            else -> WearAppConcentration.unavailable()
         }
 
         return WearAppSnapshot(
@@ -119,6 +122,9 @@ internal object WearAppSnapshotBuilder {
             check(WearAppSnapshotRules.isValid(snapshot))
         }
     }
+
+    private fun hasValidCalculationInstant(instant: Instant): Boolean =
+        runCatching { instant.toEpochMilli() > 0L }.getOrDefault(false)
 
     private fun MedicationOccurrenceStatus.toWearAppStatus() = when (this) {
         MedicationOccurrenceStatus.UPCOMING ->
