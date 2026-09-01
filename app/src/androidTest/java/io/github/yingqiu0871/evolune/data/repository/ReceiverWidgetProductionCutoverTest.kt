@@ -19,8 +19,14 @@ import io.github.yingqiu0871.evolune.core.model.ScheduleType
 import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotId
 import io.github.yingqiu0871.evolune.core.model.SlotIdResult
+import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
+import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.data.AppDatabase
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentation
+import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.reminder.ContractNotificationActionWork
@@ -36,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -88,7 +95,7 @@ class ReceiverWidgetProductionCutoverTest {
         val notificationCommand = NotificationActionCommand(
             planId = PLAN_ID,
             notificationId = 77,
-            scheduledAtMillis = SCHEDULED_AT_MILLIS
+            scheduledAtMillis = scheduledAtMillis(FIRST_SLOT_TIME)
         )
 
         assertEquals(
@@ -106,13 +113,13 @@ class ReceiverWidgetProductionCutoverTest {
             NotificationActionOutcome.Accepted(true),
             delayedNotificationWork.handle(notificationCommand)
         )
-        val reminderId = reminderDoseEventId(PLAN_ID, SCHEDULED_AT_MILLIS)
+        val reminderId = reminderDoseEventId(PLAN_ID, scheduledAtMillis(FIRST_SLOT_TIME))
         val reminder = requireNotNull(provider.doseEvents.getById(reminderId))
         assertEquals(DoseEventSource.REMINDER, reminder.source)
         assertEquals(NOTIFICATION_OCCURRED_AT, reminder.occurredAt)
         assertEquals(TEST_ZONE, reminder.zoneId)
-        assertEquals(NOTIFICATION_OCCURRED_AT.atZone(TEST_ZONE).toLocalDate(), reminder.localDate)
-        assertNull(reminder.slotId)
+        assertEquals(OCCURRENCE_DATE, reminder.localDate)
+        assertEquals(plan().slots.first().id, reminder.slotId)
         assertEquals(1L, reminder.revision)
         assertEquals(2, notificationEffects.refreshes)
         assertEquals(2, notificationEffects.cancellations)
@@ -125,7 +132,7 @@ class ReceiverWidgetProductionCutoverTest {
             clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
         )
-        val widgetCommand = widgetCommand()
+        val widgetCommand = widgetCommand(SECOND_SLOT_TIME)
         assertEquals(WidgetQuickActionOutcome.Accepted(false), widgetWork.handle(widgetCommand))
         val replayWidgetWork = ContractWidgetQuickActionWork(
             medicationPlans = provider.medicationPlans,
@@ -135,16 +142,17 @@ class ReceiverWidgetProductionCutoverTest {
             zoneId = { TEST_ZONE }
         )
         assertEquals(WidgetQuickActionOutcome.Accepted(true), replayWidgetWork.handle(widgetCommand))
-        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId())
+        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId(SECOND_SLOT_TIME))
         val widget = requireNotNull(provider.doseEvents.getById(widgetId))
         assertEquals(DoseEventSource.WIDGET, widget.source)
         assertEquals(WIDGET_OCCURRED_AT, widget.occurredAt)
         assertEquals(TEST_ZONE, widget.zoneId)
-        assertEquals(WIDGET_OCCURRED_AT.atZone(TEST_ZONE).toLocalDate(), widget.localDate)
-        assertEquals(plan().slots.first().id, widget.slotId)
+        assertEquals(OCCURRENCE_DATE, widget.localDate)
+        assertEquals(plan().slots.last().id, widget.slotId)
         assertEquals(1L, widget.revision)
         assertEquals(2, widgetEffects.refreshes)
         assertEquals(2, widgetEffects.toasts)
+        assertEquals(2, rawEventCount())
         assertEquals(3, requireNotNull(database).openHelper.readableDatabase.version)
         assertSingleDisposableDatabase()
 
@@ -159,12 +167,161 @@ class ReceiverWidgetProductionCutoverTest {
     }
 
     @Test
+    fun delayedNotificationCompletesTheEarlySlotWithoutCompletingTheLaterSlot() = runBlocking {
+        val provider = ProductionRepositoryProvider(openDatabase())
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val effects = NotificationEffects()
+        val result = ContractNotificationActionWork(
+            medicationPlans = provider.medicationPlans,
+            doseEvents = provider.doseEvents,
+            sideEffects = effects,
+            clock = Clock.fixed(NOTIFICATION_DELAYED_OCCURRED_AT, ZoneOffset.UTC),
+            zoneId = { TEST_ZONE }
+        ).handle(notificationCommand(FIRST_SLOT_TIME))
+
+        assertEquals(NotificationActionOutcome.Accepted(false), result)
+        val reminder = requireNotNull(
+            provider.doseEvents.getById(reminderDoseEventId(PLAN_ID, scheduledAtMillis(FIRST_SLOT_TIME)))
+        )
+        assertEquals(plan().slots.first().id, reminder.slotId)
+        assertEquals(OCCURRENCE_DATE, reminder.localDate)
+        assertEquals(NOTIFICATION_DELAYED_OCCURRED_AT, reminder.occurredAt)
+
+        val presentation = MedicationOccurrencePresentation.derive(
+            occurrences = occurrences(plan()),
+            recordedEvents = provider.doseEvents.observeAll().first()
+                .mapNotNull(DoseEvent::toRecordedMedicationEvent),
+            now = NOTIFICATION_DELAYED_OCCURRED_AT
+        )
+        assertEquals(
+            reminder.id,
+            presentation.single { it.occurrence.slotId == plan().slots.first().id }.recordedEventId
+        )
+        assertNull(
+            presentation.single { it.occurrence.slotId == plan().slots.last().id }.recordedEventId
+        )
+        assertEquals(1, rawEventCount())
+    }
+
+    @Test
+    fun notificationThenWidgetForTheSameOccurrenceReturnsWidgetReplay() = runBlocking {
+        val provider = ProductionRepositoryProvider(openDatabase())
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val notificationEffects = NotificationEffects()
+        assertEquals(
+            NotificationActionOutcome.Accepted(false),
+            ContractNotificationActionWork(
+                provider.medicationPlans,
+                provider.doseEvents,
+                notificationEffects,
+                Clock.fixed(NOTIFICATION_OCCURRED_AT, ZoneOffset.UTC),
+                { TEST_ZONE }
+            ).handle(notificationCommand(FIRST_SLOT_TIME))
+        )
+
+        val widgetEffects = WidgetEffects()
+        assertEquals(
+            WidgetQuickActionOutcome.Accepted(true),
+            ContractWidgetQuickActionWork(
+                provider.medicationPlans,
+                provider.doseEvents,
+                widgetEffects,
+                Clock.fixed(WIDGET_REPLAY_OCCURRED_AT, ZoneOffset.UTC),
+                { TEST_ZONE }
+            ).handle(widgetCommand(FIRST_SLOT_TIME))
+        )
+        val reminder = requireNotNull(
+            provider.doseEvents.getById(reminderDoseEventId(PLAN_ID, scheduledAtMillis(FIRST_SLOT_TIME)))
+        )
+        assertEquals(DoseEventSource.REMINDER, reminder.source)
+        assertEquals(1, rawEventCount())
+        assertNull(provider.doseEvents.getById(widgetOccurrenceActionEventId(widgetOccurrenceId(FIRST_SLOT_TIME))))
+        assertEquals(1, widgetEffects.refreshes)
+        assertEquals(1, widgetEffects.toasts)
+    }
+
+    @Test
+    fun invalidNotificationScheduledAtDoesNotWriteOrRunSuccessSideEffects() = runBlocking {
+        val provider = ProductionRepositoryProvider(openDatabase())
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val effects = NotificationEffects()
+
+        assertEquals(
+            NotificationActionOutcome.Invalid,
+            ContractNotificationActionWork(
+                provider.medicationPlans,
+                provider.doseEvents,
+                effects,
+                Clock.fixed(NOTIFICATION_OCCURRED_AT, ZoneOffset.UTC),
+                { TEST_ZONE }
+            ).handle(notificationCommand(INVALID_SLOT_TIME))
+        )
+        assertEquals(0, rawEventCount())
+        assertEquals(0, effects.refreshes)
+        assertEquals(0, effects.cancellations)
+    }
+
+    @Test
+    fun slotDeletionDisablesAndDeletionOfPlanRejectStaleNotificationConservatively() = runBlocking {
+        suspend fun assertNoRecordAfter(
+            mutate: suspend (ProductionRepositoryProvider) -> Unit,
+            expected: NotificationActionOutcome
+        ) {
+            val provider = ProductionRepositoryProvider(openDatabase())
+            assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+            mutate(provider)
+            val effects = NotificationEffects()
+            assertEquals(
+                expected,
+                ContractNotificationActionWork(
+                    provider.medicationPlans,
+                    provider.doseEvents,
+                    effects,
+                    Clock.fixed(NOTIFICATION_OCCURRED_AT, ZoneOffset.UTC),
+                    { TEST_ZONE }
+                ).handle(notificationCommand(FIRST_SLOT_TIME))
+            )
+            assertEquals(0, rawEventCount())
+            if (expected == NotificationActionOutcome.Invalid) {
+                assertTrue(effects.refreshes == 0 && effects.cancellations == 0)
+            } else {
+                assertEquals(listOf("cancel"), effects.log)
+            }
+            closeDatabase()
+            deleteDatabaseArtifacts()
+        }
+
+        assertNoRecordAfter(
+            mutate = { provider ->
+                provider.medicationPlans.save(
+                    plan().copy(slots = listOf(plan().slots.last().copy(position = 0)))
+                )
+            },
+            expected = NotificationActionOutcome.Invalid
+        )
+        assertNoRecordAfter(
+            mutate = { provider ->
+                provider.medicationPlans.save(plan().copy(isEnabled = false))
+            },
+            expected = NotificationActionOutcome.StalePlan
+        )
+        assertNoRecordAfter(
+            mutate = { provider -> provider.medicationPlans.delete(PLAN_ID) },
+            expected = NotificationActionOutcome.StalePlan
+        )
+    }
+
+    @Test
     fun conflictAndStorageFailureLeaveRowsUnchangedAndRunNoSuccessSideEffects() = runBlocking {
         val opened = openDatabase()
         val provider = ProductionRepositoryProvider(opened)
         assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
-        val reminderId = reminderDoseEventId(PLAN_ID, SCHEDULED_AT_MILLIS)
-        val collision = event(reminderId, DoseEventSource.MANUAL, NOTIFICATION_OCCURRED_AT)
+        val reminderId = reminderDoseEventId(PLAN_ID, scheduledAtMillis(FIRST_SLOT_TIME))
+        val collision = event(
+            reminderId,
+            DoseEventSource.MANUAL,
+            NOTIFICATION_OCCURRED_AT.minusSeconds(24L * 60L * 60L)
+        )
         assertEquals(InsertResult.Inserted, provider.doseEvents.insert(collision))
         val notificationEffects = NotificationEffects()
         val notificationResult = ContractNotificationActionWork(
@@ -174,14 +331,14 @@ class ReceiverWidgetProductionCutoverTest {
             clock = Clock.fixed(NOTIFICATION_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
         ).handle(
-            NotificationActionCommand(PLAN_ID, 78, SCHEDULED_AT_MILLIS)
+            NotificationActionCommand(PLAN_ID, 78, scheduledAtMillis(FIRST_SLOT_TIME))
         )
         assertEquals(NotificationActionOutcome.Conflict, notificationResult)
         assertEquals(collision, provider.doseEvents.getById(reminderId))
         assertEquals(0, notificationEffects.refreshes)
         assertEquals(0, notificationEffects.cancellations)
 
-        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId())
+        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId(FIRST_SLOT_TIME))
         opened.openHelper.writableDatabase.execSQL(
             """
             CREATE TRIGGER batch6b_widget_insert_failure
@@ -199,7 +356,7 @@ class ReceiverWidgetProductionCutoverTest {
             sideEffects = widgetEffects,
             clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
-        ).handle(widgetCommand())
+        ).handle(widgetCommand(FIRST_SLOT_TIME))
         assertEquals(WidgetQuickActionOutcome.StorageFailure, widgetResult)
         assertNull(provider.doseEvents.getById(widgetId))
         assertEquals(0, widgetEffects.refreshes)
@@ -329,30 +486,49 @@ class ReceiverWidgetProductionCutoverTest {
             val slotId = (ScheduledDoseSlotId.generate(PLAN_ID, position, time) as SlotIdResult.Success).id
             ScheduledDoseSlot(slotId, PLAN_ID, time, position)
         },
-        daysOfWeek = setOf(DayOfWeek.MONDAY),
+        daysOfWeek = setOf(DayOfWeek.FRIDAY),
         intervalDays = 1,
         isEnabled = true,
         extras = mapOf(ExtraKey.SUBLINGUAL_TIER to 2.0),
         createdAt = Instant.parse("2026-01-02T03:04:05Z")
     )
 
-    private fun widgetCommand(): WidgetQuickActionCommand {
-        val scheduledLocalDate = WIDGET_OCCURRED_AT.atZone(TEST_ZONE).toLocalDate()
-        val slotId = plan().slots.first().id
+    private fun notificationCommand(localTime: LocalTime): NotificationActionCommand =
+        NotificationActionCommand(
+            planId = PLAN_ID,
+            notificationId = 78,
+            scheduledAtMillis = scheduledAtMillis(localTime)
+        )
+
+    private fun widgetCommand(localTime: LocalTime): WidgetQuickActionCommand {
+        val slotId = plan().slots.single { it.localTime == localTime }.id
         return WidgetQuickActionCommand(
             planId = PLAN_ID.toString(),
             slotId = slotId.toString(),
-            scheduledLocalDate = scheduledLocalDate.toString(),
+            scheduledLocalDate = OCCURRENCE_DATE.toString(),
             occurrenceId = MedicationOccurrenceIdentity.derive(
                 PLAN_ID,
                 slotId,
-                scheduledLocalDate
+                OCCURRENCE_DATE
             ).value.toString()
         )
     }
 
-    private fun widgetOccurrenceId(): UUID =
-        UUID.fromString(requireNotNull(widgetCommand().occurrenceId))
+    private fun widgetOccurrenceId(localTime: LocalTime): UUID =
+        UUID.fromString(requireNotNull(widgetCommand(localTime).occurrenceId))
+
+    private fun occurrences(plan: MedicationPlan): List<MedicationOccurrence> =
+        MedicationOccurrenceGenerator.generate(
+            schedules = listOf(plan.toMedicationSchedule()),
+            window = OccurrenceGenerationWindow(
+                startInclusive = OCCURRENCE_DATE.atStartOfDay(TEST_ZONE).toInstant(),
+                endExclusive = OCCURRENCE_DATE.plusDays(1L).atStartOfDay(TEST_ZONE).toInstant()
+            ),
+            zoneId = TEST_ZONE
+        )
+
+    private fun scheduledAtMillis(localTime: LocalTime): Long =
+        OCCURRENCE_DATE.atTime(localTime).atZone(TEST_ZONE).toInstant().toEpochMilli()
 
     private fun event(
         id: UUID,
@@ -437,15 +613,29 @@ class ReceiverWidgetProductionCutoverTest {
     private companion object {
         const val TEST_DATABASE_PREFIX = "batch6b_receiver_widget_"
         const val TEST_DATABASE = "${TEST_DATABASE_PREFIX}test.db"
-        const val SCHEDULED_AT_MILLIS = 1_800_000_000_000L
-        val PLAN_ID: UUID = UUID(0L, 801L)
-        val NOTIFICATION_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:30:00.123Z")
-        val NOTIFICATION_REPLAY_OCCURRED_AT: Instant =
-            Instant.parse("2027-01-15T08:30:30.456Z")
-        val WIDGET_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:31:00.456Z")
-        val WIDGET_REPLAY_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:31:01.789Z")
-        val WEAR_OCCURRED_AT: Instant = Instant.parse("2027-01-15T08:32:00.123Z")
         val TEST_ZONE: ZoneId = ZoneId.of("Asia/Shanghai")
+        val PLAN_ID: UUID = UUID(0L, 801L)
+        val OCCURRENCE_DATE = java.time.LocalDate.of(2027, 1, 15)
+        val FIRST_SLOT_TIME: LocalTime = LocalTime.of(8, 30)
+        val SECOND_SLOT_TIME: LocalTime = LocalTime.of(20, 0)
+        val INVALID_SLOT_TIME: LocalTime = LocalTime.of(12, 0)
+        val NOTIFICATION_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(FIRST_SLOT_TIME).plusSeconds(30).plusNanos(123_000_000)
+                .atZone(TEST_ZONE).toInstant()
+        val NOTIFICATION_REPLAY_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(FIRST_SLOT_TIME).plusSeconds(31).plusNanos(456_000_000)
+                .atZone(TEST_ZONE).toInstant()
+        val NOTIFICATION_DELAYED_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(16, 30, 0, 123_000_000).atZone(TEST_ZONE).toInstant()
+        val WIDGET_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(SECOND_SLOT_TIME).plusSeconds(30).plusNanos(456_000_000)
+                .atZone(TEST_ZONE).toInstant()
+        val WIDGET_REPLAY_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(SECOND_SLOT_TIME).plusSeconds(31).plusNanos(789_000_000)
+                .atZone(TEST_ZONE).toInstant()
+        val WEAR_OCCURRED_AT: Instant =
+            OCCURRENCE_DATE.atTime(FIRST_SLOT_TIME).plusSeconds(32).plusNanos(123_000_000)
+                .atZone(TEST_ZONE).toInstant()
     }
 }
 
@@ -463,13 +653,16 @@ private class CountingMedicationPlanRepository(
 private class NotificationEffects : NotificationActionSideEffects {
     var refreshes = 0
     var cancellations = 0
+    val log = mutableListOf<String>()
 
     override suspend fun refreshWidgets() {
         refreshes += 1
+        log += "refresh"
     }
 
     override fun cancelNotification(notificationId: Int) {
         cancellations += 1
+        log += "cancel"
     }
 }
 

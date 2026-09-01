@@ -186,10 +186,16 @@ internal class ContractNotificationActionWork(
                     ) != null
                 },
             ) { plan, _ ->
+                val authoritativeOccurrence = regenerateExactOccurrence(
+                    plan = plan,
+                    scheduledAt = scheduledAt,
+                    localDate = scheduledLocalDate,
+                    zoneId = actionZoneId
+                ) ?: error("notification occurrence changed during recording")
                 createReminderDoseEvent(
                     plan = plan,
+                    targetOccurrence = authoritativeOccurrence,
                     recordedAtMillis = recordedAtMillis,
-                    scheduledAtMillis = command.scheduledAtMillis,
                     zoneId = actionZoneId
                 )
             }

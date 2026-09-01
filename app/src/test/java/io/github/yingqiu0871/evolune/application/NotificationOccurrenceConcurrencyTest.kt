@@ -205,7 +205,13 @@ class NotificationOccurrenceConcurrencyTest {
             val secondPlan = syntheticPlan(
                 id = UUID(0L, 1_503L),
                 slots = listOf(LocalTime.of(5, 0))
-            )
+            ).let { second ->
+                second.copy(
+                    slots = second.slots.map { slot ->
+                        slot.copy(id = UUID(1L, 1_503L))
+                    }
+                )
+            }
             plans.plans[secondPlan.id] = secondPlan
             val secondTarget = occurrence(secondPlan)
             val secondNotification = notificationWorkAt(

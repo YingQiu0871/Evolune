@@ -4,6 +4,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.time.ZoneId
@@ -17,27 +18,25 @@ import java.util.UUID
  */
 internal fun createReminderDoseEvent(
     plan: MedicationPlan,
+    targetOccurrence: MedicationOccurrence,
     recordedAtMillis: Long,
-    scheduledAtMillis: Long,
     zoneId: ZoneId
 ): DoseEvent {
     require(recordedAtMillis > 0)
-    require(scheduledAtMillis > 0)
+    require(targetOccurrence.planId == plan.id)
+    require(targetOccurrence.zoneId == zoneId)
 
-    val occurrenceKey = "reminder:${plan.id}:$scheduledAtMillis"
     val occurredAt = Instant.ofEpochMilli(recordedAtMillis)
     return DoseEvent(
-        id = UUID.nameUUIDFromBytes(
-            occurrenceKey.toByteArray(StandardCharsets.UTF_8)
-        ),
+        id = reminderDoseEventId(plan.id, targetOccurrence.scheduledAt.toEpochMilli()),
         route = plan.route,
         occurredAt = occurredAt,
         zoneId = zoneId,
-        localDate = occurredAt.atZone(zoneId).toLocalDate(),
+        localDate = targetOccurrence.scheduledLocalDateTime.toLocalDate(),
         doseMG = plan.doseMG,
         ester = plan.ester,
         extras = plan.extras,
-        slotId = null,
+        slotId = targetOccurrence.slotId,
         source = DoseEventSource.REMINDER,
         status = DoseEventStatus.RECORDED,
         revision = 1L
