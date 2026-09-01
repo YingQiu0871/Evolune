@@ -228,24 +228,28 @@ class MainActivity : ComponentActivity() {
                     pkState.error
                 ) {
                     if (pkState.isSimulating) return@LaunchedEffect
-                    WearAppDataLayer.publishSnapshot(
-                        context = applicationContext,
-                        snapshot = WearAppSnapshotBuilder.build(
-                            plans = domainMedicationPlans,
-                            events = doseEvents,
-                            generatedAt = java.time.Instant.now(),
-                            zoneId = java.time.ZoneId.systemDefault(),
-                            snapshotRevision = WearAppSnapshotRevisionStore.next(
-                                applicationContext
-                            ),
-                            currentConcentration = pkState.currentConcentration,
-                            concentrationCalculatedAt = pkState.concentrationCalculatedAt,
-                            concentrationError = pkState.error != null,
-                            producerIdentity = WearAppProducerIdentityStore.current(
-                                applicationContext
+                    io.github.yingqiu0871.evolune.wear.withReservedWearAppSnapshotRevision(
+                        reserveRevision = {
+                            WearAppSnapshotRevisionStore.reserve(applicationContext)
+                        }
+                    ) { snapshotRevision ->
+                        WearAppDataLayer.publishSnapshot(
+                            context = applicationContext,
+                            snapshot = WearAppSnapshotBuilder.build(
+                                plans = domainMedicationPlans,
+                                events = doseEvents,
+                                generatedAt = java.time.Instant.now(),
+                                zoneId = java.time.ZoneId.systemDefault(),
+                                snapshotRevision = snapshotRevision,
+                                currentConcentration = pkState.currentConcentration,
+                                concentrationCalculatedAt = pkState.concentrationCalculatedAt,
+                                concentrationError = pkState.error != null,
+                                producerIdentity = WearAppProducerIdentityStore.current(
+                                    applicationContext
+                                )
                             )
                         )
-                    )
+                    }
                 }
                 
                 // 应用启动时重新设置所有提醒

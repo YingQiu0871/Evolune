@@ -142,6 +142,66 @@ class WearAppStateTest {
     }
 
     @Test
+    fun `clock skew matrix applies medication data without ever showing future concentration as fresh`() {
+        val captureMillis = 2_000_000L
+        val futureSkews = listOf(1L, 1_000L, 30_000L, 120_000L, 840_000L, 960_000L)
+        futureSkews.forEachIndexed { index, skewMillis ->
+            val incoming = snapshot.copy(
+                snapshotRevision = 10L + index,
+                recentDose = WearAppRecentDose(
+                    eventId = UUID(0L, 60L + index),
+                    planId = UUID(0L, 70L + index),
+                    slotId = UUID(0L, 80L + index),
+                    localDate = java.time.LocalDate.of(2026, 8, 30),
+                    occurredAt = Instant.ofEpochMilli(900L),
+                    medicationName = "Estradiol",
+                    route = "ORAL",
+                    dose = 2.0,
+                    doseUnit = "mg",
+                    source = "WEAR",
+                    eventRevision = 2L
+                ),
+                concentrationState = io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration(
+                    status = WearAppConcentrationStatus.AVAILABLE,
+                    value = 120.0,
+                    unit = "pg/mL",
+                    calculatedAt = Instant.ofEpochMilli(captureMillis + skewMillis)
+                )
+            )
+
+            assertEquals(
+                WearAppSnapshotApplyResult.Applied,
+                classifyWearAppSnapshot(snapshot, incoming)
+            )
+            assertEquals(
+                WearAppConcentrationDisplayState.UNAVAILABLE,
+                deriveWearAppConcentrationPresentation(incoming, captureMillis).state
+            )
+        }
+
+        val phoneSlowSkews = listOf(-1L, -1_000L, -840_000L, -960_000L)
+        phoneSlowSkews.forEachIndexed { index, skewMillis ->
+            val incoming = snapshot.copy(
+                snapshotRevision = 30L + index,
+                concentrationState = io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration(
+                    status = WearAppConcentrationStatus.AVAILABLE,
+                    value = 120.0,
+                    unit = "pg/mL",
+                    calculatedAt = Instant.ofEpochMilli(captureMillis + skewMillis)
+                )
+            )
+            assertEquals(
+                if (skewMillis <= -WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS) {
+                    WearAppConcentrationDisplayState.STALE
+                } else {
+                    WearAppConcentrationDisplayState.FRESH
+                },
+                deriveWearAppConcentrationPresentation(incoming, captureMillis).state
+            )
+        }
+    }
+
+    @Test
     fun `concentration freshness survives rollback and extreme clock values`() {
         val concentrationSnapshot = snapshot.copy(
             concentrationState = WearAppConcentration(
@@ -256,6 +316,44 @@ class WearAppStateTest {
         assertEquals(
             WearAppSnapshotApplyResult.Applied,
             classifyWearAppSnapshot(snapshot, snapshot.copy(snapshotRevision = 2L))
+        )
+    }
+
+    @Test
+    fun `future concentration does not reject an otherwise valid medication snapshot`() {
+        val future = snapshot.copy(
+            snapshotRevision = 2L,
+            recentDose = WearAppRecentDose(
+                eventId = UUID(0L, 51L),
+                planId = UUID(0L, 52L),
+                slotId = UUID(0L, 53L),
+                localDate = java.time.LocalDate.of(2026, 8, 30),
+                occurredAt = Instant.ofEpochMilli(900L),
+                medicationName = "Estradiol",
+                route = "ORAL",
+                dose = 2.0,
+                doseUnit = "mg",
+                source = "WEAR",
+                eventRevision = 2L
+            ),
+            concentrationState = io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 120.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(2_001L)
+            )
+        )
+
+        val reduction = reduceWearAppSnapshot(
+            WearAppSnapshotReducerState(snapshot),
+            future
+        )
+
+        assertEquals(WearAppSnapshotApplyResult.Applied, reduction.result)
+        assertEquals(future, reduction.state.current)
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(future, 2_000L).state
         )
     }
 

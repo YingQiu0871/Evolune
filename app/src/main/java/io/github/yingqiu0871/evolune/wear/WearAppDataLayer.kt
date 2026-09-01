@@ -71,40 +71,47 @@ internal object WearAppDataLayer {
                 }
             }
         }
-        val repositories = ProductionRepositoryProvider.get(context)
-        val plans = repositories.medicationPlans.observeAll().first()
-        val events = repositories.doseEvents.observeAll().first()
-        val now = clock.instant()
-        val zoneId = ZoneId.systemDefault()
-        val bodyWeight = SettingsDataStore(context.applicationContext).userSettings.first().bodyWeight
-        val pkEvents = repositories.doseEvents.getEventsForPk(now)
-        val pkCalculation = runCatching {
-            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                DefaultPkSimulationCalculator.calculate(
-                    PkSimulationInput(
-                        now = now,
-                        currentTimeH = now.toEpochMilli() / 3_600_000.0,
-                        historicalDoseEvents = pkEvents,
-                        enabledPlans = plans.filter { it.isEnabled },
-                        bodyWeightKG = bodyWeight,
-                        zoneId = zoneId
+        withReservedWearAppSnapshotRevision(
+            reserveRevision = { WearAppSnapshotRevisionStore.reserve(context) }
+        ) { snapshotRevision ->
+            val repositories = ProductionRepositoryProvider.get(context)
+            val plans = repositories.medicationPlans.observeAll().first()
+            val events = repositories.doseEvents.observeAll().first()
+            val now = clock.instant()
+            val zoneId = ZoneId.systemDefault()
+            val bodyWeight = SettingsDataStore(context.applicationContext)
+                .userSettings
+                .first()
+                .bodyWeight
+            val pkEvents = repositories.doseEvents.getEventsForPk(now)
+            val pkCalculation = runCatching {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    DefaultPkSimulationCalculator.calculate(
+                        PkSimulationInput(
+                            now = now,
+                            currentTimeH = now.toEpochMilli() / 3_600_000.0,
+                            historicalDoseEvents = pkEvents,
+                            enabledPlans = plans.filter { it.isEnabled },
+                            bodyWeightKG = bodyWeight,
+                            zoneId = zoneId
+                        )
                     )
-                )
+                }
             }
+            val computedPkState = pkCalculation.getOrNull()
+            val snapshot = WearAppSnapshotBuilder.build(
+                plans = plans,
+                events = events,
+                generatedAt = now,
+                zoneId = zoneId,
+                snapshotRevision = snapshotRevision,
+                currentConcentration = computedPkState?.currentConcentration,
+                concentrationCalculatedAt = computedPkState?.concentrationCalculatedAt,
+                concentrationError = pkCalculation.isFailure,
+                producerIdentity = producerIdentity
+            )
+            publishSnapshot(context, snapshot)
         }
-        val computedPkState = pkCalculation.getOrNull()
-        val snapshot = WearAppSnapshotBuilder.build(
-            plans = plans,
-            events = events,
-            generatedAt = now,
-            zoneId = zoneId,
-            snapshotRevision = WearAppSnapshotRevisionStore.next(context),
-            currentConcentration = computedPkState?.currentConcentration,
-            concentrationCalculatedAt = computedPkState?.concentrationCalculatedAt,
-            concentrationError = pkCalculation.isFailure,
-            producerIdentity = producerIdentity
-        )
-        publishSnapshot(context, snapshot)
     }
 
     private const val TAG = "HRTWearAppDataLayer"

@@ -49,6 +49,62 @@ class WearAppFollowUpRegressionTest {
     }
 
     @Test
+    fun `future concentration keeps duplicate conflict and ordering semantics`() {
+        val base = snapshot(producerA, generation = 1, revision = 100)
+        val future = base.copy(
+            snapshotRevision = 101,
+            concentrationState = io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 80.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(101L)
+            )
+        )
+
+        assertEquals(WearAppSnapshotApplyResult.Applied, classifyWearAppSnapshot(base, future))
+        assertEquals(WearAppSnapshotApplyResult.Duplicate, classifyWearAppSnapshot(future, future.copy()))
+        assertEquals(
+            WearAppSnapshotApplyResult.Rejected,
+            classifyWearAppSnapshot(
+                future,
+                future.copy(concentrationState = future.concentrationState.copy(value = 81.0))
+            )
+        )
+        assertEquals(
+            WearAppSnapshotApplyResult.Rejected,
+            classifyWearAppSnapshot(future, future.copy(overallStatus = WearAppOverallStatus.EMPTY))
+        )
+        assertEquals(
+            WearAppSnapshotApplyResult.Older,
+            classifyWearAppSnapshot(future, future.copy(snapshotRevision = 100L))
+        )
+        assertEquals(
+            WearAppSnapshotApplyResult.Applied,
+            classifyWearAppSnapshot(future, future.copy(snapshotRevision = 102L))
+        )
+    }
+
+    @Test
+    fun `reserved revisions remain ordered when older capture completes last`() {
+        val reservations = generateSequence(1L) { it + 1L }.iterator()
+        val oldCaptureRevision = reservations.next()
+        val newCaptureRevision = reservations.next()
+        val oldCapture = snapshot(producerA, generation = 1, revision = oldCaptureRevision)
+        val newCapture = snapshot(producerA, generation = 1, revision = newCaptureRevision)
+
+        val afterNewCapture = reduceWearAppSnapshot(
+            WearAppSnapshotReducerState(null),
+            newCapture
+        )
+        val afterOldCapture = reduceWearAppSnapshot(afterNewCapture.state, oldCapture)
+
+        assertTrue(oldCaptureRevision < newCaptureRevision)
+        assertEquals(WearAppSnapshotApplyResult.Applied, afterNewCapture.result)
+        assertEquals(WearAppSnapshotApplyResult.Older, afterOldCapture.result)
+        assertEquals(newCapture, afterOldCapture.state.current)
+    }
+
+    @Test
     fun `new producer revision one wins and delayed old producer cannot overwrite it`() {
         val old = snapshot(producerA, generation = 1, revision = 100)
         val rebuiltPhone = snapshot(producerB, generation = 2, revision = 1)

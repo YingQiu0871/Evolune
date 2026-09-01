@@ -9,7 +9,7 @@ internal object WearAppSnapshotRevisionStore {
     private const val KEY_REVISION = "wear_app_snapshot_revision"
 
     @Synchronized
-    fun next(context: Context): Long {
+    fun reserve(context: Context): Long {
         val preferences = context.getSharedPreferences(
             PREFERENCES_NAME,
             Context.MODE_PRIVATE
@@ -29,3 +29,9 @@ internal object WearAppSnapshotRevisionStore {
         Context.MODE_PRIVATE
     ).getLong(KEY_REVISION, 0L)
 }
+
+/** Reserves ordering before the asynchronous snapshot capture begins. */
+internal suspend fun <T> withReservedWearAppSnapshotRevision(
+    reserveRevision: () -> Long,
+    capture: suspend (Long) -> T
+): T = capture(reserveRevision())
