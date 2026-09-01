@@ -22,7 +22,7 @@ import java.util.UUID
 
 class ReminderReceiverWorkTest {
     private val plan = syntheticPlan()
-    private val scheduledAtMillis = 1_800_000_000_000L
+    private val scheduledAtMillis = Instant.parse("2027-01-15T00:30:00Z").toEpochMilli()
     private val recordedAt = Instant.parse("2027-01-15T08:30:00.123Z")
     private val zoneId = ZoneId.of("Asia/Shanghai")
 

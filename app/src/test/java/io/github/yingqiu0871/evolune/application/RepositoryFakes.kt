@@ -31,6 +31,7 @@ internal class FakeDoseEventRepository(
     var rangeFailure: Throwable? = null
     var pkFailure: Throwable? = null
     var insertFailure: Throwable? = null
+    var beforeInsert: (suspend (DoseEvent) -> Unit)? = null
     var forcedInsertResult: InsertResult? = null
     var beforeForcedInsertResult: ((DoseEvent) -> Unit)? = null
     var rangeEvents: List<DoseEvent> = initialEvents
@@ -72,6 +73,7 @@ internal class FakeDoseEventRepository(
         insertFailure?.let { throw it }
         insertCalls += 1
         lastInserted = event
+        beforeInsert?.invoke(event)
         forcedInsertResult?.let {
             beforeForcedInsertResult?.invoke(event)
             return it
@@ -151,6 +153,7 @@ internal class FakeMedicationPlanRepository(
     var getFailure: Throwable? = null
     var observeFailure: Throwable? = null
     var getCalls = 0
+    var beforeGet: (suspend (UUID) -> Unit)? = null
 
     override fun observeAll(): Flow<List<MedicationPlan>> {
         observeFailure?.let { throw it }
@@ -164,6 +167,7 @@ internal class FakeMedicationPlanRepository(
 
     override suspend fun getById(id: UUID): MedicationPlan? {
         getFailure?.let { throw it }
+        beforeGet?.invoke(id)
         getCalls += 1
         return plans[id]
     }
