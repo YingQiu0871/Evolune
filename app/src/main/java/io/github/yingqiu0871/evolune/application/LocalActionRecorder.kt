@@ -17,6 +17,8 @@ internal class LocalActionRecorder(
     suspend fun recordReminder(
         planId: UUID,
         scheduledAtMillis: Long,
+        requireEnabledPlan: Boolean = false,
+        validatePlan: (MedicationPlan) -> Boolean = { true },
         createEvent: suspend (MedicationPlan, UUID) -> DoseEvent
     ): RecordDoseEventActionResult {
         val eventId = localEventId("reminder", planId, scheduledAtMillis)
@@ -24,8 +26,9 @@ internal class LocalActionRecorder(
             planId = planId,
             eventId = eventId,
             expectedSource = DoseEventSource.REMINDER,
-            requireEnabledPlan = false,
+            requireEnabledPlan = requireEnabledPlan,
             policy = ExistingEventPolicy.FirstAcceptedBySource(DoseEventSource.REMINDER),
+            validatePlan = validatePlan,
             createEvent = { plan -> createEvent(plan, eventId) }
         )
     }

@@ -62,5 +62,6 @@ class PkSimulationCalculatorTest {
         assertEquals(expected, actual.baselineSimulationResult)
         assertEquals(expected.concentration(currentTimeH), actual.currentConcentration)
         assertEquals(currentTimeH, actual.currentTimeH, 0.0)
+        assertEquals(now, actual.concentrationCalculatedAt)
     }
 }

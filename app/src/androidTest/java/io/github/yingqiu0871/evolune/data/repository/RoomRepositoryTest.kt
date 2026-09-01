@@ -5,7 +5,9 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
@@ -155,6 +157,65 @@ class RoomRepositoryTest {
             eventRepository.update(syntheticEvent(uuid(999), Instant.EPOCH), expectedRevision = 1)
         )
         assertEquals(UpdateResult.Invalid, eventRepository.update(edited, expectedRevision = 0))
+    }
+
+    @Test
+    fun eventConditionalDeleteRequiresTheCurrentRevisionAndDeletesAtomically() = runBlocking {
+        val event = syntheticEvent(uuid(112), Instant.ofEpochMilli(2_000L))
+        assertEquals(InsertResult.Inserted, eventRepository.insert(event))
+
+        assertEquals(
+            ConditionalDeleteResult.RevisionConflict,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 2L)
+        )
+        assertEquals(event, eventRepository.getById(event.id))
+
+        assertEquals(
+            ConditionalDeleteResult.Deleted,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 1L)
+        )
+        assertNull(eventRepository.getById(event.id))
+        assertEquals(
+            ConditionalDeleteResult.NotFound,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 1L)
+        )
+        assertEquals(
+            ConditionalDeleteResult.Invalid,
+            eventRepository.deleteIfRevisionMatches(event.id, expectedRevision = 0L)
+        )
+    }
+
+    @Test
+    fun eventLatestDeleteRechecksRecentIdentityInsideTheTransaction() = runBlocking {
+        val target = syntheticEvent(uuid(115), Instant.ofEpochMilli(2_000L))
+        val newer = syntheticEvent(uuid(116), Instant.ofEpochMilli(3_000L))
+        eventRepository.insert(target)
+        eventRepository.insert(newer)
+
+        assertEquals(
+            LatestDoseDeleteResult.NotLatest,
+            eventRepository.deleteLatestRecordedIfRevisionMatches(target.id, target.revision)
+        )
+        assertEquals(target, eventRepository.getById(target.id))
+        assertEquals(newer, eventRepository.getById(newer.id))
+
+        assertEquals(
+            LatestDoseDeleteResult.Deleted,
+            eventRepository.deleteLatestRecordedIfRevisionMatches(newer.id, newer.revision)
+        )
+        assertNull(eventRepository.getById(newer.id))
+        assertEquals(target, eventRepository.getById(target.id))
+
+        val changed = target.copy(doseMG = target.doseMG + 1.0)
+        assertEquals(
+            UpdateResult.Updated,
+            eventRepository.update(changed, expectedRevision = target.revision)
+        )
+        assertEquals(
+            LatestDoseDeleteResult.EventChanged,
+            eventRepository.deleteLatestRecordedIfRevisionMatches(target.id, target.revision)
+        )
+        assertEquals(changed.copy(revision = target.revision + 1L), eventRepository.getById(target.id))
     }
 
     @Test

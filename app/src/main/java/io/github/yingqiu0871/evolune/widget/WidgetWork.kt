@@ -1,8 +1,11 @@
 package io.github.yingqiu0871.evolune.widget
 
 import io.github.yingqiu0871.evolune.application.LocalActionRecorder
+import io.github.yingqiu0871.evolune.application.OccurrenceConfirmationCoordinator
 import io.github.yingqiu0871.evolune.application.RecordAcceptance
 import io.github.yingqiu0871.evolune.application.RecordDoseEventActionResult
+import io.github.yingqiu0871.evolune.application.findPresentedEventForOccurrence
+import io.github.yingqiu0871.evolune.application.widgetOccurrenceActionEventId
 import io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkAdapter
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
@@ -14,6 +17,8 @@ import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
 import io.github.yingqiu0871.evolune.data.TimeFormat
+import io.github.yingqiu0871.evolune.data.repository.RepositoryStorageException
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
 import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
@@ -157,8 +162,8 @@ internal fun interface WidgetQuickActionWork {
 }
 
 internal class ContractWidgetQuickActionWork(
-    medicationPlans: MedicationPlanRepository,
-    doseEvents: DoseEventRepository,
+    private val medicationPlans: MedicationPlanRepository,
+    private val doseEvents: DoseEventRepository,
     private val sideEffects: WidgetQuickActionSideEffects,
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: () -> ZoneId = ZoneId::systemDefault
@@ -168,6 +173,22 @@ internal class ContractWidgetQuickActionWork(
     override suspend fun handle(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
         val parsed = command.parsed()
             ?: return WidgetQuickActionOutcome.Invalid
+        return try {
+            OccurrenceConfirmationCoordinator.withLock {
+                handleParsed(parsed)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: RepositoryStorageException) {
+            WidgetQuickActionOutcome.StorageFailure
+        } catch (_: Throwable) {
+            WidgetQuickActionOutcome.UnexpectedFailure
+        }
+    }
+
+    private suspend fun handleParsed(
+        parsed: ParsedWidgetQuickAction
+    ): WidgetQuickActionOutcome {
         val recordedAtMillis = clock.millis()
         val actionZoneId = zoneId()
         val recordedAt = Instant.ofEpochMilli(recordedAtMillis)
@@ -182,11 +203,37 @@ internal class ContractWidgetQuickActionWork(
         if (derivedOccurrenceId != parsed.occurrenceId) {
             return WidgetQuickActionOutcome.Invalid
         }
+
+        val currentPlan = medicationPlans.getById(parsed.planId)
+            ?: return WidgetQuickActionOutcome.PlanNotFound
+        if (!currentPlan.isEnabled) return WidgetQuickActionOutcome.PlanDisabled
+        val targetOccurrence = parsed.regenerateExactOccurrence(currentPlan, actionZoneId)
+            ?: return WidgetQuickActionOutcome.Invalid
+        val presentationOccurrences = regeneratePresentationOccurrences(
+            medicationPlans.observeEnabled().first(),
+            parsed.scheduledLocalDate,
+            actionZoneId
+        )
+        val existingAction = doseEvents.getById(
+            widgetOccurrenceActionEventId(parsed.occurrenceId)
+        )
+        if (existingAction == null) {
+            val existingPresentationEvent = findPresentedEventForOccurrence(
+                targetOccurrence,
+                presentationOccurrences,
+                doseEvents.observeAll().first(),
+                recordedAt
+            )
+            if (existingPresentationEvent != null) {
+                return accepted(currentPlan.name, replayed = true)
+            }
+        }
+
         return when (
             val result = recordAction.recordWidget(
                 planId = parsed.planId,
                 occurrenceId = parsed.occurrenceId,
-                validatePlan = { plan -> parsed.existsIn(plan, actionZoneId) }
+                validatePlan = { plan -> parsed.regenerateExactOccurrence(plan, actionZoneId) != null }
             ) { plan, eventId ->
                 createWidgetDoseEvent(
                     plan = plan,
@@ -197,10 +244,34 @@ internal class ContractWidgetQuickActionWork(
                 )
             }
         ) {
-            is RecordDoseEventActionResult.Accepted -> accepted(
-                planName = requireNotNull(result.plan).name,
-                replayed = result.acceptance != RecordAcceptance.Inserted
-            )
+            is RecordDoseEventActionResult.Accepted -> {
+                val verifiedPlan = result.plan ?: currentPlan
+                val verifiedOccurrence = parsed.regenerateExactOccurrence(
+                    verifiedPlan,
+                    actionZoneId
+                )
+                val verifiedWinner = verifiedOccurrence?.let { occurrence ->
+                    findPresentedEventForOccurrence(
+                        occurrence,
+                        regeneratePresentationOccurrences(
+                            medicationPlans.observeEnabled().first(),
+                            parsed.scheduledLocalDate,
+                            actionZoneId
+                        ),
+                        doseEvents.observeAll().first(),
+                        Instant.ofEpochMilli(clock.millis())
+                    )
+                }
+                if (verifiedWinner == null) {
+                    WidgetQuickActionOutcome.Conflict
+                } else {
+                    accepted(
+                        planName = verifiedPlan.name,
+                        replayed = result.acceptance != RecordAcceptance.Inserted ||
+                            verifiedWinner.id != result.event.id
+                    )
+                }
+            }
             RecordDoseEventActionResult.PlanNotFound -> WidgetQuickActionOutcome.PlanNotFound
             RecordDoseEventActionResult.PlanDisabled -> WidgetQuickActionOutcome.PlanDisabled
             RecordDoseEventActionResult.Conflict -> WidgetQuickActionOutcome.Conflict
@@ -209,6 +280,24 @@ internal class ContractWidgetQuickActionWork(
             RecordDoseEventActionResult.UnexpectedFailure ->
                 WidgetQuickActionOutcome.UnexpectedFailure
         }
+    }
+
+    private fun regeneratePresentationOccurrences(
+        plans: List<MedicationPlan>,
+        localDate: LocalDate,
+        zoneId: ZoneId
+    ): List<MedicationOccurrence> {
+        val window = runCatching {
+            OccurrenceGenerationWindow(
+                startInclusive = localDate.minusDays(1L).atStartOfDay(zoneId).toInstant(),
+                endExclusive = localDate.plusDays(2L).atStartOfDay(zoneId).toInstant()
+            )
+        }.getOrNull() ?: return emptyList()
+        return MedicationOccurrenceGenerator.generate(
+            schedules = plans.map(MedicationPlan::toMedicationSchedule),
+            window = window,
+            zoneId = zoneId
+        )
     }
 
     private fun WidgetQuickActionCommand.parsed(): ParsedWidgetQuickAction? {
@@ -249,20 +338,24 @@ private data class ParsedWidgetQuickAction(
     val scheduledLocalDate: LocalDate,
     val occurrenceId: UUID
 ) {
-    fun existsIn(plan: MedicationPlan, zoneId: ZoneId): Boolean {
-        val start = scheduledLocalDate.atStartOfDay(zoneId).toInstant()
-        val end = scheduledLocalDate.plusDays(1L).atStartOfDay(zoneId).toInstant()
-        val matches = MedicationOccurrenceGenerator.generate(
+    fun regenerateExactOccurrence(
+        plan: MedicationPlan,
+        zoneId: ZoneId
+    ): MedicationOccurrence? {
+        val start = runCatching { scheduledLocalDate.atStartOfDay(zoneId).toInstant() }
+            .getOrNull() ?: return null
+        val end = runCatching { scheduledLocalDate.plusDays(1L).atStartOfDay(zoneId).toInstant() }
+            .getOrNull() ?: return null
+        return MedicationOccurrenceGenerator.generate(
             schedules = listOf(plan.toMedicationSchedule()),
             window = OccurrenceGenerationWindow(start, end),
             zoneId = zoneId
-        ).filter { occurrence ->
+        ).singleOrNull { occurrence ->
             occurrence.id.value == occurrenceId &&
                 occurrence.planId == planId &&
                 occurrence.slotId == slotId &&
                 occurrence.scheduledLocalDateTime.toLocalDate() == scheduledLocalDate
         }
-        return matches.size == 1
     }
 }
 

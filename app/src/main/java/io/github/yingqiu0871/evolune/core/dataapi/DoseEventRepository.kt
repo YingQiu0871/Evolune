@@ -33,6 +33,18 @@ interface DoseEventRepository {
     /** Physically deletes the event. */
     suspend fun delete(id: UUID): DeleteResult
 
+    /** Atomically deletes only when the stored revision equals expectedRevision. */
+    suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult
+
+    /** Atomically validates the authoritative Wear recent dose and deletes it if exact. */
+    suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult
+
     /** Physically deletes all events as a maintenance operation. */
     suspend fun deleteAll(): DeleteResult
 }

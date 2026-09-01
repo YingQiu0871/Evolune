@@ -1,8 +1,10 @@
 package io.github.yingqiu0871.evolune.application
 
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
 import io.github.yingqiu0871.evolune.core.dataapi.PlanUpdateResult
@@ -29,6 +31,7 @@ internal class FakeDoseEventRepository(
     var rangeFailure: Throwable? = null
     var pkFailure: Throwable? = null
     var insertFailure: Throwable? = null
+    var beforeInsert: (suspend (DoseEvent) -> Unit)? = null
     var forcedInsertResult: InsertResult? = null
     var beforeForcedInsertResult: ((DoseEvent) -> Unit)? = null
     var rangeEvents: List<DoseEvent> = initialEvents
@@ -37,6 +40,12 @@ internal class FakeDoseEventRepository(
     var getCalls = 0
     var lastInserted: DoseEvent? = null
     var lastRange: Pair<Instant, Instant>? = null
+    var conditionalDeleteResult: ConditionalDeleteResult? = null
+    var conditionalDeleteCalls = 0
+    var beforeConditionalDelete: ((UUID, Long) -> Unit)? = null
+    var latestDoseDeleteCalls = 0
+    var beforeLatestDoseDelete: (() -> Unit)? = null
+    var latestDoseDeleteResult: LatestDoseDeleteResult? = null
 
     override fun observeAll(): Flow<List<DoseEvent>> = flowOf(events.values.toList())
 
@@ -64,6 +73,7 @@ internal class FakeDoseEventRepository(
         insertFailure?.let { throw it }
         insertCalls += 1
         lastInserted = event
+        beforeInsert?.invoke(event)
         forcedInsertResult?.let {
             beforeForcedInsertResult?.invoke(event)
             return it
@@ -84,6 +94,55 @@ internal class FakeDoseEventRepository(
 
     override suspend fun delete(id: UUID): DeleteResult = DeleteResult.NotFound
 
+    override suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult {
+        conditionalDeleteCalls += 1
+        beforeConditionalDelete?.invoke(id, expectedRevision)
+        conditionalDeleteResult?.let { result ->
+            if (result == ConditionalDeleteResult.Deleted) events.remove(id)
+            return result
+        }
+        val existing = events[id] ?: return ConditionalDeleteResult.NotFound
+        if (existing.revision != expectedRevision) return ConditionalDeleteResult.RevisionConflict
+        events.remove(id)
+        return ConditionalDeleteResult.Deleted
+    }
+
+    override suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult {
+        latestDoseDeleteCalls += 1
+        val recentBefore = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+            events.values.toList()
+        )
+        beforeLatestDoseDelete?.invoke()
+        latestDoseDeleteResult?.let { result ->
+            if (result == LatestDoseDeleteResult.Deleted) events.remove(eventId)
+            return result
+        }
+        val target = events[eventId]
+            ?: return LatestDoseDeleteResult.EventNotFound
+        if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
+        val recentAfter = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+            events.values.toList()
+        )
+        if (recentBefore?.id != recentAfter?.id ||
+            recentAfter?.id != eventId ||
+            recentAfter.revision != eventRevision
+        ) {
+            return LatestDoseDeleteResult.NotLatest
+        }
+        events.remove(eventId)
+        return if (events[eventId] == null) {
+            LatestDoseDeleteResult.Deleted
+        } else {
+            LatestDoseDeleteResult.EventChanged
+        }
+    }
+
     override suspend fun deleteAll(): DeleteResult = DeleteResult.NotFound
 }
 
@@ -94,6 +153,7 @@ internal class FakeMedicationPlanRepository(
     var getFailure: Throwable? = null
     var observeFailure: Throwable? = null
     var getCalls = 0
+    var beforeGet: (suspend (UUID) -> Unit)? = null
 
     override fun observeAll(): Flow<List<MedicationPlan>> {
         observeFailure?.let { throw it }
@@ -107,6 +167,7 @@ internal class FakeMedicationPlanRepository(
 
     override suspend fun getById(id: UUID): MedicationPlan? {
         getFailure?.let { throw it }
+        beforeGet?.invoke(id)
         getCalls += 1
         return plans[id]
     }

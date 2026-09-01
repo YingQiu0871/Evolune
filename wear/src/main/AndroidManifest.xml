@@ -15,6 +15,17 @@
         android:fullBackupContent="@xml/backup_rules"
         android:supportsRtl="true">
 
+        <activity
+            android:name=".WearAppActivity"
+            android:exported="true"
+            android:taskAffinity="${applicationId}.wear-app"
+            android:theme="@style/WearAppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="false" />
@@ -43,6 +54,30 @@
                     android:scheme="wear"
                     android:host="*"
                     android:pathPrefix="/hrt/plans" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".WearAppSnapshotListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/hrt/v1/wear-app/snapshot" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".WearAppResultListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/hrt/v1/wear-app/results" />
             </intent-filter>
         </service>
 

@@ -1,9 +1,11 @@
 package io.github.yingqiu0871.evolune.data.repository
 
 import androidx.room.withTransaction
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.data.AppDatabase
@@ -11,6 +13,7 @@ import io.github.yingqiu0871.evolune.data.mapper.MappingResult
 import io.github.yingqiu0871.evolune.data.mapper.toV3DomainDoseEvent
 import io.github.yingqiu0871.evolune.data.mapper.toV3Entity
 import io.github.yingqiu0871.evolune.pk.Route
+import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -152,6 +155,60 @@ class RoomDoseEventRepository(
                 DeleteResult.NotFound
             }
         }
+
+    override suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult {
+        if (expectedRevision < INITIAL_REVISION) return ConditionalDeleteResult.Invalid
+        return runStorageOperation("conditionally delete dose event") {
+            if (dao.deleteEventIfRevisionMatches(id, expectedRevision) == 1) {
+                ConditionalDeleteResult.Deleted
+            } else if (dao.getEventById(id) == null) {
+                ConditionalDeleteResult.NotFound
+            } else {
+                ConditionalDeleteResult.RevisionConflict
+            }
+        }
+    }
+
+    override suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult {
+        if (eventRevision < INITIAL_REVISION) return LatestDoseDeleteResult.Invalid
+        return runStorageOperation("transactionally delete latest recorded dose") {
+            database.withTransaction {
+                val events = dao.getAllEventsForLatestDose()
+                    .map { it.toV3DomainDoseEvent().orThrowCorrupt() }
+                val target = events.firstOrNull { it.id == eventId }
+                    ?: return@withTransaction LatestDoseDeleteResult.EventNotFound
+                if (target.revision != eventRevision) {
+                    return@withTransaction LatestDoseDeleteResult.EventChanged
+                }
+                val recent = WearAppRecentDoseSelector.select(events)
+                if (recent?.id != eventId || recent.revision != eventRevision) {
+                    return@withTransaction LatestDoseDeleteResult.NotLatest
+                }
+                if (dao.deleteEventIfRevisionMatches(eventId, eventRevision) != 1) {
+                    val remaining = dao.getEventById(eventId)
+                    return@withTransaction when {
+                        remaining == null -> LatestDoseDeleteResult.EventNotFound
+                        remaining.revision != eventRevision -> LatestDoseDeleteResult.EventChanged
+                        else -> throw RepositoryPersistenceException(
+                            "latest dose delete did not affect the target"
+                        )
+                    }
+                }
+                if (dao.getEventById(eventId) != null) {
+                    throw RepositoryPersistenceException(
+                        "latest dose delete verification failed"
+                    )
+                }
+                LatestDoseDeleteResult.Deleted
+            }
+        }
+    }
 
     override suspend fun deleteAll(): DeleteResult =
         runStorageOperation("delete all dose events") {

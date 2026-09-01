@@ -1,17 +1,24 @@
 package io.github.yingqiu0871.evolune.reminder
 
 import io.github.yingqiu0871.evolune.application.LocalActionRecorder
+import io.github.yingqiu0871.evolune.application.OccurrenceConfirmationCoordinator
 import io.github.yingqiu0871.evolune.application.RecordAcceptance
 import io.github.yingqiu0871.evolune.application.RecordDoseEventActionResult
+import io.github.yingqiu0871.evolune.application.findPresentedEventForOccurrence
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
 import io.github.yingqiu0871.evolune.data.repository.RepositoryStorageException
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
+import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
@@ -106,41 +113,180 @@ internal fun interface NotificationActionWork {
 }
 
 internal class ContractNotificationActionWork(
-    medicationPlans: MedicationPlanRepository,
-    doseEvents: DoseEventRepository,
+    private val medicationPlans: MedicationPlanRepository,
+    private val doseEvents: DoseEventRepository,
     private val sideEffects: NotificationActionSideEffects,
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: () -> ZoneId = ZoneId::systemDefault
 ) : NotificationActionWork {
     private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
 
-    override suspend fun handle(command: NotificationActionCommand): NotificationActionOutcome {
+    override suspend fun handle(command: NotificationActionCommand): NotificationActionOutcome = try {
         val recordedAtMillis = clock.millis()
+        OccurrenceConfirmationCoordinator.withLock {
+            handleLocked(command, recordedAtMillis)
+        }
+    } catch (error: CancellationException) {
+        throw error
+    } catch (_: RepositoryStorageException) {
+        NotificationActionOutcome.StorageFailure
+    } catch (_: Throwable) {
+        NotificationActionOutcome.UnexpectedFailure
+    }
+
+    private suspend fun handleLocked(
+        command: NotificationActionCommand,
+        recordedAtMillis: Long
+    ): NotificationActionOutcome {
+        val actionZoneId = zoneId()
+        val scheduledAt = runCatching {
+            Instant.ofEpochMilli(command.scheduledAtMillis)
+        }.getOrNull() ?: return NotificationActionOutcome.Invalid
+        val scheduledLocalDate = runCatching {
+            scheduledAt.atZone(actionZoneId).toLocalDate()
+        }.getOrNull() ?: return NotificationActionOutcome.Invalid
+        val recordedAt = Instant.ofEpochMilli(recordedAtMillis)
+        val currentPlan = medicationPlans.getById(command.planId)
+            ?: return stale(command)
+        if (!currentPlan.isEnabled) {
+            return stale(command)
+        }
+        val targetOccurrence = regenerateExactOccurrence(
+            plan = currentPlan,
+            scheduledAt = scheduledAt,
+            localDate = scheduledLocalDate,
+            zoneId = actionZoneId
+        ) ?: return NotificationActionOutcome.Invalid
+        val presentationOccurrences = regeneratePresentationOccurrences(
+            medicationPlans.observeEnabled().first(),
+            scheduledLocalDate,
+            actionZoneId
+        )
+        val existingPresentationEvent = findPresentedEventForOccurrence(
+            targetOccurrence,
+            presentationOccurrences,
+            doseEvents.observeAll().first(),
+            recordedAt
+        )
+        if (existingPresentationEvent != null) {
+            return accepted(command, replayed = true)
+        }
+
         return when (
             val result = recordAction.recordReminder(
                 planId = command.planId,
                 scheduledAtMillis = command.scheduledAtMillis,
+                requireEnabledPlan = true,
+                validatePlan = { plan ->
+                    regenerateExactOccurrence(
+                        plan = plan,
+                        scheduledAt = scheduledAt,
+                        localDate = scheduledLocalDate,
+                        zoneId = actionZoneId
+                    ) != null
+                },
             ) { plan, _ ->
+                val authoritativeOccurrence = regenerateExactOccurrence(
+                    plan = plan,
+                    scheduledAt = scheduledAt,
+                    localDate = scheduledLocalDate,
+                    zoneId = actionZoneId
+                ) ?: error("notification occurrence changed during recording")
                 createReminderDoseEvent(
                     plan = plan,
+                    targetOccurrence = authoritativeOccurrence,
                     recordedAtMillis = recordedAtMillis,
-                    scheduledAtMillis = command.scheduledAtMillis,
-                    zoneId = zoneId()
+                    zoneId = actionZoneId
                 )
             }
         ) {
-            is RecordDoseEventActionResult.Accepted -> accepted(
-                command,
-                result.acceptance != RecordAcceptance.Inserted
-            )
+            is RecordDoseEventActionResult.Accepted -> {
+                val verifiedPlan = result.plan ?: currentPlan
+                val verifiedOccurrence = regenerateExactOccurrence(
+                    plan = verifiedPlan,
+                    scheduledAt = scheduledAt,
+                    localDate = scheduledLocalDate,
+                    zoneId = actionZoneId
+                )
+                val verifiedWinner = verifiedOccurrence?.let { occurrence ->
+                    findPresentedEventForOccurrence(
+                        occurrence,
+                        regeneratePresentationOccurrences(
+                            medicationPlans.observeEnabled().first(),
+                            scheduledLocalDate,
+                            actionZoneId
+                        ),
+                        doseEvents.observeAll().first(),
+                        Instant.ofEpochMilli(clock.millis())
+                    )
+                }
+                if (verifiedWinner == null) {
+                    NotificationActionOutcome.Conflict
+                } else {
+                    accepted(
+                        command,
+                        replayed = result.acceptance != RecordAcceptance.Inserted ||
+                            verifiedWinner.id != result.event.id
+                    )
+                }
+            }
             RecordDoseEventActionResult.PlanNotFound,
             RecordDoseEventActionResult.PlanDisabled -> stale(command)
-            RecordDoseEventActionResult.Conflict -> NotificationActionOutcome.Conflict
+            RecordDoseEventActionResult.Conflict -> {
+                val verified = findPresentedEventForOccurrence(
+                    targetOccurrence,
+                    presentationOccurrences,
+                    doseEvents.observeAll().first(),
+                    Instant.ofEpochMilli(clock.millis())
+                )
+                if (verified != null) {
+                    accepted(command, replayed = true)
+                } else {
+                    NotificationActionOutcome.Conflict
+                }
+            }
             RecordDoseEventActionResult.Invalid -> NotificationActionOutcome.Invalid
             RecordDoseEventActionResult.StorageFailure -> NotificationActionOutcome.StorageFailure
             RecordDoseEventActionResult.UnexpectedFailure ->
                 NotificationActionOutcome.UnexpectedFailure
         }
+    }
+
+    private fun regenerateExactOccurrence(
+        plan: MedicationPlan,
+        scheduledAt: Instant,
+        localDate: LocalDate,
+        zoneId: ZoneId
+    ): MedicationOccurrence? {
+        val window = runCatching {
+            OccurrenceGenerationWindow(
+                startInclusive = localDate.atStartOfDay(zoneId).toInstant(),
+                endExclusive = localDate.plusDays(1L).atStartOfDay(zoneId).toInstant()
+            )
+        }.getOrNull() ?: return null
+        return MedicationOccurrenceGenerator.generate(
+            schedules = listOf(plan.toMedicationSchedule()),
+            window = window,
+            zoneId = zoneId
+        ).singleOrNull { it.scheduledAt == scheduledAt }
+    }
+
+    private fun regeneratePresentationOccurrences(
+        plans: List<MedicationPlan>,
+        localDate: LocalDate,
+        zoneId: ZoneId
+    ): List<MedicationOccurrence> {
+        val window = runCatching {
+            OccurrenceGenerationWindow(
+                startInclusive = localDate.minusDays(1L).atStartOfDay(zoneId).toInstant(),
+                endExclusive = localDate.plusDays(2L).atStartOfDay(zoneId).toInstant()
+            )
+        }.getOrNull() ?: return emptyList()
+        return MedicationOccurrenceGenerator.generate(
+            schedules = plans.map(MedicationPlan::toMedicationSchedule),
+            window = window,
+            zoneId = zoneId
+        )
     }
 
     private suspend fun accepted(

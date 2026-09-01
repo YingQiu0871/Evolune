@@ -10,7 +10,6 @@ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.repository.RepositoryPersistenceException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,7 +21,7 @@ import java.util.UUID
 
 class ReminderReceiverWorkTest {
     private val plan = syntheticPlan()
-    private val scheduledAtMillis = 1_800_000_000_000L
+    private val scheduledAtMillis = Instant.parse("2027-01-15T00:30:00Z").toEpochMilli()
     private val recordedAt = Instant.parse("2027-01-15T08:30:00.123Z")
     private val zoneId = ZoneId.of("Asia/Shanghai")
 
@@ -125,8 +124,11 @@ class ReminderReceiverWorkTest {
         assertEquals(reminderDoseEventId(plan.id, scheduledAtMillis), event.id)
         assertEquals(recordedAt, event.occurredAt)
         assertEquals(zoneId, event.zoneId)
-        assertEquals(recordedAt.atZone(zoneId).toLocalDate(), event.localDate)
-        assertNull(event.slotId)
+        assertEquals(
+            Instant.ofEpochMilli(scheduledAtMillis).atZone(zoneId).toLocalDate(),
+            event.localDate
+        )
+        assertEquals(plan.slots.single().id, event.slotId)
         assertEquals(DoseEventSource.REMINDER, event.source)
         assertEquals(DoseEventStatus.RECORDED, event.status)
         assertEquals(1L, event.revision)
