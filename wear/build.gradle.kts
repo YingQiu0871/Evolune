@@ -62,6 +62,7 @@ android {
         targetSdk = 36
         versionCode = evoluneWearVersionCode
         versionName = evoluneVersionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -95,4 +96,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation("androidx.test:runner:1.7.0")
 }
