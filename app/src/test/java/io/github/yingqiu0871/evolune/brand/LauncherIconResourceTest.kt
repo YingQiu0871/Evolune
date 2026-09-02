@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import javax.xml.parsers.DocumentBuilderFactory
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import org.junit.Assert.assertEquals
@@ -60,6 +61,17 @@ class LauncherIconResourceTest {
     }
 
     @Test
+    fun `launcher artwork remains locked to the official master geometry`() {
+        assertEquals(64, OFFICIAL_SOURCE_SHA256.length)
+        assertTrue(OFFICIAL_SOURCE_SHA256.all { it in "0123456789abcdef" })
+        assertEquals(0.6086248983, SOURCE_HEIGHT_RATIO, 0.0000000001)
+        assertEquals(0.5642915643, SOURCE_WIDTH_RATIO, 0.0000000001)
+        assertEquals(0.5356265356, SOURCE_CENTER_X, 0.0000000001)
+        assertEquals(0.5065093572, SOURCE_CENTER_Y, 0.0000000001)
+        assertTrue("optical center must be the normalized center", abs(WEBSITE_CENTER_X - 0.5) <= 0.0000000001)
+    }
+
+    @Test
     fun `all launcher densities have matching layers and safe foreground artwork`() {
         DENSITIES.forEach { (density, scale) ->
             val adaptiveSize = (108 * scale).toInt()
@@ -94,9 +106,20 @@ class LauncherIconResourceTest {
             assertWebsiteGeometry("phone monochrome $density", monochrome, ::inFinalLauncherMask)
             geometry(rendered, ::inFinalLauncherMask).heightRatio
         }
+        val adaptiveWidthRatios = DENSITIES.keys.map { density ->
+            val rendered = renderAdaptive(
+                image("src/main/res/mipmap-$density/ic_launcher_background.png"),
+                image("src/main/res/mipmap-$density/ic_launcher_foreground.png")
+            )
+            geometry(rendered, ::inFinalLauncherMask).widthRatio
+        }
         assertTrue(
             "phone adaptive density drift was $adaptiveRatios",
             adaptiveRatios.maxOrNull()!! - adaptiveRatios.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
+        )
+        assertTrue(
+            "phone adaptive width density drift was $adaptiveWidthRatios",
+            adaptiveWidthRatios.maxOrNull()!! - adaptiveWidthRatios.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
         )
     }
 
@@ -117,11 +140,100 @@ class LauncherIconResourceTest {
                 "$density phone/wear width geometry differed: ${phoneGeometry.widthRatio} vs ${wearGeometry.widthRatio}",
                 kotlin.math.abs(phoneGeometry.widthRatio - wearGeometry.widthRatio) <= CROSS_TARGET_TOLERANCE
             )
+            assertTrue(
+                "$density phone/wear center geometry differed: ${phoneGeometry.centerX} vs ${wearGeometry.centerX}",
+                abs(phoneGeometry.centerX - wearGeometry.centerX) <= CROSS_TARGET_TOLERANCE
+            )
+            assertTrue(
+                "$density phone/wear y geometry differed: ${phoneGeometry.centerY} vs ${wearGeometry.centerY}",
+                abs(phoneGeometry.centerY - wearGeometry.centerY) <= CROSS_TARGET_TOLERANCE
+            )
             phoneGeometry.heightRatio
+        }
+        val phoneWidthRatios = DENSITIES.keys.map { density ->
+            geometry(image("src/main/res/mipmap-$density/ic_launcher.png")).widthRatio
         }
         assertTrue(
             "phone legacy density drift was $phoneRatios",
             phoneRatios.maxOrNull()!! - phoneRatios.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
+        )
+        assertTrue(
+            "phone legacy width density drift was $phoneWidthRatios",
+            phoneWidthRatios.maxOrNull()!! - phoneWidthRatios.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
+        )
+    }
+
+    @Test
+    fun `monochrome and color adaptive outlines are identical`() {
+        DENSITIES.keys.forEach { density ->
+            val color = image("src/main/res/mipmap-$density/ic_launcher_foreground.png")
+            val monochrome = image("src/main/res/mipmap-$density/ic_launcher_monochrome.png")
+            assertEquals(color.width, monochrome.width)
+            assertEquals(color.height, monochrome.height)
+            for (y in 0 until color.height) {
+                for (x in 0 until color.width) {
+                    assertEquals(
+                        "foreground outline differed at $density ($x,$y)",
+                        alpha(color.getRGB(x, y)) >= ARTWORK_ALPHA_THRESHOLD,
+                        alpha(monochrome.getRGB(x, y)) >= ARTWORK_ALPHA_THRESHOLD
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `artwork remains inside circle rounded squircle and teardrop masks`() {
+        DENSITIES.keys.forEach { density ->
+            val rendered = renderAdaptive(
+                image("src/main/res/mipmap-$density/ic_launcher_background.png"),
+                image("src/main/res/mipmap-$density/ic_launcher_foreground.png")
+            )
+            MASKS.forEach { (name, mask) ->
+                for (y in 0 until rendered.height) {
+                    for (x in 0 until rendered.width) {
+                        if (alpha(rendered.getRGB(x, y)) >= ARTWORK_ALPHA_THRESHOLD &&
+                            red(rendered.getRGB(x, y)) >= CRESCENT_PIXEL_THRESHOLD &&
+                            green(rendered.getRGB(x, y)) >= CRESCENT_PIXEL_THRESHOLD &&
+                            blue(rendered.getRGB(x, y)) >= CRESCENT_PIXEL_THRESHOLD
+                        ) {
+                            assertTrue("$density artwork escaped $name mask at ($x,$y)", mask(x, y, rendered.width))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `brightness weighted centroid is centered and stable across densities`() {
+        val centers = DENSITIES.keys.map { density ->
+            val phone = image("src/main/res/mipmap-$density/ic_launcher.png")
+            val wear = imageFrom("wear/src/main/res/mipmap-$density/ic_launcher.png")
+            val phoneCentroid = brightnessCentroid(phone)
+            val wearCentroid = brightnessCentroid(wear)
+            assertTrue(
+                "$density phone weighted x was ${phoneCentroid.x}",
+                abs(phoneCentroid.x - TARGET_WEIGHTED_CENTER_X) <= WEIGHTED_CENTER_TOLERANCE
+            )
+            assertTrue(
+                "$density wear weighted x was ${wearCentroid.x}",
+                abs(wearCentroid.x - TARGET_WEIGHTED_CENTER_X) <= WEIGHTED_CENTER_TOLERANCE
+            )
+            assertTrue(
+                "$density phone weighted y was ${phoneCentroid.y}",
+                abs(phoneCentroid.y - TARGET_WEIGHTED_CENTER_Y) <= WEIGHTED_CENTER_TOLERANCE
+            )
+            assertTrue(
+                "$density wear weighted y was ${wearCentroid.y}",
+                abs(wearCentroid.y - TARGET_WEIGHTED_CENTER_Y) <= WEIGHTED_CENTER_TOLERANCE
+            )
+            assertTrue("$density phone/wear weighted x differed", abs(phoneCentroid.x - wearCentroid.x) <= CROSS_TARGET_TOLERANCE)
+            phoneCentroid.x
+        }
+        assertTrue(
+            "weighted centroid density drift was $centers",
+            centers.maxOrNull()!! - centers.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
         )
     }
 
@@ -133,19 +245,53 @@ class LauncherIconResourceTest {
         val measured = geometry(image, mask)
         assertTrue(
             "$label height ratio ${measured.heightRatio} was outside target $WEBSITE_HEIGHT_RATIO",
-            kotlin.math.abs(measured.heightRatio - WEBSITE_HEIGHT_RATIO) <= GEOMETRY_TOLERANCE
+            abs(measured.heightRatio - WEBSITE_HEIGHT_RATIO) <= SIZE_TOLERANCE
         )
         assertTrue(
             "$label width ratio ${measured.widthRatio} was outside target $WEBSITE_WIDTH_RATIO",
-            kotlin.math.abs(measured.widthRatio - WEBSITE_WIDTH_RATIO) <= GEOMETRY_TOLERANCE
+            abs(measured.widthRatio - WEBSITE_WIDTH_RATIO) <= SIZE_TOLERANCE
         )
         assertTrue(
             "$label center x ${measured.centerX} was outside target $WEBSITE_CENTER_X",
-            kotlin.math.abs(measured.centerX - WEBSITE_CENTER_X) <= GEOMETRY_TOLERANCE
+            abs(measured.centerX - WEBSITE_CENTER_X) <= CENTER_TOLERANCE
         )
         assertTrue(
             "$label center y ${measured.centerY} was outside target $WEBSITE_CENTER_Y",
             kotlin.math.abs(measured.centerY - WEBSITE_CENTER_Y) <= GEOMETRY_TOLERANCE
+        )
+    }
+
+    private fun brightnessCentroid(image: BufferedImage): Centroid {
+        val background = requireNotNull(bounds(image, null) { alpha(it) >= ARTWORK_ALPHA_THRESHOLD })
+        val crescent = requireNotNull(
+            largestComponentBounds(image, null) { rgb ->
+                alpha(rgb) >= ARTWORK_ALPHA_THRESHOLD &&
+                    red(rgb) >= CRESCENT_PIXEL_THRESHOLD &&
+                    green(rgb) >= CRESCENT_PIXEL_THRESHOLD &&
+                    blue(rgb) >= CRESCENT_PIXEL_THRESHOLD
+            }
+        )
+        var weightedX = 0.0
+        var weightedY = 0.0
+        var total = 0.0
+        for (y in crescent.minY..crescent.maxY) {
+            for (x in crescent.minX..crescent.maxX) {
+                val rgb = image.getRGB(x, y)
+                if (alpha(rgb) < ARTWORK_ALPHA_THRESHOLD ||
+                    red(rgb) < CRESCENT_PIXEL_THRESHOLD ||
+                    green(rgb) < CRESCENT_PIXEL_THRESHOLD ||
+                    blue(rgb) < CRESCENT_PIXEL_THRESHOLD
+                ) continue
+                val weight = (red(rgb) + green(rgb) + blue(rgb)).toDouble()
+                weightedX += (x + 0.5) * weight
+                weightedY += (y + 0.5) * weight
+                total += weight
+            }
+        }
+        assertTrue("brightness centroid requires white artwork", total > 0.0)
+        return Centroid(
+            (weightedX / total - background.minX) / background.width,
+            (weightedY / total - background.minY) / background.height
         )
     }
 
@@ -305,6 +451,8 @@ class LauncherIconResourceTest {
         val centerY: Double
     )
 
+    private data class Centroid(val x: Double, val y: Double)
+
     private data class Bounds(
         val minX: Int,
         val minY: Int,
@@ -347,17 +495,28 @@ class LauncherIconResourceTest {
         // (SHA-256 cba4ea1f84cb77977cb781a0e5d4ca4c172709fa4dbf5efa5ba5ba65c2e89159):
         // visible artwork bounds and the largest connected near-white component.
         const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
+        const val OFFICIAL_SOURCE_SHA256 = "cba4ea1f84cb77977cb781a0e5d4ca4c172709fa4dbf5efa5ba5ba65c2e89159"
         const val FINAL_MASK_INSET = 6
         const val FINAL_MASK_RADIUS = 18
         const val ARTWORK_ALPHA_THRESHOLD = 128
         const val CRESCENT_PIXEL_THRESHOLD = 230
         const val GEOMETRY_TOLERANCE = 0.01
-        const val DENSITY_DRIFT_TOLERANCE = 0.01
-        const val CROSS_TARGET_TOLERANCE = 0.01
-        const val WEBSITE_HEIGHT_RATIO = 0.6086248983
-        const val WEBSITE_WIDTH_RATIO = 0.5642915643
-        const val WEBSITE_CENTER_X = 0.5356265356
-        const val WEBSITE_CENTER_Y = 0.5065093572
+        // Legacy mdpi is 48 px; one pixel of source anti-aliasing is 2.08 pp.
+        const val SIZE_TOLERANCE = 0.025
+        const val CENTER_TOLERANCE = 0.005
+        const val WEIGHTED_CENTER_TOLERANCE = 0.02
+        const val DENSITY_DRIFT_TOLERANCE = 0.0075
+        const val CROSS_TARGET_TOLERANCE = 0.005
+        const val SOURCE_HEIGHT_RATIO = 0.6086248983
+        const val SOURCE_WIDTH_RATIO = 0.5642915643
+        const val SOURCE_CENTER_X = 0.5356265356
+        const val SOURCE_CENTER_Y = 0.5065093572
+        const val WEBSITE_HEIGHT_RATIO = SOURCE_HEIGHT_RATIO
+        const val WEBSITE_WIDTH_RATIO = SOURCE_WIDTH_RATIO
+        const val WEBSITE_CENTER_X = 0.5
+        const val WEBSITE_CENTER_Y = SOURCE_CENTER_Y
+        const val TARGET_WEIGHTED_CENTER_X = 0.428
+        const val TARGET_WEIGHTED_CENTER_Y = 0.546
         val DENSITIES = linkedMapOf(
             "mdpi" to 1.0,
             "hdpi" to 1.5,
@@ -365,5 +524,45 @@ class LauncherIconResourceTest {
             "xxhdpi" to 3.0,
             "xxxhdpi" to 4.0
         )
+        val MASKS = linkedMapOf<String, (Int, Int, Int) -> Boolean>(
+            "circle" to { x, y, size ->
+                val center = size / 2.0
+                val radius = size / 2.0
+                val dx = x + 0.5 - center
+                val dy = y + 0.5 - center
+                dx * dx + dy * dy <= radius * radius
+            },
+            "rounded" to { x, y, size ->
+                roundedMask(x, y, size, 7.0, 23.0)
+            },
+            "squircle" to { x, y, size ->
+                val center = size / 2.0
+                val half = center - 4.0
+                val dx = abs(x + 0.5 - center) / half
+                val dy = abs(y + 0.5 - center) / half
+                dx * dx * dx + dy * dy * dy <= 1.0
+            },
+            "teardrop" to { x, y, size ->
+                val centerX = size / 2.0
+                val centerY = size / 2.0 + 2.0
+                val radius = size / 2.0 - 4.0
+                val dx = x + 0.5 - centerX
+                val dy = y + 0.5 - centerY
+                dx * dx + dy * dy <= radius * radius ||
+                    (y + 0.5 >= centerY && abs(dx) <= radius && y + 0.5 <= size - 2.0)
+            }
+        )
+
+        private fun roundedMask(x: Int, y: Int, size: Int, inset: Double, radius: Double): Boolean {
+            val left = inset
+            val top = inset
+            val right = size - inset
+            val bottom = size - inset
+            val nearestX = (x + 0.5).coerceIn(left + radius, right - radius)
+            val nearestY = (y + 0.5).coerceIn(top + radius, bottom - radius)
+            val dx = x + 0.5 - nearestX
+            val dy = y + 0.5 - nearestY
+            return dx * dx + dy * dy <= radius * radius
+        }
     }
 }
