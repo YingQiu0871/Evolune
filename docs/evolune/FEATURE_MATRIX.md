@@ -1,6 +1,6 @@
 # 功能矩阵
 
-本表以已发布的 `v1.1.0`、当前 v1.3.1 基线和 v1.4 开发分支为准。v1.1 Phone Widget Completion 已完成并发布；v1.4-A/B 已实现并通过验收，但尚未封版发布。状态使用 `SHIPPED v1.0`、`SHIPPED v1.1`、`PARTIAL`、`IMPLEMENTED v1.4 (pre-release)`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以已发布的 `v1.4.0` 和当前 `main` 为准。v1.1 Phone Widget Completion 与 v1.4-A/B 已完成并发布。状态使用 `SHIPPED v1.0`、`SHIPPED v1.1`、`SHIPPED v1.4`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
 | 功能 | 状态 | v1.0 事实 / 后续边界 |
 |---|---|---|
@@ -24,8 +24,9 @@
 | Update checker | SHIPPED v1.0 | 从 GitHub Releases 检查较新稳定版本 |
 | Health Connect | PLANNED v1.2 | 当前无 SDK/权限/provider；必须作为显式授权的可选 adapter 独立实施 |
 | Google cloud backup | PLANNED v1.2 | 当前无 OAuth/provider/cloud sync；与 Health Connect 分为不同 batch |
-| Onboarding / terms / permission guidance | IMPLEMENTED v1.4 (pre-release) | v1.4-A 信任/权限基础与 v1.4-B 六步功能教程已实现并验收；公开封版仍待 release gate |
+| Onboarding / terms / permission guidance | SHIPPED v1.4 | v1.4-A 信任/权限基础与 v1.4-B 六步功能教程已实现、验收并发布于 `v1.4.0` |
 | Stability / performance / code cleanup | PLANNED v1.5 | 全量 bug sweep、性能/耗电/后台检查、清理死代码与冗余依赖 |
+| Phone launcher Logo scale | PLANNED v1.5 | 缩小 adaptive-icon foreground/monochrome 中月亮与整体标记的视觉占比，保持比例、安全区和各 launcher mask 一致 |
 | Expanded Phone/Wear widget gallery | PLANNED v1.6 | 更多 Phone Widget、Wear Tile/Complication 样式，复用统一 presentation/domain 边界 |
 | Optional CPA PK curve | PLANNED v1.7 | 默认关闭；开启后与 E2 在同一时间轴/图表区域显示并以图例区分，保持独立单位；实施前需独立科学与来源审查 |
 | User-controlled JSON migration | SHIPPED v1.0 | 文件/剪贴板导入导出；当前跨设备迁移路径 |
@@ -38,5 +39,5 @@
 ## 版本方向
 
 - `v1.0.0` 已发布并封存；表中 `SHIPPED v1.0` 仅描述该实现。
-- `v1.1`: Phone Widget Completion（已完成并关闭）；`v1.2`: Google Integration & Data Continuity（规划中，Health Connect 与 Google backup 分批，尚未开始）；`v1.3`: Wear OS Companion App；`v1.4`: Onboarding/Terms/Permission Guidance 已实现并验收，尚未公开封版；`v1.5`: Stability/Performance/Cleanup 为下一版本；`v1.6`: Widget Gallery；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
+- `v1.1`: Phone Widget Completion（已完成并关闭）；`v1.2`: Google Integration & Data Continuity（规划中，Health Connect 与 Google backup 分批，尚未开始）；`v1.3`: Wear OS Companion App（规划中，尚未开始）；`v1.4.0`: Onboarding/Terms/Permission Guidance（已发布并封存）；`v1.5`: Stability/Performance/Cleanup 为下一主动开发版本；`v1.6`: Widget Gallery；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
 - `DEFERRED` 不表示承诺进入某个版本。

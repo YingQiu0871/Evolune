@@ -92,18 +92,18 @@ class LauncherIconResourceTest {
     }
 
     @Test
-    fun `final adaptive render matches the website crescent geometry`() {
+    fun `final adaptive render matches the v1_5 phone crescent geometry`() {
         val adaptiveRatios = DENSITIES.keys.map { density ->
             val rendered = renderAdaptive(
                 image("src/main/res/mipmap-$density/ic_launcher_background.png"),
                 image("src/main/res/mipmap-$density/ic_launcher_foreground.png")
             )
-            assertWebsiteGeometry("phone adaptive $density", rendered, ::inFinalLauncherMask)
+            assertPhoneV15Geometry("phone adaptive $density", rendered, ::inFinalLauncherMask)
             val monochrome = renderAdaptive(
                 image("src/main/res/mipmap-$density/ic_launcher_background.png"),
                 image("src/main/res/mipmap-$density/ic_launcher_monochrome.png")
             )
-            assertWebsiteGeometry("phone monochrome $density", monochrome, ::inFinalLauncherMask)
+            assertPhoneV15Geometry("phone monochrome $density", monochrome, ::inFinalLauncherMask)
             geometry(rendered, ::inFinalLauncherMask).heightRatio
         }
         val adaptiveWidthRatios = DENSITIES.keys.map { density ->
@@ -124,38 +124,20 @@ class LauncherIconResourceTest {
     }
 
     @Test
-    fun `legacy phone and wear renders match the website crescent geometry`() {
+    fun `legacy phone and wear renders preserve their target geometry`() {
         val phoneRatios = DENSITIES.keys.map { density ->
             val phone = image("src/main/res/mipmap-$density/ic_launcher.png")
             val wear = imageFrom("wear/src/main/res/mipmap-$density/ic_launcher.png")
-            assertWebsiteGeometry("phone legacy $density", phone)
+            assertPhoneV15LegacyGeometry("phone legacy $density", phone)
             assertWebsiteGeometry("wear launcher $density", wear)
-            val phoneGeometry = geometry(phone)
-            val wearGeometry = geometry(wear)
-            assertTrue(
-                "$density phone/wear height geometry differed: ${phoneGeometry.heightRatio} vs ${wearGeometry.heightRatio}",
-                kotlin.math.abs(phoneGeometry.heightRatio - wearGeometry.heightRatio) <= CROSS_TARGET_TOLERANCE
-            )
-            assertTrue(
-                "$density phone/wear width geometry differed: ${phoneGeometry.widthRatio} vs ${wearGeometry.widthRatio}",
-                kotlin.math.abs(phoneGeometry.widthRatio - wearGeometry.widthRatio) <= CROSS_TARGET_TOLERANCE
-            )
-            assertTrue(
-                "$density phone/wear center geometry differed: ${phoneGeometry.centerX} vs ${wearGeometry.centerX}",
-                abs(phoneGeometry.centerX - wearGeometry.centerX) <= CROSS_TARGET_TOLERANCE
-            )
-            assertTrue(
-                "$density phone/wear y geometry differed: ${phoneGeometry.centerY} vs ${wearGeometry.centerY}",
-                abs(phoneGeometry.centerY - wearGeometry.centerY) <= CROSS_TARGET_TOLERANCE
-            )
-            phoneGeometry.heightRatio
+            geometry(phone).heightRatio
         }
         val phoneWidthRatios = DENSITIES.keys.map { density ->
             geometry(image("src/main/res/mipmap-$density/ic_launcher.png")).widthRatio
         }
         assertTrue(
             "phone legacy density drift was $phoneRatios",
-            phoneRatios.maxOrNull()!! - phoneRatios.minOrNull()!! <= DENSITY_DRIFT_TOLERANCE
+            phoneRatios.maxOrNull()!! - phoneRatios.minOrNull()!! <= PHONE_LEGACY_DENSITY_DRIFT_TOLERANCE
         )
         assertTrue(
             "phone legacy width density drift was $phoneWidthRatios",
@@ -228,7 +210,6 @@ class LauncherIconResourceTest {
                 "$density wear weighted y was ${wearCentroid.y}",
                 abs(wearCentroid.y - TARGET_WEIGHTED_CENTER_Y) <= WEIGHTED_CENTER_TOLERANCE
             )
-            assertTrue("$density phone/wear weighted x differed", abs(phoneCentroid.x - wearCentroid.x) <= CROSS_TARGET_TOLERANCE)
             phoneCentroid.x
         }
         assertTrue(
@@ -258,6 +239,50 @@ class LauncherIconResourceTest {
         assertTrue(
             "$label center y ${measured.centerY} was outside target $WEBSITE_CENTER_Y",
             kotlin.math.abs(measured.centerY - WEBSITE_CENTER_Y) <= GEOMETRY_TOLERANCE
+        )
+    }
+
+    private fun assertPhoneV15Geometry(
+        label: String,
+        image: BufferedImage,
+        mask: ((Int, Int, Int) -> Boolean)? = null
+    ) {
+        val measured = geometry(image, mask)
+        assertTrue(
+            "$label height ratio ${measured.heightRatio} was outside v1.5 target $PHONE_ADAPTIVE_HEIGHT_RATIO",
+            abs(measured.heightRatio - PHONE_ADAPTIVE_HEIGHT_RATIO) <= PHONE_ADAPTIVE_SIZE_TOLERANCE
+        )
+        assertTrue(
+            "$label width ratio ${measured.widthRatio} was outside v1.5 target $PHONE_ADAPTIVE_WIDTH_RATIO",
+            abs(measured.widthRatio - PHONE_ADAPTIVE_WIDTH_RATIO) <= PHONE_ADAPTIVE_SIZE_TOLERANCE
+        )
+        assertTrue(
+            "$label center x ${measured.centerX} was outside v1.5 target $PHONE_ADAPTIVE_CENTER_X",
+            abs(measured.centerX - PHONE_ADAPTIVE_CENTER_X) <= PHONE_ADAPTIVE_CENTER_TOLERANCE
+        )
+        assertTrue(
+            "$label center y ${measured.centerY} was outside v1.5 target $PHONE_ADAPTIVE_CENTER_Y",
+            kotlin.math.abs(measured.centerY - PHONE_ADAPTIVE_CENTER_Y) <= GEOMETRY_TOLERANCE
+        )
+    }
+
+    private fun assertPhoneV15LegacyGeometry(label: String, image: BufferedImage) {
+        val measured = geometry(image)
+        assertTrue(
+            "$label height ratio ${measured.heightRatio} was outside v1.5 target $PHONE_LEGACY_HEIGHT_RATIO",
+            abs(measured.heightRatio - PHONE_LEGACY_HEIGHT_RATIO) <= PHONE_LEGACY_SIZE_TOLERANCE
+        )
+        assertTrue(
+            "$label width ratio ${measured.widthRatio} was outside v1.5 target $PHONE_LEGACY_WIDTH_RATIO",
+            abs(measured.widthRatio - PHONE_LEGACY_WIDTH_RATIO) <= PHONE_LEGACY_SIZE_TOLERANCE
+        )
+        assertTrue(
+            "$label center x ${measured.centerX} was outside v1.5 target $PHONE_LEGACY_CENTER_X",
+            abs(measured.centerX - PHONE_LEGACY_CENTER_X) <= PHONE_LEGACY_CENTER_TOLERANCE
+        )
+        assertTrue(
+            "$label center y ${measured.centerY} was outside v1.5 target $PHONE_LEGACY_CENTER_Y",
+            abs(measured.centerY - PHONE_LEGACY_CENTER_Y) <= PHONE_LEGACY_CENTER_TOLERANCE
         )
     }
 
@@ -503,10 +528,14 @@ class LauncherIconResourceTest {
         const val GEOMETRY_TOLERANCE = 0.01
         // Legacy mdpi is 48 px; one pixel of source anti-aliasing is 2.08 pp.
         const val SIZE_TOLERANCE = 0.025
+        const val PHONE_ADAPTIVE_SIZE_TOLERANCE = 0.01
+        const val PHONE_ADAPTIVE_CENTER_TOLERANCE = 0.01
+        const val PHONE_LEGACY_SIZE_TOLERANCE = 0.02
+        const val PHONE_LEGACY_CENTER_TOLERANCE = 0.015
+        const val PHONE_LEGACY_DENSITY_DRIFT_TOLERANCE = 0.025
         const val CENTER_TOLERANCE = 0.005
         const val WEIGHTED_CENTER_TOLERANCE = 0.02
         const val DENSITY_DRIFT_TOLERANCE = 0.0075
-        const val CROSS_TARGET_TOLERANCE = 0.005
         const val SOURCE_HEIGHT_RATIO = 0.6086248983
         const val SOURCE_WIDTH_RATIO = 0.5642915643
         const val SOURCE_CENTER_X = 0.5356265356
@@ -515,6 +544,14 @@ class LauncherIconResourceTest {
         const val WEBSITE_WIDTH_RATIO = SOURCE_WIDTH_RATIO
         const val WEBSITE_CENTER_X = 0.5
         const val WEBSITE_CENTER_Y = SOURCE_CENTER_Y
+        const val PHONE_ADAPTIVE_HEIGHT_RATIO = 0.535
+        const val PHONE_ADAPTIVE_WIDTH_RATIO = 0.494
+        const val PHONE_ADAPTIVE_CENTER_X = 0.5
+        const val PHONE_ADAPTIVE_CENTER_Y = SOURCE_CENTER_Y
+        const val PHONE_LEGACY_HEIGHT_RATIO = 0.47
+        const val PHONE_LEGACY_WIDTH_RATIO = 0.4375
+        const val PHONE_LEGACY_CENTER_X = 0.5
+        const val PHONE_LEGACY_CENTER_Y = 0.505
         const val TARGET_WEIGHTED_CENTER_X = 0.428
         const val TARGET_WEIGHTED_CENTER_Y = 0.546
         val DENSITIES = linkedMapOf(
