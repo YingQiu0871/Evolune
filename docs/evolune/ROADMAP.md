@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图从已发布的 v1.1.0 向后规划；v1.0.0 作为上一版封存发布保留。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
+本路线图从已发布的 v1.4.0 向后规划；v1.0.0 与 v1.1.0 作为历史封存发布保留。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
 
 路线图描述的是产品目标和版本边界，不自动授权实现。每个版本进入开发前仍需完成独立设计、来源审查、回归门槛和真实设备验收。
 
@@ -29,6 +29,18 @@
 
 当前公开稳定版本已发布并封存；`v1.1.0` tag 的 peeled commit 为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`。发布范围见下文「v1.1 — Phone Widget Completion」；`v1.1.0` tag 与 GitHub Release 保持封存，后续工作不会移动或重建该 tag。
 
+### v1.4.0 — 2026-09-03
+
+当前公开稳定版本已发布并封存；[`v1.4.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0) 绑定不可变 `v1.4.0` tag，tag 指向合并提交 `56fa1d243cd1937eba8fcfb62e90a4a26660d697`。
+
+发布范围：
+
+- v1.4-A 首次使用、条款/隐私/医疗免责声明和上下文式权限引导；第三、第四步未勾选“我已阅读并理解”时不能继续。
+- v1.4-B 用药方案、记录服药、PK 图、Phone Widget、Wear 与备份六步功能教程。
+- 自动化回归、Phone clean-install smoke、独立复核，以及已签名 Phone/Wear Release APK。
+
+`v1.4.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
+
 ## Completed milestones
 
 ### v1.1 — Phone Widget Completion
@@ -53,20 +65,21 @@ peeled target）为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`；Owner、真实�
 
 ## Current development status
 
-### v1.4 — Onboarding, Terms & Permission Guidance — implemented / accepted
+### v1.4.0 — Onboarding, Terms & Permission Guidance — shipped / closed
 
-当前开发分支已完成 v1.4-A Trust & Permission Foundation 和 v1.4-B Guided Feature
-Tutorial。两部分均通过自动化回归、Phone clean-install smoke 和独立复核；详细证据
-见 [V14_ACCEPTANCE.md](v1.4/V14_ACCEPTANCE.md)。当前仍是 pre-release 状态，尚未
-创建公开 release commit、tag 或发布产物。
+v1.4-A Trust & Permission Foundation 和 v1.4-B Guided Feature Tutorial 已通过自动化
+回归、Phone clean-install smoke、独立复核，并发布为 `v1.4.0`。详细证据见
+[V14_ACCEPTANCE.md](v1.4/V14_ACCEPTANCE.md)；公开 Release 见上方 `v1.4.0` 条目。
 
 v1.4 的实现保持以下边界：法律/权限状态独立于业务数据；教程状态不进入 Room、
 Settings restore 或 backup；Phone、Room、PK、Widget 和 Wear/W4 的既有权威边界
 保持不变。
 
-### v1.5 — Stability, Performance & Code Cleanup — next planned milestone
+### v1.5 — Stability, Performance & Code Cleanup — next active milestone
 
-v1.5 是 v1.4 之后的下一开发里程碑，进入前仍需单独设计和建立稳定性验收矩阵。
+v1.5 是 v1.4.0 之后的下一主动开发里程碑，进入前需完成独立设计、稳定性验收矩阵
+和性能/耗电基线。规划入口见 [V15_DESIGN.md](v1.5/V15_DESIGN.md) 与
+[V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md)。
 
 ## Historical and future milestones
 
@@ -140,10 +153,12 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 - 性能检查：启动时间、PK 计算、Room 查询、Compose 重组、Widget 刷新、Wear Data Layer 和后台任务。
 - 耗电检查：WorkManager、轮询、wakeups、重复 Flow collection、重复 Widget refresh、Wear 活跃状态和异常后台任务。
 - 清理死代码、重复 mapper、废弃资源、无用依赖、重复状态模型和已经失效的兼容层。
+- Phone launcher Logo 视觉校正：缩小 adaptive-icon foreground/monochrome 中月亮与整体标记的视觉占比，保持比例、居中、安全区、各 density 和 launcher mask 一致；不在 v1.5 重绘品牌语义。
 - 精简必须以行为等价和回归证据为前提，不为减少代码行数破坏已验证架构。
 - 强化静态检查、测试隔离、错误处理和日志边界。
 
-v1.5 退出条件：核心自动化、真实设备矩阵、升级/恢复场景、耗电/后台行为和代码清理审计全部通过，且没有新的 P0/P1 稳定性问题。
+v1.5 退出条件：核心自动化、真实设备矩阵、升级/恢复场景、耗电/后台行为、代码清理
+审计和 Phone launcher Logo 视觉验收全部通过，且没有新的 P0/P1 稳定性问题。
 
 ### v1.6 — Widget Gallery
 

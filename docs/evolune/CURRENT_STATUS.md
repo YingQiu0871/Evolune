@@ -4,24 +4,27 @@ This document is the canonical quick reference for the current public release an
 
 ## Current Release
 
-- Stable version: [`v1.1.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
-- Release date: 2026-08-22
-- Published source baseline: `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`
-- Release reference: the immutable [`v1.1.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
-- Previous sealed stable release: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
-- Published development baseline: `main` after the v1.1.0 release
-- Current working development branch: `codex/v1.4-a-trust-permission-foundation` with
-  uncommitted v1.4 pre-release changes
-- Release downloads: signed Phone and Wear APKs are attached to the GitHub Release.
+- Stable version: [`v1.4.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0)
+- Release date: 2026-09-03
+- Published source baseline: `56fa1d243cd1937eba8fcfb62e90a4a26660d697`
+- Release reference: the immutable [`v1.4.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0)
+- Previous sealed stable release: [`v1.1.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
+- Published development baseline: `main` after the v1.4.0 release
+- Current working development branch: `main`; v1.5 planning starts from the sealed v1.4.0 baseline
+- Release downloads: signed Phone and Wear APKs are attached to the v1.4.0 GitHub Release.
 
-The `v1.0.0` tag and its published Release are sealed. Development after v1.0 continues from `main` without changing that tag.
+The `v1.0.0`, `v1.1.0`, and `v1.4.0` tags and their published Releases are sealed. Development after v1.4.0 continues from `main` without changing those tags.
 
 ## Current development milestone
 
-The current development branch contains the accepted v1.4-A trust/permission foundation
-and v1.4-B guided feature tutorial. v1.4 is implemented and independently reviewed but is
-not yet a sealed public Release. See [v1.4 Acceptance](v1.4/V14_ACCEPTANCE.md) and the
+The v1.4.0 release contains the accepted v1.4-A trust/permission foundation and v1.4-B
+guided feature tutorial. Both were independently reviewed, released, and attached as
+signed Phone/Wear APKs. See [v1.4 Acceptance](v1.4/V14_ACCEPTANCE.md) and the
 [v1.4 design records](v1.4/).
+
+The next active development milestone is v1.5 Stability, Performance & Code Cleanup. Its
+planning baseline and acceptance matrix are [V15_DESIGN.md](v1.5/V15_DESIGN.md) and
+[V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md); no v1.5 production change has started yet.
 
 ## Public Identity
 
@@ -30,7 +33,7 @@ not yet a sealed public Release. See [v1.4 Acceptance](v1.4/V14_ACCEPTANCE.md) a
 | Phone | `io.github.yingqiu0871.evolune` | 31 (Android 12) |
 | Wear | `io.github.yingqiu0871.evolune` | 30 |
 
-The v1.1.0 stable release uses `versionName = 1.1.0`, Phone `versionCode = 101010000`, and Wear `versionCode = 1101010000`. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
+The v1.4.0 stable release uses `versionName = 1.4.0`, Phone `versionCode = 101040000`, and Wear `versionCode = 1101040000`. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
 
 ## v1.1 Milestone State
 
@@ -69,13 +72,13 @@ Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cann
 
 `MedicationPlan.slots` is an authoritative ordered list. Each `ScheduledDoseSlot` has a stable UUIDv5 ID, plan ID, minute-precision local time, and contiguous position. The historical namespace string `io.github.yuninggu.evolune:scheduled-dose-slot` is an immutable persisted compatibility constant, not the current application identity.
 
-## Current Limitations of the published v1.1 baseline
+## Current Limitations of the published v1.4.0 baseline
 
 - Health Connect is not implemented.
 - Google cloud backup or cloud synchronization is not implemented.
 - Auto Backup and device transfer intentionally exclude private app data; user-controlled Mahiro JSON export/import is the available migration path.
 - The Wear transport uses the shipped `/hrt/*` Data Layer payloads and does not yet provide a general versioned envelope, acknowledgement protocol, or full Wear application experience.
-- The v1.1 RemoteViews widget completion is functional and closed; broader widget gallery surfaces remain future work.
+- The v1.4.0 RemoteViews widget completion is functional and closed; broader widget gallery surfaces remain future work.
 - Tracked Date is deferred and has no current entity or product surface.
 - Personalized calibration and PK 2.0 are not part of v1.0.
 - The Room database is not encrypted with SQLCipher.
@@ -97,8 +100,8 @@ This scoped permission does not relicense the entire upstream repository, grant 
 - `v1.1`: Phone Widget Completion — **CLOSED / COMPLETE**.
 - `v1.2`: Google Integration & Data Continuity — **PLANNED, NOT STARTED**; Health Connect and Google backup are separately gated batches.
 - `v1.3`: Wear OS Companion App.
-- `v1.4`: Onboarding, Terms & Permission Guidance — **IMPLEMENTED / ACCEPTED, pre-release**.
-- `v1.5`: Stability, Performance & Code Cleanup — **NEXT PLANNED MILESTONE**.
+- `v1.4.0`: Onboarding, Terms & Permission Guidance — **CLOSED / PUBLISHED**.
+- `v1.5`: Stability, Performance & Code Cleanup — **NEXT PLANNED MILESTONE**; planning only.
 - `v1.6`: Widget Gallery.
 - `v1.7`: Optional CPA Pharmacokinetic Curve, default off and gated by independent scientific review.
 
