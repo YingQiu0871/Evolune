@@ -97,3 +97,32 @@ and leave the adaptive wiring and background palette unchanged.
 - v1.5-C: no power claim without wakeup/background-work comparison.
 - v1.5-D: no removal without static proof, behavior coverage, and a boundary review.
 - No arbitrary CI threshold is frozen from this single emulator snapshot.
+
+## Full Phone regression failure comparison
+
+The initial v1.5-A full Phone run reported 182/196 passed, 3 skipped, and 14 failures. The
+failures were:
+
+- `ColorRoleConformanceTest.amoledThemeOptionCanBeSelected`
+- `ColorRoleConformanceTest.themeModeIconsStayVerticallyCentered`
+- the following twelve `MedicationRecordsScreenTest` cases:
+  `dismissingImeKeepsEditorOpenAndPreservesDraftThenSecondBackCloses`,
+  `doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges`,
+  `localValidationFailureKeepsEditorOpenAndShowsStructuredError`,
+  `createSuccessClosesEditorAfterContractInsert`,
+  `deleteFailureKeepsEditorOpenAndShowsError`,
+  `storageFailureKeepsEditorOpen`,
+  `rapidDoubleTapInvokesOneInsert`,
+  `cancelledRecordCardGestureDoesNotInvokeItsClickCallback`,
+  `editSuccessPreservesDomainMetadataBeforeClosing`,
+  `operationInProgressConsumesBackInsteadOfClosingRecordEditor`,
+  `conflictKeepsEditorOpen`, and `editActionsHaveEqualStableSizes`.
+
+For a deterministic comparison, Phone application data was cleared and the focused set was
+run on the same `Pixel_7(AVD) - 15` emulator from both the v1.5-A branch and a detached
+v1.4.0 worktree. Both runs produced the same 15/15 failures: the 14 full-suite failures
+listed above plus `ColorRoleConformanceTest.topAppBarTitleContrastPassesInLightDarkAndAmoled`.
+Every failure ended in the same `ComposeTimeoutException` wait condition. The additional
+focused-only failure is therefore also reproducible on the sealed baseline and is not
+attributable to the v1.5-A launcher resources. These tests remain an existing baseline/test
+harness issue to address separately; no production UI change is justified by this comparison.
