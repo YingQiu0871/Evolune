@@ -42,6 +42,31 @@ class HealthConnectSyncScreenTest {
     }
 
     @Test
+    fun settingsExposesFeatureTutorialSeparatelyFromDisclosureGuide() {
+        var featureTutorialOpened = false
+        composeRule.setContent {
+            EvoluneTheme {
+                SettingsScreen(
+                    onOpenBasicData = {},
+                    onOpenAppearanceAndFormat = {},
+                    onOpenSyncAndBackup = {},
+                    onOpenUpdate = {},
+                    onOpenAbout = {},
+                    onOpenGuide = {},
+                    onOpenFeatureTutorial = { featureTutorialOpened = true },
+                    showTopBar = false
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("settings-guide-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
+            .performScrollTo()
+            .performClick()
+        composeRule.runOnIdle { assertTrue(featureTutorialOpened) }
+    }
+
+    @Test
     fun settingsHomeRoutesSyncAndBackupWithoutDirectFeatureControls() {
         var opened = false
         composeRule.setContent {
@@ -65,6 +90,8 @@ class HealthConnectSyncScreenTest {
         composeRule.onNodeWithTag("settings-update-entry").assertIsDisplayed()
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo()
         composeRule.onNodeWithTag("settings-about-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry").performScrollTo()
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry").assertIsDisplayed()
         assertTrue(
             composeRule.onAllNodesWithTag("settings-basic-data-entry")
                 .fetchSemanticsNodes().size == 1

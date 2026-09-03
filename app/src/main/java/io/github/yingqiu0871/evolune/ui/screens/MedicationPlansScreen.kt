@@ -35,6 +35,7 @@ import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationPlanCard
+import io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialog
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperation
@@ -55,7 +56,8 @@ fun MedicationPlansScreen(
     viewModel: MedicationPlanViewModel,
     is24Hour: Boolean = true,
     showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    notificationPermissionGrantedOverride: Boolean? = null
 ) {
     val context = LocalContext.current
     val plans by viewModel.plans.collectAsState()
@@ -86,13 +88,14 @@ fun MedicationPlansScreen(
             MedicationPlanOperationError.UnexpectedFailure -> unknownErrorMessage
         }
     }
-    var notificationPermissionGranted by remember {
+    var notificationPermissionGranted by remember(notificationPermissionGrantedOverride) {
         mutableStateOf(
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
+            notificationPermissionGrantedOverride
+                ?: (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED)
         )
     }
     var promotedNotificationsEnabled by remember {
@@ -101,6 +104,8 @@ fun MedicationPlansScreen(
                 NotificationManagerCompat.from(context).canPostPromotedNotifications()
         )
     }
+    var pendingNotificationPlanId by remember { mutableStateOf<UUID?>(null) }
+    var showNotificationPermissionGuidance by remember { mutableStateOf(false) }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -175,13 +180,23 @@ fun MedicationPlansScreen(
             viewModel.startCreateSession()
         },
         onToggleEnabled = { id, isEnabled ->
-            if (isEnabled) {
-                requestNotificationPermissionIfNeeded()
+            if (isEnabled && !notificationPermissionGranted) {
+                pendingNotificationPlanId = id
+            } else {
+                if (isEnabled) {
+                    requestNotificationPermissionIfNeeded()
+                }
+                viewModel.setPlanEnabled(id, isEnabled)
             }
-            viewModel.setPlanEnabled(id, isEnabled)
         },
         showNotificationPermissionSetup = hasEnabledPlan && !notificationPermissionGranted,
-        onNotificationPermissionSetup = ::requestNotificationPermissionIfNeeded,
+        onNotificationPermissionSetup = {
+            if (notificationPermissionGranted) {
+                requestNotificationPermissionIfNeeded()
+            } else {
+                showNotificationPermissionGuidance = true
+            }
+        },
         showPromotedNotificationSetup =
             hasEnabledPlan &&
                 notificationPermissionGranted &&
@@ -193,6 +208,35 @@ fun MedicationPlansScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         showTopBar = showTopBar,
         modifier = modifier
+    )
+
+    ContextualAuthorizationDialog(
+        visible = pendingNotificationPlanId != null,
+        title = stringResource(R.string.contextual_notification_title),
+        message = stringResource(R.string.contextual_notification_message),
+        onContinue = {
+            pendingNotificationPlanId?.let { id ->
+                pendingNotificationPlanId = null
+                requestNotificationPermissionIfNeeded()
+                viewModel.setPlanEnabled(id, true)
+            }
+        },
+        onNotNow = {
+            pendingNotificationPlanId?.let { id ->
+                pendingNotificationPlanId = null
+                viewModel.setPlanEnabled(id, true)
+            }
+        }
+    )
+    ContextualAuthorizationDialog(
+        visible = showNotificationPermissionGuidance,
+        title = stringResource(R.string.contextual_notification_title),
+        message = stringResource(R.string.contextual_notification_message),
+        onContinue = {
+            showNotificationPermissionGuidance = false
+            requestNotificationPermissionIfNeeded()
+        },
+        onNotNow = { showNotificationPermissionGuidance = false }
     )
 }
 

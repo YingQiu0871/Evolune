@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.SystemClock
 import android.text.format.DateFormat
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.LocalActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -87,13 +88,16 @@ import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.backup.BackupRestoreUiEvent
+import io.github.yingqiu0871.evolune.backup.BackupRestoreOperation
 import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
+import io.github.yingqiu0871.evolune.application.MedicationPlanDraft
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
 import io.github.yingqiu0871.evolune.pk.SublingualTier
 import io.github.yingqiu0871.evolune.ui.components.EditorTransitionHost
+import io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialog
 import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.PatchMode
@@ -107,8 +111,11 @@ import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
 import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
 import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
 import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
+import io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreen
+import io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
+import io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
 import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
 import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
@@ -121,6 +128,7 @@ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperation
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationError
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationState
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
+import io.github.yingqiu0871.evolune.viewmodel.OnboardingViewModel
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModel
 import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
 
@@ -134,8 +142,31 @@ private const val ABOUT_ROUTE = "settings_about"
 private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
 private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
 private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
+private const val ONBOARDING_ROUTE = "onboarding"
+private const val DISCLOSURES_ROUTE = "disclosures"
+internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
+
+private enum class PendingAuthorization {
+    HEALTH_CONNECT_ENABLE,
+    HEALTH_CONNECT_REAUTHORIZE,
+    HEALTH_CONNECT_MANAGE,
+    GOOGLE_DRIVE_BACKUP,
+    GOOGLE_DRIVE_RESTORE
+}
+
+internal fun resolveAppStartRoute(
+    explicitRoute: String?,
+    onboardingComplete: Boolean,
+    featureTutorialAutoLaunchPending: Boolean
+): String? = explicitRoute ?: if (
+    onboardingComplete && featureTutorialAutoLaunchPending
+) {
+    FEATURE_TUTORIAL_ROUTE
+} else {
+    null
+}
 
 /**
  * 应用主导航
@@ -147,7 +178,9 @@ fun AppNavigation(
     settingsViewModel: SettingsViewModel,
     medicationPlanViewModel: MedicationPlanViewModel,
     backupRestoreViewModel: BackupRestoreViewModel,
-    authorizationResultFromIntent: (Intent) -> CloudAuthorizationOutcome
+    authorizationResultFromIntent: (Intent) -> CloudAuthorizationOutcome,
+    onboardingViewModel: OnboardingViewModel,
+    initialRoute: String? = null
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -159,6 +192,75 @@ fun AppNavigation(
     val backupRestoreConnected by backupRestoreViewModel.connected.collectAsState()
     val importResult by hrtViewModel.importResult.collectAsState()
     val scope = rememberCoroutineScope()
+    val onboardingState by onboardingViewModel.state.collectAsState()
+
+    var showFirstRunDisclosures by remember { mutableStateOf(false) }
+    if (showFirstRunDisclosures) {
+        BackHandler { showFirstRunDisclosures = false }
+        DisclosuresScreen(onNavigateBack = { showFirstRunDisclosures = false })
+        return
+    }
+    if (onboardingState == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        )
+        return
+    }
+    val resolvedOnboardingState = requireNotNull(onboardingState)
+    if (!resolvedOnboardingState.isComplete) {
+        OnboardingFlowScreen(
+            state = resolvedOnboardingState,
+            beginnerOnboarding = resolvedOnboardingState.needsBeginnerOnboarding,
+            onAcceptTerms = onboardingViewModel::acceptTerms,
+            onAcknowledgeMedicalPkDisclosure =
+                onboardingViewModel::acknowledgeMedicalPkDisclosure,
+            onComplete = onboardingViewModel::completeOnboarding,
+            onOpenDisclosures = { showFirstRunDisclosures = true }
+        )
+        return
+    }
+
+    val autoLaunchFeatureTutorial =
+        initialRoute == null && resolvedOnboardingState.featureTutorialAutoLaunchPending
+    fun exitFeatureTutorial() {
+        onboardingViewModel.markFeatureTutorialHandled()
+        if (autoLaunchFeatureTutorial) {
+            navController.navigate(Screen.HOME.route) {
+                popUpTo(FEATURE_TUTORIAL_ROUTE) { inclusive = true }
+                launchSingleTop = true
+            }
+        } else {
+            navController.popBackStack()
+        }
+    }
+
+    var pendingAuthorization by remember { mutableStateOf<PendingAuthorization?>(null) }
+    var pendingPlanDraft by remember { mutableStateOf<MedicationPlanDraft?>(null) }
+
+    var notificationPermissionGranted by remember {
+        mutableStateOf(
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        notificationPermissionGranted = granted
+    }
+    fun requestNotificationPermissionIfNeeded() {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !notificationPermissionGranted
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
@@ -347,6 +449,71 @@ fun AppNavigation(
         )
     }
 
+    fun continuePendingAuthorization() {
+        val pending = pendingAuthorization ?: return
+        pendingAuthorization = null
+        when (pending) {
+            PendingAuthorization.HEALTH_CONNECT_ENABLE ->
+                settingsViewModel.setHealthConnectWeightSyncEnabled(true)
+            PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE ->
+                settingsViewModel.requestHealthConnectReauthorization()
+            PendingAuthorization.HEALTH_CONNECT_MANAGE -> context.startActivity(
+                HealthConnectClient.getHealthConnectManageDataIntent(
+                    context,
+                    context.packageName
+                )
+            )
+            PendingAuthorization.GOOGLE_DRIVE_BACKUP -> backupRestoreViewModel.backUpNow()
+            PendingAuthorization.GOOGLE_DRIVE_RESTORE -> backupRestoreViewModel.restoreFromBackup()
+        }
+    }
+
+    val pendingAuthorizationTitle = when (pendingAuthorization) {
+        PendingAuthorization.HEALTH_CONNECT_ENABLE,
+        PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE,
+        PendingAuthorization.HEALTH_CONNECT_MANAGE ->
+            stringResource(R.string.contextual_health_connect_title)
+        PendingAuthorization.GOOGLE_DRIVE_BACKUP,
+        PendingAuthorization.GOOGLE_DRIVE_RESTORE ->
+            stringResource(R.string.contextual_google_drive_title)
+        null -> ""
+    }
+    val pendingAuthorizationMessage = when (pendingAuthorization) {
+        PendingAuthorization.HEALTH_CONNECT_ENABLE,
+        PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE,
+        PendingAuthorization.HEALTH_CONNECT_MANAGE ->
+            stringResource(R.string.contextual_health_connect_message)
+        PendingAuthorization.GOOGLE_DRIVE_BACKUP,
+        PendingAuthorization.GOOGLE_DRIVE_RESTORE ->
+            stringResource(R.string.contextual_google_drive_message)
+        null -> ""
+    }
+    ContextualAuthorizationDialog(
+        visible = pendingAuthorization != null,
+        title = pendingAuthorizationTitle,
+        message = pendingAuthorizationMessage,
+        onContinue = ::continuePendingAuthorization,
+        onNotNow = { pendingAuthorization = null }
+    )
+    ContextualAuthorizationDialog(
+        visible = pendingPlanDraft != null,
+        title = stringResource(R.string.contextual_notification_title),
+        message = stringResource(R.string.contextual_notification_message),
+        onContinue = {
+            pendingPlanDraft?.let { draft ->
+                pendingPlanDraft = null
+                requestNotificationPermissionIfNeeded()
+                medicationPlanViewModel.saveDraft(draft)
+            }
+        },
+        onNotNow = {
+            pendingPlanDraft?.let { draft ->
+                pendingPlanDraft = null
+                medicationPlanViewModel.saveDraft(draft)
+            }
+        }
+    )
+
     // 折叠屏/宽屏自适应导航：compact 走底部导航栏，medium/expanded 走侧边导航栏。
     // 通过 calculateWindowSizeClass(activity) 取得真实窗口尺寸类，而非硬编码设备宽度。
     val activity = LocalActivity.current
@@ -365,7 +532,10 @@ fun AppNavigation(
         currentRoute == ABOUT_ROUTE ||
         currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
         currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
-        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
+        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
+        currentRoute == ONBOARDING_ROUTE ||
+        currentRoute == DISCLOSURES_ROUTE ||
+        currentRoute == FEATURE_TUTORIAL_ROUTE
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -397,11 +567,21 @@ fun AppNavigation(
                         HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
                         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
                             stringResource(R.string.settings_google_drive_backup_restore_title)
+                        ONBOARDING_ROUTE -> stringResource(R.string.onboarding_title)
+                        DISCLOSURES_ROUTE -> stringResource(R.string.disclosures_title)
+                        FEATURE_TUTORIAL_ROUTE ->
+                            stringResource(R.string.feature_tutorial_title)
                         else -> null
                     },
-                    onNavigateUp = if (isSettingsSubroute) {
-                        { navController.popBackStack() }
-                    } else {
+                onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
+                    ::exitFeatureTutorial
+                } else if (isSettingsSubroute) {
+                    {
+                        if (!navController.popBackStack()) {
+                            activity?.finish()
+                        }
+                    }
+                } else {
                         null
                     }
                 )
@@ -455,7 +635,12 @@ fun AppNavigation(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = Screen.HOME.route,
+                startDestination = resolveAppStartRoute(
+                    explicitRoute = initialRoute,
+                    onboardingComplete = resolvedOnboardingState.isComplete,
+                    featureTutorialAutoLaunchPending =
+                        resolvedOnboardingState.featureTutorialAutoLaunchPending
+                ) ?: Screen.HOME.route,
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface),
@@ -512,6 +697,12 @@ fun AppNavigation(
                     onOpenAbout = {
                         navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
                     },
+                    onOpenGuide = {
+                        navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenFeatureTutorial = {
+                        navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
+                    },
                     showTopBar = false
                 )
             }
@@ -560,7 +751,49 @@ fun AppNavigation(
                 )
             }
             composable(ABOUT_ROUTE) {
-                AboutScreen()
+                AboutScreen(
+                    onOpenDisclosures = {
+                        navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
+                    }
+                )
+            }
+            composable(ONBOARDING_ROUTE) {
+                OnboardingFlowScreen(
+                    state = resolvedOnboardingState,
+                    beginnerOnboarding = resolvedOnboardingState.needsBeginnerOnboarding,
+                    onAcceptTerms = onboardingViewModel::acceptTerms,
+                    onAcknowledgeMedicalPkDisclosure =
+                        onboardingViewModel::acknowledgeMedicalPkDisclosure,
+                    onComplete = {
+                        onboardingViewModel.completeOnboarding()
+                        navController.popBackStack()
+                    },
+                    onOpenDisclosures = {
+                        navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
+                    },
+                    onExit = { navController.popBackStack() },
+                    showTopBar = false
+                )
+            }
+            composable(FEATURE_TUTORIAL_ROUTE) {
+                FeatureTutorialScreen(
+                    onCreatePlan = medicationPlanViewModel::startCreateSession,
+                    onRecordDose = hrtViewModel::startCreateSession,
+                    onOpenPkChart = {
+                        navController.navigate(Screen.HOME.route)
+                    },
+                    onOpenBackup = {
+                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onSkip = ::exitFeatureTutorial,
+                    onFinish = ::exitFeatureTutorial,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            composable(DISCLOSURES_ROUTE) {
+                DisclosuresScreen()
             }
             composable(DATA_IMPORT_EXPORT_ROUTE) {
                 DataImportExportScreen(
@@ -583,15 +816,18 @@ fun AppNavigation(
                 HealthConnectSyncScreen(
                     settings = userSettings,
                     state = healthConnectWeightSyncState,
-                    onWeightSyncEnabledChange = settingsViewModel::setHealthConnectWeightSyncEnabled,
-                    onReauthorize = settingsViewModel::requestHealthConnectReauthorization,
+                    onWeightSyncEnabledChange = { enabled ->
+                        if (enabled) {
+                            pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_ENABLE
+                        } else {
+                            settingsViewModel.setHealthConnectWeightSyncEnabled(false)
+                        }
+                    },
+                    onReauthorize = {
+                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE
+                    },
                     onManagePermissions = {
-                        context.startActivity(
-                            HealthConnectClient.getHealthConnectManageDataIntent(
-                                context,
-                                context.packageName
-                            )
-                        )
+                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_MANAGE
                     }
                 )
             }
@@ -599,8 +835,20 @@ fun AppNavigation(
                 GoogleDriveBackupRestoreScreen(
                     connected = backupRestoreConnected,
                     state = backupRestoreState,
-                    onBackupNow = backupRestoreViewModel::backUpNow,
-                    onRestoreFromBackup = backupRestoreViewModel::restoreFromBackup,
+                    onBackupNow = {
+                        if (backupRestoreConnected) {
+                            backupRestoreViewModel.backUpNow()
+                        } else {
+                            pendingAuthorization = PendingAuthorization.GOOGLE_DRIVE_BACKUP
+                        }
+                    },
+                    onRestoreFromBackup = {
+                        if (backupRestoreConnected) {
+                            backupRestoreViewModel.restoreFromBackup()
+                        } else {
+                            pendingAuthorization = PendingAuthorization.GOOGLE_DRIVE_RESTORE
+                        }
+                    },
                     onDisconnect = backupRestoreViewModel::disconnect,
                     onSelectGeneration = backupRestoreViewModel::selectGeneration,
                     onSubmitBackupPassphrase = backupRestoreViewModel::submitBackupPassphrase,
@@ -632,29 +880,6 @@ fun AppNavigation(
                 is DoseEventUiEvent.Deleted -> hrtViewModel.closeEditSession()
             }
             hrtViewModel.acknowledgeOperation()
-        }
-    }
-
-    var notificationPermissionGranted by remember {
-        mutableStateOf(
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        notificationPermissionGranted = granted
-    }
-    fun requestNotificationPermissionIfNeeded() {
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !notificationPermissionGranted
-        ) {
-            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
@@ -719,10 +944,14 @@ fun AppNavigation(
             },
             onSave = { draft ->
                 if (isActive) {
-                    if (draft.isEnabled) {
-                        requestNotificationPermissionIfNeeded()
+                    if (draft.isEnabled && !notificationPermissionGranted) {
+                        pendingPlanDraft = draft
+                    } else {
+                        if (draft.isEnabled) {
+                            requestNotificationPermissionIfNeeded()
+                        }
+                        medicationPlanViewModel.saveDraft(draft)
                     }
-                    medicationPlanViewModel.saveDraft(draft)
                 }
             },
             onDelete = { id ->

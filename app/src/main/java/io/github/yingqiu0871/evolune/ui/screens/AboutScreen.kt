@@ -37,7 +37,8 @@ import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
 @Composable
 fun AboutScreen(
     onOpenWebsite: (() -> Unit)? = null,
-    onContactDeveloper: (() -> Unit)? = null
+    onContactDeveloper: (() -> Unit)? = null,
+    onOpenDisclosures: (() -> Unit)? = null
 ) {
     var showCopyrightDialog by remember { mutableStateOf(false) }
     var showDisclaimerDialog by remember { mutableStateOf(false) }
@@ -101,7 +102,13 @@ fun AboutScreen(
 
             SegmentedListItem(
                 modifier = Modifier.testTag("settings-about-disclaimer"),
-                onClick = { showDisclaimerDialog = true },
+                onClick = {
+                    if (onOpenDisclosures != null) {
+                        onOpenDisclosures()
+                    } else {
+                        showDisclaimerDialog = true
+                    }
+                },
                 shapes = ListItemDefaults.segmentedShapes(index = 3, count = 4),
                 colors = settingsListItemColors(),
                 leadingContent = {
