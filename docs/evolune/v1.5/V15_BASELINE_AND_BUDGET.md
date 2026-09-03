@@ -90,6 +90,11 @@ The v1.5-A visual change should scale this existing foreground/monochrome conten
 canvas center, regenerate legacy composite launcher rasters from the same adjusted source,
 and leave the adaptive wiring and background palette unchanged.
 
+Visual acceptance evidence is tracked at
+`docs/evolune/v1.5/launcher-mask-comparison.png`. It compares the xxxhdpi v1.4.0 and v1.5-A
+composites under circular and rounded-square masks. The v1.5-A mark is visibly smaller, the
+moon is less dominant, the center remains aligned, and no clipping is visible in either mask.
+
 ## Measurement budget
 
 - v1.5-A: baseline capture, resource inspection, and launcher adjustment only.
