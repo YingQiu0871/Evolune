@@ -51,7 +51,24 @@ peeled target）为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`；Owner、真实�
 - 维持响应式尺寸、Material 3、Material You、Monet 预设、Light/Dark、每 Widget 独立透明度和长按重新配置。
 - 保持多 Widget 隔离、进程重建、日期/时区变化和 OEM Launcher 行为可验证；配置预览与实际 Widget 保持一致。
 
-## Next planned milestone
+## Current development status
+
+### v1.4 — Onboarding, Terms & Permission Guidance — implemented / accepted
+
+当前开发分支已完成 v1.4-A Trust & Permission Foundation 和 v1.4-B Guided Feature
+Tutorial。两部分均通过自动化回归、Phone clean-install smoke 和独立复核；详细证据
+见 [V14_ACCEPTANCE.md](v1.4/V14_ACCEPTANCE.md)。当前仍是 pre-release 状态，尚未
+创建公开 release commit、tag 或发布产物。
+
+v1.4 的实现保持以下边界：法律/权限状态独立于业务数据；教程状态不进入 Room、
+Settings restore 或 backup；Phone、Room、PK、Widget 和 Wear/W4 的既有权威边界
+保持不变。
+
+### v1.5 — Stability, Performance & Code Cleanup — next planned milestone
+
+v1.5 是 v1.4 之后的下一开发里程碑，进入前仍需单独设计和建立稳定性验收矩阵。
+
+## Historical and future milestones
 
 ### v1.2 — Google Integration & Data Continuity
 
@@ -98,7 +115,7 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 - v1.3 不承诺复杂的完全离线双向冲突同步；需要 Phone 写入的动作必须有明确的连接/排队/失败反馈策略。
 - Snooze 可在 v1.3 重新评估，但只有在状态语义和持久化模型明确后才进入实现，不作为默认必做项。
 
-### v1.4 — Onboarding, Terms & Permission Guidance
+### v1.4 — Onboarding, Terms & Permission Guidance (scope reference)
 
 目标：补齐首次使用、信任、法律说明和权限授予体验，让新用户能够理解 Evolune 的用途、数据边界和主要功能。
 

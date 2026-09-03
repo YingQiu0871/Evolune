@@ -42,7 +42,9 @@ fun SettingsScreen(
     onOpenSyncAndBackup: () -> Unit,
     onOpenUpdate: () -> Unit,
     onOpenAbout: () -> Unit,
-    showTopBar: Boolean = true
+    showTopBar: Boolean = true,
+    onOpenGuide: () -> Unit = {},
+    onOpenFeatureTutorial: () -> Unit = {}
 ) {
     Scaffold(
         contentWindowInsets = if (showTopBar) {
@@ -106,6 +108,20 @@ fun SettingsScreen(
                 description = stringResource(R.string.settings_update_desc),
                 icon = Icons.Outlined.SystemUpdate,
                 onClick = onOpenUpdate
+            )
+            SettingsNavigationRow(
+                modifier = Modifier.testTag("settings-guide-entry"),
+                title = stringResource(R.string.settings_guide_title),
+                description = stringResource(R.string.settings_guide_desc),
+                icon = Icons.Outlined.Info,
+                onClick = onOpenGuide
+            )
+            SettingsNavigationRow(
+                modifier = Modifier.testTag("settings-feature-tutorial-entry"),
+                title = stringResource(R.string.settings_feature_tutorial_title),
+                description = stringResource(R.string.settings_feature_tutorial_desc),
+                icon = Icons.Outlined.Info,
+                onClick = onOpenFeatureTutorial
             )
             SettingsNavigationRow(
                 modifier = Modifier.testTag("settings-about-entry"),

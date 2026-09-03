@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
@@ -36,6 +37,7 @@ import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
+import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
 import io.github.yingqiu0871.evolune.reminder.ReminderManager
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
@@ -43,6 +45,8 @@ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
+import io.github.yingqiu0871.evolune.viewmodel.OnboardingViewModel
+import io.github.yingqiu0871.evolune.viewmodel.OnboardingViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModel
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModelFactory
 import io.github.yingqiu0871.evolune.widget.WidgetUpdateReason
@@ -53,6 +57,12 @@ import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
 import kotlinx.coroutines.flow.first
+
+internal fun initialRouteForIntent(action: String?): String? = when (action) {
+    "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
+    "android.intent.action.VIEW_PERMISSION_USAGE" -> "disclosures"
+    else -> null
+}
 
 class MainActivity : ComponentActivity() {
     private lateinit var settingsViewModel: SettingsViewModel
@@ -67,6 +77,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Capture the pre-v1.4 data boundary before Room/DataStore startup can
+        // create new files on a genuinely fresh installation.
+        val isExistingInstallation =
+            applicationContext.getDatabasePath("evolune_database").exists() ||
+                applicationContext.preferencesDataStoreFile("settings").exists()
 
         // 初始化设置数据存储
         val settingsDataStore = SettingsDataStore(applicationContext)
@@ -125,6 +141,15 @@ class MainActivity : ComponentActivity() {
             this,
             SettingsViewModelFactory(settingsDataStore, healthConnectWeightProvider)
         )[SettingsViewModel::class.java]
+        val onboardingViewModel: OnboardingViewModel = ViewModelProvider(
+            this,
+            OnboardingViewModelFactory(
+                store = OnboardingStateStore(
+                    context = applicationContext,
+                    isExistingInstallation = isExistingInstallation
+                )
+            )
+        )[OnboardingViewModel::class.java]
         
         setContent {
             val settingsViewModel = this@MainActivity.settingsViewModel
@@ -267,7 +292,9 @@ class MainActivity : ComponentActivity() {
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,
-                        authorizationResultFromIntent = googleAuthorizationGateway::outcomeFromIntent
+                        authorizationResultFromIntent = googleAuthorizationGateway::outcomeFromIntent,
+                        onboardingViewModel = onboardingViewModel,
+                        initialRoute = initialRouteForIntent(intent?.action)
                     )
                 }
             }

@@ -1,7 +1,6 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
-import android.Manifest
-import android.os.ParcelFileDescriptor
+import android.os.Build
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -54,7 +53,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
@@ -71,35 +69,6 @@ class MedicationPlansScreenTest {
 
     @Volatile
     private var composeImeVisible = false
-
-    private fun readImeState(): String {
-        val state = InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("dumpsys input_method")
-            .use { descriptor ->
-                ParcelFileDescriptor.AutoCloseInputStream(descriptor).use {
-                    it.readBytes().toString(Charsets.UTF_8)
-                }
-            }
-        return state
-    }
-
-    private fun imeIsVisible(): Boolean = readImeState().contains("mInputShown=true")
-
-    private fun imeIsHidden(): Boolean {
-        val state = readImeState()
-        val imeWindowHidden = state.lineSequence()
-            .map(String::trim)
-            .any { it == "mImeWindowVis=0" }
-        return imeWindowHidden && state.contains("mInputShown=false")
-    }
-
-    @Before
-    fun grantNotificationPermission() {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        instrumentation.uiAutomation.executeShellCommand(
-            "pm grant ${instrumentation.targetContext.packageName} ${Manifest.permission.POST_NOTIFICATIONS}"
-        ).close()
-    }
 
     @After
     fun cancelScopes() {
@@ -135,13 +104,13 @@ class MedicationPlansScreenTest {
             .performClick()
             .performTextInput("BF1 IME test")
 
-        composeRule.waitUntil(5_000L) { imeIsVisible() && composeImeVisible }
+        composeRule.waitUntil(5_000L) { composeImeVisible }
         InstrumentationRegistry.getInstrumentation().uiAutomation
             .executeShellCommand("input keyevent KEYCODE_BACK")
             .close()
         composeRule.waitForIdle()
 
-        composeRule.waitUntil(5_000L) { imeIsHidden() && !composeImeVisible }
+        composeRule.waitUntil(5_000L) { !composeImeVisible }
         composeRule.onNodeWithTag("plan-editor-surface").assertExists()
         assertEquals(
             "BF1 IME test",
@@ -248,6 +217,64 @@ class MedicationPlansScreenTest {
             composeRule.onAllNodesWithText(string(R.string.common_unknown_error))
                 .fetchSemanticsNodes().isEmpty()
         )
+    }
+
+    @Test
+    fun enablingPlanWithoutNotificationAccessShowsExplanationFirst() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val repository = FakeRepository().apply { plans.value = listOf(plan()) }
+        val viewModel = viewModel(repository)
+        composeRule.setContent {
+            EvoluneTheme {
+                MedicationPlansScreen(
+                    viewModel = viewModel,
+                    showTopBar = false,
+                    notificationPermissionGrantedOverride = false
+                )
+            }
+        }
+
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("plan-enabled-$PLAN_ID")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithTag("plan-enabled-$PLAN_ID").performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithText(string(R.string.contextual_notification_title))
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithText(string(R.string.contextual_notification_title))
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun notificationSetupEntryAlsoShowsExplanationFirst() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val repository = FakeRepository().apply { plans.value = listOf(plan().copy(isEnabled = true)) }
+        val viewModel = viewModel(repository)
+        composeRule.setContent {
+            EvoluneTheme {
+                MedicationPlansScreen(
+                    viewModel = viewModel,
+                    showTopBar = false,
+                    notificationPermissionGrantedOverride = false
+                )
+            }
+        }
+
+        val setupTitle = string(R.string.plans_notification_permission_title)
+        composeRule.onNodeWithText(setupTitle).performScrollTo().performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("contextual-authorization-dialog")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithTag("contextual-authorization-dialog")
+            .assertIsDisplayed()
     }
 
     @Test

@@ -9,10 +9,19 @@ This document is the canonical quick reference for the current public release an
 - Published source baseline: `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`
 - Release reference: the immutable [`v1.1.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
 - Previous sealed stable release: [`v1.0.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.0.0)
-- Current development baseline: `main` after the v1.1.0 release
+- Published development baseline: `main` after the v1.1.0 release
+- Current working development branch: `codex/v1.4-a-trust-permission-foundation` with
+  uncommitted v1.4 pre-release changes
 - Release downloads: signed Phone and Wear APKs are attached to the GitHub Release.
 
 The `v1.0.0` tag and its published Release are sealed. Development after v1.0 continues from `main` without changing that tag.
+
+## Current development milestone
+
+The current development branch contains the accepted v1.4-A trust/permission foundation
+and v1.4-B guided feature tutorial. v1.4 is implemented and independently reviewed but is
+not yet a sealed public Release. See [v1.4 Acceptance](v1.4/V14_ACCEPTANCE.md) and the
+[v1.4 design records](v1.4/).
 
 ## Public Identity
 
@@ -60,7 +69,7 @@ Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cann
 
 `MedicationPlan.slots` is an authoritative ordered list. Each `ScheduledDoseSlot` has a stable UUIDv5 ID, plan ID, minute-precision local time, and contiguous position. The historical namespace string `io.github.yuninggu.evolune:scheduled-dose-slot` is an immutable persisted compatibility constant, not the current application identity.
 
-## Current Limitations
+## Current Limitations of the published v1.1 baseline
 
 - Health Connect is not implemented.
 - Google cloud backup or cloud synchronization is not implemented.
@@ -88,8 +97,8 @@ This scoped permission does not relicense the entire upstream repository, grant 
 - `v1.1`: Phone Widget Completion — **CLOSED / COMPLETE**.
 - `v1.2`: Google Integration & Data Continuity — **PLANNED, NOT STARTED**; Health Connect and Google backup are separately gated batches.
 - `v1.3`: Wear OS Companion App.
-- `v1.4`: Onboarding, Terms & Permission Guidance.
-- `v1.5`: Stability, Performance & Code Cleanup.
+- `v1.4`: Onboarding, Terms & Permission Guidance — **IMPLEMENTED / ACCEPTED, pre-release**.
+- `v1.5`: Stability, Performance & Code Cleanup — **NEXT PLANNED MILESTONE**.
 - `v1.6`: Widget Gallery.
 - `v1.7`: Optional CPA Pharmacokinetic Curve, default off and gated by independent scientific review.
 
