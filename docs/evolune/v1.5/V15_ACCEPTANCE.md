@@ -2,7 +2,7 @@
 
 ## Status
 
-Active v1.5 working matrix. Rows marked `PASS` have recorded evidence; `OPEN` rows remain
+Final v1.5.0 release matrix. Rows marked `PASS` have recorded evidence; `OPEN` rows remain
 release gates. `SKIPPED_BY_OWNER` is reserved for an explicit, documented owner waiver and is
 not evidence that the skipped behavior is improved. This matrix starts from the sealed `v1.4.0`
 baseline.
@@ -38,7 +38,7 @@ matrix is recorded, and no new P0/P1 stability issue remains.
 | Phone launcher Logo | Overall foreground mark and moon are visually smaller than v1.4.0; aspect ratio, center, safe zone, density variants, monochrome and launcher masks remain coherent | Before/after screenshots on Phone launcher plus owner visual approval | PASS |
 | Wear launcher Logo | Existing mark uses adaptive layers and renders without black outer corners or an unintended white wrapper on the Wear launcher | Resource contract, Wear device test, and post-reinstall launcher screenshot | PASS |
 | Release identity | Phone/Wear package IDs, `versionName`, version codes, signing and non-debuggable release state | Build metadata and signing verification for the current candidate | PASS |
-| RC gate | No new P0/P1 stability issues; release notes, tag and APK hashes match the candidate | Final RC checklist and immutable release record | OPEN |
+| RC gate | No new P0/P1 stability issues; release notes, tag and APK hashes match the candidate | Final RC checklist and immutable release record | PASS |
 
 ## Evidence added — 2026-09-04 to 2026-09-05
 
@@ -324,12 +324,12 @@ Per owner decision for this RC, the Energy/background comparison is explicitly
 `SKIPPED_BY_OWNER`; this is a release waiver, not a PASS and does not support a battery-life
 improvement claim. The physical battery/Wear active-background comparison remains unverified.
 
-The final current-source Release build is now signed, metadata-verified, hashed, installed on
-both connected real devices, and cold-launched successfully. Release identity,
-Startup/performance, Phone launcher Logo, and Wear transport rows are closed. The RC gate itself
-remains open only for the immutable release record (final commit/tag/release notes and matching
-hash record); the Energy/background comparison is covered only by the explicit
-`SKIPPED_BY_OWNER` waiver above.
+The final current-source Release build is signed, metadata-verified, hashed, installed on both
+connected real devices, and cold-launched successfully. Release identity,
+Startup/performance, Phone launcher Logo, and Wear transport rows are closed. The merged main
+commit carrying this matrix is the immutable `v1.5.0` release record: it is tagged `v1.5.0`, and
+the GitHub Release publishes the matching APK hashes listed above. The Energy/background
+comparison is covered only by the explicit `SKIPPED_BY_OWNER` waiver above.
 
 ## Preserved boundaries
 
