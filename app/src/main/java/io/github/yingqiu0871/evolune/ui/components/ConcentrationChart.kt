@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntOffset
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
 import io.github.yingqiu0871.evolune.pk.SimulationResult
 import java.text.SimpleDateFormat
 import java.util.*
@@ -105,7 +106,7 @@ private fun createStarPath(
  *
  * @param simulationResult 完整模拟结果（历史+未来计划）
  * @param baselineSimulationResult 基线模拟结果（仅历史，不考虑未来计划）
- * @param currentTimeH 当前时刻（小时）
+ * @param currentTimeHState 当前时刻状态（小时）；仅在 Canvas 绘制阶段读取
  * @param doseTimePoints 给药时间点列表（小时）
  * @param forkPointTimeH 分叉点时间（未来第一次计划用药时间），此时刻后主曲线转为计划曲线
  * @param modifier Modifier
@@ -114,12 +115,18 @@ private fun createStarPath(
 fun ConcentrationChart(
     simulationResult: SimulationResult,
     baselineSimulationResult: SimulationResult?,
-    currentTimeH: Double,
+    currentTimeHState: State<Double>,
     doseTimePoints: List<Double>,
-    forkPointTimeH: Double? = null,
-    is24Hour: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    forkPointTimeHState: State<Double?>? = null,
+    is24Hour: Boolean = true
 ) {
+    RecordComposeRecomposition(
+        surface = "ConcentrationChart",
+        state = "points=${simulationResult.timeH.size}",
+        recompositionToken = simulationResult
+    )
+
     val primaryColor = MaterialTheme.colorScheme.primary
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface
     val errorColor = MaterialTheme.colorScheme.error
@@ -140,9 +147,13 @@ fun ConcentrationChart(
         .maxOrNull() ?: 1.0
     val totalTimeRange = timeMax - timeMin
     
-    // 计算默认显示范围：当前时刻-24小时到+12小时（共36小时）
-    val defaultViewStart = currentTimeH - 24.0
-    val defaultViewEnd = currentTimeH + 12.0
+    // 计算默认显示范围：首次绘制时刻-24小时到+12小时（共36小时）。
+    // 后续当前时刻只在 Canvas 绘制阶段读取，不触发图表内容重组。
+    val initialCurrentTimeH = remember {
+        System.currentTimeMillis() / 3600000.0
+    }
+    val defaultViewStart = initialCurrentTimeH - 24.0
+    val defaultViewEnd = initialCurrentTimeH + 12.0
     val defaultViewRange = defaultViewEnd - defaultViewStart // 36小时
     
     // 计算默认缩放级别
@@ -334,7 +345,8 @@ fun ConcentrationChart(
                         }
                     }
                 }
-        ) {
+    ) {
+        val currentTimeH = currentTimeHState.value
         val geometry = geometryFor(size.width, size.height)
         val plotRect = geometry.rect
         val chartWidth = plotRect.width
@@ -371,8 +383,8 @@ fun ConcentrationChart(
                 strokeWidth = 1.dp.toPx()
             )
 
-            // 确定分叉点时间（优先使用传入的 forkPointTimeH，否则使用当前时刻）
-            val forkTime = forkPointTimeH ?: currentTimeH
+            // 确定分叉点时间（优先使用传入的状态，否则使用当前时刻）
+            val forkTime = forkPointTimeHState?.value ?: currentTimeH
             
             // 计算分叉点处的浓度值（线性插值）
             var forkPointConc = 0.0

@@ -1,25 +1,29 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
-import android.graphics.Bitmap
+import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.isRoot
+import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,7 +40,28 @@ import kotlin.math.abs
 class ColorRoleConformanceTest {
 
     @get:Rule
-    val composeRule = createAndroidComposeRule<MainActivity>()
+    val composeRule = createEmptyComposeRule()
+
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private lateinit var scenario: ActivityScenario<MainActivity>
+
+    @Before
+    fun launchFromDeterministicOnboardingState() {
+        runBlocking {
+            val store = OnboardingStateStore(context, isExistingInstallation = true)
+            store.initializeIfNeeded()
+            store.acceptTerms()
+            store.acknowledgeMedicalPkDisclosure()
+            store.completeOnboarding()
+            store.markFeatureTutorialHandled()
+        }
+        scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java))
+    }
+
+    @After
+    fun closeActivity() {
+        scenario.close()
+    }
 
     private fun luminance(r: Int, g: Int, b: Int): Double {
         fun lin(c: Int): Double {
@@ -49,21 +74,27 @@ class ColorRoleConformanceTest {
     private fun contrast(l1: Double, l2: Double): Double =
         (max(l1, l2) + 0.05) / (min(l1, l2) + 0.05)
 
-    private fun waitForNav(label: String) {
+    private fun openSettings() {
         composeRule.waitUntil(15_000L) {
-            composeRule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithTag("nav-rail-settings").fetchSemanticsNodes().isNotEmpty() ||
+                composeRule.onAllNodesWithTag("nav-bar-settings").fetchSemanticsNodes().isNotEmpty()
+        }
+        val railSettings = composeRule.onAllNodesWithTag("nav-rail-settings").fetchSemanticsNodes()
+        if (railSettings.isNotEmpty()) {
+            composeRule.onNodeWithTag("nav-rail-settings").performClick()
+        } else {
+            composeRule.onNodeWithTag("nav-bar-settings").performClick()
+        }
+        composeRule.onNodeWithTag("settings-appearance-format-entry")
+            .performScrollTo()
+            .performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("theme-mode-system").fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    private fun openSettings() {
-        waitForNav("设置")
-        composeRule.onAllNodesWithText("设置")[0].performClick()
-        composeRule.waitForIdle()
-    }
-
     private fun sampleTitleRegion(mode: String): Double {
-        val titleNode = composeRule.onAllNodesWithText("设置").fetchSemanticsNodes()
-            .first { it.boundsInWindow.top < 500 }
+        val titleNode = composeRule.onNodeWithTag("app-top-title").fetchSemanticsNode()
         val bounds = titleNode.boundsInWindow
         val roots = composeRule.onAllNodes(isRoot(), useUnmergedTree = true).fetchSemanticsNodes()
         val appRootIndex = roots.withIndex()
@@ -116,7 +147,6 @@ class ColorRoleConformanceTest {
 
     @Test
     fun topAppBarTitleContrastPassesInLightDarkAndAmoled() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SettingsDataStore(context)
         runBlocking { store.updateThemeMode(ThemeMode.LIGHT) }
         composeRule.waitForIdle()
@@ -147,13 +177,12 @@ class ColorRoleConformanceTest {
 
     @Test
     fun amoledThemeOptionCanBeSelected() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SettingsDataStore(context)
         runBlocking { store.updateThemeMode(ThemeMode.SYSTEM) }
         composeRule.waitForIdle()
         openSettings()
 
-        composeRule.onNodeWithText("OLED 全黑")
+        composeRule.onNodeWithTag("theme-mode-amoled")
             .performScrollTo()
             .assertIsDisplayed()
             .performClick()
@@ -167,7 +196,6 @@ class ColorRoleConformanceTest {
 
     @Test
     fun themeModeIconsStayVerticallyCentered() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = SettingsDataStore(context)
         runBlocking { store.updateThemeMode(ThemeMode.SYSTEM) }
         composeRule.waitForIdle()

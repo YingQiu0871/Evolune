@@ -116,11 +116,11 @@ fun MedicationRecordBottomSheet(
             if (eventToEdit != null && eventToEdit.route != Route.PATCH_APPLY &&
                 eventToEdit.route != Route.ANTIANDROGEN) {
                 val e2 = eventToEdit.doseMG * Ester.toE2Factor(eventToEdit.ester)
-                String.format("%.3f", e2)
+                String.format(Locale.getDefault(), "%.3f", e2)
             } else if (defaults != null && defaults.doseMG > 0 &&
                 defaults.route != Route.ANTIANDROGEN) {
                 val e2 = defaults.doseMG * Ester.toE2Factor(defaults.ester)
-                String.format("%.3f", e2)
+                String.format(Locale.getDefault(), "%.3f", e2)
             } else {
                 ""
             }
@@ -176,7 +176,7 @@ fun MedicationRecordBottomSheet(
         if (lastEditedField == DoseField.RAW && rawDoseText.isNotEmpty()) {
             rawDoseText.toDoubleOrNull()?.let { raw ->
                 val e2Equiv = raw * Ester.toE2Factor(selectedEster)
-                e2DoseText = String.format("%.3f", e2Equiv)
+                e2DoseText = String.format(Locale.getDefault(), "%.3f", e2Equiv)
             }
         }
     }
@@ -185,7 +185,7 @@ fun MedicationRecordBottomSheet(
         if (lastEditedField == DoseField.E2 && e2DoseText.isNotEmpty()) {
             e2DoseText.toDoubleOrNull()?.let { e2 ->
                 val raw = e2 / Ester.toE2Factor(selectedEster)
-                rawDoseText = String.format("%.3f", raw)
+                rawDoseText = String.format(Locale.getDefault(), "%.3f", raw)
             }
         }
     }
@@ -404,10 +404,16 @@ fun MedicationRecordBottomSheet(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
+                        val selectedCalendar = Calendar.getInstance().apply {
+                            time = selectedDateTime
+                        }
                         val calendar = Calendar.getInstance().apply {
                             timeInMillis = millis
-                            set(Calendar.HOUR_OF_DAY, selectedDateTime.hours)
-                            set(Calendar.MINUTE, selectedDateTime.minutes)
+                            set(
+                                Calendar.HOUR_OF_DAY,
+                                selectedCalendar.get(Calendar.HOUR_OF_DAY)
+                            )
+                            set(Calendar.MINUTE, selectedCalendar.get(Calendar.MINUTE))
                         }
                         selectedDateTime = calendar.time
                         occurredAtEdited = true
@@ -429,9 +435,12 @@ fun MedicationRecordBottomSheet(
 
     // Time Picker
     if (showTimePicker) {
+        val selectedCalendar = Calendar.getInstance().apply {
+            time = selectedDateTime
+        }
         val timePickerState = rememberTimePickerState(
-            initialHour = selectedDateTime.hours,
-            initialMinute = selectedDateTime.minutes,
+            initialHour = selectedCalendar.get(Calendar.HOUR_OF_DAY),
+            initialMinute = selectedCalendar.get(Calendar.MINUTE),
             is24Hour = is24Hour
         )
         AlertDialog(
@@ -616,7 +625,7 @@ private fun RouteSelector(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
             )
 
@@ -677,7 +686,7 @@ private fun EsterSelector(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
             )
 
@@ -802,7 +811,14 @@ private fun DoseInputSection(
         // 显示转换因子提示
         if (selectedEster != Ester.E2) {
             Text(
-                text = stringResource(R.string.record_sheet_conversion_factor, String.format("%.4f", Ester.toE2Factor(selectedEster))),
+                text = stringResource(
+                    R.string.record_sheet_conversion_factor,
+                    String.format(
+                        LocalLocale.current.platformLocale,
+                        "%.4f",
+                        Ester.toE2Factor(selectedEster)
+                    )
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -1045,7 +1061,7 @@ private fun AntiAndrogenSelector(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(),
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
             )
 

@@ -2,6 +2,8 @@ package io.github.yingqiu0871.evolune.wear
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
@@ -69,9 +71,7 @@ object WearDataLayer {
         curveValues: List<Float>
     ) {
         val plansJson = encodeWearPlans(plans)
-        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .apply {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE).edit {
                 if (currentConcentration != null) {
                     putString(KEY_CACHED_CURRENT, currentConcentration.toString())
                 } else {
@@ -79,7 +79,6 @@ object WearDataLayer {
                 }
                 putString(KEY_CACHED_CURVE, curveValues.joinToString(","))
             }
-            .apply()
 
         runCatching {
             val updatedAt = System.currentTimeMillis()
@@ -191,7 +190,7 @@ class WearDoseListenerService : WearableListenerService() {
             },
             deleteDataItem = { uri ->
                 Wearable.getDataClient(context)
-                    .deleteDataItems(android.net.Uri.parse(uri))
+                    .deleteDataItems(uri.toUri())
                     .awaitSuccess()
             }
         ).handle(action)

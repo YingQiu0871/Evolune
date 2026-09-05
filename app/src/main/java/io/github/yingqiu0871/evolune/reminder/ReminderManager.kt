@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan as DomainMedicationPlan
 import io.github.yingqiu0871.evolune.utils.description
 import java.time.LocalDateTime
@@ -134,25 +133,16 @@ class ReminderManager(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // 设置精确提醒
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 12及以上，检查是否有精确闹钟权限
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            } else {
-                // 如果没有权限，使用非精确提醒
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerTime,
-                    pendingIntent
-                )
-            }
-        } else {
+        // minSdk is Android 12, so exact-alarm permission APIs are always available.
+        if (alarmManager.canScheduleExactAlarms()) {
             alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerTime,
+                pendingIntent
+            )
+        } else {
+            // 如果没有权限，使用非精确提醒
+            alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerTime,
                 pendingIntent

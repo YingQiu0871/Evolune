@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
 import io.github.yingqiu0871.evolune.pk.SimulationResult
 import io.github.yingqiu0871.evolune.ui.components.ConcentrationChart
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
@@ -32,7 +33,8 @@ import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import io.github.yingqiu0871.evolune.viewmodel.ConcentrationLevel
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import io.github.yingqiu0871.evolune.viewmodel.PKState
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZoneId
 import kotlin.math.abs
 
 /**
@@ -43,20 +45,20 @@ import kotlin.math.abs
 @Composable
 fun HomeScreen(
     viewModel: HRTViewModel,
+    modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
     val pkState by viewModel.pkState.collectAsState()
     val doseTimePoints by viewModel.doseTimePoints.collectAsState()
     val enabledPlans by viewModel.enabledPlans.collectAsState()
-    val realtimeCurrentTimeH by viewModel.currentTimeH.collectAsState()
+    val realtimeCurrentTimeState = viewModel.currentTimeH.collectAsState()
 
     HomeScreenContent(
         pkState = pkState,
         doseTimePoints = doseTimePoints,
         enabledPlans = enabledPlans,
-        realtimeCurrentTimeH = realtimeCurrentTimeH,
+        realtimeCurrentTimeState = realtimeCurrentTimeState,
         onRefresh = { viewModel.runSimulation() },
         is24Hour = is24Hour,
         showTopBar = showTopBar,
@@ -73,38 +75,37 @@ private fun HomeScreenContent(
     pkState: PKState,
     doseTimePoints: List<Double>,
     enabledPlans: List<MedicationPlan>,
-    realtimeCurrentTimeH: Double,
+    realtimeCurrentTimeState: State<Double>,
     onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
-    // 计算分叉点时间：未来第一次计划用药的时间
-    val forkPointTimeH = if (enabledPlans.isNotEmpty()) {
-        val now = LocalDateTime.now()
-        val nextEvents = MedicationPlanPredictor.generateFutureEventsForDomainPlans(
-            plans = enabledPlans,
-            fromDateTime = now,
-            daysAhead = 7  // 检查接下来的7天，确保能找到周期性计划的下一次事件
-        )
-        nextEvents.minOfOrNull { it.timeH }
-    } else {
-        null
-    }
+    RecordComposeRecomposition(
+        surface = "HomeScreenContent",
+        state = when {
+            pkState.isSimulating -> "loading"
+            pkState.error != null -> "error"
+            pkState.simulationResult == null -> "empty"
+            else -> "data"
+        },
+        recompositionToken = pkState
+    )
 
-    // 计算实时当前浓度值（通过线性插值）
-    val realtimeCurrentConcentration = if (pkState.simulationResult != null) {
-        calculateConcentrationAtTime(pkState.simulationResult!!, realtimeCurrentTimeH)
-    } else {
-        null
-    }
+    val simulationResult = pkState.simulationResult
+    val error = pkState.error
+    val forkPointTimeHState = remember { mutableStateOf<Double?>(null) }
 
     // 检查是否需要重新运行模拟
     // 当且仅当当前时刻晚于下一次计划用药时，触发重新模拟
-    LaunchedEffect(realtimeCurrentTimeH, forkPointTimeH) {
-        if (forkPointTimeH != null && realtimeCurrentTimeH >= forkPointTimeH && 
-            realtimeCurrentTimeH - forkPointTimeH < 1.0 / 3600.0) { // 晚于分叉点不超过1秒，避免频繁刷新
-            onRefresh()
+    LaunchedEffect(enabledPlans) {
+        snapshotFlow { realtimeCurrentTimeState.value }.collect { currentTimeH ->
+            val forkPointTimeH = nextPlanForkPointTimeH(enabledPlans, currentTimeH)
+            forkPointTimeHState.value = forkPointTimeH
+            if (forkPointTimeH != null && currentTimeH >= forkPointTimeH &&
+                currentTimeH - forkPointTimeH < 1.0 / 3600.0) { // 晚于分叉点不超过1秒，避免频繁刷新
+                onRefresh()
+            }
         }
     }
     Scaffold(
@@ -156,7 +157,7 @@ private fun HomeScreenContent(
                     }
                 }
             }
-            pkState.error != null -> {
+            error != null -> {
                 // 错误状态
                 Box(
                     modifier = Modifier
@@ -176,7 +177,7 @@ private fun HomeScreenContent(
                             tint = MaterialTheme.colorScheme.error
                         )
                         Text(
-                            text = pkState.error ?: stringResource(R.string.common_unknown_error),
+                            text = error,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -186,7 +187,7 @@ private fun HomeScreenContent(
                     }
                 }
             }
-            pkState.simulationResult == null -> {
+            simulationResult == null -> {
                 // 空状态
                 Box(
                     modifier = Modifier
@@ -223,18 +224,19 @@ private fun HomeScreenContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // 当前浓度卡片
-                    CurrentConcentrationCard(
-                        concentration = realtimeCurrentConcentration,
+                    CurrentConcentrationRealtimeCard(
+                        simulationResult = simulationResult,
+                        currentTimeHState = realtimeCurrentTimeState,
                         pkState = pkState
                     )
 
                     // 图表卡片
                     ChartCard(
-                        simulationResult = pkState.simulationResult!!,
+                        simulationResult = simulationResult,
                         baselineSimulationResult = pkState.baselineSimulationResult,
-                        currentTimeH = realtimeCurrentTimeH,
+                        currentTimeHState = realtimeCurrentTimeState,
                         doseTimePoints = doseTimePoints,
-                        forkPointTimeH = forkPointTimeH,
+                        forkPointTimeHState = forkPointTimeHState,
                         is24Hour = is24Hour
                     )
 
@@ -351,6 +353,21 @@ private fun CurrentConcentrationCard(
     }
 }
 
+@Composable
+private fun CurrentConcentrationRealtimeCard(
+    simulationResult: SimulationResult?,
+    currentTimeHState: State<Double>,
+    pkState: PKState
+) {
+    val concentration = simulationResult?.let {
+        calculateConcentrationAtTime(it, currentTimeHState.value)
+    }
+    CurrentConcentrationCard(
+        concentration = concentration,
+        pkState = pkState
+    )
+}
+
 /**
  * 图表卡片
  */
@@ -358,9 +375,9 @@ private fun CurrentConcentrationCard(
 private fun ChartCard(
     simulationResult: SimulationResult,
     baselineSimulationResult: SimulationResult?,
-    currentTimeH: Double,
+    currentTimeHState: State<Double>,
     doseTimePoints: List<Double>,
-    forkPointTimeH: Double? = null,
+    forkPointTimeHState: State<Double?>,
     is24Hour: Boolean = true
 ) {
     Card(
@@ -380,9 +397,9 @@ private fun ChartCard(
             ConcentrationChart(
                 simulationResult = simulationResult,
                 baselineSimulationResult = baselineSimulationResult,
-                currentTimeH = currentTimeH,
+                currentTimeHState = currentTimeHState,
                 doseTimePoints = doseTimePoints,
-                forkPointTimeH = forkPointTimeH,
+                forkPointTimeHState = forkPointTimeHState,
                 is24Hour = is24Hour,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -606,7 +623,7 @@ private fun PreviewHomeScreenEmpty() {
             pkState = PKState(),
             doseTimePoints = emptyList(),
             enabledPlans = emptyList(),
-            realtimeCurrentTimeH = currentTimeH,
+            realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
             onRefresh = {}
         )
     }
@@ -621,7 +638,7 @@ private fun PreviewHomeScreenLoading() {
             pkState = PKState(isSimulating = true),
             doseTimePoints = emptyList(),
             enabledPlans = emptyList(),
-            realtimeCurrentTimeH = currentTimeH,
+            realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
             onRefresh = {}
         )
     }
@@ -651,11 +668,26 @@ private fun PreviewHomeScreenWithData() {
                 currentTimeH - 24
             ),
             enabledPlans = emptyList(),
-            realtimeCurrentTimeH = currentTimeH,
+            realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
             onRefresh = {}
         )
     }
 }
+internal fun nextPlanForkPointTimeH(
+    enabledPlans: List<MedicationPlan>,
+    currentTimeH: Double
+): Double? {
+    if (enabledPlans.isEmpty()) return null
+    val now = Instant.ofEpochMilli((currentTimeH * MILLIS_PER_HOUR).toLong())
+        .atZone(ZoneId.systemDefault())
+        .toLocalDateTime()
+    return MedicationPlanPredictor.generateFutureEventsForDomainPlans(
+        plans = enabledPlans,
+        fromDateTime = now,
+        daysAhead = 7
+    ).minOfOrNull { it.timeH }
+}
+
 /**
  * 通过线性插值计算指定时刻的血药浓度
  */
@@ -697,6 +729,8 @@ private fun calculateConcentrationAtTime(
 
     return null
 }
+
+private const val MILLIS_PER_HOUR = 3_600_000.0
 
 @Composable
 private fun getConcentrationLevelText(level: ConcentrationLevel): String {

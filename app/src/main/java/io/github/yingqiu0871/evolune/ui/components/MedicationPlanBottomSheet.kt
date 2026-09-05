@@ -102,7 +102,7 @@ fun MedicationPlanBottomSheet(
     var hasInputError by remember(session, showBottomSheet) { mutableStateOf(false) }
 
     var showTimePicker by remember { mutableStateOf(false) }
-    var timeIndexToEdit by remember { mutableStateOf(0) }
+    var timeIndexToEdit by remember { mutableIntStateOf(0) }
 
     // 根据给药途径过滤可用的酯类
     val availableEsters = remember(selectedRoute) {

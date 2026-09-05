@@ -52,9 +52,9 @@ import java.util.UUID
 @Composable
 fun MedicationRecordsScreen(
     viewModel: HRTViewModel,
+    modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
     val events by viewModel.events.collectAsState()
     val allPlans by viewModel.allPlans.collectAsState()
@@ -88,9 +88,9 @@ private fun MedicationRecordsScreenContent(
     onEventClick: (DoseEvent) -> Unit,
     onAddClick: () -> Unit,
     onQuickAddFromPlan: (MedicationPlan) -> Unit,
+    modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
     var fabMenuExpanded by remember { mutableStateOf(false) }
 

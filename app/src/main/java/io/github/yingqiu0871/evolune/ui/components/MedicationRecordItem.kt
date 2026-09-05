@@ -48,9 +48,9 @@ fun MedicationRecordItem(
     route: Route,
     doseMG: Double,
     timeH: Double,
+    modifier: Modifier = Modifier,
     isAntiAndrogen: Boolean = false,
     is24Hour: Boolean = true,
-    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     val containerColor = if (isAntiAndrogen) {
@@ -126,9 +126,9 @@ fun MedicationRecordItem(
  */
 private fun formatDose(doseMG: Double): String {
     return if (doseMG >= 1.0) {
-        String.format("%.1f %s", doseMG, "mg")
+        String.format(Locale.getDefault(), "%.1f %s", doseMG, "mg")
     } else {
-        String.format("%.2f %s", doseMG, "mg")
+        String.format(Locale.getDefault(), "%.2f %s", doseMG, "mg")
     }
 }
 
@@ -159,8 +159,8 @@ private fun formatDate(timeH: Double): String {
 @Composable
 fun MedicationRecordItem(
     event: DoseEvent,
-    is24Hour: Boolean = true,
     modifier: Modifier = Modifier,
+    is24Hour: Boolean = true,
     onClick: (() -> Unit)? = null
 ) {
     val isAntiAndrogen = event.route == Route.ANTIANDROGEN

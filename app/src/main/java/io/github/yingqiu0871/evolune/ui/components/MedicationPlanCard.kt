@@ -32,8 +32,8 @@ fun MedicationPlanCard(
     plan: MedicationPlan,
     onClick: () -> Unit,
     onToggleEnabled: () -> Unit,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Card(
         onClick = onClick,

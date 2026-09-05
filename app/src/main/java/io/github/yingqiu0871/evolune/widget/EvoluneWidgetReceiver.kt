@@ -8,11 +8,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.net.Uri
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.Toast
+import androidx.core.net.toUri
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
@@ -545,7 +545,7 @@ internal fun widgetOccurrenceActionIntent(
         putExtra(EXTRA_SCHEDULED_LOCAL_DATE, occurrence.scheduledLocalDate.toString())
         putExtra(EXTRA_OCCURRENCE_ID, occurrence.occurrenceId.toString())
         putExtra(EXTRA_WIDGET_ID, appWidgetId)
-        data = Uri.parse("evolune://widget/$appWidgetId/occurrence/${occurrence.occurrenceId}")
+        data = "evolune://widget/$appWidgetId/occurrence/${occurrence.occurrenceId}".toUri()
         addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
     }
 
@@ -556,7 +556,7 @@ internal fun widgetCollectionPendingIntentTemplate(
     context,
     appWidgetId,
     Intent(context, EvoluneWidgetReceiver::class.java).apply {
-        data = Uri.parse("evolune://widget/$appWidgetId/collection")
+        data = "evolune://widget/$appWidgetId/collection".toUri()
     },
     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
 )
@@ -565,7 +565,7 @@ internal fun widgetOpenAppFillInIntent(appWidgetId: Int, occurrenceId: java.util
     Intent().apply {
         action = ACTION_OPEN_WIDGET_APP
         putExtra(EXTRA_WIDGET_ID, appWidgetId)
-        data = Uri.parse("evolune://widget/$appWidgetId/open/$occurrenceId")
+        data = "evolune://widget/$appWidgetId/open/$occurrenceId".toUri()
         addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
     }
 

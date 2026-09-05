@@ -1,6 +1,7 @@
 package io.github.yingqiu0871.evolune.wear
 
 import android.content.Context
+import androidx.core.content.edit
 
 data class WearPlan(
     val id: String,
@@ -61,9 +62,8 @@ object WearPlanStore {
         snapshotReceivedAt: Long
     ) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_PLANS_JSON, plansJson)
-            .apply {
+            .edit {
+                putString(KEY_PLANS_JSON, plansJson)
                 if (dashboard.currentConcentration != null) {
                     putString(
                         KEY_CURRENT_CONCENTRATION,
@@ -83,7 +83,6 @@ object WearPlanStore {
                 remove(KEY_PENDING_AFTER_UPDATED_AT)
                 remove(KEY_LAST_FAILURE_AT)
             }
-            .apply()
     }
 
     fun getDashboard(context: Context): WearDashboard {
@@ -167,21 +166,21 @@ object WearPlanStore {
             WearConnectionState.UNKNOWN.name
         ) == WearConnectionState.CONNECTED.name
         if (!wasConnected) {
-            preferences.edit()
-                .putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
-                .apply()
+            preferences.edit {
+                putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
+            }
         }
         return !wasConnected
     }
 
     fun markNotConnected(context: Context) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_CONNECTION_STATE, WearConnectionState.DISCONNECTED.name)
-            .remove(KEY_PENDING_SINCE)
-            .remove(KEY_PENDING_AFTER_UPDATED_AT)
-            .remove(KEY_LAST_FAILURE_AT)
-            .apply()
+            .edit {
+                putString(KEY_CONNECTION_STATE, WearConnectionState.DISCONNECTED.name)
+                remove(KEY_PENDING_SINCE)
+                remove(KEY_PENDING_AFTER_UPDATED_AT)
+                remove(KEY_LAST_FAILURE_AT)
+            }
     }
 
     fun markSyncPending(
@@ -190,15 +189,15 @@ object WearPlanStore {
         pendingAfterDashboardUpdatedAt: Long
     ) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
-            .putLong(KEY_PENDING_SINCE, pendingSince)
-            .putLong(
-                KEY_PENDING_AFTER_UPDATED_AT,
-                pendingAfterDashboardUpdatedAt
-            )
-            .remove(KEY_LAST_FAILURE_AT)
-            .apply()
+            .edit {
+                putString(KEY_CONNECTION_STATE, WearConnectionState.CONNECTED.name)
+                putLong(KEY_PENDING_SINCE, pendingSince)
+                putLong(
+                    KEY_PENDING_AFTER_UPDATED_AT,
+                    pendingAfterDashboardUpdatedAt
+                )
+                remove(KEY_LAST_FAILURE_AT)
+            }
     }
 
     internal fun markSyncFailure(
@@ -207,12 +206,12 @@ object WearPlanStore {
         connectionState: WearConnectionState
     ) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_CONNECTION_STATE, connectionState.name)
-            .remove(KEY_PENDING_SINCE)
-            .remove(KEY_PENDING_AFTER_UPDATED_AT)
-            .putLong(KEY_LAST_FAILURE_AT, failedAt)
-            .apply()
+            .edit {
+                putString(KEY_CONNECTION_STATE, connectionState.name)
+                remove(KEY_PENDING_SINCE)
+                remove(KEY_PENDING_AFTER_UPDATED_AT)
+                putLong(KEY_LAST_FAILURE_AT, failedAt)
+            }
     }
 
     fun markSyncFailureIfPending(
@@ -227,11 +226,11 @@ object WearPlanStore {
         if (preferences.getLong(KEY_PENDING_SINCE, 0L) != expectedPendingSince) {
             return false
         }
-        preferences.edit()
-            .remove(KEY_PENDING_SINCE)
-            .remove(KEY_PENDING_AFTER_UPDATED_AT)
-            .putLong(KEY_LAST_FAILURE_AT, failedAt)
-            .apply()
+        preferences.edit {
+            remove(KEY_PENDING_SINCE)
+            remove(KEY_PENDING_AFTER_UPDATED_AT)
+            putLong(KEY_LAST_FAILURE_AT, failedAt)
+        }
         return true
     }
 
@@ -253,10 +252,10 @@ object WearPlanStore {
         if (preferences.getLong(KEY_UPDATED_AT, 0L) <= pendingAfterUpdatedAt) {
             return false
         }
-        preferences.edit()
-            .remove(KEY_PENDING_SINCE)
-            .remove(KEY_PENDING_AFTER_UPDATED_AT)
-            .apply()
+        preferences.edit {
+            remove(KEY_PENDING_SINCE)
+            remove(KEY_PENDING_AFTER_UPDATED_AT)
+        }
         return true
     }
 
@@ -276,20 +275,20 @@ object WearPlanStore {
         ) {
             return false
         }
-        preferences.edit()
-            .remove(KEY_PENDING_SINCE)
-            .remove(KEY_PENDING_AFTER_UPDATED_AT)
-            .putLong(KEY_LAST_FAILURE_AT, nowMillis)
-            .apply()
+        preferences.edit {
+            remove(KEY_PENDING_SINCE)
+            remove(KEY_PENDING_AFTER_UPDATED_AT)
+            putLong(KEY_LAST_FAILURE_AT, nowMillis)
+        }
         return true
     }
 
     fun markSent(context: Context, planId: String, sentAt: Long) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_LAST_SENT_PLAN_ID, planId)
-            .putLong(KEY_LAST_SENT_AT, sentAt)
-            .apply()
+            .edit {
+                putString(KEY_LAST_SENT_PLAN_ID, planId)
+                putLong(KEY_LAST_SENT_AT, sentAt)
+            }
     }
 
     fun recentSentPlanId(
@@ -308,10 +307,10 @@ object WearPlanStore {
 
     fun clearSentFeedback(context: Context) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .remove(KEY_LAST_SENT_PLAN_ID)
-            .remove(KEY_LAST_SENT_AT)
-            .apply()
+            .edit {
+                remove(KEY_LAST_SENT_PLAN_ID)
+                remove(KEY_LAST_SENT_AT)
+            }
     }
 
     fun shouldRequestPlans(context: Context, nowMillis: Long): Boolean {
@@ -327,8 +326,8 @@ object WearPlanStore {
 
     fun markPlansRequested(context: Context, nowMillis: Long) {
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putLong(KEY_LAST_REQUESTED_AT, nowMillis)
-            .apply()
+            .edit {
+                putLong(KEY_LAST_REQUESTED_AT, nowMillis)
+            }
     }
 }
