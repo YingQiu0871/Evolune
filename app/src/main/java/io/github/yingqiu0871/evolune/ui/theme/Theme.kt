@@ -1,6 +1,5 @@
 package io.github.yingqiu0871.evolune.ui.theme
 import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ColorScheme
@@ -292,10 +291,7 @@ fun EvoluneTheme(
     val darkTheme = themeMode.usesDarkColors(systemInDarkTheme)
     
     // 根据颜色主题确定是否使用动态颜色
-    val dynamicColor = when (colorTheme) {
-        ColorTheme.DYNAMIC -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        ColorTheme.BUILTIN -> false
-    }
+    val dynamicColor = colorTheme == ColorTheme.DYNAMIC
     
     val baseColorScheme = when {
         dynamicColor -> {

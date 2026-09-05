@@ -146,6 +146,47 @@ class LauncherIconResourceTest {
     }
 
     @Test
+    fun `wear legacy launcher assets keep the outer corners transparent`() {
+        DENSITIES.keys.forEach { density ->
+            val wear = imageFrom("wear/src/main/res/mipmap-$density/ic_launcher.png")
+            val maxX = wear.width - 1
+            val maxY = wear.height - 1
+            listOf(
+                0 to 0,
+                maxX to 0,
+                0 to maxY,
+                maxX to maxY
+            ).forEach { (x, y) ->
+                assertEquals(
+                    "wear legacy $density corner ($x,$y) must be transparent",
+                    0,
+                    alpha(wear.getRGB(x, y))
+                )
+            }
+
+            var opaqueNearBlack = 0
+            for (y in 0 until wear.height) {
+                for (x in 0 until wear.width) {
+                    val rgb = wear.getRGB(x, y)
+                    if (
+                        alpha(rgb) > 0 &&
+                        red(rgb) < 32 &&
+                        green(rgb) < 32 &&
+                        blue(rgb) < 32
+                    ) {
+                        opaqueNearBlack += 1
+                    }
+                }
+            }
+            assertEquals(
+                "wear legacy $density must not contain opaque black outer pixels",
+                0,
+                opaqueNearBlack
+            )
+        }
+    }
+
+    @Test
     fun `monochrome and color adaptive outlines are identical`() {
         DENSITIES.keys.forEach { density ->
             val color = image("src/main/res/mipmap-$density/ic_launcher_foreground.png")

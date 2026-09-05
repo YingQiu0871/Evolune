@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.os.Handler
 import android.os.Looper
+import androidx.core.graphics.createBitmap
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ResourceBuilders.Resources
@@ -253,7 +254,7 @@ private fun renderChart(
     values: List<Float>,
     currentPosition: Float
 ): ByteArray {
-    val bitmap = Bitmap.createBitmap(
+    val bitmap = createBitmap(
         CHART_WIDTH_PX,
         CHART_HEIGHT_PX,
         Bitmap.Config.ARGB_8888

@@ -169,6 +169,11 @@ object WearSyncManager {
 
 class WearSyncReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED -> Unit
+            else -> return
+        }
         val appContext = context.applicationContext
         WearSyncManager.requestPlansFromPhone(appContext, force = true)
     }

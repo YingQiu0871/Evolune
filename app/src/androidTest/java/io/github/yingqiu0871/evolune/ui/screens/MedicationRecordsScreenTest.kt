@@ -18,9 +18,6 @@ import androidx.compose.ui.test.click
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
 import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
 import io.github.yingqiu0871.evolune.application.DoseEventEditorInput
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
@@ -47,7 +44,6 @@ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,9 +70,6 @@ class MedicationRecordsScreenTest {
 
     private val scopes = mutableListOf<CoroutineScope>()
 
-    @Volatile
-    private var composeImeVisible = false
-
     private fun readImeState(): String {
         return InstrumentationRegistry.getInstrumentation().uiAutomation
             .executeShellCommand("dumpsys input_method")
@@ -86,21 +79,22 @@ class MedicationRecordsScreenTest {
             }
     }
 
-    private fun imeIsVisible(): Boolean = readImeState().contains("mInputShown=true")
+    private fun imeShownState(): String? = readImeState()
+        .lineSequence()
+        .map(String::trim)
+        .filter { it.startsWith("mInputShown=") }
+        .lastOrNull()
 
-    private fun imeIsHidden(): Boolean {
-        val state = readImeState()
-        return state.lineSequence()
-            .map(String::trim)
-            .any { it == "mImeWindowVis=0" } && state.contains("mInputShown=false")
-    }
+    private fun imeIsVisible(): Boolean = imeShownState() == "mInputShown=true"
+
+    private fun imeIsHidden(): Boolean = imeShownState() == "mInputShown=false"
 
     private fun ensureImeHidden() {
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        if (imeIsVisible() && composeImeVisible) {
+        if (imeIsVisible()) {
             automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
         }
-        composeRule.waitUntil(5_000L) { imeIsHidden() && !composeImeVisible }
+        composeRule.waitUntil(5_000L) { imeIsHidden() }
         composeRule.waitForIdle()
     }
 
@@ -123,6 +117,7 @@ class MedicationRecordsScreenTest {
         composeRule.runOnIdle(viewModel::startCreateSession)
 
         composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
+        ensureImeHidden()
         val saveButton = composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitUntil(5_000L) {
             runCatching {
@@ -132,7 +127,8 @@ class MedicationRecordsScreenTest {
         }
         composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag("record-save").assertIsEnabled().performClick()
+        composeRule.onNodeWithTag("record-save").assertIsEnabled()
+        composeRule.onNodeWithTag("record-save").performTouchInput { click() }
         composeRule.waitUntil(5_000L) { viewModel.editSession.value == null }
 
         assertEquals(1, repository.insertCalls)
@@ -332,6 +328,7 @@ class MedicationRecordsScreenTest {
         composeRule.runOnIdle(viewModel::startCreateSession)
         composeRule.onNodeWithTag("record-dose").performClick().performTextInput("2")
 
+        ensureImeHidden()
         val saveButton = composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitUntil(5_000L) {
             runCatching {
@@ -341,8 +338,12 @@ class MedicationRecordsScreenTest {
         }
         composeRule.onNodeWithTag("record-save").performScrollTo()
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag("record-save").assertIsEnabled().performClick()
-        composeRule.waitUntil(5_000L) { repository.insertCalls == 1 }
+        composeRule.onNodeWithTag("record-save").assertIsEnabled()
+        composeRule.onNodeWithTag("record-save").performTouchInput { click() }
+        composeRule.waitUntil(5_000L) {
+            viewModel.operationState.value is DoseEventOperationState.Running
+        }
+        assertEquals(1, repository.insertCalls)
         saveButton.assertIsNotEnabled()
         saveButton.performTouchInput { click() }
         composeRule.waitForIdle()
@@ -478,8 +479,6 @@ class MedicationRecordsScreenTest {
                 }
                 val editSession by viewModel.editSession.collectAsState()
                 val operationState by viewModel.operationState.collectAsState()
-                val currentImeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
-                SideEffect { composeImeVisible = currentImeVisible }
                 MedicationRecordBottomSheet(
                     showBottomSheet = editSession != null,
                     onDismiss = {
@@ -551,7 +550,9 @@ class MedicationRecordsScreenTest {
         var deleteResult: DeleteResult = DeleteResult.Deleted
         var insertError: RuntimeException? = null
         var insertGate: CompletableDeferred<Unit>? = null
+        @Volatile
         var insertCalls = 0
+        @Volatile
         var deleteCalls = 0
 
         override fun observeAll(): Flow<List<DoseEvent>> = events

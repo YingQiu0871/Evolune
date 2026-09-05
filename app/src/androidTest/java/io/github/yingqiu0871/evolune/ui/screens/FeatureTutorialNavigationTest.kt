@@ -92,6 +92,20 @@ class FeatureTutorialNavigationTest {
         composeRule.onNodeWithTag("feature-tutorial-step-title").assertIsDisplayed()
     }
 
+    @Test
+    fun activityRecreationRestoresSettingsNavigationRoute() {
+        composeRule.waitForIdle()
+        openSettings()
+
+        scenario.recreate()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("settings-basic-data-entry")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+    }
+
     private fun next() {
         composeRule.onNodeWithTag("feature-tutorial-next").performScrollTo().performClick()
     }

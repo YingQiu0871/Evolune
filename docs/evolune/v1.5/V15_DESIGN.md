@@ -54,7 +54,9 @@ launcher surface. v1.5 will:
   presentation when available.
 
 This is a visual-scale correction, not a brand redesign. Wear launcher assets and unrelated
-in-app imagery are out of scope unless the audit finds that they share the same Phone asset.
+in-app imagery are out of scope unless the audit finds a separate defect. The v1.5 Wear audit
+found that the launcher icon was a legacy opaque bitmap with black outer pixels and no adaptive
+icon resource; that verified defect is included as a narrow Wear launcher compatibility fix.
 
 ## Non-goals
 

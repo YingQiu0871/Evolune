@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.drawable.toDrawable
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModelProvider
@@ -188,11 +189,7 @@ class MainActivity : ComponentActivity() {
                             SystemBarStyle.light(transparent, transparent)
                         }
                     )
-                    window.setBackgroundDrawable(
-                        android.graphics.drawable.ColorDrawable(
-                            windowBackgroundColor.toArgb()
-                        )
-                    )
+                    window.setBackgroundDrawable(windowBackgroundColor.toArgb().toDrawable())
                 }
 
                 // 创建 HRTViewModel，观察 SettingsDataStore 的权威体重

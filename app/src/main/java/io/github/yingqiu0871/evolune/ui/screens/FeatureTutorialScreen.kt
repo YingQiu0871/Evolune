@@ -38,13 +38,13 @@ import io.github.yingqiu0871.evolune.R
  */
 @Composable
 fun FeatureTutorialScreen(
+    onSkip: () -> Unit,
+    onFinish: () -> Unit,
+    modifier: Modifier = Modifier,
     onCreatePlan: () -> Unit = {},
     onRecordDose: () -> Unit = {},
     onOpenPkChart: () -> Unit = {},
-    onOpenBackup: () -> Unit = {},
-    onSkip: () -> Unit,
-    onFinish: () -> Unit,
-    modifier: Modifier = Modifier
+    onOpenBackup: () -> Unit = {}
 ) {
     val steps = listOf(
         FeatureTutorialStep(

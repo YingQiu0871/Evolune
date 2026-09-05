@@ -89,7 +89,8 @@ class ReceiverLifecycleInstrumentationTest {
                         workFactory = {
                             ReminderRescheduleWork { ReminderRescheduleOutcome.Rescheduled }
                         },
-                        workLauncher = launcher(finished, calls)
+                        workLauncher = launcher(finished, calls),
+                        acceptedActions = setOf(ACTION_RESCHEDULE_TEST)
                     )
                 },
                 intent = { Intent(ACTION_RESCHEDULE_TEST) }
@@ -177,7 +178,8 @@ class ReceiverLifecycleInstrumentationTest {
                         finishCalls.incrementAndGet()
                         finished.countDown()
                     }
-                )
+                ),
+                acceptedActions = setOf(ACTION_RESCHEDULE_TEST)
             )
             withRegisteredReceiver(receiver, ACTION_RESCHEDULE_TEST) {
                 context.sendBroadcast(
@@ -203,6 +205,12 @@ class ReceiverLifecycleInstrumentationTest {
             workFactory = {
                 starts.incrementAndGet()
                 NotificationActionWork { NotificationActionOutcome.Accepted(false) }
+            }
+        ).onReceive(context, Intent("synthetic.unknown.action"))
+        ReminderRescheduleReceiver(
+            workFactory = {
+                starts.incrementAndGet()
+                ReminderRescheduleWork { ReminderRescheduleOutcome.Rescheduled }
             }
         ).onReceive(context, Intent("synthetic.unknown.action"))
         EvoluneWidgetReceiver(

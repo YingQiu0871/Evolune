@@ -139,10 +139,8 @@
     <string name="settings_export_json_desc">将用药记录导出为 JSON 文件</string>
     <string name="settings_export_clipboard">导出 JSON（剪贴板）</string>
     <string name="settings_export_clipboard_desc">将用药记录的 JSON 文本复制到剪贴板</string>
-    <string name="import_importing">正在导入...</string>
     <string name="import_success">成功导入 %1$d 条记录</string>
     <string name="import_error">导入失败：%1$s</string>
-    <string name="import_weight_updated">体重已更新为 %1$.1f kg</string>
     <string name="export_copied_to_clipboard">已复制到剪贴板</string>
     <string name="import_clipboard_empty">剪贴板为空或无文本内容</string>
     <string name="export_filename" translatable="false">evolune_export.json</string>
@@ -216,7 +214,7 @@
     <string name="settings_auto_check_updates">自动检查更新</string>
     <string name="settings_check_updates_now">检查更新</string>
     <string name="settings_current_version">当前版本</string>
-    <string name="update_checking">正在检查...</string>
+    <string name="update_checking">正在检查…</string>
     <string name="update_up_to_date">已是最新版本</string>
     <string name="update_check_error">检查失败，请稍后重试</string>
     <string name="update_available_title">发现新版本</string>
@@ -253,7 +251,6 @@
     <string name="home_calculating">计算中…</string>
     <string name="home_need_add_record">请先添加用药记录</string>
     <string name="home_current_concentration">当前浓度</string>
-    <string name="home_chart_title">血药浓度曲线</string>
     <string name="home_level_guide">浓度等级参考</string>
     <string name="home_level_low">低于参考范围</string>
     <string name="home_level_follicular">女性卵泡期</string>
@@ -387,10 +384,6 @@
     <string name="widget_no_enabled_plans_desc">在 Evolune 中启用用药方案</string>
     <string name="widget_no_upcoming">近期暂无安排</string>
     <string name="widget_no_upcoming_desc">已启用方案没有近期用药时间</string>
-    <string name="widget_due_now">现在</string>
-    <string name="widget_next">下一次</string>
-    <string name="widget_upcoming">接下来</string>
-    <string name="widget_concentration_unavailable">-- pg/mL</string>
     <string name="widget_daily_progress">今天 %1$d/%2$d 完成</string>
     <string name="widget_daily_progress_empty">今天暂无安排</string>
     <string name="widget_concentration_compact">E2 ~%1$s</string>
@@ -417,7 +410,7 @@
     <string name="widget_config_opacity_value">%1$d%%</string>
     <string name="widget_config_opacity_note">仅调整背景；文字、进度和状态保持清晰。最低 30%。</string>
     <string name="widget_config_restore_defaults">恢复此微件的默认设置</string>
-    <string name="widget_preview_summary">今天 · 1/3 完成</string>
+    <string name="widget_preview_summary">今天 · ⅓ 完成</string>
     <string name="widget_preview_concentration">E2 ~120</string>
     <string name="widget_preview_plan_one">示例药物 A</string>
     <string name="widget_preview_plan_two">示例药物 B</string>

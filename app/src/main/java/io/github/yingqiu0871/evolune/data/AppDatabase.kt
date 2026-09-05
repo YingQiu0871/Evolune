@@ -36,9 +36,9 @@ abstract class AppDatabase : RoomDatabase() {
          * 添加medication_plans表，保留dose_events表的所有数据
          */
         private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
+            override fun migrate(db: SupportSQLiteDatabase) {
                 // 创建medication_plans表
-                database.execSQL("""
+                db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `medication_plans` (
                         `id` TEXT NOT NULL,
                         `name` TEXT NOT NULL,

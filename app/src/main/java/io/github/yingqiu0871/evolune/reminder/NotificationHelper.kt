@@ -34,19 +34,17 @@ class NotificationHelper(private val context: Context) {
      * 创建通知渠道（Android 8.0及以上需要）
      */
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = CHANNEL_DESCRIPTION
-                // 启用震动
-                enableVibration(true)
-                // 设置通知在锁屏上显示
-                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-            }
-
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        val importance = NotificationManager.IMPORTANCE_HIGH
+        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
+            description = CHANNEL_DESCRIPTION
+            // 启用震动
+            enableVibration(true)
+            // 设置通知在锁屏上显示
+            lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
         }
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 
     /**

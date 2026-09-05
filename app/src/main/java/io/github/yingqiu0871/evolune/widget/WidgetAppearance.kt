@@ -3,6 +3,7 @@ package io.github.yingqiu0871.evolune.widget
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import androidx.core.content.edit
 
 internal const val DEFAULT_WIDGET_BACKGROUND_OPACITY = 1f
 internal const val MIN_WIDGET_BACKGROUND_OPACITY = 0.3f
@@ -65,19 +66,19 @@ internal class WidgetAppearanceStore(
     override fun write(appWidgetId: Int, config: WidgetAppearanceConfig) {
         require(appWidgetId >= 0)
         val normalized = config.normalized()
-        preferences.edit()
-            .putString(key(appWidgetId, "theme"), normalized.themeMode.name)
-            .putString(key(appWidgetId, "color"), normalized.colorScheme.name)
-            .putFloat(key(appWidgetId, "opacity"), normalized.backgroundOpacity)
-            .apply()
+        preferences.edit {
+            putString(key(appWidgetId, "theme"), normalized.themeMode.name)
+            putString(key(appWidgetId, "color"), normalized.colorScheme.name)
+            putFloat(key(appWidgetId, "opacity"), normalized.backgroundOpacity)
+        }
     }
 
     override fun delete(appWidgetId: Int) {
-        preferences.edit()
-            .remove(key(appWidgetId, "theme"))
-            .remove(key(appWidgetId, "color"))
-            .remove(key(appWidgetId, "opacity"))
-            .apply()
+        preferences.edit {
+            remove(key(appWidgetId, "theme"))
+            remove(key(appWidgetId, "color"))
+            remove(key(appWidgetId, "opacity"))
+        }
     }
 
     private inline fun <reified T : Enum<T>> String?.toEnumOrDefault(default: T): T =
@@ -140,10 +141,35 @@ internal object WidgetPaletteResolver {
         }
         return resolve(config, dark) { name ->
             runCatching {
-                val id = context.resources.getIdentifier(name, "color", "android")
-                id.takeIf { it != 0 }?.let(context::getColor)
+                systemColorId(name)?.let(context::getColor)
             }.getOrNull()
         }
+    }
+
+    private fun systemColorId(name: String): Int? = when (name) {
+        "system_neutral1_10" -> android.R.color.system_neutral1_10
+        "system_neutral1_50" -> android.R.color.system_neutral1_50
+        "system_neutral1_100" -> android.R.color.system_neutral1_100
+        "system_neutral1_200" -> android.R.color.system_neutral1_200
+        "system_neutral1_600" -> android.R.color.system_neutral1_600
+        "system_neutral1_700" -> android.R.color.system_neutral1_700
+        "system_neutral1_900" -> android.R.color.system_neutral1_900
+        "system_neutral2_200" -> android.R.color.system_neutral2_200
+        "system_neutral2_600" -> android.R.color.system_neutral2_600
+        "system_neutral2_700" -> android.R.color.system_neutral2_700
+        "system_accent1_50" -> android.R.color.system_accent1_50
+        "system_accent1_100" -> android.R.color.system_accent1_100
+        "system_accent1_200" -> android.R.color.system_accent1_200
+        "system_accent1_600" -> android.R.color.system_accent1_600
+        "system_accent1_700" -> android.R.color.system_accent1_700
+        "system_accent1_900" -> android.R.color.system_accent1_900
+        "system_accent2_200" -> android.R.color.system_accent2_200
+        "system_accent2_600" -> android.R.color.system_accent2_600
+        "system_accent2_700" -> android.R.color.system_accent2_700
+        "system_accent3_200" -> android.R.color.system_accent3_200
+        "system_accent3_600" -> android.R.color.system_accent3_600
+        "system_accent3_700" -> android.R.color.system_accent3_700
+        else -> null
     }
 
     internal fun resolve(

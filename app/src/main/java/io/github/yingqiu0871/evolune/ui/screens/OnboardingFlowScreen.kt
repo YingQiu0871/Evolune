@@ -38,14 +38,14 @@ import io.github.yingqiu0871.evolune.onboarding.OnboardingState
 @Composable
 fun OnboardingFlowScreen(
     state: OnboardingState,
-    beginnerOnboarding: Boolean = true,
     onAcceptTerms: () -> Unit,
     onAcknowledgeMedicalPkDisclosure: () -> Unit,
     onComplete: () -> Unit,
+    modifier: Modifier = Modifier,
+    beginnerOnboarding: Boolean = true,
     onOpenDisclosures: () -> Unit = {},
     onExit: (() -> Unit)? = null,
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
     val pageCount = if (beginnerOnboarding) 5 else 2
     var page by rememberSaveable(beginnerOnboarding) { mutableIntStateOf(0) }

@@ -54,9 +54,9 @@ import java.util.UUID
 @Composable
 fun MedicationPlansScreen(
     viewModel: MedicationPlanViewModel,
+    modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
     showTopBar: Boolean = true,
-    modifier: Modifier = Modifier,
     notificationPermissionGrantedOverride: Boolean? = null
 ) {
     val context = LocalContext.current
@@ -250,6 +250,7 @@ fun MedicationPlansScreenContent(
     onPlanClick: (MedicationPlan) -> Unit,
     onAddClick: () -> Unit,
     onToggleEnabled: (UUID, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
     showNotificationPermissionSetup: Boolean = false,
     onNotificationPermissionSetup: () -> Unit = {},
     showPromotedNotificationSetup: Boolean = false,
@@ -257,8 +258,7 @@ fun MedicationPlansScreenContent(
     interactionsEnabled: Boolean = true,
     enabledPlanIdsInFlight: Set<UUID> = emptySet(),
     snackbarHost: @Composable () -> Unit = {},
-    showTopBar: Boolean = true,
-    modifier: Modifier = Modifier
+    showTopBar: Boolean = true
 ) {
     Scaffold(
         contentWindowInsets = if (showTopBar) {
