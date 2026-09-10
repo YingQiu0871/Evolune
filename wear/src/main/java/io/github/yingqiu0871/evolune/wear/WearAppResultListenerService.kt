@@ -8,6 +8,7 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
+import androidx.wear.tiles.TileService
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResultCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProtocol
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultCodec
@@ -69,21 +70,24 @@ class WearAppResultListenerService : WearableListenerService() {
         dataItemUri: String,
         result: io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
     ) {
-        when (
-            WearAppConfirmationStore.applyResult(
+        val applyResult = WearAppConfirmationStore.applyResult(
                 context = applicationContext,
                 path = android.net.Uri.parse(dataItemUri).path.orEmpty(),
                 result = result
             )
-        ) {
-            WearAppResultApply.Applied,
-            WearAppResultApply.Duplicate -> {
+        if (shouldRefreshAfterResult(applyResult)) {
+            when (applyResult) {
+                WearAppResultApply.Applied,
+                WearAppResultApply.Duplicate -> {
                 Wearable.getDataClient(applicationContext)
                     .deleteDataItems(android.net.Uri.parse(dataItemUri))
                     .awaitSuccess()
                 notifyWearAppStateChanged(applicationContext)
+                requestGalleryTileUpdates()
+                requestWearComplicationUpdates(applicationContext)
+                }
+                WearAppResultApply.Rejected -> Unit
             }
-            WearAppResultApply.Rejected -> Unit
         }
     }
 
@@ -91,26 +95,36 @@ class WearAppResultListenerService : WearableListenerService() {
         dataItemUri: String,
         result: io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
     ) {
-        when (
-            WearAppConfirmationStore.applyUndoResult(
+        val applyResult = WearAppConfirmationStore.applyUndoResult(
                 context = applicationContext,
                 path = android.net.Uri.parse(dataItemUri).path.orEmpty(),
                 result = result
             )
-        ) {
+        if (shouldRefreshAfterResult(applyResult)) {
+            when (applyResult) {
             WearAppResultApply.Applied,
             WearAppResultApply.Duplicate -> {
                 Wearable.getDataClient(applicationContext)
                     .deleteDataItems(android.net.Uri.parse(dataItemUri))
                     .awaitSuccess()
                 notifyWearAppStateChanged(applicationContext)
+                requestGalleryTileUpdates()
+                requestWearComplicationUpdates(applicationContext)
             }
-            WearAppResultApply.Rejected -> Unit
+                WearAppResultApply.Rejected -> Unit
+            }
         }
     }
 
     private companion object {
         const val TAG = "HRTWearAppResultListener"
+    }
+
+    private fun requestGalleryTileUpdates() {
+        val updater = TileService.getUpdater(applicationContext)
+        updater.requestUpdate(NextDoseTileService::class.java)
+        updater.requestUpdate(TodayPlanTileService::class.java)
+        updater.requestUpdate(CurrentE2TileService::class.java)
     }
 }
 

@@ -1,0 +1,57 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:javaPreCompileDebug
+> Task :app:parseDebugLocalResources
+> Task :app:checkDebugAarMetadata
+> Task :app:compileDebugNavigationResources
+> Task :app:generateDebugRFile
+> Task :app:mapDebugSourceSetPaths
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugResources
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/current/Evolune-v1.2/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1027:56 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///D:/Evolune-Workspace/current/Evolune-v1.2/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1080:37 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///D:/Evolune-Workspace/current/Evolune-v1.2/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1081:41 'val Icons.Outlined.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.List.
+w: file:///D:/Evolune-Workspace/current/Evolune-v1.2/app/src/main/java/io/github/yingqiu0871/evolune/ui/components/MedicationRecordBottomSheet.kt:932:9 'fun ButtonGroup(modifier: Modifier = ..., expandedRatio: Float = ..., horizontalArrangement: Arrangement.Horizontal = ..., content: ComposableFunction1<ButtonGroupScope, Unit>): Unit' is deprecated. Please use the overload with overflowIndicator parameter. This overload will create a composable that is cut off if there are too many items to fit on the screen neatly.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 1m 7s
+28 actionable tasks: 28 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

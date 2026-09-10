@@ -7,6 +7,7 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataItem
+import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
@@ -17,6 +18,9 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppRequest
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
+import io.github.yingqiu0871.evolune.reminder.NotificationHelper
+import io.github.yingqiu0871.evolune.reminder.ReminderManager
+import io.github.yingqiu0871.evolune.reminder.ReminderSkipStore
 import io.github.yingqiu0871.evolune.viewmodel.DefaultPkSimulationCalculator
 import io.github.yingqiu0871.evolune.viewmodel.PkSimulationInput
 import kotlinx.coroutines.CancellationException
@@ -141,15 +145,20 @@ class WearAppListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         dataEvents
             .filter {
-                it.type == DataEvent.TYPE_CHANGED &&
-                    it.dataItem.uri.path?.startsWith(
-                        io.github.yingqiu0871.evolune.experience.wear.WEAR_APP_COMMAND_PATH_PREFIX
-                    ) == true
+                it.type == DataEvent.TYPE_CHANGED
             }
             .forEach { event ->
                 serviceScope.launch {
                     try {
-                        processWearAppConfirmationDataItem(applicationContext, event.dataItem)
+                        if (event.dataItem.uri.path == WearAppProtocol.SKIP_NOTIFICATION_PATH) {
+                            processWearAppSkipNotification(applicationContext, event.dataItem)
+                        } else if (
+                            event.dataItem.uri.path?.startsWith(
+                                io.github.yingqiu0871.evolune.experience.wear.WEAR_APP_COMMAND_PATH_PREFIX
+                            ) == true
+                        ) {
+                            processWearAppConfirmationDataItem(applicationContext, event.dataItem)
+                        }
                     } catch (error: CancellationException) {
                         throw error
                     } catch (_: Throwable) {
@@ -167,4 +176,42 @@ class WearAppListenerService : WearableListenerService() {
     private companion object {
         const val TAG = "HRTWearAppListener"
     }
+}
+
+private suspend fun processWearAppSkipNotification(context: Context, item: DataItem) {
+    val dataMap = runCatching { DataMapItem.fromDataItem(item).dataMap }.getOrNull() ?: return
+    if (dataMap.getInt(WearAppProtocol.KEY_PROTOCOL_VERSION) != WearAppProtocol.PROTOCOL_VERSION) return
+    val planId = runCatching {
+        java.util.UUID.fromString(dataMap.getString(WearAppProtocol.KEY_SKIP_PLAN_ID))
+    }.getOrNull() ?: return
+    val slotId = runCatching {
+        java.util.UUID.fromString(dataMap.getString(WearAppProtocol.KEY_SKIP_SLOT_ID))
+    }.getOrNull() ?: return
+    val scheduledAtMillis = dataMap.getLong(WearAppProtocol.KEY_SKIP_SCHEDULED_AT, 0L)
+    val notificationId = dataMap.getInt(WearAppProtocol.KEY_SKIP_NOTIFICATION_ID, 0)
+    val occurrenceId = runCatching {
+        java.util.UUID.fromString(dataMap.getString(WearAppProtocol.KEY_SKIP_OCCURRENCE_ID))
+    }.getOrNull() ?: return
+    if (scheduledAtMillis <= 0L || notificationId == 0) return
+    val plan = ProductionRepositoryProvider.get(context).medicationPlans.getById(planId)
+        ?: return
+    val zoneId = ZoneId.systemDefault()
+    val scheduledAt = Instant.ofEpochMilli(scheduledAtMillis)
+    val validated = validateWearSkipNotification(
+        plan = plan,
+        command = WearSkipNotificationCommand(
+            occurrenceId = occurrenceId,
+            planId = planId,
+            slotId = slotId,
+            scheduledAt = scheduledAt,
+            notificationId = notificationId
+        ),
+        now = Instant.now(),
+        zoneId = zoneId
+    ) ?: return
+    if (!ReminderSkipStore(context).markSkipped(planId, slotId, scheduledAtMillis)) return
+    ReminderManager(context).cancelOccurrence(planId, validated.requestOffset)
+    NotificationHelper(context).cancelNotification(notificationId)
+    com.google.android.gms.wearable.Wearable.getDataClient(context)
+        .deleteDataItems(item.uri)
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_next_dose_desc"
+    android:minWidth="180dp"
+    android:minHeight="50dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="50dp"
+    android:maxResizeWidth="2048dp"
+    android:maxResizeHeight="2048dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_evolune_compact"
+    android:previewLayout="@layout/widget_preview_next_dose"
+    android:configure="@string/widget_configuration_activity"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:targetCellWidth="3"
+    android:targetCellHeight="1"
+    android:widgetFeatures="reconfigurable" />

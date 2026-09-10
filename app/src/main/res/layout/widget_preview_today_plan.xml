@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="7dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/widget_preview_summary"
+            android:textColor="#FF1F1D20"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/widget_preview_concentration"
+            android:textColor="#FF4B447C"
+            android:textSize="9sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="2"
+            android:background="@drawable/widget_progress_segment"
+            android:backgroundTint="#FF6750A4" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_progress_segment"
+            android:backgroundTint="#FFDAD6E2" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="3dp"
+            android:layout_height="22dp"
+            android:background="@drawable/widget_row_rail"
+            android:backgroundTint="#FF6750A4" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="7dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/widget_preview_plan_one"
+                android:textColor="#FF1F1D20"
+                android:textSize="10sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/widget_preview_meta_one"
+                android:textColor="#FF4C464E"
+                android:textSize="8sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="08:00"
+            android:textColor="#FF4B447C"
+            android:textSize="9sp" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/widget_action_button_tonal"
+            android:padding="4dp"
+            android:src="@drawable/ic_widget_check"
+            android:tint="#FF33415C" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_marginTop="2dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="3dp"
+            android:layout_height="22dp"
+            android:background="@drawable/widget_row_rail"
+            android:backgroundTint="#FF8A5A44" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="7dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/widget_preview_plan_two"
+                android:textColor="#FF1F1D20"
+                android:textSize="10sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/widget_preview_meta_two"
+                android:textColor="#FF4C464E"
+                android:textSize="8sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="20:00"
+            android:textColor="#FF4C464E"
+            android:textSize="9sp" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/widget_action_button_outline"
+            android:padding="4dp"
+            android:src="@drawable/ic_widget_check"
+            android:tint="#FF33415C" />
+    </LinearLayout>
+</LinearLayout>

@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material3)
     implementation(libs.androidx.wear.protolayout.expression)
+    implementation(libs.androidx.wear.watchface.complications.data.source)
     implementation(libs.play.services.wearable)
     implementation(libs.guava)
     implementation(libs.kotlinx.serialization.json)

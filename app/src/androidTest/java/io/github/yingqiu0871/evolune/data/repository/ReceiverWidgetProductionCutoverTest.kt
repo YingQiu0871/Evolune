@@ -338,7 +338,7 @@ class ReceiverWidgetProductionCutoverTest {
         assertEquals(0, notificationEffects.refreshes)
         assertEquals(0, notificationEffects.cancellations)
 
-        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId(FIRST_SLOT_TIME))
+        val widgetId = widgetOccurrenceActionEventId(widgetOccurrenceId(SECOND_SLOT_TIME))
         opened.openHelper.writableDatabase.execSQL(
             """
             CREATE TRIGGER batch6b_widget_insert_failure
@@ -356,7 +356,7 @@ class ReceiverWidgetProductionCutoverTest {
             sideEffects = widgetEffects,
             clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
             zoneId = { TEST_ZONE }
-        ).handle(widgetCommand(FIRST_SLOT_TIME))
+        ).handle(widgetCommand(SECOND_SLOT_TIME))
         assertEquals(WidgetQuickActionOutcome.StorageFailure, widgetResult)
         assertNull(provider.doseEvents.getById(widgetId))
         assertEquals(0, widgetEffects.refreshes)

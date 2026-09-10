@@ -20,6 +20,40 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
 internal object WearAppDataLayer {
+    fun skipOccurrence(
+        context: Context,
+        snapshot: WearAppSnapshot,
+        occurrence: WearAppUpcomingOccurrence
+    ): Boolean {
+        if (!WearAppStore.canConfirm(context.applicationContext, snapshot, occurrence.occurrenceId)) {
+            return false
+        }
+        val notificationId = occurrence.notificationId ?: return false
+        val operationId = UUID.randomUUID()
+        val request = runCatching {
+            PutDataMapRequest.create(WearAppProtocol.SKIP_NOTIFICATION_PATH).apply {
+                dataMap.putInt(
+                    WearAppProtocol.KEY_PROTOCOL_VERSION,
+                    WearAppProtocol.PROTOCOL_VERSION
+                )
+                dataMap.putString(WearAppProtocol.KEY_SKIP_OPERATION_ID, operationId.toString())
+                dataMap.putString(
+                    WearAppProtocol.KEY_SKIP_OCCURRENCE_ID,
+                    occurrence.occurrenceId.toString()
+                )
+                dataMap.putString(WearAppProtocol.KEY_SKIP_PLAN_ID, occurrence.planId.toString())
+                dataMap.putString(WearAppProtocol.KEY_SKIP_SLOT_ID, occurrence.slotId.toString())
+                dataMap.putLong(
+                    WearAppProtocol.KEY_SKIP_SCHEDULED_AT,
+                    occurrence.scheduledAt.toEpochMilli()
+                )
+                dataMap.putInt(WearAppProtocol.KEY_SKIP_NOTIFICATION_ID, notificationId)
+            }.asPutDataRequest().setUrgent()
+        }.getOrNull() ?: return false
+        Wearable.getDataClient(context.applicationContext).putDataItem(request)
+        return true
+    }
+
     fun confirmOccurrence(
         context: Context,
         snapshot: WearAppSnapshot,

@@ -18,9 +18,9 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ## 当前稳定版本
 
-**Evolune v1.1.0** 已于 2026-08-22 发布。请从 [Evolune v1.1.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0) 下载经过签名的 Phone APK 与 Wear APK。`v1.0.0` 为上一版封存发布。
+**Evolune v1.6.0** 已于 2026-09-10 发布。请从 [Evolune v1.6.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0) 下载经过签名的 Phone APK 与 Wear APK。`v1.5.0` 为上一版封存发布。
 
-v1.1 Phone Widget Completion 已作为开发里程碑完成并正式发布为 v1.1.0。下一里程碑 v1.2 仍处于规划阶段，尚未开始实现。
+v1.6 Widget Gallery 已完成独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收。
 
 GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 Release 使用不同的应用 ID 和签名，可同时安装，但数据不会自动互通。
 
@@ -31,18 +31,18 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 - **用药方案**：创建每日、每周或自定义间隔方案，并配置稳定、有序的用药时间槽。
 - **提醒与签到**：根据启用的方案安排系统通知，并可从通知快速确认本次用药。
 - **浓度趋势**：根据药物、剂量、途径、体重和历史记录计算当前浓度及未来趋势。
-- **桌面小组件**：显示浓度和近期方案，并支持快速记录。
-- **Wear OS 支持**：通过 Tile 查看浓度、方案并提交剂量动作；手机端提供重放、幂等和冲突处理。
+- **桌面小组件**：四个独立入口显示今日计划、下一次服药、当前 E2 和 E2 趋势；支持独立外观配置、响应式布局和快速记录。
+- **Wear OS 支持**：Wear App、三个新 Tile、兼容 E2 曲线 Tile 和三个 Complication；支持确认、撤销和 occurrence 级“跳过本次”。
 - **数据导入导出**：通过文件或剪贴板导入、导出 JSON，兼容 `hrt.mahiro.uk` 数据格式。
 - **个性化设置**：支持深浅色主题、动态取色、12/24 小时制和自动检查更新。
 
-v1.0 的生产代码仍由 `app` 和 `wear` 两个 Android application 模块组成。领域模型、Repository contract 与 Room 实现已在 `app` 内形成明确 package 边界，但尚未拆为多个 Gradle 模块。Wear 当前以 Tile/Data Layer 为主要交互，不是完整的未来 Wear App；其 `/hrt/*` payload 也尚未形成通用版本化协议。
+生产代码由 `app` 和 `wear` 两个 Android application 模块及共享的 `experience-core` 模块组成。Phone Room/Repository 是唯一事实来源；Wear 使用版本化快照、可重建缓存和 Data Layer 动作协议。
 
 ## 系统要求与身份
 
 - 手机端：Android 12 及以上（`minSdk = 31`），应用 ID `io.github.yingqiu0871.evolune`
 - 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune`（Kotlin namespace `io.github.yingqiu0871.evolune.wear`）
-- v1.1.0：Phone `versionCode = 101010000`；Wear `versionCode = 1101010000`
+- v1.6.0：Phone `versionCode = 101060000`；Wear `versionCode = 1101060000`
 - v1.0.0：上一版 Phone/Wear 稳定发布使用 `versionCode = 10060`
 
 ## 快速上手
@@ -93,8 +93,8 @@ reviews/  外部审阅报告和逐项处置记录
 ## 当前限制
 
 - Health Connect 与 Google 云备份计划用于 v1.2，尚未实现；v1.2 尚未开始。
-- Phone Widget Completion 已在 v1.1 完成并关闭；更大范围的 Widget Gallery 计划用于 v1.6。
-- 轻量级完整 Wear OS 伴侣应用计划用于 v1.3；当前公开 v1.1 能力仍为 Tile/Data Layer。
+- Phone Widget Completion 与 Widget Gallery 已分别在 v1.1 和 v1.6 完成并关闭。
+- 轻量 Wear OS App、Tile/Complication Gallery 与 Data Layer 动作已进入 v1.6 稳定版本。
 - 其他后续版本（v1.4–v1.7）以 [Roadmap](ROADMAP.md) 为准，不在 README 过度展开。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
 - 个性化 calibration/PK 2.0 不属于 v1.0。

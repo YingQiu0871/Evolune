@@ -11,6 +11,7 @@ internal const val SCHEDULED_OCCURRENCES_PER_TIME = 30
 
 internal data class MedicationPlanReminderOccurrence(
     val dateTime: LocalDateTime,
+    val slotId: UUID,
     val timePosition: Int,
     val occurrencePosition: Int
 ) {
@@ -20,13 +21,18 @@ internal data class MedicationPlanReminderOccurrence(
 internal fun reminderOccurrences(
     plan: DomainMedicationPlan,
     now: LocalDateTime
-): List<MedicationPlanReminderOccurrence> = reminderOccurrences(
+): List<MedicationPlanReminderOccurrence> {
+    val sortedSlots = plan.slots.sortedBy { it.position }
+    return reminderOccurrences(
     scheduleType = plan.scheduleType,
     daysOfWeek = plan.daysOfWeek,
     intervalDays = plan.intervalDays,
-    times = plan.slots.sortedBy { it.position }.map { it.localTime },
+    times = sortedSlots.map { it.localTime },
     now = now
-)
+    ).map { occurrence ->
+        occurrence.copy(slotId = sortedSlots[occurrence.timePosition].id)
+    }
+}
 
 private fun reminderOccurrences(
     scheduleType: ScheduleType,
@@ -45,6 +51,7 @@ private fun reminderOccurrences(
         .mapIndexed { occurrencePosition, dateTime ->
             MedicationPlanReminderOccurrence(
                 dateTime = dateTime,
+                slotId = UUID(0L, 0L),
                 timePosition = timePosition,
                 occurrencePosition = occurrencePosition
             )

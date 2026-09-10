@@ -65,6 +65,7 @@ class MedicationPlanReminderScheduleTest {
         val firstOfSecondTime = occurrences.first { it.timePosition == 1 }
 
         assertEquals(1000, firstOfSecondTime.requestOffset)
+        assertEquals(UUID(1L, 1L), firstOfSecondTime.slotId)
         assertEquals(
             PLAN_ID.hashCode() + firstOfSecondTime.requestOffset,
             reminderRequestCode(

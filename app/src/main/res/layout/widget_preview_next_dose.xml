@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_split_panel"
+        android:backgroundTint="#FFEADDFF"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:maxLines="2"
+        android:padding="12dp"
+        android:text="@string/widget_style_next_dose"
+        android:textColor="#FF21005D"
+        android:textSize="17sp" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/widget_split_panel"
+        android:backgroundTint="#FFF7F3FA"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:maxLines="1"
+            android:text="示例药物 A"
+            android:textColor="#FF1F1D20"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="今天 08:00"
+            android:textColor="#FF4C464E"
+            android:textSize="11sp" />
+    </LinearLayout>
+</LinearLayout>

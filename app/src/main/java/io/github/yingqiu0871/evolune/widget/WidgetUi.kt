@@ -1,11 +1,14 @@
 package io.github.yingqiu0871.evolune.widget
 
+import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.MedicationTimelineItem
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.math.roundToInt
 
 internal data class WidgetSize(val widthDp: Int, val heightDp: Int) {
     init {
@@ -29,11 +32,80 @@ internal data class WidgetLayoutSpec(
     val rowCapacity: Int
 )
 
+internal data class WidgetHeroTypography(
+    val labelTextSp: Int,
+    val valueTextSp: Int,
+    val metaTextSp: Int
+)
+
+internal data class WidgetChartTypography(
+    val titleTextSp: Int,
+    val concentrationTextSp: Int,
+    val axisTextSp: Int
+)
+
+internal object WidgetHeroTypographyPolicy {
+    fun resolve(layout: WidgetLayoutSpec): WidgetHeroTypography = when (layout.tier) {
+        WidgetSizeTier.NARROW_SHORT -> WidgetHeroTypography(16, 21, 10)
+        WidgetSizeTier.NARROW_STANDARD -> WidgetHeroTypography(18, 25, 11)
+        WidgetSizeTier.WIDE_STANDARD -> WidgetHeroTypography(20, 30, 12)
+        WidgetSizeTier.EXPANDED -> WidgetHeroTypography(23, 35, 13)
+    }
+}
+
+internal object WidgetChartTypographyPolicy {
+    fun resolve(layout: WidgetLayoutSpec): WidgetChartTypography = when (layout.tier) {
+        WidgetSizeTier.NARROW_SHORT -> WidgetChartTypography(11, 11, 8)
+        WidgetSizeTier.NARROW_STANDARD -> WidgetChartTypography(12, 12, 8)
+        WidgetSizeTier.WIDE_STANDARD -> WidgetChartTypography(14, 14, 9)
+        WidgetSizeTier.EXPANDED -> WidgetChartTypography(16, 16, 10)
+    }
+}
+
+/** Targets a three-quarter peak while leaving room for the rounded cap. */
+internal object WidgetChartGeometryPolicy {
+    private const val PEAK_FILL_RATIO = 0.75f
+    private const val PEAK_TOP_HEADROOM_DP = 4
+
+    fun maxSegmentHeightDp(size: WidgetSize, layout: WidgetLayoutSpec): Int {
+        val verticalChromeDp = when (layout.tier) {
+            WidgetSizeTier.NARROW_SHORT -> 44
+            WidgetSizeTier.NARROW_STANDARD -> 54
+            WidgetSizeTier.WIDE_STANDARD -> 60
+            WidgetSizeTier.EXPANDED -> 68
+        }
+        // Launcher hosts may report a compact minimum height while rendering a larger cell.
+        // Use a smaller chrome estimate below the standard bound so the preview and runtime
+        // chart still occupy the visible plot instead of being compressed to a short baseline.
+        val effectiveChromeDp = if (size.heightDp < WidgetSizePolicy.STANDARD_MIN_HEIGHT_DP) {
+            minOf(verticalChromeDp, 30)
+        } else {
+            verticalChromeDp
+        }
+        val estimatedPlotHeightDp = (size.heightDp - effectiveChromeDp).coerceAtLeast(12)
+        return (
+            estimatedPlotHeightDp * PEAK_FILL_RATIO - PEAK_TOP_HEADROOM_DP
+            ).roundToInt().coerceIn(3, 220)
+    }
+}
+
 internal object WidgetSizePolicy {
     const val STANDARD_MIN_HEIGHT_DP = 160
     const val WIDE_MIN_WIDTH_DP = 220
     const val EXPANDED_MIN_WIDTH_DP = 300
     const val TALL_MIN_HEIGHT_DP = 260
+
+    fun currentSize(
+        minWidthDp: Int,
+        minHeightDp: Int,
+        maxWidthDp: Int,
+        maxHeightDp: Int,
+        isLandscape: Boolean
+    ): WidgetSize = if (isLandscape) {
+        WidgetSize(maxWidthDp.coerceAtLeast(1), minHeightDp.coerceAtLeast(1))
+    } else {
+        WidgetSize(minWidthDp.coerceAtLeast(1), maxHeightDp.coerceAtLeast(1))
+    }
 
     fun resolve(size: WidgetSize): WidgetLayoutSpec {
         val density = if (size.widthDp >= WIDE_MIN_WIDTH_DP) {
@@ -71,7 +143,7 @@ internal enum class WidgetContentState {
     READ_FAILURE
 }
 
-internal enum class WidgetRowAction { RECORD, COMPLETED }
+internal enum class WidgetRowAction { RECORD, COMPLETED, OPEN_APP }
 
 internal enum class WidgetActionButtonTreatment { OUTLINED, TONAL }
 
@@ -97,6 +169,12 @@ internal fun WidgetRowAction.buttonStyle(palette: WidgetPalette): WidgetActionBu
             treatment = WidgetActionButtonTreatment.TONAL,
             containerColor = palette.primaryContainer,
             iconColor = palette.onPrimaryContainer
+        )
+        WidgetRowAction.OPEN_APP -> WidgetActionButtonStyle(
+            shape = WidgetActionButtonShape.CIRCLE,
+            treatment = WidgetActionButtonTreatment.OUTLINED,
+            containerColor = palette.onSurfaceVariant,
+            iconColor = palette.onSurfaceVariant
         )
     }
 
@@ -209,9 +287,12 @@ internal data class WidgetOccurrenceUi(
 internal data class WidgetUiModel(
     val layout: WidgetLayoutSpec,
     val contentState: WidgetContentState,
+    val style: WidgetStyle,
     val appearance: WidgetAppearanceConfig,
     val timeFormat: TimeFormat,
     val concentration: Double?,
+    val concentrationComputedAt: Instant?,
+    val pkChart: List<WidgetPkPoint>,
     val dailyProgress: WidgetDailyProgress,
     val progressSegments: List<WidgetProgressSegment>,
     val rowLayout: WidgetRowLayoutSpec,
@@ -249,7 +330,9 @@ internal object WidgetUiMapper {
             WidgetContentState.NO_ENABLED_PLANS,
             appearance,
             snapshot.timeFormat,
-            snapshot.concentration
+            snapshot.concentration,
+            snapshot.concentrationComputedAt,
+            snapshot.pkChart
         )
         is WidgetPresentationState.NoUpcomingOccurrence -> emptyModel(
             layout,
@@ -257,29 +340,22 @@ internal object WidgetUiMapper {
             appearance,
             snapshot.timeFormat,
             snapshot.concentration,
+            snapshot.concentrationComputedAt,
+            snapshot.pkChart,
             state.dailyProgress
         )
         is WidgetPresentationState.Timeline -> {
-            val currentAndUpcoming = state.window.current.actionableItems() +
-                state.window.upcoming.actionableItems()
-            val sourceRows = if (layout.tier == WidgetSizeTier.NARROW_SHORT) {
-                currentAndUpcoming.takeIf { it.isNotEmpty() } ?: state.todayItems
-            } else {
-                state.todayItems.takeIf { it.isNotEmpty() } ?: currentAndUpcoming
-            }
-            val rows = (
-                if (layout.tier == WidgetSizeTier.NARROW_SHORT) {
-                    sourceRows.take(layout.rowCapacity)
-                } else {
-                    sourceRows
-                }
-                ).map { it.toUi() }
+            val style = appearance.styleId
+            val rows = styleRows(state, style).map { it.toUi() }
             WidgetUiModel(
                 layout = layout,
                 contentState = WidgetContentState.TIMELINE,
+                style = style,
                 appearance = appearance.normalized(),
                 timeFormat = snapshot.timeFormat,
                 concentration = snapshot.concentration,
+                concentrationComputedAt = snapshot.concentrationComputedAt,
+                pkChart = snapshot.pkChart,
                 dailyProgress = state.dailyProgress,
                 progressSegments = state.todayItems
                     .map { item ->
@@ -305,18 +381,51 @@ internal object WidgetUiMapper {
         appearance: WidgetAppearanceConfig,
         timeFormat: TimeFormat,
         concentration: Double? = null,
+        concentrationComputedAt: Instant? = null,
+        pkChart: List<WidgetPkPoint> = emptyList(),
         dailyProgress: WidgetDailyProgress = WidgetDailyProgress.Empty
     ) = WidgetUiModel(
         layout = layout,
         contentState = contentState,
+        style = appearance.styleId,
         appearance = appearance.normalized(),
         timeFormat = timeFormat,
         concentration = concentration,
+        concentrationComputedAt = concentrationComputedAt,
+        pkChart = pkChart,
         dailyProgress = dailyProgress,
         progressSegments = emptyList(),
         rowLayout = WidgetRowDensityPolicy.resolve(layout, 0),
         rows = emptyList()
     )
+
+    private fun styleRows(
+        state: WidgetPresentationState.Timeline,
+        style: WidgetStyle
+    ): List<MedicationTimelineItem> {
+        val currentAndUpcoming = state.window.current.actionableItems() +
+            state.window.upcoming.actionableItems()
+        val todayOrWindow = state.todayItems.takeIf { it.isNotEmpty() } ?: currentAndUpcoming
+        return when (style) {
+            WidgetStyle.NEXT_DOSE -> (currentAndUpcoming + state.todayItems)
+                .distinctBy { it.occurrence.id }
+                .sortedWith(
+                    compareBy<MedicationTimelineItem> {
+                        when (it.status) {
+                            MedicationOccurrenceStatus.DUE -> 0
+                            MedicationOccurrenceStatus.UPCOMING -> 1
+                            MedicationOccurrenceStatus.PAST_UNRECORDED -> 2
+                            MedicationOccurrenceStatus.RECORDED -> 3
+                        }
+                    }.thenBy { it.occurrence.scheduledLocalDateTime }
+                )
+                .take(1)
+            WidgetStyle.CURRENT_E2 -> emptyList()
+            WidgetStyle.LEGACY_DEFAULT,
+            WidgetStyle.TODAY_PLAN,
+            WidgetStyle.PK_CHART -> todayOrWindow
+        }
+    }
 
     private fun List<MedicationTimelineItem>.actionableItems() = filter { item ->
         item.status == MedicationOccurrenceStatus.DUE ||

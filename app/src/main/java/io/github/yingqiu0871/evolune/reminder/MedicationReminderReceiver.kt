@@ -28,6 +28,7 @@ class MedicationReminderReceiver : BroadcastReceiver {
 
     companion object {
         const val EXTRA_PLAN_ID = "plan_id"
+        const val EXTRA_SLOT_ID = "slot_id"
         const val EXTRA_PLAN_NAME = "plan_name"
         const val EXTRA_PLAN_DESCRIPTION = "plan_description"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
@@ -42,7 +43,20 @@ class MedicationReminderReceiver : BroadcastReceiver {
             System.currentTimeMillis()
         )
         val planUuid = runCatching { UUID.fromString(planId) }.getOrNull() ?: return
+        // Alarms created by v1.5 do not carry slot identity. They must continue
+        // through the legacy delivery path after an in-place upgrade.
+        val hasSlotIdentity = intent.hasExtra(EXTRA_SLOT_ID)
+        val slotUuid = intent.getStringExtra(EXTRA_SLOT_ID)?.let { raw ->
+            runCatching { UUID.fromString(raw) }.getOrNull()
+        }
+        if (hasSlotIdentity && slotUuid == null) return
         val applicationContext = context.applicationContext
+        if (slotUuid != null && ReminderSkipStore(applicationContext).isSkipped(
+                planUuid,
+                slotUuid,
+                scheduledAtMillis
+            )
+        ) return
         val pendingResult = goAsync()
         workLauncher.launch(
             work = {

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,7 +61,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,6 +86,7 @@ class WidgetConfigurationActivity : ComponentActivity() {
         }
 
         val resultIntent = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        val fixedStyle = WidgetProviderCatalog.styleFor(this, appWidgetId)
         val controller = WidgetConfigurationController(
             repository = WidgetAppearanceStore(this),
             refresh = { id ->
@@ -92,22 +97,27 @@ class WidgetConfigurationActivity : ComponentActivity() {
                 )
             }
         )
-        setResult(RESULT_OK, resultIntent)
         setContent {
             EvoluneTheme {
-                var config by remember { mutableStateOf(controller.load(appWidgetId)) }
+                var config by remember {
+                    mutableStateOf(controller.load(appWidgetId).copy(styleId = fixedStyle))
+                }
                 WidgetConfigurationScreen(
                     config = config,
-                    onConfigChange = { config = it.normalized() },
-                    onRestoreDefaults = { config = controller.restoreDefaults() },
+                    onConfigChange = {
+                        config = it.normalized().copy(styleId = fixedStyle)
+                    },
+                    onRestoreDefaults = {
+                        config = controller.restoreDefaults().copy(styleId = fixedStyle)
+                    },
                     onCancel = {
                         controller.cancel()
-                        setResult(RESULT_OK, resultIntent)
+                        setResult(RESULT_CANCELED)
                         finish()
                     },
                     onApply = {
                         lifecycleScope.launch {
-                            controller.apply(appWidgetId, config)
+                            controller.apply(appWidgetId, config.copy(styleId = fixedStyle))
                             setResult(RESULT_OK, resultIntent)
                             finish()
                         }
@@ -346,69 +356,247 @@ private fun WidgetConfigurationPreview(config: WidgetAppearanceConfig) {
         contentAlignment = Alignment.Center
     ) {
         val previewShape = RoundedCornerShape(24.dp)
+        val previewSize = when (config.styleId) {
+            WidgetStyle.LEGACY_DEFAULT,
+            WidgetStyle.TODAY_PLAN -> 180.dp to 248.dp
+            WidgetStyle.NEXT_DOSE,
+            WidgetStyle.CURRENT_E2 -> 300.dp to 118.dp
+            WidgetStyle.PK_CHART -> 300.dp to 176.dp
+        }
         Box(
             modifier = Modifier
-                .width(180.dp)
-                .height(248.dp)
+                .width(previewSize.first)
+                .height(previewSize.second)
                 .shadow(3.dp, previewShape)
                 .clip(previewShape)
                 .background(previewBackground, previewShape)
         ) {
-            Column(
-                modifier = Modifier.padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.widget_preview_summary),
-                        color = Color(palette.onSurface),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        stringResource(R.string.widget_preview_concentration),
-                        color = Color(palette.primaryForeground),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    listOf(palette.primary, palette.progressTrack, palette.progressTrack).forEach {
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(5.dp),
-                            shape = RoundedCornerShape(3.dp),
-                            color = Color(it)
-                        ) {}
-                    }
-                }
-                PreviewMedicationRow(
-                    stringResource(R.string.widget_preview_plan_one),
-                    stringResource(R.string.widget_preview_meta_one),
-                    stringResource(R.string.widget_completed),
-                    palette,
-                    0,
-                    completed = true
+            when (config.styleId) {
+                WidgetStyle.LEGACY_DEFAULT,
+                WidgetStyle.TODAY_PLAN -> TodayPlanConfigurationPreview(palette)
+                WidgetStyle.NEXT_DOSE -> HeroConfigurationPreview(
+                    label = stringResource(R.string.widget_style_next_dose),
+                    value = stringResource(R.string.widget_preview_plan_one),
+                    meta = "08:00",
+                    palette = palette,
+                    valueTextSp = 18,
+                    metaTextSp = 16
                 )
-                PreviewMedicationRow(
-                    stringResource(R.string.widget_preview_plan_two),
-                    stringResource(R.string.widget_preview_meta_two),
-                    "09:00",
-                    palette,
-                    1,
-                    completed = false
+                WidgetStyle.CURRENT_E2 -> HeroConfigurationPreview(
+                    label = stringResource(R.string.widget_current_e2_title),
+                    value = "~120",
+                    meta = "pg/mL",
+                    palette = palette
                 )
-                PreviewMedicationRow(
-                    stringResource(R.string.widget_preview_plan_three),
-                    stringResource(R.string.widget_preview_meta_three),
-                    "21:00",
-                    palette,
-                    2,
-                    completed = false
+                WidgetStyle.PK_CHART -> ChartConfigurationPreview(palette)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TodayPlanConfigurationPreview(palette: WidgetPalette) {
+    Column(
+        modifier = Modifier.padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.widget_style_today_plan),
+                color = Color(palette.onSurface),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                stringResource(R.string.widget_preview_concentration),
+                color = Color(palette.primaryForeground),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            listOf(palette.primary, palette.progressTrack, palette.progressTrack).forEach {
+                Surface(
+                    modifier = Modifier.weight(1f).height(5.dp),
+                    shape = RoundedCornerShape(3.dp),
+                    color = Color(it)
+                ) {}
+            }
+        }
+        PreviewMedicationRow(
+            stringResource(R.string.widget_preview_plan_one),
+            stringResource(R.string.widget_preview_meta_one),
+            stringResource(R.string.widget_completed),
+            palette,
+            0,
+            completed = true
+        )
+        PreviewMedicationRow(
+            stringResource(R.string.widget_preview_plan_two),
+            stringResource(R.string.widget_preview_meta_two),
+            "09:00",
+            palette,
+            1,
+            completed = false
+        )
+        PreviewMedicationRow(
+            stringResource(R.string.widget_preview_plan_three),
+            stringResource(R.string.widget_preview_meta_three),
+            "21:00",
+            palette,
+            2,
+            completed = false
+        )
+    }
+}
+
+@Composable
+private fun HeroConfigurationPreview(
+    label: String,
+    value: String,
+    meta: String,
+    palette: WidgetPalette,
+    valueTextSp: Int = 24,
+    metaTextSp: Int = 11
+) {
+    Row(
+        modifier = Modifier.fillMaxSize().padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxHeight().weight(1f),
+            shape = RoundedCornerShape(18.dp),
+            color = Color(palette.heroLabelPanelColor())
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    label,
+                    modifier = Modifier.padding(14.dp),
+                    color = Color(palette.onPrimaryContainer),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    textAlign = TextAlign.Center
                 )
             }
+        }
+        Surface(
+            modifier = Modifier.fillMaxHeight().weight(1f),
+            shape = RoundedCornerShape(18.dp),
+            color = Color(palette.heroValuePanelColor())
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        value,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(palette.onSurface),
+                        fontSize = valueTextSp.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
+                    )
+                    Text(
+                        meta,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color(palette.onSurfaceVariant),
+                        fontSize = metaTextSp.sp,
+                        maxLines = 1,
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChartConfigurationPreview(palette: WidgetPalette) {
+    Column(modifier = Modifier.fillMaxSize().padding(14.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.widget_pk_chart_title),
+                modifier = Modifier.weight(1f),
+                color = Color(palette.onSurface),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                stringResource(R.string.widget_preview_concentration),
+                color = Color(palette.primaryForeground),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Box(modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 6.dp)) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(start = 2.dp, bottom = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                listOf(
+                    0.10f, 0.16f, 0.24f, 0.36f, 0.52f, 0.67f, 0.75f, 0.70f,
+                    0.61f, 0.52f, 0.44f, 0.38f, 0.33f, 0.29f, 0.25f, 0.21f,
+                    0.18f, 0.15f, 0.13f, 0.11f, 0.09f, 0.07f, 0.06f, 0.05f,
+                    0.04f
+                ).forEachIndexed { index, heightFraction ->
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(heightFraction),
+                        shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp),
+                        color = Color(palette.primary).copy(alpha = if (index < 13) 1f else 0.32f)
+                    ) {}
+                }
+            }
+            Surface(
+                modifier = Modifier.width(2.dp).fillMaxHeight().align(Alignment.CenterStart),
+                color = Color(palette.onSurfaceVariant)
+            ) {}
+            Surface(
+                modifier = Modifier.fillMaxWidth().height(2.dp).align(Alignment.BottomCenter),
+                color = Color(palette.onSurfaceVariant)
+            ) {}
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                stringResource(R.string.widget_pk_chart_axis_start),
+                modifier = Modifier.weight(1f),
+                color = Color(palette.onSurfaceVariant),
+                fontSize = 9.sp,
+                maxLines = 1,
+                textAlign = TextAlign.Start
+            )
+            Text(
+                stringResource(R.string.widget_pk_chart_axis_now),
+                modifier = Modifier.weight(1f),
+                color = Color(palette.onSurfaceVariant),
+                fontSize = 9.sp,
+                maxLines = 1,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                stringResource(R.string.widget_pk_chart_axis_end),
+                modifier = Modifier.weight(1f),
+                color = Color(palette.onSurfaceVariant),
+                fontSize = 9.sp,
+                maxLines = 1,
+                textAlign = TextAlign.End
+            )
         }
     }
 }

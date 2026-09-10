@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class CrossEntryOccurrenceConcurrencyTest {
     private val zone = ZoneId.of("UTC")
-    private val now = Instant.parse("2026-08-30T07:00:00Z")
+    private val now = Instant.parse("2026-08-30T08:30:00Z")
     private val plan = syntheticPlan()
     private val producer = WearAppProducerIdentity(UUID(0L, 777L), 3L)
     private val occurrence: MedicationOccurrence = MedicationOccurrenceGenerator.generate(

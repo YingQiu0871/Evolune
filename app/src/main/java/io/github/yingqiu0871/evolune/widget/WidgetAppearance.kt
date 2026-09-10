@@ -3,7 +3,10 @@ package io.github.yingqiu0871.evolune.widget
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.app.WallpaperColors
+import android.app.WallpaperManager
 import androidx.core.content.edit
+import kotlin.math.roundToInt
 
 internal const val DEFAULT_WIDGET_BACKGROUND_OPACITY = 1f
 internal const val MIN_WIDGET_BACKGROUND_OPACITY = 0.3f
@@ -22,10 +25,25 @@ internal enum class WidgetColorScheme {
     MONET_LAVENDER
 }
 
+/** Stable persisted style identifiers shared by the phone gallery renderer. */
+internal enum class WidgetStyle(val id: String) {
+    LEGACY_DEFAULT("legacy_default"),
+    TODAY_PLAN("today_plan"),
+    NEXT_DOSE("next_dose"),
+    CURRENT_E2("current_e2"),
+    PK_CHART("pk_chart");
+
+    companion object {
+        fun fromId(value: String?): WidgetStyle =
+            entries.firstOrNull { it.id == value } ?: LEGACY_DEFAULT
+    }
+}
+
 internal data class WidgetAppearanceConfig(
     val themeMode: WidgetThemeMode = WidgetThemeMode.AUTO,
     val colorScheme: WidgetColorScheme = WidgetColorScheme.MATERIAL_YOU_AUTO,
-    val backgroundOpacity: Float = DEFAULT_WIDGET_BACKGROUND_OPACITY
+    val backgroundOpacity: Float = DEFAULT_WIDGET_BACKGROUND_OPACITY,
+    val styleId: WidgetStyle = WidgetStyle.LEGACY_DEFAULT
 ) {
     fun normalized() = copy(
         backgroundOpacity = backgroundOpacity.coerceIn(MIN_WIDGET_BACKGROUND_OPACITY, 1f)
@@ -59,7 +77,8 @@ internal class WidgetAppearanceStore(
             backgroundOpacity = preferences.getFloat(
                 key(appWidgetId, "opacity"),
                 DEFAULT_WIDGET_BACKGROUND_OPACITY
-            )
+            ),
+            styleId = WidgetStyle.fromId(preferences.getString(key(appWidgetId, "style"), null))
         ).normalized()
     }
 
@@ -70,6 +89,7 @@ internal class WidgetAppearanceStore(
             putString(key(appWidgetId, "theme"), normalized.themeMode.name)
             putString(key(appWidgetId, "color"), normalized.colorScheme.name)
             putFloat(key(appWidgetId, "opacity"), normalized.backgroundOpacity)
+            putString(key(appWidgetId, "style"), normalized.styleId.id)
         }
     }
 
@@ -78,6 +98,7 @@ internal class WidgetAppearanceStore(
             remove(key(appWidgetId, "theme"))
             remove(key(appWidgetId, "color"))
             remove(key(appWidgetId, "opacity"))
+            remove(key(appWidgetId, "style"))
         }
     }
 
@@ -128,14 +149,29 @@ internal data class WidgetPalette(
         require(visibleRowIndex >= 0)
         return medicationRailRoles[visibleRowIndex % medicationRailRoles.size]
     }
+
+    fun heroLabelPanelColor(): Int = primaryContainer
+
+    fun heroValuePanelColor(): Int = surface.blendToward(secondary, 0.12f)
+
+    private fun Int.blendToward(target: Int, amount: Float): Int {
+        val fraction = amount.coerceIn(0f, 1f)
+        fun channel(shift: Int): Int {
+            val start = this ushr shift and 0xff
+            val end = target ushr shift and 0xff
+            return (start + (end - start) * fraction).roundToInt()
+        }
+        return 0xff000000.toInt() or
+            (channel(16) shl 16) or
+            (channel(8) shl 8) or
+            channel(0)
+    }
 }
 
 internal object WidgetPaletteResolver {
     fun resolve(context: Context, config: WidgetAppearanceConfig): WidgetPalette {
         val dark = when (config.themeMode) {
-            WidgetThemeMode.AUTO ->
-                (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-                    Configuration.UI_MODE_NIGHT_YES
+            WidgetThemeMode.AUTO -> resolveAutomaticDarkMode(context, config.backgroundOpacity)
             WidgetThemeMode.LIGHT -> false
             WidgetThemeMode.DARK -> true
         }
@@ -145,6 +181,20 @@ internal object WidgetPaletteResolver {
             }.getOrNull()
         }
     }
+
+    private fun resolveAutomaticDarkMode(context: Context, backgroundOpacity: Float): Boolean {
+        val systemDark =
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+        if (backgroundOpacity >= OPAQUE_BACKGROUND_THRESHOLD) return systemDark
+        val colors = runCatching {
+            WallpaperManager.getInstance(context)
+                .getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
+        }.getOrNull() ?: return systemDark
+        return colors.colorHints and WallpaperColors.HINT_SUPPORTS_DARK_TEXT == 0
+    }
+
+    private const val OPAQUE_BACKGROUND_THRESHOLD = 0.8f
 
     private fun systemColorId(name: String): Int? = when (name) {
         "system_neutral1_10" -> android.R.color.system_neutral1_10

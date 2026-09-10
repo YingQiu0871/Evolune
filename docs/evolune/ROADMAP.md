@@ -1,6 +1,8 @@
 # 路线图
 
-本路线图从已发布的 v1.4.0 向后规划；v1.0.0 与 v1.1.0 作为历史封存发布保留。当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的 [Migration Plan](MIGRATION_PLAN.md)。
+本路线图记录已发布的 v1.0.0、v1.1.0、v1.4.0、v1.5.0 和 v1.6.0，并从当前封存的 v1.6.0 基线向后规划；
+当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
+[Migration Plan](MIGRATION_PLAN.md)。
 
 路线图描述的是产品目标和版本边界，不自动授权实现。每个版本进入开发前仍需完成独立设计、来源审查、回归门槛和真实设备验收。
 
@@ -27,11 +29,11 @@
 
 ### v1.1.0 — 2026-08-22
 
-当前公开稳定版本已发布并封存；`v1.1.0` tag 的 peeled commit 为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`。发布范围见下文「v1.1 — Phone Widget Completion」；`v1.1.0` tag 与 GitHub Release 保持封存，后续工作不会移动或重建该 tag。
+该版本已公开发布并封存；`v1.1.0` tag 的 peeled commit 为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`。发布范围见下文「v1.1 — Phone Widget Completion」；`v1.1.0` tag 与 GitHub Release 保持封存，后续工作不会移动或重建该 tag。
 
 ### v1.4.0 — 2026-09-03
 
-当前公开稳定版本已发布并封存；[`v1.4.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0) 绑定不可变 `v1.4.0` tag，tag 指向合并提交 `56fa1d243cd1937eba8fcfb62e90a4a26660d697`。
+该版本已公开发布并封存；[`v1.4.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0) 绑定不可变 `v1.4.0` tag，tag 指向合并提交 `56fa1d243cd1937eba8fcfb62e90a4a26660d697`。
 
 发布范围：
 
@@ -40,6 +42,34 @@
 - 自动化回归、Phone clean-install smoke、独立复核，以及已签名 Phone/Wear Release APK。
 
 `v1.4.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
+
+### v1.5.0 — 2026-09-05
+
+当前公开稳定版本已发布并封存；[`v1.5.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
+绑定不可变 `v1.5.0` tag，tag 指向提交 `df12329278eafa488713edf202554cdbd523b8d0`。
+
+发布范围：
+
+- 稳定性、性能、代码清理、Phone/Wear 回归和升级/恢复验收。
+- Release 身份、签名 Phone/Wear APK、安装与冷启动验证。
+- `Energy/background` 明确保留 `SKIPPED_BY_OWNER` 豁免；该行不等同于电池或 Wear active-background PASS。
+
+`v1.5.0` tag 与 GitHub Release 保持封存；v1.6 从该基线继续，不移动或重建该 tag。
+
+### v1.6.0 — 2026-09-10
+
+当前公开稳定版本已发布并封存；[`v1.6.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
+绑定不可变 `v1.6.0` tag，并提供同一签名身份的 Phone/Wear APK。
+
+发布范围：
+
+- 四个独立 Phone Widget：今日计划、下一次服药、当前 E2 和 E2 趋势。
+- 三个新 Wear Tile、兼容 E2 曲线 Tile、三个 Short Text Complication 和轻量 Wear App。
+- Phone/Wear 统一的 Material You/预制配色、Evolune 命名、品牌资源和圆屏安全布局。
+- Wear 确认、撤销和 occurrence 级跳过动作；Phone 保持唯一事实来源。
+- 独立复审、签名/哈希审计、真实 Phone/Wear 保留数据覆盖安装和负责人真实手表验收。
+
+`v1.6.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
 
 ## Completed milestones
 
@@ -75,17 +105,23 @@ v1.4 的实现保持以下边界：法律/权限状态独立于业务数据；�
 Settings restore 或 backup；Phone、Room、PK、Widget 和 Wear/W4 的既有权威边界
 保持不变。
 
-### v1.5 — Stability, Performance & Code Cleanup — next active milestone
+### v1.5 — Stability, Performance & Code Cleanup — sealed baseline
 
-v1.5 是 v1.4.0 之后的下一主动开发里程碑，进入前需完成独立设计、稳定性验收矩阵
-和性能/耗电基线。规划入口见 [V15_DESIGN.md](v1.5/V15_DESIGN.md) 与
-[V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md)。
+v1.5.0 已完成其稳定性、性能与清理验收，并以 `v1.5.0` tag、提交
+`df12329278eafa488713edf202554cdbd523b8d0` 作为 v1.6 的实施基线。原始设计和
+验收证据仍见 [V15_DESIGN.md](v1.5/V15_DESIGN.md) 与
+[V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md)；其中 `Energy/background` 保留
+`SKIPPED_BY_OWNER`，不等同于已完成电池或 Wear active-background 验证。
 
 ## Historical and future milestones
 
+v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备验收和发布封版。
+历史候选、阶段审阅与修复证据保存在 [v1.6 文档目录](v1.6/)；当前后续候选为 v1.7。
+
 ### v1.2 — Google Integration & Data Continuity
 
-v1.2 尚未开始实现，仍是下一开发里程碑。
+v1.2 尚未开始实现，保留为计划中的历史范围；当前 active milestone 是 v1.6，不能把 v1.2
+描述成下一开发里程碑。
 
 目标：让 Evolune 在不改变本地权威模型的前提下融入 Android/Google 数据生态，并解决换机、重装和长期数据保存问题。
 
@@ -108,6 +144,10 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 - cloud backup、Wear Data Layer 和本地导入导出保持不同职责边界。
 
 ### v1.3 — Wear OS Companion App
+
+当前 v1.5.0 基线已经包含可打开的 Wear App、版本化 snapshot、occurrence confirmation/undo
+和派生缓存；本节保留原始产品边界，未单独形成 v1.3 release。v1.6 A/B 会把这条现有 Wear
+契约作为兼容前提，而不是重新发明第二个事实来源。
 
 目标：在保留现有 Wear Tile 的同时，提供一个真正可打开、可完成基础日常操作的轻量 Wear OS App。
 
@@ -160,7 +200,11 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 v1.5 退出条件：核心自动化、真实设备矩阵、升级/恢复场景、耗电/后台行为、代码清理
 审计和 Phone launcher Logo 视觉验收全部通过，且没有新的 P0/P1 稳定性问题。
 
-### v1.6 — Widget Gallery
+### v1.6 — Widget Gallery — shipped / closed
+
+分步实施与交付目标见 [V16_PLAN](v1.6/V16_PLAN.md)，审阅和验收见
+[V16_REVIEW](v1.6/V16_REVIEW.md) 与 [V16_ACCEPTANCE](v1.6/V16_ACCEPTANCE.md)。
+A–G 阶段已完成并发布为 v1.6.0。
 
 目标：在 v1.1 Widget 数据/动作基础和 v1.3 Wear 数据模型稳定后，增加多种可选的手机与手表 Widget/Tile/Complication 样式，而不重新发明数据层。
 
@@ -170,7 +214,7 @@ Phone 候选：
 - 下一次服药：更小尺寸，只突出最近 occurrence 和快速确认。
 - 当前 E2：显示当前估算浓度、更新时间和简洁趋势。
 - PK 图表：面向较大尺寸的只读浓度图 Widget。
-- 今日进度：极简完成数/进度样式。
+- 今日完成度合并在“今日计划”头部，不再提供重复的独立 Phone Widget。
 
 Wear 候选：
 

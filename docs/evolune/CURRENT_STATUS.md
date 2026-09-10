@@ -1,91 +1,94 @@
 # Evolune Current Status
 
-This document is the canonical quick reference for the current public release and development baseline. Historical plans and phase reports remain evidence of earlier decisions, but they do not override this status.
+This document is the canonical quick reference for the current public release and development baseline.
+Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
 ## Current Release
 
-- Stable version: [`v1.4.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0)
-- Release date: 2026-09-03
-- Published source baseline: `56fa1d243cd1937eba8fcfb62e90a4a26660d697`
-- Release reference: the immutable [`v1.4.0` tag](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0)
-- Previous sealed stable release: [`v1.1.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
-- Published development baseline: `main` after the v1.4.0 release
-- Current working development branch: `main`; v1.5 planning starts from the sealed v1.4.0 baseline
-- Release downloads: signed Phone and Wear APKs are attached to the v1.4.0 GitHub Release.
+- Stable version: [`v1.6.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
+- Release date: 2026-09-10
+- Release reference: immutable `v1.6.0` tag
+- Previous sealed stable release: [`v1.5.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
+- Release downloads: signed Phone and Wear APKs attached to the v1.6.0 GitHub Release
 
-The `v1.0.0`, `v1.1.0`, and `v1.4.0` tags and their published Releases are sealed. Development after v1.4.0 continues from `main` without changing those tags.
+v1.6.0 completed the Widget Gallery milestone. The release passed independent final review, signed
+Phone/Wear artifact verification, in-place installation on a real Pixel 11 Pro and Galaxy Watch,
+and owner acceptance on the real watch. See [v1.6 Acceptance](v1.6/V16_ACCEPTANCE.md) and the
+[final release gate](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md).
 
-## Current development milestone
+## v1.6.0 Release Identity
 
-The v1.4.0 release contains the accepted v1.4-A trust/permission foundation and v1.4-B
-guided feature tutorial. Both were independently reviewed, released, and attached as
-signed Phone/Wear APKs. See [v1.4 Acceptance](v1.4/V14_ACCEPTANCE.md) and the
-[v1.4 design records](v1.4/).
+| Target | Application ID | Version | Minimum API |
+|---|---|---:|---:|
+| Phone | `io.github.yingqiu0871.evolune` | `1.6.0 (101060000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.6.0 (1101060000)` | 30 |
 
-The next active development milestone is v1.5 Stability, Performance & Code Cleanup. Its
-planning baseline and acceptance matrix are [V15_DESIGN.md](v1.5/V15_DESIGN.md) and
-[V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md); no v1.5 production change has started yet.
+Both release APKs use the persistent Evolune release certificate with SHA-256
+`B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08`.
+Debug builds use a separate `.debug` application ID suffix and signing identity.
 
-## Public Identity
+## Shipped v1.6 Capabilities
 
-| Target | Application ID | Minimum API |
-|---|---|---:|
-| Phone | `io.github.yingqiu0871.evolune` | 31 (Android 12) |
-| Wear | `io.github.yingqiu0871.evolune` | 30 |
+- Four separate Phone Widget picker entries: Evolune-今日计划、Evolune-下一次服药、
+  Evolune-当前 E2 and Evolune-E2 趋势.
+- Per-widget appearance configuration with automatic/light/dark modes, Material You and eight
+  preset color groups; responsive typography and contrast.
+- A scrollable today-plan widget with occurrence-scoped confirmation, plus read-only next-dose,
+  current-E2 and 48-hour historical/predicted concentration widgets.
+- Three new Wear Tiles for next dose, today plan and current E2, plus the existing E2 curve Tile
+  retained under its original component identity.
+- Three Short Text Complications for next-dose time, current E2 and today completion.
+- Wear App, Tiles and Complications share the Evolune naming, brand resources, tonal palette and
+  round-screen-safe layout language.
+- Wear occurrence actions include confirm and skip. Skip is persisted by exact plan, slot and
+  scheduled time on Phone, cancels the matching reminder and suppresses delivery races without
+  recording a dose.
 
-The v1.4.0 stable release uses `versionName = 1.4.0`, Phone `versionCode = 101040000`, and Wear `versionCode = 1101040000`. Debug builds use a separate `.debug` application ID suffix and a different signing identity.
+## Authority and Compatibility Boundaries
 
-## v1.1 Milestone State
+Phone Room/domain/repository remains the only medication-data authority. Widgets and Wear use
+derived presentation state or rebuildable caches. Wear actions are validated and applied by Phone;
+Wear does not become a second source of truth.
 
-The Phone/Wear identity repair (previously the `v1.1/wear-identity-repair` line) is merged into `main`. Phone and Wear use installed application ID `io.github.yingqiu0871.evolune`; the Wear Kotlin namespace remains `io.github.yingqiu0871.evolune.wear`. The existing `/hrt/plans`, `/hrt/request-plans`, and `/hrt/dose-actions/<actionId>` wire formats remain unchanged.
+The release preserves the old `DoseTileService` component, v1/legacy/action paths, PK mathematics,
+Room schema, backup format and occurrence identity semantics. Phone and Wear private data remain
+excluded from Android Auto Backup and device transfer; user-controlled JSON export/import is the
+supported migration path.
 
-Phone Widget Completion is **CLOSED / COMPLETE** and is published in v1.1.0. The v1.1
-implementation and release preparation are published under the immutable `v1.1.0` tag. Owner,
-physical-device and post-merge CI gates passed. `v1.0.0` remains the previous sealed stable release.
+Because v1.0 Wear used the old application ID `io.github.yingqiu0871.evolune.wear`, that one old
+package cannot update in place to the shared v1.1+ identity. See
+[Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md). This does not apply to v1.1–v1.5 upgrades.
 
-Wear now distinguishes waiting, disconnected, pending, failed, stale, authoritative no-plan, and ready states. These are derived transport/presentation states only. Phone Room v3 remains the source of truth, and replay, conflict, JSON v1, and persistence-before-side-effects behavior are unchanged.
+## Verification Summary
 
-Wear background delivery uses the filtered `DATA_CHANGED` manifest listener scoped to `wear://*/hrt/plans`; the deprecated `BIND_LISTENER` registration was removed release-safely, with connectivity derived on demand through `NodeClient.connectedNodes`.
+- Signed Release build: 152 tasks executed, `BUILD SUCCESSFUL`.
+- Current-source Debug gate: 863 JVM tests with zero failures/errors/skips; Phone/Wear Lint zero errors;
+  both Debug and instrumentation APKs built.
+- Pixel 11 Pro receiver regression: 7/7 tests passed, including old-alarm compatibility, skipped
+  occurrence suppression and malformed new slot identity rejection.
+- Final signed Phone/Wear candidate passed APK Signature Scheme v2 verification with one signer.
+- Real Pixel 11 Pro and Galaxy Watch accepted `adb install -r`; first-install timestamps and existing
+  data/components were retained, device APK hashes matched the candidate, and cold launch had no
+  fatal exception or ANR keywords.
+- Project owner completed manual real-watch Tile/Complication acceptance. Independent final review
+  reported P0/P1/P2 clear; optional AlarmManager stress coverage remains P3.
 
-Because v1.0 Wear was published as `io.github.yingqiu0871.evolune.wear`, it cannot update in place to the v1.1 Wear package. See [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md) for the one-time uninstall/reinstall procedure. The Phone package and Phone data are unaffected.
-
-## Shipped v1.0 Capabilities
-
-- Local medication plans with stable, ordered scheduled-dose slots.
-- Dose-event recording, editing, deletion, history, reminders, and notification actions.
-- Estradiol pharmacokinetic estimation and chart visualization.
-- Mahiro JSON v1 import/export compatibility.
-- Room v3 persistence with exported schemas, strict v2-to-v3 migration safeguards, and a repair workflow for invalid legacy data.
-- Domain models and Repository contracts separated from Room entities and DAOs inside the existing `app` module.
-- Idempotent/conflict-aware writes and optimistic revision checks.
-- A RemoteViews phone widget that shows concentration and enabled plans and supports quick recording.
-- A Wear Tile/Data Layer flow that receives plan and concentration snapshots and submits one-tap dose actions.
-- Wear action replay/idempotency/conflict handling. Accepted actions are persisted before widget refresh and before deletion of the exact acknowledged DataItem; failed acknowledgement remains retryable.
-- Update checking against GitHub Releases.
-- Explicit Android backup and device-transfer exclusions for Phone and Wear private application data.
-
-## Current Data Model
-
-`AppDatabase` is Room version 3 with `DoseEventEntity`, `MedicationPlanEntity`, and `ScheduledDoseSlotEntity`. Schemas 2 and 3 are tracked under `app/schemas/`.
-
-`DoseEvent.occurredAt` is the authoritative `Instant`. A dose event also has a stable UUID, optional zone/local-date/slot metadata, source, status, revision, route, dose, ester, and extras. The legacy `timeH` representation remains only at compatibility and PK adapter boundaries.
-
-`MedicationPlan.slots` is an authoritative ordered list. Each `ScheduledDoseSlot` has a stable UUIDv5 ID, plan ID, minute-precision local time, and contiguous position. The historical namespace string `io.github.yuninggu.evolune:scheduled-dose-slot` is an immutable persisted compatibility constant, not the current application identity.
-
-## Current Limitations of the published v1.4.0 baseline
+## Current Limitations
 
 - Health Connect is not implemented.
 - Google cloud backup or cloud synchronization is not implemented.
-- Auto Backup and device transfer intentionally exclude private app data; user-controlled Mahiro JSON export/import is the available migration path.
-- The Wear transport uses the shipped `/hrt/*` Data Layer payloads and does not yet provide a general versioned envelope, acknowledgement protocol, or full Wear application experience.
-- The v1.4.0 RemoteViews widget completion is functional and closed; broader widget gallery surfaces remain future work.
-- Tracked Date is deferred and has no current entity or product surface.
-- Personalized calibration and PK 2.0 are not part of v1.0.
-- The Room database is not encrypted with SQLCipher.
+- Auto Backup/device transfer intentionally excludes private app data.
+- Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
+- v1.7 Optional CPA PK Curve remains a candidate only; it is default-off and requires independent
+  scientific and source review before implementation or release.
 
 ## Provenance
 
-Explicit permission was received from the `HRT-Recorder-PKcomponent-Test` author on 2026-08-14 for Evolune to use, copy, modify, port, further develop, distribute source and compiled applications, and release corresponding derivative code under the MIT License, to the extent the author owns or is authorized to license the relevant rights. Source and contributor attribution is preserved.
+Explicit permission was received from the `HRT-Recorder-PKcomponent-Test` author on 2026-08-14 for
+Evolune to use, copy, modify, port, further develop and distribute the relevant author-owned or
+authorizable work under the MIT License. Attribution is preserved. This scoped permission does not
+relicense unrelated third-party contributions. See [Source Provenance](../SOURCE_PROVENANCE.md),
+[NOTICE](../../NOTICE) and [Third-Party Notices](../../THIRD_PARTY_NOTICES.md).
 
 `PK_PERMISSION_STATUS = EXPLICIT_PERMISSION_GRANTED`
 
@@ -93,16 +96,9 @@ Explicit permission was received from the `HRT-Recorder-PKcomponent-Test` author
 
 `PK_PROVENANCE_RISK = RESOLVED_WITH_ATTRIBUTION_REQUIREMENT`
 
-This scoped permission does not relicense the entire upstream repository, grant rights on behalf of third-party contributors, or establish that the upstream repository contains a formal `LICENSE` file. See [Source Provenance](../SOURCE_PROVENANCE.md), [NOTICE](../../NOTICE), and [Third-Party Notices](../../THIRD_PARTY_NOTICES.md).
+## Next Milestone
 
-## Next Milestones
+- `v1.6.0`: Widget Gallery — **CLOSED / RELEASED**.
+- `v1.7`: Optional CPA Pharmacokinetic Curve — **CANDIDATE / NOT STARTED**.
 
-- `v1.1`: Phone Widget Completion — **CLOSED / COMPLETE**.
-- `v1.2`: Google Integration & Data Continuity — **PLANNED, NOT STARTED**; Health Connect and Google backup are separately gated batches.
-- `v1.3`: Wear OS Companion App.
-- `v1.4.0`: Onboarding, Terms & Permission Guidance — **CLOSED / PUBLISHED**.
-- `v1.5`: Stability, Performance & Code Cleanup — **NEXT PLANNED MILESTONE**; planning only.
-- `v1.6`: Widget Gallery.
-- `v1.7`: Optional CPA Pharmacokinetic Curve, default off and gated by independent scientific review.
-
-See the [Roadmap](ROADMAP.md) for authoritative detail.
+See the [Roadmap](ROADMAP.md) for the historical release sequence and future boundaries.

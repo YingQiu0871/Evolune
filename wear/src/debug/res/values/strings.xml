@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Keep emulator/debug providers visually distinct from the signed Evolune app. -->
+    <string name="app_name">Evolune Debug</string>
+    <string name="tile_label">Evolune Debug-E2 浓度曲线</string>
+    <string name="tile_next_dose_label">Evolune Debug-下一次服药</string>
+    <string name="tile_today_pending_label">Evolune Debug-今日计划</string>
+    <string name="tile_current_e2_label">Evolune Debug-当前 E2</string>
+    <string name="complication_next_dose_label">Evolune Debug-下一次服药</string>
+    <string name="complication_today_progress_label">Evolune Debug-今日进度</string>
+    <string name="complication_current_e2_label">Evolune Debug-当前 E2</string>
+</resources>

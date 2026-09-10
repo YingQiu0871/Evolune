@@ -18,8 +18,11 @@ class WearPlanListenerService : WearableListenerService() {
                 applySnapshot(event.dataItem)
             }
 
-        TileService.getUpdater(this)
-            .requestUpdate(DoseTileService::class.java)
+        val updater = TileService.getUpdater(this)
+        updater.requestUpdate(DoseTileService::class.java)
+        updater.requestUpdate(NextDoseTileService::class.java)
+        updater.requestUpdate(TodayPlanTileService::class.java)
+        updater.requestUpdate(CurrentE2TileService::class.java)
     }
 
     private fun applySnapshot(dataItem: com.google.android.gms.wearable.DataItem) {

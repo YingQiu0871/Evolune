@@ -1,8 +1,16 @@
 <resources>
     <string name="app_name">Evolune</string>
-    <string name="tile_label">月序用药记录</string>
-    <string name="tile_description">从手表快速记录手机端的用药方案</string>
+    <string name="tile_label">Evolune-E2 浓度曲线</string>
+    <string name="tile_description">查看 E2 浓度曲线并快速记录手机端用药方案</string>
+    <string name="tile_next_dose_label">Evolune-下一次服药</string>
+    <string name="tile_today_pending_label">Evolune-今日计划</string>
+    <string name="tile_current_e2_label">Evolune-当前 E2</string>
+    <string name="complication_next_dose_label">Evolune-下一次服药</string>
+    <string name="complication_today_progress_label">Evolune-今日进度</string>
+    <string name="complication_current_e2_label">Evolune-当前 E2</string>
     <string name="wear_app_content_description">Evolune 用药信息</string>
+    <string name="wear_app_palette_title">配色</string>
+    <string name="wear_app_palette_dialog_title">选择手表配色</string>
     <string name="wear_app_recent_title">最近一次已确认服药</string>
     <string name="wear_app_concentration_title">估算血药浓度</string>
     <string name="wear_app_concentration_updated">最近更新</string>
@@ -31,11 +39,14 @@
     <string name="wear_app_sync_error">同步失败，请稍后重试</string>
     <string name="wear_app_status_upcoming">待服</string>
     <string name="wear_app_status_due">到期</string>
-    <string name="wear_app_confirmation_title">确认服药</string>
-    <string name="wear_app_confirmation_format">%1$s\n%2$s mg · %3$s\n日期：%4$s\n计划时间：%5$s</string>
-    <string name="wear_app_confirmation_confirm">确认服药</string>
+    <string name="wear_app_confirmation_title">本次用药</string>
+    <string name="wear_app_confirmation_format">%1$s · %2$s mg\n%3$s\n计划时间：%5$s</string>
+    <string name="wear_app_confirmation_confirm">确认用药</string>
     <string name="wear_app_confirmation_cancel">取消</string>
-    <string name="wear_app_confirmation_pending">确认请求处理中（点击重试）</string>
-    <string name="wear_app_confirmation_waiting">已确认，等待手机同步</string>
+    <string name="wear_app_confirmation_pending">确认处理中，点按重试</string>
+    <string name="wear_app_confirmation_waiting">等待手机同步</string>
     <string name="wear_app_confirmation_unavailable">当前数据不可确认，请稍后重试</string>
+    <string name="wear_app_skip_dose">跳过本次</string>
+    <string name="wear_app_skip_sent">已发送跳过请求</string>
+    <string name="wear_app_skip_unavailable">当前数据不可跳过，请稍后重试</string>
 </resources>

@@ -9,28 +9,29 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 ## 发布与开发基线
 
-当前公开稳定版本是 **v1.1.0**，发布于 2026-08-22；`v1.0.0` 是上一版已封存的稳定发布。
+当前公开稳定版本是 **v1.6.0**，发布于 2026-09-10；`v1.5.0` 是上一版已封存的稳定发布。
 
-[前往 Evolune v1.1.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)
+[前往 Evolune v1.6.0 Release 下载](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
 
 Release 提供经过签名的 Phone APK 与 Wear APK。GitHub Actions 中的 Debug APK 仅供开发和测试，不是正式版本的主要下载渠道；Debug 与 Release 的应用 ID、签名和本地数据相互独立。
 
-当前 `main` 对应已发布的 **v1.1.0**。其中的 v1.1 Phone Widget Completion 开发里程碑已完成并正式发布；`v1.0.0` 保持为上一版封存发布。
+当前 `main` 对应已发布的 **v1.6.0**。v1.6 Widget Gallery 已完成独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收。
 
 ## 已发布能力
 
 - 用药方案、用药记录、历史、提醒与通知签到
 - JSON 导入导出与 PK 浓度趋势展示
 - Room v3、稳定计划槽位及 Repository 数据边界
-- occurrence-driven RemoteViews 手机桌面小组件：多时间槽独立行、响应式尺寸、超出容量时纵向滚动、实际记录时间和 occurrence-scoped 快速记录
-- Wear Tile、手机/手表 Data Layer 同步及幂等剂量动作
+- 四个独立 Phone Widget：今日计划、下一次服药、当前 E2、E2 趋势；支持响应式尺寸、滚动计划、Material You 与预制配色
+- Wear App、下一次服药/今日计划/当前 E2 三个新 Tile、兼容 E2 曲线 Tile及三个 Complication
+- Phone/Wear Data Layer 同步、幂等确认、精确撤销及 occurrence 级“跳过本次”提醒抑制
 - 自动更新检查
 
-当前 Phone Room/domain/repository 仍是唯一事实来源；Widget 和 Wear 只使用派生状态或缓存。Health Connect 与 Google backup/restore 属于尚未开始的 v1.2，完整 Wear OS Companion App 规划在 v1.3，Widget Gallery 规划在 v1.6。当前 Phone/Wear 私有数据明确排除于 Android Auto Backup 和设备迁移；跨设备迁移使用用户主动控制的 JSON 导出/导入。
+当前 Phone Room/domain/repository 仍是唯一事实来源；Widget 和 Wear 只使用派生状态或缓存。Health Connect 与 Google backup/restore 尚未实现。Phone/Wear 私有数据明确排除于 Android Auto Backup 和设备迁移；跨设备迁移使用用户主动控制的 JSON 导出/导入。
 
 已安装 v1.0 Wear APK 的用户需要按 [Wear v1.1 身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md) 卸载旧 Wear 包并安装 v1.1+ 主线身份；Phone 应用及其 Room 数据不受影响。
 
-下一开发里程碑是 **v1.2 — Google Integration & Data Continuity**，目前为规划中、尚未开始；Health Connect 与 Google backup/restore 将分别验收，Room 继续保持权威。
+下一候选里程碑是 **v1.7 — Optional CPA PK Curve**；它默认关闭，并须先完成独立科学与来源审查。
 
 完整的产品说明、构建步骤、隐私边界和致谢见 [项目详细说明](docs/evolune/README.md)。当前发布与实现事实以 [Current Status](docs/evolune/CURRENT_STATUS.md) 为准。
 

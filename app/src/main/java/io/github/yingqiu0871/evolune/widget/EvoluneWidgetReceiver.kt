@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.graphics.Color
 import android.util.TypedValue
 import android.view.View
@@ -38,7 +39,7 @@ internal const val EXTRA_OCCURRENCE_ID = "occurrence_id"
 internal const val EXTRA_WIDGET_ID = "widget_id"
 
 /** Traditional RemoteViews remains the broad-launcher compatibility boundary. */
-class EvoluneWidgetReceiver : AppWidgetProvider {
+open class EvoluneWidgetReceiver : AppWidgetProvider {
     private var quickActionWorkFactory: ((Context) -> WidgetQuickActionWork)? = null
     private var updateWorkFactory: ((Context, AppWidgetManager) -> WidgetUpdateWork)? = null
     private var workLauncher = ReceiverWorkLauncher()
@@ -126,7 +127,7 @@ class EvoluneWidgetReceiver : AppWidgetProvider {
     private fun refreshAllAsync(context: Context, reason: WidgetUpdateReason) {
         val applicationContext = context.applicationContext
         val manager = AppWidgetManager.getInstance(applicationContext)
-        val component = ComponentName(applicationContext, EvoluneWidgetReceiver::class.java)
+        val component = ComponentName(applicationContext, javaClass)
         updateAsync(
             applicationContext,
             manager,
@@ -183,14 +184,23 @@ private fun renderWidget(
     state: WidgetRenderState
 ) {
     val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+    val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 150)
     val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 97)
+    val maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, minWidth)
     val maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeight)
-    val size = WidgetSize(
-        options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 150).coerceAtLeast(1),
-        maxOf(minHeight, maxHeight).coerceAtLeast(1)
+    val size = WidgetSizePolicy.currentSize(
+        minWidthDp = minWidth,
+        minHeightDp = minHeight,
+        maxWidthDp = maxWidth,
+        maxHeightDp = maxHeight,
+        isLandscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     )
     val layout = WidgetSizePolicy.resolve(size)
-    val appearance = WidgetAppearanceStore(context).read(appWidgetId)
+    val appearance = WidgetAppearanceStore(context).read(appWidgetId).copy(
+        styleId = WidgetProviderCatalog.styleFor(
+            appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
+        )
+    )
     val model = WidgetUiMapper.map(state, layout, appearance)
     val palette = WidgetPaletteResolver.resolve(context, appearance)
     val views = RemoteViews(context.packageName, layout.tier.layoutRes())
@@ -198,12 +208,29 @@ private fun renderWidget(
 
     applySurface(views, model, palette)
     views.setOnClickPendingIntent(R.id.widget_root, openApp)
-    if (model.contentState == WidgetContentState.TIMELINE && model.rows.isNotEmpty()) {
-        bindTimeline(context, views, model, palette, appWidgetId, openApp)
-    } else {
-        bindEmpty(context, views, model, palette, openApp)
+    prepareForStyle(views)
+    when (model.style) {
+        WidgetStyle.NEXT_DOSE -> bindNextDose(context, views, model, palette, openApp)
+        WidgetStyle.CURRENT_E2 -> bindCurrentE2(context, views, model, palette, openApp)
+        WidgetStyle.PK_CHART -> bindPkChart(context, views, model, palette, openApp, size)
+        WidgetStyle.LEGACY_DEFAULT,
+        WidgetStyle.TODAY_PLAN -> if (model.contentState == WidgetContentState.TIMELINE) {
+            bindTimeline(context, views, model, palette, appWidgetId, openApp)
+        } else {
+            bindEmpty(context, views, model, palette, openApp)
+        }
     }
     appWidgetManager.updateAppWidget(appWidgetId, views)
+}
+
+private fun prepareForStyle(views: RemoteViews) {
+    views.setViewVisibility(R.id.widget_header, View.GONE)
+    views.setViewVisibility(R.id.widget_progress_container, View.GONE)
+    views.setViewVisibility(R.id.widget_chart_plot, View.GONE)
+    views.setViewVisibility(R.id.widget_chart_axis, View.GONE)
+    views.setViewVisibility(R.id.widget_rows_container, View.GONE)
+    views.setViewVisibility(R.id.widget_split_area, View.GONE)
+    views.setViewVisibility(R.id.widget_empty_area, View.GONE)
 }
 
 private fun WidgetSizeTier.layoutRes(): Int = when (this) {
@@ -234,6 +261,32 @@ private fun applySurface(
     views.setTextColor(R.id.widget_concentration, palette.primaryForeground)
     views.setTextColor(R.id.widget_empty_title, palette.onSurface)
     views.setTextColor(R.id.widget_empty_meta, palette.onSurfaceVariant)
+    views.setTextColor(R.id.widget_chart_axis_start, palette.onSurfaceVariant)
+    views.setTextColor(R.id.widget_chart_axis_now, palette.onSurfaceVariant)
+    views.setTextColor(R.id.widget_chart_axis_end, palette.onSurfaceVariant)
+    views.setTextColor(R.id.widget_split_label, palette.onPrimaryContainer)
+    views.setTextColor(R.id.widget_split_value, palette.onSurface)
+    views.setTextColor(R.id.widget_split_meta, palette.onSurfaceVariant)
+    views.setColorStateList(
+        R.id.widget_split_label,
+        "setBackgroundTintList",
+        ColorStateList.valueOf(palette.heroLabelPanelColor())
+    )
+    views.setColorStateList(
+        R.id.widget_split_value_panel,
+        "setBackgroundTintList",
+        ColorStateList.valueOf(palette.heroValuePanelColor())
+    )
+    views.setColorStateList(
+        R.id.widget_chart_y_axis,
+        "setBackgroundTintList",
+        ColorStateList.valueOf(palette.onSurfaceVariant)
+    )
+    views.setColorStateList(
+        R.id.widget_chart_x_axis,
+        "setBackgroundTintList",
+        ColorStateList.valueOf(palette.onSurfaceVariant)
+    )
 }
 
 private fun bindTimeline(
@@ -244,7 +297,8 @@ private fun bindTimeline(
     appWidgetId: Int,
     openApp: PendingIntent
 ) {
-    views.setViewVisibility(R.id.widget_empty_area, View.GONE)
+    views.setViewVisibility(R.id.widget_header, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_progress_container, View.VISIBLE)
     views.setViewVisibility(R.id.widget_rows_container, View.VISIBLE)
     views.setTextViewText(
         R.id.widget_summary,
@@ -283,6 +337,202 @@ private fun bindTimeline(
     )
 }
 
+private fun bindNextDose(
+    context: Context,
+    views: RemoteViews,
+    model: WidgetUiModel,
+    palette: WidgetPalette,
+    openApp: PendingIntent
+) {
+    views.setViewVisibility(R.id.widget_split_area, View.VISIBLE)
+    views.setTextViewText(R.id.widget_split_label, context.getString(R.string.widget_style_next_dose))
+    val occurrence = model.rows.firstOrNull()
+    val (value, meta) = if (occurrence == null) {
+        val message = widgetStateMessage(context, model.contentState)
+        message.first to message.second
+    } else {
+        occurrence.planName to formatTime(context, occurrence.scheduledLocalDateTime, model.timeFormat)
+    }
+    views.setTextViewText(R.id.widget_split_value, value)
+    views.setTextViewText(R.id.widget_split_meta, meta)
+    if (model.contentState == WidgetContentState.READ_FAILURE) {
+        views.setTextColor(R.id.widget_split_value, palette.error)
+    }
+    applyHeroTypography(views, model.layout)
+    views.setOnClickPendingIntent(R.id.widget_split_area, openApp)
+}
+
+private fun bindCurrentE2(
+    context: Context,
+    views: RemoteViews,
+    model: WidgetUiModel,
+    palette: WidgetPalette,
+    openApp: PendingIntent
+) {
+    views.setViewVisibility(R.id.widget_split_area, View.VISIBLE)
+    views.setTextViewText(R.id.widget_split_label, context.getString(R.string.widget_current_e2_title))
+    views.setTextViewText(
+        R.id.widget_split_value,
+        if (model.concentration == null) {
+            context.getString(R.string.widget_current_e2_unavailable)
+        } else {
+            context.getString(
+                R.string.widget_current_e2_value,
+                "%.0f".format(model.concentration)
+            )
+        }
+    )
+    val computedAt = model.concentrationComputedAt
+    views.setTextViewText(
+        R.id.widget_split_meta,
+        if (computedAt == null) {
+            context.getString(R.string.widget_current_e2_unavailable_desc)
+        } else {
+            context.getString(
+                R.string.widget_current_e2_updated,
+                formatTime(
+                    context,
+                    computedAt.atZone(java.time.ZoneId.systemDefault()).toLocalDateTime(),
+                    model.timeFormat
+                )
+            )
+        }
+    )
+    if (model.contentState == WidgetContentState.READ_FAILURE) {
+        views.setTextColor(R.id.widget_split_value, palette.error)
+    }
+    applyHeroTypography(views, model.layout)
+    views.setOnClickPendingIntent(R.id.widget_split_area, openApp)
+}
+
+private fun applyHeroTypography(views: RemoteViews, layout: WidgetLayoutSpec) {
+    val typography = WidgetHeroTypographyPolicy.resolve(layout)
+    views.setTextViewTextSize(
+        R.id.widget_split_label,
+        TypedValue.COMPLEX_UNIT_SP,
+        typography.labelTextSp.toFloat()
+    )
+    views.setTextViewTextSize(
+        R.id.widget_split_value,
+        TypedValue.COMPLEX_UNIT_SP,
+        typography.valueTextSp.toFloat()
+    )
+    views.setTextViewTextSize(
+        R.id.widget_split_meta,
+        TypedValue.COMPLEX_UNIT_SP,
+        typography.metaTextSp.toFloat()
+    )
+}
+
+private fun widgetStateMessage(
+    context: Context,
+    state: WidgetContentState
+): Pair<String, String> = when (state) {
+    WidgetContentState.LOADING ->
+        context.getString(R.string.widget_loading) to context.getString(R.string.widget_loading_desc)
+    WidgetContentState.READ_FAILURE ->
+        context.getString(R.string.widget_read_failure) to context.getString(R.string.widget_read_failure_desc)
+    WidgetContentState.NO_ENABLED_PLANS ->
+        context.getString(R.string.widget_no_enabled_plans) to
+            context.getString(R.string.widget_no_enabled_plans_desc)
+    WidgetContentState.NO_UPCOMING_OCCURRENCE,
+    WidgetContentState.TIMELINE ->
+        context.getString(R.string.widget_no_upcoming) to context.getString(R.string.widget_no_upcoming_desc)
+}
+
+private fun bindPkChart(
+    context: Context,
+    views: RemoteViews,
+    model: WidgetUiModel,
+    palette: WidgetPalette,
+    openApp: PendingIntent,
+    size: WidgetSize
+) {
+    views.setViewVisibility(R.id.widget_header, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_chart_plot, View.VISIBLE)
+    views.setViewVisibility(R.id.widget_chart_axis, View.VISIBLE)
+    views.setTextViewText(
+        R.id.widget_chart_axis_start,
+        context.getString(R.string.widget_pk_chart_axis_start)
+    )
+    views.setTextViewText(
+        R.id.widget_chart_axis_now,
+        context.getString(R.string.widget_pk_chart_axis_now)
+    )
+    views.setTextViewText(
+        R.id.widget_chart_axis_end,
+        context.getString(R.string.widget_pk_chart_axis_end)
+    )
+    views.setTextViewText(R.id.widget_summary, context.getString(R.string.widget_pk_chart_title))
+    bindConcentration(context, views, model.concentration)
+    applyChartTypography(views, model.layout)
+    views.removeAllViews(R.id.widget_chart_container)
+    val max = model.pkChart.maxOfOrNull { it.concentration } ?: 0.0
+    if (max <= 0.0) {
+        views.setViewVisibility(R.id.widget_chart_plot, View.GONE)
+        views.setViewVisibility(R.id.widget_chart_axis, View.GONE)
+        views.setViewVisibility(R.id.widget_empty_area, View.VISIBLE)
+        views.setTextViewText(R.id.widget_empty_title, context.getString(R.string.widget_pk_chart_unavailable))
+        views.setTextViewText(
+            R.id.widget_empty_meta,
+            context.getString(R.string.widget_pk_chart_unavailable_desc)
+        )
+        views.setOnClickPendingIntent(R.id.widget_empty_area, openApp)
+        return
+    }
+    val maxHeight = WidgetChartGeometryPolicy.maxSegmentHeightDp(size, model.layout)
+    model.pkChart.forEach { point ->
+        val bar = RemoteViews(context.packageName, R.layout.widget_chart_segment)
+        val height = (3 + (point.concentration / max * (maxHeight - 3))).roundToInt()
+            .coerceIn(3, maxHeight)
+        bar.setViewLayoutHeight(R.id.widget_chart_segment, height.toFloat(), TypedValue.COMPLEX_UNIT_DIP)
+        bar.setColorStateList(
+            R.id.widget_chart_segment,
+            "setBackgroundTintList",
+            ColorStateList.valueOf(
+                if (point.offsetHours <= 0.0) {
+                    palette.primary
+                } else {
+                    palette.primary.withAlpha(0.32f)
+                }
+            )
+        )
+        views.addView(R.id.widget_chart_container, bar)
+    }
+}
+
+private fun applyChartTypography(views: RemoteViews, layout: WidgetLayoutSpec) {
+    val typography = WidgetChartTypographyPolicy.resolve(layout)
+    views.setTextViewTextSize(
+        R.id.widget_summary,
+        TypedValue.COMPLEX_UNIT_SP,
+        typography.titleTextSp.toFloat()
+    )
+    views.setTextViewTextSize(
+        R.id.widget_concentration,
+        TypedValue.COMPLEX_UNIT_SP,
+        typography.concentrationTextSp.toFloat()
+    )
+    listOf(
+        R.id.widget_chart_axis_start,
+        R.id.widget_chart_axis_now,
+        R.id.widget_chart_axis_end
+    ).forEach { viewId ->
+        views.setTextViewTextSize(
+            viewId,
+            TypedValue.COMPLEX_UNIT_SP,
+            typography.axisTextSp.toFloat()
+        )
+    }
+}
+
+private fun Int.withAlpha(alpha: Float): Int = Color.argb(
+    (alpha.coerceIn(0f, 1f) * 255f).roundToInt(),
+    Color.red(this),
+    Color.green(this),
+    Color.blue(this)
+)
+
 private fun bindEmpty(
     context: Context,
     views: RemoteViews,
@@ -290,8 +540,7 @@ private fun bindEmpty(
     palette: WidgetPalette,
     openApp: PendingIntent
 ) {
-    views.setViewVisibility(R.id.widget_rows_container, View.GONE)
-    views.setViewVisibility(R.id.widget_progress_container, View.GONE)
+    views.setViewVisibility(R.id.widget_header, View.VISIBLE)
     views.setViewVisibility(R.id.widget_empty_area, View.VISIBLE)
     views.setTextViewText(R.id.widget_summary, context.getString(R.string.widget_daily_progress_empty))
     bindConcentration(context, views, model.concentration)
@@ -491,6 +740,20 @@ internal fun medicationRow(
                 )
             }
         }
+        WidgetRowAction.OPEN_APP -> {
+            views.setTextViewText(
+                R.id.widget_row_status,
+                formatTime(context, occurrence.scheduledLocalDateTime, timeFormat)
+            )
+            if (collectionItem) {
+                views.setOnClickFillInIntent(
+                    R.id.widget_row_action_hit,
+                    widgetOpenAppFillInIntent(appWidgetId, occurrence.occurrenceId)
+                )
+            } else {
+                views.setOnClickPendingIntent(R.id.widget_row_action_hit, openApp)
+            }
+        }
     }
     return views
 }
@@ -498,6 +761,7 @@ internal fun medicationRow(
 internal fun WidgetRowAction.iconRes(): Int = when (this) {
     WidgetRowAction.RECORD -> R.drawable.ic_widget_check
     WidgetRowAction.COMPLETED -> R.drawable.ic_widget_check_circle
+    WidgetRowAction.OPEN_APP -> R.drawable.ic_widget_open
 }
 
 private fun routeLabel(context: Context, routeKey: String): String = when (routeKey) {
@@ -597,8 +861,7 @@ internal suspend fun requestEvoluneWidgetUpdate(
 ) {
     val applicationContext = context.applicationContext
     val manager = AppWidgetManager.getInstance(applicationContext)
-    val component = ComponentName(applicationContext, EvoluneWidgetReceiver::class.java)
-    val ids = appWidgetIds ?: manager.getAppWidgetIds(component)
+    val ids = appWidgetIds ?: WidgetProviderCatalog.allWidgetIds(applicationContext)
     val work = createProductionWidgetUpdateWork(applicationContext, manager)
     ContractWidgetUpdateCoordinator { work.handle(ids) }.request(reason)
 }
@@ -622,6 +885,9 @@ private fun createProductionWidgetUpdateWork(
         ),
         renderer = WidgetSnapshotRenderer { appWidgetId, state ->
             renderWidget(context, appWidgetManager, appWidgetId, state)
+        },
+        needsPkChart = { ids ->
+            ids.any { id -> WidgetProviderCatalog.styleFor(context, id) == WidgetStyle.PK_CHART }
         }
     )
 }

@@ -13,6 +13,9 @@ class WidgetAppearanceTest {
         val repository = InMemoryWidgetAppearanceRepository()
 
         assertEquals(WidgetAppearanceConfig.Default, repository.read(10))
+        assertEquals(WidgetStyle.LEGACY_DEFAULT, WidgetStyle.fromId(null))
+        assertEquals(WidgetStyle.LEGACY_DEFAULT, WidgetStyle.fromId("unknown"))
+        assertEquals(WidgetStyle.NEXT_DOSE, WidgetStyle.fromId("next_dose"))
         assertEquals(
             MIN_WIDGET_BACKGROUND_OPACITY,
             WidgetAppearanceConfig(backgroundOpacity = 0f).normalized().backgroundOpacity
@@ -52,7 +55,8 @@ class WidgetAppearanceTest {
         val config = WidgetAppearanceConfig(
             WidgetThemeMode.DARK,
             WidgetColorScheme.MONET_AMBER,
-            0.7f
+            0.7f,
+            WidgetStyle.NEXT_DOSE
         )
 
         controller.apply(42, config)
@@ -272,6 +276,32 @@ class WidgetAppearanceTest {
                     WidgetPaletteResolver.contrastRatio(
                         low.onPrimaryContainer,
                         low.primaryContainer
+                    ) >= 4.5
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `hero panels use distinct selected palette colors with readable text`() {
+        WidgetColorScheme.entries.forEach { scheme ->
+            listOf(false, true).forEach { dark ->
+                val palette = WidgetPaletteResolver.resolve(
+                    WidgetAppearanceConfig(colorScheme = scheme),
+                    dark
+                )
+
+                assertNotEquals(palette.heroLabelPanelColor(), palette.heroValuePanelColor())
+                assertTrue(
+                    WidgetPaletteResolver.contrastRatio(
+                        palette.onPrimaryContainer,
+                        palette.heroLabelPanelColor()
+                    ) >= 4.5
+                )
+                assertTrue(
+                    WidgetPaletteResolver.contrastRatio(
+                        palette.onSurface,
+                        palette.heroValuePanelColor()
                     ) >= 4.5
                 )
             }

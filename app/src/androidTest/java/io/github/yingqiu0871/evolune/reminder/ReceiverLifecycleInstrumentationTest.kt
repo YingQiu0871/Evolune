@@ -224,6 +224,59 @@ class ReceiverLifecycleInstrumentationTest {
         assertEquals(0, starts.get())
     }
 
+    @Test
+    fun skippedOccurrenceDoesNotStartReminderDelivery() {
+        val planId = UUID.randomUUID()
+        val slotId = UUID.randomUUID()
+        val scheduledAtMillis = 1_900_000_000_000L
+        assertTrue(
+            ReminderSkipStore(context).markSkipped(planId, slotId, scheduledAtMillis)
+        )
+        val starts = AtomicInteger()
+        val receiver = MedicationReminderReceiver(
+            workFactory = {
+                starts.incrementAndGet()
+                ReminderDeliveryWork { ReminderDeliveryOutcome.Notified }
+            }
+        )
+
+        receiver.onReceive(
+            context,
+            Intent(ACTION_REMINDER_TEST).apply {
+                putExtra(MedicationReminderReceiver.EXTRA_PLAN_ID, planId.toString())
+                putExtra(MedicationReminderReceiver.EXTRA_SLOT_ID, slotId.toString())
+                putExtra(
+                    MedicationReminderReceiver.EXTRA_SCHEDULED_AT_MILLIS,
+                    scheduledAtMillis
+                )
+            }
+        )
+
+        assertEquals(0, starts.get())
+    }
+
+    @Test
+    fun malformedNewSlotIdentityDoesNotUseLegacyDeliveryPath() {
+        val starts = AtomicInteger()
+        val receiver = MedicationReminderReceiver(
+            workFactory = {
+                starts.incrementAndGet()
+                ReminderDeliveryWork { ReminderDeliveryOutcome.Notified }
+            }
+        )
+
+        receiver.onReceive(
+            context,
+            Intent(ACTION_REMINDER_TEST).apply {
+                putExtra(MedicationReminderReceiver.EXTRA_PLAN_ID, UUID.randomUUID().toString())
+                putExtra(MedicationReminderReceiver.EXTRA_SLOT_ID, "not-a-uuid")
+                putExtra(MedicationReminderReceiver.EXTRA_SCHEDULED_AT_MILLIS, 1_900_000_000_000L)
+            }
+        )
+
+        assertEquals(0, starts.get())
+    }
+
     private fun launcher(
         finished: CountDownLatch,
         finishCalls: AtomicInteger

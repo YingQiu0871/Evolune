@@ -10,6 +10,7 @@ internal const val WEAR_APP_SYNC_TIMEOUT_MILLIS = 30_000L
 internal const val WEAR_APP_STALE_AFTER_MILLIS = 15 * 60_000L
 /** Independent freshness window for the Phone-calculated concentration. */
 internal const val WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS = 15 * 60_000L
+internal const val WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS = 5 * 60_000L
 internal const val WEAR_APP_STATE_CHANGED_ACTION =
     "io.github.yingqiu0871.evolune.wear.ACTION_STATE_CHANGED"
 
@@ -88,11 +89,11 @@ internal fun deriveWearAppConcentrationPresentation(
         concentration.unit != io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules.CONCENTRATION_UNIT_PG_ML ||
         calculatedAtMillis == null ||
         calculatedAtMillis <= 0L ||
-        nowMillis < calculatedAtMillis
+        nowMillis < calculatedAtMillis - WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS
     ) {
         return WearAppConcentrationPresentation(WearAppConcentrationDisplayState.UNAVAILABLE)
     }
-    val ageMillis = nowMillis - calculatedAtMillis
+    val ageMillis = (nowMillis - calculatedAtMillis).coerceAtLeast(0L)
     val state = if (
         concentration.status == io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus.STALE ||
         ageMillis >= WEAR_APP_CONCENTRATION_STALE_AFTER_MILLIS

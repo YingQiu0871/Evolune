@@ -7,6 +7,7 @@ import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentation
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceStatus
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePolicy
 import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentration
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
@@ -15,7 +16,10 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
+import io.github.yingqiu0871.evolune.experience.wear.WearAppTodaySummary
+import io.github.yingqiu0871.evolune.experience.wear.WearAppTodaySummaryState
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence
+import io.github.yingqiu0871.evolune.reminder.reminderOccurrences
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -43,8 +47,9 @@ internal object WearAppSnapshotBuilder {
             .sortedBy { it.id.toString() }
         val recordedEvents = WearAppRecentDoseSelector.eligible(events)
 
+        val schedules = enabledPlans.map(MedicationPlan::toMedicationSchedule)
         val occurrences = MedicationOccurrenceGenerator.generate(
-            schedules = enabledPlans.map(MedicationPlan::toMedicationSchedule),
+            schedules = schedules,
             window = OccurrenceGenerationWindow(
                 startInclusive = generatedAt.minus(Duration.ofHours(1)),
                 endExclusive = generatedAt.plus(Duration.ofDays(366))
@@ -55,6 +60,43 @@ internal object WearAppSnapshotBuilder {
             occurrences = occurrences,
             recordedEvents = recordedEvents.mapNotNull(DoseEvent::toRecordedMedicationEvent),
             now = generatedAt
+        )
+        val todayLocalDate = generatedAt.atZone(zoneId).toLocalDate()
+        val todayPolicy = MedicationOccurrencePolicy()
+        val todayStart = todayLocalDate.atStartOfDay(zoneId).toInstant()
+        val nextDayStart = todayLocalDate.plusDays(1).atStartOfDay(zoneId).toInstant()
+        val todayMatchContext = todayPolicy.matchBefore.plus(todayPolicy.matchAfter)
+        val todayOccurrences = MedicationOccurrenceGenerator.generate(
+            schedules = schedules,
+            window = OccurrenceGenerationWindow(
+                // Keep adjacent occurrences in the matching context. Legacy
+                // null-slot events around midnight must remain ambiguous when
+                // both sides of the boundary are valid candidates.
+                startInclusive = todayStart.minus(todayMatchContext),
+                endExclusive = nextDayStart.plus(todayMatchContext)
+            ),
+            zoneId = zoneId
+        )
+        val todayTimeline = MedicationOccurrencePresentation.derive(
+            occurrences = todayOccurrences,
+            recordedEvents = recordedEvents.mapNotNull(DoseEvent::toRecordedMedicationEvent),
+            now = generatedAt,
+            policy = todayPolicy
+        ).filter { item ->
+            item.occurrence.scheduledLocalDateTime.toLocalDate() == todayLocalDate
+        }
+        val todaySummary = WearAppTodaySummary(
+            todayLocalDate = todayLocalDate,
+            computedAt = generatedAt,
+            completedCount = todayTimeline.count { item ->
+                item.status == MedicationOccurrenceStatus.RECORDED
+            },
+            totalCount = todayTimeline.size,
+            state = when {
+                enabledPlans.isEmpty() -> WearAppTodaySummaryState.NO_ENABLED_PLANS
+                todayTimeline.isEmpty() -> WearAppTodaySummaryState.NO_OCCURRENCES
+                else -> WearAppTodaySummaryState.HAS_OCCURRENCES
+            }
         )
         val upcoming = timeline
             .asSequence()
@@ -80,7 +122,13 @@ internal object WearAppSnapshotBuilder {
                     route = item.occurrence.presentation.matchKey.routeKey,
                     dose = item.occurrence.presentation.matchKey.doseAmount,
                     doseUnit = WearAppSnapshotRules.DOSE_UNIT_MILLIGRAM,
-                    status = item.status.toWearAppStatus()
+                    status = item.status.toWearAppStatus(),
+                    notificationId = reminderNotificationId(
+                        plan = enabledPlans.firstOrNull { it.id == item.occurrence.planId },
+                        occurrence = item.occurrence,
+                        generatedAt = generatedAt,
+                        zoneId = zoneId
+                    )
                 )
             }
             .toList()
@@ -117,7 +165,8 @@ internal object WearAppSnapshotBuilder {
             upcomingOccurrences = upcoming,
             concentrationState = concentration,
             producerInstanceId = producerIdentity.producerInstanceId,
-            producerGeneration = producerIdentity.producerGeneration
+            producerGeneration = producerIdentity.producerGeneration,
+            todaySummary = todaySummary
         ).also { snapshot ->
             check(WearAppSnapshotRules.isValid(snapshot))
         }
@@ -125,6 +174,21 @@ internal object WearAppSnapshotBuilder {
 
     private fun hasValidCalculationInstant(instant: Instant): Boolean =
         runCatching { instant.toEpochMilli() > 0L }.getOrDefault(false)
+
+    private fun reminderNotificationId(
+        plan: MedicationPlan?,
+        occurrence: io.github.yingqiu0871.evolune.experience.MedicationOccurrence,
+        generatedAt: Instant,
+        zoneId: ZoneId
+    ): Int? {
+        if (plan == null) return null
+        val localDateTime = occurrence.scheduledLocalDateTime
+        val reminder = reminderOccurrences(
+            plan,
+            generatedAt.atZone(zoneId).toLocalDateTime()
+        ).firstOrNull { it.dateTime == localDateTime } ?: return null
+        return plan.id.hashCode() + reminder.requestOffset
+    }
 
     private fun MedicationOccurrenceStatus.toWearAppStatus() = when (this) {
         MedicationOccurrenceStatus.UPCOMING ->

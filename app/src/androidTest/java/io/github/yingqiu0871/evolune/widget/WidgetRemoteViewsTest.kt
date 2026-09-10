@@ -3,6 +3,8 @@ package io.github.yingqiu0871.evolune.widget
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
@@ -12,6 +14,7 @@ import android.widget.ImageView
 import android.widget.RemoteViews
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceStatus
@@ -38,7 +41,18 @@ class WidgetRemoteViewsTest {
             R.layout.widget_evolune,
             R.layout.widget_evolune_wide,
             R.layout.widget_evolune_expanded
-        ).forEach { layout -> assertCommonViews(inflate(layout)) }
+        ).forEach { layout ->
+            val root = inflate(layout)
+            assertCommonViews(root)
+            assertNotNull(root.findViewById<View>(R.id.widget_split_label))
+            assertNotNull(root.findViewById<View>(R.id.widget_split_value_panel))
+        }
+
+        val chart = inflate(R.layout.widget_chart_segment)
+        assertNotNull(chart.findViewById<View>(R.id.widget_chart_segment))
+        layoutsForAxis().forEach { layout ->
+            assertNotNull(inflate(layout).findViewById<View>(R.id.widget_chart_axis))
+        }
 
         val row = inflate(R.layout.widget_medication_row)
         assertNotNull(row.findViewById<View>(R.id.widget_row_root))
@@ -56,6 +70,18 @@ class WidgetRemoteViewsTest {
     }
 
     @Test
+    fun pickerPreviewsInflateWithRemoteViewsAllowedViews() {
+        listOf(
+            R.layout.widget_preview_today_plan,
+            R.layout.widget_preview_next_dose,
+            R.layout.widget_preview_current_e2,
+            R.layout.widget_preview_pk_chart
+        ).forEach { layout ->
+            assertNotNull(inflate(layout))
+        }
+    }
+
+    @Test
     fun perWidgetAppearancePersistsIndependentlyAndDeletionIsScoped() {
         val store = WidgetAppearanceStore(context)
         val firstId = 900_101
@@ -63,7 +89,8 @@ class WidgetRemoteViewsTest {
         val first = WidgetAppearanceConfig(
             WidgetThemeMode.DARK,
             WidgetColorScheme.MONET_VIOLET,
-            0.4f
+            0.4f,
+            WidgetStyle.PK_CHART
         )
         val second = WidgetAppearanceConfig(
             WidgetThemeMode.LIGHT,
@@ -121,7 +148,7 @@ class WidgetRemoteViewsTest {
                 (0..2).forEach { railRoleIndex ->
                     val row = medicationRow(
                         context,
-                        occurrence(MedicationOccurrenceStatus.PAST_UNRECORDED),
+                        occurrence(MedicationOccurrenceStatus.DUE),
                         TimeFormat.HOUR_24,
                         palette,
                         rowLayout,
@@ -144,22 +171,25 @@ class WidgetRemoteViewsTest {
     }
 
     @Test
-    fun providerAdvertisesOfficialOptionalReconfigurationActivity() {
-        val component = ComponentName(context, EvoluneWidgetReceiver::class.java)
-        val provider = AppWidgetManager.getInstance(context).installedProviders
-            .single { it.provider == component }
+    fun allProvidersRequireTheOfficialConfigurationActivityAndSupportReconfiguration() {
+        val manager = AppWidgetManager.getInstance(context)
+        WidgetProviderCatalog.providerClasses.forEach { receiver ->
+            val component = ComponentName(context, receiver)
+            val provider = manager.installedProviders.single { it.provider == component }
 
-        assertEquals(
-            ComponentName(context, WidgetConfigurationActivity::class.java),
-            provider.configure
-        )
-        assertTrue(
-            provider.widgetFeatures and AppWidgetProviderInfo.WIDGET_FEATURE_RECONFIGURABLE != 0
-        )
-        assertTrue(
-            provider.widgetFeatures and
-                AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL != 0
-        )
+            assertEquals(
+                ComponentName(context, WidgetConfigurationActivity::class.java),
+                provider.configure
+            )
+            assertTrue(
+                provider.widgetFeatures and AppWidgetProviderInfo.WIDGET_FEATURE_RECONFIGURABLE != 0
+            )
+            assertEquals(
+                0,
+                provider.widgetFeatures and
+                    AppWidgetProviderInfo.WIDGET_FEATURE_CONFIGURATION_OPTIONAL
+            )
+        }
     }
 
     @Test
@@ -173,7 +203,7 @@ class WidgetRemoteViewsTest {
 
     @Test
     fun actionableOccurrenceCarriesExactIdentityAndBuildsCheckPendingIntent() {
-        val occurrence = occurrence(MedicationOccurrenceStatus.PAST_UNRECORDED)
+        val occurrence = occurrence(MedicationOccurrenceStatus.DUE)
         val intent = widgetOccurrenceActionIntent(context, occurrence, 314)
 
         assertEquals(ACTION_RECORD_OCCURRENCE, intent.action)
@@ -191,9 +221,57 @@ class WidgetRemoteViewsTest {
         assertNotNull(recordOccurrencePendingIntent(context, occurrence, 314))
     }
 
+    private fun layoutsForAxis() = listOf(
+        R.layout.widget_evolune_compact,
+        R.layout.widget_evolune,
+        R.layout.widget_evolune_wide,
+        R.layout.widget_evolune_expanded
+    )
+
+    @Test
+    fun openAppFillInCarriesReadOnlyWidgetOccurrenceIdentity() {
+        val occurrence = occurrence(MedicationOccurrenceStatus.UPCOMING)
+        val intent = widgetOpenAppFillInIntent(314, occurrence.occurrenceId)
+
+        assertEquals(ACTION_OPEN_WIDGET_APP, intent.action)
+        assertEquals(314, intent.getIntExtra(EXTRA_WIDGET_ID, -1))
+        assertEquals(
+            "evolune://widget/314/open/${occurrence.occurrenceId}",
+            intent.dataString
+        )
+        assertEquals(null, intent.getStringExtra(EXTRA_PLAN_ID))
+        assertEquals(null, intent.getStringExtra(EXTRA_SLOT_ID))
+        assertEquals(null, intent.getStringExtra(EXTRA_SCHEDULED_LOCAL_DATE))
+        assertEquals(null, intent.getStringExtra(EXTRA_OCCURRENCE_ID))
+    }
+
+    @Test
+    fun openAppReceiverLaunchesMainActivityWithoutStartingQuickActionWork() {
+        val started = RecordingStartActivityContext(context)
+        var quickActionFactoryCalls = 0
+        val receiver = EvoluneWidgetReceiver(
+            quickActionWorkFactory = {
+                quickActionFactoryCalls += 1
+                WidgetQuickActionWork { WidgetQuickActionOutcome.Accepted(false) }
+            },
+            updateWorkFactory = { _, _ -> WidgetUpdateWork {} }
+        )
+
+        receiver.onReceive(started, Intent(ACTION_OPEN_WIDGET_APP))
+
+        assertEquals(
+            ComponentName(context, MainActivity::class.java),
+            started.startedIntent?.component
+        )
+        assertTrue(
+            started.startedIntent?.flags?.and(Intent.FLAG_ACTIVITY_NEW_TASK) != 0
+        )
+        assertEquals(0, quickActionFactoryCalls)
+    }
+
     @Test
     fun samePlanSlotsHaveDistinctAndStableOccurrencePendingIntents() {
-        val base = occurrence(MedicationOccurrenceStatus.PAST_UNRECORDED)
+        val base = occurrence(MedicationOccurrenceStatus.DUE)
         val occurrences = listOf(9, 17, 22).mapIndexed { index, hour ->
             base.copy(
                 occurrenceId = UUID(0L, 710L + index),
@@ -240,7 +318,7 @@ class WidgetRemoteViewsTest {
             openApp
         ).apply(context, FrameLayout(context)).findViewById(R.id.widget_row_action)
 
-        val actionable = render(MedicationOccurrenceStatus.PAST_UNRECORDED)
+        val actionable = render(MedicationOccurrenceStatus.DUE)
         val completed = render(MedicationOccurrenceStatus.RECORDED)
 
         assertEquals(actionable.layoutParams.width, completed.layoutParams.width)
@@ -266,7 +344,7 @@ class WidgetRemoteViewsTest {
         listOf(1, 2, 3).forEach { count ->
             val rowLayout = WidgetRowDensityPolicy.resolve(layout, count)
             listOf(
-                MedicationOccurrenceStatus.PAST_UNRECORDED,
+                MedicationOccurrenceStatus.DUE,
                 MedicationOccurrenceStatus.RECORDED
             ).forEach { status ->
                 val row = medicationRow(
@@ -365,10 +443,11 @@ class WidgetRemoteViewsTest {
             scheduledLocalDateTime = LocalDateTime.parse("2027-01-15T09:00:00"),
             doseMg = 2.0,
             status = status,
-            action = if (status == MedicationOccurrenceStatus.RECORDED) {
-                WidgetRowAction.COMPLETED
-            } else {
-                WidgetRowAction.RECORD
+            action = when (status) {
+                MedicationOccurrenceStatus.DUE -> WidgetRowAction.RECORD
+                MedicationOccurrenceStatus.RECORDED -> WidgetRowAction.COMPLETED
+                MedicationOccurrenceStatus.UPCOMING,
+                MedicationOccurrenceStatus.PAST_UNRECORDED -> WidgetRowAction.OPEN_APP
             },
             statusPresentation = if (status == MedicationOccurrenceStatus.RECORDED) {
                 WidgetRowStatusPresentation.COMPLETED
@@ -379,4 +458,12 @@ class WidgetRemoteViewsTest {
 
     private fun android.content.Context.dpToPx(dp: Int): Int =
         (dp * resources.displayMetrics.density).roundToInt()
+
+    private class RecordingStartActivityContext(base: Context) : ContextWrapper(base) {
+        var startedIntent: Intent? = null
+
+        override fun startActivity(intent: Intent) {
+            startedIntent = Intent(intent)
+        }
+    }
 }

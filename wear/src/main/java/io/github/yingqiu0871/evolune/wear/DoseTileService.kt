@@ -9,7 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.graphics.createBitmap
 import androidx.wear.protolayout.DimensionBuilders
+import androidx.wear.protolayout.ColorBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
+import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.ResourceBuilders.Resources
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.protolayout.StateBuilders
@@ -26,6 +28,7 @@ import androidx.wear.protolayout.material3.textButton
 import androidx.wear.protolayout.modifiers.clickable
 import androidx.wear.protolayout.modifiers.loadAction
 import androidx.wear.protolayout.types.layoutString
+import androidx.wear.protolayout.types.LayoutColor
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.RequestBuilders.ResourcesRequest
 import androidx.wear.tiles.TileBuilders.Tile
@@ -36,7 +39,7 @@ import com.google.common.util.concurrent.Futures
 import java.nio.ByteBuffer
 import java.util.UUID
 
-private const val RESOURCES_VERSION_PREFIX = "6"
+private const val RESOURCES_VERSION_PREFIX = "9"
 private const val DOSE_ACTIONS_PATH_PREFIX = "/hrt/dose-actions"
 private const val CHART_RESOURCE_ID = "concentration_chart"
 private const val CHART_WIDTH_PX = 240
@@ -82,14 +85,17 @@ class DoseTileService : TileService() {
             nowMillis,
             SENT_FEEDBACK_MILLIS
         )
+        val scheme = WearAppearanceStore.read(this)
+        val palette = WearAppearanceStore.resolve(this, scheme)
         val layout = materialScope(this, requestParams.deviceConfiguration) {
             primaryLayout(
                 titleSlot = {
                     text(
                         dashboard.concentrationAt(nowMillis)?.let {
-                            "雌二醇 %.1f pg/mL".format(it)
-                        }?.layoutString ?: "雌二醇浓度".layoutString,
-                        typography = TITLE_SMALL
+                            "E2 · %.1f pg/mL".format(it)
+                        }?.layoutString ?: "E2 浓度".layoutString,
+                        typography = TITLE_SMALL,
+                        color = LayoutColor(palette.onBackground)
                     )
                 },
                 mainSlot = {
@@ -103,7 +109,7 @@ class DoseTileService : TileService() {
                             LayoutElementBuilders.Image.Builder()
                                 .setResourceId(CHART_RESOURCE_ID)
                                 .setWidth(DimensionBuilders.dp(150f))
-                                .setHeight(DimensionBuilders.dp(45f))
+                                .setHeight(DimensionBuilders.dp(43f))
                                 .setContentScaleMode(
                                     LayoutElementBuilders.CONTENT_SCALE_MODE_FIT
                                 )
@@ -111,7 +117,7 @@ class DoseTileService : TileService() {
                         )
                         column.addContent(
                             LayoutElementBuilders.Spacer.Builder()
-                                .setHeight(DimensionBuilders.dp(4f))
+                                .setHeight(DimensionBuilders.dp(12f))
                                 .build()
                         )
                     }
@@ -120,24 +126,30 @@ class DoseTileService : TileService() {
                             text(
                                 requireNotNull(dashboardState.displayMessage()).layoutString,
                                 typography = BODY_MEDIUM,
+                                color = LayoutColor(palette.onSurfaceVariant),
                                 maxLines = 2
                             )
                         )
                     } else {
-                        val buttonWidth = 80f
-                        val buttonSpacing = 6f
+                        val buttonWidth = 76f
+                        val buttonSpacing = 8f
                         val rowWidth =
                             plans.size * buttonWidth +
                                 (plans.size - 1) * buttonSpacing
                         val buttonRow = LayoutElementBuilders.Row.Builder()
                             .setWidth(DimensionBuilders.dp(rowWidth))
-                            .setHeight(DimensionBuilders.dp(52f))
+                            .setHeight(DimensionBuilders.dp(46f))
                             .setVerticalAlignment(
                                 LayoutElementBuilders.VERTICAL_ALIGN_CENTER
                             )
                         plans.forEachIndexed { index, plan ->
                             buttonRow.addContent(
-                                textButton(
+                                legacyActionButton(
+                                    label = run {
+                                        val prefix = if (lastSentPlanId == plan.id) "✓ " else ""
+                                        "$prefix${plan.name}\n${formatDose(plan.doseMG)}mg"
+                                    },
+                                    palette = palette,
                                     onClick = clickable(
                                         action = loadAction(
                                             dynamicDataMapOf(
@@ -145,18 +157,8 @@ class DoseTileService : TileService() {
                                             )
                                         )
                                     ),
-                                    width = DimensionBuilders.dp(buttonWidth),
-                                    height = DimensionBuilders.dp(52f),
-                                    labelContent = {
-                                        val prefix =
-                                            if (lastSentPlanId == plan.id) "✓ " else ""
-                                        text(
-                                            "$prefix${plan.name}\n${formatDose(plan.doseMG)}mg"
-                                                .layoutString,
-                                            typography = BODY_MEDIUM,
-                                            maxLines = 2
-                                        )
-                                    }
+                                    widthDp = buttonWidth,
+                                    heightDp = 46f
                                 )
                             )
                             if (index < plans.lastIndex) {
@@ -177,8 +179,8 @@ class DoseTileService : TileService() {
         }
 
         return Tile.Builder()
-            .setResourcesVersion(resourcesVersion(dashboard, nowMillis))
-            .setFreshnessIntervalMillis(5 * 60 * 1000L)
+            .setResourcesVersion(resourcesVersion(dashboard, nowMillis, scheme))
+            .setFreshnessIntervalMillis(WEAR_TILE_FRESHNESS_MILLIS)
             .setTileTimeline(Timeline.fromLayoutElement(layout))
             .setState(StateBuilders.State.Builder().build())
             .build()
@@ -187,8 +189,10 @@ class DoseTileService : TileService() {
     private fun buildResources(): Resources {
         val dashboard = WearPlanStore.getDashboard(this)
         val nowMillis = System.currentTimeMillis()
+        val scheme = WearAppearanceStore.read(this)
+        val palette = WearAppearanceStore.resolve(this, scheme)
         val builder = Resources.Builder()
-            .setVersion(resourcesVersion(dashboard, nowMillis))
+            .setVersion(resourcesVersion(dashboard, nowMillis, scheme))
         if (dashboard.curveValues.isNotEmpty()) {
             builder.addIdToImageMapping(
                 CHART_RESOURCE_ID,
@@ -198,7 +202,8 @@ class DoseTileService : TileService() {
                             .setData(
                                 renderChart(
                                     dashboard.curveValues,
-                                    dashboard.currentCurvePosition(nowMillis)
+                                    dashboard.currentCurvePosition(nowMillis),
+                                    palette
                                 )
                             )
                             .setWidthPx(CHART_WIDTH_PX)
@@ -246,13 +251,15 @@ class DoseTileService : TileService() {
 
 private fun resourcesVersion(
     dashboard: WearDashboard,
-    nowMillis: Long
+    nowMillis: Long,
+    scheme: WearColorScheme
 ): String =
-    "$RESOURCES_VERSION_PREFIX-${dashboard.updatedAt}-${nowMillis / 300_000L}"
+    "$RESOURCES_VERSION_PREFIX-${scheme.name}-${dashboard.updatedAt}-${nowMillis / 300_000L}"
 
 private fun renderChart(
     values: List<Float>,
-    currentPosition: Float
+    currentPosition: Float,
+    palette: WearPalette
 ): ByteArray {
     val bitmap = createBitmap(
         CHART_WIDTH_PX,
@@ -273,17 +280,17 @@ private fun renderChart(
             value.coerceIn(0f, maxValue) / maxValue * plotHeight
 
     val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(75, 190, 195, 215)
+        color = withAlpha(palette.outline, 90)
         strokeWidth = 1f
         style = Paint.Style.STROKE
     }
     val axisPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(180, 220, 222, 235)
+        color = withAlpha(palette.onSurfaceVariant, 190)
         strokeWidth = 1.5f
         style = Paint.Style.STROKE
     }
     val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.rgb(205, 207, 220)
+        color = palette.onSurfaceVariant
         textSize = 9f
     }
     listOf(0f, 100f, 200f).forEach { tick ->
@@ -313,7 +320,7 @@ private fun renderChart(
     )
 
     val targetPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(55, 155, 165, 255)
+        color = withAlpha(palette.secondary, 48)
         style = Paint.Style.FILL
     }
     canvas.drawRect(
@@ -325,7 +332,7 @@ private fun renderChart(
     )
 
     val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.rgb(199, 210, 254)
+        color = palette.primary
         strokeWidth = 3f
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
@@ -355,7 +362,7 @@ private fun renderChart(
         plotLeft + pointPosition * plotWidth
     }
     Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.rgb(244, 180, 220)
+        color = palette.tertiary
         style = Paint.Style.FILL
         canvas.drawCircle(currentX, y(currentValue), 4.5f, this)
     }
@@ -378,3 +385,50 @@ private fun renderChart(
     bitmap.recycle()
     return buffer.array()
 }
+
+private fun androidx.wear.protolayout.material3.MaterialScope.legacyActionButton(
+    label: String,
+    palette: WearPalette,
+    onClick: ModifiersBuilders.Clickable,
+    widthDp: Float,
+    heightDp: Float
+): LayoutElementBuilders.LayoutElement {
+    val background = ModifiersBuilders.Background.Builder()
+        .setColor(ColorBuilders.ColorProp.Builder(palette.primaryContainer).build())
+        .setCorner(
+            ModifiersBuilders.Corner.Builder()
+                .setRadius(DimensionBuilders.dp(WEAR_CARD_CORNER_RADIUS_DP))
+                .build()
+        )
+        .build()
+    val modifiers = ModifiersBuilders.Modifiers.Builder()
+        .setBackground(background)
+        .setClickable(onClick)
+        .setPadding(
+            ModifiersBuilders.Padding.Builder()
+                .setStart(DimensionBuilders.dp(7f))
+                .setEnd(DimensionBuilders.dp(7f))
+                .setTop(DimensionBuilders.dp(5f))
+                .setBottom(DimensionBuilders.dp(5f))
+                .build()
+        )
+        .build()
+    return LayoutElementBuilders.Box.Builder()
+        .setWidth(DimensionBuilders.dp(widthDp))
+        .setHeight(DimensionBuilders.dp(heightDp))
+        .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
+        .setVerticalAlignment(LayoutElementBuilders.VERTICAL_ALIGN_CENTER)
+        .setModifiers(modifiers)
+        .addContent(
+            text(
+                label.layoutString,
+                typography = BODY_MEDIUM,
+                color = LayoutColor(palette.onPrimaryContainer),
+                maxLines = 2
+            )
+        )
+        .build()
+}
+
+private fun withAlpha(color: Int, alpha: Int): Int =
+    (color and 0x00ffffff) or (alpha.coerceIn(0, 255) shl 24)

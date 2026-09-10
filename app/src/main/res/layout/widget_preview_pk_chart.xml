@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:text="@string/widget_pk_chart_title"
+        android:textColor="#FF1F1D20"
+        android:textSize="14sp" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="2dp"
+            android:baselineAligned="false"
+            android:gravity="bottom"
+            android:orientation="horizontal">
+
+            <TextView android:layout_width="0dp" android:layout_height="14dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="22dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="34dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="72dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="88dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="98dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="91dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="80dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="68dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="58dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#FF6750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="39dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="34dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="29dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="25dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="21dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="18dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="15dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="13dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="11dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="9dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="7dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+            <TextView android:layout_width="0dp" android:layout_height="5dp" android:layout_weight="1" android:layout_marginHorizontal="1dp" android:background="@drawable/widget_chart_bar" android:backgroundTint="#526750A4" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:background="#661F1D20" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_gravity="bottom"
+            android:background="#661F1D20" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:text="@string/widget_pk_chart_axis_start"
+            android:textColor="#FF4C464E"
+            android:textSize="8sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/widget_pk_chart_axis_now"
+            android:textColor="#FF4C464E"
+            android:textSize="8sp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="@string/widget_pk_chart_axis_end"
+            android:textColor="#FF4C464E"
+            android:textSize="8sp" />
+    </LinearLayout>
+</LinearLayout>

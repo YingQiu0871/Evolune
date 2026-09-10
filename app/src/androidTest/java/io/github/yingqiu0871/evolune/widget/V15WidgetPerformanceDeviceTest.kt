@@ -95,6 +95,26 @@ class V15WidgetPerformanceDeviceTest {
                     SystemClock.elapsedRealtimeNanos() - startedAt
                 }
 
+                INSTANCE_COUNTS.forEach { instanceCount ->
+                    val batchTimings = LongArray(MEASUREMENT_RUNS) {
+                        val startedAt = SystemClock.elapsedRealtimeNanos()
+                        repeat(instanceCount) {
+                            val model = WidgetUiMapper.map(
+                                WidgetRenderState.Loaded(firstSnapshot),
+                                layout,
+                                WidgetAppearanceConfig.Default
+                            )
+                            assertEquals(firstModel, model)
+                        }
+                        SystemClock.elapsedRealtimeNanos() - startedAt
+                    }
+                    Log.i(
+                        TAG,
+                        "WIDGET_INSTANCES dataset=${dataset.name} count=$instanceCount " +
+                            "sharedSnapshot=true mapBatch=${statistics(batchTimings)}"
+                    )
+                }
+
                 Log.i(
                     TAG,
                     "WIDGET_DATASET name=${dataset.name} plans=${dataset.plans.size} " +
@@ -158,6 +178,7 @@ class V15WidgetPerformanceDeviceTest {
         const val WARMUP_RUNS = 2
         const val MEASUREMENT_RUNS = 7
         const val NANOS_PER_MILLISECOND = 1_000_000.0
+        val INSTANCE_COUNTS = intArrayOf(1, 3, 5)
         val ZONE: ZoneId = ZoneId.of("Europe/Paris")
         val NOW: Instant = Instant.parse("2026-09-04T12:00:00Z")
         val SLOT_TIMES = listOf(

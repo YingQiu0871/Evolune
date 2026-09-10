@@ -22,13 +22,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.UUID
 
 class WidgetWorkTest {
     private val plan = syntheticPlan()
-    private val now = Instant.parse("2027-01-15T08:30:00.789Z")
+    private val now = Instant.parse("2027-01-15T00:30:00.789Z")
     private val zoneId = ZoneId.of("Asia/Shanghai")
 
     @Test
@@ -88,6 +89,39 @@ class WidgetWorkTest {
         ).load()
 
         assertNull(snapshot.concentration)
+    }
+
+    @Test
+    fun `PK chart uses fixed 48 hour window with 25 points and shares current scalar`() = runBlocking {
+        val event = event(UUID(0L, 708L), now.minusSeconds(3_600L), Route.ORAL)
+        val snapshot = WidgetSnapshotLoader(
+            medicationPlans = FakeMedicationPlanRepository(listOf(plan)),
+            doseEvents = FakeDoseEventRepository().apply { pkEvents = listOf(event) },
+            bodyWeight = { 60.0 },
+            clock = Clock.fixed(now, ZoneOffset.UTC)
+        ).load(includePkChart = true)
+
+        assertEquals(WidgetPkChartPolicy.POINT_COUNT, snapshot.pkChart.size)
+        assertEquals(-24.0, snapshot.pkChart.first().offsetHours, 1e-9)
+        assertEquals(24.0, snapshot.pkChart.last().offsetHours, 1e-9)
+        val current = snapshot.pkChart.minBy { kotlin.math.abs(it.offsetHours) }
+        assertEquals(0.0, current.offsetHours, 1e-9)
+        assertEquals(snapshot.concentration!!, current.concentration, 1e-6)
+        assertEquals(now, snapshot.concentrationComputedAt)
+    }
+
+    @Test
+    fun `non PK snapshot does not compute chart or concentration`() = runBlocking {
+        val snapshot = WidgetSnapshotLoader(
+            medicationPlans = FakeMedicationPlanRepository(listOf(plan)),
+            doseEvents = FakeDoseEventRepository(),
+            bodyWeight = { error("body weight must not be read") },
+            clock = Clock.fixed(now, ZoneOffset.UTC)
+        ).load(includePkChart = true)
+
+        assertTrue(snapshot.pkChart.isEmpty())
+        assertNull(snapshot.concentration)
+        assertNull(snapshot.concentrationComputedAt)
     }
 
     @Test
@@ -251,6 +285,45 @@ class WidgetWorkTest {
     }
 
     @Test
+    fun `action time rechecks availability and rejects upcoming or expired occurrence`() = runBlocking {
+        val events = FakeDoseEventRepository()
+        val effects = WidgetEffectsSpy()
+        val beforeDue = now.minusSeconds(3_601L)
+        val afterWindow = now.plusSeconds(3_601L)
+
+        assertSame(
+            WidgetQuickActionOutcome.Invalid,
+            quickWork(events, effects, beforeDue).handle(command())
+        )
+        assertSame(
+            WidgetQuickActionOutcome.Invalid,
+            quickWork(events, effects, afterWindow).handle(command())
+        )
+
+        assertEquals(0, events.insertCalls)
+        assertTrue(effects.order.isEmpty())
+    }
+
+    @Test
+    fun `accepted widget action remains idempotent after its availability window closes`() = runBlocking {
+        val events = FakeDoseEventRepository()
+        val firstEffects = WidgetEffectsSpy()
+        val replayEffects = WidgetEffectsSpy()
+
+        assertEquals(
+            WidgetQuickActionOutcome.Accepted(false),
+            quickWork(events, firstEffects, now).handle(command())
+        )
+        assertEquals(
+            WidgetQuickActionOutcome.Accepted(true),
+            quickWork(events, replayEffects, now.plusSeconds(3_601L)).handle(command())
+        )
+
+        assertEquals(1, events.insertCalls)
+        assertEquals(listOf("refresh", "toast:Synthetic plan"), replayEffects.order)
+    }
+
+    @Test
     fun `three same-day occurrences of one plan have separate action identities`() =
         runBlocking {
             val threeSlotPlan = syntheticPlan(slots = listOf(
@@ -264,13 +337,19 @@ class WidgetWorkTest {
                 command(threeSlotPlan, slot.id, today)
             }
 
-            commands.forEachIndexed { index, action ->
+            commands.forEach { action ->
+                val localDate = LocalDate.parse(requireNotNull(action.scheduledLocalDate))
+                val slotId = UUID.fromString(requireNotNull(action.slotId))
+                val actionInstant = localDate
+                    .atTime(threeSlotPlan.slots.single { it.id == slotId }.localTime)
+                    .atZone(zoneId)
+                    .toInstant()
                 assertEquals(
                     WidgetQuickActionOutcome.Accepted(false),
                     quickWork(
                         events,
                         WidgetEffectsSpy(),
-                        now.plusSeconds(index * 60L),
+                        actionInstant,
                         threeSlotPlan
                     ).handle(action)
                 )
@@ -279,6 +358,49 @@ class WidgetWorkTest {
             assertEquals(3, events.insertCalls)
             assertEquals(3, events.events.size)
             assertEquals(3, events.events.keys.distinct().size)
+        }
+
+    @Test
+    fun `action-time availability keeps legacy null-slot event on earlier sibling`() =
+        runBlocking {
+            val twoSlotPlan = syntheticPlan(
+                slots = listOf(
+                    java.time.LocalTime.of(7, 0),
+                    java.time.LocalTime.of(9, 30)
+                )
+            )
+            val unrelatedPlan = syntheticPlan(
+                id = UUID(0L, 602L),
+                slots = listOf(java.time.LocalTime.of(12, 0))
+            ).copy(route = Route.INJECTION)
+            val today = now.atZone(zoneId).toLocalDate()
+            val earlierAt = today.atTime(7, 0).atZone(zoneId).toInstant()
+            val laterAt = today.atTime(9, 30).atZone(zoneId).toInstant()
+            val legacyEvent = event(UUID(0L, 801L), earlierAt, Route.ORAL).copy(
+                localDate = today,
+                slotId = null
+            )
+            val unrelatedEvent = event(UUID(0L, 802L), earlierAt, Route.ANTIANDROGEN)
+
+            listOf(
+                listOf(twoSlotPlan, unrelatedPlan) to listOf(legacyEvent, unrelatedEvent),
+                listOf(unrelatedPlan, twoSlotPlan) to listOf(unrelatedEvent, legacyEvent)
+            ).forEach { (plans, initialEvents) ->
+                val events = FakeDoseEventRepository(initialEvents)
+                val outcome = quickWork(
+                    events = events,
+                    effects = WidgetEffectsSpy(),
+                    actionTime = laterAt,
+                    actionPlan = twoSlotPlan,
+                    availablePlans = plans
+                ).handle(command(twoSlotPlan, twoSlotPlan.slots[1].id, today))
+
+                assertEquals(WidgetQuickActionOutcome.Accepted(false), outcome)
+                assertEquals(1, events.insertCalls)
+                assertEquals(twoSlotPlan.slots[1].id, events.lastInserted?.slotId)
+                assertEquals(1, events.events.values.count { it.id == legacyEvent.id })
+                assertEquals(1, events.events.values.count { it.slotId == twoSlotPlan.slots[1].id })
+            }
         }
 
     @Test
@@ -331,9 +453,11 @@ class WidgetWorkTest {
         events: FakeDoseEventRepository,
         effects: WidgetEffectsSpy,
         actionTime: Instant = now,
-        actionPlan: io.github.yingqiu0871.evolune.core.model.MedicationPlan = plan
+        actionPlan: io.github.yingqiu0871.evolune.core.model.MedicationPlan = plan,
+        availablePlans: List<io.github.yingqiu0871.evolune.core.model.MedicationPlan> =
+            listOf(actionPlan)
     ) = ContractWidgetQuickActionWork(
-        medicationPlans = FakeMedicationPlanRepository(listOf(actionPlan)),
+        medicationPlans = FakeMedicationPlanRepository(availablePlans),
         doseEvents = events,
         sideEffects = effects,
         clock = Clock.fixed(actionTime, ZoneOffset.UTC),

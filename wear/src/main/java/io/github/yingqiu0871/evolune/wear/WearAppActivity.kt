@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,6 +18,9 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import android.app.AlertDialog
+import android.app.Dialog
+import android.view.Window
+import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppRecentDose
@@ -26,14 +31,25 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 class WearAppActivity : android.app.Activity() {
+    private companion object {
+        const val CARD_CORNER_DP = WEAR_CARD_CORNER_RADIUS_DP
+    }
+
     private lateinit var scrollView: ScrollView
     private lateinit var syncState: TextView
+    private lateinit var title: TextView
+    private lateinit var paletteCard: LinearLayout
+    private lateinit var paletteLabel: TextView
+    private lateinit var paletteValue: TextView
     private lateinit var concentrationCard: LinearLayout
+    private lateinit var concentrationLabel: TextView
     private lateinit var concentrationValue: TextView
     private lateinit var concentrationFreshness: TextView
     private lateinit var recentCard: LinearLayout
+    private lateinit var recentLabel: TextView
     private lateinit var recentDose: TextView
     private lateinit var upcomingList: LinearLayout
+    private lateinit var upcomingTitle: TextView
     private lateinit var emptyState: TextView
     private val dateFormatter = DateTimeFormatter.ofPattern("MM-dd HH:mm")
     private val refreshHandler = Handler(Looper.getMainLooper())
@@ -60,14 +76,23 @@ class WearAppActivity : android.app.Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_wear_app)
         scrollView = findViewById(R.id.wear_app_scroll)
+        title = findViewById(R.id.wear_app_title)
         syncState = findViewById(R.id.wear_app_sync_state)
+        paletteCard = findViewById(R.id.wear_app_palette_card)
+        paletteLabel = findViewById(R.id.wear_app_palette_label)
+        paletteValue = findViewById(R.id.wear_app_palette_value)
         concentrationCard = findViewById(R.id.wear_app_concentration_card)
+        concentrationLabel = findViewById(R.id.wear_app_concentration_label)
         concentrationValue = findViewById(R.id.wear_app_concentration_value)
         concentrationFreshness = findViewById(R.id.wear_app_concentration_freshness)
         recentCard = findViewById(R.id.wear_app_recent_card)
+        recentLabel = findViewById(R.id.wear_app_recent_label)
         recentDose = findViewById(R.id.wear_app_recent_dose)
         upcomingList = findViewById(R.id.wear_app_upcoming_list)
+        upcomingTitle = findViewById(R.id.wear_app_upcoming_title)
         emptyState = findViewById(R.id.wear_app_empty_state)
+        paletteCard.setOnClickListener { showPaletteDialog() }
+        applyAppearance()
         render()
     }
 
@@ -139,6 +164,7 @@ class WearAppActivity : android.app.Activity() {
 
     private fun render() {
         if (!::syncState.isInitialized) return
+        val palette = applyAppearance()
         val nowMillis = System.currentTimeMillis()
         val presentation = WearAppStore.getPresentation(this, nowMillis)
         val pendingOperation = WearAppConfirmationStore.getPendingOperation(this)
@@ -200,6 +226,27 @@ class WearAppActivity : android.app.Activity() {
             val canRetry = pendingConfirmation?.let {
                 isPending && !it.awaitingAuthoritativeSnapshot
             } == true
+            val canSkip = canConfirm && occurrence.notificationId != null
+            val card = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(dp(16), dp(14), dp(16), dp(14))
+                minimumHeight = dp(76)
+                background = roundedBackground(
+                    if (canConfirm || canRetry) palette.primaryContainer else palette.surfaceHigh,
+                    CARD_CORNER_DP
+                )
+                contentDescription = getString(
+                    R.string.wear_app_upcoming_format,
+                    occurrence.medicationName,
+                    formatDose(occurrence.dose),
+                    occurrence.scheduledAt.atZone(zoneId).format(dateFormatter),
+                    statusText(occurrence.status)
+                )
+                alpha = if (canConfirm || canRetry) 1f else 0.72f
+                isFocusable = canConfirm || canRetry
+                isClickable = canConfirm || canRetry
+            }
             val row = TextView(this).apply {
                 val description = getString(
                     R.string.wear_app_upcoming_format,
@@ -219,29 +266,25 @@ class WearAppActivity : android.app.Activity() {
                 } else {
                     description
                 }
-                contentDescription = text
                 textSize = 16f
-                setTextColor(if (canConfirm || canRetry) Color.WHITE else Color.GRAY)
-                setPadding(0, 18, 0, 18)
-                minimumHeight = (48f * resources.displayMetrics.density).roundToInt()
-                isFocusable = canConfirm || canRetry
-                isClickable = canConfirm || canRetry
-                alpha = if (canConfirm || canRetry) 1f else 0.72f
-                setOnClickListener {
-                    when {
-                        canConfirm -> showConfirmationDialog(snapshot, occurrence, zoneId)
-                        canRetry -> {
-                            WearAppDataLayer.retryPending(this@WearAppActivity)
-                            render()
-                        }
-                    }
-                }
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
+                setTextColor(if (canConfirm || canRetry) palette.onPrimaryContainer else palette.onSurfaceVariant)
             }
-            upcomingList.addView(row)
+            card.addView(row)
+            if (canConfirm) {
+                card.setOnClickListener {
+                    showOccurrenceActionDialog(snapshot, occurrence, zoneId, canSkip)
+                }
+            } else if (canRetry) {
+                card.setOnClickListener {
+                    WearAppDataLayer.retryPending(this@WearAppActivity)
+                    render()
+                }
+            }
+            card.layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { setMargins(0, dp(7), 0, dp(7)) }
+            upcomingList.addView(card)
         }
 
         emptyState.visibility = if (upcoming.isEmpty()) View.VISIBLE else View.GONE
@@ -258,6 +301,58 @@ class WearAppActivity : android.app.Activity() {
             }
         }
     }
+
+    private fun applyAppearance(): WearPalette {
+        val scheme = WearAppearanceStore.read(this)
+        val palette = WearAppearanceStore.resolve(this, scheme)
+        scrollView.setBackgroundColor(palette.background)
+        title.setTextColor(palette.onBackground)
+        syncState.setTextColor(palette.onSurfaceVariant)
+        paletteLabel.setTextColor(palette.onSurfaceVariant)
+        paletteValue.apply {
+            text = scheme.displayName
+            setTextColor(palette.onPrimaryContainer)
+        }
+        paletteCard.background = roundedBackground(palette.primaryContainer, CARD_CORNER_DP)
+        concentrationCard.background = roundedBackground(palette.surfaceHigh, CARD_CORNER_DP)
+        recentCard.background = roundedBackground(palette.primaryContainer, CARD_CORNER_DP)
+        concentrationLabel.setTextColor(palette.onSurfaceVariant)
+        concentrationValue.setTextColor(palette.primary)
+        concentrationFreshness.setTextColor(palette.onSurfaceVariant)
+        recentLabel.setTextColor(palette.onPrimaryContainer)
+        recentDose.setTextColor(palette.onPrimaryContainer)
+        upcomingTitle.setTextColor(palette.secondary)
+        emptyState.setTextColor(palette.onSurface)
+        window.statusBarColor = palette.background
+        window.navigationBarColor = palette.background
+        return palette
+    }
+
+    private fun showPaletteDialog() {
+        val choices = WearColorScheme.entries
+        val selected = WearAppearanceStore.read(this)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.wear_app_palette_dialog_title)
+            .setSingleChoiceItems(
+                choices.map { it.displayName }.toTypedArray(),
+                choices.indexOf(selected)
+            ) { dialog, index ->
+                WearAppearanceStore.write(this, choices[index])
+                applyAppearance()
+                render()
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.wear_app_confirmation_cancel, null)
+            .show()
+    }
+
+    private fun roundedBackground(color: Int, radiusDp: Float) = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        setColor(color)
+        cornerRadius = radiusDp * resources.displayMetrics.density
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
 
     private fun renderConcentration(snapshot: WearAppSnapshot?, nowMillis: Long) {
         val concentration = deriveWearAppConcentrationPresentation(snapshot, nowMillis)
@@ -336,11 +431,12 @@ class WearAppActivity : android.app.Activity() {
         }
     }
 
-    private fun showConfirmationDialog(
+    private fun showOccurrenceActionDialog(
         snapshot: WearAppSnapshot,
         occurrence: io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence,
-        zoneId: ZoneId
-    ) {
+        zoneId: ZoneId,
+        canSkip: Boolean
+    ): Dialog {
         val details = getString(
             R.string.wear_app_confirmation_format,
             occurrence.medicationName,
@@ -349,21 +445,59 @@ class WearAppActivity : android.app.Activity() {
             occurrence.localDate.toString(),
             occurrence.scheduledAt.atZone(zoneId).format(dateFormatter)
         )
-        AlertDialog.Builder(this)
-            .setTitle(R.string.wear_app_confirmation_title)
-            .setMessage(details)
-            .setNegativeButton(R.string.wear_app_confirmation_cancel, null)
-            .setPositiveButton(R.string.wear_app_confirmation_confirm) { _, _ ->
-                if (!WearAppDataLayer.confirmOccurrence(this, snapshot, occurrence)) {
-                    Toast.makeText(
-                        this,
-                        R.string.wear_app_confirmation_unavailable,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                render()
+        val palette = WearAppearanceStore.resolve(this, WearAppearanceStore.read(this))
+        val content = layoutInflater.inflate(R.layout.dialog_wear_occurrence_action, null)
+        content.background = roundedBackground(palette.surfaceHigh, CARD_CORNER_DP)
+        content.findViewById<TextView>(R.id.wear_action_dialog_title)
+            .setTextColor(palette.onSurface)
+        content.findViewById<TextView>(R.id.wear_action_dialog_details).apply {
+            text = details
+            setTextColor(palette.onSurface)
+        }
+        val skip = content.findViewById<TextView>(R.id.wear_action_dialog_skip).apply {
+            visibility = if (canSkip) View.VISIBLE else View.GONE
+            setTextColor(palette.secondary)
+            background = roundedBackground(palette.surface, CARD_CORNER_DP)
+        }
+        val confirm = content.findViewById<TextView>(R.id.wear_action_dialog_confirm).apply {
+            setTextColor(palette.onPrimaryContainer)
+            background = roundedBackground(palette.primaryContainer, CARD_CORNER_DP)
+        }
+        val dialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(content)
+            setCanceledOnTouchOutside(true)
+        }
+        skip.setOnClickListener {
+            dialog.dismiss()
+            if (WearAppDataLayer.skipOccurrence(this, snapshot, occurrence)) {
+                Toast.makeText(this, R.string.wear_app_skip_sent, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    R.string.wear_app_skip_unavailable,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            .show()
+            render()
+        }
+        confirm.setOnClickListener {
+            dialog.dismiss()
+            if (!WearAppDataLayer.confirmOccurrence(this, snapshot, occurrence)) {
+                Toast.makeText(
+                    this,
+                    R.string.wear_app_confirmation_unavailable,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            render()
+        }
+        dialog.show()
+        dialog.window?.apply {
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            setLayout(dp(168), WindowManager.LayoutParams.WRAP_CONTENT)
+        }
+        return dialog
     }
 
     private fun showUndoDialog(

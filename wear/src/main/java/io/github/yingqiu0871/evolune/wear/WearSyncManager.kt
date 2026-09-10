@@ -160,8 +160,12 @@ object WearSyncManager {
     }
 
     private fun requestTileUpdate(context: Context) {
-        TileService.getUpdater(context.applicationContext)
-            .requestUpdate(DoseTileService::class.java)
+        val appContext = context.applicationContext
+        val updater = TileService.getUpdater(appContext)
+        updater.requestUpdate(DoseTileService::class.java)
+        updater.requestUpdate(NextDoseTileService::class.java)
+        updater.requestUpdate(TodayPlanTileService::class.java)
+        updater.requestUpdate(CurrentE2TileService::class.java)
     }
 
     private const val TAG = "HRTWearSync"

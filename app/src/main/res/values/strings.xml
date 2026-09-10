@@ -376,6 +376,14 @@
     <!-- Widget strings -->
     <string name="widget_combined_label">Evolune 用药微件</string>
     <string name="widget_combined_desc">显示当前与近期用药安排、血药浓度和快捷记录</string>
+    <string name="widget_today_plan_label">Evolune-今日计划</string>
+    <string name="widget_today_plan_desc">显示今日用药计划和记录入口</string>
+    <string name="widget_next_dose_label">Evolune-下一次服药</string>
+    <string name="widget_next_dose_desc">显示下一次服药的药名和时间</string>
+    <string name="widget_current_e2_label">Evolune-当前 E2</string>
+    <string name="widget_current_e2_desc">醒目显示当前 E2 浓度</string>
+    <string name="widget_pk_chart_label">Evolune-E2 趋势</string>
+    <string name="widget_pk_chart_desc">以柱形图显示已发生和预计 E2 浓度</string>
     <string name="widget_loading">正在同步</string>
     <string name="widget_loading_desc">正在读取最新用药安排</string>
     <string name="widget_read_failure">暂时无法读取数据</string>
@@ -389,9 +397,24 @@
     <string name="widget_concentration_compact">E2 ~%1$s</string>
     <string name="widget_route_dose">%1$s · %2$s mg</string>
     <string name="widget_completed">完成</string>
+    <string name="widget_current_e2_title">当前 E2</string>
+    <string name="widget_current_e2_value">~%1$s</string>
+    <string name="widget_current_e2_updated">计算于 %1$s</string>
+    <string name="widget_current_e2_unavailable">E2 暂不可用</string>
+    <string name="widget_current_e2_unavailable_desc">打开 Evolune 后重试</string>
+    <string name="widget_pk_chart_title">E2 趋势</string>
+    <string name="widget_pk_chart_unavailable">暂无曲线</string>
+    <string name="widget_pk_chart_unavailable_desc">记录用药后打开 Evolune 重试</string>
+    <string name="widget_pk_chart_axis_start">−24h</string>
+    <string name="widget_pk_chart_axis_now">现在</string>
+    <string name="widget_pk_chart_axis_end">+24h</string>
 
     <string name="widget_config_title">微件外观</string>
     <string name="widget_config_apply">应用</string>
+    <string name="widget_style_today_plan">今日计划</string>
+    <string name="widget_style_next_dose">下一次服药</string>
+    <string name="widget_style_current_e2">当前 E2</string>
+    <string name="widget_style_pk_chart">E2 趋势图</string>
     <string name="widget_config_theme">显示模式</string>
     <string name="widget_config_theme_auto">自动</string>
     <string name="widget_config_theme_light">浅色</string>

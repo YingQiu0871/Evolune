@@ -113,10 +113,17 @@ internal object WearAppStore {
             ?: return WearAppSnapshotApplyResult.Rejected
         val current = getSnapshot(context)
         val reduction = reduceWearAppSnapshot(WearAppSnapshotReducerState(current), incoming)
-        if (reduction.result != WearAppSnapshotApplyResult.Applied) return reduction.result
+        if (reduction.result == WearAppSnapshotApplyResult.Older ||
+            reduction.result == WearAppSnapshotApplyResult.Rejected
+        ) {
+            return reduction.result
+        }
         val encoded = Base64.encodeToString(payload, Base64.NO_WRAP)
-        check(preferences(context).edit()
-            .putString(KEY_PAYLOAD, encoded)
+        val editor = preferences(context).edit()
+        if (reduction.result == WearAppSnapshotApplyResult.Applied) {
+            editor.putString(KEY_PAYLOAD, encoded)
+        }
+        check(editor
             .putLong(KEY_RECEIVED_AT, receivedAt)
             .putString(KEY_CONNECTION_STATE, WearAppConnectionState.CONNECTED.name)
             .remove(KEY_PENDING_SINCE)
@@ -125,7 +132,7 @@ internal object WearAppStore {
             .commit())
         WearAppConfirmationStore.clearAfterAuthoritativeSnapshot(context, incoming)
         notifyWearAppStateChanged(context)
-        return WearAppSnapshotApplyResult.Applied
+        return reduction.result
     }
 
     fun canConfirm(

@@ -33,6 +33,18 @@ class WidgetUiTest {
     }
 
     @Test
+    fun `current widget size follows the active screen orientation`() {
+        assertEquals(
+            WidgetSize(150, 213),
+            WidgetSizePolicy.currentSize(150, 97, 300, 213, isLandscape = false)
+        )
+        assertEquals(
+            WidgetSize(300, 97),
+            WidgetSizePolicy.currentSize(150, 97, 300, 213, isLandscape = true)
+        )
+    }
+
+    @Test
     fun `width changes density without removing three row completeness`() {
         val narrow = WidgetSizePolicy.resolve(WidgetSize(150, 213))
         val wide = WidgetSizePolicy.resolve(WidgetSize(235, 213))
@@ -77,7 +89,14 @@ class WidgetUiTest {
         assertTrue(model.rows.all { it.routeKey == "ORAL" })
         assertEquals(listOf(2.0, 2.0, 2.0), model.rows.map { it.doseMg })
         assertEquals(List(3) { WidgetProgressSegment.EMPTY }, model.progressSegments)
-        assertTrue(model.rows.all { it.action == WidgetRowAction.RECORD })
+        assertEquals(
+            listOf(
+                WidgetRowAction.RECORD,
+                WidgetRowAction.RECORD,
+                WidgetRowAction.RECORD
+            ),
+            model.rows.map { it.action }
+        )
         assertTrue(
             model.rows.all {
                 it.statusPresentation == WidgetRowStatusPresentation.SCHEDULED_TIME
@@ -140,7 +159,7 @@ class WidgetUiTest {
     }
 
     @Test
-    fun `2x1 keeps summary and one meaningful row`() {
+    fun `2x1 retains all today rows for collection scrolling`() {
         val presentation = WidgetPresentationMapper().map(
             enabledPlans = listOf(
                 plan(UUID(0L, 1L), "First", LocalTime.of(8, 30)),
@@ -157,7 +176,7 @@ class WidgetUiTest {
         )
 
         assertEquals(2, model.dailyProgress.total)
-        assertEquals(1, model.rows.size)
+        assertEquals(2, model.rows.size)
         assertEquals(WidgetRowDensity.COMPACT, model.rowLayout.density)
     }
 
@@ -235,7 +254,145 @@ class WidgetUiTest {
             WidgetRowStatusPresentation.COMPLETED,
             model.rows.first().statusPresentation
         )
-        assertTrue(model.rows.drop(1).all { it.action == WidgetRowAction.RECORD })
+        assertEquals(
+            listOf(
+                WidgetRowAction.COMPLETED,
+                WidgetRowAction.RECORD,
+                WidgetRowAction.RECORD
+            ),
+            model.rows.map { it.action }
+        )
+    }
+
+    @Test
+    fun `next dose style exposes only the highest priority upcoming occurrence`() {
+        val model = modelFor(
+            plans = listOf(
+                plan(UUID(0L, 21L), "Later", LocalTime.of(21, 0)),
+                plan(UUID(0L, 22L), "Sooner", LocalTime.of(9, 0))
+            ),
+            style = WidgetStyle.NEXT_DOSE
+        )
+
+        assertEquals(WidgetStyle.NEXT_DOSE, model.style)
+        assertEquals(1, model.rows.size)
+        assertEquals("Sooner", model.rows.single().planName)
+    }
+
+    @Test
+    fun `current E2 style keeps computed value and hides medication rows`() {
+        val computedAt = Instant.parse("2027-01-15T08:30:00Z")
+        val model = modelFor(
+            plans = listOf(plan(UUID(0L, 26L), "Plan", LocalTime.of(9, 0))),
+            style = WidgetStyle.CURRENT_E2,
+            concentration = 120.0,
+            concentrationComputedAt = computedAt
+        )
+
+        assertEquals(WidgetStyle.CURRENT_E2, model.style)
+        assertEquals(120.0, model.concentration)
+        assertEquals(computedAt, model.concentrationComputedAt)
+        assertTrue(model.rows.isEmpty())
+    }
+
+    @Test
+    fun `read only styles retain scalar data when there are no enabled plans`() {
+        val computedAt = Instant.parse("2027-01-15T08:30:00Z")
+        val chart = listOf(WidgetPkPoint(-24.0, 20.0), WidgetPkPoint(0.0, 120.0))
+        val snapshot = WidgetSnapshot(
+            presentation = WidgetPresentationState.NoEnabledPlans,
+            concentration = 120.0,
+            concentrationComputedAt = computedAt,
+            pkChart = chart
+        )
+
+        val e2 = WidgetUiMapper.map(
+            WidgetRenderState.Loaded(snapshot),
+            WidgetSizePolicy.resolve(WidgetSize(150, 213)),
+            appearance.copy(styleId = WidgetStyle.CURRENT_E2)
+        )
+        val pk = WidgetUiMapper.map(
+            WidgetRenderState.Loaded(snapshot),
+            WidgetSizePolicy.resolve(WidgetSize(150, 213)),
+            appearance.copy(styleId = WidgetStyle.PK_CHART)
+        )
+
+        assertEquals(WidgetContentState.NO_ENABLED_PLANS, e2.contentState)
+        assertEquals(WidgetStyle.CURRENT_E2, e2.style)
+        assertEquals(120.0, e2.concentration)
+        assertEquals(computedAt, e2.concentrationComputedAt)
+        assertEquals(WidgetStyle.PK_CHART, pk.style)
+        assertEquals(chart, pk.pkChart)
+    }
+
+    @Test
+    fun `chart geometry reserves vertical chrome for every responsive layout`() {
+        listOf(
+            WidgetSize(150, 97),
+            WidgetSize(150, 213),
+            WidgetSize(240, 213),
+            WidgetSize(320, 260)
+        ).forEach { size ->
+            val maxSegment = WidgetChartGeometryPolicy.maxSegmentHeightDp(
+                size,
+                WidgetSizePolicy.resolve(size)
+            )
+
+            assertTrue(maxSegment >= 28)
+            assertTrue(maxSegment <= size.heightDp - 10)
+        }
+        assertEquals(
+            140,
+            WidgetChartGeometryPolicy.maxSegmentHeightDp(
+                WidgetSize(320, 260),
+                WidgetSizePolicy.resolve(WidgetSize(320, 260))
+            )
+        )
+    }
+
+    @Test
+    fun `chart geometry never restores a minimum that breaks peak headroom`() {
+        val size = WidgetSize(180, 80)
+        val layout = WidgetSizePolicy.resolve(size)
+
+        assertEquals(34, WidgetChartGeometryPolicy.maxSegmentHeightDp(size, layout))
+    }
+
+    @Test
+    fun `chart typography scales with the responsive layout`() {
+        val compact = WidgetChartTypographyPolicy.resolve(
+            WidgetSizePolicy.resolve(WidgetSize(150, 97))
+        )
+        val expanded = WidgetChartTypographyPolicy.resolve(
+            WidgetSizePolicy.resolve(WidgetSize(320, 213))
+        )
+
+        assertTrue(expanded.titleTextSp > compact.titleTextSp)
+        assertTrue(expanded.concentrationTextSp > compact.concentrationTextSp)
+        assertTrue(expanded.axisTextSp >= compact.axisTextSp)
+        assertEquals(16, expanded.titleTextSp)
+        assertEquals(16, expanded.concentrationTextSp)
+    }
+
+    @Test
+    fun `PK chart policy keeps bounded offsets and rejects invalid samples`() {
+        val points = WidgetPkChartPolicy.sample(
+            nowH = 100.0,
+            timeH = listOf(76.0, 100.0, 124.0),
+            concentrations = listOf(20.0, 80.0, 40.0)
+        )
+
+        assertEquals(3, points.size)
+        assertEquals(listOf(-24.0, 0.0, 24.0), points.map { it.offsetHours })
+        assertEquals(listOf(20.0, 80.0, 40.0), points.map { it.concentration })
+        assertEquals(
+            listOf(WidgetPkPoint(-24.0, 20.0), WidgetPkPoint(24.0, 40.0)),
+            WidgetPkChartPolicy.sample(
+                100.0,
+                listOf(76.0, 100.0, 124.0),
+                listOf(20.0, -1.0, 40.0)
+            )
+        )
     }
 
     @Test
@@ -329,7 +486,10 @@ class WidgetUiTest {
 
     private fun modelFor(
         plans: List<io.github.yingqiu0871.evolune.core.model.MedicationPlan>,
-        events: List<DoseEvent> = emptyList()
+        events: List<DoseEvent> = emptyList(),
+        style: WidgetStyle = WidgetStyle.LEGACY_DEFAULT,
+        concentration: Double? = null,
+        concentrationComputedAt: Instant? = null
     ): WidgetUiModel {
         val presentation = WidgetPresentationMapper().map(
             enabledPlans = plans,
@@ -338,9 +498,11 @@ class WidgetUiTest {
             zoneId = ZoneOffset.UTC
         )
         return WidgetUiMapper.map(
-            WidgetRenderState.Loaded(WidgetSnapshot(presentation, null)),
+            WidgetRenderState.Loaded(
+                WidgetSnapshot(presentation, concentration, concentrationComputedAt)
+            ),
             WidgetSizePolicy.resolve(WidgetSize(150, 213)),
-            appearance
+            appearance.copy(styleId = style)
         )
     }
 }

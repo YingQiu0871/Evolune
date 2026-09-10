@@ -48,7 +48,15 @@ class ReminderManager(
         }
         cancelReminder(plan.id)
         reminderOccurrences(plan, LocalDateTime.now()).forEach { occurrence ->
-            scheduleAlarm(plan, occurrence.dateTime, occurrence.requestOffset)
+            val scheduledAt = occurrence.dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            if (!ReminderSkipStore(context).isSkipped(plan.id, occurrence.slotId, scheduledAt)) {
+                scheduleAlarm(
+                    plan,
+                    occurrence.slotId,
+                    occurrence.dateTime,
+                    occurrence.requestOffset
+                )
+            }
         }
     }
 
@@ -74,6 +82,18 @@ class ReminderManager(
         }
     }
 
+    fun cancelOccurrence(planId: UUID, requestOffset: Int) {
+        val requestCode = planId.hashCode() + requestOffset
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            Intent(context, MedicationReminderReceiver::class.java),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        ) ?: return
+        alarmManager.cancel(pendingIntent)
+        pendingIntent.cancel()
+    }
+
     /**
      * 重新设置所有启用方案的提醒
      */
@@ -87,11 +107,13 @@ class ReminderManager(
      */
     private fun scheduleAlarm(
         plan: DomainMedicationPlan,
+        slotId: UUID,
         dateTime: LocalDateTime,
         timeIndex: Int
     ) {
         scheduleAlarm(
             planId = plan.id,
+            slotId = slotId,
             planName = plan.name,
             planDescription = plan.description(),
             dateTime = dateTime,
@@ -101,6 +123,7 @@ class ReminderManager(
 
     private fun scheduleAlarm(
         planId: UUID,
+        slotId: UUID,
         planName: String,
         planDescription: String,
         dateTime: LocalDateTime,
@@ -119,6 +142,7 @@ class ReminderManager(
 
         val intent = Intent(context, MedicationReminderReceiver::class.java).apply {
             putExtra(MedicationReminderReceiver.EXTRA_PLAN_ID, planId.toString())
+            putExtra(MedicationReminderReceiver.EXTRA_SLOT_ID, slotId.toString())
             putExtra(MedicationReminderReceiver.EXTRA_PLAN_NAME, planName)
             putExtra(MedicationReminderReceiver.EXTRA_PLAN_DESCRIPTION, planDescription)
             putExtra(MedicationReminderReceiver.EXTRA_NOTIFICATION_ID, planId.hashCode() + timeIndex)

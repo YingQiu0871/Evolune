@@ -122,13 +122,15 @@ class WearAppStateTest {
     }
 
     @Test
-    fun `future concentration and invalid values are unavailable`() {
+    fun `concentration beyond clock skew tolerance and invalid values are unavailable`() {
         val future = snapshot.copy(
             concentrationState = WearAppConcentration(
                 status = WearAppConcentrationStatus.AVAILABLE,
                 value = 120.0,
                 unit = "pg/mL",
-                calculatedAt = Instant.ofEpochMilli(20_000L)
+                calculatedAt = Instant.ofEpochMilli(
+                    20_000L + WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS
+                )
             )
         )
         assertEquals(
@@ -142,7 +144,7 @@ class WearAppStateTest {
     }
 
     @Test
-    fun `clock skew matrix applies medication data without ever showing future concentration as fresh`() {
+    fun `clock skew matrix tolerates small paired device drift and rejects larger drift`() {
         val captureMillis = 2_000_000L
         val futureSkews = listOf(1L, 1_000L, 30_000L, 120_000L, 840_000L, 960_000L)
         futureSkews.forEachIndexed { index, skewMillis ->
@@ -174,7 +176,11 @@ class WearAppStateTest {
                 classifyWearAppSnapshot(snapshot, incoming)
             )
             assertEquals(
-                WearAppConcentrationDisplayState.UNAVAILABLE,
+                if (skewMillis <= WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS) {
+                    WearAppConcentrationDisplayState.FRESH
+                } else {
+                    WearAppConcentrationDisplayState.UNAVAILABLE
+                },
                 deriveWearAppConcentrationPresentation(incoming, captureMillis).state
             )
         }
@@ -212,7 +218,7 @@ class WearAppStateTest {
             )
         )
         assertEquals(
-            WearAppConcentrationDisplayState.UNAVAILABLE,
+            WearAppConcentrationDisplayState.FRESH,
             deriveWearAppConcentrationPresentation(concentrationSnapshot, Long.MAX_VALUE - 101L).state
         )
         assertEquals(
@@ -248,6 +254,37 @@ class WearAppStateTest {
         assertEquals(
             WearAppConcentrationDisplayState.STALE,
             deriveWearAppConcentrationPresentation(concentrationSnapshot, now).state
+        )
+    }
+
+    @Test
+    fun `small paired device clock skew keeps current concentration available`() {
+        val calculatedAt = 10_000L + WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS - 1L
+        val concentrationSnapshot = snapshot.copy(
+            concentrationState = WearAppConcentration(
+                status = WearAppConcentrationStatus.AVAILABLE,
+                value = 120.0,
+                unit = "pg/mL",
+                calculatedAt = Instant.ofEpochMilli(calculatedAt)
+            )
+        )
+
+        assertEquals(
+            WearAppConcentrationDisplayState.FRESH,
+            deriveWearAppConcentrationPresentation(concentrationSnapshot, 10_000L).state
+        )
+        assertEquals(
+            WearAppConcentrationDisplayState.UNAVAILABLE,
+            deriveWearAppConcentrationPresentation(
+                concentrationSnapshot.copy(
+                    concentrationState = concentrationSnapshot.concentrationState.copy(
+                        calculatedAt = Instant.ofEpochMilli(
+                            10_000L + WEAR_APP_ALLOWED_CLOCK_SKEW_MILLIS + 1L
+                        )
+                    )
+                ),
+                10_000L
+            ).state
         )
     }
 
@@ -352,7 +389,7 @@ class WearAppStateTest {
         assertEquals(WearAppSnapshotApplyResult.Applied, reduction.result)
         assertEquals(future, reduction.state.current)
         assertEquals(
-            WearAppConcentrationDisplayState.UNAVAILABLE,
+            WearAppConcentrationDisplayState.FRESH,
             deriveWearAppConcentrationPresentation(future, 2_000L).state
         )
     }

@@ -14,13 +14,16 @@ import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
+import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.repository.RepositoryStorageException
+import io.github.yingqiu0871.evolune.experience.MedicationActionAvailability
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrence
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentation
 import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.pk.SimulationEngine
@@ -35,8 +38,37 @@ import java.util.UUID
 internal data class WidgetSnapshot(
     val presentation: WidgetPresentationState,
     val concentration: Double?,
+    val concentrationComputedAt: Instant? = null,
+    val pkChart: List<WidgetPkPoint> = emptyList(),
     val timeFormat: TimeFormat = TimeFormat.SYSTEM
 )
+
+internal data class WidgetPkPoint(
+    val offsetHours: Double,
+    val concentration: Double
+) {
+    init {
+        require(offsetHours.isFinite())
+        require(concentration.isFinite())
+        require(concentration >= 0.0)
+    }
+}
+
+internal object WidgetPkChartPolicy {
+    const val WINDOW_HOURS = 48.0
+    const val POINT_COUNT = 25
+
+    fun sample(nowH: Double, timeH: List<Double>, concentrations: List<Double>): List<WidgetPkPoint> {
+        require(timeH.size == concentrations.size)
+        return timeH.zip(concentrations).mapNotNull { (time, concentration) ->
+            if (!time.isFinite() || !concentration.isFinite() || concentration < 0.0) {
+                null
+            } else {
+                WidgetPkPoint(offsetHours = time - nowH, concentration = concentration)
+            }
+        }
+    }
+}
 
 internal class WidgetSnapshotLoader(
     private val medicationPlans: MedicationPlanRepository,
@@ -47,7 +79,7 @@ internal class WidgetSnapshotLoader(
     private val zoneId: () -> ZoneId = ZoneId::systemDefault,
     private val presentationMapper: WidgetPresentationMapper = WidgetPresentationMapper()
 ) {
-    suspend fun load(): WidgetSnapshot {
+    suspend fun load(includePkChart: Boolean = false): WidgetSnapshot {
         val plans = medicationPlans.observeEnabled().first()
         val now = Instant.ofEpochMilli(clock.millis())
         val eventWindow = WidgetPresentationPolicy.eventWindow(now)
@@ -64,21 +96,37 @@ internal class WidgetSnapshotLoader(
             .filter { event ->
                 event.route != Route.ANTIANDROGEN && !event.occurredAt.isAfter(now)
             }
-        val concentration = if (events.isEmpty()) {
+        val bodyWeightKG = if (events.isEmpty()) null else bodyWeight()
+        val simulation = if (events.isEmpty()) {
             null
         } else {
-            val nowH = now.toWidgetPkTimeH()
             SimulationEngine(
                 events = DomainDoseEventToPkAdapter.adapt(events),
-                bodyWeightKG = bodyWeight(),
-                startTimeH = nowH - 0.01,
-                endTimeH = nowH,
+                bodyWeightKG = requireNotNull(bodyWeightKG),
+                startTimeH = now.toWidgetPkTimeH() - 0.01,
+                endTimeH = now.toWidgetPkTimeH(),
                 numberOfSteps = 2
-            ).run().concPGmL.lastOrNull()
+            ).run()
+        }
+        val concentration = simulation?.concPGmL?.lastOrNull()
+        val pkChart = if (includePkChart && events.isNotEmpty()) {
+            val nowH = now.toWidgetPkTimeH()
+            val chart = SimulationEngine(
+                events = DomainDoseEventToPkAdapter.adapt(events),
+                bodyWeightKG = requireNotNull(bodyWeightKG),
+                startTimeH = nowH - WidgetPkChartPolicy.WINDOW_HOURS / 2.0,
+                endTimeH = nowH + WidgetPkChartPolicy.WINDOW_HOURS / 2.0,
+                numberOfSteps = WidgetPkChartPolicy.POINT_COUNT
+            ).run()
+            WidgetPkChartPolicy.sample(nowH, chart.timeH, chart.concPGmL)
+        } else {
+            emptyList()
         }
         return WidgetSnapshot(
             presentation = presentation,
             concentration = concentration,
+            concentrationComputedAt = concentration?.let { now },
+            pkChart = pkChart,
             timeFormat = timeFormat()
         )
     }
@@ -117,12 +165,13 @@ internal class ContractWidgetUpdateCoordinator(
 
 internal class ContractWidgetUpdateWork(
     private val snapshotLoader: WidgetSnapshotLoader,
-    private val renderer: WidgetSnapshotRenderer
+    private val renderer: WidgetSnapshotRenderer,
+    private val needsPkChart: (IntArray) -> Boolean = { false }
 ) : WidgetUpdateWork {
     override suspend fun handle(appWidgetIds: IntArray) {
         if (appWidgetIds.isEmpty()) return
         val state = try {
-            WidgetRenderState.Loaded(snapshotLoader.load())
+            WidgetRenderState.Loaded(snapshotLoader.load(needsPkChart(appWidgetIds)))
         } catch (error: CancellationException) {
             throw error
         } catch (_: Throwable) {
@@ -218,14 +267,23 @@ internal class ContractWidgetQuickActionWork(
             widgetOccurrenceActionEventId(parsed.occurrenceId)
         )
         if (existingAction == null) {
+            val recordedEvents = doseEvents.observeAll().first()
             val existingPresentationEvent = findPresentedEventForOccurrence(
                 targetOccurrence,
                 presentationOccurrences,
-                doseEvents.observeAll().first(),
+                recordedEvents,
                 recordedAt
             )
             if (existingPresentationEvent != null) {
                 return accepted(currentPlan.name, replayed = true)
+            }
+            val availability = MedicationOccurrencePresentation.derive(
+                occurrences = presentationOccurrences,
+                recordedEvents = recordedEvents.mapNotNull(DoseEvent::toRecordedMedicationEvent),
+                now = recordedAt
+            ).singleOrNull { it.occurrence.id == targetOccurrence.id }?.actionAvailability
+            if (availability != MedicationActionAvailability.AVAILABLE) {
+                return WidgetQuickActionOutcome.Invalid
             }
         }
 

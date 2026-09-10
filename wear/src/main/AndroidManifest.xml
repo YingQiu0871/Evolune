@@ -34,7 +34,7 @@
             android:name=".DoseTileService"
             android:description="@string/tile_description"
             android:exported="true"
-            android:icon="@drawable/ic_tile_medication"
+            android:icon="@mipmap/ic_launcher"
             android:label="@string/tile_label"
             android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
             <intent-filter>
@@ -43,6 +43,102 @@
             <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
                 android:resource="@drawable/tile_preview" />
+        </service>
+
+        <service
+            android:name=".NextDoseTileService"
+            android:description="@string/tile_description"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/tile_next_dose_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_next_dose" />
+        </service>
+
+        <service
+            android:name=".TodayPlanTileService"
+            android:description="@string/tile_description"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/tile_today_pending_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_today_plan" />
+        </service>
+
+        <service
+            android:name=".CurrentE2TileService"
+            android:description="@string/tile_description"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/tile_current_e2_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_current_e2" />
+        </service>
+
+        <service
+            android:name=".NextDoseComplicationDataSource"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/complication_next_dose_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="900" />
+        </service>
+
+        <service
+            android:name=".TodayProgressComplicationDataSource"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/complication_today_progress_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="900" />
+        </service>
+
+        <service
+            android:name=".CurrentE2ComplicationDataSource"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/complication_current_e2_label"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="900" />
         </service>
 
         <service

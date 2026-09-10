@@ -47,7 +47,8 @@ class WearAppSnapshotCodecTest {
                 route = "ORAL",
                 dose = 2.0,
                 doseUnit = WearAppSnapshotRules.DOSE_UNIT_MILLIGRAM,
-                status = WearAppOccurrenceStatus.UPCOMING
+                status = WearAppOccurrenceStatus.UPCOMING,
+                notificationId = 314
             )
         ),
         concentrationState = WearAppConcentration(WearAppConcentrationStatus.EMPTY),
@@ -65,6 +66,84 @@ class WearAppSnapshotCodecTest {
         val payload = WearAppSnapshotCodec.encode(snapshot) + taggedField(99, byteArrayOf(1, 2, 3))
 
         assertEquals(snapshot, WearAppSnapshotCodec.decode(payload))
+    }
+
+    @Test
+    fun `today summary optional field round trips through the v1 decoder`() {
+        val extended = snapshot.copy(
+            todaySummary = WearAppTodaySummary(
+                todayLocalDate = LocalDate.of(2026, 8, 30),
+                computedAt = snapshot.generatedAt,
+                completedCount = 1,
+                totalCount = 2,
+                state = WearAppTodaySummaryState.HAS_OCCURRENCES
+            )
+        )
+
+        assertEquals(
+            extended,
+            WearAppSnapshotCodec.decode(WearAppSnapshotCodec.encode(extended))
+        )
+    }
+
+    @Test
+    fun `legacy v1 snapshot without today summary remains readable`() {
+        val extended = snapshot.copy(
+            todaySummary = WearAppTodaySummary(
+                todayLocalDate = LocalDate.of(2026, 8, 30),
+                computedAt = snapshot.generatedAt,
+                completedCount = 0,
+                totalCount = 0,
+                state = WearAppTodaySummaryState.NO_OCCURRENCES
+            )
+        )
+        val legacyPayload = withoutTopLevelField(
+            WearAppSnapshotCodec.encode(extended),
+            tag = 11
+        )
+
+        assertEquals(snapshot, WearAppSnapshotCodec.decode(legacyPayload))
+    }
+
+    @Test
+    fun `today summary temporal count and state constraints are enforced`() {
+        val valid = WearAppTodaySummary(
+            todayLocalDate = LocalDate.of(2026, 8, 30),
+            computedAt = snapshot.generatedAt,
+            completedCount = 1,
+            totalCount = 2,
+            state = WearAppTodaySummaryState.HAS_OCCURRENCES
+        )
+        val invalidSummaries = listOf(
+            valid.copy(computedAt = snapshot.generatedAt.plusSeconds(1L)),
+            valid.copy(todayLocalDate = LocalDate.of(2026, 8, 29)),
+            valid.copy(completedCount = -1),
+            valid.copy(completedCount = 3, totalCount = 2),
+            valid.copy(state = WearAppTodaySummaryState.NO_OCCURRENCES, completedCount = 0, totalCount = 1),
+            valid.copy(state = WearAppTodaySummaryState.HAS_OCCURRENCES, completedCount = 0, totalCount = 0)
+        )
+
+        invalidSummaries.forEach { invalid ->
+            assertFalse(WearAppSnapshotRules.isValid(snapshot.copy(todaySummary = invalid)))
+        }
+    }
+
+    @Test
+    fun `duplicate or malformed today summary field is rejected`() {
+        val extended = snapshot.copy(
+            todaySummary = WearAppTodaySummary(
+                todayLocalDate = LocalDate.of(2026, 8, 30),
+                computedAt = snapshot.generatedAt,
+                completedCount = 1,
+                totalCount = 2,
+                state = WearAppTodaySummaryState.HAS_OCCURRENCES
+            )
+        )
+        val payload = WearAppSnapshotCodec.encode(extended)
+        val summaryField = topLevelField(payload, tag = 11)
+
+        assertNull(WearAppSnapshotCodec.decode(payload + summaryField))
+        assertNull(WearAppSnapshotCodec.decode(WearAppSnapshotCodec.encode(snapshot) + taggedField(11, byteArrayOf(1))))
     }
 
     @Test

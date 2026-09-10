@@ -1,6 +1,6 @@
 # 功能矩阵
 
-本表以已发布的 `v1.4.0` 和当前 `main` 为准。v1.1 Phone Widget Completion 与 v1.4-A/B 已完成并发布。状态使用 `SHIPPED v1.0`、`SHIPPED v1.1`、`SHIPPED v1.4`、`PARTIAL`、`PLANNED v1.2`、`PLANNED v1.3`、`PLANNED v1.5`、`PLANNED v1.6`、`PLANNED v1.7`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以已发布的 `v1.6.0` 和当前 `main` 为准。状态使用 `SHIPPED v1.x`、`PARTIAL`、`PLANNED v1.x`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
 | 功能 | 状态 | v1.0 事实 / 后续边界 |
 |---|---|---|
@@ -20,14 +20,14 @@
 | Wear plan/concentration snapshot | SHIPPED v1.0 | Phone `/hrt/plans` DataItem，Wear 本地缓存和 Tile 刷新 |
 | Wear Tile dose actions | SHIPPED v1.0 | 稳定 action/event ID、persist-first、eligible replay、conflict 与精确 DataItem 删除边界 |
 | General versioned Wear protocol | PARTIAL | 当前 transport 可用但没有通用 envelope/version/checksum/ack；未来协议演进按 v1.3 Wear App 需要评估 |
-| Full future Wear experience | PLANNED v1.3 | v1.1 ships Tile/Data Layer；v1.3 规划轻量完整 Wear App |
+| Wear App experience | SHIPPED v1.6 | 可打开的轻量 Wear App、版本化快照、确认/撤销/跳过动作和 Phone 权威回执 |
 | Update checker | SHIPPED v1.0 | 从 GitHub Releases 检查较新稳定版本 |
 | Health Connect | PLANNED v1.2 | 当前无 SDK/权限/provider；必须作为显式授权的可选 adapter 独立实施 |
 | Google cloud backup | PLANNED v1.2 | 当前无 OAuth/provider/cloud sync；与 Health Connect 分为不同 batch |
 | Onboarding / terms / permission guidance | SHIPPED v1.4 | v1.4-A 信任/权限基础与 v1.4-B 六步功能教程已实现、验收并发布于 `v1.4.0` |
-| Stability / performance / code cleanup | PLANNED v1.5 | 全量 bug sweep、性能/耗电/后台检查、清理死代码与冗余依赖 |
-| Phone launcher Logo scale | PLANNED v1.5 | 缩小 adaptive-icon foreground/monochrome 中月亮与整体标记的视觉占比，保持比例、安全区和各 launcher mask 一致 |
-| Expanded Phone/Wear widget gallery | PLANNED v1.6 | 更多 Phone Widget、Wear Tile/Complication 样式，复用统一 presentation/domain 边界 |
+| Stability / performance / code cleanup | SHIPPED v1.5 | 全量 bug sweep、性能/后台检查、代码与依赖清理 |
+| Phone launcher Logo scale | SHIPPED v1.5 | adaptive-icon foreground/monochrome 安全区和 launcher mask 已验收 |
+| Expanded Phone/Wear widget gallery | SHIPPED v1.6 | 四个 Phone Widget、三个新 Tile、兼容曲线 Tile 和三个 Complication，共用 Phone 派生状态边界 |
 | Optional CPA PK curve | PLANNED v1.7 | 默认关闭；开启后与 E2 在同一时间轴/图表区域显示并以图例区分，保持独立单位；实施前需独立科学与来源审查 |
 | User-controlled JSON migration | SHIPPED v1.0 | 文件/剪贴板导入导出；当前跨设备迁移路径 |
 | Encrypted backup format | NOT IMPLEMENTED | Google cloud backup 前需单独设计版本、密钥、恢复和冲突语义 |
@@ -39,5 +39,5 @@
 ## 版本方向
 
 - `v1.0.0` 已发布并封存；表中 `SHIPPED v1.0` 仅描述该实现。
-- `v1.1`: Phone Widget Completion（已完成并关闭）；`v1.2`: Google Integration & Data Continuity（规划中，Health Connect 与 Google backup 分批，尚未开始）；`v1.3`: Wear OS Companion App（规划中，尚未开始）；`v1.4.0`: Onboarding/Terms/Permission Guidance（已发布并封存）；`v1.5`: Stability/Performance/Cleanup 为下一主动开发版本；`v1.6`: Widget Gallery；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
+- `v1.1`: Phone Widget Completion（已完成）；`v1.2`: Google Integration & Data Continuity（尚未实现）；`v1.3` 能力并入后续主线；`v1.4.0`: Onboarding/Terms/Permission Guidance（已发布）；`v1.5.0`: Stability/Performance/Cleanup（已发布）；`v1.6.0`: Widget Gallery（已发布）；`v1.7`: Optional CPA PK Curve（默认关闭，科学审查门槛）。
 - `DEFERRED` 不表示承诺进入某个版本。

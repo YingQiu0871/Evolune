@@ -10,12 +10,14 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
+import io.github.yingqiu0871.evolune.experience.wear.WearAppTodaySummaryState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -172,6 +174,91 @@ class WearAppSnapshotBuilderTest {
 
         assertEquals(0, snapshot.upcomingOccurrences.size)
         assertEquals(io.github.yingqiu0871.evolune.experience.wear.WearAppOverallStatus.EMPTY, snapshot.overallStatus)
+        assertEquals(WearAppTodaySummaryState.NO_ENABLED_PLANS, snapshot.todaySummary?.state)
+        assertEquals(0, snapshot.todaySummary?.completedCount)
+        assertEquals(0, snapshot.todaySummary?.totalCount)
+    }
+
+    @Test
+    fun `today summary counts the complete local date independently of upcoming cap`() {
+        val plan = plan(
+            id = UUID(12L, 1L),
+            slots = listOf(
+                ScheduledDoseSlot(UUID(120L, 1L), UUID(12L, 1L), LocalTime.of(8, 0), 0),
+                ScheduledDoseSlot(UUID(120L, 2L), UUID(12L, 1L), LocalTime.of(10, 0), 1),
+                ScheduledDoseSlot(UUID(120L, 3L), UUID(12L, 1L), LocalTime.of(12, 0), 2),
+                ScheduledDoseSlot(UUID(120L, 4L), UUID(12L, 1L), LocalTime.of(14, 0), 3),
+                ScheduledDoseSlot(UUID(120L, 5L), UUID(12L, 1L), LocalTime.of(16, 0), 4),
+                ScheduledDoseSlot(UUID(120L, 6L), UUID(12L, 1L), LocalTime.of(18, 0), 5)
+            )
+        )
+        val recorded = DoseEvent(
+            id = UUID(0L, 120L),
+            route = plan.route,
+            occurredAt = Instant.parse("2026-08-30T08:00:00Z"),
+            zoneId = zone,
+            localDate = LocalDate.of(2026, 8, 30),
+            doseMG = plan.doseMG,
+            ester = plan.ester,
+            slotId = plan.slots.first().id,
+            source = DoseEventSource.MANUAL
+        )
+
+        val snapshot = build(plans = listOf(plan), events = listOf(recorded))
+        val summary = requireNotNull(snapshot.todaySummary)
+
+        assertEquals(LocalDate.of(2026, 8, 30), summary.todayLocalDate)
+        assertEquals(now, summary.computedAt)
+        assertEquals(1, summary.completedCount)
+        assertEquals(6, summary.totalCount)
+        assertEquals(WearAppSnapshotRules.MAX_UPCOMING_OCCURRENCES, snapshot.upcomingOccurrences.size)
+        assertEquals(WearAppTodaySummaryState.HAS_OCCURRENCES, summary.state)
+    }
+
+    @Test
+    fun `today summary keeps cross midnight legacy null slot ambiguity`() {
+        val plan = plan(
+            id = UUID(14L, 1L),
+            slots = listOf(
+                ScheduledDoseSlot(UUID(140L, 1L), UUID(14L, 1L), LocalTime.MIDNIGHT, 0),
+                ScheduledDoseSlot(UUID(140L, 2L), UUID(14L, 1L), LocalTime.of(22, 0), 1)
+            )
+        )
+        val legacyEvent = DoseEvent(
+            id = UUID(0L, 140L),
+            route = plan.route,
+            occurredAt = Instant.parse("2026-08-29T23:00:00Z"),
+            doseMG = plan.doseMG,
+            ester = plan.ester,
+            source = DoseEventSource.MANUAL
+        )
+
+        val summary = requireNotNull(build(plans = listOf(plan), events = listOf(legacyEvent)).todaySummary)
+
+        assertEquals(LocalDate.of(2026, 8, 30), summary.todayLocalDate)
+        assertEquals(0, summary.completedCount)
+        assertEquals(2, summary.totalCount)
+        assertEquals(WearAppTodaySummaryState.HAS_OCCURRENCES, summary.state)
+    }
+
+    @Test
+    fun `enabled plan without today's occurrence is distinct from no enabled plans`() {
+        val snapshot = build(
+            plans = listOf(
+                plan(
+                    id = UUID(13L, 1L),
+                    createdAt = now.minusSeconds(864_000L)
+                ).copy(
+                    scheduleType = ScheduleType.WEEKLY,
+                    daysOfWeek = setOf(DayOfWeek.MONDAY)
+                )
+            )
+        )
+
+        val summary = requireNotNull(snapshot.todaySummary)
+        assertEquals(WearAppTodaySummaryState.NO_OCCURRENCES, summary.state)
+        assertEquals(0, summary.completedCount)
+        assertEquals(0, summary.totalCount)
     }
 
     @Test

@@ -3,6 +3,7 @@
     android:id="@+id/wear_app_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     android:fillViewport="true"
     android:contentDescription="@string/wear_app_content_description">
 
@@ -21,7 +22,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="@string/app_name"
-            android:textColor="#FFFFFF"
+            android:textColor="#F2EFF4"
             android:textSize="22sp"
             android:textStyle="bold" />
 
@@ -31,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:textColor="#BDBDBD"
+            android:textColor="#CDC5D3"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -41,13 +42,15 @@
             android:layout_marginTop="20dp"
             android:minHeight="48dp"
             android:orientation="vertical"
+            android:padding="14dp"
             android:contentDescription="@string/wear_app_concentration_title">
 
             <TextView
+                android:id="@+id/wear_app_concentration_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/wear_app_concentration_title"
-                android:textColor="#BDBDBD"
+                android:textColor="#CDC5D3"
                 android:textSize="13sp" />
 
             <TextView
@@ -56,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="@string/wear_app_concentration_unavailable"
-                android:textColor="#FFFFFF"
+                android:textColor="#F2EFF4"
                 android:textSize="22sp"
                 android:textStyle="bold" />
 
@@ -66,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/wear_app_concentration_unavailable"
-                android:textColor="#BDBDBD"
+                android:textColor="#CDC5D3"
                 android:textSize="13sp" />
         </LinearLayout>
 
@@ -76,13 +79,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:minHeight="48dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="14dp">
 
             <TextView
+                android:id="@+id/wear_app_recent_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/wear_app_recent_title"
-                android:textColor="#BDBDBD"
+                android:textColor="#CDC5D3"
                 android:textSize="13sp" />
 
             <TextView
@@ -90,16 +95,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textColor="#FFFFFF"
+                android:textColor="#F2EFF4"
                 android:textSize="16sp" />
         </LinearLayout>
 
         <TextView
+            android:id="@+id/wear_app_upcoming_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/wear_app_upcoming_title"
-            android:textColor="#BDBDBD"
+            android:textColor="#CDC5D3"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -114,7 +120,39 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:gravity="center"
-            android:textColor="#FFFFFF"
+            android:textColor="#F2EFF4"
             android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/wear_app_palette_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:gravity="center_vertical"
+            android:minHeight="52dp"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="9dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="9dp">
+
+            <TextView
+                android:id="@+id/wear_app_palette_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/wear_app_palette_title"
+                android:textColor="#CDC5D3"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/wear_app_palette_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

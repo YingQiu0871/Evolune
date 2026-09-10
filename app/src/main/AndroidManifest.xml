@@ -126,10 +126,10 @@
             </intent-filter>
         </service>
 
-        <!-- Evolune 组合微件（用药提醒 + 快速添加） -->
+        <!-- Keep this original component as the Today Plan provider for upgrade compatibility. -->
         <receiver
             android:name=".widget.EvoluneWidgetReceiver"
-            android:label="@string/widget_combined_label"
+            android:label="@string/widget_today_plan_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -141,6 +141,54 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/evolune_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.NextDoseWidgetReceiver"
+            android:label="@string/widget_next_dose_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/next_dose_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.CurrentE2WidgetReceiver"
+            android:label="@string/widget_current_e2_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/current_e2_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.PkChartWidgetReceiver"
+            android:label="@string/widget_pk_chart_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/pk_chart_widget_info" />
         </receiver>
 
     </application>

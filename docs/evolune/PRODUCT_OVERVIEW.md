@@ -2,9 +2,9 @@
 
 ## 文档状态
 
-本文描述当前已发布的 `v1.1.0` 实现，以及作为上一版封存记录的 `v1.0.0`。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
+本文描述当前已发布的 `v1.6.0` 实现。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
 
-`v1.1.0` 是当前公开稳定版本；v1.0.0 已封存为上一版发布。v1.1 Phone Widget Completion 已完成并发布。
+`v1.6.0` 是当前公开稳定版本；`v1.5.0` 已封存为上一版发布。v1.6 Widget Gallery 已完成并发布。
 
 ## 产品定位
 
@@ -36,15 +36,15 @@ PK 计算通过 `DomainDoseEventToPkAdapter` 将当前领域事件投影为 PK �
 
 ### Phone Widget
 
-当前实现是 RemoteViews AppWidget。它通过 Repository contract 加载启用方案的今日 occurrence，按时间顺序提供响应式、可滚动的行集合及当前 PK 浓度。每个未记录 occurrence 都有独立的记录动作；动作使用 occurrence identity、实际点击时间和精确 slot/date 关联，并在持久化成功后刷新和显示反馈。
+当前提供四个独立 RemoteViews 系统入口：今日计划、下一次服药、当前 E2 和 E2 趋势。每个实例可独立配置显示模式与配色；今日计划按时间顺序提供响应式可滚动行集合，E2 趋势显示历史/预测浓度。可用动作使用 occurrence identity、实际点击时间和精确 slot/date 关联，并在持久化成功后刷新。
 
 ### Wear Tile 与 Data Layer
 
-手机将最多两个启用方案、当前浓度与曲线快照写入 `/hrt/plans` DataItem；Wear 在本地 `SharedPreferences` 缓存仪表盘并刷新 Tile。Wear Tile 通过 `/hrt/dose-actions/<actionId>` DataItem 提交动作。
+手机发布版本化用药、今日完成度、当前浓度与趋势快照；Wear 在本地缓存派生展示状态并刷新 Wear App、三个新 Tile、兼容曲线 Tile 和三个 Complication。Wear 通过 Data Layer 提交确认、撤销和 occurrence 级跳过动作。
 
 手机验证 URI/payload action ID、plan ID 和记录时间后，以 action ID 作为事件 ID 写入 `source=WEAR` 的事件。成功或可接受重放后先刷新 Widget，再只删除本次动作对应的精确 DataItem。冲突、非法数据或存储失败不会删除动作；副作用或删除失败会保留 DataItem 供后续重试。
 
-当前 payload 没有通用 envelope、checksum、ack 或版本协商。这是明确限制，不影响上述 v1.0 已实现的幂等/冲突边界。
+Phone 保持唯一事实来源；Wear 快照缓存可重建，不升级为权威数据。确认/撤销使用回执、幂等与冲突边界；跳过由 Phone 精确校验并抑制该次提醒，不记录 DoseEvent。
 
 ### JSON v1 兼容
 
@@ -75,8 +75,9 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 | Repository/data boundary | SHIPPED v1.0（当前为 app 内 package 边界） |
 | RemoteViews Widget | SHIPPED v1.0 |
 | Phone Widget Completion（occurrence、响应式布局、配置与隔离） | SHIPPED v1.1 |
+| Phone Widget Gallery（四个独立入口、趋势图与实例级外观） | SHIPPED v1.6 |
 | Wear Tile/Data Layer 和 dose actions | SHIPPED v1.0 |
-| 通用版本化 Wear 协议、完整 Wear App | PARTIAL / future enhancement |
+| Wear App、三新 Tile、兼容曲线 Tile、三 Complication | SHIPPED v1.6 |
 | Health Connect | NOT IMPLEMENTED |
 | Google cloud backup/sync | NOT IMPLEMENTED |
 | Tracked Date | DEFERRED |
@@ -93,10 +94,10 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 
 - `v1.1`: Phone Widget Completion，已完成并关闭。
 - `v1.2`: Health Connect 与 Google 数据连续性，作为独立批次；规划中，尚未开始。
-- `v1.3`: 轻量级 Wear OS 伴侣应用，同时保留现有 Tile。
-- `v1.4`: 首次使用引导、条款、隐私与权限说明。
-- `v1.5`: 稳定性、性能与代码清理。
-- `v1.6`: 更多 Widget/Wear 展示样式（Widget Gallery）。
+- `v1.3`: 轻量级 Wear OS 伴侣应用能力已并入后续主线。
+- `v1.4`: 首次使用引导、条款、隐私与权限说明，已发布。
+- `v1.5`: 稳定性、性能与代码清理，已发布。
+- `v1.6`: Widget Gallery，已发布。
 - `v1.7`: 可选 CPA 浓度曲线，默认关闭并需独立科学审查。
 
 详见 [Roadmap](ROADMAP.md)。

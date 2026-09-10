@@ -27,6 +27,13 @@ object WearAppProtocol {
     const val KEY_CONFIRM_RESULT_PAYLOAD = "confirm_result_payload"
     const val KEY_UNDO_COMMAND_PAYLOAD = "undo_command_payload"
     const val KEY_UNDO_RESULT_PAYLOAD = "undo_result_payload"
+    const val SKIP_NOTIFICATION_PATH = "/hrt/v1/wear-app/skip-notification"
+    const val KEY_SKIP_OPERATION_ID = "skip_operation_id"
+    const val KEY_SKIP_OCCURRENCE_ID = "skip_occurrence_id"
+    const val KEY_SKIP_PLAN_ID = "skip_plan_id"
+    const val KEY_SKIP_SLOT_ID = "skip_slot_id"
+    const val KEY_SKIP_SCHEDULED_AT = "skip_scheduled_at"
+    const val KEY_SKIP_NOTIFICATION_ID = "skip_notification_id"
 }
 
 enum class WearAppOverallStatus {
@@ -71,7 +78,9 @@ data class WearAppUpcomingOccurrence(
     val route: String,
     val dose: Double,
     val doseUnit: String,
-    val status: WearAppOccurrenceStatus
+    val status: WearAppOccurrenceStatus,
+    /** Phone reminder id used only for the notification-only skip action. */
+    val notificationId: Int? = null
 )
 
 data class WearAppConcentration(
@@ -84,6 +93,24 @@ data class WearAppConcentration(
         fun unavailable() = WearAppConcentration(WearAppConcentrationStatus.EMPTY)
     }
 }
+
+enum class WearAppTodaySummaryState {
+    NO_ENABLED_PLANS,
+    NO_OCCURRENCES,
+    HAS_OCCURRENCES
+}
+
+/**
+ * Phone-derived progress for one local calendar date. This is optional so a
+ * v1 snapshot without the extension remains fully readable on both sides.
+ */
+data class WearAppTodaySummary(
+    val todayLocalDate: LocalDate,
+    val computedAt: Instant,
+    val completedCount: Int,
+    val totalCount: Int,
+    val state: WearAppTodaySummaryState
+)
 
 data class WearAppProducerIdentity(
     val producerInstanceId: UUID,
@@ -175,7 +202,9 @@ data class WearAppSnapshot(
      */
     val producerInstanceId: UUID,
     /** Monotonic generation assigned when the producer instance is created. */
-    val producerGeneration: Long
+    val producerGeneration: Long,
+    /** Optional tag 11 extension; absence means today's summary is unavailable. */
+    val todaySummary: WearAppTodaySummary? = null
 )
 
 object WearAppSnapshotRules {
@@ -215,6 +244,26 @@ object WearAppSnapshotRules {
         snapshot.recentDose?.let(::validateRecent)
         snapshot.upcomingOccurrences.forEach(::validateUpcoming)
         validateConcentration(snapshot.concentrationState)
+        snapshot.todaySummary?.let { summary ->
+            require(summary.computedAt.toEpochMilli() > 0L)
+            require(!summary.computedAt.isAfter(snapshot.generatedAt))
+            require(
+                summary.todayLocalDate ==
+                    summary.computedAt.atZone(ZoneId.of(snapshot.zoneId)).toLocalDate()
+            )
+            require(summary.completedCount >= 0)
+            require(summary.totalCount >= summary.completedCount)
+            when (summary.state) {
+                WearAppTodaySummaryState.NO_ENABLED_PLANS,
+                WearAppTodaySummaryState.NO_OCCURRENCES -> {
+                    require(summary.completedCount == 0)
+                    require(summary.totalCount == 0)
+                }
+                WearAppTodaySummaryState.HAS_OCCURRENCES -> {
+                    require(summary.totalCount > 0)
+                }
+            }
+        }
     }.isSuccess
 
     private fun validateRecent(recent: WearAppRecentDose) {
@@ -277,6 +326,7 @@ object WearAppSnapshotCodec {
             bytes(8, encodeConcentration(snapshot.concentrationState))
             string(9, snapshot.producerInstanceId.toString())
             long(10, snapshot.producerGeneration)
+            snapshot.todaySummary?.let { bytes(11, encodeTodaySummary(it)) }
         }.prependMagic()
     }
 
@@ -298,11 +348,31 @@ object WearAppSnapshotCodec {
             concentrationState = top.optional(8)?.let(::decodeConcentration)
                 ?: WearAppConcentration.unavailable(),
             producerInstanceId = UUID.fromString(top.required(9).readString()),
-            producerGeneration = top.required(10).readLong()
+            producerGeneration = top.required(10).readLong(),
+            todaySummary = top.optional(11)?.let(::decodeTodaySummary)
         )
         require(WearAppSnapshotRules.isValid(snapshot))
         snapshot
     }.getOrNull()
+
+    private fun encodeTodaySummary(summary: WearAppTodaySummary): ByteArray = fields {
+        string(1, summary.todayLocalDate.toString())
+        long(2, summary.computedAt.toEpochMilli())
+        int(3, summary.completedCount)
+        int(4, summary.totalCount)
+        string(5, summary.state.name)
+    }
+
+    private fun decodeTodaySummary(bytes: ByteArray): WearAppTodaySummary {
+        val fields = readFields(bytes)
+        return WearAppTodaySummary(
+            todayLocalDate = LocalDate.parse(fields.required(1).readString()),
+            computedAt = Instant.ofEpochMilli(fields.required(2).readLong()),
+            completedCount = fields.required(3).readInt(),
+            totalCount = fields.required(4).readInt(),
+            state = enumValue(fields.required(5).readString())
+        )
+    }
 
     private fun encodeRecent(recent: WearAppRecentDose): ByteArray = fields {
         string(1, recent.eventId.toString())
@@ -349,6 +419,7 @@ object WearAppSnapshotCodec {
             double(8, occurrence.dose)
             string(9, occurrence.doseUnit)
             string(10, occurrence.status.name)
+            occurrence.notificationId?.let { int(11, it) }
         }
     })
 
@@ -365,7 +436,8 @@ object WearAppSnapshotCodec {
                 route = fields.required(7).readString(),
                 dose = fields.required(8).readDouble(),
                 doseUnit = fields.required(9).readString(),
-                status = enumValue(fields.required(10).readString())
+                status = enumValue(fields.required(10).readString()),
+                notificationId = fields.optional(11)?.readInt()
             )
         }
 
