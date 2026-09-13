@@ -1,0 +1,134 @@
+# B-00 source audit (read-only; generated from the repository at the B-00 base HEAD)
+# base HEAD: 40eb9f230536e600843fde6bb5896cdb26128973
+# command: see the header lines of each block (copy-pasteable from the repository root)
+
+## 1. Frozen projection types (fields, not names)
+14:enum class HistoricalDisplayDateProvenance {
+37:enum class HistoricalScheduleTimeContext {
+42:sealed interface HistoricalEntry {
+62:data class MatchedHistoricalOccurrence(
+100:data class UnrecordedHistoricalOccurrence(
+121:data class UnmatchedHistoricalIntake(
+151:data class FutureOccurrenceContext(
+160:data class HistoricalProjection(
+
+## 2. HistoricalEntry subtypes and their key fields
+sealed interface HistoricalEntry {
+    val displayDate: LocalDate
+    val displayDateProvenance: HistoricalDisplayDateProvenance
+
+    /** Deterministic ordering key inside one display date. */
+    val sortInstant: Instant
+
+    /** Stable tie-breaker so equal instants still order deterministically. */
+    val sortKey: String
+
+    /**
+     * True only when [displayDate] is either the occurrence's intended local date or
+     * the event's own persisted date. False for legacy-orphan dates derived from the
+     * current display timezone.
+     */
+    val isOriginalLocalDate: Boolean
+        get() = displayDateProvenance != HistoricalDisplayDateProvenance.CURRENT_DISPLAY_TIMEZONE_DERIVED
+}
+
+## 3. Unmatched intake type (source handling)
+data class UnmatchedHistoricalIntake(
+    val event: RecordedMedicationEvent,
+    val source: MedicationIntakeSource,
+    override val displayDate: LocalDate,
+    override val displayDateProvenance: HistoricalDisplayDateProvenance
+) : HistoricalEntry {
+    /** Only `MANUAL` may be presented as a manual intake. */
+    val isManualIntake: Boolean get() = source == MedicationIntakeSource.MANUAL
+
+    override val sortInstant: Instant get() = event.occurredAt
+    override val sortKey: String get() = "2:" + event.eventId
+}
+
+## 4. FutureOccurrenceContext (NOT a HistoricalEntry)
+data class FutureOccurrenceContext(
+    val occurrence: MedicationOccurrence,
+    val status: MedicationOccurrenceStatus,
+    val actionAvailability: MedicationActionAvailability,
+    val scheduleTimeContext: HistoricalScheduleTimeContext =
+        HistoricalScheduleTimeContext.CURRENT_SCHEDULE_CONTEXT
+)
+
+## 5. Match provenance enum (four phases)
+enum class MedicationMatchProvenance {
+    /** Phase 1: persisted `slotId` + persisted `localDate` matched exactly. */
+    EXACT_SLOT_AND_LOCAL_DATE,
+
+    /** Phase 2: persisted `slotId` without a trustworthy `localDate`, matched by the bounded time window. */
+    SLOT_WINDOW_WITHOUT_LOCAL_DATE,
+
+    /** Phase 3: no slot identity at all (legacy null-slot), matched by the bounded time window. */
+    NULL_SLOT_TIME_WINDOW,
+
+    /** Phase 4: no slot identity, matched by the delayed same-local-date fallback only. */
+    NULL_SLOT_SAME_DAY
+}
+
+## 6. Intake source enum (authoritative origins)
+enum class MedicationIntakeSource {
+    LEGACY,
+    MANUAL,
+    JSON_V1,
+    REMINDER,
+    WIDGET,
+    WEAR
+}
+
+## 7. Display-date provenance + schedule-time context enums
+enum class HistoricalDisplayDateProvenance {
+    /** Bound occurrence: the intended local date of the occurrence the event belongs to. */
+    INTENDED_LOCAL_DATE,
+
+    /** The event itself persisted `localDate` (and usually `zoneId`) when it was recorded. */
+    PERSISTED_RECORDING_DATE,
+
+    /**
+     * True legacy orphan (no `localDate`, no `zoneId`, no reliable occurrence binding):
+     * the date is derived from the absolute event instant in the *current* display
+     * timezone. It is a presentation artifact, not the original local date, and must
+     * not be used as high-confidence historical adherence input.
+     */
+    CURRENT_DISPLAY_TIMEZONE_DERIVED
+}
+enum class HistoricalScheduleTimeContext {
+    CURRENT_SCHEDULE_CONTEXT
+}
+
+## 8. Read-model day/range counts consumed by Insights
+16:    val recordedCount: Int get() = entries.count { it is MatchedHistoricalOccurrence }
+22:    val unrecordedCount: Int get() = entries.count { it is UnrecordedHistoricalOccurrence }
+25:    val unmatchedActualCount: Int get() = entries.count { it is UnmatchedHistoricalIntake }
+55:    val recordedCount: Int get() = days.sumOf { it.recordedCount }
+56:    val unrecordedCount: Int get() = days.sumOf { it.unrecordedCount }
+57:    val unmatchedActualCount: Int get() = days.sumOf { it.unmatchedActualCount }
+63:    fun day(projection: HistoricalProjection, date: LocalDate): HistoricalDay =
+66:    fun range(
+
+## 9. RecordedMedicationEvent fields (what Insights can see about an event)
+18:data class RecordedMedicationEvent(
+19-    val eventId: UUID,
+20-    val occurredAt: Instant,
+21-    val slotId: UUID?,
+22-    val matchKey: MedicationMatchKey,
+23-    val source: MedicationIntakeSource,
+24-    val localDate: LocalDate? = null,
+25-    val zoneId: ZoneId? = null
+26-)
+27-
+28-enum class MedicationOccurrenceStatus {
+29-    UPCOMING,
+30-    DUE,
+31-    RECORDED,
+32-    PAST_UNRECORDED
+33-}
+34-
+35-enum class MedicationActionAvailability {
+36-    AVAILABLE,
+37-    NOT_YET_DUE,
+38-    ALREADY_RECORDED,

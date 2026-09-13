@@ -1,0 +1,97 @@
+# B-00 schedule-authenticity audit (read-only)
+# base HEAD: 40eb9f230536e600843fde6bb5896cdb26128973
+
+## 1. SPEC Decision A (verbatim, V17_SPEC.md)
+## Decision A — Historical planned time
+
+v1.7 不修改 Room schema，不建立 plan/slot version history。
+
+当前模型无法检测 slot 是否在历史 intake 后被编辑，因为：
+
+* plan/slot 无历史版本；
+* slot UUID 可跨时间修改继续保留；
+* 当前 plan 可以重新生成过去 occurrence，但生成的是**当前计划投影**。
+
+因此：
+
+**actual intake 是历史权威事实。**
+
+对于过去日期，由当前 medication plan 重新生成的 scheduled time，只能表示：
+
+`Current schedule context`
+
+或等价明确文案。
+
+不得称为：
+
+`historical planned time`
+
+也不得在无法证明历史 planned snapshot 的情况下，将：
+
+`actual - reconstructed current scheduled time`
+
+展示成确定的历史服药延迟。
+
+如果某一未来数据结构真正具有 immutable historical planned snapshot，后续可单独利用；现有数据不得假装拥有它。
+
+这意味着 v1.7-B 的严格 adherence 指标必须重新约束：
+
+* 不得基于不可证明的 historical plan reconstruction 输出"严格历史 adherence rate"；
+* 优先做 factual medication insights；
+* 只有 provenance 足够可靠的数据才可进入计划符合度统计；
+* 具体 B 阶段指标在 A 的 provenance model 冻结后再最终冻结。
+
+## Decision B — Orphan intake
+
+## 2. Schema: no plan/slot version history exists (entity + column inventory)
+version: 3
+ table dose_events -> id, route, timeH, doseMG, ester, extras, occurredAtEpochMillis, zoneId, localDate, slotId, source, status, revision
+ table medication_plans -> id, name, route, ester, doseMG, scheduleType, timeOfDay, daysOfWeek, intervalDays, isEnabled, extras, createdAt
+ table scheduled_dose_slots -> id, planId, localTime, position
+
+## 3. Domain: MedicationSchedule has no version/revision field
+data class MedicationScheduleSlot(
+    val id: UUID,
+    val localTime: LocalTime,
+    val position: Int
+) {
+    init {
+        require(position >= 0)
+        require(localTime.second == 0 && localTime.nano == 0)
+    }
+}
+data class MedicationSchedule(
+    val planId: UUID,
+    val presentation: MedicationPresentation,
+    val scheduleType: MedicationScheduleType,
+    val slots: List<MedicationScheduleSlot>,
+    val daysOfWeek: Set<DayOfWeek>,
+    val intervalDays: Int,
+    val enabled: Boolean,
+    val createdAt: Instant
+) {
+    init {
+        require(intervalDays >= 1)
+        slots.forEachIndexed { index, slot ->
+            require(slot.position == index) { "slot position must match list order" }
+        }
+    }
+}
+
+## 4. Domain: schedule time context has exactly one value
+enum class HistoricalScheduleTimeContext {
+    CURRENT_SCHEDULE_CONTEXT
+}
+
+## 5. Phase-A regression that depends on this limitation (plan edit rewrites past 'planned time')
+19: * Covers: unmatched/orphan intake retention, deleted plan survival, edited plan
+198:    // ---------- M3: edited plan semantics ----------
+201:    fun `edited slot time is current schedule context not a historical planned time`() {
+217:        // ...and later edits the slot time from 08:00 to 09:00 (same slot identity).
+221:        assertEquals("slot identity survives a time edit", occurrenceBefore.slotId, occurrenceAfter.slotId)
+
+## 6. Conclusion
+binding confidence (matcher provenance)  = provable
+historical schedule authenticity         = NOT provable (no plan/slot revisions, no snapshot)
+-> per Decision A the reconstructed scheduled time may only be labelled 'Current schedule context';
+   v1.7-B therefore ships no punctuality/on-time/delay metric (section 10 Option 1).

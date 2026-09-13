@@ -1,0 +1,89 @@
+# B-00 medication identity audit (read-only)
+# base HEAD: 40eb9f230536e600843fde6bb5896cdb26128973
+
+## 1. Plan -> schedule mapping: medicationKey is the ESTER slot
+22:            medicationKey = ester.name,
+52:                medicationKey = event.ester.name,
+
+## 2. Event -> recorded event mapping: medicationKey is the ESTER slot again
+fun DoseEvent.toRecordedMedicationEvent(): RecordedMedicationEvent? =
+    takeIf { it.status == DoseEventStatus.RECORDED }?.let { event ->
+        RecordedMedicationEvent(
+            eventId = event.id,
+            occurredAt = event.occurredAt,
+            slotId = event.slotId,
+            matchKey = MedicationMatchKey(
+                routeKey = event.route.name,
+                medicationKey = event.ester.name,
+                doseAmount = event.doseMG
+            ),
+            source = event.source.toMedicationIntakeSource(),
+            localDate = event.localDate,
+            zoneId = event.zoneId
+        )
+    }
+
+/**
+ * Maps the authoritative Phone event origin onto the pure-Kotlin historical domain.
+ * Only [DoseEventSource.MANUAL] may ever be presented as a manual intake.
+ */
+fun DoseEventSource.toMedicationIntakeSource(): MedicationIntakeSource = when (this) {
+    DoseEventSource.LEGACY -> MedicationIntakeSource.LEGACY
+    DoseEventSource.MANUAL -> MedicationIntakeSource.MANUAL
+    DoseEventSource.JSON_V1 -> MedicationIntakeSource.JSON_V1
+    DoseEventSource.REMINDER -> MedicationIntakeSource.REMINDER
+    DoseEventSource.WIDGET -> MedicationIntakeSource.WIDGET
+    DoseEventSource.WEAR -> MedicationIntakeSource.WEAR
+}
+
+## 3. The projection type carries NO extras -> anti-androgen identity is unavailable
+data class RecordedMedicationEvent(
+    val eventId: UUID,
+    val occurredAt: Instant,
+    val slotId: UUID?,
+    val matchKey: MedicationMatchKey,
+    val source: MedicationIntakeSource,
+    val localDate: LocalDate? = null,
+    val zoneId: ZoneId? = null
+)
+
+## 4. Where the anti-androgen identity actually lives (not reachable through the projection)
+app/src/main/java/io/github/yingqiu0871/evolune/application/MedicationPlanEditor.kt:109:        extras[ExtraKey.ANTI_ANDROGEN_TYPE] = selectedAntiAndrogen.toStableCode()
+app/src/main/java/io/github/yingqiu0871/evolune/application/MedicationPlanEditor.kt:170:    when (extras[ExtraKey.ANTI_ANDROGEN_TYPE]) {
+app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt:1009:            "ANTI_ANDROGEN_TYPE"
+app/src/main/java/io/github/yingqiu0871/evolune/core/adapter/DomainDoseEventToPkAdapter.kt:37:    DomainExtraKey.ANTI_ANDROGEN_TYPE -> PkDoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
+app/src/main/java/io/github/yingqiu0871/evolune/core/model/DoseEvent.kt:35:    ANTI_ANDROGEN_TYPE
+app/src/main/java/io/github/yingqiu0871/evolune/data/mapper/ExtraKeyMapper.kt:12:    "ANTI_ANDROGEN_TYPE" -> MappingResult.Success(DomainExtraKey.ANTI_ANDROGEN_TYPE)
+app/src/main/java/io/github/yingqiu0871/evolune/data/mapper/ExtraKeyMapper.kt:22:    DomainExtraKey.ANTI_ANDROGEN_TYPE -> "ANTI_ANDROGEN_TYPE"
+app/src/main/java/io/github/yingqiu0871/evolune/data/mapper/ExtraKeyMapper.kt:31:    PkExtraKey.ANTI_ANDROGEN_TYPE -> DomainExtraKey.ANTI_ANDROGEN_TYPE
+
+## 5. Routes (which route keys can appear in matchKey)
+enum class Route {
+    INJECTION,      // 肌肉注射
+    ORAL,          // 口服
+    SUBLINGUAL,    // 舌下
+    GEL,           // 凝胶
+    PATCH_APPLY,   // 应用贴片
+    PATCH_REMOVE,  // 移除贴片
+    ANTIANDROGEN   // 抗雄激素药物（口服，不参与药代动力学计算）
+}
+
+## 6. A-04 presentation fix: no raw-key fallback on anti-androgen routes
+--
+179:            medicationFallback = medicationFallback(matchKey.routeKey, matchKey.medicationKey),
+180-            doseAmount = matchKey.doseAmount,
+181-            actualTime = HistoryFormatting.actualTimestampPresentation(
+182-                occurredAt = entry.event.occurredAt,
+183-                persistedZoneId = entry.event.zoneId,
+--
+223:    private fun medicationFallback(routeKey: String, medicationKey: String): String? =
+224-        if (routeKey == Route.ANTIANDROGEN.name) null else medicationKey
+225-
+226-    private fun medicationLabelRes(routeKey: String, medicationKey: String): Int? {
+227-        if (routeKey == Route.ANTIANDROGEN.name) return null
+
+## 7. Conclusion (frozen in V17_B_00_INSIGHTS_SEMANTICS.md section 13)
+identity known      = routeKey != ANTIANDROGEN and medicationKey in {E2,EB,EV,EC,EN}
+identity partial    = medicationKey outside that set (unknown/foreign) -> raw key or Unknown
+identity unavailable= routeKey == ANTIANDROGEN -> never render an ester name
+registered debt     = A-04/B presentation model debt (carry anti-androgen identity through the projection)
