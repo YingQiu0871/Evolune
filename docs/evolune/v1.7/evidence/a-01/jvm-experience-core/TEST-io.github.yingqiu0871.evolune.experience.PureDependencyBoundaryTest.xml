@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.PureDependencyBoundaryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-13T17:37:34.063Z" hostname="人面不知何处去" time="0.008">
+  <properties/>
+  <testcase name="production primitives have no Android UI persistence or transport coupling" classname="io.github.yingqiu0871.evolune.experience.PureDependencyBoundaryTest" time="0.008"/>
+  <testcase name="module uses the pure Kotlin JVM plugin" classname="io.github.yingqiu0871.evolune.experience.PureDependencyBoundaryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

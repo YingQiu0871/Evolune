@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-09-13T17:37:50.360Z" hostname="人面不知何处去" time="0.015">
+  <properties/>
+  <testcase name="everyDraftFieldIncludingExtrasIsPreserved" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.004"/>
+  <testcase name="nonZeroNanosAreRejectedAtTheirPosition" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="mapperSourceHasNoClockRandomPlatformOrSideEffectDependencies" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.003"/>
+  <testcase name="localeAndDefaultTimeZoneDoNotChangeMapping" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="fixedCreatedAtIsPreservedExactly" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="domainToDraftPreservesExistingSlotId" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="fixedUuidV5VectorMatchesLockedExpectedValue" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="duplicateTimesArePreservedWithDistinctIds" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="blankNameReturnsMissingRequiredField" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="planIdIsPreservedByPlanAndEverySlot" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="fieldAndTimeIssuesUseStableValidationOrder" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="domainToDraftToDomainPreservesCompletePlan" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="midnightAndEndOfDayAreAcceptedAndCanonical" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <testcase name="oneTimeMapsToPositionZero" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="emptyTimesMapToEmptySlots" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="invalidDomainInvariantReturnsStableIssue" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="nonZeroSecondsAreRejectedAtTheirPosition" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.0"/>
+  <testcase name="multipleTimesSortChronologicallyWithContinuousPositions" classname="io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
