@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:55:51.598Z" hostname="人面不知何处去" time="0.073">
+  <properties/>
+  <testcase name="bound occurrence uses the intended local date" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.057"/>
+  <testcase name="dst overlap materializes one occurrence and exposes the second local clock hour as a delta" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.009"/>
+  <testcase name="persisted recording date is preserved when the display zone differs" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.002"/>
+  <testcase name="dst gap keeps wall clock intent separate from the resolved instant" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.001"/>
+  <testcase name="edited slot time is current schedule context not a historical planned time" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.001"/>
+  <testcase name="unmatched intake keeps every recoverable field" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.0"/>
+  <testcase name="only manual source may be presented as a manual intake" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.001"/>
+  <testcase name="legacy orphan without persisted context reports a low confidence display date" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.0"/>
+  <testcase name="recorded event survives plan deletion" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

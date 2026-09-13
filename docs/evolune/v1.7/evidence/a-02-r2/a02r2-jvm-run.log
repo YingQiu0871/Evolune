@@ -1,0 +1,97 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+Warning: SDK processing. This version only understands SDK XML versions up to 3 but an SDK XML file of version 4 was encountered. This can happen if you use versions of Android Studio and the command-line tools that were released at different times.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :experience-core:processTestResources NO-SOURCE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:javaPreCompileDebug
+> Task :app:checkDebugAarMetadata
+> Task :app:parseDebugLocalResources
+> Task :app:compileDebugNavigationResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugRFile
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :app:mergeDebugResources
+> Task :experience-core:jar
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :experience-core:compileTestKotlin
+> Task :app:processDebugMainManifest
+> Task :experience-core:compileTestJava NO-SOURCE
+> Task :experience-core:testClasses UP-TO-DATE
+> Task :experience-core:test
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :wear:generateDebugResources
+> Task :wear:packageDebugResources
+> Task :wear:processDebugNavigationResources
+> Task :wear:javaPreCompileDebug
+> Task :wear:parseDebugLocalResources
+> Task :wear:checkDebugAarMetadata
+> Task :wear:compileDebugNavigationResources
+> Task :wear:generateDebugRFile
+> Task :wear:mapDebugSourceSetPaths
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+> Task :wear:createDebugCompatibleScreenManifests
+> Task :wear:extractDeepLinksDebug
+> Task :wear:processDebugMainManifest
+> Task :wear:mergeDebugResources
+> Task :wear:processDebugManifest
+> Task :wear:preDebugUnitTestBuild UP-TO-DATE
+> Task :wear:javaPreCompileDebugUnitTest
+> Task :wear:processDebugManifestForPackage
+
+> Task :wear:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:110:34 'fun setResourceId(p0: String): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+
+> Task :wear:compileDebugJavaWithJavac NO-SOURCE
+> Task :wear:processDebugJavaRes
+> Task :wear:processDebugResources
+> Task :wear:bundleDebugClassesToCompileJar
+> Task :wear:bundleDebugClassesToRuntimeJar
+> Task :wear:compileDebugUnitTestKotlin
+> Task :wear:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :wear:processDebugUnitTestJavaRes
+> Task :wear:testDebugUnitTest
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1027:56 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1080:37 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1081:41 'val Icons.Outlined.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/main/java/io/github/yingqiu0871/evolune/ui/components/MedicationRecordBottomSheet.kt:932:9 'fun ButtonGroup(modifier: Modifier = ..., expandedRatio: Float = ..., horizontalArrangement: Arrangement.Horizontal = ..., content: ComposableFunction1<ButtonGroupScope, Unit>): Unit' is deprecated. Please use the overload with overflowIndicator parameter. This overload will create a composable that is cut off if there are too many items to fit on the screen neatly.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:kspDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 44s
+54 actionable tasks: 54 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

@@ -94,76 +94,102 @@ HistoricalRange(startDate, endDate, days)   // 两者皆 inclusive
 - `startDate == endDate` 返回该单日（若为空则 `days` 为空列表）；
 - `displayZone` 必须由调用方显式传入，不读取隐式 system default。
 
-## 6. Event query bounds（app adapter）
+## 6. Event fetch: **dual-channel**（app adapter）
 
-`HistoryReadService.readRange(startDate, endDate, displayZone, now, policy)` 使用**两个不同的 context**：
+`HistoryReadService.readRange(startDate, endDate, displayZone, now, policy)` 使用**两个事件读取通道**，
+外加一个 occurrence 生成 context。完整性**不再**依赖任何有限 instant padding。
 
-| 概念 | 常量 | 值 | 解决的问题 |
-|---|---|---|---|
-| occurrence generation context | `OCCURRENCE_CONTEXT_DAYS` | **1** calendar day | matcher adjacency：±1h 窗口 + 跨午夜兼容（`previous-day 23:00 → requested-day 00:00`） |
-| event query context | `EVENT_QUERY_CONTEXT_DAYS` | **2** calendar days | persisted `localDate` 的 recording-zone ↔ display-zone 位移（最坏约 26h） |
+| 通道 / context | 常量 | 值 | 覆盖的行 | 解决的问题 |
+|---|---|---|---|---|
+| **A — persisted local date** | `OCCURRENCE_CONTEXT_DAYS` | **1** calendar day | `localDate != null` | persisted 记录日的 completeness（与 `occurredAt` 距离无关） |
+| **B — instant context** | `EVENT_QUERY_CONTEXT_DAYS` | **2** calendar days | `localDate == null`（legacy） | display-zone 推导归日 + bounded inferred 候选 |
+| occurrence generation context | `OCCURRENCE_CONTEXT_DAYS` | **1** calendar day | — | matcher adjacency：±1h 窗口 + 跨午夜兼容 |
 
-- event 查询窗口：**instant** 半开区间
-  `[ (startDate − 2d).atStartOfDay(zone) , (endDate + 3d).atStartOfDay(zone) )`；
-- occurrence 生成窗口：`[ (startDate − 1d).atStartOfDay(zone) , (endDate + 2d).atStartOfDay(zone) )`；
-- 使用的现有 API：`DoseEventRepository.findOccurredBetween(startInclusive, endExclusive)`；
-- 上界：`MAX_RANGE_DAYS = 3660`（产品值未变）。当请求范围处于上限附近时，occurrence context
-  会超过 generator 自身的单窗口上限 `OccurrenceGenerationWindow.MAX_WINDOW_DAYS`，
-  因此 adapter 以**不重叠的半开 chunk** 调用同一个 generator（不是缩小 context，也不是第二套 recurrence）。
+- Channel A：`DoseEventRepository.findRecordedLocalDateBetween(startInclusive, endInclusive)`，**日期端点两端 inclusive**，
+  范围为 occurrence context 的日期 `[startDate − 1d, endDate + 1d]`；SQL 为
+  `WHERE localDate IS NOT NULL AND localDate >= ? AND localDate <= ?`（`localDate` 以 ISO-8601 `yyyy-MM-dd`
+  持久化，字典序即时间序），排序 `(localDate, occurredAt, id)`。
+- Channel B：`DoseEventRepository.findOccurredBetween(startInclusive, endExclusive)`，**instant 半开区间**
+  `[ (startDate − 2d).atStartOfDay(zone) , (endDate + 3d).atStartOfDay(zone) )`。
+- occurrence 生成窗口：`[ (startDate − 1d).atStartOfDay(zone) , (endDate + 2d).atStartOfDay(zone) )`。
+- **并集与去重**：两个通道的结果在进入 `HistoricalProjectionBuilder` 之前按权威 `eventId` 去重
+  （`LinkedHashMap`，先 A 后 B）。同一 database row 被两个通道同时命中时只进入 projection 一次；
+  若同一 `eventId` 携带**不同内容**则 `check` fail-fast，不猜测哪一行正确。
+- 上界：`MAX_RANGE_DAYS = 3660`（产品值未变）。当请求范围接近上限时，occurrence context 会超过
+  generator 自身的单窗口上限 `OccurrenceGenerationWindow.MAX_WINDOW_DAYS`，因此 adapter 以
+  **不重叠的半开 chunk** 调用同一个 generator（不是缩小 context，也不是第二套 recurrence）。
 
-**为什么按 instant 而不是 `localDate`**：legacy 行可能没有 `localDate`，且 display zone 会改变 derived day；
-按 instant 查询可覆盖这些行（**但这本身不足以证明不遗漏**，见 §6.1）。
 **为什么不复用 PK 查询**：`getEventsForPk(asOf)` 是 30 天窗口 + 最近 20 条回退 + 无上界，属 PK 专用语义，禁止用于 History。
-**不做全表扫描**：窗口严格为 `请求天数 + 4 天`。
+**不做全表扫描**：A 是带 WHERE 的定向 SQL（不经过 `observeAll`），B 是受限 instant 区间；两者都与请求范围成正比。
 
-### 6.1 Bound proof（bound 为什么是 2 calendar days）
+### 6.1 Completeness proof（按行分两类，**不再依赖 offset 包络或 padding 数值**）
 
-**offset 包络**：IANA/Java tzdb 的现代民用 offset 覆盖 **UTC−12 … UTC+14**。
-（更早的历史 LMT 存在超出该范围的取值，但带 persisted `zoneId` 的事件只可能由本应用写入，
-其 instant 落在现代区间；v3 迁移前的老 legacy 行 `zoneId`/`localDate` 强制为 NULL，走 display-zone 推导路径，不受此包络影响。）
+**Case A — `localDate != null`（含 reminder / Wear confirm 等“语义日 ≠ 行动时刻”的行）**
 
-**单个 persisted local date `D` 的 instant 跨度**：
+这类行的最终 display date 由 **persisted recording date**（`PERSISTED_RECORDING_DATE`）决定，而 Channel A
+正是按该持久化日期检索，检索范围就是 occurrence context 的**日期区间**。因此：
 
-| 端 | recording zone | instant |
-|---|---|---|
-| 最早 | UTC+14 的 `D 00:00` | `(D−1) 10:00Z` |
-| 最晚 | UTC−12 的 `D 23:59:59.999` | `(D+1) 11:59:59.999Z` |
+> 只要 `event.localDate ∈ [startDate − 1d, endDate + 1d]`，该事件必然进入 projection。
 
-跨度 ≈ **26 小时** > 1 calendar day ⇒ **±1 calendar day padding 不足**（这正是 R1 的 CE1/CE2）。
+该论证与以下因素**完全无关**：`occurredAt` 距离计划日多远、recording zone 与 display zone 的 offset 差、
+DST、日期线跳变、以及 padding 取值。这是 R2 移除“完整性依赖有限 instant padding”这一架构前提的方式。
 
-**下界**：`queryStart = (S − K)·00:00_in_display`。对 display offset 取最不利（UTC+14）时
-`queryStart = (S−K)·00:00Z − 14h`。要求 `queryStart ≤ (S−1) 10:00Z`（范围内事件的最早可能 instant）：
+> 为什么必须如此：应用自身存在**无界**偏离的写入路径——reminder 确认写入 `localDate = 计划日` 而
+> `occurredAt = 点击时刻`（`ReminderReceiverWork` 无任何最大迟到校验），Wear App confirm 写入
+> `localDate = command.localDate`（快照里的计划日）而 `occurredAt = 处理时刻`（只校验 producer generation，
+> `createdAt` 仅要求 >0）。因此任何有限的 instant padding 都不可能充分。
 
-- K = 1 → `(S−2) 10:00Z` ✓ 但 display offset 为 UTC−12 时 `(S−1) 12:00Z` **>** `(S−1) 10:00Z` ✗（CE1）
-- K = 2 → `(S−3) 10:00Z`（offset +14）或 `(S−2) 12:00Z`（offset −12），两者都 **≤** `(S−1) 10:00Z` ✓
+**Case B — `localDate == null`（v3 迁移前的 legacy 行，`zoneId` 亦为 NULL）**
 
-**上界**：`queryEndExclusive = (E + K + 1)·00:00_in_display`，最不利（display offset UTC−12）
-`= (E+K+1) 12:00Z`。要求 `> (E+1) 11:59:59.999Z`：
+这类行的 display date 由 `occurredAt` 在 **display zone** 推导（`CURRENT_DISPLAY_TIMEZONE_DERIVED`）。
+“最终 display date ∈ requested range”意味着 `occurredAt` 落在 `[startDate 00:00, endDate+1 00:00)` 的
+display-zone 区间内，而 Channel B 的窗口严格包含该区间（两端各多 2 个 calendar day）。因此 bounded
+instant 查询对 Case B 是**可严格绑定**的，不需要 offset 包络假设。
 
-- K = 1 → `(E+2) 12:00Z` ✓；但 display offset UTC+13（如 1 月的 Pacific/Auckland）时 `(E+2) 00:00Z − 13h = (E+1) 11:00Z` ✗（CE2）
-- K = 2 → `(E+3) 12:00Z`（offset −12）或 `(E+2) 10:00Z`（offset +14），两者都 **>** `(E+1) 11:59:59.999Z` ✓
+**matcher adjacency 的额外 padding**：historical matcher 允许相邻日期的 inferred 兼容匹配，因此 occurrence
+生成使用 `OCCURRENCE_CONTEXT_DAYS = 1` 的相邻日期 context；Channel A 使用**同一日期区间**，使相邻日的
+persisted-date 行也能参与匹配。context-only 行随后由 `HistoricalReadModel.range` 按最终 display date
+过滤回请求范围，不会泄漏。
 
-**calendar day ≠ 24h**：padding 以 **display zone 的 calendar day** 计。最不利情况下连续两个 calendar day
-被 DST 缩短也不低于约 46h（23h + 23h 的极端上界），仍比所需的 26h 包络多出约 20h 余量；
-因此结论不依赖"一天恰好 24 小时"的假设。
+**历史证明的处置（已删除/降级）**：R1 曾以“IANA 现代民用 offset 为 UTC−12…UTC+14”“单个 persisted local date
+的 instant 跨度约 26h”“两个 calendar day 即使被 DST 缩短也不低于约 46h”作为 `EVENT_QUERY_CONTEXT_DAYS = 2`
+的充分性证明。该论证实际依赖“persisted `localDate` 与 `occurredAt` 在 recording-zone offset 内一致”这一
+**未被强制的隐含前提**，因此已被移除。实测补充：IANA 全库 offset 包络实为
+`Asia/Manila` LMT −15.936h … `America/Metlakatla` LMT +15.228h（跨度 31.164h，而非 26h）；日期线跳变处
+（如 `Pacific/Apia` 2011-12-30 被跳过）两个 calendar day 的实际长度可短至 **24h**，而非 ≥46h。
+`EVENT_QUERY_CONTEXT_DAYS = 2` 保留，但其角色仅为 **Case B 与 adjacency 的 bounded context**，
+**不再承担任何 persisted-date completeness 保证**。
 
-**结论**：`EVENT_QUERY_CONTEXT_DAYS = 2` 对 UTC−12…UTC+14 的合法组合是保守充分的，
-且不依赖任何硬编码 ZoneId、不做全表扫描、不改变最终 date attribution。
-CE1/CE2 已固化为 app 层回归测试（§14）。
+CE1/CE2 保留为回归（§14），但它们现在主要通过 **Channel A** 被保证。
+
 
 ## 7. Occurrence context bounds
 
 occurrence 用现有 `MedicationOccurrenceGenerator` 生成（无第二套 recurrence 逻辑），窗口为
-`OCCURRENCE_CONTEXT_DAYS = 1` 的 `[startDate−1, endDate+1]`，**与 §6 的 event query context 不同**：
+`OCCURRENCE_CONTEXT_DAYS = 1` 的 `[startDate−1, endDate+1]`：
 
-> **occurrence context 解决 matcher adjacency；event query context 解决 persisted-date / zone displacement。**
-> 两者不是同一个问题，不得用扩大 recurrence 生成范围来"顺带"修 P1（R1 即按此拆分）。
+> **occurrence context 解决 matcher adjacency（±1h 窗口 + 跨午夜兼容）。**
+> **Channel A 复用同一日期区间**，因为相邻日的 inferred 匹配是靠 persisted 日期决定的；
+> **Channel B 的 instant context（2 天）解决 Case B 与 bounded 候选**，两者职责不同。
 
-当请求范围接近 `MAX_RANGE_DAYS` 上限、`范围 + 2 天` 超过 generator 的单窗口上限时，
-adapter 用**不重叠半开 chunk** 调用同一个 generator（保持 ±1 天 context 不被缩小）。
+**occurrence context 不得被用来"顺带"修 persisted-date completeness**（R1 曾如此，R2 已改为独立通道）。
+
+当请求范围接近 `MAX_RANGE_DAYS` 上限、context 跨度超过 generator 的单窗口上限
+(`OccurrenceGenerationWindow.MAX_WINDOW_DAYS = 3660`) 时，adapter 用**不重叠半开 chunk** 调用同一个 generator
+（保持 ±1 天 context 不被缩小，也不引入第二套 recurrence）。分块正确性由
+`HistoryReadServiceOccurrenceChunkingTest` 覆盖：用**真实 plan** 与 3660 天区间强制分块，断言
+
+- CUSTOM（`intervalDays = 3`）与 WEEKLY（Mon/Thu）的 recurrence phase 跨 chunk 不变；
+- 相邻 occurrence 日期差恒等于周期（无 gap、无多出）；
+- 日期无重复，且 occurrence 总数与**独立重算**的期望集合完全一致；
+- 区间首尾的 occurrence 均未丢失。
+
+由于 chunk 边界是**任意 instant**（`chunkStart + 3660d`）而非本地午夜，正确性依赖 generator 只按
+`scheduledAt ∈ [start, end)` 过滤 occurrence——分块不会重复产出边界 occurrence。需注意 generator 的
+recurrence 锚点是 `schedule.createdAt`（与窗口起点无关），这是分块不改变 phase 的根本原因。
 
 **context 与最终返回范围分离**：投影在 context 上执行，随后按 **projection 的最终 display date** 过滤到 `[startDate, endDate]`；
-相邻日期的 occurrence/entry 不会泄漏进结果（测试显式断言）。
+相邻日期的 occurrence/entry 不会泄漏进结果（测试显式断言，含 Channel A 的 context 行）。
 
 ## 8. Timezone / date filtering
 
@@ -202,13 +228,18 @@ adapter 用**不重叠半开 chunk** 调用同一个 generator（保持 ±1 天 
 | 停止条件 | 是否触发 |
 |---|---|
 | History 需要第二套 matcher | 否（复用 A-01 projection） |
-| range query 无法在不全量扫描/不改 schema 下正确完成 | 否（有界 instant context 窗口） |
-| current plan 无法安全生成 requested context range | 否（generator + ±1 天 context） |
+| `localDate` 列无法在不改 schema 的情况下查询 | 否（列已存在且为 ISO-8601 文本，`WHERE localDate >= ? AND localDate <= ?` 即可；未改 schema/version/migration） |
+| repository query 必须全表扫描 | 否（Channel A 为带 WHERE 的定向 SQL，不经 `observeAll`；Channel B 为受限 instant 区间） |
+| dual-channel union 必须猜测冲突 row | 否（按 eventId 去重；同 id 不同内容直接 fail-fast，不猜） |
+| correct fetch 需要改变 Reminder/Wear 写入语义 | 否（写入侧一行未改，改的是读取侧通道） |
+| chunking 测试暴露 generator 本身行为错误 | 否（CUSTOM/WEEKLY 跨 chunk phase 与期望集合完全一致） |
+| range query 无法在不全量扫描/不改 schema 下正确完成 | 否（双通道 + 有界 context） |
+| current plan 无法安全生成 requested context range | 否（generator + ±1 天 context + 分块） |
 | orphan inclusion 需要伪造 plan ownership | 否（不恢复归属，只保留事实） |
 | unrecorded state 必须被错误解释成 Missed | 否（命名与 KDoc 明确禁止） |
 | timezone filtering 必须绕过 A-01 provenance | 否（只消费 display date/provenance） |
 
-**未触发任何停止条件**，无需 `A-02 ARCHITECTURE DECISION REQUIRED`。
+**未触发任何停止条件**，无需 `A-02-R2 ARCHITECTURE DECISION REQUIRED`。
 
 ## 12. 测试与 fresh 验证
 
@@ -218,18 +249,28 @@ adapter 用**不重叠半开 chunk** 调用同一个 generator（保持 ±1 天 
 ./gradlew :experience-core:test :app:testDebugUnitTest :wear:testDebugUnitTest --rerun-tasks --no-daemon --console=plain
 ```
 
+**A-02-R2 fresh 结果**（`evidence/a-02-r2/`，计数由 XML `testsuite` 属性求和，不从构建日志读）：
+
 | 模块 | XML 文件 | tests (total cases) | skipped | failures | errors | passed |
 |---|---:|---:|---:|---:|---:|---:|
-| app | 81 | **700**（689 + 新增 11） | 0 | 0 | 0 | 700 |
-| experience-core | 13 | **125**（109 + 新增 16） | 0 | 0 | 0 | 125 |
-| wear | 11 | 90 | 0 | 0 | 0 | 90 |
-| **合计** | **105** | **915** | **0** | **0** | **0** | **915** |
+| app | 84 | **718**（R1 707 + R2 新增 11） | 0 | 0 | 0 | 718 |
+| experience-core | 13 | **125** | 0 | 0 | 0 | 125 |
+| wear | 11 | **90** | 0 | 0 | 0 | 90 |
+| **合计** | **108** | **933** | **0** | **0** | **0** | **933** |
 
-- `BUILD SUCCESSFUL in 55s`，`54 actionable tasks: 54 executed`（日志：`evidence/a-02/v17a02-jvm-run.log`；日志内 `> Task :experience-core:test` / `:app:testDebugUnitTest` / `:wear:testDebugUnitTest` 均无 `UP-TO-DATE`）。
-- 计数由 XML `testsuite` 属性求和（`evidence/a-02/jvm-aggregate.tsv`），**不从构建日志读计数**。
-- 新增覆盖：completeness（含 mixed batch、重复消费）、day 分组与排序、range（单日/多日/空/start=end/非法）、timezone（三态归因 + 跨时区归日）、cross-midnight context、edited-plan、deleted-plan；app adapter 侧覆盖 query bounds、context bounds、displayZone 转发、projection 复用、最终范围过滤、非法区间 fail-fast。
+- `BUILD SUCCESSFUL in 1m 3s`，`54 actionable tasks: 54 executed`（日志：`evidence/a-02-r2/a02r2-jvm-run.log`；日志内 `> Task :experience-core:test` / `:app:testDebugUnitTest` / `:wear:testDebugUnitTest` 均无 `UP-TO-DATE`）。
+- **受影响面 Android instrumentation**：`RoomRepositoryTest`（含新增的 persisted-local-date DAO 用例）
+  在 `Pixel_7(AVD) - 15`（API 35）上 `Starting 26 tests` → `Finished 26 tests`，XML `tests=26 / failures=0 / errors=0 / skipped=0`，
+  `BUILD SUCCESSFUL`。日志与 XML 见 `evidence/a-02-r2/`。
+- 计数由 XML `testsuite` 属性求和（`evidence/a-02-r2/jvm-aggregate.tsv`），**不从构建日志读计数**。
 - `git diff --check`：工作树与 `72a468c..HEAD` 区间均为 0（evidence 目录受 `* -text -whitespace` 约束，源码/普通文档另行独立检查）。
-- 未运行 instrumentation：本轮只改 JVM/domain 与 app read adapter，未触及 DAO/Room Android 实现。
+- R2 新增覆盖：delayed reminder / delayed Wear confirm / D+400d 任意偏离（`HistoryReadServicePersistedDateTest`）、
+  双通道去重、同 id 冲突 fail-fast、null-localDate legacy 仍走 instant 通道、context-only 不泄漏、
+  CUSTOM/WEEKLY 跨 chunk 的 recurrence phase 与无 gap/无重复（`HistoryReadServiceOccurrenceChunkingTest`）、
+  persisted-local-date DAO 的 inclusive 契约（instrumentation）。
+
+> 历史（A-02 首轮）曾以 app 700 / experience-core 125 / wear 90 = 915 为基线，R1 为 707 / 125 / 90 = 922；
+> 各自证据分别冻结在 `evidence/a-02/` 与 `evidence/a-02-r1/`，未被本轮修改。
 
 ## 14. A-02-R1 变更记录（极端时区 query-bound 修复）
 
@@ -243,7 +284,8 @@ adapter 用**不重叠半开 chunk** 调用同一个 generator（保持 ±1 天 
 | CE1 下界 | `Etc/GMT+12`，2025-06-15..06-17 | `Pacific/Kiritimati` / 2025-06-15 00:00 | `2025-06-14T10:00:00Z` | start `2025-06-14T12:00:00Z` | **事件被漏掉** |
 | CE2 上界 | `Pacific/Auckland`，2025-01-10..01-12 | `Etc/GMT+12` / 2025-01-12 23:59:59 | `2025-01-13T11:59:59Z` | endExclusive `2025-01-13T11:00:00Z` | **事件被漏掉** |
 
-**修复**：拆分 `OCCURRENCE_CONTEXT_DAYS = 1` 与 `EVENT_QUERY_CONTEXT_DAYS = 2`（bound proof 见 §6.1）；
+**修复**：拆分 `OCCURRENCE_CONTEXT_DAYS = 1` 与 `EVENT_QUERY_CONTEXT_DAYS = 2`（当时的 bound proof 见旧 §6.1；
+**该证明已由 R2 判定为依赖未强制的隐含前提并移除**，见 §6.1 与 §15）；
 未改 matcher / provenance / schema / DAO / recurrence / Widget / Wear / PK / UI / 依赖。
 接近 `MAX_RANGE_DAYS` 时按 chunk 调用同一 generator（保持 context，不缩小）。
 
@@ -276,6 +318,63 @@ inclusive **3661** 天 → `IllegalArgumentException`，且**发生在 repositor
 A-02 candidate 的 `evidence/a-02/MANIFEST.sha256` 保持 frozen，未被 R1 修改。
 
 **DoseCheckInMatcher**：R1 未修改，边界结论沿用 §10（reminder matcher ≠ historical matcher；A-04 / 独立 hardening 再评估）。
+
+## 15. A-02-R2 变更记录（persisted-date-aware 双通道取数）
+
+**Finding（P1，与 R1 不同源）**：R1 后 History 仍可能静默漏 authoritative event，因为 persisted `localDate` 与
+`occurredAt` 之间**没有有界一致性 invariant**：reminder 确认写入 `localDate = 计划日` 而 `occurredAt = 点击时刻`
+（`ReminderReceiverWork.handleLocked` 无任何最大迟到校验），Wear App confirm 写入 `localDate = command.localDate`
+（快照计划日）而 `occurredAt = 处理时刻`（只校验 producer generation；`createdAt` 仅要求 >0）。
+因此**任何有限 instant padding 都无法保证完整性**，把 padding 从 1 加到 2（或任何 N）都不是修复。
+
+**确定性反例（不依赖极端时区）**：Europe/Paris、plan 08:00、D = 2025-06-15 的提醒被忽略，用户 2025-06-21 才确认
+→ 写入 `occurredAt = 2025-06-21…`、`localDate = 2025-06-15`、`slotId = S`。查询 `[D, D]` 时 R1 的 instant 窗口
+取不到该行；而阶段 1 只看 `slotId + localDate`（无时间距离判据）本会匹配它，于是该日被呈现为
+`UnrecordedHistoricalOccurrence` —— History **对一条真实记录宣称“未记录”**。
+
+**修复（架构层面）**：改为**双通道取数**（§6），使 completeness 不再依赖 padding 数值。
+
+| 通道 | 查询 | 覆盖 |
+|---|---|---|
+| A — persisted local date | `findRecordedLocalDateBetween(start−1d, end+1d)`（两端 inclusive，SQL 带 `WHERE localDate IS NOT NULL AND localDate >= ? AND localDate <= ?`） | `localDate != null` 的所有行 |
+| B — instant context | `findOccurredBetween(...)`（±2 天半开区间，**行为未改**） | `localDate == null` 的 legacy 行、bounded 相邻候选 |
+
+并集按权威 `eventId` 去重（`LinkedHashMap`，A 后 B）；同 id 不同内容 → `check` fail-fast。
+**未改**：Room entity / schema version / migration、A-01 matcher 与 provenance 语义、occurrence generator 实现、
+Widget、Wear 协议与行为、PK、Compose/UI/navigation、依赖与版本。
+
+**新增回归**（`HistoryReadServicePersistedDateTest`，8 例）：
+
+| 用例 | 断言 |
+|---|---|
+| delayed reminder（D → D+6d） | 该日 `recordedCount == 1`、`unrecordedCount == 0`、provenance `EXACT_SLOT_AND_LOCAL_DATE`、`occurredAt` 保留 |
+| delayed Wear confirm（D → D+30d） | 同上 |
+| 任意大偏离（D → D+400d） | 仍匹配 → 证明 correctness 与 padding 数值无关 |
+| 同一行被两个通道命中 | projection 中只出现一次，`recordedCount` 不翻倍 |
+| 同 id 内容冲突 | `IllegalStateException` fail-fast，不猜哪行正确 |
+| true legacy orphan（无 localDate） | 仍只经 Channel B；Paris 归 01-05、Shanghai 归 01-06 |
+| 跨午夜 legacy 推断 | Channel A 存在时仍为 `NULL_SLOT_TIME_WINDOW` + `crossesLocalDateBoundary` |
+| context-only 行（±1 天） | 被 Channel A 取到但**不泄漏**进最终范围；断言 A 的日期区间恰为 `[D−1, D+1]` |
+
+**red evidence（同一套件，仅把 Channel A 临时置空 = 复现 R1 的 instant-only 架构）**：
+
+| 状态 | 结果 |
+|---|---|
+| before（instant-only） | `8 tests completed, 4 failed` —— delayed reminder / delayed Wear / D+400d 三条 delayed 用例与冲突 fail-fast 用例 FAILED（`BUILD FAILED`） |
+| after（双通道） | `BUILD SUCCESSFUL`，8/8 通过 |
+
+日志：`evidence/a-02-r2/a02r2-before-instant-only.log`（红）、`a02r2-after-dual-channel.log`（绿）。
+
+**CE1 / CE2 状态**：保留为回归（§14），未删除；`HistoryReadServiceExtremeZoneTest` 的 fake 现在**同时**按
+instant 窗口与 persisted-date 区间过滤，并新增断言：CE1/CE2 的 persisted `localDate` 落在 Channel A 的日期区间内
+→ 这两例现在**主要通过 Channel A** 被保证，不再被当作“2 天 instant padding 正确性”的核心证明。
+
+**chunking P2 关闭**：新增 `HistoryReadServiceOccurrenceChunkingTest`（真实 plan、3660 天区间强制分块、CUSTOM 与 WEEKLY
+的 phase/无 gap/无重复/首尾不丢断言），见 §7。**generator 实现未改**。
+
+**DAO instrumentation（受影响面）**：`RoomRepositoryTest.persistedLocalDateRangeQueryIsInclusiveAndIgnoresInstantDistance`
+在真实 Room 内存库上断言：两端 inclusive、`localDate IS NULL` 不进入该查询、`occurredAt` 相距数年仍被返回、
+排序为 `(localDate, occurredAt, id)`、单日区间、以及反向区间 fail-fast。
 
 ## 13. 未做 / 已知限制
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStoreTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:56:22.104Z" hostname="人面不知何处去" time="0.008">
+  <properties/>
+  <testcase name="reservation precedes capture and older capture is older when it completes last" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStoreTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" tests="26" failures="0" errors="0" skipped="0" time="1.166" timestamp="2026-09-13T18:55:03" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="eventDeleteAndDeleteAllReportNotFoundPrecisely" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.084" />
+  <testcase name="eventPkSelectionPreservesBothLegacyBranchOrders" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.049" />
+  <testcase name="eventPersistsAndReadsEveryV3FieldWithLegacyTimeShadow" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.031" />
+  <testcase name="eventUpdateEnforcesNoChangeRevisionAndConflicts" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.055" />
+  <testcase name="planUpdatePreciselyReplacesSlotsAndLegacyTimes" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.03" />
+  <testcase name="planFieldUpdatePreservesSlotsAndIdempotentSaveIsNoChange" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.004" />
+  <testcase name="persistedLocalDateRangeQueryIsInclusiveAndIgnoresInstantDistance" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.032" />
+  <testcase name="planUpdateToEmptySlotsLeavesNoPartialAggregate" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.03" />
+  <testcase name="planSavesBoundaryTimesAndFixedUuidV5Vector" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planPreservesSuppliedStableSlotId" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planSaveRollsBackPlanSlotsAndLegacyTimeWhenSlotInsertFails" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="planCanonicalizesChronologicalOrderWhilePreservingDuplicateTimesAndSlotIds" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="planDeleteAllCascadesEverySlot" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="eventLatestDeleteRechecksRecentIdentityInsideTheTransaction" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.031" />
+  <testcase name="planDeleteCascadesOnlyItsSlotsAndPreservesOtherPlan" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="eventSupportsEpochZeroAndPositiveAndNegativeTimes" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="planObservationReturnsAggregatesInContractOrderAndEnabledSubset" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.027" />
+  <testcase name="planSetEnabledUsesUpdatedNoChangeAndNotFound" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="eventConditionalDeleteRequiresTheCurrentRevisionAndDeletesAtomically" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="eventNullableMetadataRemainsNull" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="eventRangeAndObservationUseOccurredAtContractOrdering" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planReadRejectsLegacySlotMismatchWithoutRepairingIt" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.004" />
+  <testcase name="planSavesEmptySlotsAndCanonicalEmptyLegacyArray" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.03" />
+  <testcase name="eventInsertDistinguishesIdempotentAndConflict" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="eventRejectsSubMillisecondTimeWithoutWritingFakeEpochZero" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="eventConstraintFailureIsAStorageExceptionAndLeavesNoRow" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+</testsuite>

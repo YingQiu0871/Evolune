@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:56:22.062Z" hostname="人面不知何处去" time="0.041">
+  <properties/>
+  <testcase name="fewer upcoming occurrences are returned without padding" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.005"/>
+  <testcase name="phone builder payload is consumable by the shared Wear codec" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.004"/>
+  <testcase name="DST gap keeps phone local date while resolving scheduled instant" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.002"/>
+  <testcase name="recent dose uses real event id and is independent of input order" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.004"/>
+  <testcase name="invalid concentration values stay empty" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.001"/>
+  <testcase name="same timestamp uses stable event id tie break" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.002"/>
+  <testcase name="plan and event input order does not alter the snapshot" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.005"/>
+  <testcase name="concentration without a calculated timestamp is unavailable" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.001"/>
+  <testcase name="today summary counts the complete local date independently of upcoming cap" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.005"/>
+  <testcase name="legacy null slot recent dose remains displayable" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.001"/>
+  <testcase name="authoritative concentration carries its calculation instant" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.002"/>
+  <testcase name="enabled plan without today's occurrence is distinct from no enabled plans" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.001"/>
+  <testcase name="upcoming is sorted capped at five and excludes recorded occurrence" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.006"/>
+  <testcase name="today summary keeps cross midnight legacy null slot ambiguity" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.002"/>
+  <testcase name="disabled plans produce an empty snapshot" classname="io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

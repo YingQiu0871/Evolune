@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:55:51.701Z" hostname="人面不知何处去" time="0.027">
+  <properties/>
+  <testcase name="daily generation crosses previous day midnight and next day" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="window is start inclusive and end exclusive" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.0"/>
+  <testcase name="custom interval is anchored to plan creation date" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="oversized or empty windows fail instead of expanding without bound" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="DST spring gap resolves forward using java time semantics" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="maximum supported bounded window remains finite" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.019"/>
+  <testcase name="multiple identical-time plans are retained and deterministically ordered" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="weekly plan respects authoritative weekdays" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="disabled plans are excluded" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.0"/>
+  <testcase name="same Paris and Shanghai local occurrence keeps identity while instant changes" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <testcase name="DST fall overlap creates one occurrence at the earlier offset" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.0"/>
+  <testcase name="daily plan creation date expands every slot with distinct occurrence identity" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
