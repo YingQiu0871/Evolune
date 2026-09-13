@@ -242,8 +242,8 @@ class HistoryPresentationTest {
 
         val model = HistoryPresentation.entry(matchedEntry(occurrence = occurrence), utc)
 
-        assertNull(model.medicationLabelRes)
-        assertEquals("CPA", model.medicationFallback)
+        assertNull("no ester label may be claimed for an anti-androgen", model.medicationLabelRes)
+        assertNull("no raw key placeholder may be shown either", model.medicationFallback)
         assertEquals(R.string.route_antiandrogen, model.routeLabelRes)
     }
 

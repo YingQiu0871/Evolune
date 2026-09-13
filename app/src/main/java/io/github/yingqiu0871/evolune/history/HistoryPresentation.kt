@@ -104,7 +104,7 @@ object HistoryPresentation {
             routeLabelRes = routeLabelRes(matchKey.routeKey),
             routeFallback = matchKey.routeKey,
             medicationLabelRes = medicationLabelRes(matchKey.routeKey, matchKey.medicationKey),
-            medicationFallback = matchKey.medicationKey,
+            medicationFallback = medicationFallback(matchKey.routeKey, matchKey.medicationKey),
             doseAmount = matchKey.doseAmount,
             // The actual intake is the authoritative instant; it is never replaced by the
             // scheduled time. The full-date decision comes from the rendered local date
@@ -148,7 +148,7 @@ object HistoryPresentation {
             routeLabelRes = routeLabelRes(matchKey.routeKey),
             routeFallback = matchKey.routeKey,
             medicationLabelRes = medicationLabelRes(matchKey.routeKey, matchKey.medicationKey),
-            medicationFallback = matchKey.medicationKey,
+            medicationFallback = medicationFallback(matchKey.routeKey, matchKey.medicationKey),
             doseAmount = matchKey.doseAmount,
             actualTime = null,
             scheduleTime = HistoryScheduleTimeUiModel(
@@ -176,7 +176,7 @@ object HistoryPresentation {
             routeLabelRes = routeLabelRes(matchKey.routeKey),
             routeFallback = matchKey.routeKey,
             medicationLabelRes = medicationLabelRes(matchKey.routeKey, matchKey.medicationKey),
-            medicationFallback = matchKey.medicationKey,
+            medicationFallback = medicationFallback(matchKey.routeKey, matchKey.medicationKey),
             doseAmount = matchKey.doseAmount,
             actualTime = HistoryFormatting.actualTimestampPresentation(
                 occurredAt = entry.event.occurredAt,
@@ -211,9 +211,18 @@ object HistoryPresentation {
     }
 
     /**
-     * The match key carries the ester slot of the current plan. For an anti-androgen route the
-     * authoritative drug is not part of the model, so no ester name may be claimed there.
+     * The match key carries the ester slot of the current plan while an anti-androgen route's
+     * authoritative drug is not part of the model (the anti-androgen type lives in the plan/event
+     * `extras`, which the projection deliberately does not carry). Showing the raw key there would
+     * print an ester placeholder such as `E2` next to an anti-androgen dose, so the presentation
+     * suppresses the medication line entirely instead of guessing a drug identity.
+     *
+     * Registering the real drug requires carrying the anti-androgen identity through the
+     * projection: tracked as presentation-model debt (see V17_A_04_HARDENING.md §8).
      */
+    private fun medicationFallback(routeKey: String, medicationKey: String): String? =
+        if (routeKey == Route.ANTIANDROGEN.name) null else medicationKey
+
     private fun medicationLabelRes(routeKey: String, medicationKey: String): Int? {
         if (routeKey == Route.ANTIANDROGEN.name) return null
         return when (medicationKey) {
@@ -236,10 +245,3 @@ object HistoryPresentation {
         MedicationIntakeSource.LEGACY -> R.string.history_source_legacy
     }
 }
-
-/** Convenience for the screen: the selected day of an already presented month. */
-fun HistoryMonthUiModel.selectedDayOrNull(): HistoryDayUiModel? = day
-
-/** Convenience for tests and previews: presentation of one day of a loaded state. */
-internal fun HistoryUiState.presentedDay(date: LocalDate = selectedDate): HistoryDayUiModel? =
-    loadedDays[date]?.let { HistoryPresentation.day(it, displayZone) }
