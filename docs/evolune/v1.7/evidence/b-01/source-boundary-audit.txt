@@ -1,0 +1,51 @@
+# B-01 source boundary audit (read-only, reproducible)
+# base HEAD: 4458a47a19ae01488dd86c0e2e488df11965101b
+
+## 1. Insights production package inventory
+  experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/InsightsModels.kt
+  experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationIdentityClassifier.kt
+  experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationInsightsAggregator.kt
+
+## 2. Imports of the Insights production package (must be history types only)
+  import io.github.yingqiu0871.evolune.experience.HistoricalDay
+  import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
+  import io.github.yingqiu0871.evolune.experience.HistoricalEntry
+  import io.github.yingqiu0871.evolune.experience.HistoricalRange
+  import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
+  import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource
+  import io.github.yingqiu0871.evolune.experience.MedicationMatchKey
+  import io.github.yingqiu0871.evolune.experience.MedicationMatchProvenance
+  import io.github.yingqiu0871.evolune.experience.UnmatchedHistoricalIntake
+  import io.github.yingqiu0871.evolune.experience.UnrecordedHistoricalOccurrence
+  import java.time.LocalDate
+  import java.util.UUID
+
+## 3. Forbidden dependency tokens in the package (word-boundary regex, must all be 0)
+  import android.          -> 0
+  import androidx.         -> 0
+  Compose                  -> 0
+  Room                     -> 0
+  Dao                      -> 0
+  Entity                   -> 0
+  Repository               -> 0
+  DataClient               -> 0
+  SharedPreferences        -> 0
+  Matcher                  -> 0
+  Generator                -> 0
+  HistoryReadService       -> 0
+  OccurrenceGenerator      -> 0
+  FutureOccurrenceContext  -> 0
+  atZone                   -> 0
+  toLocalDate()            -> 0
+  systemDefault            -> 0
+  Clock                    -> 0
+  Instant.now              -> 0
+  LocalDate.now            -> 0
+  Locale                   -> 0
+  Random                   -> 0
+
+## 4. Module purity (experience-core is a pure Kotlin JVM module)
+  4:    alias(libs.plugins.kotlin.jvm)
+
+## 5. No dependency or build-file change in this round
+  git diff --name-only 4458a47..HEAD -- '*gradle*' gradle/libs.versions.toml -> 0 path(s)

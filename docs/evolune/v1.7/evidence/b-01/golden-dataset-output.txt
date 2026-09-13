@@ -1,0 +1,32 @@
+# B-01 golden dataset output (frozen B-00 worked example parity)
+# The authority is the passing test MedicationInsightsGoldenDatasetTest (see focused-insights-xml/);
+# the numbers below are the same math as evidence/b-00-r1/denominator-examples.md.
+# Dataset (range 2025-01-01..2025-01-07, current plan daily 23:00):
+#   01-01 exact matched REMINDER E2 2.0
+#   01-02 exact matched REMINDER E2 2.0 + unmatched LEGACY E2 1.0 (current-zone-derived date)
+#   01-03 exact matched WIDGET  E2 2.0 + unmatched MANUAL EV 5.0
+#   01-04 exact matched WEAR    E2 2.0 + unmatched JSON_V1 UNMAPPED 3.0
+#   01-05 null-slot time-window matched MANUAL E2 2.0
+#   01-06 null-slot same-day matched MANUAL EV 1.0
+#   01-07 unrecorded occurrence (schedule dose must not contribute)
+
+## Asserted by MedicationInsightsGoldenDatasetTest
+recordedIntakeCount            = 9
+recordedDayCount               = 6
+matchedOccurrenceCount         = 6
+unrecordedOccurrenceCount      = 1
+unmatchedActualIntakeCount     = 3
+sourceCounts                   = JSON_V1 1, LEGACY 1, MANUAL 3, REMINDER 2, WEAR 1, WIDGET 1 (sum 9)
+bindingConfidenceCounts        = HIGH 4, MEDIUM 1, LOW 1, NONE 3 (sum 9)
+perMedicationDoseTotalsMg      = E2 11.0, EV 6.0 (known identities only; no cross-medication total)
+unknownIdentityRecordedIntakeCount = 1 (counted, never summed as a dose)
+containsCurrentTimezoneDerivedDates = true
+
+## Cross-check against the B-00-R1 evidence example
+  - Recorded intakes (matched + unmatched, one per authoritative event): 9
+  - Days with recorded intake (unrecorded-only days excluded): 6 -> 2025-01-01, 2025-01-02, 2025-01-03, 2025-01-04, 2025-01-05, 2025-01-06
+  - By source: JSON_V1=1, LEGACY=1, MANUAL=3, REMINDER=2, WEAR=1, WIDGET=1
+  - Per-medication dose totals (mg, identity known only): E2=11.0, EV=6.0
+  - unknownIdentityRecordedIntakeCount (count only, not a dose): 1
+  - Record coverage (counts, no percentage): occurrences with matching record=6, without=1
+  - Binding confidence breakdown (recorded intakes only, four buckets): HIGH=4, MEDIUM=1, LOW=1, NONE=3

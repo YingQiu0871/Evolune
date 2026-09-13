@@ -1,0 +1,24 @@
+# B-01 change surface (generated AFTER the feat/test commits, before the docs commit)
+# base (B-00-R1 APPROVE) = 4458a47a19ae01488dd86c0e2e488df11965101b
+# head (B-01 source commits) = f651384b090b4d751c9928813369c57b333e6af1
+
+## commits
+f651384 test: verify v1.7 Insights aggregation semantics
+9ed43d3 feat: add read-only medication Insights domain
+
+## name-status
+A	experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/InsightsModels.kt
+A	experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationIdentityClassifier.kt
+A	experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationInsightsAggregator.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/insights/InsightsBoundaryGuardTest.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationInsightsAggregatorTest.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationInsightsGoldenDatasetTest.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/insights/MedicationInsightsPerformanceSmokeTest.kt
+
+## boundary proofs (every count must be 0)
+  app module (Phone: UI/ViewModel/adapter) -> 0 changed path(s)
+  wear module -> 0 changed path(s)
+  Room schema / migrations -> 0 changed path(s)
+  build / dependency files -> 0 changed path(s)
+  Phase-A history contracts (projection/read model/matcher) -> 0 changed path(s)
+  frozen evidence (b-00, b-00-r1, a-04, a-03-ui-r1) -> 0 changed path(s)

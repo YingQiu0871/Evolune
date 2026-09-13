@@ -1,0 +1,68 @@
+# B-01 dose / identity source audit (gating check for the DOSE CONTRACT stop condition)
+# base HEAD: 4458a47a19ae01488dd86c0e2e488df11965101b
+# question: can a per-medication dose total ever use the CURRENT PLAN dose instead of the
+#           authoritative recorded dose, or claim an identity that is not provable?
+
+## 1. MatchedHistoricalOccurrence carries BOTH keys
+2:    val occurrence: MedicationOccurrence,
+3:    val event: RecordedMedicationEvent,
+5:    val matchProvenance: MedicationMatchProvenance,
+
+## 2. The occurrence key is generated from the CURRENT plan (would be the wrong dose source)
+20:        matchKey = MedicationMatchKey(
+21-            routeKey = route.name,
+22-            medicationKey = ester.name,
+23-            doseAmount = doseMG
+--
+50:            matchKey = MedicationMatchKey(
+51-                routeKey = event.route.name,
+52-                medicationKey = event.ester.name,
+
+## 3. The event key is built from the AUTHORITATIVE recorded fields (correct dose source)
+7:            matchKey = MedicationMatchKey(
+8:                routeKey = event.route.name,
+9:                medicationKey = event.ester.name,
+10:                doseAmount = event.doseMG
+
+## 4. RecordedMedicationEvent exposes exactly that key (and no extras)
+data class RecordedMedicationEvent(
+    val eventId: UUID,
+    val occurredAt: Instant,
+    val slotId: UUID?,
+    val matchKey: MedicationMatchKey,
+    val source: MedicationIntakeSource,
+    val localDate: LocalDate? = null,
+    val zoneId: ZoneId? = null
+)
+
+## 5. Insights consumes ONLY the authoritative event key
+120:                        consumeIdentityAndDose(entry.event.matchKey)
+129:                        consumeIdentityAndDose(entry.event.matchKey)
+179:        private fun consumeIdentityAndDose(matchKey: MedicationMatchKey) {
+  (the occurrence key is never read by the aggregator:)
+0
+
+## 6. Mismatch is expressible and locked by a test (plan 2 mg vs actual 3 mg -> 3 mg)
+221:    fun `the authoritative event dose wins over the generated schedule dose`() {
+222-        // generated occurrence carries the current plan dose (2 mg) while the recorded intake is 3 mg
+223-        val entry = matched(occurrenceDose = 2.0, dose = 3.0)
+224-
+225-        val summary = aggregate(dayOf(entry))
+226-
+227-        assertEquals(3.0, summary.perMedicationDoseTotalsMg.getValue(MedicationIdentityKey.E2), 0.0)
+
+## 7. Identity provability (B-00 section 13.1) is enforced by the classifier
+    fun classify(matchKey: MedicationMatchKey): MedicationIdentity {
+        if (matchKey.routeKey == ANTI_ANDROGEN_ROUTE_KEY) {
+            return MedicationIdentity(MedicationIdentityStatus.UNAVAILABLE)
+        }
+        val key = knownKeys[matchKey.medicationKey]
+            ?: return MedicationIdentity(MedicationIdentityStatus.PARTIAL)
+        return MedicationIdentity(MedicationIdentityStatus.KNOWN, key)
+    }
+
+## Conclusion
+DOSE SOURCE: authoritative recorded event key (occurrence/current-plan key is never used).
+IDENTITY: known only for non-anti-androgen routes with a known ester key; otherwise
+          partial/unavailable -> counted, never summed into a medication dose total.
+STOP CONDITION: B-01 DOSE CONTRACT DECISION REQUIRED is NOT triggered.

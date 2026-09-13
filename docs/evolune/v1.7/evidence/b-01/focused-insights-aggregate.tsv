@@ -1,0 +1,6 @@
+# B-01 focused Insights tests (experience-core, pure JVM)
+class	tests	skipped	failures	errors	passed
+InsightsBoundaryGuardTest	5	0	0	0	5
+MedicationInsightsAggregatorTest	21	0	0	0	21
+MedicationInsightsGoldenDatasetTest	2	0	0	0	2
+MedicationInsightsPerformanceSmokeTest	1	0	0	0	1

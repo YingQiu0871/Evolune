@@ -1,0 +1,24 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:compileKotlin UP-TO-DATE
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:processResources NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar UP-TO-DATE
+> Task :experience-core:compileTestKotlin UP-TO-DATE
+> Task :experience-core:compileTestJava NO-SOURCE
+> Task :experience-core:processTestResources NO-SOURCE
+> Task :experience-core:testClasses UP-TO-DATE
+> Task :experience-core:test UP-TO-DATE
+
+BUILD SUCCESSFUL in 8s
+4 actionable tasks: 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html
