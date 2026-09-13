@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:05:55.449Z" hostname="人面不知何处去" time="0.0">
+  <properties/>
+  <testcase name="testResolveSublingualEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveInjectionEB" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveInjectionEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolvePatchApplyZeroOrder" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolvePatchApplyFirstOrder" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveSublingualE2WithExplicitTheta" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testThetaBoundsEnforcement" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolvePatchRemove" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveSublingualE2WithTier" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveOralE2" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveOralEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <testcase name="testResolveGel" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

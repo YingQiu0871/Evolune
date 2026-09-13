@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:05:55.505Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="filterConflictingPredictions - custom conflict window is respected" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.001"/>
+  <testcase name="filterConflictingPredictions - predicted before actual is kept" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - empty actual events returns all predicted" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - empty predicted events returns empty" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - only conflicting events are removed" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - predicted within window is removed" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - different ester is not filtered" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - multiple actuals each suppress their own window" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - predicted exactly at window boundary is removed" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - different route is not filtered" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <testcase name="filterConflictingPredictions - predicted beyond window is kept" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
