@@ -413,3 +413,16 @@ A-03 UI 235 / R1 238 → A-04 **243**，要求"不新增 unexpected failure / sk
 | localDate index | ✅ `INDEX DEFERRED`（实测证据，不阻塞 v1.7，§14） |
 
 → **PHASE A — CLOSED**（候选实现，待独立复审）。
+
+---
+
+## 18. A-04 复审后续（非阻塞 P2，**不重开 Phase A**）
+
+A-04 独立复审 APPROVE（PHASE A CLOSED）另登记两个非阻塞 P2，转入后续 backlog：
+
+| # | 发现 | 影响 | 处理计划 |
+|---|---|---|---|
+| R1 | History 处于 active 时若发生**后台** authoritative write（例如 Wear/Widget 在 History 打开期间写入），界面**不会实时刷新**，要等到下一次 activation（tab 返回 / 前台返回）才更新 | 用户体验：静态屏幕可能短暂陈旧 | 需一个 realtime/observation-based refresh 设计（例如对权威事件流做去抖订阅），属于 Phase B 之后的刷新策略细化；A-04 的 refresh 契约（activation-based）已如实覆盖其边界，不因此重开 Phase A |
+| R2 | `foreground ON_STOP→ON_START` 路径**缺真实 instrumentation**；`same-month rollover`（可见月=当前月且跨日后前进）**缺单独 regression** | 覆盖面：JVM 已覆盖逻辑（`HistoryRefreshTest` 9 例含 rollover 与前台刷新），但设备侧只覆盖 tab 返回 | 在后续 hardening 轮补：（a）设备级 ON_STOP→ON_START 刷新回归；（b）same-month rollover 的独立 JVM regression（与"浏览历史月不受打扰"分开断言） |
+
+> 两项均为 P2、非阻塞，已按复审结论登记；Phase A 状态保持 **CLOSED**。
