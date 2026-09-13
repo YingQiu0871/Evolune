@@ -69,6 +69,7 @@ class FoldableNavigationLayoutTest {
         val itemBounds = listOf(
             "home",
             "records",
+            "history",
             "medication_plans",
             "settings"
         ).map { route ->
