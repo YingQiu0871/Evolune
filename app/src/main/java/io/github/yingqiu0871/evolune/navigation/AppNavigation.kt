@@ -38,12 +38,14 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MedicalServices
@@ -111,6 +113,7 @@ import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
 import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
 import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
 import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
+import io.github.yingqiu0871.evolune.ui.screens.HistoryScreen
 import io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreen
 import io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
@@ -122,6 +125,7 @@ import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
+import io.github.yingqiu0871.evolune.history.HistoryViewModel
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperation
@@ -175,6 +179,7 @@ internal fun resolveAppStartRoute(
 @Composable
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
+    historyViewModel: HistoryViewModel,
     settingsViewModel: SettingsViewModel,
     medicationPlanViewModel: MedicationPlanViewModel,
     backupRestoreViewModel: BackupRestoreViewModel,
@@ -671,6 +676,13 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
+            composable(Screen.HISTORY.route) {
+                HistoryScreen(
+                    viewModel = historyViewModel,
+                    is24Hour = is24Hour,
+                    showTopBar = false
+                )
+            }
             composable(Screen.MEDICATION_PLANS.route) {
                 MedicationPlansScreen(
                     viewModel = medicationPlanViewModel,
@@ -1035,6 +1047,7 @@ private fun AppTopBar(
                     text = titleOverride ?: when (currentScreen) {
                         Screen.HOME -> stringResource(R.string.nav_home)
                         Screen.RECORDS -> stringResource(R.string.records_title)
+                        Screen.HISTORY -> stringResource(R.string.history_title)
                         Screen.MEDICATION_PLANS -> stringResource(R.string.plans_title)
                         Screen.SETTINGS -> stringResource(R.string.settings_title)
                     },
@@ -1080,6 +1093,12 @@ private fun rememberNavItems(): List<BottomNavItem> = listOf(
         selectedIcon = Icons.Filled.List,
         unselectedIcon = Icons.Outlined.List,
         label = stringResource(R.string.nav_records)
+    ),
+    BottomNavItem(
+        screen = Screen.HISTORY,
+        selectedIcon = Icons.Filled.History,
+        unselectedIcon = Icons.Outlined.History,
+        label = stringResource(R.string.nav_history)
     ),
     BottomNavItem(
         screen = Screen.MEDICATION_PLANS,

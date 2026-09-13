@@ -6,6 +6,7 @@ package io.github.yingqiu0871.evolune.navigation
 enum class Screen(val route: String, val title: String) {
     HOME("home", "主页"),
     RECORDS("records", "用药记录"),
+    HISTORY("history", "历史"),
     MEDICATION_PLANS("medication_plans", "用药方案"),
     SETTINGS("settings", "设置")
 }

@@ -43,6 +43,9 @@ import io.github.yingqiu0871.evolune.reminder.ReminderManager
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
+import io.github.yingqiu0871.evolune.history.HistoryReadService
+import io.github.yingqiu0871.evolune.history.HistoryViewModel
+import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
@@ -210,6 +213,16 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 
+                // 创建 HistoryViewModel（历史只经 HistoryReadService 读取权威数据）
+                val historyViewModel: HistoryViewModel = viewModel(
+                    factory = HistoryViewModelFactory(
+                        historyReadService = HistoryReadService(
+                            productionRepositoryProvider.medicationPlans,
+                            productionRepositoryProvider.doseEvents
+                        )
+                    )
+                )
+
                 // 创建 MedicationPlanViewModel
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
@@ -286,6 +299,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavigation(
                         hrtViewModel = hrtViewModel,
+                        historyViewModel = historyViewModel,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,
