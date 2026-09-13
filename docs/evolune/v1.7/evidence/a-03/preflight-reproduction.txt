@@ -1,0 +1,7 @@
+# A-03 preflight reproduction: future occurrence presented as 'No recorded intake'
+# command: ./gradlew :app:testDebugUnitTest --tests '*HistoryFutureOccurrenceContractTest*'
+# scenario: now = 2025-01-05T12:00:00Z, plan slots 08:00 (past) and 20:00 (future), no events
+
+tests=1 failures=1 errors=0
+FAILED future occurrence of today is not presented as an unrecorded history entry
+    java.lang.AssertionError: a future occurrence of the same day must not be reported as 'no recorded intake' expected:<null> but was:<UnrecordedHistoricalOccurrence(occurrence=MedicationOccurrence(id=MedicationOccurrenceId(value=58805882-b729-37e6-a963-432de75f2ef4), planId=00000000-0000-0000-0000-000000000259, slotId=00000000-0000-0001-0000-000000000001, slotPosition=1, presentation=MedicationPrese

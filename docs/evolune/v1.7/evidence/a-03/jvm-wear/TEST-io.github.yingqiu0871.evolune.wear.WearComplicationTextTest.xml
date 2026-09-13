@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:25:36.214Z" hostname="人面不知何处去" time="0.014">
+  <properties/>
+  <testcase name="missing optional values render unavailable markers" classname="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" time="0.002"/>
+  <testcase name="short text contract carries value description and preview has no tap action" classname="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" time="0.008"/>
+  <testcase name="all providers expose preview and READY or non READY values through the same contract" classname="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" time="0.003"/>
+  <testcase name="three complication texts use shared snapshot semantics" classname="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" time="0.001"/>
+  <testcase name="current E2 provider value is unavailable when concentration freshness is stale" classname="io.github.yingqiu0871.evolune.wear.WearComplicationTextTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

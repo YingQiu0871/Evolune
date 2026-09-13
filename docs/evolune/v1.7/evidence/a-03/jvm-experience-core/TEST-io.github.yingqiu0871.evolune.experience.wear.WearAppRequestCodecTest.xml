@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:25:31.653Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="unsupported request version is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.002"/>
+  <testcase name="invalid producer and revision combinations are rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="malformed request UUID is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="duplicate known request fields are rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.001"/>
+  <testcase name="maximum observed generation is decoded without arithmetic overflow" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.001"/>
+  <testcase name="request without cache round trips with explicit empty observation" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="same producer request keeps generation while clock rollback is irrelevant" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.001"/>
+  <testcase name="request payload size is bounded" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="unknown request fields are ignored" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="request with cached producer and revision round trips" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <testcase name="producer negotiation uses the maximum observed generation and is idempotent" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,58 @@
+package io.github.yingqiu0871.evolune.history
+
+import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
+import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
+import io.github.yingqiu0871.evolune.application.syntheticPlan
+import io.github.yingqiu0871.evolune.experience.HistoricalEntry
+import io.github.yingqiu0871.evolune.experience.UnrecordedHistoricalOccurrence
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+
+/**
+ * A-03 preflight: the History contract must not present a future occurrence as a
+ * historical "No recorded intake".
+ *
+ * A past occurrence without a recorded intake may be reported as
+ * [UnrecordedHistoricalOccurrence]; an occurrence that is still in the future belongs to
+ * the schedule, not to history, and must never be shown as "no recorded intake".
+ */
+class HistoryFutureOccurrenceContractTest {
+
+    private val utc: ZoneId = ZoneId.of("UTC")
+
+    @Test
+    fun `future occurrence of today is not presented as an unrecorded history entry`() = runBlocking {
+        val day = LocalDate.of(2025, 1, 5)
+        val now = Instant.parse("2025-01-05T12:00:00Z")
+        val plan = syntheticPlan(slots = listOf(LocalTime.of(8, 0), LocalTime.of(20, 0)))
+        val service = HistoryReadService(
+            FakeMedicationPlanRepository(listOf(plan)),
+            FakeDoseEventRepository()
+        )
+
+        val range = service.readRange(day, day, utc, now)
+        val entries: List<HistoricalEntry> = range.days.single().entries
+
+        val pastEntry = entries.singleOrNull {
+            it is UnrecordedHistoricalOccurrence &&
+                it.occurrence.scheduledLocalDateTime.toLocalTime() == LocalTime.of(8, 0)
+        }
+        assertTrue("a past occurrence without an intake must stay history's 'no recorded intake'", pastEntry != null)
+
+        val futureAsUnrecorded = entries.singleOrNull {
+            it is UnrecordedHistoricalOccurrence &&
+                it.occurrence.scheduledLocalDateTime.toLocalTime() == LocalTime.of(20, 0)
+        }
+        assertEquals(
+            "a future occurrence of the same day must not be reported as 'no recorded intake'",
+            null,
+            futureAsUnrecorded
+        )
+    }
+}

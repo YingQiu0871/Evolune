@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.theme.ThemeTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:25:59.692Z" hostname="人面不知何处去" time="0.018">
+  <properties/>
+  <testcase name="amoledSchemeUsesBlackSurfacesAndPreservesSemanticForegrounds" classname="io.github.yingqiu0871.evolune.ui.theme.ThemeTest" time="0.017"/>
+  <testcase name="amoledModeAlwaysUsesDarkSystemBars" classname="io.github.yingqiu0871.evolune.ui.theme.ThemeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:25:55.867Z" hostname="人面不知何处去" time="0.014">
+  <properties/>
+  <testcase name="successful undo physically deletes the exact event and replay is idempotent" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.005"/>
+  <testcase name="newer event inserted during transactional recent check prevents deleting the old recent" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="missing event and non-latest event are rejected without deleting another event" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="stale source identity and invalid command do not mutate storage" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="already missing result is terminal and different operation cannot delete it again" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="delete success followed by journal failure recovers as already undone" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.0"/>
+  <testcase name="same operation with changed identity is a conflict" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.0"/>
+  <testcase name="repository storage failure stays retryable and cannot delete" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="same operation is serialized and performs one physical delete" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.002"/>
+  <testcase name="conditional delete conflict is surfaced as event changed" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.001"/>
+  <testcase name="revision or event identity changes reject before delete" classname="io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

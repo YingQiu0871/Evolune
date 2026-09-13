@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:25:55.775Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="editing preserves hidden extras and only updates visible route extra" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.003"/>
+  <testcase name="edit session preserves id and createdAt without consulting suppliers" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.001"/>
+  <testcase name="antiandrogen and sublingual mappings use locked stable codes" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <testcase name="new session normalizes device clock instant to persistence precision" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <testcase name="invalid text and schedule input returns explicit input errors" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.001"/>
+  <testcase name="blank name reaches Draft validation instead of text parsing" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <testcase name="new session captures one id and one instant" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <testcase name="editing a time reorders chronologically without changing its slot identity" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <testcase name="valid input parses numbers and preserves session identity" classname="io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
