@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
@@ -35,11 +36,13 @@ internal class FakeDoseEventRepository(
     var forcedInsertResult: InsertResult? = null
     var beforeForcedInsertResult: ((DoseEvent) -> Unit)? = null
     var rangeEvents: List<DoseEvent> = initialEvents
+    var localDateRangeEvents: List<DoseEvent> = initialEvents
     var pkEvents: List<DoseEvent> = initialEvents
     var insertCalls = 0
     var getCalls = 0
     var lastInserted: DoseEvent? = null
     var lastRange: Pair<Instant, Instant>? = null
+    var lastLocalDateRange: Pair<LocalDate, LocalDate>? = null
     var conditionalDeleteResult: ConditionalDeleteResult? = null
     var conditionalDeleteCalls = 0
     var beforeConditionalDelete: ((UUID, Long) -> Unit)? = null
@@ -62,6 +65,14 @@ internal class FakeDoseEventRepository(
         rangeFailure?.let { throw it }
         lastRange = startInclusive to endExclusive
         return rangeEvents
+    }
+
+    override suspend fun findRecordedLocalDateBetween(
+        startInclusive: LocalDate,
+        endInclusive: LocalDate
+    ): List<DoseEvent> {
+        lastLocalDateRange = startInclusive to endInclusive
+        return localDateRangeEvents
     }
 
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {

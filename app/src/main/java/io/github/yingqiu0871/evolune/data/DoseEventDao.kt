@@ -37,6 +37,29 @@ interface DoseEventDao {
     )
     suspend fun getEventsAfterOccurredAt(startInclusive: Long): List<DoseEventEntity>
 
+    /**
+     * Returns the authoritative rows whose **persisted** `localDate` falls inside the
+     * inclusive range `[startInclusive, endInclusive]`.
+     *
+     * `localDate` is persisted as an ISO-8601 `yyyy-MM-dd` string, so lexicographic
+     * comparison is chronological. Rows with `localDate IS NULL` (legacy migrated rows)
+     * are deliberately excluded: their display day can only be derived from the instant
+     * in the display zone, which is the responsibility of the instant channel.
+     */
+    @Query(
+        """
+        SELECT * FROM dose_events
+        WHERE localDate IS NOT NULL
+            AND localDate >= :startInclusive
+            AND localDate <= :endInclusive
+        ORDER BY localDate ASC, occurredAtEpochMillis ASC, id ASC
+        """
+    )
+    suspend fun getEventsByLocalDateRange(
+        startInclusive: String,
+        endInclusive: String
+    ): List<DoseEventEntity>
+
     @Query(
         """
         SELECT * FROM dose_events

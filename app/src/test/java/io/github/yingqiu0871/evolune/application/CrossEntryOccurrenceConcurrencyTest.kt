@@ -241,6 +241,11 @@ private class GatedDoseEventRepository(
         endExclusive: Instant
     ): List<DoseEvent> = emptyList()
 
+    override suspend fun findRecordedLocalDateBetween(
+        startInclusive: LocalDate,
+        endInclusive: LocalDate
+    ): List<DoseEvent> = emptyList()
+
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> = emptyList()
 
     override suspend fun insert(event: DoseEvent): InsertResult {

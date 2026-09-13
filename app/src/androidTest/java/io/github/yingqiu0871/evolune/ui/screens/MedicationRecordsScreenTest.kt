@@ -60,6 +60,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.UUID
@@ -564,6 +565,14 @@ class MedicationRecordsScreenTest {
             endExclusive: Instant
         ): List<DoseEvent> = events.value.filter {
             it.occurredAt >= startInclusive && it.occurredAt < endExclusive
+        }
+
+        override suspend fun findRecordedLocalDateBetween(
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
+        ): List<DoseEvent> = events.value.filter { event ->
+            val date = event.localDate ?: return@filter false
+            !date.isBefore(startInclusive) && !date.isAfter(endInclusive)
         }
 
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> = events.value

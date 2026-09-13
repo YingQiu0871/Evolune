@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.time.DateTimeException
 import java.time.Instant
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -47,6 +48,23 @@ class RoomDoseEventRepository(
             startInclusive = startInclusive.requireEpochMillis(),
             endExclusive = endExclusive.requireEpochMillis()
         ).map { it.toV3DomainDoseEvent().orThrowCorrupt() }
+    }
+
+    override suspend fun findRecordedLocalDateBetween(
+        startInclusive: LocalDate,
+        endInclusive: LocalDate
+    ): List<DoseEvent> {
+        if (endInclusive.isBefore(startInclusive)) {
+            throw IllegalArgumentException(
+                "local date range end $endInclusive must not be before start $startInclusive"
+            )
+        }
+        return runStorageOperation("find dose events by local date") {
+            dao.getEventsByLocalDateRange(
+                startInclusive = startInclusive.toString(),
+                endInclusive = endInclusive.toString()
+            ).map { it.toV3DomainDoseEvent().orThrowCorrupt() }
+        }
     }
 
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> =

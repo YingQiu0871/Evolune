@@ -19,6 +19,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.util.ArrayDeque
 import java.util.UUID
 
@@ -304,6 +305,11 @@ class MahiroJsonV1ImportServiceTest {
         override suspend fun findOccurredBetween(
             startInclusive: Instant,
             endExclusive: Instant
+        ): List<DoseEvent> = emptyList()
+
+        override suspend fun findRecordedLocalDateBetween(
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
         ): List<DoseEvent> = emptyList()
 
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> = emptyList()

@@ -48,6 +48,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.ArrayDeque
@@ -749,6 +750,14 @@ class HRTViewModelTest {
             endExclusive: Instant
         ): List<DoseEvent> = observed.value.filter {
             it.occurredAt >= startInclusive && it.occurredAt < endExclusive
+        }
+
+        override suspend fun findRecordedLocalDateBetween(
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
+        ): List<DoseEvent> = observed.value.filter { event ->
+            val date = event.localDate ?: return@filter false
+            !date.isBefore(startInclusive) && !date.isAfter(endInclusive)
         }
 
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {

@@ -3,6 +3,7 @@ package io.github.yingqiu0871.evolune.core.dataapi
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 interface DoseEventRepository {
@@ -15,6 +16,26 @@ interface DoseEventRepository {
     suspend fun findOccurredBetween(
         startInclusive: Instant,
         endExclusive: Instant
+    ): List<DoseEvent>
+
+    /**
+     * Returns the authoritative events whose **persisted** `localDate` lies inside the
+     * inclusive range `[startInclusive, endInclusive]`, ordered by
+     * `(localDate, occurredAt, id)`.
+     *
+     * The persisted `localDate` is written when the intake is recorded and is not
+     * guaranteed to be derivable from `occurredAt`: a reminder confirmation stores the
+     * *planned* day while `occurredAt` is the actual action instant, and a Wear
+     * confirmation stores the day carried by the command. Querying by persisted date is
+     * therefore the only way to guarantee that such a row is not missed, no matter how
+     * far apart the two are.
+     *
+     * Rows with a null `localDate` are **never** returned; they must be read through
+     * [findOccurredBetween].
+     */
+    suspend fun findRecordedLocalDateBetween(
+        startInclusive: LocalDate,
+        endInclusive: LocalDate
     ): List<DoseEvent>
 
     /**
