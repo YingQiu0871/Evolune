@@ -57,9 +57,15 @@ History 不得暗示“历史上确实应在 09:00 服用而未服用”——�
 
 **该不变式的证明范围（重要）**：它只能证明"**对已经送进 projection 的 inputs 不丢不重**"。
 它**不能**证明上游数据库查询没有漏 row —— A-02-R1 的 P1 正是这个区别
-（padding 不足导致 `findOccurredBetween` 根本没有返回某条 authoritative event，
-projection 内部因此完全"自洽"，不变式不会报警）。上游查询边界的正确性必须由 §6.1 的 bound proof
-加极端时区回归测试来保证。
+（窄查询没有返回某条 authoritative event，projection 内部因此完全"自洽"，不变式不会报警）。
+
+上游取数的正确性由**当前（R2）依据**保证，而不是 R1 的 padding 论证：
+
+1. **§6 / §6.1 的 per-row 双通道完整性证明**：`localDate != null` 的行由 Channel A（persisted date 定向查询）保证；
+   `localDate == null` 的 legacy 行由 Channel B 的 bounded instant 窗口严格覆盖；
+2. **delayed Reminder / Wear regression 测试**：证明"语义日 ≠ 行动时刻"且两者相距任意时长的行不会丢失
+   （`HistoryReadServicePersistedDateTest`）；
+3. **CE1 / CE2 作为 persisted-LocalDate 通道的回归**：极端时区组合下的行现在主要通过 **Channel A** 被保证（§14）。
 
 ## 4. Day read model
 
@@ -108,7 +114,10 @@ HistoricalRange(startDate, endDate, days)   // 两者皆 inclusive
 - Channel A：`DoseEventRepository.findRecordedLocalDateBetween(startInclusive, endInclusive)`，**日期端点两端 inclusive**，
   范围为 occurrence context 的日期 `[startDate − 1d, endDate + 1d]`；SQL 为
   `WHERE localDate IS NOT NULL AND localDate >= ? AND localDate <= ?`（`localDate` 以 ISO-8601 `yyyy-MM-dd`
-  持久化，字典序即时间序），排序 `(localDate, occurredAt, id)`。
+  持久化）
+  > **排序前提（文档 assumption，不改代码）**：本查询依赖字符串字典序与时间序一致，其**适用前提**是
+  > 应用合法数据范围使用**普通四位年份 `0000..9999`**（`LocalDate.toString()` 在该区间使用固定宽度的
+  > `yyyy-MM-dd`）。本文件**不**声称该等价性对任意扩展年份（例如 `+10000-01-01`）成立。，排序 `(localDate, occurredAt, id)`。
 - Channel B：`DoseEventRepository.findOccurredBetween(startInclusive, endExclusive)`，**instant 半开区间**
   `[ (startDate − 2d).atStartOfDay(zone) , (endDate + 3d).atStartOfDay(zone) )`。
 - occurrence 生成窗口：`[ (startDate − 1d).atStartOfDay(zone) , (endDate + 2d).atStartOfDay(zone) )`。
@@ -161,6 +170,11 @@ persisted-date 行也能参与匹配。context-only 行随后由 `HistoricalRead
 **不再承担任何 persisted-date completeness 保证**。
 
 CE1/CE2 保留为回归（§14），但它们现在主要通过 **Channel A** 被保证。
+
+**取全数据会暴露此前被窄查询掩盖的歧义/优先级竞争 —— 这是正确方向**：R1 的窄 instant 窗口有时会
+"恰好"只带回一条候选，从而让 matcher 得出唯一归属；R2 取全 authoritative 行后，同一 occurrence 可能出现
+多条候选，matcher 会**保持歧义（不归属）**。这是期望行为：**歧义必须保持歧义，不能通过漏数据获得虚假的确定性**
+（规格 Invariant 4）。任何因此出现的"归属变化"必须由确定性测试显式记录，而不是当作回归缺陷。
 
 
 ## 7. Occurrence context bounds
@@ -375,6 +389,19 @@ instant 窗口与 persisted-date 区间过滤，并新增断言：CE1/CE2 的 pe
 **DAO instrumentation（受影响面）**：`RoomRepositoryTest.persistedLocalDateRangeQueryIsInclusiveAndIgnoresInstantDistance`
 在真实 Room 内存库上断言：两端 inclusive、`localDate IS NULL` 不进入该查询、`occurredAt` 相距数年仍被返回、
 排序为 `(localDate, occurredAt, id)`、单日区间、以及反向区间 fail-fast。
+
+### 15.1 测试独立性 caveat（chunking）
+
+`HistoryReadServiceOccurrenceChunkingTest` 的 `expectedDates(...)` helper **部分复述了 recurrence predicate**
+（在测试侧重新实现 CUSTOM/WEEKLY 的相位判断），因此它**不是**与生产实现完全独立的第二实现。
+真正的第二层保护来自同文件中的独立断言：
+
+- **无缺口 / 无多余**：`dates.zipWithNext()` 的相邻 delta 必须等于 `intervalDays`；
+- **无重复**：`dates.size == dates.toSet().size`；
+- **边界存活**：首/末 occurrence 距请求边界 < 7 天（`assertBoundariesPresent`）；
+- **触发条件自检**：断言 context 天数确实超过 generator 单窗口上限，确保该套件真的走到 chunk 分支。
+
+本轮**不重写**该测试；如需更强独立性（例如 golden vector 式冻结期望），留待后续 hardening。
 
 ## 13. 未做 / 已知限制
 
