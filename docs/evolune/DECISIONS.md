@@ -1,6 +1,8 @@
 # 架构决策记录
 
-This file preserves historical decision context. Statuses below describe the post-v1.0 outcome without rewriting the original background or rationale.
+This file preserves historical decision context. The index below is reconciled through v1.6.0 on
+2026-09-12. Original ADR backgrounds describe their decision-time state, not current missing features.
+Current implementation is in [Architecture](ARCHITECTURE.md); release evidence is in the [version review](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current status index
 
@@ -9,20 +11,20 @@ This file preserves historical decision context. Statuses below describe the pos
 | ADR-001 | Implemented in v1.0 | Evolune remains MIT within the documented source and permission boundaries. |
 | ADR-002 | Implemented in v1.0 | Third-party source and assets require verified provenance and compatible terms. |
 | ADR-003 | Implemented in v1.0 | Room v3 is the local source of truth. |
-| ADR-004 | Accepted / planned v1.2 | Health Connect remains an optional future integration and is not implemented. |
-| ADR-005 | Accepted / partially implemented | v1.0/v1.1 Data Layer replay/conflict behavior is tested; a general versioned protocol remains future work. |
+| ADR-004 | Implemented in v1.2 (weight scope) | Optional foreground weight adapter shipped; medication/PHR writes remain outside scope. |
+| ADR-005 | Implemented in v1.3; extended v1.6 | Wear App protocol v1 and confirmation/undo results live in experience-core; tag 11 todaySummary is additive. Legacy transport remains separate. |
 | ADR-006 | Accepted / ongoing | Logical package boundaries are implemented; further Gradle module extraction is deferred. |
-| ADR-007 | Implemented in part / deferred | Phone/Wear backup exclusions shipped in v1.0; SQLCipher and encrypted backup remain deferred. |
+| ADR-007 | Implemented in part / deferred | Android backup exclusions shipped in v1.0; encrypted backup shipped in v1.2; SQLCipher remains deferred. |
 | ADR-008 | Deferred | RemoteViews and the v1.1 occurrence-driven enhancement are shipped; a future Glance evaluation remains optional. |
-| ADR-009 | Accepted / planned v1.2 | Google cloud backup remains separate from local export and Wear transport. |
+| ADR-009 | Implemented in v1.2 (manual backup) | Google Drive appDataFolder backup/restore is separate from JSON exchange and Wear transport; real-time cloud sync is not implemented. |
 | ADR-010 | Implemented in v1.0 | Domain, Room entity and external DTO boundaries are explicit; PK uses an adapter. |
 | ADR-011 | Deferred | Tracked Date did not enter v1.0 and has no current entity or product surface. |
-| ADR-012 | Implemented in v1.0 | Wear device transfer, user export and future cloud backup remain separate boundaries. |
+| ADR-012 | Implemented through v1.2/v1.3 | Wear transport, JSON exchange and manual encrypted cloud backup are separate boundaries. |
 | ADR-013 | Implemented in v1.0 | `core.dataapi` contracts are implemented by Room repositories. |
 | ADR-014 | Implemented in v1.0 | UUIDv5 slot IDs and the historical namespace input are persisted compatibility rules. |
 | ADR-015 | Implemented in v1.0 | The staged domain/mapper/Repository transition completed against Room v3. |
 | ADR-016 | Implemented in v1.0 | Strict migration, repair tooling and all release gates completed; the internal no-release interval is closed. |
-| ADR-017 | Accepted / implemented in v1.0 | Final public Phone/Wear application identity is fixed. |
+| ADR-017 | Implemented in v1.0; superseded for Wear identity in v1.1 | v1.1+ Phone/Wear share io.github.yingqiu0871.evolune; Wear namespace remains separate. |
 | ADR-018 | Accepted / implemented in v1.0 | Public Release builds require the persistent external signing identity. |
 | ADR-019 | Accepted / implemented in v1.0 | PK permission is scoped to author-owned or authorizable rights and requires attribution. |
 | ADR-020 | Accepted / implemented in v1.0 | Publication is limited to explicitly approved refs and assets. |
@@ -203,6 +205,10 @@ This file preserves historical decision context. Statuses below describe the pos
 - **重新评估条件**：只有发布切片重新划分并能独立满足完整迁移/写入/入口门槛，或 Android/SQLite 支持矩阵、correction manifest 版本、审计合规要求发生变化时，才可新增 ADR。不得修改 Slot ID v1、放宽非法数据失败语义、将中间 v3 版本用于用户数据，或在实现中临时绕过本决策。
 
 ## ADR-017：固定 v1 公共应用身份
+
+> 后续生效说明：下面的“最终选择”保留 v1.0 决策原文；v1.1 已将 Wear application ID
+> 统一为 `io.github.yingqiu0871.evolune`，旧 `.wear` 仅保留为 Kotlin namespace。
+> 唯独 v1.0 Wear 旧包无法覆盖升级，见 [身份迁移](WEAR_V11_MIGRATION.md)。
 
 - **状态**：Accepted；Implemented in v1.0。
 - **背景**：历史开发曾使用 `io.github.yuninggu.evolune`，但 v1 需要与当前维护者和公开仓库一致、可验证且长期稳定的分发身份。

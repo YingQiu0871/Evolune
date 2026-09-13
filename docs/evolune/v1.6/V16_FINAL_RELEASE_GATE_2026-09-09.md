@@ -3,7 +3,14 @@
 状态：`PASS / RELEASED AS v1.6.0`。项目负责人已于 2026-09-09 在真实手表完成人工检查并
 批准发布；独立最终复审与 2026-09-10 封版门禁通过。
 
-## 候选身份
+## 发布后身份补记（2026-09-12 文档盘点）
+
+- `v1.6.0` 源码标签指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`；后续 main 文档提交为 `c7f3d266357af08b737aa4fd4015f1b1391279c3`。
+- [GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0) 于 2026-09-10 08:35:14 UTC 公开发布，非 draft、非 prerelease。
+- GitHub 资产 metadata 中的 Phone/Wear SHA-256 与下表候选一致。本次仅核对仓库、Release metadata 与既有记录，没有重新下载验签或执行设备测试。
+- 下表 dirty HEAD 是构建当时的历史状态，不能把 `df12329` 当作最终发布源码，也不把 tag 单独当作构建可复现性证明。
+
+## 候选身份（构建时历史记录）
 
 | 项目 | 值 |
 |---|---|

@@ -1,6 +1,25 @@
-# Evolune v1.6 — Widget Gallery 规格（A 阶段）
+# Evolune v1.6 — Widget Gallery 规格与最终交付差异
 
 状态：`FROZEN / SHIPPED AS v1.6.0`。本文件记录 v1.6 的冻结规格；最终交付和批准见 `V16_ACCEPTANCE.md`。
+
+## 最终生效范围（2026-09-12 文档归一）
+
+本节依据既有 [最终发布门禁](V16_FINAL_RELEASE_GATE_2026-09-09.md) 中的负责人范围调整记录和 v1.6.0 源码补齐，不是新产品决定。
+
+| 原 A 阶段方案 | v1.6.0 最终交付 |
+|---|---|
+| 一个 provider 内选择五种样式 | 系统选择器四个独立 provider，各自配置外观 |
+| 独立 today_progress Widget | 按负责人决定并入今日计划头部；不再提供第五个公开入口 |
+| PK 曲线样式 | E2 趋势：48h/25 点有界数据、历史/预测圆角柱与响应式坐标轴；PK 数学不变 |
+| 三个新 Tile + 原 Tile | 数量保留；四服务均有功能预览及 Evolune 品牌，旧 DoseTileService 身份保留 |
+| Wear 确认/撤销 | 另增加经 Phone 精确验证和持久化的 occurrence 跳过/提醒抑制；不记录 DoseEvent |
+
+§1–§3 的设备/基线及末尾 A 检查表保留为当时的历史观察，不能视为当前安装版本或未完成清单。
+最终关闭、证据组合和未重复采集的真机流程以 [验收](V16_ACCEPTANCE.md) 和最终门禁为准。
+
+源码差异补记：最终 `EvoluneWidgetReceiver.bindNextDose` 仅绑定 OPEN_APP，没有直接确认按钮。
+下方早期动作矩阵对 next_dose 的 AVAILABLE 确认描述保留为历史目标；当前行为按本节与发布说明执行。
+本次盘点没有找到单独记录此动作缩减的负责人批准条目，不虚构批准；该文档追溯缺口见总盘点报告。
 
 ## 1. 基线
 
@@ -17,7 +36,7 @@
 | Wear SDK | min 30，target 36，compile 36.1 |
 | 权威数据 | Phone Room/domain/repository；Wear 数据可重建 |
 
-当前工作树包含 v1.6 规划文档变更；生产基线仍以 `v1.5.0` 标签和 A 阶段记录的实际起点提交为准。
+上表记录 A 阶段起点；最终发布源码为 `v1.6.0` → `58ab66fc22b93630de4ea7137651b2388ff5f1a2`。
 
 ## 2. 设备矩阵观察
 
@@ -52,10 +71,10 @@ A 阶段关闭前必须补齐：最低支持 API 的 Phone、当前目标 API �
 | 样式 ID | 内容 | 目标尺寸 | 动作 |
 |---|---|---|---|
 | `today_plan` | 今日计划、状态和快速确认 | 紧凑/横向 | occurrence 确认；更多内容进入 App |
-| `next_dose` | 下一次服药、时间、剂量 | 紧凑 | `AVAILABLE` 时精确 occurrence 确认；未来或未到 due 时只读并进入 App |
+| `next_dose` | 下一次服药、时间 | 紧凑 | 最终实现只读，点击进入 App；早期确认目标见差异说明 |
 | `current_e2` | 当前 E2、单位、计算时间、简洁趋势 | 紧凑/横向 | 只读，点击进入 App |
-| `today_progress` | 今日完成数/总数和进度 | 紧凑 | 只读，点击进入 App |
-| `pk_chart` | 有界 PK 曲线、时间轴、当前时间标记 | 大尺寸，目标 4×3 | 只读，点击进入 App |
+| `today_progress`（原方案，已合并） | 今日完成数/总数合入 `today_plan` | 随今日计划 | 不提供第五个系统入口 |
+| `pk_chart` | E2 趋势圆角柱、历史/预测区分、时间轴 | 大尺寸，目标 4×3 | 只读，点击进入 App |
 
 Phone 的 2×2、4×2、4×3 只是设计目标；实际最小 dp、缩放断点和 Launcher 网格必须通过宿主实测冻结。
 
@@ -115,11 +134,11 @@ Phone 的 `AVAILABLE`-only 是双重门槛：渲染时隐藏不可用动作，�
   `WearAppStore`/`WearPlanStore` 这类可重建的派生 snapshot/cache，但它们必须携带 freshness、
   producer identity 等现有状态、不能直接写入 Phone 事实，也不能为新样式再建立一份事实缓存。
 - 不增加每秒后台刷新；刷新由系统宿主、数据变更、日期/时区变化和显式动作触发。
-- 配置入口冻结为继续使用现有 Widget provider 配置页，不按样式拆分系统 provider picker；样式选择和预览
-  在该配置页完成。旧实例缺少 `styleId` 时映射到 `legacy_default`（原组合布局），未知 `styleId` 回退到
-  `legacy_default`，取消保存不覆盖旧值，删除时清理实例配置；这些映射在 B 阶段用迁移测试锁定。
+- 最终配置入口为四个独立 provider 共用配置 Activity，功能由 provider 确定，外观按实例保存；
+  仅“应用”后返回成功，取消不覆盖原值。旧 `EvoluneWidgetReceiver` 身份保留；缺失/未知 style 的
+  `legacy_default` 兼容映射不意味着旧单 provider 仍是唯一入口。历史 B 阶段的映射测试保留。
 
-仍需在 A 的产品/数据审阅中最终冻结的值：E2 过期时长、趋势时间窗、PK 图表时间窗与最大采样点数、各宿主允许的刷新延迟。这些值未冻结前，A 不得标记 `DONE`。
+历史 A 阶段待冻结项包括 E2 过期、趋势/PK 窗口、采样上限和宿主刷新延迟；后续结果见阶段证据和最终门禁，不把这里的起始待办当作新的发布阻塞。v1.6 文档明确记录 PK 48h/25 点；本次归一不凭空补写其他测量值。
 
 ## 6. 性能预算与测量
 
@@ -140,7 +159,9 @@ v1.5 已有的固定输入继续作为 v1.6 基线：`PK-EMPTY`、`PK-STEADY`、
 3. 多个 Tile/Complication 共用一次 Wear 快照和刷新协调，不建立常驻轮询链。
 4. A 阶段必须在同机、同数据、预热后报告中位数、尾部值、PK 调用数、Data Layer 请求数和唤醒数；无有效采样不得宣称性能改善。
 
-## 7. A 阶段关闭条件
+## 7. A 阶段原始关闭检查表（历史快照）
+
+下列未勾选框记录初始规格状态，原样保留；后续 A–G 的关闭记录见 V16_ACCEPTANCE，不在本次文档维护中追补虚构测试结果。
 
 - [ ] E2 过期、趋势和 PK 图表窗口/采样上限已由产品与数据审阅者确认。
 - [ ] 最小 dp、Launcher、真表和 Complication 宿主矩阵已记录。

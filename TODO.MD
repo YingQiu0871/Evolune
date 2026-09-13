@@ -1,21 +1,20 @@
 # 后续路线（v1.6.0 已封版）
 
-v1.1 Phone Widget Completion 已完成并关闭。以下只保留路线图中的未来工作，不是
-当前实现承诺；进入任何批次前都需要独立设计、来源审查、自动化回归和真实设备验收。
+截至 2026-09-12，v1.0–v1.6 已发布。下文区分已完成里程碑与未授权的未来候选，
+不是把旧版本重新列入待办。完整版本及文档索引见 [文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
-## v1.2 — Google Integration & Data Continuity
+## v1.2 — Google Integration & Data Continuity（已发布）
 
-- [ ] Health Connect：明确数据类型、上下文授权、来源标记、撤权和 provider 不可用
-      处理；Room 继续是唯一事实来源。
-- [ ] Google backup/restore：先定义版本化、完整性保护和用户可控的备份格式，再评估
-      provider、密钥生命周期、预览恢复和错误处理。
-- [ ] 保持 Health Connect 与 Google backup 两条可独立验收的产品线；不做实时云端
-      多设备数据库同步。
+- [x] v1.2.0：可选 Health Connect 前台体重读取、权限/provider 状态和本地 freshness 保护。
+- [x] v1.2.0：原生加密备份、恢复预览/校验/journal、手动 Google Drive appDataFolder 备份/恢复。
+- [x] v1.2.2：延迟 null-slot 记录的确定性唯一匹配修复及品牌维护。
+- 边界：不含后台 Health Connect、用药写入或实时云端数据库同步。
 
-## v1.3 — Wear OS Companion App（已纳入当前基线，未单独发布）
+## v1.3 — Wear OS Companion App（已独立发布）
 
 - [x] 当前基线已包含可打开的轻量 Wear App、版本化 snapshot、occurrence identity、Phone
       权威 Repository、persist-first confirmation/undo 和可重建派生缓存；v1.6 继续以此为兼容前提。
+- [x] v1.3.0 发布 Wear App；v1.3.1 修复旧 Wear APK 的 taskAffinity 安装错误并完成升级验证。
 
 ## v1.4.0 — Onboarding / Terms / Permission Guidance（已封版发布）
 
@@ -50,6 +49,9 @@ v1.1 Phone Widget Completion 已完成并关闭。以下只保留路线图中的
 - [ ] 在独立科学、来源和回归评估通过后，增加默认关闭且单位独立的 CPA 估算曲线。
 
 ## Deferred
+
+- v1.6 最终门禁保留的可选 P3：真实 AlarmManager 队列与连续并发跳过压力测试；不伪装成已执行。
+- 本次文档盘点发现的历史日志/截图可追溯性缺口见 [盘点报告](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；不补造证据。
 
 - Tracked Date、个性化 PK/calibration、SQLCipher 和 Gradle module extraction 仍需
   单独产品/安全/迁移决策。

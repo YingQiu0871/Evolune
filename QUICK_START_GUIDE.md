@@ -1,71 +1,60 @@
-# Evolune 快速开始指南
+# Evolune 快速开始指南（v1.6.0）
 
-Evolune 是本地优先的 Android/Wear OS 用药记录、提醒和药代动力学趋势工具。当前
-公开稳定版本是 v1.1.0；v1.0.0 为上一版封存发布，v1.1 Phone Widget Completion
-已正式发布，v1.2 尚未开始。
+适用版本：2026-09-10 发布的 [v1.6.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)。文档更新于 2026-09-12。
 
 > 浓度曲线是模型估算，不是化验结果、诊断或治疗建议。
 
+## 安装与升级
+
+从 Release 页面分别下载 Phone 和 Wear APK，安装到对应设备。Phone 需要 Android 12/API 31 及以上，Wear 最低 API 30。v1.5→v1.6 支持同签名覆盖升级，保留数据和已有组件，不需要清除数据。
+
+只有历史 v1.0 Wear 的旧 application ID 需要按 [身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md) 处理；不要把这条特殊规则用于 v1.1 以后的常规升级。v1.3.0 Wear APK 有已知安装缺陷，已由 v1.3.1 修复。Debug 包的身份和数据与 Release 分开。
+
 ## 第一次使用
 
-1. 打开“设置”，填写体重并选择应用主题、颜色主题和时间制式。
-2. 在“记录”中添加已经发生的用药事件；选择给药途径、酯类、剂量和时间。
-3. 在“方案”中创建每日、每周或自定义间隔的计划，添加一个或多个时间槽。
-4. 保存并启用计划；系统会按计划安排提醒。
-5. 返回“主页”查看当前 E2 浓度、历史曲线和未来趋势。
+1. 完成首次用途、隐私、条款和模型边界说明；按需授予通知/提醒相关权限。
+2. 在设置中填写体重；也可以在“同步与备份 → Health Connect”启用可选前台体重读取。
+3. 在“记录”添加已有的实际用药事件，确认途径、剂量和时间。
+4. 在“方案”创建每日、每周或自定义间隔计划，添加一个或多个时间槽，并按需启用提醒。
+5. 在主页查看当前 E2、历史与预测趋势。设置中的功能教程可以重新打开。
 
-## 创建多时间方案
+同一方案的多个时间槽分别生成 occurrence。实际记录时间与计划时间分开保存；未记录项不会因时间过去自动变成已完成。
 
-在方案编辑器中为同一计划添加多个每日时间，例如 09:00、17:00 和 22:00。保存
-时会按本地时间自动排序；已有时间槽的稳定 ID 会尽可能保留，顺序位置不是槽位
-身份。计划在其创建日的本地日期开始生成 occurrence，即使某个时间已经早于创建
-时刻；创建日之前不会生成 occurrence。
+## 添加手机小组件
 
-## 记录和查看历史
+在桌面长按空白处，进入系统小组件选择器，找到 Evolune。v1.6 最终提供四个独立入口：
 
-- 在“记录”页使用添加入口创建手动记录，点击已有条目可编辑或删除。
-- 通知和 Phone Widget 的确认动作最终写入同一个权威 `DoseEvent`。
-- 记录实际发生时间与计划时间分别保存；主页曲线会在保存后重新计算。
+| 入口 | 用途 |
+|---|---|
+| Evolune-今日计划 | 当日用药列表、完成数与快速确认；内容较多时滚动列表 |
+| Evolune-下一次服药 | 最近待服事项；只读，点击打开 App |
+| Evolune-当前 E2 | 当前估算浓度与相关时间信息，只读 |
+| Evolune-E2 趋势 | 48 小时历史/预测浓度展示，只读，适合较大尺寸 |
 
-## 添加 Phone Widget
+独立“今日进度”已按最终产品决定并入今日计划，不是缺失的第五款。添加时选择外观并点击“应用”；取消或返回不应误建默认实例。每个实例可独立选择自动/浅色/深色、Material You 或预制配色及背景透明度；宿主支持时可长按重新配置、缩放。实际网格与最小尺寸依 Launcher 而异，不把所有款式都视为同一 2×2 布局。
 
-1. 在手机桌面长按空白处，选择 Evolune Widget 并放置到桌面。
-2. 首次添加或长按重新配置时，可选择 Auto/Light/Dark、Material You 或 Monet
-   配色，以及 30%–100% 背景透明度。每个 Widget 实例独立保存这些设置。
-3. Widget 展示当天 occurrence、完成数/总数、E2 浓度和进度。过去但尚未记录的
-   occurrence 不会被自动算作完成。
-4. 点击未记录 occurrence 的勾选按钮即可记录；动作使用 occurrence 的 plan、slot、
-   日期和稳定 ID，并以实际点击时间写入。重复点击或多个 Widget 实例不会重复记账。
-5. 2×2 是完整的日常使用规格；更大的尺寸显示更多行。当天 occurrence 超出可见
-   容量时，固定的标题/进度区域保持不动，列表可在 RemoteViews collection 中纵向
-   滚动。
+## 使用手表
 
-## Wear Tile 基础
+- 打开 Wear App 可查看最近记录、后续最多五个 occurrence 和当前 E2，并按界面提示确认或撤销。动作最终由手机校验，等待/失败不代表已记药。
+- “跳过本次”抑制对应 occurrence 的提醒，不等同已服药，也不会创建服药记录。
+- 在系统添加 Tile 界面选择下一次服药、今日计划或当前 E2；旧浓度曲线 Tile 继续兼容，独立于这三项新 Tile。
+- 编辑支持 Short Text 的表盘槽位，可选择下一次服药、今日进度或当前 E2 Complication；点击进入应用，不直接写入记录。不同表盘的类型限制会影响可选列表。
+- 断连或过期时以界面状态及更新时间为准；手表缓存不是第二份用药数据库。
 
-配对手机和手表后，Wear Tile 可显示手机发送的计划/浓度快照，并提交剂量动作。Phone
-Room 仍是唯一事实来源；断连或重连时 Wear 使用可重建缓存，不会成为另一份数据库。
-已安装 v1.0 Wear 包的用户请先阅读 [身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md)。
+如果添加入口缺失或预览黑屏，先核对 Phone/Wear 是否都安装了同一正式版本，并区分系统“添加”加号与 Evolune 图标。保留现有数据和组件，记录选择器/实际组件截图、设备与版本信息，再报告问题；不要以清除数据作为首个排查动作。
 
-## 数据迁移与备份边界
+## 同步、迁移与备份
 
-在“设置”中使用 Mahiro JSON v1 文件或剪贴板导出/导入。Phone/Wear 私有数据明确排除
-于 Android Auto Backup 和设备迁移；当前没有 Health Connect 或 Google 云备份。v1.2
-将分别评估 Health Connect 和用户控制的 Google backup/restore，不等同于实时云端数据库
-同步。
+“设置 → 同步与备份”将本地数据、Health Connect 和 Google Drive 分开：
 
-## 浓度查看提示
+- JSON 文件/剪贴板用于兼容数据交换，不能当作完整原生备份。
+- Health Connect 经授权在前台读取最近 30 天的有效体重，保护较新的手动输入；不向其写入用药记录。
+- Google Drive 提供用户主动的加密备份/恢复。保管备份口令，恢复前核对预览；丢失口令无法解密备份。上传校验后按已实现策略保留三个备份代次。
 
-主页显示当前浓度、历史记录和基于已记录事件/启用方案的趋势。体重、给药途径、剂量、
-吸收参数和记录时间都会影响结果；请不要把图表区间当作个人治疗目标。
+应用不提供实时云同步。Android Auto Backup 和设备迁移不会复制 Evolune 私有数据，这与应用内主动备份是不同机制。
 
-## 开发构建
+## 开发与详细文档
 
-需要 JDK 17、Android SDK 36 和 Git：
+使用 JDK 17 和工程指定的 Android SDK（compile SDK 36.1）。Windows 使用 `gradlew.bat test assembleDebug`，macOS/Linux 使用 `./gradlew test assembleDebug`。正式用户下载 Release，不用 CI Debug 产物替换正式包。
 
-```powershell
-.\gradlew.bat test assembleDebug
-```
-
-Debug APK 仅用于开发/测试；正式下载请使用 [v1.1.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.1.0)。生产代码保持
-Room/domain/repository 权威边界，Widget 使用 Android RemoteViews，Wear 使用 Tile 和
-Data Layer。
+更多信息见 [设置](SETTINGS_FEATURE.md)、[实现总览](IMPLEMENTATION_SUMMARY.md) 和 [完整文档索引](docs/evolune/DOCUMENTATION_INDEX.md)。

@@ -1,13 +1,13 @@
 # Copilot Instructions
 
-Evolune 的 v1.1 Phone Widget Completion 已完成并关闭；当前 `main` 包含
-occurrence-driven RemoteViews Widget。v1.2 Google Integration & Data Continuity
-尚未开始。保持本文件简洁，并以生产源码和当前文档为准。
+截至 2026-09-12，Evolune 当前公开稳定版为 v1.6.0。v1.2 的前台 Health Connect
+体重读取和手动 Google Drive 加密备份、v1.3 Wear App、v1.4 引导、v1.5 稳定性和
+v1.6 Gallery 均已发布。保持本文件简洁，以生产源码和 docs/evolune/CURRENT_STATUS.md 为准。
 
 ## Architecture
 
 - Phone Room v3、domain model 和 Repository 是唯一事实来源；Widget、Wear、JSON 和
-  未来集成只能消费或交换派生状态。
+  外部集成只能按明确契约消费或交换数据，不升级为第二用药事实来源。
 - 遵守 `consumer -> core.dataapi <- Room implementation` 的边界，不让 UI、Widget 或
   Wear 直接绕过 Repository/DAO contract。
 - `DoseEvent.occurredAt` 是权威实际记录时间；PK 只通过
@@ -19,8 +19,8 @@ occurrence-driven RemoteViews Widget。v1.2 Google Integration & Data Continuity
   但不得把槽位身份当成临时列表索引或无故重建已有 ID。
 - 时间槽按本地分钟 chronological order 呈现；Occurrence identity 必须稳定，并由
   计划、槽位和 intended scheduled local date 共同确定。
-- 精确记录匹配优先使用 slot/date；旧的 null-slot fallback 只在候选唯一且时间窗口
-  明确时使用，不能把历史事件宣传成精确关联。
+- 精确记录匹配优先使用 slot/date；null-slot 保留原窗口优先和 v1.2.2 唯一同日回退，
+  原窗口竞争事件不能被回收去匹配其他 occurrence，不能把历史事件宣传成精确关联。
 
 ## Widget and Wear actions
 

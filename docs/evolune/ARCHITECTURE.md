@@ -1,15 +1,15 @@
 # 架构
 
-本文区分已发布的 v1.0 架构、已关闭的 v1.1 Widget 演进与未来方向。当前事实以 `main` 的 production source、v1.0 tagged source 和 [Current Status](CURRENT_STATUS.md) 为依据。
+本文描述截至 v1.6.0 的生产架构（2026-09-12 文档盘点），历史兼容路径单独标注。事实依据为 v1.6.0 tagged source、当前 main 与 [Current Status](CURRENT_STATUS.md)。
 
-## Current v1.0 Architecture
+## Current v1.6 Architecture
 
 ### 模块与逻辑边界
 
-仓库包含 `:app` 与 `:wear` 两个 Android application Gradle 模块。v1.0 没有为每个领域创建独立 Gradle module，但已经在 `app` 内建立明确的逻辑边界：
+仓库包含 `:app`、`:wear` 两个 Android application 模块和共享 JVM 模块 `:experience-core`。后者承载 occurrence、共享展示和版本化 Wear 契约；Room 实现及用药 Repository 仍在 app 内。进一步物理拆分仍是候选：
 
 ```mermaid
-flowchart LR
+flowchart TD
     PhoneUI["Phone UI / ViewModel"] --> Actions["Application actions"]
     Reminder["Reminder receivers"] --> Actions
     Widget["RemoteViews Widget"] --> Actions
@@ -22,7 +22,7 @@ flowchart LR
     PkAdapter --> PK["PK simulation"]
     Domain --> Widget
     Domain --> WearBridge
-    WearBridge <--> Wear["Wear Tile / cache / Data Layer"]
+    WearBridge <--> Wear["Wear App / Tiles / Complications / derived cache"]
 ```
 
 - `core.model` owns `DoseEvent`, `MedicationPlan`, `ScheduledDoseSlot` and related enums.
@@ -63,11 +63,21 @@ Phone UI, reminder, Widget and Wear record actions converge on typed application
 
 The phone Widget is a RemoteViews AppWidget. `WidgetSnapshotLoader` reads enabled plans, their today's occurrences and PK events through Repository contracts, then builds a chronological responsive/scrollable snapshot with current concentration. Quick actions use a deterministic occurrence identity, validate plan and slot/date state, persist a `source=WIDGET` event with the actual click time, and only then refresh Widgets and show feedback.
 
-There is no separate Widget database and no production DAO bypass. The v1.1 RemoteViews configuration, responsive layout, palette/opacity/contrast and multi-widget isolation are complete; Glance and additional gallery surfaces remain future choices.
+There is no separate Widget database and no production DAO bypass. v1.6 registers four providers:
+`EvoluneWidgetReceiver` (today plan, preserving the old component), `NextDoseWidgetReceiver`,
+`CurrentE2WidgetReceiver` and `PkChartWidgetReceiver`. Each instance retains independent appearance.
+Today completion is part of today plan, not a fifth picker entry. `WidgetPresentation`/`WidgetUiMapper` and
+the PK chart renderer consume the shared snapshot; the 48-hour/25-point display sampling does not
+change PK mathematics. Glance is not the shipped renderer.
+
+The final next-dose widget binds its panel to OPEN_APP only; direct confirmation is available in the
+today-plan widget. Phone confirmation is gated twice: presentation must be `AVAILABLE`, and the action handler checks
+current availability, occurrence identity and local date again before writing. Wear App/new Tiles
+retain their versioned `UPCOMING`/`DUE` confirmation contract; do not silently unify these rules.
 
 ### Wear pipeline
 
-The v1.0 path is deliberately small:
+The legacy v1.0 path remains available for compatibility:
 
 ```mermaid
 sequenceDiagram
@@ -87,7 +97,22 @@ sequenceDiagram
 
 The Wear action ID is also the stable DoseEvent ID. A matching previously accepted Wear event is replay-safe; a collision with different source/time is a conflict. The exact action DataItem is deleted only after persistence and the accepted side effect complete. Invalid, conflicting or failed actions remain undeleted; failed deletion is retried when the DataItem is observed again.
 
-The current `/hrt/*` DataMap/JSON transport does not yet have a general protocol version, envelope, checksum, explicit response message or cross-version negotiation. This limitation is tracked for evaluation as required by the v1.3 Wear App; no general protocol redesign is promised.
+The legacy transport above does not describe all current Wear traffic. Since v1.3,
+`experience-core/.../wear/WearAppProtocol.kt` defines protocol version 1 with separate
+`/hrt/v1/wear-app/snapshot` and `/hrt/v1/wear-app/request` paths. Confirmation and undo have their
+own contracts and Phone handlers, producer/revision checks and replay-safe results. v1.6 adds optional
+snapshot tag 11 `todaySummary`; its denominator comes from Phone's full-day occurrences, not the
+truncated upcoming list (maximum five occurrences).
+
+`WearAppStore` is a rebuildable cache. Three new Tile services and three Short Text Complication
+providers consume it and share refresh coordination. The old `DoseTileService` component remains.
+Each Tile has a preview resource and Evolune icon in the production manifest. Snapshot refresh is
+gated by Applied; action-result refresh accepts Applied/Duplicate under the existing policy.
+
+v1.6 skip requests use `/hrt/v1/wear-app/skip-notification`. Phone validates the exact occurrence,
+persists reminder suppression in `ReminderSkipStore`, cancels the matching alarm and filters delivery
+and rescheduling races. Skip does not create a DoseEvent or count as a recorded dose. This Phone-side
+reminder state is not a Wear medication database.
 
 ### JSON compatibility boundary
 
@@ -95,7 +120,16 @@ Mahiro JSON v1 has its own DTO, codec and domain adapter. Import maps legacy hou
 
 ### Backup and security boundary
 
-Phone and Wear Manifests point to version-appropriate backup rules. All private app domains are excluded from Android cloud backup and device transfer. User-controlled JSON export/import is the current migration mechanism.
+Phone and Wear Manifests exclude private app domains from Android Auto Backup and device transfer.
+This does not disable app-controlled backup. Since v1.2, `EvoluneBackupCodec` handles a versioned
+encrypted envelope; `BackupRestoreCoordinator`, B2 restore transactions/journal and `PostRestoreCoordinator`
+handle preview, validation, recovery and derived-state refresh. Google Drive is a manual, explicitly
+authorized `appDataFolder` provider with read-back verification and three-generation retention.
+It is separate from Mahiro JSON v1 exchange and does not implement background or real-time cloud sync.
+
+`AndroidHealthConnectWeightProvider` and `HealthConnectWeightSyncCoordinator` implement optional
+foreground weight reads, with permission/provider states and local/manual freshness protection.
+Neither Health Connect nor Drive becomes the authority for medication facts.
 
 The Room database is not SQLCipher-encrypted. Release signing uses a persistent external identity and never falls back to Debug signing. Provenance and publication boundaries are recorded in [Decisions](DECISIONS.md) and [Source Provenance](../SOURCE_PROVENANCE.md).
 
@@ -111,15 +145,17 @@ The Room database is not SQLCipher-encrypted. Release signing uses a persistent 
 
 ### v1.2: Google Integration & Data Continuity
 
-This is the next planned milestone; implementation has not started.
+Shipped as v1.2.0 on 2026-08-28. The implementation is wired from MainActivity and Settings' Sync & Backup screens.
 
 Health Connect and Google cloud backup are separate batches:
 
-- Health Connect remains an optional adapter/integration, initially expected to focus on explicitly authorized data such as weight. Room remains authoritative.
-- Cloud backup requires a versioned encrypted format, recovery and conflict behavior, key lifecycle, explicit user authorization, and provider-specific testing before Google integration.
+- Health Connect reads authorized weight in the foreground; medication/PHR writes and background reads are outside the shipped scope.
+- Native encrypted backup and manual Google Drive restore include validation, recovery and explicit authorization. SQLCipher and real-time cloud sync remain unimplemented.
 - Health Connect and backup remain separately gated batches.
 
 ### v1.3: Wear OS Companion App
+
+Shipped independently as v1.3.0; v1.3.1 corrected the Wear APK installation defect. These are implemented boundaries, not a future App proposal.
 
 - Wear App consumes Phone-derived state/snapshots.
 - Phone Room remains the authoritative source.
@@ -130,17 +166,21 @@ Health Connect and Google cloud backup are separate batches:
 
 ### v1.4: Onboarding / Terms / Permission Guidance
 
+Shipped. Onboarding/tutorial state is separate from business data and is not restored as medication facts.
+
 - presentation/platform flow;
 - contextual permission requests;
 - no new health-data authority.
 
 ### v1.5: Stability / Performance / Cleanup
 
+Shipped with a recorded Energy/background owner waiver; no battery improvement is inferred from it.
+
 Architecture changes here should be justified by measured/tested benefit, not refactoring for its own sake.
 
 ### v1.6: Widget Gallery
 
-New Widget/Tile/Complication surfaces should reuse stable shared presentation/domain boundaries instead of duplicating business logic.
+Shipped: four Phone providers, three new Tiles plus the compatible legacy Tile, and three Complications reuse shared presentation/domain boundaries. The [final gate](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) records actual evidence and product scope changes.
 
 ### v1.7: Optional CPA PK Curve
 

@@ -12,7 +12,7 @@ Evolune 是面向个人长期记录的 Android 与 Wear OS 应用，用于管理
 
 它不是医疗器械，不提供诊断、处方或治疗建议。浓度曲线是基于输入数据和模型参数的估算，不等同于实验室检测结果。
 
-## v1.0 核心场景
+## 截至 v1.6 的核心场景
 
 ### 建立用药方案
 
@@ -42,7 +42,7 @@ PK 计算通过 `DomainDoseEventToPkAdapter` 将当前领域事件投影为 PK �
 
 手机发布版本化用药、今日完成度、当前浓度与趋势快照；Wear 在本地缓存派生展示状态并刷新 Wear App、三个新 Tile、兼容曲线 Tile 和三个 Complication。Wear 通过 Data Layer 提交确认、撤销和 occurrence 级跳过动作。
 
-手机验证 URI/payload action ID、plan ID 和记录时间后，以 action ID 作为事件 ID 写入 `source=WEAR` 的事件。成功或可接受重放后先刷新 Widget，再只删除本次动作对应的精确 DataItem。冲突、非法数据或存储失败不会删除动作；副作用或删除失败会保留 DataItem 供后续重试。
+旧 `/hrt/dose-actions` 路径中，手机验证 URI/payload action ID、plan ID 和记录时间后，以 action ID 作为事件 ID 写入 `source=WEAR` 的事件。成功或可接受重放后先刷新 Widget，再只删除本次动作对应的精确 DataItem。此处描述的是旧路径，不替代 Wear App 的版本化确认/撤销回执协议。
 
 Phone 保持唯一事实来源；Wear 快照缓存可重建，不升级为权威数据。确认/撤销使用回执、幂等与冲突边界；跳过由 Phone 精确校验并抑制该次提醒，不记录 DoseEvent。
 
@@ -62,11 +62,15 @@ Phone 保持唯一事实来源；Wear 快照缓存可重建，不升级为权威
 
 `exportSchema = true`，schema 2 和 3 位于 `app/schemas/io.github.yingqiu0871.evolune.data.AppDatabase/`。v2-to-v3 migration 对旧数值时间、计划时间列表和 slots 进行严格预检；异常数据使 migration 回滚而不是静默修正。`tools/repair-v2/` 提供只读扫描、显式 manifest 修复到新副本和复核流程。
 
-Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.xml`。规则排除全部应用私有 root/file/database/shared-preference 数据的 cloud backup 与 device transfer；当前主动迁移路径是用户控制的 JSON 导出/导入。
+Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.xml`。规则排除全部应用私有 root/file/database/shared-preference 数据的 Android cloud backup 与 device transfer；用户仍可主动使用 JSON 数据交换和 v1.2 原生加密备份/恢复。
 
-## v1.0 能力与边界
+### Health Connect 与原生备份
 
-| 功能 | v1.0 状态 |
+Health Connect 是可选前台体重读取 adapter，读取最近 30 天的有效体重并保护较新的本地/手动输入，不上传用药记录。原生备份使用版本化 envelope、口令派生密钥及 AES-256-GCM；恢复先预览、校验，再通过恢复事务和 journal 协调 Room/DataStore。Google Drive `appDataFolder` 提供手动加密备份、回读校验和三代保留，不提供实时云数据库同步。设置入口和限制见 [设置功能](../../SETTINGS_FEATURE.md)。
+
+## 已发布能力与边界
+
+| 功能 | 截至 v1.6 状态 |
 |---|---|
 | 用药方案、事件、历史、提醒 | SHIPPED v1.0 |
 | PK 估算与图表 | SHIPPED v1.0 |
@@ -77,24 +81,26 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 | Phone Widget Completion（occurrence、响应式布局、配置与隔离） | SHIPPED v1.1 |
 | Phone Widget Gallery（四个独立入口、趋势图与实例级外观） | SHIPPED v1.6 |
 | Wear Tile/Data Layer 和 dose actions | SHIPPED v1.0 |
-| Wear App、三新 Tile、兼容曲线 Tile、三 Complication | SHIPPED v1.6 |
-| Health Connect | NOT IMPLEMENTED |
-| Google cloud backup/sync | NOT IMPLEMENTED |
+| Wear App 与确认/撤销 | SHIPPED v1.3；Wear 安装缺陷由 v1.3.1 修复 |
+| 三新 Tile、兼容曲线 Tile、三 Complication 与跳过 | SHIPPED v1.6 |
+| Health Connect 前台体重读取 | SHIPPED v1.2 |
+| 原生加密备份与手动 Google Drive backup/restore | SHIPPED v1.2 |
+| 后台/实时云同步、Health Connect 用药写入 | NOT IMPLEMENTED |
 | Tracked Date | DEFERRED |
 | 个性化 calibration/PK 2.0 | DEFERRED |
 
 ## 隐私原则
 
-1. Evolune Room 数据库是核心事实来源；Wear 缓存和未来外部集成都不能静默覆盖本地事实。
+1. Evolune Room 数据库是用药事实来源；Wear 缓存和外部集成都不能静默覆盖本地事实。
 2. 敏感数据不进入普通日志；当前自动云备份与设备迁移被明确排除。
-3. 导出文件由用户保存和管理；未来云备份必须具有明确授权、加密格式、密钥生命周期和冲突恢复设计。
-4. Health Connect 若进入 v1.2，必须作为可选 adapter，按数据类型授权并记录来源。
+3. JSON 导出由用户保存；Google Drive 备份需用户主动授权和备份口令，恢复必须经过预览和校验。
+4. Health Connect 已作为可选 adapter 实现，只读取已授权体重，并保留来源与 freshness 边界。
 
 ## 后续方向
 
 - `v1.1`: Phone Widget Completion，已完成并关闭。
-- `v1.2`: Health Connect 与 Google 数据连续性，作为独立批次；规划中，尚未开始。
-- `v1.3`: 轻量级 Wear OS 伴侣应用能力已并入后续主线。
+- `v1.2`: Health Connect 与加密备份/Google Drive，已发布；v1.2.2 修复延迟记录匹配和品牌资源。
+- `v1.3`: 轻量级 Wear OS 伴侣应用，已独立发布；v1.3.1 修复 Wear 安装缺陷。
 - `v1.4`: 首次使用引导、条款、隐私与权限说明，已发布。
 - `v1.5`: 稳定性、性能与代码清理，已发布。
 - `v1.6`: Widget Gallery，已发布。

@@ -1,7 +1,11 @@
 # Evolune 药代动力学（PK）模块实现文档
 
-本文记录当前生产 PK 模块、其科学参数和领域集成边界。v1.1 Phone Widget
-Completion 没有修改 PK 数值算法或参数；`PK_NUMERICAL_ALGORITHM_DIFF = ZERO`。
+本文保留生产 E2 PK 模型说明与来源记录。2026-09-12 文档盘点补记：v1.6 Gallery
+复用该模型，为 Phone E2 趋势生成 48h/25 点有界展示数据，不改变 PK 数学参数。
+图表采样、坐标轴、圆角柱和展示配色属于 presentation 层，不能作为模型变更或科学验证。
+v1.1 的 `PK_NUMERICAL_ALGORITHM_DIFF = ZERO` 是当时的回归结论；本次没有重新运行数值测试。
+CPA、个性化 calibration/PK 2.0 仍不是 v1.6 已交付功能。当前数据入口见
+[架构](docs/evolune/ARCHITECTURE.md)，原有科学公式和来源归属在本次文档维护中不改写。
 
 ## 概述
 
@@ -337,11 +341,13 @@ AUC = Σ (C(tᵢ) + C(tᵢ₋₁))/2 × (tᵢ - tᵢ₋₁)
 
 ## 版权声明
 
-本实现基于以上开源项目和公开资料，遵循原项目的开源协议。
+本实现的来源和权利范围以 [SOURCE_PROVENANCE](docs/SOURCE_PROVENANCE.md)、
+[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) 与 NOTICE 为准。2026-08-14 的明确许可
+仅覆盖原作者拥有或有权授权的内容，不将整个上游仓库或第三方贡献自动重新许可为 MIT。
 
 ---
 
-**实现日期**: 持续维护（当前公开稳定 Release 为 v1.1.0；v1.0.0 为上一版封存发布）
-**版本**: 1.1 implementation baseline
+**文档基线**: v1.6.0，2026-09-12 盘点；模型公式沿用既有说明，本次未重新进行科学审查
+**版本**: 当前公开稳定 Release v1.6.0；上一版 v1.5.0
 **语言**: Kotlin  
 **最低API级别**: Phone Android SDK 31+（Wear SDK 30+）

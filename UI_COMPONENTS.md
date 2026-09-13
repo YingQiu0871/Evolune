@@ -1,5 +1,7 @@
 # UI 组件清单
 
+基线：v1.6.0；2026-09-12 文档核对。
+
 本清单以当前源码为准。Phone 页面使用 Jetpack Compose；Phone 桌面 Widget 使用
 Android RemoteViews；Wear Tile 是独立的 Wear surface。Widget 不属于 Compose 组件
 树，也不建立独立数据源。
@@ -11,7 +13,8 @@ Android RemoteViews；Wear Tile 是独立的 Wear surface。Widget 不属于 Com
 | Home | `ui/screens/HomeScreen.kt` | 当前 E2、历史/预测浓度图和今日摘要 |
 | Records | `ui/screens/MedicationRecordsScreen.kt` | DoseEvent 列表、新增、编辑、删除 |
 | Medication Plans | `ui/screens/MedicationPlansScreen.kt` | 计划列表、启用状态和编辑入口 |
-| Settings | `ui/screens/SettingsScreen.kt` | 体重、应用主题/颜色、时间制式、更新、JSON 和帮助 |
+| Settings | `ui/screens/SettingsScreen.kt` | 分类设置、同步与备份、更新、教程和帮助 |
+| Sync & Backup | `ui/screens/SyncAndBackupScreen.kt` | 本地 JSON、Health Connect 与 Google Drive 入口 |
 
 `navigation/Screen.kt` 定义目的地；`navigation/AppNavigation.kt` 根据窗口尺寸选择
 紧凑底部导航或中等/展开 Navigation Rail。编辑器通过 transition layer 进入和退出，
@@ -47,6 +50,10 @@ Android RemoteViews；Wear Tile 是独立的 Wear surface。Widget 不属于 Com
 | `widget/WidgetUi.kt` | RemoteViews 兼容的尺寸、行密度、颜色和按钮 |
 | `widget/EvoluneWidgetReceiver.kt` | AppWidget 生命周期、日期/时间/时区刷新和 collection |
 
+该 receiver 文件还定义 NextDoseWidgetReceiver、CurrentE2WidgetReceiver、PkChartWidgetReceiver；
+最终共四个系统入口。WidgetPresentation/WidgetUiMapper 提供展示状态，图表使用共享 PK 样本；
+配置仅在应用后返回成功。今日进度并入今日计划，不再有独立公开 provider。
+
 Widget presentation 以 `MedicationOccurrence` 为行单位：同一计划的多个时间槽独立
 显示，2×2 是完整日常规格，更大尺寸显示更多行，超出容量时使用 RemoteViews
 collection/list 纵向滚动。勾选动作携带 plan/slot/date/occurrence identity，持久化
@@ -54,9 +61,9 @@ collection/list 纵向滚动。勾选动作携带 plan/slot/date/occurrence iden
 
 ## Wear surface
 
-`wear/` 模块中的 Tile、缓存和 `WearDataLayer` 负责快照展示与动作传输。Phone Room
-仍为权威来源；Wear 缓存可重建，不是第二数据库。完整 Wear OS Companion App 属于
-规划中的 v1.3。
+`wear/` 已包含 WearAppActivity、WearAppStore、WearGalleryTileService、DoseTileService 和
+WearComplicationDataSource。三个新 Tile 与三个 Short Text provider 共享派生状态与刷新协调，
+旧 Tile 组件身份保留。Phone Room 仍为权威来源，确认/撤销/跳过由 Phone 校验处理。
 
 ## 维护边界
 

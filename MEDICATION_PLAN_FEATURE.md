@@ -5,6 +5,8 @@ Phone Widget 的关系。Room v3 的表结构和迁移细节以
 [产品概览](docs/evolune/PRODUCT_OVERVIEW.md) 与 schema 导出为准；本文不改变
 数据库协议。
 
+文档核对：2026-09-12，适用 v1.6.0；核心 slots/时间语义延续 v1.0，匹配包含 v1.2.2 后的安全回退。
+
 ## MedicationPlan aggregate
 
 `MedicationPlan` 是一个完整的领域 aggregate，包含名称、药物/酯类、给药途径、
@@ -53,8 +55,10 @@ Occurrence 是一个具体计划、槽位和日期的逻辑发生项，包含：
 
 同一计划的多个每日时间因此成为多个独立 occurrence，而不是一个合并按钮。时间轴
 按实际 scheduled time 排序，并保留相同时间的全部 occurrence。记录匹配优先使用
-精确 `slotId + localDate`；旧的 null-slot 事件只在候选唯一且时间落在包含端点的 ±1
-小时窗口内时回退匹配，零个或多个候选都保持未匹配。
+精确 `slotId + localDate`，再处理只有 slot 的历史窗口匹配、null-slot 的包含端点 ±1 小时
+窗口匹配。v1.2.2 还允许没有任何原窗口候选证据的未消费 null-slot 事件使用唯一的延迟同日
+候选；窗口竞争失败的事件不能被回收去完成另一项。候选歧义保持未匹配，匹配一对一且
+确定性，不能简单扩大时间窗。实现见 experience-core 的 MedicationTimeline.kt。
 
 ## Editor save/update behavior
 
@@ -69,13 +73,20 @@ Occurrence 是一个具体计划、槽位和日期的逻辑发生项，包含：
 通知入口。通知确认最终写入同一个 `DoseEventRepository`；提醒不是另一份用药事实。
 计划禁用或修改后，旧提醒会被取消/重排。
 
+v1.6 Wear“跳过本次”由 Phone 验证 plan/slot/scheduledAt 等身份后在 ReminderSkipStore
+保存精确提醒抑制，并在调度和 receiver 投递时过滤。不生成 DoseEvent，不等同记录完成；
+旧无 slotId 闹钟的兼容性按最终发布修复记录保留。
+
 ## Widget relationship
 
 Phone Widget 通过 `WidgetSnapshotLoader` 从权威计划和 DoseEvent Repository 构建
-occurrence-driven 展示。一个计划的多个时间槽对应多个独立行；2×2 是完整日常规格，
+occurrence-driven 展示。今日计划中的多个时间槽对应多个独立行；其紧凑布局沿用日常规格，
 更大尺寸显示更多行，容量不足时使用 RemoteViews collection 纵向滚动。勾选动作携带
 `planId`、`slotId`、`scheduledLocalDate` 和 `occurrenceId`，记录实际点击时间，先持久化
 再刷新 Widget，并以 occurrence 身份保证重复点击和多个 Widget 实例的幂等性。
+
+Phone 仅在 AVAILABLE 时提供确认，点击时仍重新校验 availability、当前本地日期和方案身份。
+Wear App/新 Tile 延续 UPCOMING/DUE 的版本化确认规则，两者不是同一按钮可用性契约。
 
 Widget 只是展示和动作入口，Phone Room/domain/repository 仍是唯一事实来源。配置、
 缓存或 RemoteViews 状态都不能独立创建或修改用药事件。
