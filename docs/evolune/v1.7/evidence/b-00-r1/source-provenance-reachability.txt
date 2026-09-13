@@ -1,0 +1,77 @@
+# B-00-R1 production writer audit — raw evidence for the source x provenance reachability matrix
+# base HEAD: 9fd41a01a6744e32dd1dcf884cba4bdbbbeef6f7
+# purpose: prove, from code, which persisted column combinations each writer can produce
+
+## Writer 1/8: DoseEventEditSessionFactory.createNew (MANUAL)
+2:        val occurredAt = Instant.ofEpochMilli(clock.millis())
+3:        val zoneId = zoneIdSupplier()
+9:                occurredAt = occurredAt,
+10:                zoneId = zoneId,
+11:                localDate = occurredAt.atZone(zoneId).toLocalDate(),
+15:                slotId = null,
+16:                source = DoseEventSource.MANUAL,
+20:            editZoneId = zoneId
+
+## Writer 2/8: DoseEventEditSessionFactory.createQuickEvent (MANUAL)
+2:        val zoneId = zoneIdSupplier()
+3:        val occurredAt = Instant.ofEpochMilli(
+9:            occurredAt = occurredAt,
+10:            zoneId = zoneId,
+11:            localDate = occurredAt.atZone(zoneId).toLocalDate(),
+15:            slotId = null,
+16:            source = DoseEventSource.MANUAL,
+
+## Writer 3/8: ReminderDoseFactory.createReminderDoseEvent (REMINDER)
+5:    zoneId: ZoneId
+9:    require(targetOccurrence.zoneId == zoneId)
+11:    val occurredAt = Instant.ofEpochMilli(recordedAtMillis)
+15:        occurredAt = occurredAt,
+16:        zoneId = zoneId,
+17:        localDate = targetOccurrence.scheduledLocalDateTime.toLocalDate(),
+21:        slotId = targetOccurrence.slotId,
+22:        source = DoseEventSource.REMINDER,
+
+## Writer 4/8: WearAppConfirmationHandler.createConfirmationEvent (WEAR - App confirmation)
+5:        occurredAt: Instant,
+6:        zoneId: ZoneId
+  protocol: WearAppConfirmCommand.slotId / localDate are NON-NULL and validated:
+35:    val slotId: UUID,
+36:    val localDate: LocalDate,
+53:        require(command.slotId.isNonZero())
+
+## Writer 5/8: WearDoseActionHandler.createWearDoseEvent (WEAR - legacy Tile)
+5:    zoneId: ZoneId
+
+## Writer 6/8: createWidgetDoseEvent (WIDGET)
+5:    zoneId: ZoneId,
+6:    slotId: UUID
+9:    val occurredAt = Instant.ofEpochMilli(recordedAtMillis)
+13:        occurredAt = occurredAt,
+14:        zoneId = zoneId,
+15:        localDate = occurredAt.atZone(zoneId).toLocalDate(),
+19:        slotId = slotId,
+20:        source = DoseEventSource.WIDGET,
+
+## Writer 7/8: MahiroV1DomainAdapter (JSON_V1 import)
+38:                zoneId = null,
+39:                localDate = null,
+43:                slotId = null,
+44:                source = DoseEventSource.JSON_V1,
+
+## Writer 8/8: DoseEventEntityMapper legacy row (LEGACY)
+42:                zoneId = null,
+43:                localDate = null,
+47:                slotId = null,
+48:                source = DoseEventSource.LEGACY,
+
+## Update path: DoseEventEditor UPDATE preserves the original slotId (original.copy)
+50:                slotId = null,
+79:            slotId = null,
+154:    val event = session.original.copy(
+
+## Matcher phase guards that decide reachability
+-- phase 3 (NULL_SLOT_TIME_WINDOW) requires only slotId == null:
+93:            .filter { it.slotId == null && it.eventId !in consumedEvents }
+102:            .filter { it.slotId == null && it.eventId !in consumedEvents }
+-- phase 4 (NULL_SLOT_SAME_DAY) requires slotId == null AND localDate != null:
+197:        if (event.slotId != null || event.localDate == null) return null

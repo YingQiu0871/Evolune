@@ -1,0 +1,39 @@
+# B-00-R1 source audit addendum (P3-21) — read-only, reproducible
+# base HEAD: 9fd41a01a6744e32dd1dcf884cba4bdbbbeef6f7
+
+## 1. MatchedHistoricalOccurrence.crossesLocalDateBoundary is present on the frozen type
+80:    val crossesLocalDateBoundary: Boolean,
+251:                crossesLocalDateBoundary = eventLocalDate != occurrenceDate,
+
+## 2. How it is computed (domain)
+            val eventLocalDate = match.event.localDate
+                ?: match.event.occurredAt.atZone(displayZone).toLocalDate()
+            entries += MatchedHistoricalOccurrence(
+                occurrence = item.occurrence,
+                event = match.event,
+                matchProvenance = match.provenance,
+                status = item.status,
+                actionAvailability = item.actionAvailability,
+                crossesLocalDateBoundary = eventLocalDate != occurrenceDate,
+                displayDate = occurrenceDate,
+                displayDateProvenance = HistoricalDisplayDateProvenance.INTENDED_LOCAL_DATE
+
+## 3. It is a presentation/context field, NOT a formatting or eligibility input
+-- A-03-UI-R1 froze actual-timestamp formatting on the rendered local date instead:
+65:    fun actualTimestampPresentation(
+66-        occurredAt: Instant,
+67-        persistedZoneId: ZoneId?,
+68-        displayZone: ZoneId,
+69-        entryDisplayDate: LocalDate
+70-    ): HistoryActualTimeUiModel {
+71-        val renderedZone = persistedZoneId ?: displayZone
+72-        return HistoryActualTimeUiModel(
+73-            instant = occurredAt,
+-- source guard asserting no formatting decision uses it:
+144:        assertFalse(presentation.contains("needsFullDate = entry.crossesLocalDateBoundary"))
+
+## 4. Consequences frozen in V17_B_00_INSIGHTS_SEMANTICS.md
+- crossesLocalDateBoundary does NOT change B-00 eligibility (it is not an eligibility input).
+- crossesLocalDateBoundary can NOT be used to claim historical schedule authenticity.
+- crossesLocalDateBoundary is NOT an input to any Insights metric; Insights reads entry classes,
+  match provenance, displayDate and displayDateProvenance only.

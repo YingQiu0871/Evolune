@@ -1,0 +1,11 @@
+# B-00-R1 range preset verification (computed with datetime, not transcribed)
+# today = 2026-09-13
+Last 7 days  startDate=2026-09-07 endDate=2026-09-13 -> 7 LocalDate(s) inclusive
+Last 30 days startDate=2026-08-15 endDate=2026-09-13 -> 30 LocalDate(s) inclusive
+Last 90 days startDate=2026-06-16 endDate=2026-09-13 -> 90 LocalDate(s) inclusive
+Current month startDate=2026-09-01 endDate=2026-09-13 -> 13 LocalDate(s) inclusive
+
+Custom range checks (start <= end <= today, both inclusive):
+  2026-09-01..2026-09-10   start<=end: True  end<=today: True  -> VALID
+  2026-09-10..2026-09-01   start<=end: False end<=today: True  -> REJECTED
+  2026-09-01..2026-09-14   start<=end: True  end<=today: False -> REJECTED
