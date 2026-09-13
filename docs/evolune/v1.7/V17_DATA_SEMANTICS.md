@@ -279,7 +279,16 @@
 5. 提醒的"跳过"键含绝对 `scheduledAtMillis`（`ReminderSkipStore.kt:40-41`），
    时区改变后新算出的时刻与旧键不等 → 旧跳过记录失效。
 
-> `SEMANTICS UNRESOLVED`：改时区后"历史展示日期应固定为记录时区，还是跟随当前时区"没有既有定义（规格 §9 要求 v1.7 给出决策，属**待决策**而非既有语义）。
+> **Decision G 适用（已裁决，原 `SEMANTICS UNRESOLVED` #3 关闭）**：历史展示日期按**三类归因**处理，且必须携带 provenance：
+>
+> | 情形 | 展示日期（History occurrence/display date） | provenance |
+> |---|---|---|
+> | Bound / attributable（event 能可靠绑定 occurrence） | occurrence 的 **intended local date** | `INTENDED_LOCAL_DATE` |
+> | Event 自身已持久化 `localDate` / `zoneId` | **保留 persisted semantics**（记录当时的墙上日期与规则 ID） | `PERSISTED_RECORDING_DATE` |
+> | **True legacy orphan**（无 `localDate`、无 `zoneId`、无可靠 binding） | 只能由 `event instant` + **当前展示时区**推导 | `CURRENT_DISPLAY_TIMEZONE_DERIVED`（低置信） |
+>
+> 对 true legacy orphan：**不得**声称该日期是原始当地日期；这类数据**不得**作为高置信 historical adherence 输入。
+> 任何情形下都**不修改** `occurredAt`（绝对 instant 保持不变）。
 
 ---
 
@@ -347,12 +356,12 @@
 | 5 | "未记录"与"已跳过（skip）"在 History 中是否应区分 | skip 只存在于 48 小时过期的 SharedPreferences，不是权威事实、不进备份 | Insights 的 `Uncompleted` 指标定义（规格 §3 禁止自创 `missed` 语义） |
 | 6 | 跨午夜 Widget 点击被拒（`WidgetWork.kt:244`）后用户应看到什么 | 只有 `Invalid` 代码路径，无产品定义、无测试 | 规格 §8 "Cross-midnight occurrence" 验收 |
 
-**Phase-0 Correction 状态更新（2026-09-13）**：#1 由 **Decision A** 关闭，#2 由 **Decision D** 关闭，
-#4 由 **Decision B** 关闭（呈现要求已定；孤儿事件的计划归属仍不可恢复，属数据事实），
-#5 由 **Decision C** 关闭，#6 仍待产品定义（Widget 拒绝路径的用户反馈），
-#3（legacy 改时区后的归日）仍需决策——**该信息在数据中不存在**，任何实现都只能是约定而非恢复。
+**状态更新**：Phase-0 Correction（2026-09-13）关闭 #1（Decision A）、#2（Decision D）、#4（Decision B）、#5（Decision C）；
+v1.7-A gate（2026-09-13）关闭 **#3（Decision G）** 与 **#6（Decision H）**。
 
-剩余未决：#3、#6。其余原未决项已转为"已裁决 + 需在 v1.7 落实/测试"。
+**剩余未决：无。** 全部六项均已有裁决，转入"需在 v1.7 落实 + 测试"状态。
+特别说明 #3：信息在数据中**不存在**（true legacy orphan 无 zoneId/localDate），因此 Decision G 的解法是
+**约定 + provenance**（`CURRENT_DISPLAY_TIMEZONE_DERIVED`），而非"恢复原始日期"；实现不得把它当作原始当地日期使用。
 
 原六项按规格 §2.2 与开发计划 §12 属于**停止条件**范畴：在 v1.7 相关阶段实现前需由架构/产品门给出决策，
 不得由开发代理自行补定义。

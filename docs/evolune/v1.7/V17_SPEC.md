@@ -1,6 +1,6 @@
 # Evolune v1.7 — History & Insights（V17_SPEC）
 
-> 状态：`BASELINE FROZEN` + `PHASE-0 CORRECTION APPLIED`（2026-09-13）
+> 状态：`BASELINE FROZEN` + `PHASE-0 CORRECTION APPLIED` + `V1.7-A GATE DECISIONS（G/H）`（2026-09-13）
 > **Product/code baseline**：`main` @ `72a468c`（与 `origin/main` 同指）；封版稳定版 `v1.6.0`
 > **Phase-0 freeze documentation commit**：本目录 `docs/evolune/v1.7/*` 的 docs-only commit（**不是**产品实现基线；SHA 见 Phase-0 correction report）
 > 说明：以下正文为版本负责人提供的规格原文，逐字保留（含其原始 `Status` 行），未作语义改写；
@@ -561,3 +561,77 @@ v1.7 将这种情况定义为：
 | §12 Invariant 4（Ambiguity stays ambiguous） | 按 Decision F：由 provenance 承载歧义，而不是靠隐藏匹配 |
 
 END OF PHASE-0 GATE DECISIONS
+
+---
+
+# v1.7-A Gate Decisions（架构/产品门裁决，2026-09-13）
+
+> 以下裁决在 v1.7-A 进入实现时作出，关闭 Phase-0 遗留的两项 `SEMANTICS UNRESOLVED`。
+> 原文写入，含义未作改动；与本文正文冲突时以本节为准。
+
+## Decision G — legacy timezone attribution
+
+对历史 event：
+
+**Bound / attributable**
+
+如果 event 能可靠绑定 occurrence，History 的 occurrence date 使用：
+
+`intended local date`
+
+如果 event 自身已经持久化：
+
+`localDate`
+
+`zoneId`
+
+则保留这些 persisted semantics。
+
+**True legacy orphan**
+
+如果 event：
+
+无 `localDate`
+无 `zoneId`
+无可靠 occurrence binding
+
+则无法恢复 original local calendar date。
+
+History 只能根据：
+
+`event instant` + `current display timezone`
+
+得到展示日期。
+
+必须携带 provenance：
+
+`display date derived from current timezone`
+
+或等价 domain flag。
+
+不得声称它是原始当地日期。
+
+这类数据不得作为高置信 historical adherence 输入。
+
+## Decision H — Widget rejected action feedback
+
+跨午夜 / stale occurrence / invalid occurrence 等 Widget action 被 authoritative validation 拒绝时：
+
+* 不写入错误 completion
+* refresh authoritative widget state
+* 不得显示/保持 completed 假象
+* 后续必须提供明确 user-visible rejection feedback
+
+具体 Toast / notification / transient widget feedback 机制**不在 A-01 实现**。
+
+将其列为后续 **Widget UX acceptance item**。
+
+## 受影响的规格条款（本文件内的处理）
+
+| 规格位置 | 处理 |
+|---|---|
+| §8 `Widget action` 行 | 按 Decision H：拒绝路径不得留下 completed 假象，且已登记为后续 Widget UX acceptance item |
+| §9 Time Semantics（historical display date） | 按 Decision G：三类归因（bound → intended local date；persisted context → 保留 persisted；true legacy orphan → current timezone derived + 低置信 provenance） |
+| §13 Release Acceptance #7（legacy/null-slot 行为保留或显式迁移） | 按 Decision G：legacy orphan 不伪造原始日期，只提供带 provenance 的展示日期 |
+
+END OF V1.7-A GATE DECISIONS

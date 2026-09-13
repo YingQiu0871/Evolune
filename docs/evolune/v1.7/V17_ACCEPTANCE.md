@@ -59,6 +59,13 @@
 | B6 | 分母/分子在有 legacy、孤儿、歧义、手动事件时一致 | 构造数据集逐项断言 |
 | B7 | fresh 验证 + 独立复审 | 同 G4/G5 |
 
+### 2.1 Widget UX acceptance item（Decision H，非 A-01 范围）
+
+| # | 要求 | 判定 |
+|---|---|---|
+| W-DH-1 | Widget action 被 authoritative validation 拒绝（跨午夜 / stale occurrence / invalid occurrence）时：不写入错误 completion、刷新权威 widget 状态、不得显示或保留 completed 假象 | 拒绝路径测试 + widget 状态断言 |
+| W-DH-2 | 必须提供明确 user-visible rejection feedback（Toast / notification / 瞬时 widget 反馈任选其一，机制由后续阶段决定） | 文案与交互审查；**机制不在 A-01 实现** |
+
 门禁：`APPROVE V1.7-B CANDIDATE IMPLEMENTATION`
 
 ---
@@ -85,12 +92,13 @@
 
 | # | 用例 | 期望 |
 |---|---|---|
-| T1 | Europe/Paris 记录 → Asia/Shanghai 读取 | 事件绝对时刻不变；展示日期规则符合已批准决策；匹配不受影响或降级行为已定义 |
+| T1 | Europe/Paris 记录 → Asia/Shanghai 读取 | 事件绝对时刻**不变**；展示日期按 **Decision G 三类归因**（bound → intended local date；persisted context → 保留 persisted；true legacy orphan → current display timezone 推导）并携带对应 provenance；legacy orphan 不得声称是原始当地日期、不得作为高置信 adherence 输入 |
 | T2 | 时区 A 记录 → 时区 B 确认/撤销（Wear/Widget 路径） | 行为已定义（成功或明确拒绝），不得静默错记 |
 | T3 | DST 前进（Europe/Paris 2026-03-29 02:30 不存在） | occurrence 生成规则与既有测试一致；展示的"计划时间"取值有明确定义 |
 | T4 | DST 后退（Europe/Paris 2026-10-25 02:30 重复） | 不产生重复 occurrence；对较晚偏移的记录行为已定义 |
 | T5 | 跨午夜计划（23:30）与次日记录（00:20） | 归属与展示符合已批准决策；Widget 拒绝路径的用户反馈已定义（**仍为未决项**，见语义文档 §13 #6） |
 | T6 | DST overlap 日"第二个 02:30"的真实 intake | **Decision E**：保持现有 earlier-offset materialization；文档公开"+1h instant difference"限制；UI 不得把它呈现为无异常的准时记录 |
+| T7 | **Decision G**：display-date provenance 必须可被断言 | 三类 provenance 各有确定性用例；true legacy orphan 用例必须证明来源是 `event instant + current display zone`，且不被当作原始日期 |
 
 上述 T1–T5 必须在 **v1.7 release 之前**具备确定性覆盖（规格 §9 明示 "DST tests are mandatory"）。
 

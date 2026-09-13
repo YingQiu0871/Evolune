@@ -24,7 +24,11 @@
 | 版本校验任务 | `:validateEvoluneIdentityAndVersioning` 存在并通过 | `jvm-baseline-fresh.log:11` |
 | 仓库规模 | 662 个 tracked 文件 | `git ls-files \| wc -l` |
 
-### 1.1 工作树状态（**不是** clean working tree）
+### 1.1 工作树状态（**legacy primary checkout 不是** clean working tree）
+
+> 适用范围说明：本节与 §9 的全部 dirty/hygiene 计量，**只描述 legacy primary checkout**
+> `D:\Evolune-Workspace\current\Evolune-v1.2`（保留 954 个 v1.6 untracked 证据与 `.idea/*` 本地修改）。
+> v1.7 的活跃开发 worktree `D:\Evolune-Workspace\worktrees\Evolune-v1.7`（branch `v1.7-development`）**是 clean 的**。
 
 > 计量命令（Phase-0 correction 重新测量，精确清单与哈希见 [V17_BASELINE_EVIDENCE.md](V17_BASELINE_EVIDENCE.md)）：
 > `git status --porcelain`、`git status --porcelain --ignored`、`git ls-files --others --exclude-standard`、`stat -c %s`。
@@ -35,7 +39,7 @@
 | 未跟踪实际文件数 | **1028** | `git ls-files --others --exclude-standard \| wc -l` |
 | porcelain 忽略条目 | **37** | `git status --porcelain --ignored`，`!!` 行 |
 | tracked 修改 | **6** | 全部是 `.idea/*`（`.name`、`compiler.xml`、`deploymentTargetSelector.xml`、`gradle.xml`、`misc.xml`、`vcs.xml`）；`.idea` 已在 `.gitignore`，但这些文件历史上已被跟踪 |
-| 其中：v1.6 原始证据 | **954 文件 / 144,179,811 B（137.50 MiB）** | PNG 521、XML 282、LOG 144、TXT 7（`docs/evolune/v1.6/**`，未跟踪且未被忽略） |
+| 其中：v1.6 原始证据 | **954 文件 / 144,253,218 B（137.570589 MiB）** | PNG 521、XML 282、LOG 144、TXT 7（`docs/evolune/v1.6/**`，未跟踪且未被忽略） |
 | 其中：`release-artifacts/` | 未跟踪未忽略 **51 文件 / 1,413,018 B**；磁盘总计 **72 文件 / 86,120,966 B（82.13 MiB）** | 含 21 个被 `*.apk` 忽略的 APK |
 | 其中：`.kotlin/` | 17 文件 / 79,514 B | Kotlin 构建会话目录 |
 | 其中：`.tmp-app-tasks.txt` | 1 文件 / 1,989 B | 临时文件 |
@@ -43,13 +47,16 @@
 | tracked `.apk` | 0 | 仓内无 APK（仅在磁盘与 GitHub Release） |
 
 > 与 High 复审计量的差异（如实记录，不机械复制）：
-> High 报 `137.57 MiB`、`tracked docs .md = 109`；本次重新测量为 **137.50 MiB**（144,179,811 B / 1,048,576）
-> 与 **106**（`docs/**/*.md`）。其余项（958 / 1028 / 954 / 521 PNG / 282 XML / 144 LOG / 7 TXT / 51 / 1.35 MiB /
-> 72 / 82.1 MiB / 17 / 79,514 B / 37 / tracked APK 0）与 High 一致。差异原因未逐字节追查，可能是 MiB 取整口径与
-> `.md` 统计范围不同；两套数字均在此列明，供复审独立判断。
+> **计量修正（v1.7-A gate cleanup）**：本文早前记录的 v1.6 证据字节数（与一个偏低的 MiB 取整值）是**错误测量**——
+> 统计脚本未正确处理文件名含双引号的 4 个文件，导致少算 73,407 B 与 4 个 PNG。
+> 使用 `git ls-files -z --others --exclude-standard` + `stat -c %s` 重新测量得到
+> **954 文件 / 144,253,218 B / 137.570589 MiB**（PNG 521、XML 282、LOG 144、TXT 7），与独立复审计量一致。
+> `tracked docs *.md` 仍按本仓命令口径记为 **106**（`git ls-files 'docs/**/*.md'`）；其余项
+> （958 porcelain 未跟踪条目 / 1028 未跟踪文件 / 51 release-artifacts 未跟踪文件 / 37 ignored / tracked APK 0）与复审一致。
 
 > 规格/计划要求"clean final worktree or explicitly documented generated artifacts"。
-> 本阶段**如实记录为 dirty**，并见 §9 的仓库卫生审计与最小提案（本轮不删除、不改 `.gitignore`）。
+> **legacy primary checkout** 如实记录为 dirty（见上述适用范围）；活跃 v1.7 worktree 为 clean。
+> 卫生审计与最小提案见 §9（本轮不删除、不改 `.gitignore`）。
 
 ### 1.2 v1.6 完成状态
 
@@ -377,7 +384,7 @@ Room database v3，**只有三张表**（无曲线表、无缓存表、无审计
 
 | 桶 | 未跟踪文件 | 体积 | 路径模式 | `.gitignore` 是否覆盖 | 同类 tracked 证据是否存在 |
 |---|---:|---:|---|---|---|
-| v1.6 原始证据 | **954** | **144,179,811 B（137.50 MiB）** | `docs/evolune/v1.6/V16_*.png` (**521**)、`*.xml` (282)、`*.log` (144)、`*.txt` (7) | 否（`.apk` 除外） | **是**：`docs/` 下已有 19 个 tracked PNG/XML/LOG，其中 **16 个在 v1.6 目录**（12 PNG + 4 LOG），另有 106 个 tracked `docs/**/*.md` |
+| v1.6 原始证据 | **954** | **144,253,218 B（137.570589 MiB）** | `docs/evolune/v1.6/V16_*.png` (**521**)、`*.xml` (282)、`*.log` (144)、`*.txt` (7) | 否（`.apk` 除外） | **是**：`docs/` 下已有 19 个 tracked PNG/XML/LOG，其中 **16 个在 v1.6 目录**（12 PNG + 4 LOG），另有 106 个 tracked `docs/**/*.md` |
 | Release 产物 | 磁盘 **72** 文件 / **86,120,966 B（82.13 MiB）**；其中未跟踪未忽略 **51** 文件 / **1,413,018 B** | 见左 | `release-artifacts/v1.6.0{,-final,-rc}/**`：21 APK（被 `*.apk` 忽略）、26 log、22 txt、1 md/xml/png | 部分（仅 APK） | 否（仓内 tracked APK = 0） |
 | Kotlin 会话目录 | 17 | 140 KB | `.kotlin/**` | 否 | 否 |
 | 临时任务文件 | 1 | 1.9 KB | `.tmp-app-tasks.txt` | 否 | 否 |
@@ -409,7 +416,7 @@ Room database v3，**只有三张表**（无曲线表、无缓存表、无审计
 |---|---|---|---|
 | H1 | `.gitignore` 增加 `.kotlin/` 与 `.tmp-app-tasks.txt` | 纯构建/临时产物，永不需要入库，改动最小、零风险 | 否（低风险） |
 | H2 | `release-artifacts/` 只**入库文本记录**（`SHA256SUMS.txt`、`SIGNING-CERTS.txt`、`BUILD-IDENTITY.txt`、`RELEASE_NOTES.md`），忽略 `release-artifacts/**/*.log`；APK 维持现有 `*.apk` 忽略 | 保留可审计的哈希/证书记录，不把 82.13 MiB 二进制与可重建日志带进仓库 | 是（是否接受"APK 仅在 GitHub Release"） |
-| H3 | `docs/evolune/v1.6/` 的 954 个原始证据**打包为单个归档**（例如 `docs/evolune/v1.6/evidence-archive/…zip`，或移出仓库到 `D:\Evolune-Workspace\archive\v1.6-raw-evidence\`），仓库只保留 tracked 的 `.md` 索引 | 一次性解决 137.50 MiB 噪声，同时保留可追溯性（文件名与字节不变） | 是（归档位置与是否入库归档） |
+| H3 | `docs/evolune/v1.6/` 的 954 个原始证据**打包为单个归档**（例如 `docs/evolune/v1.6/evidence-archive/…zip`，或移出仓库到 `D:\Evolune-Workspace\archive\v1.6-raw-evidence\`），仓库只保留 tracked 的 `.md` 索引 | 一次性解决 137.570589 MiB 噪声，同时保留可追溯性（文件名与字节不变） | 是（归档位置与是否入库归档） |
 | H4 | `git rm --cached` 取消跟踪 `.idea/*` 6 个文件（保留本地文件） | 停止 IDE 噪声污染 `git status` | 是（会出现在下一次提交里） |
 | H5 | 明确 `docs/evolune/v1.6/*.apk`（7 个）与 `release-artifacts/` 的关系，二选一保留 | 去除疑似重复的候选包 | 是 |
 
@@ -450,12 +457,13 @@ Room database v3，**只有三张表**（无曲线表、无缓存表、无审计
 `app/build/outputs/androidTest-results/connected/debug/TEST-Pixel_7(AVD) - 15-_app-.xml`，
 `tests="208" failures="0" errors="0" skipped="5"`；SHA-256 见证据文档）：
 
-| tests | failures | errors | skipped | time |
-|---:|---:|---:|---:|---:|
-| 208 | 0 | 0 | 5 | 242.8s |
+| tests (total cases) | failures | errors | skipped | passed | time |
+|---:|---:|---:|---:|---:|---:|
+| 208 | 0 | 0 | 5 | **203** | 242.8s |
 
-> UTP 控制台另打印 `Finished 213 tests`（run 1 为 `Starting 0 tests`）。**该 213 与 JUnit XML 的 208 之差不是 retry 证据**，
-> 本次纠正撤回此前"UTP 计数含重试"的表述。权威计数以 JUnit XML 为准。
+> UTP 控制台打印的用例计数**高于** JUnit XML 汇总（run 1 为 `Starting 0 tests`）。该差异**不是 retry 证据**，原因未定；
+> 本次纠正撤回此前「UTP 计数含重试」的表述，并且**不引用该控制台计数**。权威计数一律以 JUnit XML 为准：
+> **total test cases = 208 / skipped = 5 / passed = 203**（passed = tests − skipped）。
 
 5 个跳过用例（均为既有 assumption/fixture 依赖，非失败）：
 
@@ -529,12 +537,12 @@ UTP 控制台另打印 `Finished 6 tests`，**该差异不作为 retry 证据**�
 **`V17 BASELINE FROZEN` + `PHASE-0 CORRECTION APPLIED`** —— 满足以下全部条件：
 
 1. 基线与版本身份确定（`main` @ `72a468c`，`v1.6.0` 封版）。
-2. 权威用药事实模型已由源码与 schema 证实（§2）：单表、单写入通道、无第二份事实。
+2. 权威用药事实模型已由源码与 schema 证实（§2）：**单一权威 Room DB/表**（`dose_events`）；常规记录路径（提醒 / Widget / Wear / 手动 UI）**大体**经 repository 汇合（其中确认类动作再经 `RecordDoseEventEngine`）；**backup restore 存在直接 DAO bypass**；**Mahiro JSON v1 导入经 repository**。因此**不得**把它表述为「所有 mutation 必经同一函数」。
 3. occurrence 身份与四阶段匹配策略已完整记录（§2.2、§2.3、数据语义文档）。
 4. 手工事件、undo、幂等、legacy/null-slot、时区与 DST 均有源码级结论，未决项已显式标记 `SEMANTICS UNRESOLVED`（6 项）。
 5. PK 输入管线与回顾性缺口已记录（§4）：**引擎具备、入口与取数缺失**。
 6. 与规格的冲突与缺口已分级（§6 P0 无 / P1 六项 / P2 六项 / P3 若干）。
-7. 仓库状态如实记录为 dirty，卫生审计与最小提案已给出且**未执行**（§9）。**工作树未达到 clean 状态，属基线已知条件。**
+7. **legacy primary checkout**（`current/Evolune-v1.2`）如实记录为 dirty；**活跃 v1.7 worktree**（`worktrees/Evolune-v1.7`）为 clean。卫生审计与最小提案已给出且**未执行**（§9）。
 8. fresh JVM 基线 863/863 通过（来源 = JUnit XML，见 [V17_BASELINE_EVIDENCE.md](V17_BASELINE_EVIDENCE.md)）；
    app instrumentation 208 executed / 5 skipped、wear instrumentation 5 executed / 1 skipped 见 §10。
 9. Phase-0 correction（独立复审 `REQUEST_CHANGES` 后）已完成：Decision A–F 写入规格/语义/验收/计划，

@@ -71,7 +71,10 @@ grep -h -o 'tests="[0-9]*" skipped="[0-9]*" failures="[0-9]*" errors="[0-9]*"' <
 
 **明确声明**：
 - 原始日志 `logs/jvm-baseline-fresh.log` **不包含** test counts，它只证明**命令、任务执行与构建结果**（`BUILD SUCCESSFUL in 1m 34s`、`55 actionable tasks: 55 executed`）。
-- UTP 控制台曾打印 Phone `Finished 213 tests`、Wear `Finished 6 tests`；**该差异不是 retry 证据**，本清单以 JUnit XML 为准（208 / 5）。
+- JUnit XML 的语义：`tests` = **total test cases**，`skipped` = **skipped**，因此 **passed = tests − skipped**。
+  Phone instrumentation：**total test cases = 208 / skipped = 5 / passed = 203**；Wear instrumentation：**total = 5 / skipped = 1 / passed = 4**。
+  不得把 `tests` 与 `skipped` 相加，也不得把两者写成组合计数。
+- UTP 控制台打印的用例计数**高于** JUnit XML 汇总值；该差异**不是** retry 证据，原因未定，**不作为计数依据**。本清单一律以 JUnit XML 为准。
 - Phone run 1 的 UTP 输出为 `Starting 0 tests` / `Finished 0 tests`（安装阶段失败，见 §10）。
 
 ## 5. 原始产物路径与 SHA-256
@@ -242,7 +245,7 @@ git ls-files --eol docs/evolune/v1.7/evidence
 3. **Wear instrumentation**：启动 `Wear_OS_Large_Round` AVD（API 37）→ `./gradlew :wear:connectedDebugAndroidTest --no-daemon --console=plain`
    → 计数从 `wear/build/outputs/androidTest-results/connected/debug/*.xml` 读取。
 4. **证据固化**：把原始日志与上述 XML **按字节复制**到新目录，重新生成 manifest（§6 命令），并记录 manifest 自身 SHA-256。
-5. **对照**：本清单的 863 / 208+5 / 5+1 应可逐项复现；若被改动，应作为新的基线记录，而不是覆盖本文件。
+5. **对照**：本清单的 JVM 863、Phone instrumentation（total 208 / skipped 5 / passed 203）、Wear instrumentation（total 5 / skipped 1 / passed 4）应可逐项复现；若被改动，应作为新的基线记录，而不是覆盖本文件。
 
 ## 10. 已知限制（如实声明）
 
