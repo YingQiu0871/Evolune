@@ -1,0 +1,18 @@
+# B-02 range resolver golden output (computed, not transcribed)
+# today = 2026-09-13 ; both endpoints inclusive
+
+Last7Days      -> 2026-09-07 .. 2026-09-13  (7 LocalDates inclusive)
+Last30Days     -> 2026-08-15 .. 2026-09-13  (30 LocalDates inclusive)
+Last90Days     -> 2026-06-16 .. 2026-09-13  (90 LocalDates inclusive)
+CurrentMonth   -> 2026-09-01 .. 2026-09-13  (13 LocalDates inclusive)
+
+Custom checks (start <= end <= today):
+  2026-09-01..2026-09-10   -> VALID
+  2026-09-10..2026-09-01   -> INVALID (START_AFTER_END)
+  2026-09-01..2026-09-14   -> INVALID (END_IN_FUTURE)
+
+Cross-month rollover checks:
+  2026-03-01 Last7Days     -> 2026-02-23 .. 2026-03-01
+  2026-03-01 Last30Days    -> 2026-01-31 .. 2026-03-01
+  2026-03-01 Last90Days    -> 2025-12-02 .. 2026-03-01
+  2026-10-01 CurrentMonth  -> 2026-10-01 .. 2026-10-01

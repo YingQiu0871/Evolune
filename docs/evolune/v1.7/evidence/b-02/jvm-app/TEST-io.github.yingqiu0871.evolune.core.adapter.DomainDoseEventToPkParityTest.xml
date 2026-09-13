@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkParityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-13T23:45:58.533Z" hostname="人面不知何处去" time="0.01">
+  <properties/>
+  <testcase name="formal adapter preserves old structural and numerical PK parity" classname="io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkParityTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

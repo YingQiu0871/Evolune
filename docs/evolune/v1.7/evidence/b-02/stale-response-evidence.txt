@@ -1,0 +1,11 @@
+# B-02 stale-response evidence
+
+stale success cannot replace newer selection         -> PASS
+    assertions: fakes gate only the stale call, ignore cancellation, and the test
+    verifies the surviving state (selection + endpoints + phase), not just the selection
+stale failure cannot poison newer success            -> PASS
+    assertions: fakes gate only the stale call, ignore cancellation, and the test
+    verifies the surviving state (selection + endpoints + phase), not just the selection
+selection change supersedes in-flight load           -> PASS
+    assertions: fakes gate only the stale call, ignore cancellation, and the test
+    verifies the surviving state (selection + endpoints + phase), not just the selection

@@ -1,0 +1,151 @@
+# v1.7-B-02 incidental repair — instrumentation test isolation
+
+## Summary
+
+The full Phone instrumentation suite failed deterministically with three failures while this round
+was being verified. The failures were **not** caused by B-02 production code. They are a
+pre-existing test-isolation defect: one test class closes the production Room database without
+dropping the process-wide repository-provider handle to it, so every later test that uses
+`ProductionRepositoryProvider.get(...)` receives a *closed* database.
+
+The round fixes that defect (test code only) so the affected-surface verification can be executed on
+a green suite. No production file is touched by the repair.
+
+## Symptom
+
+```
+io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteDeviceTest
+  > readingHistoryNeverWritesToTheRealDatabase  FAILED
+    kotlinx.coroutines.JobCancellationException: Job was cancelled; job=SupervisorJobImpl{Cancelled}@...
+
+io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest
+  > returningToHistoryShowsAnIntakeRecordedWhileAway  FAILED
+  > switchingToHistoryAndStayingThereDoesNotDuplicateQueries  FAILED
+```
+
+Both classes are A-04 tests and are byte-identical to the A-04 closure commit in this round
+(`git diff 822de00..HEAD -- app/src/androidTest/.../HistoryRefreshDeviceTest.kt` is empty).
+
+## Evidence chain
+
+### 1. Room cancels its coroutine scope when a database is closed
+
+`androidx.room.RoomDatabase` (room-runtime 2.8.4) creates the scope and cancels it on close:
+
+```
+private kotlinx.coroutines.CoroutineScope coroutineScope;
+  140: invokestatic  SupervisorKt.SupervisorJob:(...)      // scope = CoroutineScope(SupervisorJob() + ...)
+public void close();
+   4: invokevirtual  CloseBarrier.close$room_runtime:()V
+private final void onClosed();
+  19: invokestatic  CoroutineScopeKt.cancel$default:(...)  // coroutineScope.cancel()
+```
+
+Any suspend DAO call made through a closed database therefore fails with the cancelled
+`SupervisorJob` as `JobCancellationException` instead of a storage error.
+
+### 2. The production database and provider already exist before the first test
+
+Temporary diagnostic probes were added to the instrumentation suite for one run (they only *read*
+static state; they were deleted again before the round was closed). Device logcat:
+
+```
+I B02DIAG : POINT=boot                  appDatabase=true  isOpen=true  job=SupervisorJobImpl{Active}@97b4b64  cancelled=false provider=true
+I B02DIAG : POINT=after-backup          appDatabase=true  isOpen=true  job=SupervisorJobImpl{Active}@97b4b64  cancelled=false provider=true
+I B02DIAG : POINT=after-data-toplevel   appDatabase=false isOpen=null  job=null                             cancelled=null  provider=true
+I B02DIAG : POINT=after-data-repository appDatabase=false isOpen=null  job=null                             cancelled=null  provider=true
+I B02DIAG : POINT=before-zerowrite      appDatabase=false isOpen=null  job=null                             cancelled=null  provider=true
+I B02DIAG : POINT=after-history         appDatabase=true  isOpen=false job=SupervisorJobImpl{Active}@a55fe3f  cancelled=false provider=true
+I B02DIAG : POINT=after-history realCallFailure=kotlinx.coroutines.JobCancellationException: Job was cancelled
+I B02DIAG : POINT=after-history trace=kotlinx.coroutines.JobCancellationException: Job was cancelled; job=SupervisorJobImpl{Cancelled}@97b4b64
+```
+
+`after-data-toplevel` is the smoking gun: `AppDatabaseMigrationMatrixTest` has already closed and
+nulled the database singleton (`appDatabase=false`), while the repository provider singleton still
+holds the closed database (`provider=true`). The last line shows the real call failing on the very
+same cancelled job `@97b4b64`.
+
+### 3. What creates the provider before the tests: a package-scoped BOOT_COMPLETED
+
+The app is freshly installed at the start of every UTP run, and Android delivers a package-scoped
+`BOOT_COMPLETED` to a newly installed app:
+
+```
+Historical Broadcast modern #10:
+  BroadcastRecord{35b874e android.intent.action.BOOT_COMPLETED/u0} to user 0
+  Intent { act=android.intent.action.BOOT_COMPLETED flg=0x9000030 pkg=io.github.yingqiu0871.evolune.debug (has extras) }
+  enqueueClockTime=2026-09-13 23:36:12.586
+  DELIVERED scheduled +3ms terminal +796ms (-1) #0: (manifest)
+    ActivityInfo: name=io.github.yingqiu0871.evolune.reminder.ReminderRescheduleReceiver
+                 packageName=io.github.yingqiu0871.evolune.debug
+```
+
+`ReminderRescheduleReceiver` accepts `BOOT_COMPLETED` and answers it with production work, which
+reaches the production database through `ProductionRepositoryProvider.get`. Temporary logging in
+`ProductionRepositoryProvider.get` / `AppDatabase.getDatabase` recorded the call site:
+
+```
+I B02DIAG : ProductionRepositoryProvider.get cached=false
+I B02DIAG : java.lang.Throwable: provider-get
+I B02DIAG :   at ProductionRepositoryProvider$Companion.get(ProductionRepositoryProvider.kt)
+I B02DIAG :   at ReminderRescheduleReceiver.productionWork(ReminderRescheduleReceiver.kt:44)
+I B02DIAG :   at ReminderRescheduleReceiver$onReceive$1.invokeSuspend(ReminderRescheduleReceiver.kt:36)
+I B02DIAG :   at ReceiverWorkLauncher$launch$1.invokeSuspend(ReceiverWorkLauncher.kt:24)
+I B02DIAG :   at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:707)
+I B02DIAG : AppDatabase.getDatabase cached=false
+I B02DIAG : java.lang.Throwable: db-get
+I B02DIAG :   at AppDatabase$Companion.getDatabase(AppDatabase.kt)
+I B02DIAG :   at ProductionRepositoryProvider$Companion.get(ProductionRepositoryProvider.kt)
+I B02DIAG :   at ReminderRescheduleReceiver.productionWork(ReminderRescheduleReceiver.kt:44)
+```
+
+So the receiver creates the database + provider on a background thread in the same process, roughly
+1.5 s after install and long before `AppDatabaseMigrationMatrixTest` runs.
+
+### 4. Why only these two classes failed
+
+`AppDatabaseMigrationMatrixTest` (`@Before`/`@After` of every one of its 22 methods) closes the
+production database and nulls `AppDatabase.INSTANCE` — but it did not clear
+`ProductionRepositoryProvider.instance`. Every later `ProductionRepositoryProvider.get(...)` call
+therefore returned the stale provider. Tests that assert real production data
+(`HistoryReadZeroWriteDeviceTest`, `HistoryRefreshDeviceTest`) failed; tests that only assert
+persisted UI state passed, because a failed read is reported as ViewModel error state.
+
+## Repair (test code only)
+
+`AppDatabaseMigrationMatrixTest.resetProductionDatabaseSingleton()` now drops **both** process-wide
+handles — it closes `AppDatabase.INSTANCE` exactly as before and additionally nulls
+`ProductionRepositoryProvider.instance`, with a KDoc explaining the broadcast path that can create
+the provider before the test runs.
+
+```
+private fun resetProductionDatabaseSingleton() {
+    val instanceField = AppDatabase::class.java.getDeclaredField("INSTANCE")
+    instanceField.isAccessible = true
+    (instanceField.get(null) as? AppDatabase)?.close()
+    instanceField.set(null, null)
+
+    val providerField = ProductionRepositoryProvider::class.java.getDeclaredField("instance")
+    providerField.isAccessible = true
+    providerField.set(null, null)
+}
+```
+
+## Result
+
+| run | command | tests | skipped | failures |
+|---|---|---:|---:|---:|
+| before repair (full Phone) | `:app:connectedDebugAndroidTest` | 247 | 5 | 3 |
+| after repair (full Phone) | `:app:connectedDebugAndroidTest` | 247 | 5 | 0 |
+
+Both before and after runs used the same emulator (Pixel_7 AVD, API 35), the same test order, and the
+same frozen set of earlier-round evidence.
+
+## Residual risk / follow-up
+
+- The production provider has no self-healing path: if anything ever closes the production database
+  while the process keeps running, `get()` keeps returning the closed handle. No production code path
+  closes it today (`RoomRestorePersistence` replaces rows inside a transaction instead of closing the
+  database), so this stays a test-hygiene property rather than a product defect.
+- The receiver-triggered creation is legitimate product behaviour (restoring reminder alarms after an
+  app update or install). Test suites that reset process-wide singletons must reset all of them.

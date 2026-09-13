@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-13T23:45:41.409Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="Tile layout and resource response share a stable version" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.002"/>
+  <testcase name="confirmation label follows pending and terminal result lifecycle" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.001"/>
+  <testcase name="today tile only exposes occurrences from snapshot today" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.0"/>
+  <testcase name="gallery panels use one moderate corner radius across tile kinds" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.0"/>
+  <testcase name="stale concentration is never presented as current" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.0"/>
+  <testcase name="gallery panels leave horizontal room inside a round viewport" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.0"/>
+  <testcase name="today tile exposes an explicit overflow label" classname="io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

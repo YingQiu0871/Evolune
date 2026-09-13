@@ -1,0 +1,8 @@
+# B-02 refresh / coalescing evidence
+
+coalesced pending refresh = 2 total reads      -> PASS
+foreground return = 1 read                     -> PASS
+Last7 day rollover                             -> PASS
+CurrentMonth month rollover                    -> PASS
+custom endpoints stay fixed                    -> PASS
+timezone change re-resolves today              -> PASS

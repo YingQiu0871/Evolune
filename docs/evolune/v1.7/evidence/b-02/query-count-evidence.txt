@@ -1,0 +1,12 @@
+# B-02 query-count evidence (asserted by the focused JVM tests below)
+# every claim is counted by the recording seam, not assumed
+
+initial load = exactly one read          -> PASS
+identical selection = 0 reads            -> PASS
+range change = 1 read                    -> PASS
+identical custom endpoints = 0 reads     -> PASS
+retry = 1 read                           -> PASS
+invalid custom = 0 reads                 -> PASS
+first surface entry = 0 reads            -> PASS
+tab return = 1 read per entry            -> PASS
+aggregate once per read                  -> PASS

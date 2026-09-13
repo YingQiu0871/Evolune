@@ -1,0 +1,3 @@
+# B-02 SavedState + lifecycle evidence (device, real ViewModelProvider/CreationExtras)
+# xml: evidence/b-02/targeted-android-xml/
+

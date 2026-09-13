@@ -1,0 +1,5 @@
+module	xml_files	tests	skipped	failures	errors	passed
+jvm-app	97	850	0	0	0	850
+jvm-experience-core	19	169	0	0	0	169
+jvm-wear	11	90	0	0	0	90
+TOTAL	127	1109	0	0	0	1109

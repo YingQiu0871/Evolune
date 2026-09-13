@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-13T23:45:38.504Z" hostname="人面不知何处去" time="0.013">
+  <properties/>
+  <testcase name="undo paths bind a canonical operation id" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.002"/>
+  <testcase name="malformed known utf8 and invalid identity values reject" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.005"/>
+  <testcase name="unknown fields are ignored and duplicate known fields reject" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.002"/>
+  <testcase name="command encoding remains stable for the golden fixture" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.001"/>
+  <testcase name="result types enforce exact payload meaning" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.001"/>
+  <testcase name="command and result round trip with independent codecs" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

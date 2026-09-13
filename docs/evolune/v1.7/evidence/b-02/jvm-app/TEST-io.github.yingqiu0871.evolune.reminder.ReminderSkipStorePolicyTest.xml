@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.reminder.ReminderSkipStorePolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T23:45:58.885Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="update keeps current occurrences and removes expired or malformed entries" classname="io.github.yingqiu0871.evolune.reminder.ReminderSkipStorePolicyTest" time="0.002"/>
+  <testcase name="updating the same occurrence is idempotent" classname="io.github.yingqiu0871.evolune.reminder.ReminderSkipStorePolicyTest" time="0.0"/>
+  <testcase name="skip key preserves exact plan slot and scheduled occurrence" classname="io.github.yingqiu0871.evolune.reminder.ReminderSkipStorePolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

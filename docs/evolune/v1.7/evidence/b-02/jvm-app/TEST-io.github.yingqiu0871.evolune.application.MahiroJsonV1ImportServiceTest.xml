@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-13T23:45:54.840Z" hostname="人面不知何处去" time="0.023">
+  <properties/>
+  <testcase name="valid event is inserted with protocol fields and locked metadata" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.01"/>
+  <testcase name="numeric id is invalid while missing blank and malformed strings use independent ids" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.003"/>
+  <testcase name="idempotent result does not prevent a later insert" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="mixed repository outcomes remain separately counted" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.002"/>
+  <testcase name="malformed document returns typed failure without repository calls" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="empty payload succeeds without repository calls" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="storage failure stops later entries with exact partial summary and source index" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="repository invalid result does not prevent a later insert" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="conflict does not prevent a later insert" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="repeated missing id payload creates independent identities" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="codec and adapter invalid entries are skipped before a later valid event" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.001"/>
+  <testcase name="repeated stable id payload consumes repository idempotency result" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

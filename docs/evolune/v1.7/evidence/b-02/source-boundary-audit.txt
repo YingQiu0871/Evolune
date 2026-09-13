@@ -1,0 +1,75 @@
+# B-02 Insights orchestration — source boundary audit (read-only, reproducible)
+# base HEAD: 822de0048eb2aa4da7fdd5d1db16e379b2a31074
+
+## production package inventory
+  InsightsRangeSelection.kt
+  InsightsSurfaceLifecycle.kt
+  InsightsUiState.kt
+  InsightsViewModel.kt
+
+## imports used by the package
+  import androidx.compose.runtime.Composable
+  import androidx.compose.runtime.DisposableEffect
+  import androidx.compose.runtime.LaunchedEffect
+  import androidx.compose.runtime.getValue
+  import androidx.compose.runtime.mutableStateOf
+  import androidx.compose.runtime.remember
+  import androidx.compose.runtime.setValue
+  import androidx.lifecycle.Lifecycle
+  import androidx.lifecycle.LifecycleEventObserver
+  import androidx.lifecycle.SavedStateHandle
+  import androidx.lifecycle.ViewModel
+  import androidx.lifecycle.ViewModelProvider
+  import androidx.lifecycle.compose.LocalLifecycleOwner
+  import androidx.lifecycle.createSavedStateHandle
+  import androidx.lifecycle.viewModelScope
+  import androidx.lifecycle.viewmodel.CreationExtras
+  import io.github.yingqiu0871.evolune.experience.insights.InsightsContractViolationException
+  import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregator
+  import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsSummary
+  import io.github.yingqiu0871.evolune.experience.insights.ReadOnlyMedicationInsightsAggregator
+  import io.github.yingqiu0871.evolune.history.HistoryRangeSource
+  import io.github.yingqiu0871.evolune.history.HistoryReadService
+  import java.time.Clock
+  import java.time.LocalDate
+  import java.time.YearMonth
+  import java.time.ZoneId
+  import kotlinx.coroutines.CancellationException
+  import kotlinx.coroutines.CoroutineScope
+  import kotlinx.coroutines.Job
+  import kotlinx.coroutines.flow.MutableStateFlow
+  import kotlinx.coroutines.flow.StateFlow
+  import kotlinx.coroutines.flow.asStateFlow
+  import kotlinx.coroutines.launch
+
+## forbidden dependency tokens (word-boundary, must all be 0)
+  DoseEventRepository                -> 0
+  MedicationPlanRepository           -> 0
+  DoseEventDao                       -> 0
+  AppDatabase                        -> 0
+  Room                               -> 0
+  Dao                                -> 0
+  Entity                             -> 0
+  MedicationOccurrenceMatcher        -> 0
+  MedicationOccurrenceGenerator      -> 0
+  MedicationOccurrencePresentation   -> 0
+  DoseEvent(                         -> 0
+
+## HistoryReadService references (only the factory may wire the seam)
+  InsightsRangeSelection.kt          -> 0
+  InsightsSurfaceLifecycle.kt        -> 0
+  InsightsUiState.kt                 -> 0
+  InsightsViewModel.kt               -> 3
+
+## forbidden judgement vocabulary (word-boundary, must all be 0)
+  adherence                          -> 0
+  compliance                         -> 0
+  percentage                         -> 0
+  percent                            -> 0
+  ratio                              -> 0
+  completionRate                     -> 0
+  missedCount                        -> 0
+  timingDelta                        -> 0
+  onTime                             -> 0
+  late                               -> 0
+  score                              -> 0
