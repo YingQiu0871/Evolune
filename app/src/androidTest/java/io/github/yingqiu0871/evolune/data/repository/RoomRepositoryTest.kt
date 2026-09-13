@@ -245,6 +245,50 @@ class RoomRepositoryTest {
     }
 
     @Test
+    fun persistedLocalDateRangeQueryIsInclusiveAndIgnoresInstantDistance() = runBlocking {
+        val utc = ZoneId.of("UTC")
+        val start = LocalDate.of(2025, 6, 15)
+        val end = LocalDate.of(2025, 6, 17)
+
+        val dayBefore = syntheticEvent(uuid(130), Instant.parse("2025-06-14T10:00:00Z"), utc, start.minusDays(1))
+        val lowerBound = syntheticEvent(uuid(131), Instant.parse("2025-06-15T00:00:00Z"), utc, start)
+        val middle = syntheticEvent(uuid(132), Instant.parse("2025-06-16T12:00:00Z"), utc, start.plusDays(1))
+        val upperBound = syntheticEvent(uuid(133), Instant.parse("2025-06-17T23:00:00Z"), utc, end)
+        val dayAfter = syntheticEvent(uuid(134), Instant.parse("2025-06-18T00:00:00Z"), utc, end.plusDays(1))
+        // Persisted date inside the requested range while the instant is years away: the
+        // whole point of the persisted-date channel.
+        val farInstant = syntheticEvent(uuid(135), Instant.parse("2030-01-01T00:00:00Z"), utc, start)
+        // Legacy row without a persisted date must never be returned by this query.
+        val legacyNullDate = syntheticEvent(uuid(136), Instant.parse("2025-06-16T00:00:00Z"))
+
+        listOf(dayBefore, lowerBound, middle, upperBound, dayAfter, farInstant, legacyNullDate)
+            .forEach { assertEquals(InsertResult.Inserted, eventRepository.insert(it)) }
+
+        val result = eventRepository.findRecordedLocalDateBetween(start, end)
+
+        assertEquals(listOf(lowerBound, farInstant, middle, upperBound), result)
+        assertEquals(
+            "ordering must be (localDate, occurredAt, id)",
+            listOf(start, start, start.plusDays(1), end),
+            result.map { it.localDate }
+        )
+        assertFalse("null-localDate rows must be excluded", result.any { it.localDate == null })
+        assertFalse("rows outside the inclusive range must be excluded", result.contains(dayBefore))
+        assertFalse(result.contains(dayAfter))
+
+        // A single-day range is inclusive on both ends.
+        assertEquals(
+            listOf(lowerBound, farInstant),
+            eventRepository.findRecordedLocalDateBetween(start, start)
+        )
+
+        val inverted = runCatching {
+            eventRepository.findRecordedLocalDateBetween(end, start)
+        }.exceptionOrNull()
+        assertTrue("inverted range must fail fast, got $inverted", inverted is IllegalArgumentException)
+    }
+
+    @Test
     fun eventPkSelectionPreservesBothLegacyBranchOrders() = runBlocking {
         val asOf = Instant.ofEpochMilli(2_000_000_000_000L)
         val sparse = (1L..3L).map { hours ->

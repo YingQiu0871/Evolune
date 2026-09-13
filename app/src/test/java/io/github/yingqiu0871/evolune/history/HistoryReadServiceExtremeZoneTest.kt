@@ -54,6 +54,13 @@ class HistoryReadServiceExtremeZoneTest {
             "query start $queryStart must include the authoritative instant $occurredAt",
             !queryStart.isAfter(occurredAt)
         )
+        // A-02-R2: this row is guaranteed by the persisted-date channel, not by padding.
+        val persistedRange = requireNotNull(events.recordedLocalDateRange)
+        assertTrue(
+            "persisted-date channel $persistedRange must cover persisted localDate 2025-06-15",
+            !persistedRange.first.isAfter(LocalDate.of(2025, 6, 15)) &&
+                !persistedRange.second.isBefore(LocalDate.of(2025, 6, 15))
+        )
         val intake = range.days.flatMap { it.entries }.filterIsInstance<UnmatchedHistoricalIntake>().singleOrNull()
         assertNotNull("the persisted event must not disappear from the requested range", intake)
         assertEquals(LocalDate.of(2025, 6, 15), intake!!.displayDate)
@@ -82,6 +89,13 @@ class HistoryReadServiceExtremeZoneTest {
         assertTrue(
             "query end $queryEnd must be after the authoritative instant $occurredAt",
             queryEnd.isAfter(occurredAt)
+        )
+        // A-02-R2: this row is guaranteed by the persisted-date channel, not by padding.
+        val persistedRange = requireNotNull(events.recordedLocalDateRange)
+        assertTrue(
+            "persisted-date channel $persistedRange must cover persisted localDate 2025-01-12",
+            !persistedRange.first.isAfter(LocalDate.of(2025, 1, 12)) &&
+                !persistedRange.second.isBefore(LocalDate.of(2025, 1, 12))
         )
         val intake = range.days.flatMap { it.entries }.filterIsInstance<UnmatchedHistoricalIntake>().singleOrNull()
         assertNotNull("the persisted event must not disappear from the requested range", intake)
@@ -205,12 +219,21 @@ class HistoryReadServiceExtremeZoneTest {
         source = DoseEventSource.MANUAL
     )
 
-    /** Fake that honours the requested instant window, so a bad query bound is observable. */
+    /**
+     * Fake that honours both requested query channels, so a bad bound is observable.
+     *
+     * `findOccurredBetween` filters by the half-open instant window and
+     * `findRecordedLocalDateBetween` filters by the inclusive persisted-date window: a
+     * fake that returned every event regardless of the window would hide exactly the
+     * defect these tests exist for.
+     */
     private class RangeFilteringDoseEvents(
         private val all: List<DoseEvent>
     ) : DoseEventRepository by FakeDoseEventRepository() {
         private val recorder = FakeDoseEventRepository()
         var recordedRange: Pair<Instant, Instant>? = null
+            private set
+        var recordedLocalDateRange: Pair<LocalDate, LocalDate>? = null
             private set
 
         override suspend fun findOccurredBetween(
@@ -220,6 +243,17 @@ class HistoryReadServiceExtremeZoneTest {
             recordedRange = startInclusive to endExclusive
             recorder.lastRange = startInclusive to endExclusive
             return all.filter { !it.occurredAt.isBefore(startInclusive) && it.occurredAt.isBefore(endExclusive) }
+        }
+
+        override suspend fun findRecordedLocalDateBetween(
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
+        ): List<DoseEvent> {
+            recordedLocalDateRange = startInclusive to endInclusive
+            return all.filter { event ->
+                val date = event.localDate ?: return@filter false
+                !date.isBefore(startInclusive) && !date.isAfter(endInclusive)
+            }
         }
     }
 }

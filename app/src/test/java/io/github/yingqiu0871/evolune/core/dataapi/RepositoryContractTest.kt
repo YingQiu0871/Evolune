@@ -17,6 +17,7 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
@@ -31,6 +32,12 @@ class RepositoryContractTest {
         assertEquals(listOf(event), repository.observeAll().first())
         assertEquals(event, repository.getById(event.id))
         assertTrue(repository.findOccurredBetween(start, end).isEmpty())
+        assertTrue(
+            repository.findRecordedLocalDateBetween(
+                LocalDate.parse("2024-01-01"),
+                LocalDate.parse("2024-02-01")
+            ).isEmpty()
+        )
         assertTrue(repository.getEventsForPk(end).isEmpty())
         assertSame(InsertResult.Inserted, repository.insert(event))
         assertSame(UpdateResult.NoChange, repository.update(event, expectedRevision = 1))
@@ -111,6 +118,11 @@ class RepositoryContractTest {
         override suspend fun findOccurredBetween(
             startInclusive: Instant,
             endExclusive: Instant
+        ): List<DoseEvent> = emptyList()
+
+        override suspend fun findRecordedLocalDateBetween(
+            startInclusive: LocalDate,
+            endInclusive: LocalDate
         ): List<DoseEvent> = emptyList()
 
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> = emptyList()
