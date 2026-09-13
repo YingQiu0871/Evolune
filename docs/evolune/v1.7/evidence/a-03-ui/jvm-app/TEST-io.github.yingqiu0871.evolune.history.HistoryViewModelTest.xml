@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:18:20.214Z" hostname="人面不知何处去" time="0.011">
+  <properties/>
+  <testcase name="loaded days come from the returned range" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.003"/>
+  <testcase name="restored month and selection are used" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.005"/>
+  <testcase name="cannot navigate beyond the current month" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="previous month loads exactly once and ends at month end" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="empty range keeps the loading to empty transition explicit" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="initial selection is today" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="next month from a past month loads the current month up to today" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="retry reloads the visible month exactly once" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.001"/>
+  <testcase name="initial load queries the current month up to today" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="failure keeps month and selection and surfaces an error" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="stale response cannot replace a newer month" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="selecting another day of the same month never reads again" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.001"/>
+  <testcase name="selecting a day outside the visible month is ignored" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="a stale response that ignores cancellation still cannot replace a newer month" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="restored future month is clamped to the current month" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="saved state tracks selection and month changes" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="queries forward the display zone and now" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="selecting a future day is ignored" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.0"/>
+  <testcase name="today follows the display zone" classname="io.github.yingqiu0871.evolune.history.HistoryViewModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

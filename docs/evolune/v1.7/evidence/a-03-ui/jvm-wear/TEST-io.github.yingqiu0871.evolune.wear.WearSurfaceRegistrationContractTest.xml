@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:17:53.846Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="all discoverable Wear surfaces use Evolune-prefixed names" classname="io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest" time="0.001"/>
+  <testcase name="all production Complications advertise short text and branded icon" classname="io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest" time="0.001"/>
+  <testcase name="occurrence actions stay side by side inside the round-safe dialog" classname="io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest" time="0.0"/>
+  <testcase name="all production Tiles keep identity and provide branded previews" classname="io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

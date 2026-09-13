@@ -1,0 +1,5 @@
+# Phone instrumentation (Pixel_7 AVD, API 35): pre-change baseline vs A-03 UI final tree
+# command: ./gradlew :app:connectedDebugAndroidTest --no-daemon --console=plain
+run	xml_tests	skipped	failures	errors	passed
+baseline-before-a03ui	213	5	0	0	208
+final-a03ui	235	5	0	0	230

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:17:53.829Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="dose action is enabled only for selected ready cached plan" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="missing or malformed payload retains good cache and becomes failure" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.001"/>
+  <testcase name="no snapshot waits for phone instead of claiming no plans" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="connected dispatched request is pending" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="pending request times out as sync failure" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="explicit sync failure takes precedence over cached content" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="zero connected nodes is not connected" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="stale valid cache is distinguished from ready" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="pending request completes only with newer dashboard snapshot" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="unreadable persisted dashboard cannot masquerade as no plans" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.001"/>
+  <testcase name="valid multiple plans preserve order and cap existing format at two" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="valid one plan snapshot becomes ready" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="fresh valid replacement clears stale and failure state" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.0"/>
+  <testcase name="valid explicit empty snapshot is authoritative no enabled plans" classname="io.github.yingqiu0871.evolune.wear.WearDashboardStateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

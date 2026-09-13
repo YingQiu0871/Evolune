@@ -1,0 +1,79 @@
+# A-03 UI change surface (source of truth: git, read-only commands)
+# base (round 0 doc cleanup) = 63f2c7bafcf4a511deb69ea714e0f845cf06d1c2
+# head (round HEAD)          = 1412a9f1d57195e508566041400be47ee7536674
+
+## commits of this round
+1412a9f test: verify v1.7 History phone experience
+206cdf2 feat: expose History as primary phone tab
+0395ad8 feat: add History calendar presentation
+
+## git show --stat
+  0395ad8 feat: add History calendar presentation
+   .../evolune/history/HistoryFormatting.kt           |  79 +++
+   .../evolune/history/HistoryPresentation.kt         | 237 +++++++
+   .../evolune/history/HistoryRangeSource.kt          |  29 +
+   .../yingqiu0871/evolune/history/HistoryUiModels.kt | 104 +++
+   .../evolune/history/HistoryViewModel.kt            | 203 ++++++
+   .../evolune/ui/screens/HistoryScreen.kt            | 747 +++++++++++++++++++++
+   app/src/main/res/values-zh-rCN/strings.xml         |  45 ++
+   app/src/main/res/values/strings.xml                |  45 ++
+   8 files changed, 1489 insertions(+)
+
+  206cdf2 feat: expose History as primary phone tab
+   .../io/github/yingqiu0871/evolune/MainActivity.kt     | 14 ++++++++++++++
+   .../yingqiu0871/evolune/navigation/AppNavigation.kt   | 19 +++++++++++++++++++
+   .../github/yingqiu0871/evolune/navigation/Screen.kt   |  1 +
+   3 files changed, 34 insertions(+)
+
+  1412a9f test: verify v1.7 History phone experience
+   .../evolune/history/HistoryTestFixtures.kt         | 134 ++++++
+   .../ui/screens/FoldableNavigationLayoutTest.kt     |   1 +
+   .../evolune/ui/screens/HistoryNavigationTest.kt    | 146 +++++++
+   .../evolune/ui/screens/HistoryScreenTest.kt        | 447 +++++++++++++++++++++
+   .../ui/screens/HistoryVisualEvidenceTest.kt        | 135 +++++++
+   .../evolune/history/HistoryPresentationTest.kt     | 346 ++++++++++++++++
+   .../history/HistoryPresentationWordingTest.kt      | 161 ++++++++
+   .../evolune/history/HistoryTestFixtures.kt         | 134 ++++++
+   .../evolune/history/HistoryViewModelTest.kt        | 435 ++++++++++++++++++++
+   9 files changed, 1939 insertions(+)
+
+## full name-status (base..head)
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistoryTestFixtures.kt
+M	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FoldableNavigationLayoutTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryNavigationTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryVisualEvidenceTest.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryFormatting.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryRangeSource.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryUiModels.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/navigation/Screen.kt
+A	app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+M	app/src/main/res/values-zh-rCN/strings.xml
+M	app/src/main/res/values/strings.xml
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryTestFixtures.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryViewModelTest.kt
+
+## boundary proofs (every count must be 0)
+  DAO / Room / schema / migration / repository (app/src/main/.../data) -> 0 changed path(s)
+  experience-core main (matcher/generator/projection read model) -> 0 changed path(s)
+  HistoryReadService (adapter under the UI seam) -> 0 changed path(s)
+  Wear main sources -> 0 changed path(s)
+  Widget / reminder / PK / widget-config -> 0 changed path(s)
+  build / dependency files -> 0 changed path(s)
+  drawable / mipmap assets (no new image assets) -> 0 changed path(s)
+  frozen A-03 preflight evidence -> 0 changed path(s)
+  frozen A-03-PRE-01 evidence -> 0 changed path(s)
+  frozen A-02 evidence -> 0 changed path(s)
+
+## instrumentation-relevant test inventory change
++            "history",
+
+## working tree after source/test commits (docs + evidence pending)
+ M docs/evolune/v1.7/V17_A_03_HISTORY_UI.md
+?? docs/evolune/v1.7/evidence/a-03-ui/

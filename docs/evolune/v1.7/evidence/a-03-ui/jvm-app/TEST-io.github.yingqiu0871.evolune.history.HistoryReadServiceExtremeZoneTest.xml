@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:18:20.163Z" hostname="人面不知何处去" time="0.007">
+  <properties/>
+  <testcase name="inclusive range of exactly the maximum span is allowed" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="cross-midnight matching still works with a one day occurrence context" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="event query context is strictly wider than the occurrence context" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="upper bound keeps an event whose persisted zone is far west of the display zone" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="widening the event query does not change legacy orphan attribution" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="lower bound keeps an event whose persisted zone is far east of the display zone" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <testcase name="inclusive range one day beyond the maximum span is rejected before repository access" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:18:16.125Z" hostname="人面不知何处去" time="0.041">
+  <properties/>
+  <testcase name="Wear journal replay after notification winner remains already confirmed" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.009"/>
+  <testcase name="Widget and notification deterministic interleave leaves one Widget event" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.004"/>
+  <testcase name="Wear then notification leaves one Wear event and notification is replay" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.002"/>
+  <testcase name="notification then Wear leaves one Reminder event and Wear is already confirmed" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.002"/>
+  <testcase name="same plan different scheduledAt values are not confused" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.003"/>
+  <testcase name="repeated notification is idempotent and different occurrences remain distinct" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.002"/>
+  <testcase name="notification insert failure retries without duplicate or false success" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.003"/>
+  <testcase name="Widget then notification and notification then Widget each leave one event" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.002"/>
+  <testcase name="cancellation releases coordinator for a successful retry" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.003"/>
+  <testcase name="notification rereads a modified or deleted plan after waiting for the coordinator" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.003"/>
+  <testcase name="presentation and PK input remain single and independent of event input order" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.001"/>
+  <testcase name="cross date event does not suppress today's occurrence" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.001"/>
+  <testcase name="Wear and notification deterministic interleave leaves one event" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.002"/>
+  <testcase name="legacy slot window null slot and same day events all suppress notification" classname="io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

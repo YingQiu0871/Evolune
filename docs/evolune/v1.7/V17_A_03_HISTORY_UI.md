@@ -1,12 +1,15 @@
-# V17-A-03 — History UI & Calendar Presentation（状态：**CONTRACT GAP CLOSED / GREEN，UI 待开工**）
+# V17-A-03 — History UI & Calendar Presentation（状态：**UI DELIVERED / READY FOR INDEPENDENT REVIEW**）
 
-> 状态：**A-03 HISTORY CONTRACT FIXED（A-03-PRE-01 DONE）** —— UI 仍未开工（本轮按 §2/§28 只修域契约）
+> 状态：**A-03 UI DELIVERED** —— History 已成为第 5 个主 tab；域契约（A-03-PRE-01）冻结不变，UI 未重做任何 domain 语义
+> 第 0 轮（review cleanup）+ UI 轮：见 §13–§25
 > Round：v1.7-A / A-03（preflight）→ **A-03-PRE-01（契约修复）**
 > 起始 HEAD：`a149ed4b3e1fb20498b0d4239d41caab9f0f2462`（A-02 R2 关闭）→ preflight 关闭于 `fe8a5870c366367a12d8aed89dd2158b49aafcf6`
 > Commit（preflight 轮）：`docs: close A-02 review precision notes`、`docs: report A-03 history contract gap`
-> Commit（本轮 A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
+> Commit（A-03-UI 轮）：`63f2c7b docs: close A-03 preflight review notes`、`0395ad8 feat: add History calendar presentation`、`206cdf2 feat: expose History as primary phone tab`、`1412a9f test: verify v1.7 History phone experience`、`docs: close A-03 History UI round`
+> Commit（A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
 > 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
-> 证据清单（本轮）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
+> 证据清单（A-03 UI）：[`evidence/a-03-ui/MANIFEST.sha256`](evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
+> 证据清单（A-03-PRE-01）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
 
 ---
 
@@ -259,7 +262,7 @@ reviewer 指出：`HistoricalProjection.futureOccurrences` 的 `= emptyList()` �
 | 测试 | Compose 组件级用 `createComposeRule()` + `EvoluneTheme`（`androidTest/.../SettingsCategoryScreenTest.kt`）；带 ViewModel 用文件内 fake + `Clock.fixed`（`MedicationRecordsScreenTest.kt:502-515`）；导航链路用 `ActivityScenario<MainActivity>` + 预置 onboarding（`SyncAndBackupNavigationTest.kt:30-157`）；共享 fake 在 `app/src/test/.../RepositoryFakes.kt:27,160`（androidTest 不能跨 source set 复用） |
 | 护栏测试先例 | 源码文本断言式约定护栏：`app/src/test/.../ui/screens/MotionListUxBoundaryTest.kt:9-35` |
 
-**待 UI 轮决策（UNRESOLVED，本轮不自行决定）**：History 挂载为第 5 个 tab 还是 Settings 二级页（`V17_PLAN.md` 的 A-04/A-05 未指定，仓库无既有 `HistoryScreen`）；日历组件选型（仓库无既有日历组件）；是否为 History 引入新的可注入时间 provider 抽象。
+**待 UI 轮决策（本轮已关闭，见 §25）**：History 挂载方式 → 第 5 个主 tab；日历组件选型 → 自行用 Compose 实现；可注入时间 provider → 复用既有 `Clock` + `() -> ZoneId` 惯例，不引入新抽象。
 
 ## 10. 下一步
 
@@ -332,3 +335,178 @@ A-03-PRE-01 独立复审结论 **APPROVE**（无 P0/P1/P2），另有两个 P3 �
 | **P3-B** | `futureOccurrences = emptyList()` 默认值允许直接 `HistoricalProjection(entries = ...)` 绕过 builder 完整性 | 在 **§8.7** 明确：three-fate exhaustiveness 是 `HistoricalProjectionBuilder.derive` 的 **runtime invariant**；直接构造的 projection **不是** authoritative projection。本轮**不改 API**，不为 P3 触碰已 APPROVE 的 domain contract |
 
 **本轮（第 0 轮）不修改任何产品代码**（`git diff` 仅含 `docs/`）。commit：`docs: close A-03 preflight review notes`。
+
+## 14. A-03 UI 交付：History 成为第 5 个主 tab（导航决策）
+
+产品决定：**History 是主功能，不放进 Settings**。审计结论：现有导航是**可加性**结构，无需重构，
+因此按 **HOME | RECORDS | HISTORY | MEDICATION_PLANS | SETTINGS** 插入第 3 位（Settings 保持末位）：
+
+| 关注点 | 事实 | 本轮改动 |
+|---|---|---|
+| 目的地集合 | `enum class Screen(route,title)`（`navigation/Screen.kt`） | **+1 枚举项** `HISTORY("history","历史")` |
+| 底部栏 / 侧边栏 | 两者共用 `rememberNavItems(): List<BottomNavItem>`，遍历渲染；选中态按 `currentDestination.hierarchy` 判断 | **+1 个 `BottomNavItem`**（`Icons.Filled/Outlined.History`，Material 图标，无新图像资产） |
+| 目的地注册 | 扁平 `NavHost { composable(route) }` | **+1 个 `composable(Screen.HISTORY.route)`** → `HistoryScreen(viewModel, is24Hour, showTopBar=false)` |
+| 顶栏标题 | 根 `AppTopBar` 的 `when (currentScreen)` 映射 | **+1 行** `Screen.HISTORY -> stringResource(R.string.history_title)` |
+| tab 手势/索引 | `screenIndex()` + `Screen.entries.indices`，通用实现 | 无需改动（自动纳入滑动顺序） |
+| ViewModel 注入 | `MainActivity` 组合根构造 → `AppNavigation(...)` 参数 | **+1 个参数** `historyViewModel`，在 `MainActivity` 用 `HistoryViewModelFactory` 构造 |
+
+**未做**：未重建导航、未改其它 tab 的信息架构与行为（route/label/icon/目的地零改动，仅顺序因插入而变化）、
+未引入 nested-nav framework、未新增图像资产。
+
+**唯一既有测试适配**：`FoldableNavigationLayoutTest.expandedRailAndSharedTopBarKeepStableGeometry` 内部硬编码了
+`["home","records","medication_plans","settings"]` 这条**导航项清单**（用于断言 rail 各项等距、整组居中），
+插入第 5 项后该清单必须包含 `"history"`，故 +1 行加入 `nav-rail-history`。断言的不变式（等距、组居中、
+顶栏居中）未放宽。其余 tab 相关测试（`ColorRoleConformanceTest`、`FeatureTutorialNavigationTest` 等）零改动。
+
+## 15. UI 架构
+
+```
+HistoryScreen (Composable, ui/screens/HistoryScreen.kt)
+  └─ HistoryViewModel (history/HistoryViewModel.kt)
+       └─ HistoryRangeSource (fun interface)  ← 唯一读缝
+            └─ HistoryReadService.readRange(...)  ← 生产实现（本轮 0 改动）
+```
+
+| 层 | 文件 | 职责 |
+|---|---|---|
+| 读缝 | `history/HistoryRangeSource.kt` | 单一 `suspend read(start,end,displayZone,now): HistoricalRange`。ViewModel 不能越过它接触 DAO/仓库/matcher/generator |
+| 状态 | `history/HistoryViewModel.kt` | `visibleMonth/selectedDate/today/displayZone/loadedMonth/loadedDays/loading/failed` + 意图（`selectDate`/`showPreviousMonth`/`showNextMonth`/`retry`） |
+| 呈现模型 | `history/HistoryUiModels.kt` | `HistoryUiState`、`HistoryMonthUiModel`、`HistoryCalendarCellUiModel`、`HistoryDayUiModel`、`HistoryEntryUiModel`、`HistoryDayPhase`、`HistoryEntryKind` |
+| 映射 | `history/HistoryPresentation.kt` | 纯函数：`HistoricalEntry` → `HistoryEntryUiModel`；月份网格；阶段判定。只做标签/取值/语义标志，不重新分类 |
+| 格式化 | `history/HistoryFormatting.kt` | **唯一**时间戳路径（实际时间/当前方案时间/剂量/日期）；其余卡片不得自建格式 |
+| 屏幕 | `ui/screens/HistoryScreen.kt` | `MonthNavigationHeader` / `WeekdayHeader` / `HistoryMonthCalendar` / `SelectedDaySummary` / 条目卡片 + Loading/Error/Empty；Preview ×3（synthetic state） |
+
+UI 模型只承载：label 资源 id、格式化所需原始值（`Instant`+`ZoneId`+`needsFullDate`）、视觉语义标志
+（`isInferredMatch`/`isManualSource`/`kind`）与计数。**未把 domain 分类在 UI 里重写一遍**（由 §22 的源码护栏测试机器化保证）。
+
+## 16. ViewModel 状态与月份查询纪律
+
+- 初始：`visibleMonth = today 所在月`、`selectedDate = today`；`today` 由注入的 `Clock` + `displayZone` 推导；
+- `displayZone: () -> ZoneId = ZoneId::systemDefault` 与 `clock: Clock = Clock.systemUTC()` 均可注入（Compose 内不调用 `ZoneId.systemDefault()` 决定历史归日——`displayZone` 随状态下发，渲染只用状态里的 zone，护栏测试保证）；
+- **一次月份加载最多一次 `readRange`**：当前月 → `[月初, today]`；历史月 → `[月初, 月末]`；未来月**不可加载**（`showNextMonth` 在当月直接 no-op，恢复出的未来月被夹回当月）；
+- 同月内 `selectDate` **不触发任何读取**（只读 `loadedDays`）；
+- 快速切月：`loadJob?.cancel()` **且** `loadToken` 世代校验，旧响应即使忽略取消也无法覆盖新月份；
+- `retry()` 只重载当前月一次；失败时保留 `visibleMonth`/`selectedDate`；
+- 未来日期不可选（`selectDate` 对 `date > today` no-op）。
+
+## 17. 日历语义
+
+真实 `YearMonth`/`LocalDate`；周一为一周首日（`dayOfWeek.value - 1` 个前导空 cell）；
+格内状态：selected / today / enabled（`date > today` 仅作为**交互禁用**，不是历史过滤——domain 已保证未来 occurrence 不进 History）；
+每格最多三个事实 indicator：`recorded` / `no recorded intake` / `other recorded intake`（MaterialTheme 语义色，
+无硬编码 RGB，无 good/bad、无 adherence 百分比）。
+
+## 18. 呈现文案（三类别 + 时间戳/时区 + exact vs inferred）
+
+| 类别 | 状态文案（string resource） | 关键呈现 |
+|---|---|---|
+| `MatchedHistoricalOccurrence` | `history_status_recorded` | 实际时间一律取 `event.occurredAt`（**绝不用计划时间替代**）；方案时间标注 `history_label_current_schedule_context`（当前方案时间）；provenance ≠ EXACT 时附 `history_note_legacy_context` |
+| `UnrecordedHistoricalOccurrence` | `history_status_no_recorded_intake` | `history_note_no_recorded_intake`（现有可用数据中未找到）+ `history_note_not_necessarily_missed`（不一定意味着漏服）；计划时间同样标注"当前方案时间" |
+| `UnmatchedHistoricalIntake` | `history_status_recorded_intake` | 实际时间 + 可恢复的 medication/dose/route + 权威 source；无方案归属 → `history_note_plan_unavailable`；**只有 `MANUAL` 才显示"手动"** |
+
+时间戳/时区规则（§13 已冻结，本轮实现为 `HistoryFormatting` 单一路径）：
+有 persisted `zoneId` → 用事件自己的 zone；为 null → 用当前 displayZone；
+实际归日 ≠ entry display date（delayed Reminder/Wear）→ 显示**完整日期 + 时间**（`yyyy-MM-dd HH:mm`）；
+`CURRENT_DISPLAY_TIMEZONE_DERIVED` → `history_note_current_zone_date`（日期按当前时区显示）。
+
+## 19. 状态恢复（SavedStateHandle，局部接入）
+
+`HistoryViewModelFactory` 在 `create(modelClass, extras)` 中调用 `extras.createSavedStateHandle()`
+（`runCatching` 兜底：拿不到就退化为不恢复、不崩溃），**未改动任何既有 ViewModelFactory / 导航基础设施**；
+保存 `history.visibleMonth`（`YearMonth.toString()`）与 `history.selectedDate`（`LocalDate.toString()`）。
+恢复时若保存的月份在当前月之后（时钟回拨/陈旧状态）→ 夹回当前月。
+
+## 20. 无障碍
+
+- 日历格 `contentDescription`（合并节点）至少包含：日期、今天（若适用）、已选中（若适用）、未到日期（未来禁用）、
+  以及三类计数（无内容时为"无历史记录"）；未来格带 `disabled()` 语义（无 click action，不可选）；
+- 条目卡片的组合顺序即读屏顺序：**状态 → 药物/剂量 → 实际时间 → 辅助上下文**；类别不依赖颜色区分（有文字标签）。
+
+## 21. 性能纪律（P2 backlog）
+
+- `dose_events.localDate` 无 index 继续作为 **A-04 schema hardening 候选**；本轮 0 schema/index/migration 改动；
+- 通过 ViewModel 调用计数测试证明：**无 per-cell 查询、无 per-entry 查询、无 selection 查询、无 recomposition 查询**，
+  一个月最多一次正常 load（§22 的 `HistoryViewModelTest` 逐条断言读取次数）。
+
+## 22. 验证结果（A-03 UI，全部 fresh，计数取 JUnit/XML）
+
+### 22.1 Fresh JVM
+
+```bash
+./gradlew :experience-core:test :app:testDebugUnitTest :wear:testDebugUnitTest --rerun-tasks --no-daemon --console=plain
+```
+
+| 模块 | XML | tests | skipped | failures | errors | passed |
+|---|---:|---:|---:|---:|---:|---:|
+| app | 88 | 764 | 0 | 0 | 0 | 764 |
+| experience-core | 15 | 140 | 0 | 0 | 0 | 140 |
+| wear | 11 | 90 | 0 | 0 | 0 | 90 |
+| **合计** | **114** | **994** | **0** | **0** | **0** | **994** |
+
+`54 actionable tasks: 54 executed`（`--rerun-tasks`，三个 test task 均实际执行）、`BUILD SUCCESSFUL`。
+相对 A-03-PRE-01 基线 952 → **+42**（`HistoryViewModelTest` 19 / `HistoryPresentationTest` 18 /
+`HistoryPresentationWordingTest` 5），既有测试期望零改写。
+
+### 22.2 Focused History instrumentation
+
+```bash
+./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=\
+io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest,\
+io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest
+```
+
+`Starting 21 tests on Pixel_7(AVD) - 15` → **21 passed / 0 failed**（`HistoryScreenTest` 17 + `HistoryNavigationTest` 4）。
+
+### 22.3 Full Phone instrumentation（closure 前必跑）
+
+```bash
+./gradlew :app:connectedDebugAndroidTest --no-daemon --console=plain
+```
+
+| 运行 | tests | skipped | failures | errors | passed |
+|---|---:|---:|---:|---:|---:|
+| 改动前 baseline（`63f2c7b`，同机同 AVD） | 213 | 5 | 0 | 0 | 208 |
+| **A-03 UI 最终树** | **235** | **5** | **0** | **0** | **230** |
+
+- 新增 22 个测试（17 + 4 + 1 截图），**既有 213 个测试 0 回归**（`current-only failures = 0`）；
+- 5 个 skipped 与 baseline 完全一致（折叠屏 rail / V15 升级类用例的 `assumeTrue` 跳过）；
+- XML：`evidence/a-03-ui/androidtest-xml/{baseline-before-a03ui,final}-TEST-Pixel_7-AVD-15-app.xml`，
+  汇总 `androidtest-aggregate.tsv`。
+
+### 22.4 Assemble / hygiene
+
+- `./gradlew :app:assembleDebug` → `BUILD SUCCESSFUL`（`38 actionable tasks: 38 up-to-date`，APK 与当前源码一致，
+  该 APK 正是 instrumentation 实际安装的那一份）；
+- `git diff --check` → 0（提交前复核）。
+
+## 23. 交付物与证据（A-03 UI）
+
+- 证据：[`evidence/a-03-ui/`](evidence/a-03-ui/)：
+  `a03ui-jvm-run.log`、`jvm-{app,experience-core,wear}/`（114 个 JUnit XML）、`jvm-aggregate.tsv`、
+  `a03ui-androidtest-run.log`、`androidtest-xml/`（baseline + final 聚合 XML）、`androidtest-aggregate.tsv`、
+  `a03ui-focused-history-ui-run.log`、`a03ui-assemble-debug.log`、`screenshots/`（3 张 Pixel 7 PNG）、
+  `source-diff-stat.txt`（改动面 + 逐条 0 改动边界证明）、`MANIFEST.sha256`
+  （**126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED**，自哈希
+  `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`，提交后 HEAD blob 校验 0 mismatch）；
+- 视觉证据（Pixel_7 AVD，1080×2400，synthetic UI state，不接 read service）：
+  `history-01-current-month-mixed-day.png`、`history-02-empty-day.png`、`history-03-error-state.png`；
+- commit：`feat: add History calendar presentation`、`feat: expose History as primary phone tab`、
+  `test: verify v1.7 History phone experience`、`docs: close A-03 History UI round`；
+- 冻结证据未改：`evidence/a-03/`、`evidence/a-03-pre-01/`、全部 A-02 evidence（`source-diff-stat.txt` 逐条 0 改动）。
+
+## 24. 本轮未做 / 顺延（不宣称关闭）
+
+- **A6 undo-projection tests、A7 read-path zero-write test**：本轮未做，仍留在 Phase-A backlog；
+  本轮的完整 Phone instrumentation 只覆盖了 **A10 affected-surface instrumentation 的一部分**（History + 导航面），
+  **不宣称 A6/A7/A10 关闭**；
+- `dose_events.localDate` index 评估：仍是 **A-04 / schema hardening** 候选，A-03 UI 未动 schema/index/migration；
+- Insights / Timeline / retrospective PK / Export / Widget / Wear / DoseCheckInMatcher hardening：本轮**未开始**。
+
+## 25. A-03 UI 决策记录（原 §9 的 UNRESOLVED 项已关闭）
+
+| 原待决项 | 本轮结论 |
+|---|---|
+| History 挂载方式 | **第 5 个主 tab**（HOME \| RECORDS \| HISTORY \| MEDICATION_PLANS \| SETTINGS），非 Settings 二级页 |
+| 日历组件选型 | 自行用 Compose 实现（`YearMonth` 网格 + 前导空格 + 三态 indicator），不引入第三方日历依赖 |
+| 是否引入可注入时间 provider | **不引入新抽象**：复用既有 `Clock` + `() -> ZoneId` 注入惯例（`HistoryViewModel` 构造参数），Compose 不读系统时区 |
+| 选择状态恢复 | `SavedStateHandle`（经 `CreationExtras` 局部接入 factory），未重构全局 ViewModel 基础设施 |

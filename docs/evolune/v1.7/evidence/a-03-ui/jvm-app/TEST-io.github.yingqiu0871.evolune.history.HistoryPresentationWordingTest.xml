@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:18:20.141Z" hostname="人面不知何处去" time="0.02">
+  <properties/>
+  <testcase name="calendar cells are the only place where a calendar date is disabled" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.002"/>
+  <testcase name="the neutral no-intake caveat is phrased as a disclaimer" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.008"/>
+  <testcase name="history presentation never filters the future or re-derives domain facts" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.007"/>
+  <testcase name="history labels never use adherence judgement wording" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.003"/>
+  <testcase name="ui reads history only through the history read service seam" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
