@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:21:47.448Z" hostname="人面不知何处去" time="0.036">
+  <properties/>
+  <testcase name="connected node after request throttle decides dispatch" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.001"/>
+  <testcase name="empty connected node set decides not connected" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.002"/>
+  <testcase name="connected node within throttle stays connected without dispatch" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.0"/>
+  <testcase name="failed node query decides query failed" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.0"/>
+  <testcase name="listener service no longer depends on peer callbacks" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.005"/>
+  <testcase name="connected node with forced refresh decides dispatch" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.0"/>
+  <testcase name="request plans protocol path is unchanged" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.001"/>
+  <testcase name="malformed snapshot still retains last good dashboard" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.021"/>
+  <testcase name="dose actions protocol path prefix is unchanged" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.002"/>
+  <testcase name="valid plans snapshot still applies and becomes ready" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.002"/>
+  <testcase name="connected node after prior disconnect decides dispatch" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.0"/>
+  <testcase name="wear manifest registers filtered data changed without bind listener" classname="io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

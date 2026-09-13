@@ -6,7 +6,9 @@
 > Commit 1（review accuracy）：`docs: clarify v1.7-A review evidence`
 > Commit 2（read model）：`feat: add history day and range read model`
 > Commit 3（tests/evidence）：`test: verify v1.7 history range semantics`
-> 阶段证据清单：[`evidence/a-02/MANIFEST.sha256`](evidence/a-02/MANIFEST.sha256)
+> 阶段证据清单（A-02 candidate）：[`evidence/a-02/MANIFEST.sha256`](evidence/a-02/MANIFEST.sha256)（frozen，R1 不再改动）
+> R1（极端时区 query-bound 修复）证据：[`evidence/a-02-r1/MANIFEST.sha256`](evidence/a-02-r1/MANIFEST.sha256)
+> R1 commits：`fix: widen History event query for timezone extremes`、`docs: verify A-02 extreme timezone bounds`
 
 ---
 
@@ -53,6 +55,12 @@ History 不得暗示“历史上确实应在 09:00 服用而未服用”——�
 
 对应确定性测试见 §12。
 
+**该不变式的证明范围（重要）**：它只能证明"**对已经送进 projection 的 inputs 不丢不重**"。
+它**不能**证明上游数据库查询没有漏 row —— A-02-R1 的 P1 正是这个区别
+（padding 不足导致 `findOccurredBetween` 根本没有返回某条 authoritative event，
+projection 内部因此完全"自洽"，不变式不会报警）。上游查询边界的正确性必须由 §6.1 的 bound proof
+加极端时区回归测试来保证。
+
 ## 4. Day read model
 
 ```kotlin
@@ -88,25 +96,71 @@ HistoricalRange(startDate, endDate, days)   // 两者皆 inclusive
 
 ## 6. Event query bounds（app adapter）
 
-`HistoryReadService.readRange(startDate, endDate, displayZone, now, policy)`：
+`HistoryReadService.readRange(startDate, endDate, displayZone, now, policy)` 使用**两个不同的 context**：
 
-| 项 | 值 |
-|---|---|
-| context 日期 | `[startDate − 1 天, endDate + 1 天]`（`CONTEXT_DAYS = 1`） |
-| event 查询窗口 | **instant** 半开区间 `[ (startDate−1).atStartOfDay(zone) , (endDate+2).atStartOfDay(zone) )` |
-| 使用的现有 API | `DoseEventRepository.findOccurredBetween(startInclusive, endExclusive)` |
-| 上界 | `MAX_RANGE_DAYS = 3660`（与 occurrence generator 的十年上限一致），超出即 `require` 失败 |
+| 概念 | 常量 | 值 | 解决的问题 |
+|---|---|---|---|
+| occurrence generation context | `OCCURRENCE_CONTEXT_DAYS` | **1** calendar day | matcher adjacency：±1h 窗口 + 跨午夜兼容（`previous-day 23:00 → requested-day 00:00`） |
+| event query context | `EVENT_QUERY_CONTEXT_DAYS` | **2** calendar days | persisted `localDate` 的 recording-zone ↔ display-zone 位移（最坏约 26h） |
+
+- event 查询窗口：**instant** 半开区间
+  `[ (startDate − 2d).atStartOfDay(zone) , (endDate + 3d).atStartOfDay(zone) )`；
+- occurrence 生成窗口：`[ (startDate − 1d).atStartOfDay(zone) , (endDate + 2d).atStartOfDay(zone) )`；
+- 使用的现有 API：`DoseEventRepository.findOccurredBetween(startInclusive, endExclusive)`；
+- 上界：`MAX_RANGE_DAYS = 3660`（产品值未变）。当请求范围处于上限附近时，occurrence context
+  会超过 generator 自身的单窗口上限 `OccurrenceGenerationWindow.MAX_WINDOW_DAYS`，
+  因此 adapter 以**不重叠的半开 chunk** 调用同一个 generator（不是缩小 context，也不是第二套 recurrence）。
 
 **为什么按 instant 而不是 `localDate`**：legacy 行可能没有 `localDate`，且 display zone 会改变 derived day；
-按 instant 查询可保证不遗漏。**为什么不复用 PK 查询**：`getEventsForPk(asOf)` 是 30 天窗口 + 最近 20 条回退 + 无上界，
-属 PK 专用语义，禁止用于 History（测试不引用它）。
+按 instant 查询可覆盖这些行（**但这本身不足以证明不遗漏**，见 §6.1）。
+**为什么不复用 PK 查询**：`getEventsForPk(asOf)` 是 30 天窗口 + 最近 20 条回退 + 无上界，属 PK 专用语义，禁止用于 History。
+**不做全表扫描**：窗口严格为 `请求天数 + 4 天`。
 
-**不做全表扫描**：查询窗口严格为 `请求天数 + 2 天`，与请求范围成正比。
+### 6.1 Bound proof（bound 为什么是 2 calendar days）
+
+**offset 包络**：IANA/Java tzdb 的现代民用 offset 覆盖 **UTC−12 … UTC+14**。
+（更早的历史 LMT 存在超出该范围的取值，但带 persisted `zoneId` 的事件只可能由本应用写入，
+其 instant 落在现代区间；v3 迁移前的老 legacy 行 `zoneId`/`localDate` 强制为 NULL，走 display-zone 推导路径，不受此包络影响。）
+
+**单个 persisted local date `D` 的 instant 跨度**：
+
+| 端 | recording zone | instant |
+|---|---|---|
+| 最早 | UTC+14 的 `D 00:00` | `(D−1) 10:00Z` |
+| 最晚 | UTC−12 的 `D 23:59:59.999` | `(D+1) 11:59:59.999Z` |
+
+跨度 ≈ **26 小时** > 1 calendar day ⇒ **±1 calendar day padding 不足**（这正是 R1 的 CE1/CE2）。
+
+**下界**：`queryStart = (S − K)·00:00_in_display`。对 display offset 取最不利（UTC+14）时
+`queryStart = (S−K)·00:00Z − 14h`。要求 `queryStart ≤ (S−1) 10:00Z`（范围内事件的最早可能 instant）：
+
+- K = 1 → `(S−2) 10:00Z` ✓ 但 display offset 为 UTC−12 时 `(S−1) 12:00Z` **>** `(S−1) 10:00Z` ✗（CE1）
+- K = 2 → `(S−3) 10:00Z`（offset +14）或 `(S−2) 12:00Z`（offset −12），两者都 **≤** `(S−1) 10:00Z` ✓
+
+**上界**：`queryEndExclusive = (E + K + 1)·00:00_in_display`，最不利（display offset UTC−12）
+`= (E+K+1) 12:00Z`。要求 `> (E+1) 11:59:59.999Z`：
+
+- K = 1 → `(E+2) 12:00Z` ✓；但 display offset UTC+13（如 1 月的 Pacific/Auckland）时 `(E+2) 00:00Z − 13h = (E+1) 11:00Z` ✗（CE2）
+- K = 2 → `(E+3) 12:00Z`（offset −12）或 `(E+2) 10:00Z`（offset +14），两者都 **>** `(E+1) 11:59:59.999Z` ✓
+
+**calendar day ≠ 24h**：padding 以 **display zone 的 calendar day** 计。最不利情况下连续两个 calendar day
+被 DST 缩短也不低于约 46h（23h + 23h 的极端上界），仍比所需的 26h 包络多出约 20h 余量；
+因此结论不依赖"一天恰好 24 小时"的假设。
+
+**结论**：`EVENT_QUERY_CONTEXT_DAYS = 2` 对 UTC−12…UTC+14 的合法组合是保守充分的，
+且不依赖任何硬编码 ZoneId、不做全表扫描、不改变最终 date attribution。
+CE1/CE2 已固化为 app 层回归测试（§14）。
 
 ## 7. Occurrence context bounds
 
-occurrence 用现有 `MedicationOccurrenceGenerator` 生成（无第二套 recurrence 逻辑），窗口与 §6 的 context 相同
-（`[startDate−1, endDate+1]`）。这样既覆盖请求日期，又保留 ±1h / 跨午夜兼容匹配所需的相邻日期 context。
+occurrence 用现有 `MedicationOccurrenceGenerator` 生成（无第二套 recurrence 逻辑），窗口为
+`OCCURRENCE_CONTEXT_DAYS = 1` 的 `[startDate−1, endDate+1]`，**与 §6 的 event query context 不同**：
+
+> **occurrence context 解决 matcher adjacency；event query context 解决 persisted-date / zone displacement。**
+> 两者不是同一个问题，不得用扩大 recurrence 生成范围来"顺带"修 P1（R1 即按此拆分）。
+
+当请求范围接近 `MAX_RANGE_DAYS` 上限、`范围 + 2 天` 超过 generator 的单窗口上限时，
+adapter 用**不重叠半开 chunk** 调用同一个 generator（保持 ±1 天 context 不被缩小）。
 
 **context 与最终返回范围分离**：投影在 context 上执行，随后按 **projection 的最终 display date** 过滤到 `[startDate, endDate]`；
 相邻日期的 occurrence/entry 不会泄漏进结果（测试显式断言）。
@@ -176,6 +230,52 @@ occurrence 用现有 `MedicationOccurrenceGenerator` 生成（无第二套 recur
 - 新增覆盖：completeness（含 mixed batch、重复消费）、day 分组与排序、range（单日/多日/空/start=end/非法）、timezone（三态归因 + 跨时区归日）、cross-midnight context、edited-plan、deleted-plan；app adapter 侧覆盖 query bounds、context bounds、displayZone 转发、projection 复用、最终范围过滤、非法区间 fail-fast。
 - `git diff --check`：工作树与 `72a468c..HEAD` 区间均为 0（evidence 目录受 `* -text -whitespace` 约束，源码/普通文档另行独立检查）。
 - 未运行 instrumentation：本轮只改 JVM/domain 与 app read adapter，未触及 DAO/Room Android 实现。
+
+## 14. A-02-R1 变更记录（极端时区 query-bound 修复）
+
+**Finding（P1）**：原实现 event 查询与 occurrence 生成共用 ±1 calendar-day padding，
+无法覆盖所有合法 persisted recording-zone ↔ display-zone 组合，会**静默丢 authoritative event**。
+
+**反例复现（JVM tzdb，不手写 offset）**：
+
+| 用例 | display zone | persisted zone / localDate | occurredAt | 旧 query bound | 旧结果 |
+|---|---|---|---|---|---|
+| CE1 下界 | `Etc/GMT+12`，2025-06-15..06-17 | `Pacific/Kiritimati` / 2025-06-15 00:00 | `2025-06-14T10:00:00Z` | start `2025-06-14T12:00:00Z` | **事件被漏掉** |
+| CE2 上界 | `Pacific/Auckland`，2025-01-10..01-12 | `Etc/GMT+12` / 2025-01-12 23:59:59 | `2025-01-13T11:59:59Z` | endExclusive `2025-01-13T11:00:00Z` | **事件被漏掉** |
+
+**修复**：拆分 `OCCURRENCE_CONTEXT_DAYS = 1` 与 `EVENT_QUERY_CONTEXT_DAYS = 2`（bound proof 见 §6.1）；
+未改 matcher / provenance / schema / DAO / recurrence / Widget / Wear / PK / UI / 依赖。
+接近 `MAX_RANGE_DAYS` 时按 chunk 调用同一 generator（保持 context，不缩小）。
+
+**before / after（同一测试套件，仅把 `EVENT_QUERY_CONTEXT_DAYS` 临时设回 1）**：
+
+| 状态 | 结果 |
+|---|---|
+| before（padding = 1） | `HistoryReadServiceExtremeZoneTest`：`7 tests completed, 3 failed` —— CE1 下界、CE2 上界、以及"event padding 必须大于 occurrence padding"断言均 FAILED；CE1/CE2 的失败信息为 `query start … must include the authoritative instant …` / `query end … must be after the authoritative instant …` |
+| after（padding = 2） | `BUILD SUCCESSFUL`，7/7 通过 |
+
+**MAX_RANGE_DAYS 边界测试（P2）**：inclusive **3660** 天 → 允许（且 generator 分块生效）；
+inclusive **3661** 天 → `IllegalArgumentException`，且**发生在 repository access 之前**（断言 `recordedRange == null`）。
+`start == end` 用例保留。**产品值 `MAX_RANGE_DAYS` 未改**。
+
+**legacy / display-zone 语义未变**：true legacy orphan 仍按 `occurredAt + displayZone` 归日
+（query 变宽不影响最终 inclusion，测试断言同一 orphan 在 Paris 归 01-05、Shanghai 归 01-06、Shanghai 查 01-05 为空）。
+
+**occurrence context 仍为 1 天**：跨午夜 `previous-day 23:00 → requested-day 00:00` 的 inferred match 有专门回归测试。
+
+**R1 fresh 结果**（显式 `--rerun-tasks`，三个 test task 均实际执行、无 UP-TO-DATE）：
+
+| 模块 | XML | tests | skipped | failures | errors | passed |
+|---|---:|---:|---:|---:|---:|---:|
+| app | 82 | **707**（700 + 新增 7） | 0 | 0 | 0 | 707 |
+| experience-core | 13 | 125 | 0 | 0 | 0 | 125 |
+| wear | 11 | 90 | 0 | 0 | 0 | 90 |
+| **合计** | **106** | **922** | **0** | **0** | **0** | **922** |
+
+证据：[`evidence/a-02-r1/MANIFEST.sha256`](evidence/a-02-r1/MANIFEST.sha256)（fresh XML + aggregate TSV + Gradle log + before/after 复现记录）。
+A-02 candidate 的 `evidence/a-02/MANIFEST.sha256` 保持 frozen，未被 R1 修改。
+
+**DoseCheckInMatcher**：R1 未修改，边界结论沿用 §10（reminder matcher ≠ historical matcher；A-04 / 独立 hardening 再评估）。
 
 ## 13. 未做 / 已知限制
 

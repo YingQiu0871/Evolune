@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkBoundaryTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:22:15.016Z" hostname="人面不知何处去" time="0.03">
+  <properties/>
+  <testcase name="production has one formal event projection and no Batch 6 PK bridge" classname="io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkBoundaryTest" time="0.03"/>
+  <testcase name="formal adapter is pure structural Kotlin boundary" classname="io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkBoundaryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

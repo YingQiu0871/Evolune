@@ -1,0 +1,10 @@
+# A-02-R1 before-state reproduction (EVENT_QUERY_CONTEXT_DAYS temporarily = 1)
+# command: ./gradlew :app:testDebugUnitTest --tests '*HistoryReadServiceExtremeZoneTest*'
+
+tests=7 failures=3 errors=0 skipped=0
+FAILED event query context is strictly wider than the occurrence context
+    java.lang.AssertionError: event query padding must exceed occurrence generation padding
+FAILED upper bound keeps an event whose persisted zone is far west of the display zone
+    java.lang.AssertionError: query end 2025-01-13T11:00:00Z must be after the authoritative instant 2025-01-13T11:59:59Z
+FAILED lower bound keeps an event whose persisted zone is far east of the display zone
+    java.lang.AssertionError: query start 2025-06-14T12:00:00Z must include the authoritative instant 2025-06-14T10:00:00Z

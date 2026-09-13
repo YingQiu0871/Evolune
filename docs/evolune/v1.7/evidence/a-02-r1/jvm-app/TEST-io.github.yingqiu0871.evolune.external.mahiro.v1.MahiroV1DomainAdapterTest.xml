@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-13T18:22:15.111Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="Domain export uses exact wire spellings and deterministic extras order" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.001"/>
+  <testcase name="missing blank and malformed ids use independent supplied UUIDs" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="unrepresentable Domain Instant returns explicit export failure" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="valid UUID bypasses supplier and is preserved" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.001"/>
+  <testcase name="invalid legacy time returns typed adapter failure" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="representable Domain round trip preserves protocol fields and applies import defaults" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="all five ester spellings map explicitly and case remains strict" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.001"/>
+  <testcase name="negative and sub-millisecond legacy times retain Math round semantics" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="all Domain esters export exact protocol spellings" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="all Domain routes export exact protocol spellings" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="new boundary matches legacy facade for synthetic v1 event semantics" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.002"/>
+  <testcase name="valid DTO maps every Domain field and locked JSON metadata" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <testcase name="all seven route spellings map explicitly and case remains strict" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
