@@ -12,6 +12,7 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.data.migration.MIGRATION_2_3
+import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -737,11 +738,25 @@ class AppDatabaseMigrationMatrixTest {
         }
     }
 
+    /**
+     * Closing the production database is only safe when the process-wide handle to it is dropped
+     * as well. The production repository provider caches the database it was built with, and the
+     * process can already hold one before this test runs: Android delivers a package-scoped
+     * `BOOT_COMPLETED` to a freshly installed app, and `ReminderRescheduleReceiver` answers it by
+     * running production work through `ProductionRepositoryProvider.get`. Leaving that cached
+     * provider behind hands every later test a closed Room database, whose cancelled
+     * `coroutineScope` turns the first suspend DAO call into a `JobCancellationException` instead
+     * of a real read.
+     */
     private fun resetProductionDatabaseSingleton() {
         val instanceField = AppDatabase::class.java.getDeclaredField("INSTANCE")
         instanceField.isAccessible = true
         (instanceField.get(null) as? AppDatabase)?.close()
         instanceField.set(null, null)
+
+        val providerField = ProductionRepositoryProvider::class.java.getDeclaredField("instance")
+        providerField.isAccessible = true
+        providerField.set(null, null)
     }
 
     private fun slotIdV1(planId: String, position: Int, localTime: String): String {
