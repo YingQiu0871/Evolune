@@ -1,0 +1,3 @@
+# Evidence bytes must be stored verbatim: SHA-256 manifests in this directory
+# are only reproducible if Git performs no EOL conversion on these files.
+* -text

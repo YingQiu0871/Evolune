@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T13:28:06.497Z" hostname="人面不知何处去" time="0.6">
+  <properties/>
+  <testcase name="phone manifest points to the complete launcher icon family" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.072"/>
+  <testcase name="final adaptive render matches the v1_5 phone crescent geometry" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.255"/>
+  <testcase name="brightness weighted centroid is centered and stable across densities" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.028"/>
+  <testcase name="artwork remains inside circle rounded squircle and teardrop masks" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.082"/>
+  <testcase name="legacy phone and wear renders preserve their target geometry" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.03"/>
+  <testcase name="launcher artwork remains locked to the official master geometry" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.001"/>
+  <testcase name="adaptive icon layers are parseable and reference existing resources" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.002"/>
+  <testcase name="monochrome and color adaptive outlines are identical" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.064"/>
+  <testcase name="wear legacy launcher assets keep the outer corners transparent" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.01"/>
+  <testcase name="all launcher densities have matching layers and safe foreground artwork" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.053"/>
+  <testcase name="wear manifest points to the same launcher icon family" classname="io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

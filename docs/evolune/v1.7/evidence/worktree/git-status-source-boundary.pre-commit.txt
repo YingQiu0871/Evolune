@@ -1,0 +1,2 @@
+$ git status --porcelain -- app wear experience-core scripts build.gradle.kts settings.gradle.kts gradle gradle.properties
+exit_code=0 lines=0

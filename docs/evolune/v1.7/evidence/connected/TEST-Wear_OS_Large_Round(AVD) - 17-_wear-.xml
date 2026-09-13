@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearDataLayerDeviceProbeTest" tests="5" failures="0" errors="0" skipped="1" time="2.961" timestamp="2026-09-13T13:37:17" hostname="localhost">
+  <properties>
+    <property name="device" value="Wear_OS_Large_Round(AVD) - 17" />
+    <property name="flavor" value="" />
+    <property name="project" value=":wear" />
+  </properties>
+  <testcase name="requestPlansFromPhoneReceivesAnAuthoritativeDashboard" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerDeviceProbeTest" time="0.03">
+    <skipped />
+  </testcase>
+  <testcase name="launcherIconResolvesToAdaptiveLayers" classname="io.github.yingqiu0871.evolune.wear.WearLauncherIconResourceTest" time="0.003" />
+  <testcase name="finalLauncherManifestUsesValidIsolatedTaskAffinity" classname="io.github.yingqiu0871.evolune.wear.WearManifestContractTest" time="0.005" />
+  <testcase name="actionButtonsShareOneVisibleRoundSafeRow" classname="io.github.yingqiu0871.evolune.wear.WearOccurrenceDialogEmulatorTest" time="1.104" />
+  <testcase name="seedReadySnapshotAndRefreshGalleryTiles" classname="io.github.yingqiu0871.evolune.wear.WearTileEmulatorPreviewTest" time="0.875" />
+</testsuite>
