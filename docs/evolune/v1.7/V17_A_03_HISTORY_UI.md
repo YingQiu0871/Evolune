@@ -6,7 +6,7 @@
 > Commit（preflight 轮）：`docs: close A-02 review precision notes`、`docs: report A-03 history contract gap`
 > Commit（本轮 A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
 > 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
-> 证据清单（本轮）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `d4c4c310c061e4580af21862ef4fb0268dd9797cb7831acb8760ac6820426318`）
+> 证据清单（本轮）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
 
 ---
 
@@ -226,6 +226,21 @@ Preview 使用 synthetic UI model、导航只允许新增一个 destination + �
 | 不变式无法容纳"非历史 future" | 未命中（扩展为三分支，fail-fast 保留） |
 | 需要 schema / repository 变更 | 未命中（0 行） |
 
+### 8.7 P3-B 说明：三分支完整性的地位（本轮**不改 API**）
+
+reviewer 指出：`HistoricalProjection.futureOccurrences` 的 `= emptyList()` 默认值意味着
+`HistoricalProjection(entries = ...)` 这种直接构造可以**绕过** builder 的完整性检查。此处明确冻结该语义：
+
+- **three-fate exhaustiveness 是 `HistoricalProjectionBuilder.derive(...)` 的 runtime invariant**，
+  不是类型系统保证：它由 `verifyCompleteness(...)` 在每次 `derive` 时校验，违反即 `check` fail-fast；
+- **直接手工构造的 `HistoricalProjection`（例如 test fixture，或任何只传 `entries` 的调用）不是
+  authoritative projection**，其内容不享受上述不变式保证，也不得作为 History / Insights / 依从性判定的输入；
+- 生产路径只有一条：`HistoryReadService.readRange(...)` → `HistoricalProjectionBuilder.derive(...)`
+  → `HistoricalReadModel.day/range(...)`。UI 层（A-03）只消费该路径的输出；
+- 本轮**刻意不做 API 收紧**（不加 `init { require(...) }`、不引入 sealed wrapper、不改构造签名）：
+  该默认值不是缺陷，收紧会改变已 APPROVE 的 A-03-PRE-01 domain contract，并会破坏 fixture 构造方式。
+  如未来需要类型级保证，应作为独立 hardening 任务评估。
+
 ## 9. 附录：Phone UI 接入面盘点（只读审计，供缺口修复后的 UI 轮直接使用）
 
 本轮在写任何 UI 前先完成了 Phone UI/导航/字符串/测试约定的只读盘点（未改动任何文件）。要点：
@@ -282,9 +297,10 @@ vs Settings 二级页）、日历组件选型、是否引入可注入时间 prov
   `evidence/a-03-pre-01/a03pre01-jvm-run.log`；
 - 相对 preflight（933）新增 **19** 个测试（experience-core +15、app +4），全部为新增契约/回归测试，
   无既有测试被删除或改写期望；
-- 放回的 preflight 契约测试：RED 原始方法与 GREEN 恢复方法 **字节相同**（SHA-256
-  `46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775`，见
-  `evidence/a-03-pre-01/contract-test-green.txt`），仅由域修复转绿；
+- 放回的 preflight 契约测试：RED 原始方法与 GREEN 恢复方法 **字节相同**（提取规则与命令写在
+  `evidence/a-03-pre-01/contract-test-green.txt`：frozen 第 29–57 行 / restored 第 60–88 行，各 29 行，
+  `diff -u` 与 `cmp` 均为空，提取文本 SHA-256
+  `46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775`），仅由域修复转绿；
 - 未运行 Phone instrumentation：本轮未写 UI，无受影响面（与 preflight 一致）；
 - `git diff --check`：0（提交前复核）。
 
@@ -297,9 +313,22 @@ vs Settings 二级页）、日历组件选型、是否引入可注入时间 prov
   （放回的契约测试 RED→GREEN，含"恢复方法与 RED 方法字节相同"的 SHA-256 证明）、`source-diff-stat.txt`
   （改动面 + UI/Wear/adapter/matcher/schema/依赖各 0 改动的逐条证明）、`MANIFEST.sha256`
   （115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，自哈希
-  `d4c4c310c061e4580af21862ef4fb0268dd9797cb7831acb8760ac6820426318`）；
+  `d4c4c310…` → P3-A 清理后为 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`）；
+  P3-A 只改了 `contract-test-green.txt`（`9be8845b…` → `a48836e9…`）并重新生成 manifest，
+  其余 114 个证据文件字节未变；
 - preflight 证据 [`evidence/a-03/`](evidence/a-03/) **冻结未改**（`git diff` 0 改动，见
   `source-diff-stat.txt` 最后一项边界证明）；
 - commit：`fix: exclude future unrecorded occurrences from History`、
   `test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`；
 - **无 UI 代码、无 ViewModel、无导航改动、无 Compose 测试、无 DAO/schema/matcher/依赖改动**。
+
+## 13. A-03-UI 第 0 轮：PRE-01 reviewer P3 清理（只改文档/证据，不动产品代码）
+
+A-03-PRE-01 独立复审结论 **APPROVE**（无 P0/P1/P2），另有两个 P3 记录在案，本轮开工前先关闭：
+
+| 项 | 内容 | 处理 |
+|---|---|---|
+| **P3-A** | `contract-test-green.txt` 里 `46365f8e…` 这个 test-method SHA 的**提取规则未记录**，第三方无法独立复现 | 记入**精确提取规则**（frozen 第 29–57 行 / restored 第 60–88 行，各 29 行，判定规则为"文件唯一的 `@Test` 起、到其后第一行恰为 `    }` 止"）与可复制命令（`sed -n` / `diff -u` / `cmp` / `sha256sum`），并补 whole-file diff 的量化说明（116 added / 3 removed，3 行全部是 class KDoc）。常量因此**变为可独立复现**，同时保留 reviewer 已独立确认的字节相同/空 diff 证明。仅该文件字节变化（`9be8845b…` → `a48836e9…`），manifest 重新生成（自哈希 `d4c4c310…` → `8d9ed4c8…`），其余 114 个文件未变 |
+| **P3-B** | `futureOccurrences = emptyList()` 默认值允许直接 `HistoricalProjection(entries = ...)` 绕过 builder 完整性 | 在 **§8.7** 明确：three-fate exhaustiveness 是 `HistoricalProjectionBuilder.derive` 的 **runtime invariant**；直接构造的 projection **不是** authoritative projection。本轮**不改 API**，不为 P3 触碰已 APPROVE 的 domain contract |
+
+**本轮（第 0 轮）不修改任何产品代码**（`git diff` 仅含 `docs/`）。commit：`docs: close A-03 preflight review notes`。

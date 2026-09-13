@@ -1,15 +1,33 @@
 # A-03-PRE-01 contract closure: RED -> GREEN, expectations unchanged
-# RED  source: docs/evolune/v1.7/evidence/a-03/preflight-reproduction.txt (tests=1 failures=1, frozen, not modified)
-# GREEN source: fresh --rerun-tasks JVM run of this round (see a03pre01-jvm-run.log, jvm-aggregate.tsv)
+# P3-A cleanup (A-03-UI round 0): the test-method SHA constant now comes with its exact,
+# reproducible extraction rule; the frozen/restored texts are also compared directly.
+# RED  source: docs/evolune/v1.7/evidence/a-03/preflight-reproduction.txt (tests=1 failures=1, frozen)
+# GREEN source: fresh --rerun-tasks JVM run of A-03-PRE-01 (a03pre01-jvm-run.log, jvm-aggregate.tsv)
 
-## expectation-preservation proof for the restored preflight test
+## reproducibility: exact extraction rule
+# every command below is copy-pasteable from the repository root
+# frozen file:   docs/evolune/v1.7/evidence/a-03/preflight-contract-test-source.kt.txt
 # restored file: app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryFutureOccurrenceContractTest.kt
-# the frozen RED test method and the restored GREEN test method are byte-identical:
-frozen_test_method_sha256   = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
-restored_test_method_sha256 = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
-identical                   = True
+# the test method is the block starting at the file's only `@Test` line and ending at the
+# first subsequent line that is exactly "    }" (4 spaces + closing brace):
+#   frozen   -> lines 29-57 inclusive (29 lines)
+#   restored -> lines 60-88 inclusive (29 lines)
+#   sed -n '29,57p' docs/evolune/v1.7/evidence/a-03/preflight-contract-test-source.kt.txt > frozen-method.txt
+#   sed -n '60,88p' app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryFutureOccurrenceContractTest.kt > restored-method.txt
+#   diff -u frozen-method.txt restored-method.txt   # must print nothing
+#   cmp frozen-method.txt restored-method.txt        # must print nothing
 
-## GREEN test cases (from JUnit XML, fresh run)
+## byte-identity proof
+extracted_frozen_sha256   = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
+extracted_restored_sha256 = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
+identical                 = True
+frozen_file_sha256        = dd10a9cc3439c6e2293c12760176d8f847f38b93bed558bb05a6d806691a0c86
+restored_file_sha256      = 174ee78eeb454341397b6717d63cffd3272ff00e69b9babf734e02ba7e6070fc
+# whole-file diff (frozen -> restored): 116 added lines, 3 removed lines.
+# All 3 removed lines are KDoc lines of the class comment (the imports block only gains lines);
+# the extracted test method itself is unchanged, as proved above by diff -u / cmp.
+
+## GREEN test cases (from JUnit XML, A-03-PRE-01 fresh run)
 [app] io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest  tests=4
   PASS app  future occurrence of today is not presented as an unrecorded history entry  (0.007s)
   PASS app  previous days keep every unmatched occurrence as unrecorded  (0.001s)
