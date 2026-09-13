@@ -35,8 +35,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +56,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.experience.HistoricalDay
 import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
@@ -103,6 +110,30 @@ fun HistoryScreen(
     showTopBar: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsState()
+
+    // A-04 refresh contract (local only, no navigation/lifecycle architecture change):
+    //  - the destination leaves composition when the user switches tabs, so this keyed effect
+    //    fires exactly once per entry (a cold start is owned by the ViewModel's initial load);
+    //  - a real background → foreground transition while History is active refreshes once. The
+    //    "was stopped" bit makes the cold-start ON_START indistinguishable from a normal start.
+    LaunchedEffect(Unit) { viewModel.onSurfaceShown() }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var wentToBackground by remember { mutableStateOf(false) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> wentToBackground = true
+                Lifecycle.Event.ON_START -> if (wentToBackground) {
+                    wentToBackground = false
+                    viewModel.onAppForegrounded()
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     HistoryScreenContent(
         state = state,
         is24Hour = is24Hour,

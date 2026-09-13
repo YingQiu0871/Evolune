@@ -27,8 +27,13 @@ import java.time.ZoneId
  * - the current month is queried up to `today`; a past month up to its last day; a future
  *   month can never be loaded;
  * - switching months cancels the in-flight request **and** guards the response with a
- *   generation token, so a stale response can never replace a newer month;
- * - `retry()` re-loads the current month exactly once.
+ *   generation token, so a stale response can never replace a newer month (the token is
+ *   incremented *before* the previous job is cancelled);
+ * - `retry()` re-loads the current month exactly once;
+ * - `onSurfaceShown()` / `onAppForegrounded()` refresh the visible month when the History
+ *   surface becomes active again (tab return / app foreground). Both are coalesced by the
+ *   in-flight guard and the first show is owned by the initial load, so a cold start and a
+ *   recomposition never add a query. Selecting a day still never reads.
  *
  * Time and zone are injectable ([clock], [displayZone]) so the whole state machine is
  * testable on the JVM; Compose never decides historical day attribution itself.
@@ -47,6 +52,7 @@ class HistoryViewModel(
 
     private var loadJob: Job? = null
     private var loadToken = 0
+    private var surfaceShownOnce = false
 
     init {
         loadMonth(_uiState.value.visibleMonth)
@@ -81,27 +87,66 @@ class HistoryViewModel(
         loadMonth(_uiState.value.visibleMonth)
     }
 
+    /**
+     * The History surface entered composition (cold start or a return from another tab).
+     *
+     * The **first** show is owned by the constructor's initial load, so a cold start performs
+     * exactly one read; every later show refreshes the visible month once. Recomposition alone
+     * cannot call this (the screen only calls it from a keyed effect on composition entry), and an
+     * in-flight load always wins, so a refresh can never stack up.
+     */
+    fun onSurfaceShown() {
+        if (!surfaceShownOnce) {
+            surfaceShownOnce = true
+            return
+        }
+        refreshVisibleMonth()
+    }
+
+    /**
+     * The app came back to the foreground while History is the active surface (the screen only
+     * calls this after a real `ON_STOP` → `ON_START` transition, so cold start cannot double-load).
+     */
+    fun onAppForegrounded() {
+        refreshVisibleMonth()
+    }
+
+    private fun refreshVisibleMonth() {
+        if (_uiState.value.loading) return
+        // A day rollover is applied here: when the visible month *was* the current month and today
+        // has moved on, the view advances to the new current month; a historical month the user is
+        // browsing is left untouched. `today`/`now`/`displayZone` are always re-derived.
+        loadMonth(_uiState.value.visibleMonth, applyRollover = true)
+    }
+
     // ---------- loading ----------
 
-    private fun loadMonth(month: YearMonth) {
-        loadJob?.cancel()
+    private fun loadMonth(month: YearMonth, applyRollover: Boolean = false) {
+        // The generation token is claimed before the previous job is cancelled, so a response
+        // that ignores cancellation can never be mistaken for the current request.
         val token = ++loadToken
+        loadJob?.cancel()
         val zone = displayZone()
         val today = LocalDate.now(clock.withZone(zone))
-        val start = month.atDay(1)
+        val targetMonth = if (applyRollover) {
+            rolloverMonth(month, _uiState.value.today, today)
+        } else {
+            month
+        }
+        val start = targetMonth.atDay(1)
         // The current month is history only up to today; a past month is complete.
-        val end = if (month == YearMonth.from(today)) today else month.atEndOfMonth()
-        val selection = resolveSelection(month, today, _uiState.value.selectedDate)
+        val end = if (targetMonth == YearMonth.from(today)) today else targetMonth.atEndOfMonth()
+        val selection = resolveSelection(targetMonth, today, _uiState.value.selectedDate)
 
         _uiState.value = _uiState.value.copy(
-            visibleMonth = month,
+            visibleMonth = targetMonth,
             selectedDate = selection,
             today = today,
             displayZone = zone,
             loading = true,
             failed = false
         )
-        persistSelection(month, selection)
+        persistSelection(targetMonth, selection)
 
         loadJob = scope.launch {
             val range = try {
@@ -118,7 +163,7 @@ class HistoryViewModel(
             _uiState.value = _uiState.value.copy(
                 loading = false,
                 failed = false,
-                loadedMonth = month,
+                loadedMonth = targetMonth,
                 loadedDays = range.days.associateBy { it.date }
             )
         }
@@ -154,6 +199,23 @@ class HistoryViewModel(
     private fun persistSelection(month: YearMonth, date: LocalDate) {
         savedStateHandle?.set(KEY_VISIBLE_MONTH, month.toString())
         savedStateHandle?.set(KEY_SELECTED_DATE, date.toString())
+    }
+
+    /**
+     * Day rollover: only advance when the visible month *was* the then-current month. A user
+     * browsing an older month keeps it, and a stale "today" can never survive a rollover.
+     */
+    private fun rolloverMonth(
+        visibleMonth: YearMonth,
+        previousToday: LocalDate,
+        today: LocalDate
+    ): YearMonth {
+        val previousCurrentMonth = YearMonth.from(previousToday)
+        return if (visibleMonth == previousCurrentMonth && YearMonth.from(today) != previousCurrentMonth) {
+            YearMonth.from(today)
+        } else {
+            visibleMonth
+        }
     }
 
     private fun resolveSelection(month: YearMonth, today: LocalDate, current: LocalDate): LocalDate = when {
