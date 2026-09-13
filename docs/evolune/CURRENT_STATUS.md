@@ -107,8 +107,9 @@ independently exercised on a real watch. See the [gate's per-surface matrix](v1.
 - Google Drive requires explicit authorization and manual backup/restore; background and real-time multi-device cloud synchronization are not implemented.
 - Auto Backup/device transfer intentionally excludes private app data.
 - Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
-- v1.7 Optional CPA PK Curve remains a candidate only; it is default-off and requires independent
-  scientific and source review before implementation or release.
+- v1.7 Optional CPA PK Curve remains a candidate only (it is **not** part of the current v1.7
+  History & Insights program); it is default-off and requires independent scientific and source
+  review before implementation or release.
 
 ## Provenance
 
@@ -127,6 +128,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
 ## Next Milestone
 
 - `v1.6.0`: Widget Gallery — **CLOSED / RELEASED**.
-- `v1.7`: Optional CPA Pharmacokinetic Curve — **CANDIDATE / NOT STARTED**.
+- `v1.7`: History & Insights program — **Phase A CLOSED**（候选实现经 A-04 独立复审 APPROVE）；
+  **Phase B — B-00 semantics freeze in progress**。
+  当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
+  [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
+  [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md)）。
+- `v1.7` 早期草案中的 **Optional CPA Pharmacokinetic Curve** 不再代表 v1.7 的程序范围；
+  该候选保持 **CANDIDATE / NOT STARTED**（见下方 Current Limitations），如要推进需单独立项。
 
 See the [Roadmap](ROADMAP.md) for the historical release sequence and future boundaries.

@@ -124,7 +124,15 @@ v1.5.0 已完成其稳定性、性能与清理验收，并以 `v1.5.0` tag、提
 ## Historical and future milestones
 
 v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备验收和发布封版。
-历史候选、阶段审阅与修复证据保存在 [v1.6 文档目录](v1.6/)；当前后续候选为 v1.7。
+历史候选、阶段审阅与修复证据保存在 [v1.6 文档目录](v1.6/)。
+
+**v1.7 当前程序状态（2026-09-13 更新，历史叙述不改）**：v1.7 现定义为 **History & Insights** 计划，
+文档位于 [v1.7 文档目录](v1.7/)：
+**Phase A — History Foundation 已 CLOSED**（A-01/A-02/A-03/A-04 各自独立复审 APPROVE；
+候选实现见 [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md)），
+**Phase B — Adherence Insights：B-00 语义冻结进行中**（[`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md)）。
+下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
+该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 
 ### v1.2 — Google Integration & Data Continuity
 
@@ -229,7 +237,9 @@ Wear 最终交付：
 
 所有样式必须复用统一 presentation state、稳定 occurrence/action semantics 和现有配置体系；不得为每个 Widget 建立独立事实来源。
 
-### v1.7 — Optional CPA Pharmacokinetic Curve
+### v1.7（早期草案）— Optional CPA Pharmacokinetic Curve
+
+> 状态：**OPTIONAL / NOT STARTED**，不属于当前 v1.7 History & Insights 程序范围（见上文状态块）。
 
 目标：在不影响现有 E2 模型默认体验和数值回归的前提下，新增醋酸环丙孕酮（Cyproterone Acetate, CPA）的估算浓度曲线。
 
