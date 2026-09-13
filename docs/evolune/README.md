@@ -34,6 +34,7 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 - **桌面小组件**：四个独立入口显示今日计划、下一次服药、当前 E2 和 E2 趋势；支持独立外观配置、响应式布局和快速记录。
 - **Wear OS 支持**：Wear App、三个新 Tile、兼容 E2 曲线 Tile 和三个 Complication；支持确认、撤销和 occurrence 级“跳过本次”。
 - **数据导入导出**：通过文件或剪贴板导入、导出 JSON，兼容 `hrt.mahiro.uk` 数据格式。
+- **同步与备份**：可选 Health Connect 前台体重读取；原生加密备份与恢复预览；手动 Google Drive 备份/恢复。
 - **个性化设置**：支持深浅色主题、动态取色、12/24 小时制和自动检查更新。
 
 生产代码由 `app` 和 `wear` 两个 Android application 模块及共享的 `experience-core` 模块组成。Phone Room/Repository 是唯一事实来源；Wear 使用版本化快照、可重建缓存和 Data Layer 动作协议。
@@ -43,7 +44,7 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 - 手机端：Android 12 及以上（`minSdk = 31`），应用 ID `io.github.yingqiu0871.evolune`
 - 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune`（Kotlin namespace `io.github.yingqiu0871.evolune.wear`）
 - v1.6.0：Phone `versionCode = 101060000`；Wear `versionCode = 1101060000`
-- v1.0.0：上一版 Phone/Wear 稳定发布使用 `versionCode = 10060`
+- 历史 v1.0.0：Phone/Wear 使用 `versionCode = 10060`；不代表当前升级目标。
 
 ## 快速上手
 
@@ -51,7 +52,8 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 2. 在“记录”中添加已有的用药记录。
 3. 在“方案”中创建未来计划，并按需启用提醒。
 4. 返回“主页”查看当前浓度、历史曲线和未来预测。
-5. 如需迁移，在“设置”中导出 JSON 数据，并在目标设备上导入。
+5. 在“设置 → 同步与备份”中按需使用 JSON 数据交换、Health Connect 或 Google Drive 加密备份/恢复；恢复前检查预览并保管好备份口令。
+6. 在桌面小组件选择器选择四类入口；在手表添加 Tile 或编辑支持 Short Text 的表盘槽位。详见 [快速开始](../../QUICK_START_GUIDE.md)。
 
 ## 本地开发构建
 
@@ -75,6 +77,7 @@ Release signing 需要项目维护者控制的持久外部签名身份；开发�
 ```text
 app/      Android 手机端、桌面小组件、提醒、Room、Repository 与 PK 模型
 wear/     Wear OS Tile、方案/浓度缓存与手机 Data Layer
+experience-core/  共享 occurrence、展示契约与版本化 Wear 协议
 docs/     当前文档、历史设计、工程报告与来源记录
 reviews/  外部审阅报告和逐项处置记录
 ```
@@ -84,20 +87,21 @@ reviews/  外部审阅报告和逐项处置记录
 ## 数据与隐私
 
 - 用药记录、方案和设置保存在设备本地；Room v3 是核心事实来源。
-- 应用本身不提供云同步、Health Connect 或 Google Drive 集成。
-- 网络权限用于检查 GitHub 上的新版本。
+- Health Connect 只在前台显式授权后读取体重；用药数据仍由 Phone 管理。
+- Google Drive 仅提供用户主动的加密备份/恢复；不提供后台或实时云同步。
+- 网络访问用于 GitHub 更新检查以及用户授权的 Google Drive 备份/恢复等已实现服务。
 - 导出的 JSON 文件由用户自行保存和管理，内容可能包含敏感健康数据。
 - 当前数据库使用 Room 默认存储，未启用 SQLCipher 或其他数据库透明加密。
-- Phone 与 Wear 的 Android Auto Backup 和设备迁移规则排除全部应用私有数据；用户应通过 JSON 导出/导入主动迁移。
+- Phone 与 Wear 的 Android Auto Backup 和设备迁移规则排除全部应用私有数据；该规则不禁用应用内的 JSON 导出/导入或原生加密备份。
 
 ## 当前限制
 
-- Health Connect 与 Google 云备份计划用于 v1.2，尚未实现；v1.2 尚未开始。
+- Health Connect 前台体重读取和手动 Google Drive 加密备份已在 v1.2 发布；后台读取、用药写入和实时云同步不在当前范围。
 - Phone Widget Completion 与 Widget Gallery 已分别在 v1.1 和 v1.6 完成并关闭。
 - 轻量 Wear OS App、Tile/Complication Gallery 与 Data Layer 动作已进入 v1.6 稳定版本。
-- 其他后续版本（v1.4–v1.7）以 [Roadmap](ROADMAP.md) 为准，不在 README 过度展开。
+- v1.2–v1.6 的已发布历史与 v1.7 候选以 [Roadmap](ROADMAP.md) 为准。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
-- 个性化 calibration/PK 2.0 不属于 v1.0。
+- 个性化 calibration/PK 2.0 截至 v1.6 仍未实现。
 
 ## 常见问题
 
@@ -111,7 +115,7 @@ reviews/  外部审阅报告和逐项处置记录
 
 ### 如何迁移或备份数据？
 
-在设置页导出 JSON 文件或复制到剪贴板；在新设备上使用对应的导入功能恢复。Android Auto Backup 和设备迁移不会复制 Evolune 私有数据。
+在“设置 → 同步与备份”使用 JSON 数据交换或 Google Drive 加密备份/恢复。两种格式的覆盖范围不同，不能把兼容 JSON 当成完整原生备份；恢复前核对预览，并保存备份口令。Android Auto Backup 和设备迁移不会复制 Evolune 私有数据。
 
 ## 致谢与许可证
 
@@ -130,6 +134,8 @@ Evolune 是 HRTTracker 的独立延续与大规模重构。当前由盈秋（[`Y
 ### Current documentation
 
 - [Current Status](CURRENT_STATUS.md)
+- [截至 v1.6 的版本回顾与文档盘点](DOCUMENTATION_REVIEW_V16_2026-09-12.md)
+- [完整文档索引](DOCUMENTATION_INDEX.md)
 - [Wear v1.1 身份迁移说明](WEAR_V11_MIGRATION.md)
 - [产品概览](PRODUCT_OVERVIEW.md)
 - [架构](ARCHITECTURE.md)

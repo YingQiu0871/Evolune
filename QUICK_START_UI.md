@@ -1,5 +1,7 @@
 # 当前 UI 结构速览
 
+适用基线：v1.6.0；2026-09-12 文档核对。完整入口见 [快速开始](QUICK_START_GUIDE.md)。
+
 本文说明当前生产 UI 的导航和主要组件。Phone 主界面使用 Jetpack Compose；桌面
 Widget 仍是 Android `RemoteViews`，不是 Compose/Glance 页面；Wear Tile 是独立的
 Wear surface。
@@ -11,7 +13,7 @@ Wear surface。
 - **主页 Home**：当前 E2 浓度、历史/预测曲线和今日摘要；
 - **记录 Records**：浏览、添加、编辑和删除 `DoseEvent`；
 - **方案 Medication Plans**：管理 `MedicationPlan`、启用状态和时间槽；
-- **设置 Settings**：应用设置、JSON 导入导出、更新检查、关于与免责声明。
+- **设置 Settings**：分类外观/时间设置、同步与备份（JSON、Health Connect、Google Drive）、更新、教程、关于和条款说明。
 
 紧凑窗口使用 Material 3 底部导航；中等和展开窗口使用 Navigation Rail。编辑器以
 全屏 transition layer 进入，导航 chrome 与页面一起过渡，系统返回、UI 返回、保存和
@@ -42,17 +44,21 @@ Repository/application action 保存并重排提醒。
 导入导出、关于和免责声明也从设置入口进入。应用主题设置不会替 Widget 的独立外观
 配置。
 
+v1.2 的 SyncAndBackupScreen 将本地交换、可选 Health Connect 前台体重读取和手动 Google Drive 加密备份分开；v1.4 提供首次信任/权限引导与可重开的功能教程。
+
 ## Phone Widget 配置与展示
 
 `WidgetConfigurationActivity` 是 Compose 配置页，提供代表性预览、Auto/Light/Dark、
 Material You/Monet 配色、透明度和恢复默认值。预览与生产 Widget 复用同一 palette、
 背景和前景解析；每个 `appWidgetId` 独立保存配置。
 
+v1.6 系统选择器有四个独立 provider：EvoluneWidgetReceiver（今日计划）、NextDoseWidgetReceiver、CurrentE2WidgetReceiver、PkChartWidgetReceiver。今日进度并入今日计划；配置只在“应用”后成功，取消/返回不误建实例。
+
 `EvoluneWidgetReceiver`、`WidgetWork`、`WidgetPresentation` 和 `WidgetUi` 构成
 RemoteViews 边界：
 
 - occurrence-driven 行按计划时间槽和本地日期生成；
-- 2×2 是完整日常规格，更大尺寸自然显示更多行；
+- 今日计划沿用紧凑/滚动布局；其他入口和大尺寸 E2 趋势按各自 provider 尺寸自适应；
 - 超出容量时使用 RemoteViews collection/list 纵向滚动，标题和进度区保持固定；
 - 勾选动作携带 occurrence-scoped 身份，先持久化 `DoseEvent` 再刷新 Widget；
 - 日期、时间、时区变化和多个 Widget 实例都通过 receiver/coordinator 重新构建状态。
@@ -62,9 +68,9 @@ Widget 不创建第二份数据源，也不通过 Compose 渲染。其颜色、�
 
 ## Wear surface
 
-`wear` 模块提供 Wear Tile 和 Phone/Wear Data Layer。Wear 缓存可重建的计划/浓度快照，
-Phone 验证并持久化 Wear action；Phone Room 仍是权威来源。完整的 Wear OS Companion
-App 属于规划中的 v1.3，不应把当前 Tile 误写成完整 App。
+`wear` 模块自 v1.3 起提供可打开的 WearAppActivity、版本化快照和确认/撤销。
+v1.6 提供三新 Tile、旧兼容曲线 Tile、三 Short Text Complication，统一预览/品牌与圆屏布局。
+Phone 验证并持久化确认/撤销与精确跳过提醒；Wear 只缓存可重建状态。
 
 ## 代码导航
 
@@ -77,5 +83,6 @@ app/src/main/java/io/github/yingqiu0871/evolune/
 ├── data/              SettingsDataStore and Room-facing adapters
 ├── core/model/        MedicationPlan, slots, DoseEvent, occurrence primitives
 └── core/dataapi/      Repository contracts
-wear/                  Wear Tile and Data Layer surface
+wear/                  Wear App, Tiles, Complications, derived cache and Data Layer
+experience-core/       shared occurrence/presentation and versioned Wear contracts
 ```

@@ -3,11 +3,15 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
+Documentation reconciled on 2026-09-12 against `main@c7f3d266357af08b737aa4fd4015f1b1391279c3`,
+the `v1.6.0` source tag and GitHub Releases. See the [review](DOCUMENTATION_REVIEW_V16_2026-09-12.md)
+and [complete documentation index](DOCUMENTATION_INDEX.md). This is a documentation audit, not a new device acceptance run.
+
 ## Current Release
 
 - Stable version: [`v1.6.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
 - Release date: 2026-09-10
-- Release reference: immutable `v1.6.0` tag
+- Release source: `v1.6.0` → `58ab66fc22b93630de4ea7137651b2388ff5f1a2`; preserve this tag
 - Previous sealed stable release: [`v1.5.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
 - Release downloads: signed Phone and Wear APKs attached to the v1.6.0 GitHub Release
 
@@ -33,8 +37,9 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
   Evolune-当前 E2 and Evolune-E2 趋势.
 - Per-widget appearance configuration with automatic/light/dark modes, Material You and eight
   preset color groups; responsive typography and contrast.
-- A scrollable today-plan widget with occurrence-scoped confirmation, plus read-only next-dose,
-  current-E2 and 48-hour historical/predicted concentration widgets.
+- A scrollable today-plan widget with occurrence-scoped confirmation, subject to the Phone `AVAILABLE`
+  and action-time gate. Next-dose, current-E2 and the 48-hour historical/predicted concentration widget
+  are read-only and open the App; the final next-dose renderer has no direct confirmation button.
 - Three new Wear Tiles for next dose, today plan and current E2, plus the existing E2 curve Tile
   retained under its original component identity.
 - Three Short Text Complications for next-dose time, current E2 and today completion.
@@ -53,13 +58,36 @@ Wear does not become a second source of truth.
 The release preserves the old `DoseTileService` component, v1/legacy/action paths, PK mathematics,
 Room schema, backup format and occurrence identity semantics. Phone and Wear private data remain
 excluded from Android Auto Backup and device transfer; user-controlled JSON export/import is the
-supported migration path.
+compatibility exchange path. Native encrypted backup/restore and manual Google Drive backup have
+also shipped since v1.2; these are separate from Android's automatic backup mechanism.
+
+## Capabilities Carried Forward from v1.2–v1.5
+
+- v1.2.0 (2026-08-28): optional foreground Health Connect weight reads from the preceding 30 days,
+  with permission/provider states and local/manual weight freshness protection; no medication writes.
+- v1.2.0: native versioned AES-256-GCM backups, PBKDF2-HMAC-SHA256 (default 600,000 iterations),
+  restore preview/validation and recovery journaling; manual Google Drive `appDataFolder` backup/restore,
+  upload read-back verification and retention of three verified generations. No real-time cloud sync.
+- v1.2.2 (2026-08-30): deterministic, unambiguous delayed null-slot dose matching and branding fixes.
+- v1.3.0 (2026-09-01): Wear companion App, versioned snapshots and Phone-authoritative confirmation/undo.
+  Its Wear APK had an installation defect; v1.3.1 (2026-09-02) corrected it and verified in-place upgrades.
+- v1.4.0: first-use trust/permission guidance and a replayable feature tutorial.
+- v1.5.0: scoped stability/performance cleanup; its `Energy/background = SKIPPED_BY_OWNER` remains a
+  historical waiver, not proof of measured battery improvement.
+
+Release dates and references are listed in the [version review](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 Because v1.0 Wear used the old application ID `io.github.yingqiu0871.evolune.wear`, that one old
 package cannot update in place to the shared v1.1+ identity. See
 [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md). This does not apply to v1.1–v1.5 upgrades.
 
 ## Verification Summary
+
+The following results are carried forward from the recorded release gate, not rerun by this audit.
+The final Phone evidence combines full Pixel Fold emulator flows with real Pixel in-place installation,
+provider/old-instance retention and APK read-back. Four fresh real-Pixel additions were not re-recorded.
+Wear product acceptance includes the owner's manual real-watch check; do not describe every state as
+independently exercised on a real watch. See the [gate's per-surface matrix](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md).
 
 - Signed Release build: 152 tasks executed, `BUILD SUCCESSFUL`.
 - Current-source Debug gate: 863 JVM tests with zero failures/errors/skips; Phone/Wear Lint zero errors;
@@ -75,8 +103,8 @@ package cannot update in place to the shared v1.1+ identity. See
 
 ## Current Limitations
 
-- Health Connect is not implemented.
-- Google cloud backup or cloud synchronization is not implemented.
+- Health Connect is limited to optional foreground body-weight reads; background access and medication/PHR writes are not implemented.
+- Google Drive requires explicit authorization and manual backup/restore; background and real-time multi-device cloud synchronization are not implemented.
 - Auto Backup/device transfer intentionally excludes private app data.
 - Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
 - v1.7 Optional CPA PK Curve remains a candidate only; it is default-off and requires independent

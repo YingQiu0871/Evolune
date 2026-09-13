@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图记录已发布的 v1.0.0、v1.1.0、v1.4.0、v1.5.0 和 v1.6.0，并从当前封存的 v1.6.0 基线向后规划；
+本路线图记录截至 2026-09-12 已发布的 v1.0.0–v1.6.0（含 v1.2.2、v1.3.1 热修复），并从 v1.6.0 基线向后规划；
 当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
 [Migration Plan](MIGRATION_PLAN.md)。
 
@@ -31,6 +31,14 @@
 
 该版本已公开发布并封存；`v1.1.0` tag 的 peeled commit 为 `ea7bb92151ae73126703e54b6e48bf0fd5bdb09e`。发布范围见下文「v1.1 — Phone Widget Completion」；`v1.1.0` tag 与 GitHub Release 保持封存，后续工作不会移动或重建该 tag。
 
+### v1.2.0 / v1.2.2 — 2026-08-28 / 2026-08-30
+
+[v1.2.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.2.0) 已发布可选 Health Connect 前台体重读取、原生加密备份和手动 Google Drive appDataFolder 备份/恢复；不含用药写入或实时云同步。[v1.2.2](https://github.com/YingQiu0871/Evolune/releases/tag/v1.2.2) 修复延迟 null-slot 事件匹配和品牌资源。仓库没有独立的公开 v1.2.1 tag/Release，不把开发分支名称当作已发布版本。
+
+### v1.3.0 / v1.3.1 — 2026-09-01 / 2026-09-02
+
+[v1.3.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.3.0) 独立发布轻量 Wear App、版本化快照和 Phone 权威确认/撤销。其 Wear APK 存在 taskAffinity 安装错误；[v1.3.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.3.1) 已修复并记录真实 Phone/Wear 覆盖升级、数据保留和同步验证。不能再把 v1.3 写成“未单独发布”。
+
 ### v1.4.0 — 2026-09-03
 
 该版本已公开发布并封存；[`v1.4.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.4.0) 绑定不可变 `v1.4.0` tag，tag 指向合并提交 `56fa1d243cd1937eba8fcfb62e90a4a26660d697`。
@@ -45,7 +53,7 @@
 
 ### v1.5.0 — 2026-09-05
 
-当前公开稳定版本已发布并封存；[`v1.5.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
+上一公开稳定版本已发布并封存；[`v1.5.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
 绑定不可变 `v1.5.0` tag，tag 指向提交 `df12329278eafa488713edf202554cdbd523b8d0`。
 
 发布范围：
@@ -120,8 +128,7 @@ v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备�
 
 ### v1.2 — Google Integration & Data Continuity
 
-v1.2 尚未开始实现，保留为计划中的历史范围；当前 active milestone 是 v1.6，不能把 v1.2
-描述成下一开发里程碑。
+v1.2.0 已于 2026-08-28 发布。下列目标保留历史设计范围；当前已交付的是前台体重读取、原生加密备份与手动 Google Drive 恢复，用药/PHR 写入及实时云同步没有交付。历史 RC 表中的未关闭状态不覆盖后续公开发布事实，见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
 目标：让 Evolune 在不改变本地权威模型的前提下融入 Android/Google 数据生态，并解决换机、重装和长期数据保存问题。
 
@@ -145,9 +152,7 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 
 ### v1.3 — Wear OS Companion App
 
-当前 v1.5.0 基线已经包含可打开的 Wear App、版本化 snapshot、occurrence confirmation/undo
-和派生缓存；本节保留原始产品边界，未单独形成 v1.3 release。v1.6 A/B 会把这条现有 Wear
-契约作为兼容前提，而不是重新发明第二个事实来源。
+v1.3.0 已独立发布，v1.3.1 修复 Wear 安装缺陷；当前 v1.6 基线包含可打开的 Wear App、版本化 snapshot、occurrence confirmation/undo 和派生缓存。本节保留其产品边界，v1.6 在该契约上扩展展示，不新建第二个事实来源。
 
 目标：在保留现有 Wear Tile 的同时，提供一个真正可打开、可完成基础日常操作的轻量 Wear OS App。
 
@@ -197,8 +202,7 @@ v1.2 分成两个可独立验收的 batch，不允许相互耦合阻塞。
 - 精简必须以行为等价和回归证据为前提，不为减少代码行数破坏已验证架构。
 - 强化静态检查、测试隔离、错误处理和日志边界。
 
-v1.5 退出条件：核心自动化、真实设备矩阵、升级/恢复场景、耗电/后台行为、代码清理
-审计和 Phone launcher Logo 视觉验收全部通过，且没有新的 P0/P1 稳定性问题。
+v1.5 原定退出目标涵盖核心自动化、真实设备、升级/恢复、耗电/后台、代码清理和 Logo 验收；实际关闭结果以 V15_ACCEPTANCE 为准，其中 Energy/background 由负责人标记 SKIPPED_BY_OWNER，不描述为全部实测通过。
 
 ### v1.6 — Widget Gallery — shipped / closed
 
@@ -208,15 +212,15 @@ A–G 阶段已完成并发布为 v1.6.0。
 
 目标：在 v1.1 Widget 数据/动作基础和 v1.3 Wear 数据模型稳定后，增加多种可选的手机与手表 Widget/Tile/Complication 样式，而不重新发明数据层。
 
-Phone 候选：
+Phone 最终交付（已批准范围调整）：
 
 - 今日计划：当前 v1.1 的完整服药计划卡。
-- 下一次服药：更小尺寸，只突出最近 occurrence 和快速确认。
+- 下一次服药：突出最近 occurrence；最终 Phone renderer 为只读并打开 App（早期快速确认目标未在此面直接暴露）。
 - 当前 E2：显示当前估算浓度、更新时间和简洁趋势。
 - PK 图表：面向较大尺寸的只读浓度图 Widget。
 - 今日完成度合并在“今日计划”头部，不再提供重复的独立 Phone Widget。
 
-Wear 候选：
+Wear 最终交付：
 
 - 下一次服药 Tile。
 - 今日计划 Tile。
