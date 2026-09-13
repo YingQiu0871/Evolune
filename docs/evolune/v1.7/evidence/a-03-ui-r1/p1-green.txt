@@ -1,0 +1,18 @@
+# A-03-UI-R1 P1 RED -> GREEN regression summary (production-shaped Reminder writer)
+# RED  : see p1-red.txt (5 of 7 cross-date tests failed before the fix)
+# GREEN: fresh --rerun-tasks JVM run and the focused/full phone runs of this round
+
+JVM HistoryCrossDatePresentationTest: tests=8 failures=0 errors=0 skipped=0
+  PASS delayed reminder confirmation at midnight boundary keeps the event zone
+  PASS unmatched intake without a persisted zone falls back to the display zone
+  PASS the persisted event zone decides the rendered local date
+  PASS same-day matched intake keeps the short time
+  PASS same-day unmatched intake keeps the short time
+  PASS an intake whose display date is derived from its instant stays a short time
+  PASS unmatched cross-date intake also shows the full date
+  PASS delayed reminder confirmation on the next local day shows the full date
+
+phone focused PASS crossDateExactMatchStillShowsTheFullActualDate
+phone full    PASS crossDateExactMatchStillShowsTheFullActualDate
+
+phone final full run: tests=238 failures=0 errors=0 skipped=5

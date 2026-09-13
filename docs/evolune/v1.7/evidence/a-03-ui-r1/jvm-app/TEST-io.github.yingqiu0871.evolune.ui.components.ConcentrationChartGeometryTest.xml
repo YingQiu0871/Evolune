@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.411Z" hostname="人面不知何处去" time="0.007">
+  <properties/>
+  <testcase name="history forecast and invalid values are combined safely" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.005"/>
+  <testcase name="plot geometry is centered and coordinate transforms invert" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.002"/>
+  <testcase name="invalid coordinate inputs never produce non finite screen positions" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <testcase name="empty zero tiny and malformed windows remain finite" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <testcase name="off screen peaks do not inflate visible scale" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <testcase name="representative visible maxima select readable stable scales" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <testcase name="nearby visible ranges stay on the same deterministic boundary" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <testcase name="history only forecast only and mixed windows include every visible series" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

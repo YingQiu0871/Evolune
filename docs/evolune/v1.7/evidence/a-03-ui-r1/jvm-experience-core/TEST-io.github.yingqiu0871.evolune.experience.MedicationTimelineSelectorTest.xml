@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:53:26.259Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="without actionable item selector centers previous and upcoming on now" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.003"/>
+  <testcase name="nearest due instant is current and other due items remain visible" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.0"/>
+  <testcase name="no plans yields an empty timeline" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.0"/>
+  <testcase name="simultaneous actionable occurrences remain in deterministic current group" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.0"/>
+  <testcase name="default policy selects previous two current one and next five" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.001"/>
+  <testcase name="counts are policy parameters and tolerate fewer items" classname="io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

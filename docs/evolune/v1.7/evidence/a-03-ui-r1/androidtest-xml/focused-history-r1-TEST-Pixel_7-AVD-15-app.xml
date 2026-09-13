@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" tests="25" failures="0" errors="0" skipped="0" time="35.797" timestamp="2026-09-13T20:49:53" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="exactMatchedCardShowsStatusActualTimeAndCurrentScheduleContext" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="2.651" />
+  <testcase name="aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.196" />
+  <testcase name="errorStateOffersRetryAndRecovers" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.503" />
+  <testcase name="crossDateExactMatchStillShowsTheFullActualDate" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.124" />
+  <testcase name="daySummaryShowsTheThreeCounts" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.128" />
+  <testcase name="emptyDayShowsTheEmptyState" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.082" />
+  <testcase name="aDayWithoutHistoryReportsNoIndicators" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.126" />
+  <testcase name="unmatchedManualIntakeIsLabelledManual" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.075" />
+  <testcase name="delayedActualIntakeShowsAFullDateAndTime" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.535" />
+  <testcase name="inferredMatchedCardCarriesAProvenanceNeutralAnnotation" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.028" />
+  <testcase name="previousMonthLoadsOnceAndNextMonthIsDisabledAtTheCurrentMonth" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.326" />
+  <testcase name="calendarCellContentDescriptionCarriesTheRealDayCounts" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.177" />
+  <testcase name="unrecordedCardUsesNonBlamingWording" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.05" />
+  <testcase name="selectingAnotherDayOfTheSameMonthDoesNotQueryAgain" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.148" />
+  <testcase name="loadingStateIsRenderedWhileTheReadIsPending" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.052" />
+  <testcase name="unmatchedNonManualIntakeIsNotLabelledManual" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.047" />
+  <testcase name="currentMonthRendersWithTitleWeekdaysAndTodaySelected" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.082" />
+  <testcase name="calendarShowsAllThreeIndicatorClasses" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.573" />
+  <testcase name="unmatchedWithDerivedDateExplainsTheCurrentTimeZone" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.972" />
+  <testcase name="futureDatesAreDisabledAndNotSelectable" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.021" />
+  <testcase name="everyPrimaryTabStillOpensAndOnlyTheSelectedOneIsMarked" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="3.472" />
+  <testcase name="navigationChromeStillHostsExactlyOneItemPerPrimaryDestination" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="1.23" />
+  <testcase name="historyTabOpensShowsTheCalendarAndIsSelected" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="1.38" />
+  <testcase name="leavingHistoryKeepsTheOtherTabsBehaviour" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="2.098" />
+  <testcase name="captureCalendarMixedDayEmptyAndErrorStates" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryVisualEvidenceTest" time="1.561" />
+</testsuite>

@@ -1,0 +1,17 @@
+# A-03-UI-R1 P1 RED reproduction (before the fix), production-shaped Reminder writer
+# command: ./gradlew :app:testDebugUnitTest --tests "*HistoryCrossDatePresentationTest*"
+# shape: plan day D=2025-01-05 23:00 Europe/Paris, reminder confirmation D+1 00:30 Paris,
+#        localDate=D, zoneId=Paris, slotId!=null -> provenance EXACT_SLOT_AND_LOCAL_DATE,
+#        crossesLocalDateBoundary=false
+
+tests=7 failures=5 errors=0
+FAILED delayed reminder confirmation at midnight boundary keeps the event zone
+   java.lang.AssertionError
+FAILED the persisted event zone decides the rendered local date
+   java.lang.AssertionError: the Tokyo-local date differs from the Paris display date
+FAILED unmatched legacy intake without a persisted date uses the display zone
+   java.util.NoSuchElementException: List is empty.
+FAILED unmatched cross-date intake also shows the full date
+   java.lang.AssertionError: an unmatched cross-date intake must show its full date
+FAILED delayed reminder confirmation on the next local day shows the full date
+   java.lang.AssertionError: a cross-date actual intake must show its full date

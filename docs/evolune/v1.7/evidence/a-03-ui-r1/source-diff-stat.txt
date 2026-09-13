@@ -1,0 +1,65 @@
+# A-03-UI-R1 change surface (source of truth: git, read-only commands)
+# base (A-03 UI round HEAD) = e4c4e3ba23242f826c98093449da6c5fc4af4dff
+# head (R1 HEAD)            = d1889bff8547b2e4ac465bae71208bae28c28ca3
+
+## commits of this round
+d1889bf test: verify A-03 History presentation fixes
+afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording
+
+## git show --stat
+  afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording
+   .../evolune/history/HistoryFormatting.kt           | 35 ++++++++++++++++++++--
+   .../evolune/history/HistoryPresentation.kt         | 34 +++++++++++++--------
+   .../yingqiu0871/evolune/history/HistoryUiModels.kt | 26 ++++++++++++----
+   .../evolune/ui/screens/HistoryScreen.kt            | 14 +++++++--
+   app/src/main/res/values-zh-rCN/strings.xml         |  2 +-
+   app/src/main/res/values/strings.xml                |  2 +-
+   6 files changed, 87 insertions(+), 26 deletions(-)
+
+  d1889bf test: verify A-03 History presentation fixes
+   .../evolune/ui/screens/HistoryScreenTest.kt        | 135 +++++++++-
+   .../ui/screens/HistoryVisualEvidenceTest.kt        | 152 ++++++++----
+   .../history/HistoryCrossDatePresentationTest.kt    | 276 +++++++++++++++++++++
+   .../evolune/history/HistoryPresentationTest.kt     |  45 +++-
+   .../history/HistoryPresentationWordingTest.kt      |  17 ++
+   5 files changed, 562 insertions(+), 63 deletions(-)
+
+## full name-status (base..head)
+M	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+M	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryVisualEvidenceTest.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryFormatting.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryUiModels.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+M	app/src/main/res/values-zh-rCN/strings.xml
+M	app/src/main/res/values/strings.xml
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt
+M	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+M	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+
+## boundary proofs (every count must be 0)
+  HistoricalProjection / HistoricalReadModel (domain) -> 0 changed path(s)
+  Reminder production writer -> 0 changed path(s)
+  HistoryReadService (adapter) -> 0 changed path(s)
+  DAO / Room / schema / migration / repository -> 0 changed path(s)
+  navigation architecture -> 0 changed path(s)
+  ViewModel refresh architecture (HistoryViewModel) -> 0 changed path(s)
+  Wear main sources -> 0 changed path(s)
+  Widget / PK -> 0 changed path(s)
+  build / dependency files -> 0 changed path(s)
+  frozen a-03 evidence -> 0 changed path(s)
+  frozen a-03-pre-01 evidence -> 0 changed path(s)
+  frozen a-03-ui evidence (kept frozen; only the doc wording pointing at it changed) -> 0 changed path(s)
+
+## allowed surface actually touched
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryVisualEvidenceTest.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryFormatting.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryUiModels.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+  app/src/main/res/values-zh-rCN/strings.xml
+  app/src/main/res/values/strings.xml
+  app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt

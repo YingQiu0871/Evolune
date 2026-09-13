@@ -1,14 +1,17 @@
-# V17-A-03 — History UI & Calendar Presentation（状态：**UI DELIVERED / READY FOR INDEPENDENT REVIEW**）
+# V17-A-03 — History UI & Calendar Presentation（状态：**UI R1 FIXES APPLIED / READY FOR R1 INDEPENDENT REVIEW**）
 
 > 状态：**A-03 UI DELIVERED** —— History 已成为第 5 个主 tab；域契约（A-03-PRE-01）冻结不变，UI 未重做任何 domain 语义
-> 第 0 轮（review cleanup）+ UI 轮：见 §13–§25
+> 第 0 轮（review cleanup）+ UI 轮：见 §13–§25；A-03-UI-R1（review findings 修复）：见 §26–§31
+> A-03 UI 独立复审结论：**REQUEST_CHANGES**（唯一 P1 = 跨日实际时间完整日期错误依赖 `crossesLocalDateBoundary`；P2 ×2 = 日历无障碍计数、inferred 文案）——R1 已修，见 §26–§28
 > Round：v1.7-A / A-03（preflight）→ **A-03-PRE-01（契约修复）**
 > 起始 HEAD：`a149ed4b3e1fb20498b0d4239d41caab9f0f2462`（A-02 R2 关闭）→ preflight 关闭于 `fe8a5870c366367a12d8aed89dd2158b49aafcf6`
 > Commit（preflight 轮）：`docs: close A-02 review precision notes`、`docs: report A-03 history contract gap`
+> Commit（A-03-UI-R1 轮）：`afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording`（P1 + 两个 P2 合并且逐条标注，reviewer 允许合并 1–3）、`d1889bf test: verify A-03 History presentation fixes`、`docs: close A-03 UI review findings`
 > Commit（A-03-UI 轮）：`63f2c7b docs: close A-03 preflight review notes`、`0395ad8 feat: add History calendar presentation`、`206cdf2 feat: expose History as primary phone tab`、`1412a9f test: verify v1.7 History phone experience`、`docs: close A-03 History UI round`
 > Commit（A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
 > 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
-> 证据清单（A-03 UI）：[`evidence/a-03-ui/MANIFEST.sha256`](evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
+> 证据清单（A-03-UI-R1）：[`evidence/a-03-ui-r1/MANIFEST.sha256`](evidence/a-03-ui-r1/MANIFEST.sha256)（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，manifest 自身 SHA-256 `2b2aeb2bbabafa7af9c6eb9471f1bd08eb0c9b209b87c78522c9796543408bd2`）
+> 证据清单（A-03 UI，冻结）：[`evidence/a-03-ui/MANIFEST.sha256`](evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
 > 证据清单（A-03-PRE-01）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
 
 ---
@@ -475,8 +478,9 @@ io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest
 
 ### 22.4 Assemble / hygiene
 
-- `./gradlew :app:assembleDebug` → `BUILD SUCCESSFUL`（`38 actionable tasks: 38 up-to-date`，APK 与当前源码一致，
-  该 APK 正是 instrumentation 实际安装的那一份）；
+- `./gradlew :app:assembleDebug` 返回 `BUILD SUCCESSFUL`；该次调用为 **UP-TO-DATE**
+  （`38 actionable tasks: 38 up-to-date`）——这是 **build-green evidence，不是 fresh-build evidence**，
+  本轮**不声称** APK 身份/哈希（无 APK SHA 证据）。A-03-UI-R1 重新运行了 assemble，结果见 §29.4；
 - `git diff --check` → 0（提交前复核）。
 
 ## 23. 交付物与证据（A-03 UI）
@@ -510,3 +514,146 @@ io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest
 | 日历组件选型 | 自行用 Compose 实现（`YearMonth` 网格 + 前导空格 + 三态 indicator），不引入第三方日历依赖 |
 | 是否引入可注入时间 provider | **不引入新抽象**：复用既有 `Clock` + `() -> ZoneId` 注入惯例（`HistoryViewModel` 构造参数），Compose 不读系统时区 |
 | 选择状态恢复 | `SavedStateHandle`（经 `CreationExtras` 局部接入 factory），未重构全局 ViewModel 基础设施 |
+
+## 26. A-03-UI-R1：跨日实际时间呈现修复（P1）
+
+### 26.1 根因（本轮按源码独立复核，非照抄 review）
+
+复核结论：**reviewer 判断与源码一致**，且比原描述更精确：
+
+| 证据点 | 源码事实 |
+|---|---|
+| 现实现 | `HistoryPresentation.matched(...)` 用 `needsFullDate = entry.crossesLocalDateBoundary`；`unmatched(...)` 把 `needsFullDate` 写成常量 `false` |
+| domain 语义 | `crossesLocalDateBoundary = eventLocalDate != occurrenceDate`，其中 `eventLocalDate = event.localDate ?: event.occurredAt.atZone(displayZone).toLocalDate()`（`HistoricalProjection.kt`） |
+| 真实 Reminder 写入 | `ReminderDoseFactory.createReminderDoseEvent(...)`：`localDate = targetOccurrence.scheduledLocalDateTime.toLocalDate()`（**计划日 D**）、`occurredAt = Instant.ofEpochMilli(recordedAtMillis)`（**实际确认时刻**）、`zoneId = 记录时区`、`slotId = targetOccurrence.slotId`（非空）、`source = REMINDER` |
+| 匹配阶段 | Phase 1（`slotId` + persisted `localDate`）→ `provenance = EXACT_SLOT_AND_LOCAL_DATE` |
+
+→ 于是"计划 D 23:00、实际 D+1 00:30 确认"的记录满足：`localDate = D`、`provenance = EXACT`、
+**`crossesLocalDateBoundary = false`**，而**实际渲染日期是 D+1**。旧实现因此在 D 的卡片上只显示 `00:30`。
+这**不是** domain 缺陷，而是 presentation 用错了信号。
+
+**RED 复现（修复前，production-shaped，真实 writer）**：`app/src/test/.../HistoryCrossDatePresentationTest`
+`tests=7 failures=5`，失败消息含
+`a cross-date actual intake must show its full date` / `an unmatched cross-date intake must show its full date`，
+存档 `evidence/a-03-ui-r1/p1-red.txt`。
+
+### 26.2 冻结的 presentation rule（唯一判据）
+
+```
+renderedZone   = event.zoneId ?: current displayZone
+actualLocalDate = event.occurredAt.atZone(renderedZone).toLocalDate()
+needsFullDate  = actualLocalDate != entry.displayDate     // 相等 → HH:mm；不同 → yyyy-MM-dd HH:mm
+```
+
+**禁止**用 `crossesLocalDateBoundary`、match provenance、exact/inferred、persisted `localDate`、
+scheduled local date、occurrence status 代替上述**直接比较**。`crossesLocalDateBoundary` 仍作为
+domain provenance/context 保留，但**不再承担 actual timestamp 的 UI 格式决策**。
+
+### 26.3 单一路径 API
+
+`HistoryFormatting.actualTimestampPresentation(occurredAt, persistedZoneId, displayZone, entryDisplayDate)
+→ HistoryActualTimeUiModel(instant, zone, needsFullDate)`：matched 与 unmatched **两条路径共用**
+（`HistoryPresentation` 中不再各自写 `occurredAt.atZone(...)`）；文本仍由同一
+`HistoryFormatting.actualIntakeText(...)` 生成（`HH:mm` / 完整日期两种格式）。
+
+## 27. A-03-UI-R1：日历无障碍计数修复（P2）
+
+原实现：cell model 只有三个 boolean，但 semantics 文案把计数**硬编码为 1**（`已记录 1 次` 等），
+当 domain 报 3 条事实时读屏仍念 1 —— 错误数据。现修复：
+
+- `HistoryCalendarCellUiModel` 改携带**真实计数** `recordedCount / unrecordedCount / unmatchedActualCount`
+  作为**唯一真相源**；`hasRecorded / hasUnrecorded / hasUnmatchedActual` 变为 `count > 0` 的**派生**属性
+  （indicator dots 仍按类别渲染，设计不变）；
+- 无障碍描述使用真实数字，且 `count == 0` 时既不产生 indicator，也不出现在描述里（改为 `无历史记录`）。
+
+## 28. A-03-UI-R1：inferred 文案 provenance-neutral 修复（P2）
+
+原 `history_note_legacy_context`（"根据旧版记录上下文匹配"）被应用于**所有** `provenance != EXACT`，
+但现代 quick-record（`slotId = null`）同样合法进入 `NULL_SLOT_TIME_WINDOW` / `NULL_SLOT_SAME_DAY`，
+刚记录的 dose 会被错误称为"旧版"。现改为中性文案：
+
+- 新 key `history_note_inferred_match` = **根据记录上下文推断匹配**（旧 key 已删除，两种 locale 同步）；
+- exact 仍**无**额外 note；inferred 仍与 exact 可区分（有 note + 语义标志）；不显示 raw enum；
+- 护栏测试新增：`history_note_*` 一律不得出现 `旧版 / 老版本 / legacy`，且 `history_note_legacy_context`
+  不得复活。
+
+## 29. A-03-UI-R1 验证结果
+
+### 29.1 JVM（fresh，计数取 XML）
+
+| 模块 | XML | tests | skipped | failures | errors | 说明 |
+|---|---:|---:|---:|---:|---:|---|
+| app | 89 | 775 | 0 | 0 | 0 | A-03 UI 轮 764，本轮 **+11**（`HistoryCrossDatePresentationTest` 8 + `HistoryPresentationTest` +2 计数用例 + `HistoryPresentationWordingTest` +1 中性文案护栏） |
+| experience-core | 15 | 140 | 0 | 0 | 0 | 未改动 |
+| wear | 11 | 90 | 0 | 0 | 0 | 未改动 |
+| **合计** | **115** | **1005** | **0** | **0** | **0** | `54 actionable tasks: 54 executed`（`--rerun-tasks`） |
+
+命令与完整数字见 §29.3 与 `evidence/a-03-ui-r1/jvm-aggregate.tsv`。
+
+### 29.2 Focused / Full Phone instrumentation
+
+- Focused（`HistoryScreenTest`, `HistoryNavigationTest`, `HistoryVisualEvidenceTest`）：**25 / 25 passed**
+  （20 + 4 + 1），XML 已在 full 运行前**立即另存**为
+  `evidence/a-03-ui-r1/androidtest-xml/focused-history-r1-TEST-Pixel_7-AVD-15-app.xml`（不再只有 log）；
+- Full（authoritative phone result）：
+  `evidence/a-03-ui-r1/androidtest-xml/final-TEST-Pixel_7-AVD-15-app.xml` ——
+  **238 tests / 0 failures / 0 errors / 5 skipped**；
+  对照 A-03 UI 轮基线（213 tests / 0 failures / 5 skipped）与 UI 轮结果（235 / 0 / 5 skipped）：
+  **无新增 unexpected failure、无新增 unexpected skip**（235 → 238 = `HistoryScreenTest` 17 → 20）。
+
+### 29.3 JVM 命令
+
+```bash
+./gradlew :experience-core:test :app:testDebugUnitTest :wear:testDebugUnitTest --rerun-tasks --no-daemon --console=plain
+```
+
+### 29.4 Assemble（本轮重新运行，如实记录）
+
+`./gradlew :app:assembleDebug` → `BUILD SUCCESSFUL`，`38 actionable tasks: 38 up-to-date`。
+**如实记录：该次调用为 UP-TO-DATE，是 build-green evidence，不是 fresh-build evidence**；
+本轮不声称 APK 身份/哈希（无 APK SHA 证据）。原始 log：`evidence/a-03-ui-r1/a03ui-r1-assemble-debug.log`。
+
+## 30. A-03-UI-R1 证据
+
+`docs/evolune/v1.7/evidence/a-03-ui-r1/`（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，
+manifest 自哈希 `2b2aeb2bbabafa7af9c6eb9471f1bd08eb0c9b209b87c78522c9796543408bd2`，提交后 HEAD blob 0 mismatch）：
+
+| 内容 | 文件 |
+|---|---|
+| fresh JVM（115 XML + log） | `jvm-{app,experience-core,wear}/`、`a03ui-r1-jvm-run.log`、`jvm-aggregate.tsv` |
+| focused instrumentation（**XML 已另存**，不再只有 log） | `androidtest-xml/focused-history-r1-TEST-Pixel_7-AVD-15-app.xml`、`a03ui-r1-focused-history-run.log` |
+| full instrumentation（authoritative） | `androidtest-xml/final-a03ui-r1-TEST-Pixel_7-AVD-15-app.xml`、`a03ui-r1-androidtest-run.log`、`androidtest-aggregate.tsv` |
+| assemble（如实标注 UP-TO-DATE） | `a03ui-r1-assemble-debug.log` |
+| P1 红/绿回归摘要 | `p1-red.txt`、`p1-green.txt` |
+| 视觉证据（4 张，含跨日 exact 卡片） | `screenshots/history-r1-0{1,2,3,4}-*.png` |
+| 改动面与边界证明 | `source-diff-stat.txt` |
+
+视觉证据要点：`history-r1-04-cross-date-exact-card.png` 由**真实 `HistoricalProjectionBuilder`** 产生
+（production-shaped reminder：计划 D 23:00、确认 D+1 00:30、persisted `localDate = D`、`slotId != null`），
+截图中该卡片显示 **`实际时间 2025-01-06 00:30`** + **`当前方案时间 23:00`**，**无 inferred badge**。
+
+**原 `evidence/a-03-ui/` 保持冻结**（`source-diff-stat.txt` 中该目录 0 改动；§22.4 的 assemble 描述更正只发生在文档里）。
+
+## 31. 登记但**未关闭**的 backlog（本轮刻意不修）
+
+P2：
+
+- History 无 tab-entry / resume / day-rollover 刷新（本轮的 ViewModel 状态机不覆盖跨日刷新）；
+- `HistoryViewModelFactory` / 真实 `CreationExtras` 恢复路径**未被测试覆盖**（单测只覆盖 `SavedStateHandle` 注入）；
+- `dose_events.localDate` 无 index（A-04 / schema hardening 候选）。
+
+P3：
+
+- anti-androgen 路由下的 raw placeholder（`medicationKey`/fallback 直接显示原始 key）；
+- generation token 在 cancel **之后**才自增（当前 cancel + token 双保险已足够，顺序可再收紧）；
+- `scheduleTimeContext` 单值 enum 与随之而来的 dead formatting branches；
+- assemble freshness / APK hash 证据链；
+- focused instrumentation XML 会被后续 full run 覆盖（本轮已用"立即另存"缓解，但未在 CI/Gradle 层根治）；
+- localization：默认 `values/` 与 `values-zh-rCN/` 内容重复；
+- wording guard 的潜在绕过面（护栏扫源码，可被改写护栏本身绕过）；
+- dead/test-only 的 UI model helper；
+- source → label 的 1:1 映射测试缺口；
+- 卡片读屏顺序缺少直接断言；
+- trailing-week-padding（月末补空 cell）缺少直接测试。
+
+**以上均不宣称关闭**，进入 A-04 / Phase-A hardening。

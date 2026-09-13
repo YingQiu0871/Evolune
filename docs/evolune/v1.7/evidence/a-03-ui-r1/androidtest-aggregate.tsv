@@ -1,0 +1,6 @@
+# Phone instrumentation (Pixel_7 AVD, API 35) — A-03-UI-R1
+# commands: focused = -Pandroid.testInstrumentationRunnerArguments.class=<history classes>; full = ./gradlew :app:connectedDebugAndroidTest
+run	xml_tests	skipped	failures	errors	passed
+focused-history-r1	25	0	0	0	25
+final-a03ui-r1	238	5	0	0	233
+# reference (frozen a-03-ui evidence): baseline-before-a03ui 213/5 skipped/0 failed; final-a03ui 235/5 skipped/0 failed
