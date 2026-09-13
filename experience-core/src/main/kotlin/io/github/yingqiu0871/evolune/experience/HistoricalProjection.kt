@@ -86,6 +86,32 @@ data class MatchedHistoricalOccurrence(
 }
 
 /**
+ * An occurrence for which no authoritative recorded intake was matched.
+ *
+ * Wording is deliberate: this means only "no recorded intake was found in the
+ * currently available authoritative event data". It must never be rendered or
+ * modelled as `Missed`, `Skipped`, non-adherent or forgotten medication, and it
+ * must never be used to compute strict historical adherence.
+ *
+ * The scheduled time comes from the *current* plan, so it carries
+ * [HistoricalScheduleTimeContext.CURRENT_SCHEDULE_CONTEXT] just like a matched
+ * occurrence: the plan/slot may have been edited after the fact.
+ */
+data class UnrecordedHistoricalOccurrence(
+    val occurrence: MedicationOccurrence,
+    val status: MedicationOccurrenceStatus,
+    val actionAvailability: MedicationActionAvailability,
+    val scheduleTimeContext: HistoricalScheduleTimeContext =
+        HistoricalScheduleTimeContext.CURRENT_SCHEDULE_CONTEXT,
+    override val displayDate: LocalDate,
+    override val displayDateProvenance: HistoricalDisplayDateProvenance =
+        HistoricalDisplayDateProvenance.INTENDED_LOCAL_DATE
+) : HistoricalEntry {
+    override val sortInstant: Instant get() = occurrence.scheduledAt
+    override val sortKey: String get() = "1:" + occurrence.id.value
+}
+
+/**
  * An authoritative actual intake that no occurrence claimed.
  *
  * It exists so that a recorded fact can never disappear from history merely for
@@ -102,7 +128,7 @@ data class UnmatchedHistoricalIntake(
     val isManualIntake: Boolean get() = source == MedicationIntakeSource.MANUAL
 
     override val sortInstant: Instant get() = event.occurredAt
-    override val sortKey: String get() = "1:" + event.eventId
+    override val sortKey: String get() = "2:" + event.eventId
 }
 
 /** Shared historical projection consumed by History / Timeline / Insights / retrospective PK adapters. */
@@ -111,6 +137,9 @@ data class HistoricalProjection(
 ) {
     val matchedOccurrences: List<MatchedHistoricalOccurrence>
         get() = entries.filterIsInstance<MatchedHistoricalOccurrence>()
+
+    val unrecordedOccurrences: List<UnrecordedHistoricalOccurrence>
+        get() = entries.filterIsInstance<UnrecordedHistoricalOccurrence>()
 
     val unmatchedIntakes: List<UnmatchedHistoricalIntake>
         get() = entries.filterIsInstance<UnmatchedHistoricalIntake>()
@@ -145,8 +174,17 @@ object HistoricalProjectionBuilder {
         val entries = mutableListOf<HistoricalEntry>()
 
         presentation.items.forEach { item ->
-            val match = presentation.matches[item.occurrence.id] ?: return@forEach
             val occurrenceDate = item.occurrence.scheduledLocalDateTime.toLocalDate()
+            val match = presentation.matches[item.occurrence.id]
+            if (match == null) {
+                entries += UnrecordedHistoricalOccurrence(
+                    occurrence = item.occurrence,
+                    status = item.status,
+                    actionAvailability = item.actionAvailability,
+                    displayDate = occurrenceDate
+                )
+                return@forEach
+            }
             val eventLocalDate = match.event.localDate
                 ?: match.event.occurredAt.atZone(displayZone).toLocalDate()
             entries += MatchedHistoricalOccurrence(
@@ -181,7 +219,55 @@ object HistoricalProjectionBuilder {
                 )
             }
 
-        return HistoricalProjection(entries.sortedWith(HISTORICAL_ENTRY_ORDER))
+        val ordered = entries.sortedWith(HISTORICAL_ENTRY_ORDER)
+        verifyCompleteness(
+            occurrenceIds = occurrences.map { it.id },
+            eventIds = events.map { it.eventId },
+            entries = ordered
+        )
+        return HistoricalProjection(ordered)
+    }
+
+    /**
+     * Projection completeness invariant (A-02):
+     * every generated occurrence appears exactly once as a matched or unrecorded
+     * entry, and every authoritative event appears exactly once either as a matched
+     * occurrence's actual event or as an unmatched intake. Nothing may vanish and
+     * nothing may be consumed twice. Violations fail fast instead of degrading the
+     * historical view silently.
+     */
+    private fun verifyCompleteness(
+        occurrenceIds: List<MedicationOccurrenceId>,
+        eventIds: List<UUID>,
+        entries: List<HistoricalEntry>
+    ) {
+        val occurrenceRefs = entries.mapNotNull { entry ->
+            when (entry) {
+                is MatchedHistoricalOccurrence -> entry.occurrence.id
+                is UnrecordedHistoricalOccurrence -> entry.occurrence.id
+                is UnmatchedHistoricalIntake -> null
+            }
+        }
+        val eventRefs = entries.mapNotNull { entry ->
+            when (entry) {
+                is MatchedHistoricalOccurrence -> entry.event.eventId
+                is UnmatchedHistoricalIntake -> entry.event.eventId
+                is UnrecordedHistoricalOccurrence -> null
+            }
+        }
+
+        check(occurrenceRefs.size == occurrenceIds.size) {
+            "projection must contain every occurrence exactly once"
+        }
+        check(occurrenceRefs.toSet() == occurrenceIds.toSet() && occurrenceRefs.size == occurrenceRefs.toSet().size) {
+            "projection must not drop, duplicate or invent occurrences"
+        }
+        check(eventRefs.size == eventIds.size) {
+            "projection must contain every event exactly once"
+        }
+        check(eventRefs.toSet() == eventIds.toSet() && eventRefs.size == eventRefs.toSet().size) {
+            "projection must not drop, duplicate or double-consume events"
+        }
     }
 }
 
