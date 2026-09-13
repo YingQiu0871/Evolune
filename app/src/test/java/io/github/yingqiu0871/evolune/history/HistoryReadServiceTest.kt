@@ -35,7 +35,7 @@ class HistoryReadServiceTest {
     private val now: Instant = Instant.parse("2025-01-10T12:00:00Z")
 
     @Test
-    fun `event query uses exactly one day of bounded context on each side`() = runBlocking {
+    fun `event query uses the wider bounded context on each side`() = runBlocking {
         val events = FakeDoseEventRepository()
         val service = HistoryReadService(FakeMedicationPlanRepository(), events)
 
@@ -46,11 +46,13 @@ class HistoryReadServiceTest {
             now = now
         )
 
+        // Event query padding is two calendar days; occurrence generation stays at one.
         assertEquals(
-            Instant.parse("2025-01-04T00:00:00Z") to Instant.parse("2025-01-07T00:00:00Z"),
+            Instant.parse("2025-01-03T00:00:00Z") to Instant.parse("2025-01-08T00:00:00Z"),
             events.lastRange
         )
-        assertEquals(HistoryReadService.CONTEXT_DAYS, 1L)
+        assertEquals(1L, HistoryReadService.OCCURRENCE_CONTEXT_DAYS)
+        assertEquals(2L, HistoryReadService.EVENT_QUERY_CONTEXT_DAYS)
     }
 
     @Test
