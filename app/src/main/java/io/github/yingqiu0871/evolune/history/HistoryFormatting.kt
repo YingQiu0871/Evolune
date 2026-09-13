@@ -46,10 +46,41 @@ object HistoryFormatting {
             .format(instant.atZone(zone))
 
     /**
+     * The single decision point for how an authoritative **actual intake** timestamp is
+     * rendered (A-03-UI-R1).
+     *
+     * The rendered zone is the event's own persisted zone, or the current display zone when the
+     * event has none. The full-date decision compares the *actual rendered local date* with the
+     * history entry's display date:
+     *
+     * - same rendered local date → short time (`HH:mm`);
+     * - different rendered local date → full date and time (`yyyy-MM-dd HH:mm`).
+     *
+     * The decision deliberately uses neither `crossesLocalDateBoundary` nor match provenance nor
+     * the persisted planned `localDate`: the real Reminder writer persists the *planned* day
+     * together with the *actual* confirmation instant, so a dose planned for 23:00 and confirmed
+     * at 00:30 the next day is an exact slot/date match whose intake still happened on the next
+     * local date. Both the matched and the unmatched card must go through this function.
+     */
+    fun actualTimestampPresentation(
+        occurredAt: Instant,
+        persistedZoneId: ZoneId?,
+        displayZone: ZoneId,
+        entryDisplayDate: LocalDate
+    ): HistoryActualTimeUiModel {
+        val renderedZone = persistedZoneId ?: displayZone
+        return HistoryActualTimeUiModel(
+            instant = occurredAt,
+            zone = renderedZone,
+            needsFullDate = occurredAt.atZone(renderedZone).toLocalDate() != entryDisplayDate
+        )
+    }
+
+    /**
      * Timestamp text for an authoritative actual intake.
      *
-     * [needsFullDate] must come from the domain/presentation flags (`crossesLocalDateBoundary`
-     * for matched entries); this function never re-derives the historical date attribution.
+     * [needsFullDate] must come from [actualTimestampPresentation]; this function never
+     * re-derives the historical date attribution.
      */
     fun actualIntakeText(
         instant: Instant,

@@ -35,7 +35,11 @@ enum class HistoryEntryKind { MATCHED, UNRECORDED, UNMATCHED }
 data class HistoryActualTimeUiModel(
     val instant: Instant,
     val zone: ZoneId,
-    /** True when the actual intake happened on a different local date than the entry. */
+    /**
+     * True when the actual intake's local date **in [zone]** differs from the entry's display
+     * date. Always produced by `HistoryFormatting.actualTimestampPresentation`, never from the
+     * domain's `crossesLocalDateBoundary`.
+     */
     val needsFullDate: Boolean
 )
 
@@ -72,16 +76,26 @@ data class HistoryEntryUiModel(
     val isInferredMatch: Boolean = false
 )
 
-/** One day cell of the month grid. A blank cell has a null [date]. */
+/**
+ * One day cell of the month grid. A blank cell has a null [date].
+ *
+ * The three day counts are the **single source of truth** for both the indicator dots and the
+ * accessibility description: the indicator booleans are derived from them, so a screen reader
+ * can never hear a fabricated "1" while the domain reported three facts (A-03-UI-R1).
+ */
 data class HistoryCalendarCellUiModel(
     val date: LocalDate?,
     val isToday: Boolean = false,
     val isSelected: Boolean = false,
     val isEnabled: Boolean = false,
-    val hasRecorded: Boolean = false,
-    val hasUnrecorded: Boolean = false,
-    val hasUnmatchedActual: Boolean = false
-)
+    val recordedCount: Int = 0,
+    val unrecordedCount: Int = 0,
+    val unmatchedActualCount: Int = 0
+) {
+    val hasRecorded: Boolean get() = recordedCount > 0
+    val hasUnrecorded: Boolean get() = unrecordedCount > 0
+    val hasUnmatchedActual: Boolean get() = unmatchedActualCount > 0
+}
 
 /** Selected-day section of the screen. */
 data class HistoryDayUiModel(

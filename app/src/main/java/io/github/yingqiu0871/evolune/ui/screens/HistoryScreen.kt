@@ -377,10 +377,18 @@ private fun calendarCellDescription(cell: HistoryCalendarCellUiModel): String {
     if (cell.isToday) parts += stringResource(R.string.history_cell_today)
     if (cell.isSelected) parts += stringResource(R.string.history_cell_selected)
     if (!cell.isEnabled) parts += stringResource(R.string.history_cell_not_arrived)
+    // Real counts, never a fabricated "1": the cell model carries the domain counts and the
+    // indicator dots derive from the same numbers (A-03-UI-R1 accessibility fix).
     val counts = mutableListOf<String>()
-    if (cell.hasRecorded) counts += stringResource(R.string.history_cell_recorded, 1)
-    if (cell.hasUnrecorded) counts += stringResource(R.string.history_cell_no_recorded_intake, 1)
-    if (cell.hasUnmatchedActual) counts += stringResource(R.string.history_cell_other_intake, 1)
+    if (cell.recordedCount > 0) {
+        counts += stringResource(R.string.history_cell_recorded, cell.recordedCount)
+    }
+    if (cell.unrecordedCount > 0) {
+        counts += stringResource(R.string.history_cell_no_recorded_intake, cell.unrecordedCount)
+    }
+    if (cell.unmatchedActualCount > 0) {
+        counts += stringResource(R.string.history_cell_other_intake, cell.unmatchedActualCount)
+    }
     parts += if (counts.isEmpty()) {
         stringResource(R.string.history_cell_no_history)
     } else {

@@ -79,9 +79,11 @@ object HistoryPresentation {
                 // Interaction rule only: a calendar day after today cannot be opened. This is
                 // not history filtering — the domain already excludes future occurrences.
                 isEnabled = !date.isAfter(state.today),
-                hasRecorded = (loadedDay?.recordedCount ?: 0) > 0,
-                hasUnrecorded = (loadedDay?.unrecordedCount ?: 0) > 0,
-                hasUnmatchedActual = (loadedDay?.unmatchedActualCount ?: 0) > 0
+                // Real counts are the single source of truth; the indicator booleans and the
+                // accessibility text both derive from them (A-03-UI-R1 accessibility fix).
+                recordedCount = loadedDay?.recordedCount ?: 0,
+                unrecordedCount = loadedDay?.unrecordedCount ?: 0,
+                unmatchedActualCount = loadedDay?.unmatchedActualCount ?: 0
             )
         }
         return cells
@@ -105,21 +107,26 @@ object HistoryPresentation {
             medicationFallback = matchKey.medicationKey,
             doseAmount = matchKey.doseAmount,
             // The actual intake is the authoritative instant; it is never replaced by the
-            // scheduled time, and it is rendered in the zone the event itself persisted.
-            actualTime = HistoryActualTimeUiModel(
-                instant = entry.event.occurredAt,
-                zone = entry.event.zoneId ?: displayZone,
-                needsFullDate = entry.crossesLocalDateBoundary
+            // scheduled time. The full-date decision comes from the rendered local date
+            // (A-03-UI-R1), never from the domain's crossesLocalDateBoundary flag: a reminder
+            // for day D confirmed at D+1 00:30 is an exact match that still needs its date.
+            actualTime = HistoryFormatting.actualTimestampPresentation(
+                occurredAt = entry.event.occurredAt,
+                persistedZoneId = entry.event.zoneId,
+                displayZone = displayZone,
+                entryDisplayDate = entry.displayDate
             ),
             scheduleTime = HistoryScheduleTimeUiModel(
                 instant = entry.occurrence.scheduledAt,
                 zone = displayZone,
                 needsFullDate = entry.occurrence.scheduledLocalDateTime.toLocalDate() != entry.displayDate
             ),
+            // Provenance-neutral wording: an inferred match is not necessarily legacy — a just
+            // recorded quick entry (null slot) may also land in the time-window fallbacks.
             noteRes = if (entry.matchProvenance == MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE) {
                 null
             } else {
-                R.string.history_note_legacy_context
+                R.string.history_note_inferred_match
             },
             secondaryNoteRes = dateNote(entry.displayDateProvenance),
             sourceLabelRes = null,
@@ -171,10 +178,11 @@ object HistoryPresentation {
             medicationLabelRes = medicationLabelRes(matchKey.routeKey, matchKey.medicationKey),
             medicationFallback = matchKey.medicationKey,
             doseAmount = matchKey.doseAmount,
-            actualTime = HistoryActualTimeUiModel(
-                instant = entry.event.occurredAt,
-                zone = entry.event.zoneId ?: displayZone,
-                needsFullDate = false
+            actualTime = HistoryFormatting.actualTimestampPresentation(
+                occurredAt = entry.event.occurredAt,
+                persistedZoneId = entry.event.zoneId,
+                displayZone = displayZone,
+                entryDisplayDate = entry.displayDate
             ),
             scheduleTime = null,
             noteRes = R.string.history_note_plan_unavailable,
