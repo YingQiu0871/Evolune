@@ -94,6 +94,22 @@ grep -h -o 'tests="[0-9]*" skipped="[0-9]*" failures="[0-9]*" errors="[0-9]*"' <
 
 ## 6. deterministic SHA-256 manifest
 
+### 6.0 Scope（阶段化 manifest 契约）
+
+`evidence/MANIFEST.sha256` 的 scope 是 **Phase-0 frozen evidence set** ——
+即 Phase-0 固化时由 6 个日志、100 个 JVM JUnit XML、2 个 instrumentation XML 与 3 个 worktree 快照组成的集合。
+它**不覆盖**后续阶段新加入 evidence tree 的文件（例如 PRE-A-01 的 `evidence/pre-a-01/`），
+也不应被理解为"整个 evidence tree 的当前状态清单"。
+
+约定：**每个阶段在自有目录内维护自己的 manifest**，覆盖该阶段的全部 data evidence：
+
+| 阶段 | manifest | 覆盖集合 |
+|---|---|---|
+| Phase-0 | `evidence/MANIFEST.sha256` | Phase-0 frozen evidence（111 entries） |
+| PRE-A-01 | `evidence/pre-a-01/MANIFEST.sha256` | PRE-A-01 data evidence（5 entries，见 [V17_PRE_A_01_WEAR_SKIP.md](V17_PRE_A_01_WEAR_SKIP.md) §6） |
+
+后续阶段必须新建自己的 manifest，**不得**把新文件无限追加进 Phase-0 manifest。
+
 - 文件：`evidence/MANIFEST.sha256`（**111 条目**：6 日志 + 100 JVM XML + 2 instrumentation XML + 3 worktree 快照）
 - **manifest 自身 SHA-256**：`f5a77ab8f54ff08fe42017ef599cf7ea898631f7cc5d01fadd96682d84501c80`
 - 生成方式（确定性：按路径 `LC_ALL=C sort`，`sha256sum` 两空格分隔，相对 `evidence/`）：
@@ -121,17 +137,26 @@ cd docs/evolune/v1.7/evidence && sha256sum -c MANIFEST.sha256   # → 111 行全
 | `connected/` | 2 | `503be48c20749374469951814b35a35dd6f7648f289339a80e1f6df6cb841766` |
 | `worktree/` | 3 | `fa5e6748ac52880df1c6f4f603a83d2816a1dee3f95d7fc01f8b385f3eb749ed` |
 
-- 本目录（含 `MANIFEST.sha256` 与 `evidence/.gitattributes`）实际文件数：**113**，合计 **361,766 B**；其中 manifest 覆盖 **111** 个证据文件。
+- **Phase-0 frozen snapshot**（冻结时记录，作为历史事实保留，不代表当前整棵树）：
+  `docs/evolune/v1.7/evidence/` 下实际文件数 **113**，合计 **361,766 B**；manifest 覆盖其中 **111** 个证据文件。
+- **当前 evidence tree（2026-09-13 PRE-A-01 之后）**：新增 `evidence/pre-a-01/` 子目录（5 个 data file + 1 个自有 manifest），
+  其覆盖与校验见该目录的 `MANIFEST.sha256`；本文件的 111 条目清单与哈希**未**随之变化。
 
-### 6.1 字节级存储保证（Git EOL 不转换）
+### 6.1 字节级存储保证（Git EOL 不转换 ＋ 原始产物免 whitespace lint）
 
 仓库在 Windows 上启用 `core.autocrlf`，默认会把文本文件规范化（LF↔CRLF），
-那将使本目录的 SHA-256 在 checkout 后**不可复现**。因此本目录新增
-`evidence/.gitattributes`：
+那将使本目录的 SHA-256 在 checkout 后**不可复现**。因此本目录设有
+`evidence/.gitattributes`，**当前内容**为：
 
 ```
-* -text
+* -text -whitespace
 ```
+
+- `-text`：不做 EOL 转换，保证字节可复现；
+- `-whitespace`：原始采集产物（构建/测试日志等）自带的尾随空格是其记录字节的一部分，
+  不应被判为 whitespace error 而让 `git diff --check` 失败。**日志字节未被修改**，SHA-256 不变。
+
+该文件在 PRE-A-01 阶段由 `* -text` 更新为 `* -text -whitespace`（历史事实：Phase-0 冻结时仅为 `* -text`）。
 
 作用范围仅限 `docs/evolune/v1.7/evidence/**`（未改动仓库根或其它目录的 Git 行为）。核验方式：
 
@@ -150,8 +175,10 @@ done < MANIFEST.sha256
 git ls-files --eol docs/evolune/v1.7/evidence
 ```
 
-本轮实际核验结果：**111 个 blob 的 SHA-256 与 `MANIFEST.sha256` 全部一致（0 处不匹配）**；
-`git ls-files --eol` 显示 102 个 `i/crlf w/crlf`、5 个 `i/lf w/lf`、6 个 `i/mixed w/mixed`（三者均为索引=工作区）。
+**Phase-0 冻结时**的核验结果（历史事实）：111 个 blob 的 SHA-256 与 `MANIFEST.sha256` 全部一致（0 处不匹配）；
+`git ls-files --eol` 当时显示 102 个 `i/crlf w/crlf`、5 个 `i/lf w/lf`、6 个 `i/mixed w/mixed`。
+该 EOL 分布描述的是 **Phase-0 frozen snapshot**，不是当前整棵 evidence tree 的状态
+（PRE-A-01 之后目录内新增了 `pre-a-01/` 文件；如需当前分布请重新执行 `git ls-files --eol docs/evolune/v1.7/evidence`）。
 
 > 说明：`-text` 只作用于本证据目录；Phase-0 的 `.md` 文档仍是普通文本文件，Git 的 EOL 规范化不影响其内容语义，
 > 也不影响本清单中的任何哈希声明。

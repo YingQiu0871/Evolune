@@ -12,8 +12,8 @@
 
 # Evolune v1.7 — History & Insights
 
-Status: DRAFT FOR BASELINE FREEZE  
-Target: v1.7.0  
+Status: DRAFT FOR BASELINE FREEZE
+Target: v1.7.0
 Theme: History, Insights, Retrospective PK and Data Portability
 
 ## 1. Product Goal
@@ -156,8 +156,8 @@ Where applicable, the chart may display:
 
 Example:
 
-Planned: 08:00  
-Taken: 11:32  
+Planned: 08:00
+Taken: 11:32
 Delta: +3h32m
 
 The PK engine must not use a History-specific copy of medication events.
@@ -174,17 +174,17 @@ Introduce a unified chronological Timeline derived from medication facts.
 
 Example presentation:
 
-08:00  
-Estradiol 2 mg  
+08:00
+Estradiol 2 mg
 Taken 08:07
 
-14:00  
-Progesterone 100 mg  
+14:00
+Progesterone 100 mg
 Taken 14:32
 
-20:00  
-Estradiol 2 mg  
-Taken 22:41  
+20:00
+Estradiol 2 mg
+Taken 22:41
 +2h41m
 
 Timeline and History must share the same derivation layer wherever practical.
@@ -193,11 +193,11 @@ They must not implement separate medication matching logic.
 
 Recommended architecture:
 
-Authoritative medication facts  
-→ shared historical derivation/domain layer  
-→ History  
-→ Timeline  
-→ Insights  
+Authoritative medication facts
+→ shared historical derivation/domain layer
+→ History
+→ Timeline
+→ Insights
 → Retrospective PK adapters
 
 ---
@@ -364,25 +364,25 @@ v1.7 does not target:
 
 The following are release-blocking invariants:
 
-**Invariant 1 — One fact, one authority**  
+**Invariant 1 — One fact, one authority**
 No second medication truth store.
 
-**Invariant 2 — Shared derivation**  
+**Invariant 2 — Shared derivation**
 History, Timeline and Insights must not independently reinvent occurrence matching.
 
-**Invariant 3 — PK consumes actual medication facts**  
+**Invariant 3 — PK consumes actual medication facts**
 Retrospective PK must use authoritative historical intake data.
 
-**Invariant 4 — Ambiguity stays ambiguous**  
+**Invariant 4 — Ambiguity stays ambiguous**
 The implementation must not convert uncertain legacy matching into false certainty.
 
-**Invariant 5 — Read paths cannot mutate truth**  
+**Invariant 5 — Read paths cannot mutate truth**
 Opening History/Insights/PK must never rewrite medication records as a side effect.
 
-**Invariant 6 — Cross-surface convergence**  
+**Invariant 6 — Cross-surface convergence**
 Phone and Wear actions must result in equivalent historical state.
 
-**Invariant 7 — Testable semantics**  
+**Invariant 7 — Testable semantics**
 Every semantic rule affecting historical classification must have deterministic tests.
 
 ---
@@ -408,11 +408,11 @@ v1.7.0 may be approved only when:
 
 ## 14. Version Structure
 
-v1.7-A — History Foundation  
-v1.7-B — Adherence Insights  
-v1.7-C — Retrospective PK  
-v1.7-D — Medication Timeline  
-v1.7-E — Export & Data Portability  
+v1.7-A — History Foundation
+v1.7-B — Adherence Insights
+v1.7-C — Retrospective PK
+v1.7-D — Medication Timeline
+v1.7-E — Export & Data Portability
 v1.7-F — Consistency, Reliability & Release Gate
 
 Each phase requires independent review before the next phase becomes implementation-active.

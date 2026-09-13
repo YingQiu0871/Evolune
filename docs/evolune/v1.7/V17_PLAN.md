@@ -14,7 +14,7 @@
 
 # Evolune v1.7 Development Plan
 
-Status: INITIAL PLAN  
+Status: INITIAL PLAN
 Development model: Dual-agent implementation + independent review
 
 ## 1. Roles
@@ -69,13 +69,13 @@ The reviewer must receive facts and evidence rather than persuasive summaries.
 
 Preferred review package:
 
-Baseline SHA  
-Candidate SHA  
-Relevant specification  
-Git diff  
-Changed files  
-Fresh test logs  
-Device evidence where relevant  
+Baseline SHA
+Candidate SHA
+Relevant specification
+Git diff
+Changed files
+Fresh test logs
+Device evidence where relevant
 Known limitations
 
 Avoid telling the reviewer:
@@ -155,9 +155,9 @@ Implement/reuse one deterministic historical derivation pipeline.
 
 Expected responsibilities may include:
 
-planned occurrence  
-+ authoritative medication event  
-+ existing match policy  
+planned occurrence
++ authoritative medication event
++ existing match policy
 → historical projection
 
 The exact type/API must follow repository architecture.
@@ -204,13 +204,13 @@ No separate event matching.
 
 Work sequence:
 
-B-01 metric semantics  
-B-02 aggregation domain layer  
-B-03 7/30/90-day ranges  
-B-04 medication breakdown  
-B-05 UI  
-B-06 deterministic tests  
-B-07 fresh verification  
+B-01 metric semantics
+B-02 aggregation domain layer
+B-03 7/30/90-day ranges
+B-04 medication breakdown
+B-05 UI
+B-06 deterministic tests
+B-07 fresh verification
 B-08 independent review
 
 Gate:
@@ -234,14 +234,14 @@ DeepSeek High for normal review, with Max-level second-pass review if material P
 
 Work sequence:
 
-C-01 inspect current PK source pipeline  
-C-02 historical event adapter  
-C-03 retrospective interval calculation  
-C-04 planned/actual markers  
-C-05 UI integration  
-C-06 numerical regression tests  
-C-07 timezone/DST tests  
-C-08 fresh verification  
+C-01 inspect current PK source pipeline
+C-02 historical event adapter
+C-03 retrospective interval calculation
+C-04 planned/actual markers
+C-05 UI integration
+C-06 numerical regression tests
+C-07 timezone/DST tests
+C-08 fresh verification
 C-09 independent review
 
 Gate:
@@ -258,12 +258,12 @@ Timeline must consume the same shared historical representation as History.
 
 Work sequence:
 
-D-01 timeline projection  
-D-02 chronological grouping  
-D-03 selected-date / range behavior  
-D-04 UI  
-D-05 accessibility and localization  
-D-06 tests  
+D-01 timeline projection
+D-02 chronological grouping
+D-03 selected-date / range behavior
+D-04 UI
+D-05 accessibility and localization
+D-06 tests
 D-07 independent review
 
 Gate:
@@ -276,13 +276,13 @@ Gate:
 
 Work sequence:
 
-E-01 export contract  
-E-02 CSV schema freeze  
-E-03 JSON schema freeze  
-E-04 deterministic serialization  
-E-05 sharing/storage UX  
-E-06 privacy validation  
-E-07 round-trip / fixture tests where appropriate  
+E-01 export contract
+E-02 CSV schema freeze
+E-03 JSON schema freeze
+E-04 deterministic serialization
+E-05 sharing/storage UX
+E-06 privacy validation
+E-07 round-trip / fixture tests where appropriate
 E-08 independent review
 
 Export must not mutate source data.
@@ -299,45 +299,45 @@ Architecture-sensitive release phase.
 
 Required validation matrix:
 
-Phone record  
-→ History  
-→ Timeline  
-→ Insights  
+Phone record
+→ History
+→ Timeline
+→ Insights
 → PK
 
-Widget record  
+Widget record
 → same result
 
-Wear record  
+Wear record
 → same result
 
-Undo from supported surface  
+Undo from supported surface
 → same result
 
-Legacy event  
+Legacy event
 → deterministic preserved result
 
 Additional required cases:
 
-cross-midnight  
-DST forward transition  
-DST backward transition  
-timezone change  
-duplicate/retry  
-manual intake  
-same medication multiple times/day  
-schedule edit  
-schedule deletion  
+cross-midnight
+DST forward transition
+DST backward transition
+timezone change
+duplicate/retry
+manual intake
+same medication multiple times/day
+schedule edit
+schedule deletion
 legacy migration
 
 Required evidence:
 
-fresh JVM suite  
-fresh Android suite  
-fresh Wear/device suite where affected  
-build success  
-raw logs  
-candidate SHA  
+fresh JVM suite
+fresh Android suite
+fresh Wear/device suite where affected
+build success
+raw logs
+candidate SHA
 clean final worktree or explicitly documented generated artifacts
 
 Final independent review must report P0-P3 findings.
@@ -380,13 +380,13 @@ Each implementation slice should be attributable.
 
 Evidence should always state:
 
-baseline SHA  
-candidate SHA  
-changed files  
-test commands  
-test counts  
-failures/errors  
-device target where relevant  
+baseline SHA
+candidate SHA
+changed files
+test commands
+test counts
+failures/errors
+device target where relevant
 known limitations
 
 A passing test summary without raw or reproducible evidence is insufficient for a release gate.
