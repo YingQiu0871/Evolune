@@ -132,6 +132,29 @@ class HistoryPresentationWordingTest {
     }
 
     @Test
+    fun `only the shared rule decides whether an actual intake shows its full date`() {
+        val presentation = code("history/HistoryPresentation.kt")
+
+        // Both card paths must use the single decision API ...
+        assertEquals(
+            2,
+            presentation.split("actualTime = HistoryFormatting.actualTimestampPresentation(").size - 1
+        )
+        // ... and no forbidden signal may decide it (A-03-UI-R1 P1).
+        assertFalse(presentation.contains("needsFullDate = entry.crossesLocalDateBoundary"))
+        assertFalse(presentation.contains("needsFullDate = false"))
+        assertFalse(presentation.contains("needsFullDate = entry.matchProvenance"))
+        assertFalse(presentation.contains("needsFullDate = entry.event.localDate"))
+        // The only other needsFullDate source is the current-schedule-date rule.
+        assertEquals(
+            2,
+            presentation
+                .split("needsFullDate = entry.occurrence.scheduledLocalDateTime.toLocalDate() != entry.displayDate")
+                .size - 1
+        )
+    }
+
+    @Test
     fun `ui reads history only through the history read service seam`() {
         val factory = source("history/HistoryViewModel.kt")
         assertTrue(factory.contains("HistoryRangeSource"))

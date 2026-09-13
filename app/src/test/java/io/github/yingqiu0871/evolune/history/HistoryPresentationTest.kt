@@ -60,6 +60,31 @@ class HistoryPresentationTest {
     }
 
     @Test
+    fun `legacy and modern inferred matches share the same neutral wording`() {
+        val legacy = HistoryPresentation.entry(
+            matchedEntry(
+                event = testEvent(id = 60L, source = MedicationIntakeSource.LEGACY),
+                provenance = MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW
+            ),
+            utc
+        )
+        val modernQuickRecord = HistoryPresentation.entry(
+            matchedEntry(
+                event = testEvent(id = 61L, source = MedicationIntakeSource.MANUAL),
+                provenance = MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW
+            ),
+            utc
+        )
+
+        // A just recorded quick entry must not be described as a legacy record, so both shapes
+        // carry the identical provenance-neutral note.
+        assertEquals(R.string.history_note_inferred_match, legacy.noteRes)
+        assertEquals(legacy.noteRes, modernQuickRecord.noteRes)
+        assertTrue(legacy.isInferredMatch)
+        assertTrue(modernQuickRecord.isInferredMatch)
+    }
+
+    @Test
     fun `unrecorded entry keeps the non-blaming wording`() {
         val model = HistoryPresentation.entry(unrecordedEntry(), utc)
 
