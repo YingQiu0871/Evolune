@@ -49,7 +49,12 @@
 `derive(...)` 行为不变（既有 23 个表示层用例全绿）。
 
 **Shared-matcher guarantee**：`HistoricalProjectionBuilder` 只调用 `deriveWithMatches`，
-不包含任何窗口/唯一性判定；`Entry` 的 provenance 直接来自该决策。测试 `projection provenance agrees with the presentation matcher for the same input`
+不包含任何窗口/唯一性判定；`Entry` 的 provenance 直接来自该决策。
+
+**准确表述（A-02 更正）**：这是"**historical occurrence matching 只有一个实现来源**"，
+**不等同于**"全仓只有一个 ±1h 概念"：`reminder/DoseCheckInMatcher.kt` 另有独立 ±1h 检查用于**提醒抑制**，
+`wear/WearAppSnapshotBuilder` 用 `matchBefore + matchAfter` 计算上下文窗口宽度（不参与匹配判定）。
+边界与后续评估见 [V17_A_02_HISTORY_READ_MODEL.md](V17_A_02_HISTORY_READ_MODEL.md)。测试 `projection provenance agrees with the presentation matcher for the same input`
 断言两个 API 对同一输入给出同一 pairing。
 
 ## 4. Unmatched / orphan intake projection（M8）
@@ -92,9 +97,16 @@ authoritative actual event **不会**因为没有 occurrence 而从投影消失�
 
 - `BUILD SUCCESSFUL`（原始运行日志：`evidence/a-01/v17a01-jvm-run.log`）。
 - 计数由 XML 的 `testsuite` 属性求和得出（`evidence/a-01/jvm-aggregate.tsv`），**不从构建日志读计数**。
-- 新增测试分布：golden vector 6、provenance/cross-date 11（含新增的同日回退辨析 1）、intake/timezone/DST 8。
+
+**执行新鲜度口径（据实说明）**：该捕获日志中 `:experience-core:test` 为 **UP-TO-DATE**，而 `:app:testDebugUnitTest`、`:wear:testDebugUnitTest` **实际执行**。
+因此：
+
+- JUnit XML 提供的是 **candidate state 的 888 个测试结果**（artifacts 可验证）；
+- 其中 **109 个 experience-core candidate XML 可独立验证**（它们来自本轮一次真实执行），但**该日志本身不构成 `--rerun-tasks` 的 fresh 证明**；
+- 本文件**不**声称"三个模块都在该日志中 fresh rerun"。A-02 起改为显式 `--rerun-tasks` 或等价可证明执行的新鲜运行。
+- 新增测试分布（按测试类逐文件核对）：**golden vector 6 / provenance 10 / intake-timezone-DST 9 = 25**。
 - 既有 `MedicationOccurrencePresentationTest`（23 用例）保持全绿 → matcher 行为未变。
-- `git diff --check`：退出码 0。
+- `git diff --check`：退出码 0。**范围说明**：`docs/evolune/v1.7/evidence/**` 受 `* -text -whitespace` 属性约束，因此该目录内的原始产物不会触发 whitespace lint；**源码与普通文档范围另行独立检查为 clean**。
 - 未运行 instrumentation：本轮未触及 Android 集成（仅 experience-core domain 与 app 侧 mapper）。
 
 ## 7. Evidence manifest（阶段化）
