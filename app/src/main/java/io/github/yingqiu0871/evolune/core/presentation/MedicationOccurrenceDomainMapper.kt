@@ -1,9 +1,11 @@
 package io.github.yingqiu0871.evolune.core.presentation
 
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
+import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
+import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource
 import io.github.yingqiu0871.evolune.experience.MedicationMatchKey
 import io.github.yingqiu0871.evolune.experience.MedicationPresentation
 import io.github.yingqiu0871.evolune.experience.MedicationSchedule
@@ -45,11 +47,26 @@ fun DoseEvent.toRecordedMedicationEvent(): RecordedMedicationEvent? =
             eventId = event.id,
             occurredAt = event.occurredAt,
             slotId = event.slotId,
-            localDate = event.localDate,
             matchKey = MedicationMatchKey(
                 routeKey = event.route.name,
                 medicationKey = event.ester.name,
                 doseAmount = event.doseMG
-            )
+            ),
+            source = event.source.toMedicationIntakeSource(),
+            localDate = event.localDate,
+            zoneId = event.zoneId
         )
     }
+
+/**
+ * Maps the authoritative Phone event origin onto the pure-Kotlin historical domain.
+ * Only [DoseEventSource.MANUAL] may ever be presented as a manual intake.
+ */
+fun DoseEventSource.toMedicationIntakeSource(): MedicationIntakeSource = when (this) {
+    DoseEventSource.LEGACY -> MedicationIntakeSource.LEGACY
+    DoseEventSource.MANUAL -> MedicationIntakeSource.MANUAL
+    DoseEventSource.JSON_V1 -> MedicationIntakeSource.JSON_V1
+    DoseEventSource.REMINDER -> MedicationIntakeSource.REMINDER
+    DoseEventSource.WIDGET -> MedicationIntakeSource.WIDGET
+    DoseEventSource.WEAR -> MedicationIntakeSource.WEAR
+}

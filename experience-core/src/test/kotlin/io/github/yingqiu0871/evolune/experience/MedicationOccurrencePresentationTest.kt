@@ -48,6 +48,7 @@ class MedicationOccurrencePresentationTest {
             occurrences = listOf(occurrence),
             recordedEvents = listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = eventId,
                     occurredAt = now.plusSeconds(30 * 60L),
                     slotId = null,
@@ -69,6 +70,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 2L),
                     occurredAt = now,
                     slotId = null,
@@ -89,6 +91,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 3L),
                     occurredAt = now,
                     slotId = UUID(8L, 8L),
@@ -110,12 +113,14 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = fallbackId,
                     occurredAt = now,
                     slotId = null,
                     matchKey = occurrence.presentation.matchKey
                 ),
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = exactId,
                     occurredAt = now.plusSeconds(50 * 60L),
                     slotId = occurrence.slotId,
@@ -139,6 +144,7 @@ class MedicationOccurrencePresentationTest {
             simultaneous,
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 6L),
                     occurredAt = now,
                     slotId = null,
@@ -167,6 +173,7 @@ class MedicationOccurrencePresentationTest {
             candidates,
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 12L),
                     occurredAt = Instant.parse("2025-01-02T09:20:00Z"),
                     slotId = null,
@@ -196,6 +203,7 @@ class MedicationOccurrencePresentationTest {
             candidates,
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = eventId,
                     occurredAt = occurredAt,
                     slotId = null,
@@ -230,6 +238,7 @@ class MedicationOccurrencePresentationTest {
             "2025-01-03T00:00:00Z"
         )
         val earlier = RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
             eventId = UUID(9L, 29L),
             occurredAt = Instant.parse("2025-01-02T09:20:00Z"),
             slotId = null,
@@ -288,6 +297,7 @@ class MedicationOccurrencePresentationTest {
             candidates,
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = delayedId,
                     occurredAt = delayedAt,
                     slotId = null,
@@ -295,6 +305,7 @@ class MedicationOccurrencePresentationTest {
                     localDate = localDate
                 ),
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = exactId,
                     occurredAt = exactAt,
                     slotId = candidates.first().slotId,
@@ -321,6 +332,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = eventId,
                     occurredAt = now.plusSeconds(30 * 60L),
                     slotId = null,
@@ -350,12 +362,14 @@ class MedicationOccurrencePresentationTest {
             simultaneous,
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = exactId,
                     occurredAt = now,
                     slotId = simultaneous.first().slotId,
                     matchKey = simultaneous.first().presentation.matchKey
                 ),
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = fallbackId,
                     occurredAt = now,
                     slotId = null,
@@ -381,6 +395,7 @@ class MedicationOccurrencePresentationTest {
             "2025-01-03T00:00:00Z"
         )
         val event = RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
             eventId = UUID(9L, 11L),
             occurredAt = now,
             slotId = null,
@@ -405,6 +420,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 7L),
                     occurredAt = now.plusSeconds(3_601L),
                     slotId = null,
@@ -431,6 +447,7 @@ class MedicationOccurrencePresentationTest {
             occurrences = listOf(occurrence),
             recordedEvents = listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = eventId,
                     occurredAt = occurredAt,
                     slotId = null,
@@ -455,6 +472,7 @@ class MedicationOccurrencePresentationTest {
         val occurredAt = Instant.parse("2025-01-02T18:45:00Z")
         val eventId = UUID(9L, 19L)
         val event = RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
             eventId = eventId,
             occurredAt = occurredAt,
             slotId = null,
@@ -486,6 +504,7 @@ class MedicationOccurrencePresentationTest {
             occurrences = listOf(occurrence),
             recordedEvents = listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 22L),
                     occurredAt = occurredAt,
                     slotId = null,
@@ -515,6 +534,7 @@ class MedicationOccurrencePresentationTest {
             occurrences = simultaneous,
             recordedEvents = listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 23L),
                     occurredAt = occurredAt,
                     slotId = null,
@@ -537,6 +557,7 @@ class MedicationOccurrencePresentationTest {
             "2025-01-03T00:00:00Z"
         ).single()
         val earlier = RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
             eventId = UUID(9L, 24L),
             occurredAt = Instant.parse("2025-01-02T18:00:00Z"),
             slotId = null,
@@ -573,6 +594,7 @@ class MedicationOccurrencePresentationTest {
             occurrences = listOf(occurrence),
             recordedEvents = listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = exactId,
                     occurredAt = occurredAt,
                     slotId = occurrence.slotId,
@@ -580,6 +602,7 @@ class MedicationOccurrencePresentationTest {
                     matchKey = occurrence.presentation.matchKey.copy(routeKey = "LEGACY")
                 ),
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = fallbackId,
                     occurredAt = occurredAt.plusSeconds(60L),
                     slotId = null,
@@ -601,6 +624,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = eventId,
                     occurredAt = now.plusSeconds(5 * 3_600L),
                     slotId = occurrence.slotId,
@@ -623,6 +647,7 @@ class MedicationOccurrencePresentationTest {
                 listOf(occurrence),
                 listOf(
                     RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                         eventId = UUID(9L, localDate.dayOfMonth.toLong()),
                         occurredAt = now.plusSeconds(5 * 3_600L),
                         slotId = slotId,
@@ -650,6 +675,7 @@ class MedicationOccurrencePresentationTest {
             listOf(occurrence),
             listOf(
                 RecordedMedicationEvent(
+                    source = MedicationIntakeSource.LEGACY,
                     eventId = UUID(9L, 21L),
                     occurredAt = now.plusSeconds(5 * 3_600L),
                     slotId = occurrence.slotId,

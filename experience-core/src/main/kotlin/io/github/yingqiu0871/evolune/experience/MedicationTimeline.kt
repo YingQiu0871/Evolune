@@ -3,15 +3,26 @@ package io.github.yingqiu0871.evolune.experience
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 import kotlin.math.abs
 
+/**
+ * Event-side projection consumed by the shared matcher.
+ *
+ * [source] is required on purpose: only `MANUAL` may be presented as a manual
+ * intake, so callers must state the real origin instead of relying on a default.
+ * [zoneId] and [localDate] carry the persisted recording context when the
+ * authoritative event has it (legacy migrated rows have neither).
+ */
 data class RecordedMedicationEvent(
     val eventId: UUID,
     val occurredAt: Instant,
     val slotId: UUID?,
     val matchKey: MedicationMatchKey,
-    val localDate: LocalDate? = null
+    val source: MedicationIntakeSource,
+    val localDate: LocalDate? = null,
+    val zoneId: ZoneId? = null
 )
 
 enum class MedicationOccurrenceStatus {
@@ -51,17 +62,37 @@ data class MedicationOccurrencePolicy(
     }
 }
 
+/** Presentation items plus the exact match decisions they were derived from. */
+data class MedicationOccurrencePresentationResult(
+    val items: List<MedicationTimelineItem>,
+    val matches: Map<MedicationOccurrenceId, MedicationOccurrenceMatch>
+)
+
 object MedicationOccurrencePresentation {
     fun derive(
         occurrences: List<MedicationOccurrence>,
         recordedEvents: List<RecordedMedicationEvent>,
         now: Instant,
         policy: MedicationOccurrencePolicy = MedicationOccurrencePolicy()
-    ): List<MedicationTimelineItem> {
+    ): List<MedicationTimelineItem> =
+        deriveWithMatches(occurrences, recordedEvents, now, policy).items
+
+    /**
+     * Runs the shared four-phase matcher exactly once and returns both the
+     * presentation items and the underlying match decisions. Every derived
+     * surface must consume one of these two outputs instead of re-running
+     * occurrence matching.
+     */
+    fun deriveWithMatches(
+        occurrences: List<MedicationOccurrence>,
+        recordedEvents: List<RecordedMedicationEvent>,
+        now: Instant,
+        policy: MedicationOccurrencePolicy = MedicationOccurrencePolicy()
+    ): MedicationOccurrencePresentationResult {
         val orderedOccurrences = occurrences.sortedWith(OCCURRENCE_ORDER)
-        val matches = assignRecordedEvents(orderedOccurrences, recordedEvents, policy)
-        return orderedOccurrences.map { occurrence ->
-            val event = matches[occurrence.id]
+        val matches = MedicationOccurrenceMatcher.assign(orderedOccurrences, recordedEvents, policy)
+        val items = orderedOccurrences.map { occurrence ->
+            val event = matches[occurrence.id]?.event
             val status = when {
                 event != null -> MedicationOccurrenceStatus.RECORDED
                 Duration.between(occurrence.scheduledAt, now) < policy.dueBefore.negated() ->
@@ -86,183 +117,8 @@ object MedicationOccurrencePresentation {
                 recordedEventId = event?.eventId
             )
         }
+        return MedicationOccurrencePresentationResult(items = items, matches = matches)
     }
-
-    private fun assignRecordedEvents(
-        occurrences: List<MedicationOccurrence>,
-        events: List<RecordedMedicationEvent>,
-        policy: MedicationOccurrencePolicy
-    ): Map<MedicationOccurrenceId, RecordedMedicationEvent> {
-        val result = mutableMapOf<MedicationOccurrenceId, RecordedMedicationEvent>()
-        val consumedOccurrences = mutableSetOf<MedicationOccurrenceId>()
-        val consumedEvents = mutableSetOf<UUID>()
-
-        // A persisted slot/date pair identifies one logical occurrence independently
-        // from the actual dose time. Resolve it before all time-window fallbacks.
-        events.asSequence()
-            .filter { it.slotId != null && it.localDate != null }
-            .sortedWith(EVENT_ORDER)
-            .forEach { event ->
-                val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in consumedOccurrences &&
-                        occurrence.slotId == event.slotId &&
-                        occurrence.scheduledLocalDateTime.toLocalDate() == event.localDate
-                }
-                if (candidates.size == 1) {
-                    val occurrence = candidates.single()
-                    consumedOccurrences += occurrence.id
-                    consumedEvents += event.eventId
-                    result[occurrence.id] = event
-                }
-            }
-
-        // Older slot-bearing events do not have a trustworthy local date. Preserve
-        // their previous slot plus inclusive time-window behavior without inferring
-        // an exact cross-date association.
-        events.asSequence()
-            .filter { it.slotId != null && it.localDate == null }
-            .sortedWith(EVENT_ORDER)
-            .forEach { event ->
-                val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in consumedOccurrences &&
-                        fallbackMatchCandidate(occurrence, event, policy) != null
-                }
-                if (candidates.size == 1) {
-                    val occurrence = candidates.single()
-                    consumedOccurrences += occurrence.id
-                    consumedEvents += event.eventId
-                    result[occurrence.id] = event
-                }
-            }
-
-        // Preserve the original null-slot time-window match as its own phase. Its
-        // candidate sets are fixed before any of these matches are assigned, so
-        // input order cannot turn a genuine ambiguity into a match.
-        val windowCandidateEventIds = events.asSequence()
-            .filter { it.slotId == null && it.eventId !in consumedEvents }
-            .filter { event ->
-                occurrences.any { occurrence ->
-                    fallbackMatchCandidate(occurrence, event, policy) != null
-                }
-            }
-            .map { it.eventId }
-            .toSet()
-        val uniqueTimeWindowMatches = events.asSequence()
-            .filter { it.slotId == null && it.eventId !in consumedEvents }
-            .sortedWith(EVENT_ORDER)
-            .mapNotNull { event ->
-                val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in consumedOccurrences &&
-                        fallbackMatchCandidate(occurrence, event, policy) != null
-                }
-                if (candidates.size == 1) {
-                    MatchCandidate(candidates.single(), event)
-                } else {
-                    null
-                }
-            }
-            .groupBy { it.occurrence.id }
-
-        uniqueTimeWindowMatches.forEach { (occurrenceId, candidates) ->
-            val event = candidates
-                .sortedWith(compareBy({ it.event.occurredAt }, { it.event.eventId.toString() }))
-                .first()
-                .event
-            consumedOccurrences += occurrenceId
-            consumedEvents += event.eventId
-            result[occurrenceId] = event
-        }
-
-        // Only null-slot events that remain unused after the original window
-        // phase may use the delayed same-day fallback. This deliberately does not
-        // widen the time-window candidate set above. An event with any original
-        // window evidence remains ineligible even if it lost a competition.
-        val uniqueSameDayMatches = events.asSequence()
-            .filter {
-                it.slotId == null &&
-                    it.eventId !in consumedEvents &&
-                    it.eventId !in windowCandidateEventIds
-            }
-            .sortedWith(EVENT_ORDER)
-            .mapNotNull { event ->
-                val candidates = occurrences.filter { occurrence ->
-                    occurrence.id !in consumedOccurrences &&
-                        sameDayNullSlotMatchCandidate(occurrence, event, policy) != null
-                }
-                if (candidates.size == 1) {
-                    MatchCandidate(candidates.single(), event)
-                } else {
-                    null
-                }
-            }
-            .groupBy { it.occurrence.id }
-
-        uniqueSameDayMatches.forEach { (occurrenceId, candidates) ->
-            val event = candidates
-                .sortedWith(compareBy({ it.event.occurredAt }, { it.event.eventId.toString() }))
-                .first()
-                .event
-            consumedOccurrences += occurrenceId
-            consumedEvents += event.eventId
-            result[occurrenceId] = event
-        }
-        return result
-    }
-
-    private fun fallbackMatchCandidate(
-        occurrence: MedicationOccurrence,
-        event: RecordedMedicationEvent,
-        policy: MedicationOccurrencePolicy
-    ): MatchCandidate? {
-        val difference = Duration.between(occurrence.scheduledAt, event.occurredAt)
-        if (difference < policy.matchBefore.negated() || difference > policy.matchAfter) {
-            return null
-        }
-
-        if (event.slotId != null) {
-            if (event.slotId != occurrence.slotId) return null
-        } else {
-            if (!event.matchKey.matches(occurrence.presentation.matchKey, policy.doseTolerance)) {
-                return null
-            }
-        }
-        return MatchCandidate(
-            occurrence = occurrence,
-            event = event
-        )
-    }
-
-    private fun sameDayNullSlotMatchCandidate(
-        occurrence: MedicationOccurrence,
-        event: RecordedMedicationEvent,
-        policy: MedicationOccurrencePolicy
-    ): MatchCandidate? {
-        if (event.slotId != null || event.localDate == null) return null
-        if (occurrence.scheduledLocalDateTime.toLocalDate() != event.localDate) return null
-        if (!event.matchKey.matches(occurrence.presentation.matchKey, policy.doseTolerance)) return null
-        return MatchCandidate(
-            occurrence = occurrence,
-            event = event
-        )
-    }
-
-    private fun MedicationMatchKey.matches(
-        other: MedicationMatchKey,
-        doseTolerance: Double
-    ): Boolean =
-        routeKey == other.routeKey &&
-            medicationKey == other.medicationKey &&
-            abs(doseAmount - other.doseAmount) <= doseTolerance
-
-    private data class MatchCandidate(
-        val occurrence: MedicationOccurrence,
-        val event: RecordedMedicationEvent
-    )
-
-    private val EVENT_ORDER = compareBy<RecordedMedicationEvent>(
-        { it.occurredAt },
-        { it.eventId.toString() }
-    )
 }
 
 data class MedicationTimelinePolicy(
