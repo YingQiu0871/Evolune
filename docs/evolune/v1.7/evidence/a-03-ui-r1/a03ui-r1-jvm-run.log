@@ -17,11 +17,11 @@ Warning: SDK processing. This version only understands SDK XML versions up to 3 
 > Task :app:packageDebugResources
 > Task :app:processDebugNavigationResources
 > Task :app:javaPreCompileDebug
-> Task :app:parseDebugLocalResources
 > Task :app:checkDebugAarMetadata
 > Task :app:compileDebugNavigationResources
-> Task :app:generateDebugRFile
+> Task :app:parseDebugLocalResources
 > Task :app:mapDebugSourceSetPaths
+> Task :app:generateDebugRFile
 > Task :experience-core:compileKotlin
 > Task :experience-core:compileJava NO-SOURCE
 > Task :experience-core:classes UP-TO-DATE
@@ -50,12 +50,12 @@ Warning: SDK processing. This version only understands SDK XML versions up to 3 
 > Task :wear:mapDebugSourceSetPaths
 > Task :wear:createDebugCompatibleScreenManifests
 > Task :wear:extractDeepLinksDebug
-> Task :wear:mergeDebugResources
 > Task :wear:processDebugMainManifest
 > Task :wear:processDebugManifest
 > Task :wear:preDebugUnitTestBuild UP-TO-DATE
-> Task :app:processDebugManifestForPackage
+> Task :wear:mergeDebugResources
 > Task :wear:javaPreCompileDebugUnitTest
+> Task :app:processDebugManifestForPackage
 
 > Task :wear:compileDebugKotlin
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
@@ -63,9 +63,9 @@ w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/git
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
 
+> Task :wear:processDebugManifestForPackage
 > Task :wear:compileDebugJavaWithJavac NO-SOURCE
 > Task :wear:processDebugJavaRes
-> Task :wear:processDebugManifestForPackage
 > Task :app:processDebugResources
 > Task :wear:processDebugResources
 > Task :wear:bundleDebugClassesToRuntimeJar
@@ -84,8 +84,8 @@ w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/main/java/io/gith
 
 > Task :app:compileDebugJavaWithJavac NO-SOURCE
 > Task :app:processDebugJavaRes
-> Task :app:bundleDebugClassesToRuntimeJar
 > Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
 > Task :app:kspDebugUnitTestKotlin
 
 > Task :app:compileDebugUnitTestKotlin
@@ -106,18 +106,18 @@ w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/gith
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:82 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:110 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
 w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:135 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:166:39 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:167:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:168:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:182:43 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:183:40 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:270:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
-w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:271:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:191:39 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:192:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:193:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:207:43 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:208:40 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:295:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:296:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
 
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugUnitTestJavaRes
 > Task :app:testDebugUnitTest
 
-BUILD SUCCESSFUL in 1m
+BUILD SUCCESSFUL in 54s
 54 actionable tasks: 54 executed
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

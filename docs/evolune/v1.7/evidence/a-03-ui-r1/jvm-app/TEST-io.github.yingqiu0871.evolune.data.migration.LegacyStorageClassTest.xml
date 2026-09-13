@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.data.migration.LegacyStorageClassTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:07.977Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.data.migration.LegacyStorageClassTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.331Z" hostname="人面不知何处去" time="0.001">
   <properties/>
   <testcase name="floatStorageClassIsAllowed" classname="io.github.yingqiu0871.evolune.data.migration.LegacyStorageClassTest" time="0.001"/>
   <testcase name="stringStorageClassFails" classname="io.github.yingqiu0871.evolune.data.migration.LegacyStorageClassTest" time="0.0"/>

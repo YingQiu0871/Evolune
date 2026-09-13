@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.onboarding.OnboardingStateTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.317Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.onboarding.OnboardingStateTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.588Z" hostname="人面不知何处去" time="0.001">
   <properties/>
   <testcase name="featureTutorialPendingDoesNotChangeLegalCompletion" classname="io.github.yingqiu0871.evolune.onboarding.OnboardingStateTest" time="0.001"/>
   <testcase name="migratedExistingInstallationKeepsDisclosureGateWithoutBeginnerTour" classname="io.github.yingqiu0871.evolune.onboarding.OnboardingStateTest" time="0.0"/>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.419Z" hostname="人面不知何处去" time="0.008">
+<testsuite name="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.639Z" hostname="人面不知何处去" time="0.002">
   <properties/>
-  <testcase name="wideChartCapsXAxisLabels" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" time="0.008"/>
+  <testcase name="wideChartCapsXAxisLabels" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" time="0.002"/>
   <testcase name="invalidDimensionsFallBackToTwoLabels" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" time="0.0"/>
   <testcase name="narrowChartReducesXAxisLabels" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>

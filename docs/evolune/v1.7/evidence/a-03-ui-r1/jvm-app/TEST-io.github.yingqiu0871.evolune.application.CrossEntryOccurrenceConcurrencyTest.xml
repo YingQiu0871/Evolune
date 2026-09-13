@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:02.929Z" hostname="人面不知何处去" time="0.144">
+<testsuite name="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:43.878Z" hostname="人面不知何处去" time="0.132">
   <properties/>
-  <testcase name="different occurrences can confirm concurrently without conflicting" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.121"/>
-  <testcase name="Wear read followed by Widget insert still leaves one event" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.017"/>
-  <testcase name="Widget read followed by Wear command still leaves Widget as the winner" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.006"/>
+  <testcase name="different occurrences can confirm concurrently without conflicting" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.115"/>
+  <testcase name="Wear read followed by Widget insert still leaves one event" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.012"/>
+  <testcase name="Widget read followed by Wear command still leaves Widget as the winner" classname="io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest" time="0.004"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -6,11 +6,11 @@
 > Round：v1.7-A / A-03（preflight）→ **A-03-PRE-01（契约修复）**
 > 起始 HEAD：`a149ed4b3e1fb20498b0d4239d41caab9f0f2462`（A-02 R2 关闭）→ preflight 关闭于 `fe8a5870c366367a12d8aed89dd2158b49aafcf6`
 > Commit（preflight 轮）：`docs: close A-02 review precision notes`、`docs: report A-03 history contract gap`
-> Commit（A-03-UI-R1 轮）：`afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording`（P1 + 两个 P2 合并且逐条标注，reviewer 允许合并 1–3）、`d1889bf test: verify A-03 History presentation fixes`、`docs: close A-03 UI review findings`
+> Commit（A-03-UI-R1 轮）：`afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording`（P1 + 两个 P2 合并且逐条标注，reviewer 允许合并 1–3）、`d1889bf test: verify A-03 History presentation fixes`、`69dc99c test: guard the cross-date presentation rule against regressions`、`docs: close A-03 UI review findings`
 > Commit（A-03-UI 轮）：`63f2c7b docs: close A-03 preflight review notes`、`0395ad8 feat: add History calendar presentation`、`206cdf2 feat: expose History as primary phone tab`、`1412a9f test: verify v1.7 History phone experience`、`docs: close A-03 History UI round`
 > Commit（A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
 > 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
-> 证据清单（A-03-UI-R1）：[`evidence/a-03-ui-r1/MANIFEST.sha256`](evidence/a-03-ui-r1/MANIFEST.sha256)（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，manifest 自身 SHA-256 `2b2aeb2bbabafa7af9c6eb9471f1bd08eb0c9b209b87c78522c9796543408bd2`）
+> 证据清单（A-03-UI-R1）：[`evidence/a-03-ui-r1/MANIFEST.sha256`](evidence/a-03-ui-r1/MANIFEST.sha256)（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，manifest 自身 SHA-256 `d9a6fdb3f463cdc2f6abb15cf478fe500f6b904c665a745fe11f9b9b4620ee70`）
 > 证据清单（A-03 UI，冻结）：[`evidence/a-03-ui/MANIFEST.sha256`](evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
 > 证据清单（A-03-PRE-01）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
 
@@ -583,12 +583,15 @@ domain provenance/context 保留，但**不再承担 actual timestamp 的 UI 格
 
 | 模块 | XML | tests | skipped | failures | errors | 说明 |
 |---|---:|---:|---:|---:|---:|---|
-| app | 89 | 775 | 0 | 0 | 0 | A-03 UI 轮 764，本轮 **+11**（`HistoryCrossDatePresentationTest` 8 + `HistoryPresentationTest` +2 计数用例 + `HistoryPresentationWordingTest` +1 中性文案护栏） |
+| app | 89 | 777 | 0 | 0 | 0 | A-03 UI 轮 764，本轮 **+13**（`HistoryCrossDatePresentationTest` 8 + `HistoryPresentationTest` +3：2 计数用例 + legacy/modern 中性文案等价 + `HistoryPresentationWordingTest` +2：中性文案护栏 + `needsFullDate` 单判据源码护栏） |
 | experience-core | 15 | 140 | 0 | 0 | 0 | 未改动 |
 | wear | 11 | 90 | 0 | 0 | 0 | 未改动 |
-| **合计** | **115** | **1005** | **0** | **0** | **0** | `54 actionable tasks: 54 executed`（`--rerun-tasks`） |
+| **合计** | **115** | **1007** | **0** | **0** | **0** | `54 actionable tasks: 54 executed`（`--rerun-tasks`） |
 
 命令与完整数字见 §29.3 与 `evidence/a-03-ui-r1/jvm-aggregate.tsv`。
+> 证据一致性：`69dc99c` 只新增**单元测试**，`app/src/main` 与 `app/src/androidTest` 相对手机运行时的
+> `d1889bf` 字节未变（`git diff --name-only d1889bf -- app/src/main app/src/androidTest` = 0），
+> 因此 §29.2 的 full Phone 结果仍然描述同一份应用代码。
 
 ### 29.2 Focused / Full Phone instrumentation
 
@@ -616,7 +619,7 @@ domain provenance/context 保留，但**不再承担 actual timestamp 的 UI 格
 ## 30. A-03-UI-R1 证据
 
 `docs/evolune/v1.7/evidence/a-03-ui-r1/`（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，
-manifest 自哈希 `2b2aeb2bbabafa7af9c6eb9471f1bd08eb0c9b209b87c78522c9796543408bd2`，提交后 HEAD blob 0 mismatch）：
+manifest 自哈希 `d9a6fdb3f463cdc2f6abb15cf478fe500f6b904c665a745fe11f9b9b4620ee70`，提交后 HEAD blob 0 mismatch）：
 
 | 内容 | 文件 |
 |---|---|

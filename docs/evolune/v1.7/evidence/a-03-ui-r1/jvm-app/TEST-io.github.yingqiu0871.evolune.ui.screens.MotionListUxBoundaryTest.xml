@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.446Z" hostname="人面不知何处去" time="0.002">
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.646Z" hostname="人面不知何处去" time="0.003">
   <properties/>
-  <testcase name="record list keeps newest-first stable identity with item animation" classname="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" time="0.0"/>
+  <testcase name="record list keeps newest-first stable identity with item animation" classname="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" time="0.001"/>
   <testcase name="record and plan overlays share session-driven transition host" classname="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" time="0.001"/>
   <testcase name="editor layers cover a persistent top-level scaffold" classname="io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>

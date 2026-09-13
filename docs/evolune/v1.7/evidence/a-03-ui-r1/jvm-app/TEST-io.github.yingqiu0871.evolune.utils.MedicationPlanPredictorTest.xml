@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.536Z" hostname="人面不知何处去" time="0.0">
+<testsuite name="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.686Z" hostname="人面不知何处去" time="0.001">
   <properties/>
   <testcase name="filterConflictingPredictions - custom conflict window is respected" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>
   <testcase name="filterConflictingPredictions - predicted before actual is kept" classname="io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest" time="0.0"/>

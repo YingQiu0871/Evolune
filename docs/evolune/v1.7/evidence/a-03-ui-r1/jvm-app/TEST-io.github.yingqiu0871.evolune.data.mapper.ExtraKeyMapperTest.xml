@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:07.926Z" hostname="人面不知何处去" time="0.0">
+<testsuite name="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.299Z" hostname="人面不知何处去" time="0.001">
   <properties/>
   <testcase name="allPkKeysMapToDomainKeysExplicitly" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>
   <testcase name="allDomainKeysMapToLegacyStorageKeys" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>
-  <testcase name="domainAndPkMappingsRoundTripAllKeys" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>
+  <testcase name="domainAndPkMappingsRoundTripAllKeys" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.001"/>
   <testcase name="allDomainKeysMapToPkKeysExplicitly" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>
   <testcase name="storageAndDomainMappingsRoundTripAllKeys" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>
   <testcase name="unknownStorageKeyReturnsExplicitFailure" classname="io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest" time="0.0"/>

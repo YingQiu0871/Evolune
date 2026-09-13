@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:08.430Z" hostname="人面不知何处去" time="0.015">
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.642Z" hostname="人面不知何处去" time="0.003">
   <properties/>
-  <testcase name="nextForkPointMovesToTheFollowingDayAfterMidnightBoundary" classname="io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest" time="0.015"/>
+  <testcase name="nextForkPointMovesToTheFollowingDayAfterMidnightBoundary" classname="io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest" time="0.003"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

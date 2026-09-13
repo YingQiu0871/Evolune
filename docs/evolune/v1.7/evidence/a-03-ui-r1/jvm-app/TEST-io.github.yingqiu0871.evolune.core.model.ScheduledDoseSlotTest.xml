@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:07.898Z" hostname="人面不知何处去" time="0.005">
+<testsuite name="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.284Z" hostname="人面不知何处去" time="0.003">
   <properties/>
   <testcase name="modelEnforcesTheSamePositionAndPrecisionInvariants" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.001"/>
   <testcase name="zeroAndMaximumPositionsAreAccepted" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
-  <testcase name="negativePositionIsRejected" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.002"/>
+  <testcase name="negativePositionIsRejected" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.001"/>
   <testcase name="secondsAndNanosecondsAreRejectedWithoutTruncation" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
   <testcase name="equalInputsAreStable" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
   <testcase name="eachIdentityInputChangesTheId" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>

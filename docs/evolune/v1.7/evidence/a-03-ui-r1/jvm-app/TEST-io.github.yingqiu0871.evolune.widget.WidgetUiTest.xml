@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetUiTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:09.109Z" hostname="人面不知何处去" time="0.022">
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetUiTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:49.143Z" hostname="人面不知何处去" time="0.015">
   <properties/>
   <testcase name="chart geometry reserves vertical chrome for every responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.003"/>
-  <testcase name="past today remains a scheduled-time check action with empty progress" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.011"/>
-  <testcase name="2x1 retains all today rows for collection scrolling" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="past today remains a scheduled-time check action with empty progress" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.006"/>
+  <testcase name="2x1 retains all today rows for collection scrolling" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="chart typography scales with the responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
-  <testcase name="next dose style exposes only the highest priority upcoming occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.002"/>
+  <testcase name="next dose style exposes only the highest priority upcoming occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
   <testcase name="Samsung calibrated 2x2 is complete and 2x1 is the compact fallback" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
-  <testcase name="one plans visible occurrence count drives three two and one row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
-  <testcase name="recorded completion alone fills progress and increments header count" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="one plans visible occurrence count drives three two and one row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="recorded completion alone fills progress and increments header count" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="height primarily controls row capacity" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="truthful no plan no upcoming loading and failure states remain distinct" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="2x1 never adopts expanded single-row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>

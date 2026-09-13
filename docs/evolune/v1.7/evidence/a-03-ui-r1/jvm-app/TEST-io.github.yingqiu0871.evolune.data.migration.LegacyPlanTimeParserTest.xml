@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-13T20:54:07.967Z" hostname="人面不知何处去" time="0.008">
+<testsuite name="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:00:48.325Z" hostname="人面不知何处去" time="0.005">
   <properties/>
-  <testcase name="numericArrayElementReturnsItsPositionAndKind" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.003"/>
+  <testcase name="numericArrayElementReturnsItsPositionAndKind" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
   <testcase name="malformedJsonReturnsStructuredFailure" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
   <testcase name="nullArrayElementReturnsItsPositionAndKind" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="emptySqlStringReturnsEmptyEntries" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
-  <testcase name="positionsAreZeroBasedAndContinuous" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
-  <testcase name="emptyStringElementIsAnInvalidLocalTime" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
+  <testcase name="positionsAreZeroBasedAndContinuous" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
+  <testcase name="emptyStringElementIsAnInvalidLocalTime" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="emptyJsonArrayReturnsEmptyEntries" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="defaultLocaleDoesNotAffectParsingOrIdsAndIsRestored" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
-  <testcase name="duplicateTimesRemainDistinctEntries" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
+  <testcase name="duplicateTimesRemainDistinctEntries" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
   <testcase name="multipleTimesPreserveOriginalOrder" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
-  <testcase name="nonZeroSecondsFailWithoutTruncation" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.001"/>
+  <testcase name="nonZeroSecondsFailWithoutTruncation" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="parsedResultRetainsPlanAndRawJsonContext" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="defaultTimeZoneDoesNotAffectParsingOrIdsAndIsRestored" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
   <testcase name="explicitZeroNanosecondsCanonicalizeToMinutePrecision" classname="io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest" time="0.0"/>
