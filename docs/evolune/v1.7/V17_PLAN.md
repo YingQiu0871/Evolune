@@ -196,6 +196,23 @@ Gate:
 
 ---
 
+---
+
+## 4.5 Phase A — Status (v1.7-A-04 hardening, 2026-09-13)
+
+Phase A 的 gate 与证据现状（详见 [`V17_A_04_HARDENING.md`](V17_A_04_HARDENING.md)）：
+
+| Gate | 状态 | 证据 |
+|---|---|---|
+| A1–A5, A8, A9 | CLOSED | A-01/A-02/A-03 轮测试与文档；A-04 fresh JVM 复核（1027 tests / 0 fail） |
+| **A6** 撤销语义 | **CLOSED（A-04）** | Phone `delete` 与 Wear latest-delete 两条生产路径 → 历史投影（matched→unrecorded / unmatched 消失 / early intake→future context / delayed+DST 无 ghost）+ 文案审查 |
+| **A7** 读路径无写入 | **CLOSED（A-04）** | 计数型 repository 替身（服务层 + ViewModel 层，全部 mutation 方法）+ 真 Room counting decorator 设备证据 |
+| **A10** fresh 验证 | **CLOSED（A-04）** | JVM 全量 + 受影响面 targeted instrumentation + full Phone suite 243/0/5-skip + `assembleDebug` |
+| M1–M8 | CLOSED | A-01/A-02 轮；A-04 补齐 M5/M6 的撤销侧 |
+| `dose_events.localDate` index | **INDEX DEFERRED**（不改 schema） | 20k 行真 Room `EXPLAIN QUERY PLAN` + 实测 median ≈ 2 ms，acceptance 无性能门 |
+
+**PHASE A — CLOSED**（候选实现，待独立复审）。Phase B 未开始。
+
 ## 5. Phase B — Adherence Insights
 
 Insights must consume Phase A historical projections.

@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteDeviceTest" tests="5" failures="0" errors="0" skipped="0" time="7.55" timestamp="2026-09-13T21:29:00" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="readingHistoryNeverWritesToTheRealDatabase" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteDeviceTest" time="0.111" />
+  <testcase name="theProductionFactoryObtainsARealSavedStateHandleAndPersistsTheSelection" classname="io.github.yingqiu0871.evolune.history.HistorySavedStateFactoryTest" time="2.65" />
+  <testcase name="historyReadChannelsAreExplainedOnARealisticDataset" classname="io.github.yingqiu0871.evolune.history.HistoryIndexQueryPlanTest" time="0.845" />
+  <testcase name="returningToHistoryShowsAnIntakeRecordedWhileAway" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest" time="2.177" />
+  <testcase name="switchingToHistoryAndStayingThereDoesNotDuplicateQueries" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest" time="1.103" />
+</testsuite>

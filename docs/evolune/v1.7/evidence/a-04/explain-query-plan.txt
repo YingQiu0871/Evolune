@@ -1,0 +1,16 @@
+# A-04 dose_events index evaluation — raw EXPLAIN QUERY PLAN + timing
+# database: throw-away copy with the production schema (v3)
+# seeded dose_events rows: 20000
+# index inventory from app/schemas/.../3.json: dose_events = [] (none)
+# timing: one History month load issues Channel A once and Channel B once
+
+## Channel A (persisted localDate, History completeness channel)
+SCAN dose_events
+USE TEMP B-TREE FOR ORDER BY
+## Channel B (occurredAt instant window)
+SCAN dose_events
+USE TEMP B-TREE FOR ORDER BY
+
+## measured query cost (20 runs after 5 warm-up runs, rows fully consumed)
+Channel A: median=2.015 ms  max=3.1296 ms
+Channel B: median=1.5531 ms  max=1.9664 ms

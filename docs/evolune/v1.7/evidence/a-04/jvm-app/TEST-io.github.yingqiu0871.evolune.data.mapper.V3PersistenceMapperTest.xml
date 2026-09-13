@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:32:21.452Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="subMillisecondOccurredAtIsRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <testcase name="duplicateAndNonContiguousStoredPositionsAreRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.002"/>
+  <testcase name="legacyPlanTimeMismatchIsRejectedWithoutRepair" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <testcase name="storedSlotForDifferentPlanIsRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <testcase name="domainPlanWithExistingNonDerivedSlotIdPreservesIdentity" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.001"/>
+  <testcase name="doseEventRoundTripsEveryV3Field" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <testcase name="nonCanonicalStoredSlotTimeIsRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.001"/>
+  <testcase name="invalidEventMetadataStringsAreRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.001"/>
+  <testcase name="medicationPlanRoundTripsOrderedDuplicateSlots" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <testcase name="inconsistentLegacyAndAuthoritativeEventTimeIsRejected" classname="io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

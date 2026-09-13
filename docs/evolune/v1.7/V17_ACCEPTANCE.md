@@ -44,6 +44,25 @@
 
 ---
 
+---
+
+## 1.5 Phase A — 关闭状态与证据（2026-09-13，v1.7-A-04）
+
+| # | 状态 | 证据（fresh，A-04） |
+|---|---|---|
+| A1–A5 | CLOSED | A-01/A-02/A-03 轮实现与测试；A-04 `git diff --name-only` 复核 schema 0 改动 |
+| **A6** | **CLOSED** | `HistoryUndoProjectionTest`（5）：Phone `HRTViewModel.deleteEvent` 与 Wear `WearAppUndoHandler` 两条权威 mutation 路径 → matched→unrecorded / unmatched 消失 / early intake→`FutureOccurrenceContext`（History 中消失）/ delayed cross-date 与 DST 日无 ghost；Decision C 文案审查（`history_*` 标签禁用词扫描 + strings 复核） |
+| **A7** | **CLOSED** | `HistoryReadZeroWriteTest`（4，计数替身覆盖两个仓库全部 mutation 方法；reads 计数证明读路径真的执行）+ `HistoryReadZeroWriteDeviceTest`（真 Room，读前后 id→revision / plans 快照一致，写入计数 0） |
+| **A8/A9** | CLOSED | T1–T7 与 M1–M8 覆盖（A-01/A-02 轮 + A-04 fresh JVM 复核） |
+| **A10** | **CLOSED** | fresh JVM **1027 / 0 fail**（app 797 / core 140 / wear 90）+ targeted instrumentation 5/5 + full Phone **243 / 0 fail / 5 skip**（基线同 skip 集合）+ `assembleDebug` `BUILD SUCCESSFUL` |
+| M1–M8 | CLOSED | M5/M6 的撤销侧由 A-04 补齐 |
+| index | INDEX DEFERRED | [A-04 §14](V17_A_04_HARDENING.md)：20k 行 EXPLAIN（`SCAN` + temp B-tree）+ 实测 median ≈ 2 ms，acceptance/performance gate 均不要求 |
+
+证据包：`docs/evolune/v1.7/evidence/a-04/`（含 gate matrix、fresh JVM XML/log、targeted 与 full Phone XML/log、
+zero-write、undo-projection、refresh、`explain-query-plan.txt`、聚合 TSV、assemble log、`MANIFEST.sha256`）。
+
+**PHASE A — CLOSED**（候选实现，待独立复审）：门禁目标为 `APPROVE V1.7-A CANDIDATE IMPLEMENTATION`。
+
 ## 2. Phase B — Adherence Insights
 
 | # | 验收项 | 判定 |

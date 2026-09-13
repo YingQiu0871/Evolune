@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" tests="19" skipped="0" failures="0" errors="0" timestamp="2026-09-13T21:32:19.709Z" hostname="人面不知何处去" time="1.017">
+  <properties/>
+  <testcase name="missing or extra envelope fields are malformed" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.025"/>
+  <testcase name="randomized encodes differ and do not reuse salt or nonce" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.039"/>
+  <testcase name="payload validation rejects duplicate ids and broken references" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.002"/>
+  <testcase name="representative payload round trips with every supported field preserved" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.04"/>
+  <testcase name="authenticated malformed payload is rejected before domain validation" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.057"/>
+  <testcase name="invalid magic algorithm and malformed envelope are rejected" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.02"/>
+  <testcase name="tampered ciphertext and authenticated metadata fail authentication" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.106"/>
+  <testcase name="invalid kdf iterations salt nonce and secret are rejected" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.019"/>
+  <testcase name="escaped strings are not mistaken for JSON object keys" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.061"/>
+  <testcase name="decode runs on injected crypto dispatcher from main-like caller" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.041"/>
+  <testcase name="fixed salt and nonce produce stable golden representation" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.106"/>
+  <testcase name="historical dangling event slot id round trips without being rewritten" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.036"/>
+  <testcase name="correct passphrase succeeds and wrong passphrase is authentication failure" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.054"/>
+  <testcase name="payload validation rejects invalid numbers timestamps enums and settings" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.002"/>
+  <testcase name="non finite JSON numbers fail closed" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.087"/>
+  <testcase name="future envelope and payload versions fail closed before decoding" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.019"/>
+  <testcase name="encode runs on injected crypto dispatcher from main-like caller" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.02"/>
+  <testcase name="unknown root and nested payload fields are rejected" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.088"/>
+  <testcase name="duplicate JSON object keys fail closed at every supported nesting level" classname="io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest" time="0.195"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

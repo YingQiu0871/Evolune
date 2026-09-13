@@ -1,0 +1,5 @@
+# Phone instrumentation (Pixel_7 AVD, API 35) — A-04 Phase-A hardening
+# reference (frozen): baseline-before-a03ui 213/5skip/0fail; final-a03ui 235/5skip/0fail; final-a03ui-r1 238/5skip/0fail
+run	xml_tests	skipped	failures	errors	passed
+targeted-a04	5	0	0	0	5
+final-a04	243	5	0	0	238

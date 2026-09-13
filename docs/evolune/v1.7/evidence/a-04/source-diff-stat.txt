@@ -1,0 +1,74 @@
+# A-04 change surface (source of truth: git, read-only commands; generated AFTER all A-04 commits)
+# base (A-03 UI R1 APPROVE) = bad2ab3ae48cbf2ee3151947c5cde059c8980d83
+# head (A-04 commits)       = 7ad4fbb3ecd71e926e7bfc8290106fcc00e2e49f
+
+## commits of this round
+7ad4fbb test: verify History refresh, state restoration and zero-write reads
+cfd551e test: close Phase-A History projection gates
+b60d117 fix: suppress the anti-androgen ester placeholder in History
+04c92ef fix: refresh History on active-surface return
+
+## git show --stat
+  04c92ef fix: refresh History on active-surface return
+   .../evolune/history/HistoryViewModel.kt            | 82 +++++++++++++++++++---
+   .../evolune/ui/screens/HistoryScreen.kt            | 31 ++++++++
+   2 files changed, 103 insertions(+), 10 deletions(-)
+
+  b60d117 fix: suppress the anti-androgen ester placeholder in History
+   .../evolune/history/HistoryPresentation.kt         | 26 ++++++++++++----------
+   .../evolune/history/HistoryPresentationTest.kt     |  4 ++--
+   2 files changed, 16 insertions(+), 14 deletions(-)
+
+  cfd551e test: close Phase-A History projection gates
+   .../evolune/ui/screens/HistoryScreenTest.kt        |  75 +++-
+   .../evolune/application/RepositoryFakes.kt         |  30 +-
+   .../history/HistoryQuickRecordInferredTest.kt      | 116 ++++++
+   .../evolune/history/HistoryUndoProjectionTest.kt   | 401 +++++++++++++++++++++
+   4 files changed, 602 insertions(+), 20 deletions(-)
+
+  7ad4fbb test: verify History refresh, state restoration and zero-write reads
+   .../evolune/history/HistoryIndexQueryPlanTest.kt   | 181 ++++++++++++
+   .../history/HistoryReadZeroWriteDeviceTest.kt      | 223 +++++++++++++++
+   .../history/HistorySavedStateFactoryTest.kt        | 162 +++++++++++
+   .../evolune/ui/screens/HistoryRefreshDeviceTest.kt | 160 +++++++++++
+   .../evolune/history/HistoryReadZeroWriteTest.kt    | 275 +++++++++++++++++++
+   .../evolune/history/HistoryRefreshTest.kt          | 305 +++++++++++++++++++++
+   6 files changed, 1306 insertions(+)
+
+## full name-status (base..head)
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistoryIndexQueryPlanTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistoryReadZeroWriteDeviceTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt
+A	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryRefreshDeviceTest.kt
+M	app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+M	app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+M	app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
+M	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryReadZeroWriteTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryRefreshTest.kt
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryUndoProjectionTest.kt
+
+## boundary proofs (every count must be 0)
+  Room schema / migrations (app/schemas) -> 0 changed path(s)
+  DAO / database / repository implementations (data layer) -> 0 changed path(s)
+  domain projection + matcher (experience-core main) -> 0 changed path(s)
+  HistoryReadService (adapter) -> 0 changed path(s)
+  Reminder production writer -> 0 changed path(s)
+  navigation architecture -> 0 changed path(s)
+  Wear main sources -> 0 changed path(s)
+  Widget / PK -> 0 changed path(s)
+  build / dependency files -> 0 changed path(s)
+  frozen evidence a-03 -> 0 changed path(s)
+  frozen evidence a-03-pre-01 -> 0 changed path(s)
+  frozen evidence a-03-ui -> 0 changed path(s)
+  frozen evidence a-03-ui-r1 -> 0 changed path(s)
+
+## working tree after source/test commits (docs + evidence pending)
+ M docs/evolune/v1.7/V17_ACCEPTANCE.md
+ M docs/evolune/v1.7/V17_A_03_HISTORY_UI.md
+ M docs/evolune/v1.7/V17_PLAN.md
+?? docs/evolune/v1.7/V17_A_04_HARDENING.md
+?? docs/evolune/v1.7/evidence/a-04/

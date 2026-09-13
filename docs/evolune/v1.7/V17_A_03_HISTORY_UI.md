@@ -403,7 +403,7 @@ UI 模型只承载：label 资源 id、格式化所需原始值（`Instant`+`Zon
 
 | 类别 | 状态文案（string resource） | 关键呈现 |
 |---|---|---|
-| `MatchedHistoricalOccurrence` | `history_status_recorded` | 实际时间一律取 `event.occurredAt`（**绝不用计划时间替代**）；方案时间标注 `history_label_current_schedule_context`（当前方案时间）；provenance ≠ EXACT 时附 `history_note_legacy_context` |
+| `MatchedHistoricalOccurrence` | `history_status_recorded` | 实际时间一律取 `event.occurredAt`（**绝不用计划时间替代**）；方案时间标注 `history_label_current_schedule_context`（当前方案时间）；provenance ≠ EXACT 时附 `history_note_inferred_match`（中性文案，A-03-UI-R1 由 `history_note_legacy_context` 更名，见 §28） |
 | `UnrecordedHistoricalOccurrence` | `history_status_no_recorded_intake` | `history_note_no_recorded_intake`（现有可用数据中未找到）+ `history_note_not_necessarily_missed`（不一定意味着漏服）；计划时间同样标注"当前方案时间" |
 | `UnmatchedHistoricalIntake` | `history_status_recorded_intake` | 实际时间 + 可恢复的 medication/dose/route + 权威 source；无方案归属 → `history_note_plan_unavailable`；**只有 `MANUAL` 才显示"手动"** |
 
