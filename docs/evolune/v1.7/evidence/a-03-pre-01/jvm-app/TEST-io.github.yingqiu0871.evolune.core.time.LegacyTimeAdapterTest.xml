@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:37:20.030Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="positiveAndNegativeLongOverflowsAreRejectedBeforeMathRoundSaturation" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="localeAndDefaultTimeZoneDoNotAffectAbsoluteConversions" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="dstOverlapUsesJavaAtZoneEarlierOffset" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.001"/>
+  <testcase name="zeroIntegerFractionMillisecondAndNegativeValuesConvertWithMathRound" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="timeHMillisAndInstantRoundTripsStayWithinOneMillisecond" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="invalidValuesAreNotClampedOrReplacedWithEpochZero" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="nonFiniteInputsReturnSpecificErrors" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="explicitZoneConvertsOrdinaryLocalDateTime" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="distantHistoryAndFutureRemainRepresentable" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="finiteMultiplicationOverflowReturnsOverflow" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="closestRepresentableLegalLongBoundariesAreAccepted" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <testcase name="dstGapUsesJavaAtZoneForwardAdjustment" classname="io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

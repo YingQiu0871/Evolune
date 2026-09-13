@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:37:20.230Z" hostname="人面不知何处去" time="0.009">
+  <properties/>
+  <testcase name="notification action persists complete metadata before side effects" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="plan and event read failures create no reminder" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.002"/>
+  <testcase name="accepted database write remains when notification side effect fails" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="notification conflict and storage failure have zero success side effects" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="delivery reads the inclusive window and suppresses a matching boundary check-in" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.0"/>
+  <testcase name="reschedule passes all Domain plans once and preserves scheduler fail-fast" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="stale notification cancels without reporting a recorded dose" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="reschedule read failure does not invoke scheduler" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.0"/>
+  <testcase name="duplicate notification delivery is replayed without a second write" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="notification failure does not write or schedule through a fallback" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.001"/>
+  <testcase name="delivery notifies only after successful Domain reads" classname="io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

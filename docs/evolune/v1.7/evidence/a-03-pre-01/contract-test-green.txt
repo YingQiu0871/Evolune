@@ -1,0 +1,37 @@
+# A-03-PRE-01 contract closure: RED -> GREEN, expectations unchanged
+# RED  source: docs/evolune/v1.7/evidence/a-03/preflight-reproduction.txt (tests=1 failures=1, frozen, not modified)
+# GREEN source: fresh --rerun-tasks JVM run of this round (see a03pre01-jvm-run.log, jvm-aggregate.tsv)
+
+## expectation-preservation proof for the restored preflight test
+# restored file: app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryFutureOccurrenceContractTest.kt
+# the frozen RED test method and the restored GREEN test method are byte-identical:
+frozen_test_method_sha256   = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
+restored_test_method_sha256 = 46365f8e622d552887750ee7ebbd7e0900812f64f2a83506793f0bb31cc48775
+identical                   = True
+
+## GREEN test cases (from JUnit XML, fresh run)
+[app] io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest  tests=4
+  PASS app  future occurrence of today is not presented as an unrecorded history entry  (0.007s)
+  PASS app  previous days keep every unmatched occurrence as unrecorded  (0.001s)
+  PASS app  today keeps only its arrived slots in history and reports no missing intake for later ones  (0.0s)
+  PASS app  an intake recorded before its scheduled time is still history  (0.0s)
+[experience-core] io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest  tests=11
+  PASS experience-core early intake before its scheduled time stays a matched history entry  (0.053s)
+  PASS experience-core one second on either side of the horizon is classified differently  (0.003s)
+  PASS experience-core horizon classification is an instant comparison independent of the display zone  (0.009s)
+  PASS experience-core DST overlap - a repeated wall-clock hour still splits on instants  (0.001s)
+  PASS experience-core future context is ordered by scheduled instant  (0.001s)
+  PASS experience-core an occurrence at or before now is always history  (0.004s)
+  PASS experience-core mixed current-day occurrences split at the horizon without losing early intake  (0.001s)
+  PASS experience-core occurrence exactly at now counts as arrived and stays unrecorded  (0.0s)
+  PASS experience-core DST gap - the horizon uses the resolved instant, not the nominal wall clock  (0.001s)
+  PASS experience-core only unmatched occurrences leave history - a recorded future occurrence stays  (0.0s)
+  PASS experience-core unmatched occurrence strictly after now is upcoming context, not history  (0.001s)
+[experience-core] io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest  tests=4
+  PASS experience-core history never invents an entry or a day for a future date  (0.002s)
+  PASS experience-core previous dates keep every unmatched occurrence as unrecorded  (0.001s)
+  PASS experience-core range totals never count an upcoming occurrence as unrecorded  (0.0s)
+  PASS experience-core a day of history ignores the occurrences that have not arrived  (0.001s)
+
+total new/changed contract test cases = 19
+# app 4 (restored preflight + 3 integration regressions); experience-core 15 (11 horizon + 4 read-model)

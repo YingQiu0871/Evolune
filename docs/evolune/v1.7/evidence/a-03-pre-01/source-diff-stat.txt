@@ -1,0 +1,43 @@
+# A-03-PRE-01 change surface (source of truth: git, read-only commands)
+# base (preflight HEAD) = fe8a5870c366367a12d8aed89dd2158b49aafcf6
+# head (round HEAD)     = c48826b6dc87226cacb05b4171b4fcd0a679309b
+
+## commits of this round
+c48826b test: verify History temporal horizon contract
+2afdbaf fix: exclude future unrecorded occurrences from History
+
+## git show --stat
+  2afdbaf fix: exclude future unrecorded occurrences from History
+   .../evolune/experience/HistoricalProjection.kt     | 98 ++++++++++++++++++----
+   1 file changed, 81 insertions(+), 17 deletions(-)
+
+  c48826b test: verify History temporal horizon contract
+   .../history/HistoryFutureOccurrenceContractTest.kt | 171 +++++++++++
+   .../HistoricalProjectionFutureOccurrenceTest.kt    | 341 +++++++++++++++++++++
+   .../HistoricalReadModelFutureOccurrenceTest.kt     | 175 +++++++++++
+   3 files changed, 687 insertions(+)
+
+## full name-status (base..head)
+A	app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryFutureOccurrenceContractTest.kt
+M	experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/HistoricalProjection.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/HistoricalProjectionFutureOccurrenceTest.kt
+A	experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/HistoricalReadModelFutureOccurrenceTest.kt
+
+## boundary proofs (every count must be 0 except the one allowed file)
+  Phone UI / Compose / ViewModel / navigation (app/src/main) -> 0 changed path(s)
+  Wear main sources (wear/src/main) -> 0 changed path(s)
+  HistoryReadService (app adapter main) -> 0 changed path(s)
+  HistoricalReadModel.kt (not needed: consumes entries only) -> 0 changed path(s)
+  MedicationOccurrenceMatcher.kt (frozen) -> 0 changed path(s)
+  MedicationTimeline.kt (frozen) -> 0 changed path(s)
+  MedicationOccurrenceGenerator.kt (frozen) -> 0 changed path(s)
+  MedicationOccurrenceIdentity* (frozen) -> 0 changed path(s)
+  build / dependency files -> 0 changed path(s)
+  preflight evidence (must stay frozen) -> 0 changed path(s)
+
+## experience-core main diff detail (must contain only HistoricalProjection.kt)
+experience-core/src/main/kotlin/io/github/yingqiu0871/evolune/experience/HistoricalProjection.kt
+
+## working tree status after source commits (docs/evidence pending)
+ M docs/evolune/v1.7/V17_A_03_HISTORY_UI.md
+?? docs/evolune/v1.7/evidence/a-03-pre-01/

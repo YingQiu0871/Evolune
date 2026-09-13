@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-13T19:37:20.160Z" hostname="人面不知何处去" time="0.024">
+  <properties/>
+  <testcase name="custom interval schedule keeps its phase across the chunk boundary" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest" time="0.014"/>
+  <testcase name="weekly schedule keeps its phase across the chunk boundary" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest" time="0.009"/>
+  <testcase name="the occurrence context really exceeds the generator window cap, so chunking happens" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
