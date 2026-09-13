@@ -53,7 +53,7 @@ class HistoryPresentationTest {
         val model = HistoryPresentation.entry(entry, utc)
 
         assertTrue(model.isInferredMatch)
-        assertEquals(R.string.history_note_legacy_context, model.noteRes)
+        assertEquals(R.string.history_note_inferred_match, model.noteRes)
         // exact and inferred must not be presented identically
         val exact = HistoryPresentation.entry(matchedEntry(), utc)
         assertTrue(exact.noteRes != model.noteRes)
@@ -155,8 +155,9 @@ class HistoryPresentationTest {
             localDate = null,
             zoneId = null
         )
+        // The domain flag is deliberately false here: the rendered actual date decides.
         val model = HistoryPresentation.entry(
-            matchedEntry(event = event, crossesLocalDateBoundary = true),
+            matchedEntry(event = event, crossesLocalDateBoundary = false),
             utc
         )
 
@@ -250,6 +251,10 @@ class HistoryPresentationTest {
         assertTrue(todayCell.isToday)
         assertTrue(todayCell.isSelected)
         assertTrue(todayCell.isEnabled)
+        // counts are the source of truth; the indicator flags derive from them
+        assertEquals(1, todayCell.recordedCount)
+        assertEquals(1, todayCell.unrecordedCount)
+        assertEquals(1, todayCell.unmatchedActualCount)
         assertTrue(todayCell.hasRecorded)
         assertTrue(todayCell.hasUnrecorded)
         assertTrue(todayCell.hasUnmatchedActual)
@@ -257,12 +262,48 @@ class HistoryPresentationTest {
         val futureCell = model.cells.single { it.date == TEST_DAY.plusDays(1) }
         assertFalse(futureCell.isEnabled)
         assertFalse(futureCell.hasRecorded)
+        assertEquals(0, futureCell.recordedCount)
 
         assertFalse(model.canGoToNextMonth)
         assertEquals(HistoryDayPhase.CONTENT, model.phase)
         assertEquals(1, model.day!!.recordedCount)
         assertEquals(1, model.day!!.unrecordedCount)
         assertEquals(1, model.day!!.unmatchedActualCount)
+    }
+
+    @Test
+    fun `calendar cells carry the real day counts`() {
+        val entries = List(3) { index -> matchedEntry(event = testEvent(id = 100L + index)) } +
+            List(2) { index -> unrecordedEntry(occurrence = testOccurrence(slotId = 20L + index)) } +
+            List(4) { index ->
+                unmatchedEntry(event = testEvent(id = 200L + index, source = MedicationIntakeSource.MANUAL))
+            }
+        val state = state(
+            loadedDays = mapOf(TEST_DAY to testDay(date = TEST_DAY, entries = entries))
+        )
+
+        val cell = HistoryPresentation.present(state).cells.single { it.date == TEST_DAY }
+
+        assertEquals(3, cell.recordedCount)
+        assertEquals(2, cell.unrecordedCount)
+        assertEquals(4, cell.unmatchedActualCount)
+        assertTrue(cell.hasRecorded)
+        assertTrue(cell.hasUnrecorded)
+        assertTrue(cell.hasUnmatchedActual)
+    }
+
+    @Test
+    fun `a day without history reports zero counts and no indicators`() {
+        val state = state(loadedDays = mapOf(TEST_DAY to testDay(date = TEST_DAY)))
+
+        val cell = HistoryPresentation.present(state).cells.single { it.date == TEST_DAY }
+
+        assertEquals(0, cell.recordedCount)
+        assertEquals(0, cell.unrecordedCount)
+        assertEquals(0, cell.unmatchedActualCount)
+        assertFalse(cell.hasRecorded)
+        assertFalse(cell.hasUnrecorded)
+        assertFalse(cell.hasUnmatchedActual)
     }
 
     @Test

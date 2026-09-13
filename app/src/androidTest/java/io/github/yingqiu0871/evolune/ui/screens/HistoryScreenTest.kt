@@ -26,6 +26,7 @@ import io.github.yingqiu0871.evolune.history.HistoryViewModel
 import io.github.yingqiu0871.evolune.history.matchedEntry
 import io.github.yingqiu0871.evolune.history.testDay
 import io.github.yingqiu0871.evolune.history.testEvent
+import io.github.yingqiu0871.evolune.history.testOccurrence
 import io.github.yingqiu0871.evolune.history.unmatchedEntry
 import io.github.yingqiu0871.evolune.history.unrecordedEntry
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
@@ -38,6 +39,7 @@ import org.junit.runner.RunWith
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 
@@ -197,14 +199,14 @@ class HistoryScreenTest {
         composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 08:00").assertExists()
         assertTrue(
             composeRule
-                .onAllNodesWithText(text(R.string.history_note_legacy_context))
+                .onAllNodesWithText(text(R.string.history_note_inferred_match))
                 .fetchSemanticsNodes()
                 .isEmpty()
         )
     }
 
     @Test
-    fun inferredMatchedCardCarriesTheLegacyContextAnnotation() {
+    fun inferredMatchedCardCarriesAProvenanceNeutralAnnotation() {
         launch { _, end ->
             listOf(
                 testDay(
@@ -219,7 +221,75 @@ class HistoryScreenTest {
         scrollToEntryStatus()
 
         composeRule.onNodeWithText(text(R.string.history_status_recorded)).assertExists()
-        composeRule.onNodeWithText(text(R.string.history_note_legacy_context)).assertExists()
+        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
+        // The wording must not claim a legacy origin.
+        assertTrue(
+            composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
+        )
+    }
+
+    @Test
+    fun aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation() {
+        launch { _, end ->
+            listOf(
+                testDay(
+                    date = end,
+                    entries = listOf(
+                        matchedEntry(
+                            event = testEvent(id = 51L, source = MedicationIntakeSource.MANUAL),
+                            provenance = MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW
+                        )
+                    )
+                )
+            )
+        }
+        composeRule.waitForIdle()
+        scrollToEntryStatus()
+
+        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
+        assertTrue(
+            composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
+        )
+    }
+
+    @Test
+    fun crossDateExactMatchStillShowsTheFullActualDate() {
+        // Production shape: the reminder persists the planned day D while the confirmation
+        // happened at D+1 00:30, so the match is exact and crossesLocalDateBoundary is false.
+        val occurrence = testOccurrence(slotId = 7L, time = LocalTime.of(23, 0))
+        val event = testEvent(
+            id = 52L,
+            occurredAt = today.plusDays(1).atTime(0, 30).toInstant(ZoneOffset.UTC),
+            slotId = occurrence.slotId,
+            localDate = today,
+            zoneId = zone,
+            source = MedicationIntakeSource.REMINDER
+        )
+        launch { _, end ->
+            listOf(
+                testDay(
+                    date = end,
+                    entries = listOf(
+                        matchedEntry(
+                            occurrence = occurrence,
+                            event = event,
+                            provenance = MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE,
+                            crossesLocalDateBoundary = false
+                        )
+                    )
+                )
+            )
+        }
+        composeRule.waitForIdle()
+        scrollToEntryStatus()
+
+        composeRule.onNodeWithText(text(R.string.history_label_actual_time) + " 2025-01-06 00:30")
+            .assertExists()
+        composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 23:00")
+            .assertExists()
+        assertTrue(
+            composeRule.onAllNodesWithText(text(R.string.history_note_inferred_match)).fetchSemanticsNodes().isEmpty()
+        )
     }
 
     @Test
@@ -360,16 +430,20 @@ class HistoryScreenTest {
     }
 
     @Test
-    fun calendarCellContentDescriptionCarriesDateStateAndCounts() {
+    fun calendarCellContentDescriptionCarriesTheRealDayCounts() {
         launch { _, end ->
             listOf(
                 testDay(
                     date = end,
-                    entries = listOf(
-                        matchedEntry(),
-                        unrecordedEntry(),
-                        unmatchedEntry(event = testEvent(id = 27L, source = MedicationIntakeSource.MANUAL))
-                    )
+                    entries = List(3) { index -> matchedEntry(event = testEvent(id = 300L + index)) } +
+                        List(2) { index ->
+                            unrecordedEntry(occurrence = testOccurrence(slotId = 30L + index))
+                        } +
+                        List(4) { index ->
+                            unmatchedEntry(
+                                event = testEvent(id = 400L + index, source = MedicationIntakeSource.MANUAL)
+                            )
+                        }
                 )
             )
         }
@@ -379,9 +453,9 @@ class HistoryScreenTest {
             today.toString(),
             text(R.string.history_cell_today),
             text(R.string.history_cell_selected),
-            text(R.string.history_cell_recorded, 1),
-            text(R.string.history_cell_no_recorded_intake, 1),
-            text(R.string.history_cell_other_intake, 1)
+            text(R.string.history_cell_recorded, 3),
+            text(R.string.history_cell_no_recorded_intake, 2),
+            text(R.string.history_cell_other_intake, 4)
         )
         expectedParts.forEach { part ->
             assertTrue(
@@ -392,7 +466,44 @@ class HistoryScreenTest {
                     .isNotEmpty()
             )
         }
+        // The fabricated "1" counts of the previous implementation must be gone.
+        listOf(
+            text(R.string.history_cell_recorded, 1),
+            text(R.string.history_cell_no_recorded_intake, 1),
+            text(R.string.history_cell_other_intake, 1)
+        ).forEach { stale ->
+            assertTrue(
+                "calendar cell description must not report '$stale'",
+                composeRule
+                    .onAllNodesWithContentDescription(stale, substring = true)
+                    .fetchSemanticsNodes()
+                    .isEmpty()
+            )
+        }
         composeRule.onNodeWithTag("history-cell-$today").assertExists()
+    }
+
+    @Test
+    fun aDayWithoutHistoryReportsNoIndicators() {
+        launch { _, end -> listOf(testDay(date = end)) }
+        composeRule.waitForIdle()
+
+        listOf(
+            "history-indicator-recorded",
+            "history-indicator-unrecorded",
+            "history-indicator-unmatched"
+        ).forEach { tag ->
+            assertTrue(
+                "$tag must not exist for a day without history",
+                composeRule.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isEmpty()
+            )
+        }
+        assertTrue(
+            composeRule
+                .onAllNodesWithContentDescription(text(R.string.history_cell_no_history), substring = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        )
     }
 
     // ---------- helpers ----------

@@ -83,6 +83,23 @@ class HistoryPresentationWordingTest {
     }
 
     @Test
+    fun `the inferred match note never claims a legacy origin`() {
+        val notes = historyStrings()
+        val note = notes.getValue("history_note_inferred_match")
+
+        listOf("旧版", "老版本", "legacy", "Legacy", "exact", "精确匹配").forEach { token ->
+            assertFalse("the inferred note must stay provenance neutral: $note", note.contains(token))
+        }
+        notes.filterKeys { it.startsWith("history_note_") }.forEach { (name, text) ->
+            listOf("旧版", "老版本", "legacy", "Legacy").forEach { token ->
+                assertFalse("$name must not claim a legacy origin: $text", text.contains(token))
+            }
+        }
+        // The legacy-named key of the first candidate must be gone.
+        assertFalse(notes.containsKey("history_note_legacy_context"))
+    }
+
+    @Test
     fun `history presentation never filters the future or re-derives domain facts`() {
         val forbidden = listOf(
             "futureOccurrences",
