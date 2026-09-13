@@ -124,6 +124,17 @@
                     android:host="*"
                     android:pathPrefix="/hrt/v1/wear-app/commands" />
             </intent-filter>
+            <!-- Exact-path registration for the Wear skip request. Without it the
+                 existing processWearAppSkipNotification handler is unreachable.
+                 Intentionally an exact path, not a prefix: the skip path is not a
+                 command namespace and must not widen the listener's surface. -->
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:path="/hrt/v1/wear-app/skip-notification" />
+            </intent-filter>
         </service>
 
         <!-- Keep this original component as the Today Plan provider for upgrade compatibility. -->
