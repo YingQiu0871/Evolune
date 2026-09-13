@@ -16,13 +16,23 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
+import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.core.model.ScheduleType
+import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
+import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.experience.HistoricalDay
+import io.github.yingqiu0871.evolune.experience.HistoricalEntry
+import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
+import io.github.yingqiu0871.evolune.experience.HistoricalProjectionBuilder
 import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource
 import io.github.yingqiu0871.evolune.experience.MedicationMatchProvenance
 import io.github.yingqiu0871.evolune.history.HistoryRangeSource
 import io.github.yingqiu0871.evolune.history.HistoryViewModel
+import io.github.yingqiu0871.evolune.pk.Ester
+import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.history.matchedEntry
 import io.github.yingqiu0871.evolune.history.testDay
 import io.github.yingqiu0871.evolune.history.testEvent
@@ -42,6 +52,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * A-03 §20: History screen behaviour on a device.
@@ -230,19 +241,15 @@ class HistoryScreenTest {
 
     @Test
     fun aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation() {
-        launch { _, end ->
-            listOf(
-                testDay(
-                    date = end,
-                    entries = listOf(
-                        matchedEntry(
-                            event = testEvent(id = 51L, source = MedicationIntakeSource.MANUAL),
-                            provenance = MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW
-                        )
-                    )
-                )
-            )
-        }
+        // Production shape (A-04 §1.3): the entry comes from the real quick-record writer plus
+        // the real matcher/projection, not from a hand-set provenance.
+        val entry = quickRecordEntry()
+        assertEquals(
+            MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW,
+            (entry as MatchedHistoricalOccurrence).matchProvenance
+        )
+
+        launch { _, end -> listOf(testDay(date = end, entries = listOf(entry))) }
         composeRule.waitForIdle()
         scrollToEntryStatus()
 
@@ -250,6 +257,44 @@ class HistoryScreenTest {
         assertTrue(
             composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
         )
+    }
+
+    /** Real quick-record writer (`DoseEventEditSessionFactory.createQuickEvent`) + real projection. */
+    private fun quickRecordEntry(): HistoricalEntry {
+        val plan = MedicationPlan(
+            id = UUID(0L, 77L),
+            name = QUICK_PLAN_NAME,
+            route = Route.ORAL,
+            ester = Ester.E2,
+            doseMG = 2.0,
+            scheduleType = ScheduleType.DAILY,
+            slots = listOf(
+                ScheduledDoseSlot(
+                    id = UUID(1L, 0L),
+                    planId = UUID(0L, 77L),
+                    localTime = LocalTime.of(23, 0),
+                    position = 0
+                )
+            ),
+            daysOfWeek = emptySet(),
+            intervalDays = 1,
+            isEnabled = true,
+            extras = emptyMap(),
+            createdAt = Instant.parse("2024-01-02T03:04:05Z")
+        )
+        val factory = DoseEventEditSessionFactory(
+            idSupplier = { UUID(0L, 5252L) },
+            clock = Clock.fixed(today.atTime(23, 5).toInstant(ZoneOffset.UTC), zone),
+            zoneIdSupplier = { zone }
+        )
+        val event = requireNotNull(factory.createQuickEvent(plan).toRecordedMedicationEvent())
+        val projection = HistoricalProjectionBuilder.derive(
+            occurrences = listOf(testOccurrence(slotId = 1L, time = LocalTime.of(23, 0))),
+            events = listOf(event),
+            now = today.atTime(23, 30).toInstant(ZoneOffset.UTC),
+            displayZone = zone
+        )
+        return projection.entries.single()
     }
 
     @Test
@@ -533,6 +578,10 @@ class HistoryScreenTest {
             }
         }
         return source
+    }
+
+    private companion object {
+        const val QUICK_PLAN_NAME = "Synthetic quick plan"
     }
 
     private class FakeHistoryRangeSource(

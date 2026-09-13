@@ -35,9 +35,14 @@ internal class FakeDoseEventRepository(
     var beforeInsert: (suspend (DoseEvent) -> Unit)? = null
     var forcedInsertResult: InsertResult? = null
     var beforeForcedInsertResult: ((DoseEvent) -> Unit)? = null
-    var rangeEvents: List<DoseEvent> = initialEvents
-    var localDateRangeEvents: List<DoseEvent> = initialEvents
-    var pkEvents: List<DoseEvent> = initialEvents
+    /**
+     * Explicit channel overrides. When left null the channel answers from the **live** event map
+     * (A-04), so a read after a production mutation — e.g. `HRTViewModel.deleteEvent` or the Wear
+     * latest-delete — observes the current authoritative state instead of a startup snapshot.
+     */
+    var rangeEvents: List<DoseEvent>? = null
+    var localDateRangeEvents: List<DoseEvent>? = null
+    var pkEvents: List<DoseEvent>? = null
     var insertCalls = 0
     var getCalls = 0
     var lastInserted: DoseEvent? = null
@@ -45,6 +50,8 @@ internal class FakeDoseEventRepository(
     var lastLocalDateRange: Pair<LocalDate, LocalDate>? = null
     var conditionalDeleteResult: ConditionalDeleteResult? = null
     var conditionalDeleteCalls = 0
+    var deleteCalls = 0
+    var deleteFailure: Throwable? = null
     var beforeConditionalDelete: ((UUID, Long) -> Unit)? = null
     var latestDoseDeleteCalls = 0
     var beforeLatestDoseDelete: (() -> Unit)? = null
@@ -64,7 +71,7 @@ internal class FakeDoseEventRepository(
     ): List<DoseEvent> {
         rangeFailure?.let { throw it }
         lastRange = startInclusive to endExclusive
-        return rangeEvents
+        return rangeEvents ?: events.values.toList()
     }
 
     override suspend fun findRecordedLocalDateBetween(
@@ -72,12 +79,12 @@ internal class FakeDoseEventRepository(
         endInclusive: LocalDate
     ): List<DoseEvent> {
         lastLocalDateRange = startInclusive to endInclusive
-        return localDateRangeEvents
+        return localDateRangeEvents ?: events.values.toList()
     }
 
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {
         pkFailure?.let { throw it }
-        return pkEvents
+        return pkEvents ?: events.values.toList()
     }
 
     override suspend fun insert(event: DoseEvent): InsertResult {
@@ -103,7 +110,16 @@ internal class FakeDoseEventRepository(
     override suspend fun update(event: DoseEvent, expectedRevision: Long): UpdateResult =
         UpdateResult.Invalid
 
-    override suspend fun delete(id: UUID): DeleteResult = DeleteResult.NotFound
+    /**
+     * Faithful physical delete (A-04): mirrors `RoomDoseEventRepository.delete(id)` — the row is
+     * removed when present, otherwise `NotFound`. `delete(id)` is the mutation the production
+     * Phone delete use case (`HRTViewModel.deleteEvent`) performs.
+     */
+    override suspend fun delete(id: UUID): DeleteResult {
+        deleteCalls += 1
+        deleteFailure?.let { throw it }
+        return if (events.remove(id) != null) DeleteResult.Deleted else DeleteResult.NotFound
+    }
 
     override suspend fun deleteIfRevisionMatches(
         id: UUID,
