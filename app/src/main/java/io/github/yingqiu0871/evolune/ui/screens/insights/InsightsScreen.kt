@@ -39,8 +39,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.collectAsState
@@ -265,15 +265,18 @@ private fun InsightsRangeSelection.testTagSuffix(): String = when (this) {
 @Composable
 private fun OverviewCards(model: InsightsPresentation.InsightsUiModel) {
     model.overviewCards.forEach { card ->
+        val label = stringResource(card.labelRes)
+        val description = stringResource(R.string.insights_count_row_description, label, card.value)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag(card.testTag()),
+                .testTag(card.testTag())
+                .clearAndSetSemantics { contentDescription = description },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = stringResource(card.labelRes),
+                    text = label,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -351,17 +354,18 @@ private fun DoseSection(model: InsightsPresentation.InsightsUiModel) {
         testTag = "insights-dose-section"
     ) {
         model.doseRows.forEach { row ->
+            val label = stringResource(row.labelRes)
+            val doseText = io.github.yingqiu0871.evolune.history.HistoryFormatting.dose(row.totalMg)
+            val description = stringResource(R.string.insights_value_row_description, label, doseText)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .testTag("insights-dose-row-${row.medicationKey.name}"),
+                    .testTag("insights-dose-row-${row.medicationKey.name}")
+                    .clearAndSetSemantics { contentDescription = description },
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = stringResource(row.labelRes))
-                Text(
-                    text = io.github.yingqiu0871.evolune.history.HistoryFormatting.dose(row.totalMg),
-                    fontWeight = FontWeight.Medium
-                )
+                Text(text = label)
+                Text(text = doseText, fontWeight = FontWeight.Medium)
             }
         }
         model.doseEmptyMessageRes?.let { emptyRes ->
@@ -373,10 +377,13 @@ private fun DoseSection(model: InsightsPresentation.InsightsUiModel) {
             )
         }
         if (model.unknownIdentityCount > 0) {
+            val unknownText = stringResource(R.string.insights_unknown_identity, model.unknownIdentityCount)
             Text(
-                text = stringResource(R.string.insights_unknown_identity, model.unknownIdentityCount),
+                text = unknownText,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("insights-unknown-identity")
+                modifier = Modifier
+                    .testTag("insights-unknown-identity")
+                    .clearAndSetSemantics { contentDescription = unknownText }
             )
         }
     }
@@ -407,12 +414,14 @@ private fun SectionCard(title: String, testTag: String, content: @Composable () 
 @Composable
 private fun CountRow(labelRes: Int, count: Int, testTag: String) {
     val label = stringResource(labelRes)
-    val description = stringResource(R.string.insights_bar_description, label, count)
+    val description = stringResource(R.string.insights_count_row_description, label, count)
     Row(
+        // clearAndSetSemantics (A-03 precedent): the row is exactly one TalkBack fact, so the child
+        // label/value Texts are not announced a second time.
         modifier = Modifier
             .fillMaxWidth()
             .testTag(testTag)
-            .semantics { contentDescription = description },
+            .clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
@@ -498,7 +507,24 @@ private fun InsightsInvalidRange(messageRes: Int?) {
 
 // ---------- date helpers (picker millis ↔ LocalDate) ----------
 
-private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+/**
+ * The single conversion between the Material date picker's UTC-midnight millis and the frozen
+ * `LocalDate` model (v1.7-B-03 §7). It never consults the system time zone: decoding picker millis
+ * through the device zone would shift the selected date by ±1 day on non-UTC devices.
+ */
+object InsightsDatePicker {
+    fun toUtcMillis(date: LocalDate): Long =
+        date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
-private fun Long.toLocalDateUtc(): LocalDate =
-    Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
+    fun toLocalDate(utcMillis: Long): LocalDate =
+        Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()
+
+    fun fromSelection(selection: InsightsRangeSelection): Pair<Long?, Long?> = when (selection) {
+        is InsightsRangeSelection.Custom -> toUtcMillis(selection.startDate) to toUtcMillis(selection.endDate)
+        else -> null to null
+    }
+}
+
+private fun LocalDate.toUtcMillis(): Long = InsightsDatePicker.toUtcMillis(this)
+
+private fun Long.toLocalDateUtc(): LocalDate = InsightsDatePicker.toLocalDate(this)
