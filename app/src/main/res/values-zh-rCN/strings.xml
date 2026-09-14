@@ -476,4 +476,47 @@
     <string name="history_cell_no_recorded_intake">无记录 %1$d 次</string>
     <string name="history_cell_other_intake">其它记录 %1$d 次</string>
     <string name="history_cell_no_history">无历史记录</string>
+
+    <!-- v1.7-B-03 Insights surface (v1.7-B-00 wording is frozen; no metric/percentage copy) -->
+    <string name="insights_title">用药洞察</string>
+    <string name="insights_entry_title">用药洞察</string>
+    <string name="insights_entry_subtitle">记录摄入、记录来源与剂量汇总</string>
+    <string name="insights_entry_action">打开用药洞察</string>
+    <string name="insights_range_selector_label">统计区间</string>
+    <string name="insights_range_last_7">近 7 天</string>
+    <string name="insights_range_last_30">近 30 天</string>
+    <string name="insights_range_last_90">近 90 天</string>
+    <string name="insights_range_current_month">本月</string>
+    <string name="insights_range_custom">自定义</string>
+    <string name="insights_range_heading">%1$s – %2$s</string>
+    <string name="insights_range_custom_heading">自定义区间：%1$s – %2$s</string>
+    <string name="insights_range_custom_pick">选择日期区间</string>
+    <string name="insights_range_custom_confirm">确定</string>
+    <string name="insights_range_custom_cancel">取消</string>
+    <string name="insights_card_recorded_intakes">记录摄入次数</string>
+    <string name="insights_card_recorded_days">有记录的天数</string>
+    <string name="insights_coverage_title">与生成的计划时点关联的记录</string>
+    <string name="insights_coverage_linked">已关联到计划时点</string>
+    <string name="insights_coverage_unlinked">没有对应记录的计划时点</string>
+    <string name="insights_coverage_disclosure_schedule">计划时点由当前方案上下文生成。</string>
+    <string name="insights_coverage_disclosure_absence">没有记录并不能证明当时没有服药。</string>
+    <string name="insights_sources_title">按记录来源</string>
+    <string name="insights_confidence_title">记录关联方式</string>
+    <string name="insights_confidence_explanation">置信度表示记录与计划时点的关联程度，不代表用药可靠性或依从性。</string>
+    <string name="insights_confidence_high">高</string>
+    <string name="insights_confidence_medium">中</string>
+    <string name="insights_confidence_low">低</string>
+    <string name="insights_confidence_none">无</string>
+    <string name="insights_dose_title">按药物累计记录剂量</string>
+    <string name="insights_dose_empty">本区间没有可确认身份的记录剂量。</string>
+    <string name="insights_unknown_identity">未知药物 · %1$d 条记录</string>
+    <string name="insights_timezone_disclosure">部分旧记录的日期按当前时区显示。</string>
+    <string name="insights_loading">正在读取历史记录…</string>
+    <string name="insights_empty">本区间没有用药历史记录。</string>
+    <string name="insights_error">无法读取历史记录。</string>
+    <string name="insights_retry">重试</string>
+    <string name="insights_invalid_start_after_end">开始日期晚于结束日期。</string>
+    <string name="insights_invalid_end_in_future">结束日期不能晚于今天。</string>
+    <string name="insights_invalid_generic">该区间不可用。</string>
+    <string name="insights_bar_description">%1$s：%2$d</string>
 </resources>

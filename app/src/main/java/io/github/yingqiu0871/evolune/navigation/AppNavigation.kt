@@ -135,6 +135,11 @@ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.OnboardingViewModel
 import io.github.yingqiu0871.evolune.viewmodel.SettingsViewModel
 import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.yingqiu0871.evolune.history.insights.InsightsViewModel
+import io.github.yingqiu0871.evolune.ui.screens.insights.InsightsRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
@@ -148,6 +153,7 @@ private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
 private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
 private const val ONBOARDING_ROUTE = "onboarding"
 private const val DISCLOSURES_ROUTE = "disclosures"
+private const val INSIGHTS_ROUTE = "insights"
 internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
@@ -180,6 +186,7 @@ internal fun resolveAppStartRoute(
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
     historyViewModel: HistoryViewModel,
+    insightsViewModelFactory: ViewModelProvider.Factory,
     settingsViewModel: SettingsViewModel,
     medicationPlanViewModel: MedicationPlanViewModel,
     backupRestoreViewModel: BackupRestoreViewModel,
@@ -540,7 +547,8 @@ fun AppNavigation(
         currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
         currentRoute == ONBOARDING_ROUTE ||
         currentRoute == DISCLOSURES_ROUTE ||
-        currentRoute == FEATURE_TUTORIAL_ROUTE
+        currentRoute == FEATURE_TUTORIAL_ROUTE ||
+        currentRoute == INSIGHTS_ROUTE
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -576,6 +584,7 @@ fun AppNavigation(
                         DISCLOSURES_ROUTE -> stringResource(R.string.disclosures_title)
                         FEATURE_TUTORIAL_ROUTE ->
                             stringResource(R.string.feature_tutorial_title)
+                        INSIGHTS_ROUTE -> stringResource(R.string.insights_title)
                         else -> null
                     },
                 onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
@@ -680,8 +689,22 @@ fun AppNavigation(
                 HistoryScreen(
                     viewModel = historyViewModel,
                     is24Hour = is24Hour,
-                    showTopBar = false
+                    showTopBar = false,
+                    onOpenInsights = {
+                        navController.navigate(INSIGHTS_ROUTE) { launchSingleTop = true }
+                    }
                 )
+            }
+            composable(INSIGHTS_ROUTE) { entry ->
+                // The Insights ViewModel is scoped to the hosting Activity so that leaving and
+                // re-entering the destination keeps the same instance: the B-02 surface-return
+                // refresh then applies to the real product path (v1.7-B-03 §33/§34).
+                val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
+                val insightsViewModel: InsightsViewModel = viewModel(
+                    viewModelStoreOwner = owner,
+                    factory = insightsViewModelFactory
+                )
+                InsightsRoute(viewModel = insightsViewModel, showTopBar = false)
             }
             composable(Screen.MEDICATION_PLANS.route) {
                 MedicationPlansScreen(

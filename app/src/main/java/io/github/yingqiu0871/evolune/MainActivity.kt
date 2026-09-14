@@ -61,6 +61,7 @@ import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
 import kotlinx.coroutines.flow.first
+import io.github.yingqiu0871.evolune.history.insights.InsightsViewModelFactory
 
 internal fun initialRouteForIntent(action: String?): String? = when (action) {
     "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
@@ -213,14 +214,20 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 
+                // 历史读路径唯一：History 与 Insights 共用同一个 HistoryReadService 实例
+                val historyReadService = HistoryReadService(
+                    productionRepositoryProvider.medicationPlans,
+                    productionRepositoryProvider.doseEvents
+                )
+
                 // 创建 HistoryViewModel（历史只经 HistoryReadService 读取权威数据）
                 val historyViewModel: HistoryViewModel = viewModel(
-                    factory = HistoryViewModelFactory(
-                        historyReadService = HistoryReadService(
-                            productionRepositoryProvider.medicationPlans,
-                            productionRepositoryProvider.doseEvents
-                        )
-                    )
+                    factory = HistoryViewModelFactory(historyReadService = historyReadService)
+                )
+
+                // Insights 的 ViewModel 由导航目的地按需创建（factory 在组合根构造一次）
+                val insightsViewModelFactory = InsightsViewModelFactory(
+                    historyReadService = historyReadService
                 )
 
                 // 创建 MedicationPlanViewModel
@@ -300,6 +307,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         hrtViewModel = hrtViewModel,
                         historyViewModel = historyViewModel,
+                        insightsViewModelFactory = insightsViewModelFactory,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,

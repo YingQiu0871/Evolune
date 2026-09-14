@@ -91,6 +91,9 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.UUID
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 
 /**
  * 用药历史屏幕（A-03）。
@@ -107,7 +110,8 @@ fun HistoryScreen(
     viewModel: HistoryViewModel,
     modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
-    showTopBar: Boolean = false
+    showTopBar: Boolean = false,
+    onOpenInsights: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -142,7 +146,8 @@ fun HistoryScreen(
         onSelectDate = viewModel::selectDate,
         onRetry = viewModel::retry,
         modifier = modifier,
-        showTopBar = showTopBar
+        showTopBar = showTopBar,
+        onOpenInsights = onOpenInsights
     )
 }
 
@@ -159,7 +164,8 @@ fun HistoryScreenContent(
     onNextMonth: () -> Unit = {},
     onSelectDate: (LocalDate) -> Unit = {},
     onRetry: () -> Unit = {},
-    showTopBar: Boolean = false
+    showTopBar: Boolean = false,
+    onOpenInsights: () -> Unit = {}
 ) {
     val model = remember(state) { HistoryPresentation.present(state) }
 
@@ -189,6 +195,7 @@ fun HistoryScreenContent(
                 .testTag("history-content-list"),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+            item { InsightsEntryCard(onOpenInsights) }
             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
             item { WeekdayHeader() }
             item { HistoryMonthCalendar(model, onSelectDate) }
@@ -204,6 +211,49 @@ fun HistoryScreenContent(
                     }
                 }
             }
+        }
+    }
+}
+
+// ---------- Insights entry (v1.7-B-03) ----------
+
+/**
+ * The visible entry point into the Insights surface: History and Insights describe the same
+ * authoritative history, so Insights is reached from History instead of a sixth bottom tab.
+ */
+@Composable
+private fun InsightsEntryCard(onOpenInsights: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClickLabel = stringResource(R.string.insights_entry_action)) { onOpenInsights() }
+            .testTag("history-insights-entry"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.insights_entry_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.insights_entry_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
         }
     }
 }

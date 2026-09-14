@@ -31,8 +31,17 @@ sealed interface InsightsRangeSelection {
         get() = this !is Custom
 
     companion object {
-        /** Product default for the first Insights view (v1.7-B-02 section 8). */
-        val DEFAULT: InsightsRangeSelection = Last30Days
+        /**
+         * Product default for the first Insights view (v1.7-B-02 section 8).
+         *
+         * Deliberately a computed value. This interface declares a default method, so the JVM
+         * initializes it before any implementor that is touched first; materializing the default in
+         * the companion's static initializer reads `Last30Days.INSTANCE` while that object is still
+         * being initialized and leaves `DEFAULT` permanently null in that order
+         * (v1.7-B-03 crash fix; regression locked by `InsightsRangeSelectionInitTest`).
+         */
+        val DEFAULT: InsightsRangeSelection
+            get() = Last30Days
     }
 }
 
