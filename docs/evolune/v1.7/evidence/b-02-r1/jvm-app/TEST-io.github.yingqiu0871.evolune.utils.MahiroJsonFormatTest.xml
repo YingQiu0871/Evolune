@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.374Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="parseImport - missing events returns empty list" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - throws on invalid JSON" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="generateExport - produces valid JSON with correct structure" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - all extra keys are parsed correctly" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="generateExport - contains meta version field" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.001"/>
+  <testcase name="parseImport - missing weight returns null weight" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="generateExport - empty events list produces valid JSON" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - missing id generates a random UUID" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="roundtrip - export then import preserves all data" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - all route types are parsed correctly" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - parses weight and events from valid JSON" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - all ester types are parsed correctly" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - unknown ester skips event" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <testcase name="parseImport - unknown route skips event" classname="io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

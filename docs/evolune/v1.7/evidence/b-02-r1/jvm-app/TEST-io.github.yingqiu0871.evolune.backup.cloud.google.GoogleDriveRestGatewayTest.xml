@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:13.386Z" hostname="人面不知何处去" time="0.013">
+  <properties/>
+  <testcase name="all blocking gateway operations run on injected io dispatcher" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest" time="0.009"/>
+  <testcase name="create uses appDataFolder and safe marker properties" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest" time="0.001"/>
+  <testcase name="list is restricted to appDataFolder and delete is direct" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest" time="0.001"/>
+  <testcase name="http status mapping does not expose response text" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

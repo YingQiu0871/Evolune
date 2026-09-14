@@ -1,0 +1,16 @@
+# Repeated selection race (A -> B -> C)
+
+## Frozen rule
+A pending refresh for A must not be replayed after B and C: total reads = 3 (A, B, C) and only
+C may describe the state.
+
+## Tests that pin it
+- `repeated selection changes leave only the newest selection authoritative`
+- `a refresh that arrives after a new selection is preserved` (the over-fix guard: 3 reads = A, B, refresh B)
+
+## Evidence
+red  : repeated selection changes leave only the newest selection authoritative
+       -> java.lang.AssertionError: A, B and C only expected:<3> but was:<4>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

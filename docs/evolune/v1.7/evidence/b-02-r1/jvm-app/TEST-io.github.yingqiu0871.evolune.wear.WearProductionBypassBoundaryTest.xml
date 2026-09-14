@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.657Z" hostname="人面不知何处去" time="0.022">
+  <properties/>
+  <testcase name="Wear listener uses provider handler and controlled service lifecycle" classname="io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest" time="0.001"/>
+  <testcase name="Wear and composition production paths have no persistence bypass" classname="io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest" time="0.021"/>
+  <testcase name="Wear action handler selects only WearActionRecorder" classname="io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+# P1-2 pending refresh vs explicit selection — red/green
+
+## Frozen rule
+An explicit selection change supersedes the in-flight load **and** any refresh intent queued
+before it: total reads = 2 (A, B), the final summary belongs to B, and live state agrees with
+SavedState. `pendingRefresh` owns no selection.
+
+## Tests that pin it
+- `an explicit selection change supersedes a pending refresh and still reads exactly twice`
+
+## Evidence
+red  : an explicit selection change supersedes a pending refresh and still reads exactly twice
+       -> java.lang.AssertionError: A and B only; no replay of the superseded refresh expected:<2> but was:<3>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

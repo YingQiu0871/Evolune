@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" tests="4" failures="0" errors="0" skipped="0" time="8.839" timestamp="2026-09-14T12:10:14" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="a relative selection is stored as a preset rather than frozen endpoints" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="2.597" />
+  <testcase name="theFactoryPersistsTheSelectionAndRestoresItAfterRecreation" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="1.331" />
+  <testcase name="the cold start does not refresh on the initial start transition" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="0.798" />
+  <testcase name="composition entry refreshes once and a foreground return refreshes once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="3.446" />
+</testsuite>

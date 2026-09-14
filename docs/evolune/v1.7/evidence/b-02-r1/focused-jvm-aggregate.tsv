@@ -1,0 +1,3 @@
+phase	xml_files	tests	skipped	failures	errors	passed
+red (pre-fix production)	4	66	0	6	0	60
+green (post-fix production)	4	66	0	0	0	66

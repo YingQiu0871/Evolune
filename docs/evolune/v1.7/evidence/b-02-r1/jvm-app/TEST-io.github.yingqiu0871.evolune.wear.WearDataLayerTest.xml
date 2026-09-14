@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.654Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="wear sync contains only first two enabled Domain plans" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" time="0.001"/>
+  <testcase name="wear materialization preserves complete Domain metadata" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" time="0.0"/>
+  <testcase name="wear curve samples twelve hours on each side" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" time="0.001"/>
+  <testcase name="invalid or mismatched action identity is not replaced" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" time="0.0"/>
+  <testcase name="wear protocol constants and action URI remain compatible" classname="io.github.yingqiu0871.evolune.wear.WearDataLayerTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+# Pending refresh after failures
+
+## Frozen rule
+A refresh that arrived while a load was running still produces exactly one follow-up when that
+load ends in `ReadFailure` or `ContractViolation`; the follow-up clears the failure.
+
+## Tests that pin it
+- `a pending refresh still runs after an ordinary read failure`
+- `a pending refresh still runs after a contract violation`
+
+## Evidence
+these two paths were already correct through `finally`; the new tests pin them (no red run entry).
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

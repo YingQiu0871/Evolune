@@ -1,0 +1,17 @@
+# Live custom timezone invalidation
+
+## Frozen rule
+A custom range stays fixed, but every reselect/refresh re-validates it against the new snapshot;
+if the zone change puts `endDate` in the future the phase becomes `INVALID_RANGE` with 0 extra
+reads and 0 extra aggregations.
+
+## Tests that pin it
+- `a live timezone change that makes a custom range invalid reads nothing` (refresh path)
+- `reselecting the same custom range that became invalid reads nothing` (reselect path)
+
+## Evidence
+red  : reselecting the same custom range that became invalid reads nothing
+       -> java.lang.AssertionError: expected:<INVALID_RANGE> but was:<CONTENT>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

@@ -1,0 +1,20 @@
+# Combined race query count
+
+## Frozen rule
+Sequence: initial A (Last30Days) gated in flight -> refresh, refresh -> `selectRange(Last7Days)`
+-> release A and B. Exactly **2** `HistoryRangeSource` reads and exactly **1** aggregation
+(the superseded read never reaches the aggregator).
+
+## Tests that pin it
+- `an explicit selection change supersedes a pending refresh and still reads exactly twice`
+
+## Evidence
+asserted counts: source.calls.size == 2, aggregator.calls == 1,
+state.summary == B's summary (recordedIntakeCount 2, unrecordedOccurrenceCount 4),
+SavedState 'insights.selectionType' == LAST_7_DAYS.
+
+red  : an explicit selection change supersedes a pending refresh and still reads exactly twice
+       -> java.lang.AssertionError: A and B only; no replay of the superseded refresh expected:<2> but was:<3>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

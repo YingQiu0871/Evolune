@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.687Z" hostname="人面不知何处去" time="0.016">
+  <properties/>
+  <testcase name="cancel has no write and restore defaults only changes draft intent" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.007"/>
+  <testcase name="default config is per Widget and normalized to a readable range" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.0"/>
+  <testcase name="two Widget configs resolve isolated opaque rail palettes independent of opacity" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.003"/>
+  <testcase name="switching presets and theme resolves fresh rail role colors" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.0"/>
+  <testcase name="hero panels use distinct selected palette colors with readable text" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <testcase name="apply persists exact Widget then invokes canonical refresh" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <testcase name="action buttons use opaque palette roles across themes presets and opacity" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <testcase name="two Widget configurations remain independent and deletion is isolated" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <testcase name="theme and preset choices resolve distinct readable light dark palettes" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.0"/>
+  <testcase name="Material You preference remains automatic when dynamic colors are unavailable" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.0"/>
+  <testcase name="medication rails are resolved palette roles with stable cycling" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <testcase name="all presets resolve readable opaque foregrounds independent of opacity" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.0"/>
+  <testcase name="foreground contrast follows the resolved surface rather than requested mode" classname="io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

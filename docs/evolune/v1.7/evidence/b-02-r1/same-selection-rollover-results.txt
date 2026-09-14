@@ -1,0 +1,18 @@
+# Same selection, changed resolved range
+
+## Frozen rule
+Same selection + same resolved endpoints = 0 reads; same selection + changed resolved endpoints
+(day rollover, zone change) = 1 read. The short-circuit compares the resolved range, not the
+selection object.
+
+## Tests that pin it
+- `reselecting the same preset after midnight re-resolves it and reads once`
+- `selecting the already active range performs no read` (same day, unchanged)
+- `selecting custom endpoints identical to the active selection performs no read`
+
+## Evidence
+red  : reselecting the same preset after midnight re-resolves it and reads once
+       -> java.lang.AssertionError: a changed resolved range must read once expected:<3> but was:<2>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

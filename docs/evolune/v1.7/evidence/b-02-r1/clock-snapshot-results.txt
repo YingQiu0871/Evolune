@@ -1,0 +1,15 @@
+# One request = one clock snapshot
+
+## Frozen rule
+A request reads the clock exactly once; endpoints, forwarded `now` and published `today` all come
+from that snapshot (the construction snapshot also serves the initial load).
+
+## Tests that pin it
+- `one request captures exactly one zone and instant snapshot` (SteppingTestClock: a second read returns a different instant)
+
+## Evidence
+red  : one request captures exactly one zone and instant snapshot
+       -> java.lang.AssertionError: construction takes one snapshot expected:<1> but was:<3>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

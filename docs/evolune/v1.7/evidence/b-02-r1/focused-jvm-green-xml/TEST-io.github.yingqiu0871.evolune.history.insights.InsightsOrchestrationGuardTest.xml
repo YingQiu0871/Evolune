@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:02:37.976Z" hostname="人面不知何处去" time="0.059">
+  <properties/>
+  <testcase name="no judgement vocabulary is introduced by the orchestration layer" classname="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" time="0.037"/>
+  <testcase name="the read seam is the only history acquisition path" classname="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" time="0.011"/>
+  <testcase name="the state model reuses the authoritative summary instead of restating metrics" classname="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" time="0.001"/>
+  <testcase name="the resolver is the only place that computes endpoints" classname="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" time="0.002"/>
+  <testcase name="no second path to the facts exists" classname="io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

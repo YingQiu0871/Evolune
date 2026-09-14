@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:10.201Z" hostname="人面不知何处去" time="0.012">
+  <properties/>
+  <testcase name="out of epoch millis range is a structured time precision issue" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.006"/>
+  <testcase name="quick event uses one id minute precision and complete manual metadata" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.0"/>
+  <testcase name="invalid input is structured and does not create a command" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.001"/>
+  <testcase name="explicit time edit updates time context but preserves provenance and slot" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.002"/>
+  <testcase name="edit command preserves complete metadata extras and expected revision" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.0"/>
+  <testcase name="patch removal and rate mode permit zero dose while ordinary routes do not" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.001"/>
+  <testcase name="new session captures identity time zone date and metadata once" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.001"/>
+  <testcase name="create command reuses session identity and time across repeated mapping" classname="io.github.yingqiu0871.evolune.application.DoseEventEditorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:03:55.540Z" hostname="人面不知何处去" time="0.01">
+  <properties/>
+  <testcase name="status and action availability derive around the due window" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="exact slot identity takes precedence over medication fallback" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="same-day null-slot fallback keeps ambiguous matching unresolved" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="event outside accepted matching window does not record occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="unique null-slot candidate records the only compatible occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="same-day null-slot fallback rejects an event from another local date" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="slot and local date exactly associate a late actual dose time" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="window competitors cannot be recovered by same-day fallback" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="same-day null-slot event after one hour still records unique occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="fallback cannot reuse exact matched occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="fallback ambiguity is independent of event input ordering" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="matching accepted event marks recorded and exposes only real event id" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="window evidence survives exact consumption of its occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="null-slot event compatible with staggered occurrences remains unmatched" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="slot date exact association rejects another slot or local date" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="unrelated event does not falsely record occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="same-day null-slot event with a large delay preserves actual event time" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="null-slot time-window match takes precedence over same-day fallback" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="multiple same-day null-slot events choose one deterministically" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="proven slot identity cannot fall back to a different slot" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.001"/>
+  <testcase name="slot event without local date retains the legacy time window" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="exact slot and date match reserves occurrence from null-slot fallback" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <testcase name="ambiguous null-slot event does not record either simultaneous occurrence" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

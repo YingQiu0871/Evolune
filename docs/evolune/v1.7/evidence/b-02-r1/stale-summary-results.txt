@@ -1,0 +1,19 @@
+# Stale responses with discriminating summaries
+
+## Frozen rule
+A superseded success, ordinary failure or contract violation must not replace the newer state;
+the surviving **summary** must be the newer request's, not only its selection/endpoints.
+
+## Tests that pin it
+- `a stale success that ignores cancellation cannot replace the newer selection`
+- `a stale failure cannot turn the newer success into an error`
+- `a stale contract violation cannot replace the newer content`
+
+## Evidence
+the pre-fix run failed these tests for the *EMPTY* reason (empty fixture ranges), which is why the
+closing report listed 'no summary assertion' as a gap; R1 makes A and B answer with different facts:
+
+
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

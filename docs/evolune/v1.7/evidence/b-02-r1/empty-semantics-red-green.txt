@@ -1,0 +1,19 @@
+# P1-1 EMPTY semantics — red/green
+
+## Frozen rule
+`EMPTY` only when the successful range carries **no historical entry at all**, i.e.
+`recordedIntakeCount == 0 && unrecordedOccurrenceCount == 0`. A range that only carries
+unrecorded occurrences holds real history and is `CONTENT`.
+
+## Tests that pin it
+- `an empty successful range is Empty rather than Error` (recorded 0 / unrecorded 0 -> EMPTY)
+- `an unrecorded-only range is content because it carries historical facts` (recorded 0 / unrecorded 4 -> CONTENT)
+- `an unmatched-only range is content` (recorded 2 / unrecorded 0 -> CONTENT)
+- `a mixed recorded and unrecorded range is content` (recorded 1 / unrecorded 2 -> CONTENT)
+
+## Evidence
+red  : an unrecorded-only range is content because it carries historical facts
+       -> java.lang.AssertionError: expected:<CONTENT> but was:<EMPTY>
+
+## Green result
+66 focused JVM tests, 0 failures, 0 errors, 0 skipped (focused-jvm-green-xml/).

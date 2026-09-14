@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.188Z" hostname="人面不知何处去" time="0.011">
+  <properties/>
+  <testcase name="persisted-date context rows outside the requested range do not leak" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.004"/>
+  <testcase name="true legacy orphan is still read through the instant channel and keeps display-zone attribution" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="delayed wear confirmation is matched on the carried day" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="a row returned by both channels is projected exactly once" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="conflicting rows for the same event id fail fast instead of picking a winner" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="arbitrarily large divergence still reaches History" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="cross-midnight legacy inference still works with the persisted-date channel present" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <testcase name="delayed reminder confirmation is matched on the planned day, not reported unrecorded" classname="io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-14T12:04:14.274Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="a valid custom range resolves unchanged" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.001"/>
+  <testcase name="current month is the first of the month through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="a custom range with start after end is invalid" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.001"/>
+  <testcase name="current month on the first day is a single date" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="the resolver is deterministic and side-effect free" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="relative presets cross a month boundary correctly" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="last 7 days is today - 6 through today inclusive" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="last 90 days is today - 89 through today inclusive" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="a custom range ending today is valid" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="relative presets follow today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="last 30 days is today - 29 through today inclusive" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <testcase name="a custom range ending after today is invalid" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

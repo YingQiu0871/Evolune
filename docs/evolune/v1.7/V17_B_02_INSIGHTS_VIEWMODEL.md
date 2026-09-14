@@ -116,36 +116,57 @@ read 失败时保留 selection 与已解析 endpoints，`retry()` 可重试（§
 
 | 触发 | 语义 |
 |---|---|
-| `selectRange(newSelection)` | **supersede**：立即取消在途 load 并发起新 load（generation 使旧响应失效）；「一次 selection 改变 = 一次 read」 |
-| `retry()` / `onSurfaceShown()` / `onAppForegrounded()` | **coalesce**：若在途则记 `pendingRefresh`，当前 load 完成后**恰好一次** follow-up |
+| `selectRange(newSelection)`（resolved range 有变） | **supersede**：清空在途 refresh intent → `++generation` → `cancel()` 旧 job → 发起新 load；「一次 selection 改变 = 一次 read」 |
+| `selectRange(same)` 且 resolved endpoints 未变 | **no-op**：0 read（§14） |
+| `retry()` / `onSurfaceShown()`（非首次）/ `onAppForegrounded()` | **coalesce**：若在途则记 `pendingRefresh`，当前 load 完成后**恰好一次** follow-up |
 
 这样 §15 的 stale success / stale failure 回归仍是可达场景（selection 改变即令旧请求过期），
 而 §21 的「refresh 不得被丢弃」也成立。
 
-## 12. Pending-refresh coalescing
+**R1 更正**：`startLoad` 现在会清空 `pendingRefresh`——显式 selection 变更比它之前排队的 refresh intent 更新，
+旧 intent 不得在新区间 load 完成后再触发一次 follow-up（原实现会在 B 完成后回放 A，产生第 3 次 read 并把
+`state.selection` 回滚成 A，见 §22）。
 
-`pendingRefresh` + `pendingSelection` 两个标志：多个 refresh 请求合并为 **1** 次 follow-up；
-若期间发生 selection 改变，则 follow-up 使用**新的** selection（并立即预览新 selection 的 endpoints，不额外读）。
-测试锁定：初始 load 在途 + 3 次 refresh → 总 reads **2**（原始 + 1 次 follow-up），最终 summary 来自 follow-up（§22）。
+## 12. Pending-refresh coalescing（R1 冻结模型）
+
+`pendingRefresh: Boolean` **单一标志，不携带 selection**：多个 refresh 请求合并为 **1** 次 follow-up，
+follow-up 刷新的是 load 结束时**当时权威的** selection。
+
+| 情形 | 冻结语义 |
+|---|---|
+| load 在途 + N 次 refresh | 只置一个 flag → 当前 load 完成后恰好 **1** 次 follow-up（总 reads = N 次请求下仍为 2） |
+| load 在途 + refresh + 随后 `selectRange(B)` | B **supersede**：旧 refresh intent 作废（0 额外 read），最终 state/summary 属于 B |
+| `selectRange(B)` 之后、B 在途时 refresh 到达 | 属于 B 时代的**新** intent：保留，B 完成后 follow-up B 一次 |
+| load 以 success / `ReadFailure` / `ContractViolation` 结束 | `finally` 一律检查并执行 pending follow-up（refresh 不因失败丢失） |
+
+已删除 `pendingSelection` 与 `applyPendingSelectionPreview()`（原实现中后者因 `load()` 只被传入当前
+selection 而不可达，是**假能力**）。测试锁定：coalesce（3 refresh → 2 reads）、组合 race（pending + select B →
+**恰好 2** reads、summary 属于 B、SavedState 与实时 state 一致）、连续选择（A pending → B → C → 最终只属 C）、
+失败后 pending（ReadFailure / ContractViolation 各恰好 1 次 follow-up）。
 
 ## 13. Surface / foreground refresh
 
-`onSurfaceShown()`：首次进入只置 `surfaceShownOnce`（0 read），之后每次进入刷新当前 selection 一次；
+`onSurfaceShown()`：**首次 composition 会调用 `onSurfaceShown()`，但 first-show gate 执行 0 次额外
+History read**；冷启动唯一的一次 read 来自 ViewModel initial load（不是 surface 回调）。之后每次进入刷新
+当前 selection 一次；
 `onAppForegrounded()`：由 `InsightsSurfaceLifecycle` 在**真实** `ON_STOP → ON_START` 后调用（内含
 `wentToBackground` 位），因此冷启动的 `ON_START` 不产生第二次 load；observer 随 composition 存在/销毁，
 用户不在 Insights 时不会后台轮询。**未新建第三种「screen visible」机制**（§19/§20）。
 
 ## 14. Rollover / timezone change
 
-每次 load/refresh 重新取 `displayZone()`、`now`、`today = now.atZone(zone).toLocalDate()`，
-然后**一次性**把 `zone`/`now`/新 endpoints 交给 seam（不允许先按旧 zone resolve 再按新 zone read）：
+**一次 request = 一个 snapshot**：`zone = displayZone()`、`now = clock.instant()`、
+`today = now.atZone(zone).toLocalDate()` 各取**一次**（构造时的 initial snapshot 同时供 init load 使用），
+resolver、custom validation、`HistoryRangeSource.read(...)` 的 `displayZone`/`now`、`state.today`/`state.displayZone`
+全部来自这同一 snapshot —— request 内**不允许**第二次 `clock.instant()`（先按旧 zone resolve 再按新 zone read 同属禁止）：
 
 | selection | 跨日 rollover |
 |---|---|
 | `Last7/30/90` | endpoints 自动滚动（Sep13 Last7 = Sep7..Sep13 → Sep14 = Sep8..Sep14） |
 | `CurrentMonth` | 月末 → 次月（Sep30 Sep1..Sep30 → Oct1 Oct1..Oct1） |
 | `Custom` | endpoints 固定不变；validation 使用新的 today |
-| 时区变化 | `today` 按新 zone 重算，相对 preset 随之重解析 |
+| 时区变化 | `today` 按新 zone 重算，相对 preset 随之重解析；custom 若因此 `endDate > today` → `INVALID_RANGE` + 0 read |
+| 同 selection 再次选择 | resolved endpoints 未变 → 0 read；跨日/换 zone 后 endpoints 已变 → **1** read（不是永久 0 read） |
 
 ## 15. SavedState
 
@@ -165,15 +186,15 @@ State/ViewModel 不产生任何 percentage / ratio / score / punctuality 字段�
 | 文件 | tests | 覆盖 |
 |---|---:|---|
 | `InsightsRangeResolverTest` | 12 | 7/30/90/current month 端点（对齐 B-00-R1 示例 `today=2026-09-13`）、跨月、valid/invalid custom、determinism |
-| `InsightsViewModelTest` | 34 | 默认与初始 load、端点/zone/now 转发、四种 preset、valid/invalid custom、相同 selection 0 读、改变 1 读、retry 1 读、普通失败、契约失败、empty、stale success/failure、surface 首/再次进入、前台刷新、coalesced pending refresh（含 selection 改变获胜）、Last7 跨日、CurrentMonth 跨月、Custom 固定、时区变化、restore relative/custom、malformed 回落、selection 持久化、不持久化 summary |
+| `InsightsViewModelTest` | 47 | 默认与初始 load、端点/zone/now 转发、四种 preset、valid/invalid custom、相同 selection 0 读、**同 preset 跨日重解析 1 读**、改变 1 读、retry 1 读、普通失败、契约失败、**EMPTY 四态（真空 / 仅 unrecorded / 仅 unmatched / 混合）**、stale success / ordinary failure / contract violation（三种都以 distinct summary 断言存活的是新请求）、surface 首/再次进入、前台刷新、coalesced pending refresh、**pending + select B 组合 race（恰好 2 读，summary 属 B，SavedState 一致）**、**A pending → B → C 连续选择（最终仅 C）**、**refresh 在 select 之后仍保留**、**pending after ReadFailure / ContractViolation**、**单 snapshot（一次 request 一次 clock）**、Last7 跨日、CurrentMonth 跨月、Custom 固定、**custom 因时区变为非法（reselect 与 live refresh 两条路径，0 读 0 聚合）**、时区变化、restore relative/custom、malformed 回落、selection 持久化、不持久化 summary |
 | `InsightsViewModelIntegrationTest` | 2 | 真实 B-01 聚合器 + 假 seam：state 与 frozen aggregate 一致（含时间时区披露）＋同一 range 两次聚合结果相同 |
-| `InsightsOrchestrationGuardTest` | 5 | 无第二事实路径、读缝唯一、禁用词、state 不重述 metric、resolver 是唯一端点计算点 |
+| `InsightsOrchestrationGuardTest` | 5 | 无第二事实路径、读缝唯一、禁用词、state 不重述 metric、resolver 是唯一端点计算点（两种 resolve 调用形态均须经 resolver） |
 | instrumentation `InsightsSavedStateFactoryTest` | 2 | 真实 `ViewModelProvider` + Activity `CreationExtras`：selection/custom 写入 saved state 并经真实 save/restore 保留；相对 preset 存类型而非冻结端点 |
 | instrumentation `InsightsSurfaceLifecycleTest` | 2 | 最小 harness 托管生产 bridge：冷启动 1 read、composition 重入刷新 1 次、真实 `ON_STOP→ON_START` 刷新 1 次 |
 
 ## 18. Evidence
 
-`docs/evolune/v1.7/evidence/b-02/`：architecture/source-boundary audit、state/API snapshot、
+本文件对应的原始轮证据冻结在 `docs/evolune/v1.7/evidence/b-02/`（**B-02-R1 起 0 改动**）；R1 的证据在 `docs/evolune/v1.7/evidence/b-02-r1/`（red/green focused JVM、逐项 finding 证据、full/targeted XML+日志、`MANIFEST.sha256`）。内容：architecture/source-boundary audit、state/API snapshot、
 range resolver golden output、query-count evidence、stale-response evidence、refresh/coalescing evidence、
 SavedState evidence、test-isolation incident（§21）、focused JVM XML/log、targeted Android XML/log、
 full JVM XML/log、full Phone XML/log、aggregate TSV、`source-diff-stat.txt`、`MANIFEST.sha256`。
@@ -239,3 +260,32 @@ full JVM XML/log、full Phone XML/log、aggregate TSV、`source-diff-stat.txt`�
 **遗留**：`ProductionRepositoryProvider` 无自愈路径（若将来有生产路径关闭该数据库，`get()` 会继续
 返回已关闭句柄）。当前无生产路径关闭它（`RoomRestorePersistence` 用事务内替换行，不 close），
 故登记为 P3 备忘而非产品缺陷。
+
+## 22. v1.7-B-02-R1 冻结更正（复审 P1/P2 关闭）
+
+独立复审对 B-02 candidate（`7f23239`）给出 **REQUEST_CHANGES V17-B-02 INSIGHTS VIEWMODEL**：2 项 P1
+（EMPTY 判据、pending refresh 回放旧 selection）+ 1 项 P2（同 selection 跨日短路）+ P3。本轮（B-02-R1）
+**只做窄口径编排更正**，不新增 UI/nav，不改 B-01/H/history/Room/schema：
+
+| # | 冻结语义（本轮起） |
+|---|---|
+| 1 | `EMPTY` = 成功读取的 `HistoricalRange` **没有任何 historical entry**；在 B-01 summary 契约下等价于 `recordedIntakeCount == 0 && unrecordedOccurrenceCount == 0`。**仅 unrecorded 的区间是 `CONTENT`**（它携带权威历史事实）。`InsightsPhase.EMPTY` KDoc 同步更正 |
+| 2 | `pendingRefresh` 是**布尔标志、不携带 selection**：它只表达「当前 load 结束后把**当时权威的** selection 刷新一次」。`pendingSelection` 与不可达的 `applyPendingSelectionPreview()` 已删除（不保留假能力） |
+| 3 | 显式 selection 变更（resolved range 有变）**优先于更早排队的 refresh intent**：`startLoad` 先清空 `pendingRefresh`，再 `++generation`、`cancel()` 旧 job、发起新 load —— 旧 intent 不得在新区间 load 完成后再触发一次 follow-up |
+| 4 | **不反向过度修复**：在 `selectRange(B)` **之后**、B 在途时到达的 refresh 属于 B 时代的新 intent，必须保留（B 完成后 follow-up B 一次） |
+| 5 | **一次 request = 一个 snapshot**：`zone`/`now`/`today` 各取一次（构造时的 snapshot 同时供 init load），resolver、custom validation、`read(...)` 的 `displayZone`/`now`、`state.today`/`state.displayZone` 全部来自同一 snapshot；request 内不再第二次 `clock.instant()` |
+| 6 | 同 selection 再次选择 = **先按当前 snapshot resolve**：resolved endpoints（invalid 时为 verdict）未变 → **0 read**；跨日/换 zone 后已变 → **1 read**（不再是「同 selection 永久 0 read」） |
+| 7 | custom endpoints 固定但**每次 reselect/refresh 都用新 snapshot 重新 validation**；因此变为非法时 → `INVALID_RANGE` + **0 read / 0 aggregate**（live 与 restore 两条路径都有用例） |
+| 8 | surface 措辞冻结：**首次 composition 会调用 `onSurfaceShown()`，但 first-show gate 执行 0 次额外 History read**；冷启动唯一一次 read 来自 ViewModel initial load。旧文档「first composition refreshes once」的歧义写法已废止 |
+
+**修改范围（R1）**：`InsightsViewModel.kt`（生产）、`InsightsUiState.kt`（仅 KDoc）、B-02 JVM 测试
+（`InsightsViewModelTest` / `InsightsTestFixtures` / `InsightsOrchestrationGuardTest`）、本文件、
+`docs/evolune/v1.7/evidence/b-02-r1/`。**0 改动**：B-01 聚合器与 domain、`HistoryRangeSource`、
+`HistoryReadService`、projection/read model、Room/DAO/repository/schema、navigation、Compose screen、
+strings/resources、Wear、Widget、PK、`AppDatabaseMigrationMatrixTest.kt`、`evidence/b-02/`（冻结）。
+
+**验证**：focused JVM **66**（47+12+2+5）——修复前 6 项 red（EMPTY 1、pending/selection race 2、同 selection
+跨日 1、同 custom 变非法 1、单 snapshot 1），修复后 0 failed；fresh full JVM **1122**（app 863 / core 169 /
+wear 90，0/0/0，54/54 executed）；targeted Android **4/0/0**（SavedState + lifecycle，未改）；full Phone
+**247 / 5 skipped（既有 assumeTrue）/ 0 failed**；`:app:assembleDebug` `BUILD SUCCESSFUL`（38/38 UP-TO-DATE，
+**build-green 口径**，不声称 fresh APK 身份）。逐项 red/green 证据见 `evidence/b-02-r1/`。
