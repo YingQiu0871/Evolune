@@ -1,0 +1,26 @@
+# Phase B acceptance mapping (requirement → implementation → test → evidence)
+
+## acceptance rows (extracted from V17_ACCEPTANCE.md §2)
+  | B1 | 指标**只**消费 Phase A 的投影，无独立匹配逻辑 | 代码审查 + 边界测试 |
+  | B2 | 术语语义经批准：`Scheduled` / `Completed` / `Uncompleted` / `Completion rate` / `Timing difference` / 分药指标 | 每项给出定义与边界（含歧义事件、孤儿事件、skip 的计入规则） |
+  | B2a | **Decision A 约束**：不得基于不可证明的 historical plan reconstruction 输出"严格历史 adherence rate"；优先 factual medication insights；只有 provenance 足够可靠的数据可进入计划符合度统计 | 指标清单逐项标注数据来源与 provenance 要求；`legacy/null-slot inferred match` 不得作为高置信输入 |
+  | B2b | **Decision C 约束**：长期历史只表达 `Recorded` / `No recorded intake`，不得出现 `Skipped` / `Missed` | `strings.xml` + 文案审查 |
+  | B2c | 具体 B 阶段指标在 **A 的 provenance model 冻结后**才最终冻结 | 冻结记录（A 门禁产物）作为 B 的前置 |
+  | B3 | 未批准术语（`late`/`missed`/`due`/`expired` 等）**未出现**在 UI 文案中 | 文案清单 + `strings.xml` diff 审查 |
+  | B4 | 无医学判断、无评分羞辱、无未支持健康声明 | 文案审查（规格 §10） |
+  | B5 | 区间 7/30/90 天（+可选自定义）边界正确 | 边界测试：区间端点的半开语义、跨 DST、跨时区 |
+  | B6 | 分母/分子在有 legacy、孤儿、歧义、手动事件时一致 | 构造数据集逐项断言 |
+  | B7 | fresh 验证 + 独立复审 | 同 G4/G5 |
+
+## mapping
+| acceptance item | implementation | test | evidence |
+|---|---|---|---|
+| B1 factual metrics only, no adherence rate | InsightsPresentation (counts straight from the frozen summary) | InsightsUiGuardTest, InsightsPresentationTest | metric-truth-map.txt, forbidden-language-audit.txt |
+| B2 approved terminology only | copy frozen by B-00 §18/§24 | InsightsUiGuardTest (en+zh) | forbidden-language-audit.txt |
+| coverage counts + mandatory disclosure | CoverageSection (two counts + two sentences) | InsightsPresentationTest, InsightsScreenTest | golden-regressions.txt |
+| confidence breakdown shipped | ConfidenceSection (four buckets + explanation) | InsightsHardeningTest, InsightsScreenTest | metric-truth-map.txt |
+| identity disposition (Unknown medication, count only) | DoseSection unknown row | InsightsHardeningTest, InsightsScreenTest | golden-regressions.txt |
+| timezone disclosure | timezoneDisclosureRes (neutral supporting text) | InsightsPresentationTest, InsightsScreenTest | golden-regressions.txt |
+| ranges 7/30/90/month/custom per frozen endpoints | InsightsRangeResolver (B-02) + range selector | InsightsRangeResolverTest, InsightsScreenTest, InsightsReleaseGateTest | custom-picker-roundtrip.txt |
+| read-only (no writes) | read-only aggregator + read seam | InsightsZeroWriteDeviceTest | zero-write-proof.txt |
+| no percentage / no timing metric | absent by construction | InsightsUiGuardTest | forbidden-language-audit.txt |

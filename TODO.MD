@@ -44,6 +44,15 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
+## v1.7 — History & Insights program（Phase A + Phase B 已收口）
+
+- [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
+- [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
+      release gate 完成（待独立复审）：read-only、无百分比/timing、无图表依赖、schema 0 改动。
+- [ ] Phase C（Retrospective PK）：**未开始**，需单独立项（本轮 hardening 不触碰 PK 语义）。
+- [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
+      anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
+
 ## v1.7 — Optional CPA PK Curve
 
 - [ ] 在独立科学、来源和回归评估通过后，增加默认关闭且单位独立的 CPA 估算曲线。

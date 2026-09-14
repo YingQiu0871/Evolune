@@ -1,0 +1,23 @@
+# Metric truth map: UI visible value → presentation field → summary field
+
+| UI visible value | InsightsPresentation source | MedicationInsightsSummary field |
+|---|---|---|
+| overview recorded intakes | summary.recordedIntakeCount | recordedIntakeCount |
+| overview days with recorded intake | summary.recordedDayCount | recordedDayCount |
+| coverage linked count | summary.matchedOccurrenceCount | matchedOccurrenceCount |
+| coverage no-record count | summary.unrecordedOccurrenceCount | unrecordedOccurrenceCount |
+| six source rows | summary.sourceCounts | sourceCounts |
+| four confidence rows | summary.bindingConfidenceCounts | bindingConfidenceCounts |
+| per-medication dose rows | summary.perMedicationDoseTotalsMg | perMedicationDoseTotalsMg |
+| unknown identity sentence | summary.unknownIdentityRecordedIntakeCount | unknownIdentityRecordedIntakeCount |
+| timezone disclosure | summary.containsCurrentTimezoneDerivedDates | containsCurrentTimezoneDerivedDates |
+
+## recomputation primitives in the UI package (must all be 0)
+  .groupBy(: 0
+  .sumOf(: 0
+  .mapValues(: 0
+  HistoricalRange: 0
+
+## guard tests
+  - InsightsUiGuardTest :: the UI consumes the frozen summary fields instead of restating them
+  - InsightsUiGuardTest :: no metric recomputation primitive exists in the Insights UI

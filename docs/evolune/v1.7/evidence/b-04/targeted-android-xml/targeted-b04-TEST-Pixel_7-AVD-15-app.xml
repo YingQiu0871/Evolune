@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" tests="34" failures="0" errors="0" skipped="0" time="46.431" timestamp="2026-09-14T15:08:57" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="a relative selection is stored as a preset rather than frozen endpoints" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="2.781" />
+  <testcase name="theFactoryPersistsTheSelectionAndRestoresItAfterRecreation" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="1.377" />
+  <testcase name="a disposed bridge does not refresh on lifecycle transitions" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="3.634" />
+  <testcase name="the cold start does not refresh on the initial start transition" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="0.797" />
+  <testcase name="composition entry refreshes once and a foreground return refreshes once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="3.533" />
+  <testcase name="contentShowsEveryShippedSection" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.559" />
+  <testcase name="rangeSelectorExposesAllFiveOptionsAndDefaultsToLast30" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.997" />
+  <testcase name="selectingAnotherRangeAsksTheViewModelForItAndUpdatesTheSurface" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.021" />
+  <testcase name="everySourceAndConfidenceRowIsShippedWithItsOwnCount" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.031" />
+  <testcase name="timezoneDerivedDatesShowTheNeutralDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.871" />
+  <testcase name="unknownIdentityGoldenIsCountOnlyAndNeverADrugGuess" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.05" />
+  <testcase name="noForbiddenMetricCopyIsRendered" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.002" />
+  <testcase name="loadingKeepsTheRangeSelectorAndShowsNoSections" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.821" />
+  <testcase name="unrecordedOnlyRangeIsContentAndNeverTheEmptyState" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.898" />
+  <testcase name="theStateMatrixKeepsOnlyTheAllowedNodesPerPhase" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.457" />
+  <testcase name="trulyEmptyRangeShowsTheEmptyMessageAndNoSections" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.847" />
+  <testcase name="everyMetricRowExposesExactlyOneSemanticFact" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.183" />
+  <testcase name="unknownIdentityIsACountAndNeverADoseBucket" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.951" />
+  <testcase name="invalidRangeShowsTheTypedNeutralMessage" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.92" />
+  <testcase name="errorOffersRetryAndShowsNoStaleSummary" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.947" />
+  <testcase name="coverageGoldenShowsOnlyTheTwoCountsAndNeverARatio" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.927" />
+  <testcase name="theRangeSelectorStaysOperableAtLargeFontScale" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.023" />
+  <testcase name="largeFontScaleKeepsTheSurfaceReadable" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.845" />
+  <testcase name="countsAreTextAndContentDescriptionForScreenReaders" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.844" />
+  <testcase name="historyOpensInsightsAndBackReturnsToHistory" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest" time="1.737" />
+  <testcase name="leavingAndReEnteringInsightsKeepsTheSurfaceUsable" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest" time="1.667" />
+  <testcase name="theHistoryEntryDoesNotBreakTheCalendarOrTheScroll" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.207" />
+  <testcase name="theSelectedRangeSurvivesLeavingAndReEnteringInsights" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.663" />
+  <testcase name="theInsightsViewModelIsCreatedLazilyOnFirstEntry" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.206" />
+  <testcase name="aConfigurationChangeKeepsTheSelectionAndReloadsTheSurface" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.611" />
+  <testcase name="theCustomRangeRoundTripKeepsTheIntendedDates" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.836" />
+  <testcase name="everyPrimaryTabStillOpensAndInsightsIsNotOneOfThem" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.995" />
+  <testcase name="theInsightsCopyRendersFromResourcesInTheActiveLocale" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest" time="1.254" />
+  <testcase name="browsingInsightsNeverWritesToTheRealDatabase" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsZeroWriteDeviceTest" time="0.002" />
+</testsuite>

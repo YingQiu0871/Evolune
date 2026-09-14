@@ -1,0 +1,9 @@
+# Zero-write release gate (device, production repositories)
+
+counting decorators wrap the production Room repositories; the real HistoryReadService feeds
+an InsightsViewModel driven through initial load, range change, surface return, foreground
+refresh and retry. Asserted: reads increase, dose_events writes == 0, plan writes == 0, the
+load settles successfully and failure == null.
+
+## device test
+

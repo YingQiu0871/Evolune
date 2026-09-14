@@ -121,6 +121,18 @@ v1.5.0 已完成其稳定性、性能与清理验收，并以 `v1.5.0` tag、提
 [V15_ACCEPTANCE.md](v1.5/V15_ACCEPTANCE.md)；其中 `Energy/background` 保留
 `SKIPPED_BY_OWNER`，不等同于已完成电池或 Wear active-background 验证。
 
+### v1.7 Phase B — History & Insights Insights — closed (B-04 hardening & release gate)
+
+Phase B 在 A-04（Phase A）之后按冻结顺序推进并全部通过独立复审：
+B-00 语义冻结 → B-00-R1 precision closure → B-01 只读聚合 domain → B-02 编排（range/refresh/状态）→
+B-02-R1（EMPTY 语义与 pending-refresh race 修复）→ B-03 Insights UI（History 入口 + 纯渲染层 + 无图表
+factual UI）→ **B-04 Phase-B hardening & release gate**（accessibility 合并语义、picker UTC 往返、
+lazy/retained ViewModel、zero-write 设备门、localization/禁用词/无重算三重审计、acceptance 映射）。
+
+Gate 结论（B-04，待独立复审）：read-only（0 authoritative writes）· 无百分比/timing 指标 · 无 chart
+依赖、无逐日重算 · 导航未新增 tab、未重构 · schema/DAO 0 改动 · 旧 evidence 全冻结。
+Phase C（Retrospective PK）**未开始**。
+
 ## Historical and future milestones
 
 v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备验收和发布封版。

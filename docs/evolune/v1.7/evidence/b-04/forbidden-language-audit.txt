@@ -1,0 +1,47 @@
+# Forbidden-language audit (resources + source identifiers)
+
+LANGUAGE STRATEGY (honest statement): values/strings.xml is the **Chinese default** and
+values-zh-rCN/strings.xml is also Chinese; there is no English resource file. The English
+token scan therefore has limited value on its own — the Chinese token scan plus the
+source-identifier scan are the primary guards.
+
+shipped Insights string values scanned: 84
+forbidden Chinese tokens -> hits:
+  漏服: 0
+  依从率: 0
+  准时率: 0
+  延迟: 0
+  完成率: 0
+  合规: 0
+  跳过: 0
+  忘记: 0
+forbidden English tokens (case-insensitive) -> hits:
+  adherence: 0
+  compliance: 0
+  completion rate: 0
+  missed: 0
+  skipped: 0
+  on time: 0
+  late: 0
+  delay: 0
+  percent: 0
+  ratio: 0
+
+source identifiers: the guard strips comments and then forbids every metric identifier
+(adherence/compliance/completionRate/missedDose/skippedDose/onTimeRate/lateRate/
+timingDifference/averageDelay/percentage/percent/ratio) in the UI package.
+
+mandatory negative disclosures shipped verbatim (allowed by §33):
+  计划时点由当前方案上下文生成。
+  没有记录并不能证明当时没有服药。
+
+## guard tests
+  - InsightsHardeningTest :: the timezone disclosure appears only when the aggregate says so
+  - InsightsHardeningTest :: coverage always ships both disclosures together
+  - InsightsPresentationTest :: timezone derived dates expose the neutral disclosure and nothing else does
+  - InsightsPresentationTest :: coverage ships both counts and both mandatory disclosure sentences
+  - InsightsUiGuardTest :: no forbidden metric identifier exists in the Insights UI sources
+  - InsightsUiGuardTest :: the shipped default locale copy is Chinese and both locales are complete
+  - InsightsUiGuardTest :: no forbidden metric vocabulary is shipped as an Insights string
+  - InsightsUiGuardTest :: no forbidden Chinese metric vocabulary is shipped as an Insights string
+  - InsightsUiGuardTest :: the frozen disclosure and the linked-record subtitle are shipped verbatim

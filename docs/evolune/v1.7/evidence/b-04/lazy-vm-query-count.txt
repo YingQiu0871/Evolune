@@ -1,0 +1,8 @@
+# Lazy ViewModel / startup gate (device)
+
+assertion: activity.viewModelStore.keys() contains no Insights ViewModel after launch and
+after switching to History, and exactly one after the first entry into Insights.
+
+## device test
+  - InsightsReleaseGateTest :: theSelectedRangeSurvivesLeavingAndReEnteringInsights
+  - InsightsReleaseGateTest :: theInsightsViewModelIsCreatedLazilyOnFirstEntry

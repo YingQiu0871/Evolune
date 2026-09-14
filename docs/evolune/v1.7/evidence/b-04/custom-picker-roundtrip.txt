@@ -1,0 +1,10 @@
+# Custom range picker round-trip (device, deterministic)
+
+flow: open Insights (default Last 30 days) → tap Custom → insights-custom-range-picker appears
+      → confirm → dialog closes → Custom chip selected → heading identical to before the picker
+
+The picker's millis are converted only by InsightsDatePicker (UTC midnight), so the displayed
+LocalDates cannot shift by ±1 day on a non-UTC device.
+
+## device test
+  - InsightsReleaseGateTest :: theCustomRangeRoundTripKeepsTheIntendedDates

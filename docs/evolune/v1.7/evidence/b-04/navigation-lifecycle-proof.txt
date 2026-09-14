@@ -1,0 +1,26 @@
+# Navigation / lifecycle proof (device + harness + JVM, split-proof)
+
+| layer | evidence | proves |
+|---|---|---|
+| real product path | InsightsNavigationTest, InsightsReleaseGateTest | History→Insights→back, re-entry, retention, no sixth tab |
+| production bridge + counting seam | InsightsSurfaceLifecycleTest | init 1 read, re-entry +1, real ON_STOP→ON_START +1, disposed ⇒ 0 |
+| orchestration | InsightsViewModelTest | exact read counts per intent |
+
+HONEST LIMIT: the production MainActivity wiring exposes no read counter, so device runs prove
+behaviour (not counts) and the counts come from the bridge harness and the JVM tests.
+
+## device (real path)
+  - InsightsSurfaceLifecycleTest :: composition entry refreshes once and a foreground return refreshes once
+  - InsightsNavigationTest :: historyOpensInsightsAndBackReturnsToHistory
+  - InsightsNavigationTest :: leavingAndReEnteringInsightsKeepsTheSurfaceUsable
+  - InsightsReleaseGateTest :: theHistoryEntryDoesNotBreakTheCalendarOrTheScroll
+  - InsightsReleaseGateTest :: theSelectedRangeSurvivesLeavingAndReEnteringInsights
+  - InsightsReleaseGateTest :: theInsightsViewModelIsCreatedLazilyOnFirstEntry
+  - InsightsReleaseGateTest :: everyPrimaryTabStillOpensAndInsightsIsNotOneOfThem
+  - InsightsReleaseGateTest :: theInsightsCopyRendersFromResourcesInTheActiveLocale
+  - InsightsZeroWriteDeviceTest :: browsingInsightsNeverWritesToTheRealDatabase
+
+## device (bridge counts)
+  - InsightsSurfaceLifecycleTest :: a disposed bridge does not refresh on lifecycle transitions
+  - InsightsSurfaceLifecycleTest :: the cold start does not refresh on the initial start transition
+  - InsightsSurfaceLifecycleTest :: composition entry refreshes once and a foreground return refreshes once

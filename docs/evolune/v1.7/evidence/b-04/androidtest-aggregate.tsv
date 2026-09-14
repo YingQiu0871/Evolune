@@ -1,0 +1,3 @@
+run	xml_tests	skipped	failures	errors	passed
+targeted-b04	34	0	0	0	34
+full-phone-final	277	5	0	0	272

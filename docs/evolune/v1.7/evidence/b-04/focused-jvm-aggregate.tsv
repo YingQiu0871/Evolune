@@ -1,0 +1,2 @@
+scope	xml_files	tests	skipped	failures	errors	passed
+b04-focused-jvm	8	105	0	0	0	105

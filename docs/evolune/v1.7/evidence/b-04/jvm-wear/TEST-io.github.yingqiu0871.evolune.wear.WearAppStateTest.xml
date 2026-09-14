@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppStateTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-14T15:07:42.496Z" hostname="人面不知何处去" time="0.015">
+  <properties/>
+  <testcase name="pending operation blocks a second undo" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.007"/>
+  <testcase name="pending request is syncing until timeout then error" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="fresh plan snapshot does not keep an old concentration fresh" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="old snapshot is stale" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="undo rejection is transient and consumed results do not recur after activity recreation" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="concentration freshness survives rollback and extreme clock values" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="small paired device clock skew keeps current concentration available" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="concentration deadline is scheduled only while fresh" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="recent connected snapshot is ready" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="successful undo keeps the cached recent dose until a newer snapshot proves it absent" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="cache ordering rejects older and conflicting revisions" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="disconnected state is offline and keeps cached snapshot" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="no snapshot waits for phone" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="future concentration does not reject an otherwise valid medication snapshot" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="unsupported payload cannot become a cache candidate" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="clock skew matrix tolerates small paired device drift and rejects larger drift" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="concentration formatting is locale independent and keeps unit adjacent" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <testcase name="undo is enabled only for a fresh ready snapshot with a positive event revision" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="concentration freshness is independent and exact at fifteen minutes" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="concentration beyond clock skew tolerance and invalid values are unavailable" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.0"/>
+  <testcase name="empty snapshot is empty" classname="io.github.yingqiu0871.evolune.wear.WearAppStateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

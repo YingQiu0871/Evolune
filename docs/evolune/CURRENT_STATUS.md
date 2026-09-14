@@ -128,8 +128,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
 ## Next Milestone
 
 - `v1.6.0`: Widget Gallery — **CLOSED / RELEASED**.
-- `v1.7`: History & Insights program — **Phase A CLOSED**（候选实现经 A-04 独立复审 APPROVE）；
-  **Phase B — B-00 semantics freeze in progress**。
+- `v1.7`: History & Insights program — **Phase A CLOSED**（A-04 独立复审 APPROVE）；
+  **Phase B CLOSED**：B-00（语义冻结）· B-01（domain 聚合）· B-02/B-02-R1（编排与 race 修复）·
+  B-03（Insights UI）均已 APPROVE，B-04（Phase-B hardening & release gate）完成并待独立复审。
+  **Phase C（Retrospective PK）未开始**，需单独立项。
+  Phase B 的 release gate 结论：read-only（zero-write 设备门）· 无百分比/timing 指标 · 无图表/无新依赖 ·
+  语义/导航/schema 边界 0 改动（除 B-03 已申报的 1 行崩溃修复，B-02-R1 亦为已批准修复）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md)）。

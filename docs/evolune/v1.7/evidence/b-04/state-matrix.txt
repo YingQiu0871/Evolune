@@ -1,0 +1,14 @@
+# Render state matrix (device + JVM)
+
+phase → allowed nodes:
+  LOADING      selector + loading only
+  CONTENT      selector + heading + sections (no loading/empty/error/validation)
+  EMPTY        selector + empty copy only
+  ERROR        error + retry only
+  INVALID_RANGE selector + typed validation copy only
+
+## device test
+  - InsightsScreenTest :: theStateMatrixKeepsOnlyTheAllowedNodesPerPhase
+
+## JVM test
+  - InsightsHardeningTest :: the render matrix is locked for every phase

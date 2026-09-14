@@ -1,0 +1,13 @@
+# Localization parity (programmatic)
+
+default (values/) insights keys: 42
+zh-rCN insights keys:          42
+key sets identical:            True
+missing in zh-rCN:             []
+extra in zh-rCN:               []
+
+placeholder compatibility is asserted per key by the JVM test below.
+
+## JVM test
+  - InsightsHardeningTest :: count row placeholders stay string-plus-integer and value rows stay string-plus-string
+  - InsightsHardeningTest :: both shipped locales expose the same Insights keys with compatible format arguments

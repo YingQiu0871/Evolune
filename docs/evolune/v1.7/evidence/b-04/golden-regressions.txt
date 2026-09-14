@@ -1,0 +1,18 @@
+# Phase-B golden regressions
+
+unrecorded-only: CONTENT, recorded 0, unlinked count + both disclosures visible, EMPTY absent
+unknown identity: count-only sentence; no mg / E2 / EV / CPA / spironolactone / antiandrogen
+coverage: only the two counts; no %, no ratio, no progress ring
+
+## device
+  - InsightsScreenTest :: unknownIdentityGoldenIsCountOnlyAndNeverADrugGuess
+  - InsightsScreenTest :: unrecordedOnlyRangeIsContentAndNeverTheEmptyState
+  - InsightsScreenTest :: coverageGoldenShowsOnlyTheTwoCountsAndNeverARatio
+
+## JVM
+  - InsightsViewModelTest :: a mixed recorded and unrecorded range is content
+  - InsightsViewModelTest :: an unrecorded-only range is content because it carries historical facts
+  - InsightsHardeningTest :: unknown identity is a count outside the dose list
+  - InsightsHardeningTest :: coverage always ships both disclosures together
+  - InsightsPresentationTest :: an unrecorded-only range is content and never the empty message
+  - InsightsUiGuardTest :: the Insights copy never names an unrecorded occurrence with blame

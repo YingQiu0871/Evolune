@@ -1,0 +1,16 @@
+# Accessibility semantics: before → after (B-03 P2 closure)
+
+BEFORE (B-03): parent Row/Card carried contentDescription while child label/value Texts
+remained in the semantics subtree → TalkBack could announce the fact twice.
+
+AFTER (B-04): every metric carrier uses clearAndSetSemantics:
+  clearAndSetSemantics occurrences in InsightsScreen.kt: 6
+  carriers: overview cards, coverage/source/confidence count rows, dose rows, unknown identity
+  resource: insights_count_row_description (%1$s：%2$d) / insights_value_row_description (%1$s：%2$s)
+
+## live semantics-tree assertions (device)
+  - InsightsScreenTest :: everyMetricRowExposesExactlyOneSemanticFact
+
+## static guard
+  - InsightsUiGuardTest :: no forbidden metric identifier exists in the Insights UI sources
+  - InsightsUiGuardTest :: the accessibility description resources keep their placeholder contract

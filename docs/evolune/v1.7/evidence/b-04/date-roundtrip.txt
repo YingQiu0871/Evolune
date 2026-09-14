@@ -1,0 +1,8 @@
+# Picker millis ↔ LocalDate round-trip (JVM)
+
+covered: winter CET, summer CEST, spring DST transition, autumn DST transition, year
+boundaries — with TimeZone.setDefault(Europe/Paris) to prove the system zone is not consulted.
+
+## JVM test
+  - InsightsHardeningTest :: only a custom selection carries picker endpoints
+  - InsightsHardeningTest :: picker millis round-trip every season and never consult the system zone

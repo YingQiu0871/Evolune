@@ -146,7 +146,7 @@
 
 `docs/evolune/v1.7/evidence/b-03/`：source/diff boundary、nav integration、UI semantics snapshot、screen hierarchy snapshot、range selector 证据、unrecorded-only 回归、accessibility、localization/forbidden-language audit、no-metric-recomputation audit、previews inventory、crash-fix root cause（init-order）、focused JVM XML/日志、targeted Phone XML/日志、full JVM/Phone、assemble 日志、`MANIFEST.sha256`。旧 evidence（b-02、b-02-r1）**0 改动**。
 
-**最终计数**：focused JVM **86**（B-02 既有 66 + `InsightsPresentationTest` 13 + `InsightsUiGuardTest` 6 + `InsightsRangeSelectionInitTest` 1）；fresh full JVM **1142**（app 883 / experience-core 169 / wear 90，0/0/0，54/54 executed）；targeted Android **20/0/0**（B-02 两个设备测试 + B-03 两个设备测试）；full Phone **263 / 5 skipped（既有 assumeTrue）/ 0 failed**；`:app:assembleDebug` `BUILD SUCCESSFUL` 但 38/38 UP-TO-DATE → 只称 **build-green**（不声称 fresh APK 身份）。manifest **158 条目 / coverage 158/158 / `sha256sum -c` 158 OK / 0 FAILED**（self hash 由 MANIFEST 自校验，数值见 closure report），提交后 HEAD blob 0 mismatch。
+**最终计数**：focused JVM **86**（B-02 既有 66 + `InsightsPresentationTest` 13 + `InsightsUiGuardTest` 6 + `InsightsRangeSelectionInitTest` 1）；fresh full JVM **1142**（app 883 / experience-core 169 / wear 90，0/0/0，54/54 executed）；targeted Android **20/0/0**（B-02 两个设备测试 + B-03 两个设备测试）；full Phone **263 / 5 skipped（既有 assumeTrue）/ 0 failed**；`:app:assembleDebug` `BUILD SUCCESSFUL` 但 38/38 UP-TO-DATE → 只称 **build-green**（不声称 fresh APK 身份）。manifest **158 条目 / coverage 158/158 / `sha256sum -c` 159 OK / 0 FAILED**（self hash 由 MANIFEST 自校验，数值见 closure report），提交后 HEAD blob 0 mismatch。
 
 ## 18. B-04 handoff
 
