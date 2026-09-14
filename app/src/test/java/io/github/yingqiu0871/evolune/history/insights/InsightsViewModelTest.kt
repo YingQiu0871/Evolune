@@ -2,11 +2,16 @@ package io.github.yingqiu0871.evolune.history.insights
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.yingqiu0871.evolune.experience.HistoricalDay
+import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.insights.InsightsContractViolationException
 import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsSummary
 import io.github.yingqiu0871.evolune.history.matchedEntry
 import io.github.yingqiu0871.evolune.history.testDay
+import io.github.yingqiu0871.evolune.history.testEvent
+import io.github.yingqiu0871.evolune.history.testOccurrence
+import io.github.yingqiu0871.evolune.history.unmatchedEntry
+import io.github.yingqiu0871.evolune.history.unrecordedEntry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,10 +22,13 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.UUID
 
 /**
  * v1.7-B-02 ViewModel contract: range orchestration, query discipline, failure taxonomy,
@@ -211,6 +219,61 @@ class InsightsViewModelTest {
     }
 
     @Test
+    fun `reselecting the same preset after midnight re-resolves it and reads once`() {
+        val clock = MutableTestClock(now, utc)
+        val fixture = fixture(clock = clock)
+        try {
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            val readsAfterSelection = fixture.source.calls.size
+            assertEquals(LocalDate.of(2026, 9, 7), fixture.source.calls.last().startDate)
+
+            // same day, same resolved range: still a no-op
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            assertEquals(readsAfterSelection, fixture.source.calls.size)
+
+            // the day rolls over, so the same preset resolves to different endpoints
+            clock.instant = today.plusDays(1).atTime(12, 0).toInstant(ZoneOffset.UTC)
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+
+            assertEquals("a changed resolved range must read once", readsAfterSelection + 1, fixture.source.calls.size)
+            assertEquals(readsAfterSelection + 1, fixture.aggregator.calls)
+            val call = fixture.source.calls.last()
+            assertEquals(LocalDate.of(2026, 9, 8), call.startDate)
+            assertEquals(LocalDate.of(2026, 9, 14), call.endDate)
+            assertEquals(LocalDate.of(2026, 9, 14), fixture.viewModel.uiState.value.today)
+            assertEquals(LocalDate.of(2026, 9, 8), fixture.viewModel.uiState.value.startDate)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `reselecting the same custom range that became invalid reads nothing`() {
+        val clock = MutableTestClock(today.atTime(2, 0).toInstant(ZoneOffset.UTC), utc)
+        var zone: ZoneId = utc
+        val fixture = fixture(clock = clock, zoneProvider = { zone })
+        try {
+            fixture.source.result = { call -> rangeWith(call, matched = 1) }
+            val selection = InsightsRangeSelection.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 13))
+            fixture.viewModel.selectRange(selection)
+            val readsAfterSelection = fixture.source.calls.size
+            assertEquals(InsightsPhase.CONTENT, fixture.viewModel.uiState.value.phase)
+
+            // the same instant is an earlier local date in the new zone, so the custom end is future
+            zone = ZoneOffset.ofHours(-12)
+            fixture.viewModel.selectRange(selection)
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.INVALID_RANGE, state.phase)
+            assertEquals(InsightsRangeValidationError.END_IN_FUTURE, state.validationError)
+            assertEquals(readsAfterSelection, fixture.source.calls.size)
+            assertEquals(readsAfterSelection, fixture.aggregator.calls)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
     fun `a range change performs exactly one read`() {
         val fixture = fixture()
         try {
@@ -296,13 +359,78 @@ class InsightsViewModelTest {
         }
     }
 
+    // ---------- empty semantics (v1.7-B-02-R1 section 1/2) ----------
+
     @Test
     fun `an empty successful range is Empty rather than Error`() {
         val fixture = fixture()
         try {
-            assertEquals(InsightsPhase.EMPTY, fixture.viewModel.uiState.value.phase)
-            assertEquals(0, fixture.viewModel.uiState.value.summary!!.recordedIntakeCount)
-            assertNull(fixture.viewModel.uiState.value.failure)
+            fixture.source.result = fixture.source.emptyDays(3)
+
+            fixture.viewModel.retry()
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.EMPTY, state.phase)
+            val summary = requireNotNull(state.summary)
+            assertEquals(0, summary.recordedIntakeCount)
+            assertEquals(0, summary.unrecordedOccurrenceCount)
+            assertNull(state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `an unrecorded-only range is content because it carries historical facts`() {
+        val fixture = fixture()
+        try {
+            fixture.source.result = { call -> rangeWith(call, unrecorded = 4) }
+
+            fixture.viewModel.retry()
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            val summary = requireNotNull(state.summary)
+            assertEquals(0, summary.recordedIntakeCount)
+            assertEquals(4, summary.unrecordedOccurrenceCount)
+            assertNull(state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `an unmatched-only range is content`() {
+        val fixture = fixture()
+        try {
+            fixture.source.result = { call -> rangeWith(call, unmatched = 2) }
+
+            fixture.viewModel.retry()
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            val summary = requireNotNull(state.summary)
+            assertEquals(2, summary.recordedIntakeCount)
+            assertEquals(2, summary.unmatchedActualIntakeCount)
+            assertEquals(0, summary.unrecordedOccurrenceCount)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a mixed recorded and unrecorded range is content`() {
+        val fixture = fixture()
+        try {
+            fixture.source.result = { call -> rangeWith(call, matched = 1, unrecorded = 2) }
+
+            fixture.viewModel.retry()
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            val summary = requireNotNull(state.summary)
+            assertEquals(1, summary.recordedIntakeCount)
+            assertEquals(2, summary.unrecordedOccurrenceCount)
         } finally {
             fixture.close()
         }
@@ -315,7 +443,15 @@ class InsightsViewModelTest {
         val stale = CompletableDeferred<Unit>()
         val fixture = fixture(ignoreCancellation = true, gate = stale, gateOnlyForCall = 1)
         try {
-            fixture.source.result = { call -> HistoricalRange(call.startDate, call.endDate, emptyList()) }
+            // the two requests answer with clearly different facts, so "which summary survived"
+            // is decidable and not just "which selection survived"
+            fixture.source.result = { call ->
+                if (call.startDate == today.minusDays(29)) {
+                    rangeWith(call, matched = 1)
+                } else {
+                    rangeWith(call, matched = 1, unmatched = 1, unrecorded = 5)
+                }
+            }
 
             // the gated initial load is the stale candidate; the user then picks another range
             fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
@@ -328,7 +464,12 @@ class InsightsViewModelTest {
             val state = fixture.viewModel.uiState.value
             assertEquals(InsightsRangeSelection.Last7Days, state.selection)
             assertEquals(LocalDate.of(2026, 9, 7), state.startDate)
-            assertEquals(InsightsPhase.EMPTY, state.phase)
+            assertEquals(LocalDate.of(2026, 9, 13), state.endDate)
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            val summary = requireNotNull(state.summary)
+            assertEquals("the surviving summary must be the newer request's", 2, summary.recordedIntakeCount)
+            assertEquals(5, summary.unrecordedOccurrenceCount)
+            assertNull(state.failure)
         } finally {
             fixture.close()
         }
@@ -341,12 +482,14 @@ class InsightsViewModelTest {
         try {
             // call #1 (the gated initial load) will fail; the superseding load #2 succeeds
             fixture.source.failureForCall = 1
+            fixture.source.result = { call -> rangeWith(call, matched = 1, unmatched = 1) }
 
             fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
 
             assertEquals(2, fixture.source.calls.size)
             val afterNewerLoad = fixture.viewModel.uiState.value
-            assertEquals(InsightsPhase.EMPTY, afterNewerLoad.phase)
+            assertEquals(InsightsPhase.CONTENT, afterNewerLoad.phase)
+            assertEquals(2, afterNewerLoad.summary!!.recordedIntakeCount)
             assertNull(afterNewerLoad.failure)
 
             // now the stale request finally fails and must not poison the current state
@@ -355,7 +498,38 @@ class InsightsViewModelTest {
             val state = fixture.viewModel.uiState.value
             assertEquals(InsightsRangeSelection.Last7Days, state.selection)
             assertEquals(LocalDate.of(2026, 9, 7), state.startDate)
-            assertEquals(InsightsPhase.EMPTY, state.phase)
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals("the newer summary must survive the stale failure", 2, state.summary!!.recordedIntakeCount)
+            assertNull(state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a stale contract violation cannot replace the newer content`() {
+        val stale = CompletableDeferred<Unit>()
+        val fixture = fixture(ignoreCancellation = true, gate = stale, gateOnlyForCall = 1)
+        try {
+            // call #1 (the gated initial load) violates the history contract once it finally runs
+            fixture.source.typedFailureForCall =
+                1 to InsightsContractViolationException("synthetic stale contract violation")
+            fixture.source.result = { call -> rangeWith(call, matched = 1, unrecorded = 3) }
+
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+
+            val afterNewerLoad = fixture.viewModel.uiState.value
+            assertEquals(2, fixture.source.calls.size)
+            assertEquals(InsightsPhase.CONTENT, afterNewerLoad.phase)
+            assertEquals(1, afterNewerLoad.summary!!.recordedIntakeCount)
+
+            stale.complete(Unit)
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsRangeSelection.Last7Days, state.selection)
+            assertEquals(LocalDate.of(2026, 9, 7), state.startDate)
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals(3, state.summary!!.unrecordedOccurrenceCount)
             assertNull(state.failure)
         } finally {
             fixture.close()
@@ -463,6 +637,190 @@ class InsightsViewModelTest {
         }
     }
 
+    // ---------- pending refresh ownership (v1.7-B-02-R1 sections 3-8) ----------
+
+    @Test
+    fun `an explicit selection change supersedes a pending refresh and still reads exactly twice`() {
+        val gate = CompletableDeferred<Unit>()
+        val handle = SavedStateHandle()
+        val fixture = fixture(gate = gate, handle = handle)
+        try {
+            // A (Last30Days) is in flight and two refresh intents arrive for it
+            fixture.viewModel.onSurfaceShown()
+            fixture.viewModel.onAppForegrounded()
+            fixture.viewModel.onAppForegrounded()
+            assertEquals(1, fixture.source.calls.size)
+
+            // the two requests answer with clearly different facts
+            fixture.source.result = { call ->
+                if (call.startDate == today.minusDays(29)) {
+                    rangeWith(call, matched = 1)
+                } else {
+                    rangeWith(call, matched = 1, unmatched = 1, unrecorded = 4)
+                }
+            }
+
+            // the user then asks for B: it must win over the refresh intent queued for A
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            assertEquals(2, fixture.source.calls.size)
+
+            gate.complete(Unit)
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals("A and B only; no replay of the superseded refresh", 2, fixture.source.calls.size)
+            assertEquals("the superseded read never reaches the aggregator", 1, fixture.aggregator.calls)
+            assertEquals(InsightsRangeSelection.Last7Days, state.selection)
+            assertEquals(LocalDate.of(2026, 9, 7), state.startDate)
+            assertEquals(LocalDate.of(2026, 9, 13), state.endDate)
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals("the summary must belong to B", 2, state.summary!!.recordedIntakeCount)
+            assertEquals(4, state.summary!!.unrecordedOccurrenceCount)
+            assertNull(state.failure)
+            assertEquals(
+                "live state and SavedState must agree",
+                "LAST_7_DAYS",
+                handle.get<String>("insights.selectionType")
+            )
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a refresh that arrives after a new selection is preserved`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            // A (Last30Days) is in flight; B supersedes it, and *then* a foreground refresh arrives
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            fixture.viewModel.onAppForegrounded()
+
+            assertEquals(2, fixture.source.calls.size)
+
+            gate.complete(Unit)
+
+            assertEquals("A, B and one refresh of B", 3, fixture.source.calls.size)
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsRangeSelection.Last7Days, state.selection)
+            assertEquals(LocalDate.of(2026, 9, 7), state.startDate)
+            assertEquals(LocalDate.of(2026, 9, 13), state.endDate)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `repeated selection changes leave only the newest selection authoritative`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate, gateOnlyForCall = 1)
+        try {
+            fixture.source.result = { call ->
+                when (call.startDate) {
+                    today.minusDays(29) -> rangeWith(call, matched = 1)
+                    today.minusDays(6) -> rangeWith(call, matched = 1, unmatched = 1)
+                    else -> rangeWith(call, matched = 1, unmatched = 2)
+                }
+            }
+
+            // a refresh intent is queued for A, then B and C are selected in turn
+            fixture.viewModel.onAppForegrounded()
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last90Days)
+
+            assertEquals("A, B and C only", 3, fixture.source.calls.size)
+
+            // the superseded A finally answers and must not revive itself
+            gate.complete(Unit)
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(3, fixture.source.calls.size)
+            assertEquals(InsightsRangeSelection.Last90Days, state.selection)
+            assertEquals(LocalDate.of(2026, 6, 16), state.startDate)
+            assertEquals(LocalDate.of(2026, 9, 13), state.endDate)
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals("only C may describe the state", 3, state.summary!!.recordedIntakeCount)
+            assertNull(state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a pending refresh still runs after an ordinary read failure`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            // call #1 fails once released; the coalesced follow-up succeeds
+            fixture.source.failureForCall = 1
+            fixture.source.result = { call -> rangeWith(call, matched = 1, unrecorded = 2) }
+
+            fixture.viewModel.onAppForegrounded()
+            gate.complete(Unit)
+
+            assertEquals("the failed load plus exactly one follow-up", 2, fixture.source.calls.size)
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals(1, state.summary!!.recordedIntakeCount)
+            assertNull("the follow-up must clear the failure", state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a pending refresh still runs after a contract violation`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            fixture.source.typedFailureForCall =
+                1 to InsightsContractViolationException("synthetic contract violation")
+            fixture.source.result = { call -> rangeWith(call, matched = 2) }
+
+            fixture.viewModel.onSurfaceShown()
+            fixture.viewModel.onAppForegrounded()
+            gate.complete(Unit)
+
+            assertEquals(2, fixture.source.calls.size)
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.CONTENT, state.phase)
+            assertEquals(2, state.summary!!.recordedIntakeCount)
+            assertNull("the follow-up must clear the contract violation", state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    // ---------- request snapshot (v1.7-B-02-R1 sections 11/12) ----------
+
+    @Test
+    fun `one request captures exactly one zone and instant snapshot`() {
+        val clock = SteppingTestClock(listOf(now, now.plusSeconds(86_400L)))
+        val fixture = fixture(clock = clock)
+        try {
+            assertEquals("construction takes one snapshot", 1, clock.reads)
+            val initialCall = fixture.source.calls.single()
+            assertEquals(now, initialCall.now)
+            assertEquals(LocalDate.of(2026, 9, 13), initialCall.endDate)
+            assertEquals(LocalDate.of(2026, 9, 13), fixture.viewModel.uiState.value.today)
+
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+
+            assertEquals("a request must read the clock exactly once", 2, clock.reads)
+            val call = fixture.source.calls.last()
+            assertEquals(
+                "the forwarded now must come from the same snapshot as the endpoints",
+                now.plusSeconds(86_400L),
+                call.now
+            )
+            assertEquals(LocalDate.of(2026, 9, 8), call.startDate)
+            assertEquals(LocalDate.of(2026, 9, 14), call.endDate)
+            assertEquals(LocalDate.of(2026, 9, 14), fixture.viewModel.uiState.value.today)
+            assertEquals(LocalDate.of(2026, 9, 8), fixture.viewModel.uiState.value.startDate)
+        } finally {
+            fixture.close()
+        }
+    }
+
     // ---------- rollover ----------
 
     @Test
@@ -544,6 +902,35 @@ class InsightsViewModelTest {
             assertEquals(LocalDate.of(2026, 9, 14), fixture.viewModel.uiState.value.today)
             assertEquals(LocalDate.of(2026, 9, 8), call.startDate)
             assertEquals(LocalDate.of(2026, 9, 14), call.endDate)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a live timezone change that makes a custom range invalid reads nothing`() {
+        val clock = MutableTestClock(today.atTime(2, 0).toInstant(ZoneOffset.UTC), utc)
+        var zone: ZoneId = utc
+        val fixture = fixture(clock = clock, zoneProvider = { zone })
+        try {
+            fixture.source.result = { call -> rangeWith(call, matched = 1) }
+            val selection = InsightsRangeSelection.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 13))
+            fixture.viewModel.selectRange(selection)
+            val reads = fixture.source.calls.size
+            val aggregates = fixture.aggregator.calls
+            assertEquals(InsightsPhase.CONTENT, fixture.viewModel.uiState.value.phase)
+
+            // same instant, but the display zone moved to -12, so today is the previous date and the
+            // fixed custom end now lies in the future
+            zone = ZoneOffset.ofHours(-12)
+            fixture.viewModel.onAppForegrounded()
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.INVALID_RANGE, state.phase)
+            assertEquals(InsightsRangeValidationError.END_IN_FUTURE, state.validationError)
+            assertNull(state.summary)
+            assertEquals("an invalidated range must not read again", reads, fixture.source.calls.size)
+            assertEquals("an invalidated range must not aggregate again", aggregates, fixture.aggregator.calls)
         } finally {
             fixture.close()
         }
@@ -675,9 +1062,69 @@ class InsightsViewModelTest {
         return fixture.source.calls.last().startDate
     }
 
+    /**
+     * Range that carries exactly the requested facts on the call's last day.
+     *
+     * Every entry gets its own event/occurrence identity, so a range with several entries cannot
+     * trip the frozen B-01 duplicate contract, and the resulting summary is a distinct signature
+     * that a test can recognise (v1.7-B-02-R1 sections 6/7).
+     */
+    private fun rangeWith(
+        call: RecordingRangeSource.Call,
+        matched: Int = 0,
+        unmatched: Int = 0,
+        unrecorded: Int = 0,
+        date: LocalDate = call.endDate
+    ): HistoricalRange {
+        val entries = buildList {
+            repeat(matched) { index ->
+                val slot = 100L + index
+                add(
+                    matchedEntry(
+                        occurrence = testOccurrence(slotId = slot, date = date, time = LocalTime.of(8, 0)),
+                        event = testEvent(
+                            id = slot,
+                            slotId = UUID(1L, slot),
+                            localDate = date,
+                            occurredAt = date.atTime(8, 5).toInstant(ZoneOffset.UTC)
+                        ),
+                        displayDate = date
+                    )
+                )
+            }
+            repeat(unmatched) { index ->
+                add(
+                    unmatchedEntry(
+                        event = testEvent(
+                            id = 200L + index,
+                            occurredAt = date.atTime(9, 5).toInstant(ZoneOffset.UTC),
+                            localDate = null,
+                            zoneId = null
+                        ),
+                        displayDate = date,
+                        provenance = HistoricalDisplayDateProvenance.CURRENT_DISPLAY_TIMEZONE_DERIVED
+                    )
+                )
+            }
+            repeat(unrecorded) { index ->
+                add(
+                    unrecordedEntry(
+                        occurrence = testOccurrence(slotId = 300L + index, date = date, time = LocalTime.of(16, 0)),
+                        displayDate = date
+                    )
+                )
+            }
+        }
+        return HistoricalRange(
+            startDate = call.startDate,
+            endDate = call.endDate,
+            days = listOf(testDay(date = date, entries = entries))
+        )
+    }
+
     private fun fixture(
-        clock: MutableTestClock = MutableTestClock(now, utc),
-        zoneProvider: () -> ZoneId = { clock.zoneId },
+        clock: Clock = MutableTestClock(now, utc),
+        zoneProvider: () -> ZoneId = { clock.zone },
         handle: SavedStateHandle? = null,
         ignoreCancellation: Boolean = false,
         gate: CompletableDeferred<Unit>? = null,

@@ -121,6 +121,8 @@ class InsightsOrchestrationGuardTest {
         assertFalse(viewModel.contains("minusDays(6)"))
         assertFalse(viewModel.contains("minusDays(29)"))
         assertFalse(viewModel.contains("minusDays(89)"))
-        assertTrue(viewModel.contains("InsightsRangeResolver.resolve(selection, today)"))
+        // endpoints and the same-selection check both go through the resolver and its snapshot
+        assertTrue(viewModel.contains("InsightsRangeResolver.resolve(selection, requestSnapshot.today)"))
+        assertTrue(viewModel.contains("InsightsRangeResolver.resolve(selection, candidate.today)"))
     }
 }

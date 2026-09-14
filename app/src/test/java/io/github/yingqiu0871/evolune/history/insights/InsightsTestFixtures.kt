@@ -12,6 +12,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 
 /** Test clock whose instant and zone can be moved to drive rollover and timezone changes. */
 internal class MutableTestClock(
@@ -24,6 +25,34 @@ internal class MutableTestClock(
     override fun withZone(zone: ZoneId): Clock = MutableTestClock(instant, zone)
 
     override fun instant(): Instant = instant
+}
+
+/**
+ * Clock that answers every read with the next instant of [instants] (the last one repeats) and
+ * counts the reads. A request that reads the clock twice cannot hide it: the second read returns a
+ * different instant.
+ */
+internal class SteppingTestClock(
+    private val instants: List<Instant>,
+    private val zoneId: ZoneId = ZoneOffset.UTC,
+    private val counter: ReadCounter = ReadCounter()
+) : Clock() {
+
+    internal class ReadCounter {
+        var reads = 0
+    }
+
+    val reads: Int get() = counter.reads
+
+    override fun getZone(): ZoneId = zoneId
+
+    override fun withZone(zone: ZoneId): Clock = SteppingTestClock(instants, zone, counter)
+
+    override fun instant(): Instant {
+        val next = instants[counter.reads.coerceAtMost(instants.lastIndex)]
+        counter.reads += 1
+        return next
+    }
 }
 
 /** Recording read seam: counts reads, records the exact arguments, and can gate/fail/ignore cancellation. */
@@ -45,6 +74,9 @@ internal class RecordingRangeSource(
 
     /** Fails only the given 1-based call index, so a stale request can fail after a newer one succeeded. */
     var failureForCall: Int? = null
+
+    /** Fails only the given 1-based call index with this exact throwable (typed stale failures). */
+    var typedFailureForCall: Pair<Int, Throwable>? = null
     var gate: CompletableDeferred<Unit>? = null
 
     /** When set, only that 1-based call index waits on [gate]; other calls proceed immediately. */
@@ -75,6 +107,9 @@ internal class RecordingRangeSource(
             }
         }
         if (failureForCall == callIndex) throw IllegalStateException("stale failure")
+        typedFailureForCall?.let { (index, error) ->
+            if (index == callIndex) throw error
+        }
         failure?.let { throw it }
         val range = result(call)
         returned += range
