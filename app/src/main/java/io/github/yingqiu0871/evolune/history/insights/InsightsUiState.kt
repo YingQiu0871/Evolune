@@ -9,10 +9,15 @@ enum class InsightsPhase {
     /** A range load is in flight. */
     LOADING,
 
-    /** The load succeeded and the range contains recorded intakes. */
+    /** The load succeeded and the range carries at least one historical entry. */
     CONTENT,
 
-    /** The load succeeded and the range contains no recorded intake at all. */
+    /**
+     * The load succeeded and the range carries **no historical entry at all**: no matched
+     * occurrence, no unmatched intake and no unrecorded occurrence. A range that only carries
+     * unrecorded occurrences still holds real history and is therefore [CONTENT]
+     * (v1.7-B-02-R1 section 1).
+     */
     EMPTY,
 
     /** The load failed (read failure or a broken history contract). */

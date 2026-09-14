@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import io.github.yingqiu0871.evolune.experience.insights.InsightsContractViolationException
 import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregator
+import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsSummary
 import io.github.yingqiu0871.evolune.experience.insights.ReadOnlyMedicationInsightsAggregator
 import io.github.yingqiu0871.evolune.history.HistoryRangeSource
 import io.github.yingqiu0871.evolune.history.HistoryReadService
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -31,14 +33,18 @@ import java.time.ZoneId
  * InsightsViewModel -> HistoryRangeSource -> HistoricalRange -> MedicationInsightsAggregator -> MedicationInsightsSummary
  * ```
  *
- * Query discipline (section 11/12/13): a valid selection change performs **exactly one** read and
- * **exactly one** aggregation; an identical selection performs none; an invalid custom range
- * performs none. Recomposition never queries.
+ * Query discipline (sections 11/12/13): a valid selection change performs **exactly one** read and
+ * **exactly one** aggregation; a selection that still resolves to the same endpoints performs none;
+ * an invalid custom range performs none. Recomposition never queries.
  *
  * Refresh (sections 19-22): the surface entry and a real foreground return refresh the current
  * selection once, and a refresh arriving while a load is running is **not dropped** — it is
  * coalesced into exactly one follow-up load after the current one finishes. An explicit selection
- * change, in contrast, supersedes the in-flight load (the user asked for a different range).
+ * change supersedes both the in-flight load and any refresh intent queued before it
+ * (v1.7-B-02-R1 sections 3-5).
+ *
+ * Empty semantics (v1.7-B-02-R1 section 1): a successful load is `EMPTY` only when the range
+ * carried no historical entry at all — neither a recorded intake nor an unrecorded occurrence.
  *
  * Race safety (section 14): the generation token is claimed before the previous job is cancelled,
  * and success, ordinary failure and contract failure all verify it before writing state.
@@ -53,12 +59,27 @@ class InsightsViewModel(
 ) : ViewModel() {
 
     private val scope = operationScope ?: viewModelScope
-    private val initialSelection = restoreSelection()
+
+    /**
+     * One request's frozen view of "now" (v1.7-B-02-R1 section 11): the display zone, the instant
+     * and the local date derived from that same instant. A request resolves its endpoints, forwards
+     * `now` and publishes `today` from this single snapshot, so endpoints and `now` can never come
+     * from two different clock reads.
+     */
+    private data class RequestSnapshot(val zone: ZoneId, val now: Instant, val today: LocalDate)
+
+    private fun snapshot(): RequestSnapshot {
+        val zone = displayZone()
+        val now = clock.instant()
+        return RequestSnapshot(zone = zone, now = now, today = now.atZone(zone).toLocalDate())
+    }
+
+    private val initialSnapshot = snapshot()
     private val _uiState = MutableStateFlow(
         InsightsUiState(
-            selection = initialSelection,
-            today = currentToday(),
-            displayZone = displayZone()
+            selection = restoreSelection(),
+            today = initialSnapshot.today,
+            displayZone = initialSnapshot.zone
         )
     )
     val uiState: StateFlow<InsightsUiState> = _uiState.asStateFlow()
@@ -66,31 +87,47 @@ class InsightsViewModel(
     private var loadJob: Job? = null
     private var generation = 0
     private var surfaceShownOnce = false
+
+    /**
+     * True when a refresh arrived while a load was running.
+     *
+     * The intent owns **no** selection (v1.7-B-02-R1 section 3): the follow-up refreshes whatever
+     * selection is authoritative when the running load settles, so a refresh queued before an
+     * explicit selection change can never replay the older range.
+     */
     private var pendingRefresh = false
-    private var pendingSelection: InsightsRangeSelection? = null
 
     init {
-        load(_uiState.value.selection)
+        startLoad(_uiState.value.selection, initialSnapshot)
     }
 
     // ---------- intents ----------
 
     /**
-     * Selects a range. An identical selection performs no read.
+     * Selects a range.
      *
-     * A user-selected range change **supersedes** an in-flight load instead of waiting for it: the
-     * new load cancels the old one and its generation makes any superseded response stale, so exactly one
-     * read belongs to the new selection.
+     * Reselecting the currently active range is only a no-op while it still resolves to the same
+     * endpoints (v1.7-B-02-R1 section 13): a relative preset whose day rolled over resolves
+     * differently and therefore reads again.
+     *
+     * A user-selected range change **supersedes** an in-flight load *and* any refresh intent queued
+     * before it (sections 3-5): that queued refresh belongs to the older selection and must not
+     * replay it, while a refresh arriving *after* the change is still honoured.
      */
     fun selectRange(selection: InsightsRangeSelection) {
-        if (selection == _uiState.value.selection) return
+        if (selection == _uiState.value.selection) {
+            val candidate = snapshot()
+            if (resolvesLikeCurrentState(selection, candidate)) return
+            startLoad(selection, candidate)
+            return
+        }
         persistSelection(selection)
         startLoad(selection)
     }
 
     /** Retries the current selection exactly once (coalesced if a load is already running). */
     fun retry() {
-        load(_uiState.value.selection)
+        refresh()
     }
 
     /**
@@ -102,7 +139,7 @@ class InsightsViewModel(
             surfaceShownOnce = true
             return
         }
-        load(_uiState.value.selection)
+        refresh()
     }
 
     /**
@@ -110,38 +147,56 @@ class InsightsViewModel(
      * this after a real stop → start transition, so a cold start cannot double-load).
      */
     fun onAppForegrounded() {
-        load(_uiState.value.selection)
+        refresh()
     }
 
     // ---------- loading ----------
 
-    private fun load(selection: InsightsRangeSelection) {
+    /**
+     * Refreshes the authoritative selection. A refresh that arrives while a load is running is never
+     * dropped: it becomes exactly one follow-up (v1.7-B-02 section 12), and it carries no selection
+     * of its own.
+     */
+    private fun refresh() {
         if (loadJob?.isActive == true) {
-            // Coalesce: never drop a refresh (the A-04 boundary this round avoids copying).
             pendingRefresh = true
-            pendingSelection = selection
-            if (selection != _uiState.value.selection) {
-                applyPendingSelectionPreview(selection)
-            }
             return
         }
-        startLoad(selection)
+        startLoad(_uiState.value.selection)
     }
 
-    private fun startLoad(selection: InsightsRangeSelection) {
+    /** True when [selection] still resolves to the endpoints — or the verdict — already shown. */
+    private fun resolvesLikeCurrentState(
+        selection: InsightsRangeSelection,
+        candidate: RequestSnapshot
+    ): Boolean = when (val resolution = InsightsRangeResolver.resolve(selection, candidate.today)) {
+        is InsightsRangeResolution.Invalid ->
+            _uiState.value.phase == InsightsPhase.INVALID_RANGE &&
+                _uiState.value.validationError == resolution.error
+
+        is InsightsRangeResolution.Resolved ->
+            _uiState.value.startDate == resolution.startDate &&
+                _uiState.value.endDate == resolution.endDate
+    }
+
+    private fun startLoad(
+        selection: InsightsRangeSelection,
+        requestSnapshot: RequestSnapshot = snapshot()
+    ) {
+        // A load that starts now is newer than any refresh intent queued before it
+        // (v1.7-B-02-R1 sections 4/5): the intent belonged to the superseded load/selection.
+        pendingRefresh = false
         val token = ++generation
         loadJob?.cancel()
-        val zone = displayZone()
-        val today = currentToday(zone)
-        when (val resolution = InsightsRangeResolver.resolve(selection, today)) {
+        when (val resolution = InsightsRangeResolver.resolve(selection, requestSnapshot.today)) {
             is InsightsRangeResolution.Invalid -> {
                 // No read and no aggregation for an invalid range.
                 _uiState.value = _uiState.value.copy(
                     selection = selection,
                     startDate = null,
                     endDate = null,
-                    today = today,
-                    displayZone = zone,
+                    today = requestSnapshot.today,
+                    displayZone = requestSnapshot.zone,
                     phase = InsightsPhase.INVALID_RANGE,
                     summary = null,
                     failure = null,
@@ -154,8 +209,8 @@ class InsightsViewModel(
                     selection = selection,
                     startDate = resolution.startDate,
                     endDate = resolution.endDate,
-                    today = today,
-                    displayZone = zone,
+                    today = requestSnapshot.today,
+                    displayZone = requestSnapshot.zone,
                     phase = InsightsPhase.LOADING,
                     summary = null,
                     failure = null,
@@ -166,13 +221,13 @@ class InsightsViewModel(
                         val range = rangeSource.read(
                             startDate = resolution.startDate,
                             endDate = resolution.endDate,
-                            displayZone = zone,
-                            now = clock.instant()
+                            displayZone = requestSnapshot.zone,
+                            now = requestSnapshot.now
                         )
                         val summary = aggregator.aggregate(range)
                         if (token != generation) return@launch
                         _uiState.value = _uiState.value.copy(
-                            phase = if (summary.recordedIntakeCount == 0) {
+                            phase = if (summary.hasNoHistoricalEntries()) {
                                 InsightsPhase.EMPTY
                             } else {
                                 InsightsPhase.CONTENT
@@ -207,48 +262,22 @@ class InsightsViewModel(
         }
     }
 
+    /**
+     * True when the authoritative range carried no historical entry at all.
+     *
+     * Recorded intakes are matched entries plus unmatched actual intakes (B-01), so a range that
+     * only carries unrecorded occurrences has `recordedIntakeCount == 0` while still holding real
+     * history: it is content, not empty (v1.7-B-02-R1 section 1, review item 9).
+     */
+    private fun MedicationInsightsSummary.hasNoHistoricalEntries(): Boolean =
+        recordedIntakeCount == 0 && unrecordedOccurrenceCount == 0
+
     /** Runs at most one follow-up load for any number of coalesced refresh requests. */
     private fun runPendingRefresh() {
         if (!pendingRefresh) return
         pendingRefresh = false
-        val target = pendingSelection ?: _uiState.value.selection
-        pendingSelection = null
-        startLoad(target)
+        startLoad(_uiState.value.selection)
     }
-
-    private fun applyPendingSelectionPreview(selection: InsightsRangeSelection) {
-        val zone = displayZone()
-        val today = currentToday(zone)
-        val resolution = InsightsRangeResolver.resolve(selection, today)
-        _uiState.value = when (resolution) {
-            is InsightsRangeResolution.Resolved -> _uiState.value.copy(
-                selection = selection,
-                startDate = resolution.startDate,
-                endDate = resolution.endDate,
-                today = today,
-                displayZone = zone,
-                phase = InsightsPhase.LOADING,
-                summary = null,
-                failure = null,
-                validationError = null
-            )
-
-            is InsightsRangeResolution.Invalid -> _uiState.value.copy(
-                selection = selection,
-                startDate = null,
-                endDate = null,
-                today = today,
-                displayZone = zone,
-                phase = InsightsPhase.INVALID_RANGE,
-                summary = null,
-                failure = null,
-                validationError = resolution.error
-            )
-        }
-    }
-
-    private fun currentToday(zone: ZoneId = displayZone()): LocalDate =
-        LocalDate.now(clock.withZone(zone))
 
     // ---------- state restoration (selection only; summaries are always recomputed) ----------
 
