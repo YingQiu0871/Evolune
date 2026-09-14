@@ -1,0 +1,31 @@
+# No-metric-recomputation audit
+
+scanned files:
+  InsightsPresentation.kt
+  InsightsPreviews.kt
+  InsightsScreen.kt
+
+forbidden primitive -> occurrences in the Insights UI package
+  .groupBy(: 0
+  .sumOf(: 0
+  .mapValues(: 0
+  HistoryRangeSource: 0
+  HistoryReadService: 0
+  AppDatabase: 0
+  MedicationIdentityClassifier: 0
+  MedicationOccurrenceMatcher: 0
+  MedicationOccurrenceGenerator: 0
+
+B-01 fields are read only by InsightsPresentation.kt:
+  summary.recordedIntakeCount: 1
+  summary.recordedDayCount: 1
+  summary.matchedOccurrenceCount: 1
+  summary.unrecordedOccurrenceCount: 1
+  summary.sourceCounts: 1
+  summary.bindingConfidenceCounts: 1
+  summary.perMedicationDoseTotalsMg: 2
+  summary.unknownIdentityRecordedIntakeCount: 1
+  summary.containsCurrentTimezoneDerivedDates: 1
+
+summary. occurrences in InsightsScreen.kt (must be 0): 0
+Guard test: InsightsUiGuardTest.

@@ -1,0 +1,8 @@
+# Accessibility evidence
+
+- InsightsScreenTest :: countsAreTextAndContentDescriptionForScreenReaders
+  asserts contentDescription == resource(insights_bar_description, label, count) for a metric row
+- InsightsScreenTest :: largeFontScaleKeepsTheSurfaceReadable (fontScale = 1.5f)
+- InsightsPreviews :: InsightsLargeFontPreview (fontScale = 1.5f)
+- every section heading and count is real text; no information is colour- or shape-only
+- range chips expose Material `selected` semantics (asserted)

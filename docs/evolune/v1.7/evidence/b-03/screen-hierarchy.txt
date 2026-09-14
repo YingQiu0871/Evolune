@@ -1,0 +1,18 @@
+# Screen hierarchy (production composition order)
+
+Scaffold(insights-screen)
+  LazyColumn(insights-content-list)
+    RangeSelector(insights-range-selector)
+      FilterChip insights-range-last7 | last30 | last90 | current-month | custom
+    range heading (insights-range-heading)
+    timezone disclosure (insights-timezone-disclosure, only when the aggregate says so)
+    phase LOADING   -> insights-loading
+    phase INVALID   -> insights-invalid-range
+    phase ERROR     -> insights-error + insights-retry
+    phase EMPTY     -> insights-empty
+    phase CONTENT   -> insights-card-recorded-intakes
+                       insights-card-recorded-days
+                       insights-coverage-section (+ linked/unlinked + 2 disclosures)
+                       insights-sources-section (6 rows)
+                       insights-confidence-section (4 rows + explanation)
+                       insights-dose-section (rows + dose-empty + unknown identity)

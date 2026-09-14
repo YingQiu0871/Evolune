@@ -1,0 +1,14 @@
+# Unrecorded-only regression (B-02 P1 final UI lock)
+
+rule: phase CONTENT with recordedIntakeCount = 0 and unrecordedOccurrenceCount > 0 must render
+the full content surface (overview count 0, unlinked coverage count, both disclosures) and must
+never render the empty state.
+
+JVM (presentation):
+  - InsightsViewModelTest :: a mixed recorded and unrecorded range is content
+  - InsightsViewModelTest :: an unrecorded-only range is content because it carries historical facts
+  - InsightsPresentationTest :: an unrecorded-only range is content and never the empty message
+  - InsightsUiGuardTest :: the Insights copy never names an unrecorded occurrence with blame
+
+Instrumentation (rendered surface):
+  - InsightsScreenTest :: unrecordedOnlyRangeIsContentAndNeverTheEmptyState

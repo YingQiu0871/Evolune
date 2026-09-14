@@ -1,0 +1,281 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.ExampleInstrumentedTest" tests="263" failures="0" errors="0" skipped="5" time="270.74" timestamp="2026-09-14T13:17:45" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="useAppContext" classname="io.github.yingqiu0871.evolune.ExampleInstrumentedTest" time="0.007" />
+  <testcase name="journal store uses no backup files and fails closed on truncation" classname="io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest" time="0.053" />
+  <testcase name="room trigger failure rolls back the complete replacement transaction" classname="io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest" time="0.029" />
+  <testcase name="room replacement preserves all v3 fields and dangling event slot" classname="io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest" time="0.029" />
+  <testcase name="settings replacement uses one atomic replacement call and preserves every field" classname="io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest" time="0.002" />
+  <testcase name="physicalKdf600kBenchmark" classname="io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest" time="14.23" />
+  <testcase name="physicalLargeHistoryNativeBackupPipeline" classname="io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest" time="9.217" />
+  <testcase name="malformedPlanJsonFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.643" />
+  <testcase name="foreignKeyIndexCascadeAndUniqueMatrixIsEnforced" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.083" />
+  <testcase name="plansAndSlotsPreserveOrderDuplicatesBoundariesAndLegacyStrings" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.055" />
+  <testcase name="positiveMultiplicationOverflowFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.561" />
+  <testcase name="floatStorageClassMigratesNormally" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.055" />
+  <testcase name="actualProductionMigrationChainUpgradesMinimalAuthorizedV1FixtureToV3" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.054" />
+  <testcase name="invalidLocalTimeFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.563" />
+  <testcase name="positiveEpochRangeOverflowFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.54" />
+  <testcase name="androidSqliteCannotMaterializeNanInExactV2RealNotNullColumn" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.059" />
+  <testcase name="fixedSeedLongHistoryMigratesTwoThousandEventsAndOneHundredPlans" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.385" />
+  <testcase name="exactV2NotNullConstraintRejectsNullBeforeMigration" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.056" />
+  <testcase name="nonMinutePlanTimeFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.542" />
+  <testcase name="integerBindingIsNormalizedByExactV2RealAffinityAndMigrates" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.056" />
+  <testcase name="negativeInfinityFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.565" />
+  <testcase name="blobTimeHStorageFailsBeforeNumericReadAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.568" />
+  <testcase name="identicalFixturesInSeparateDatabasesProduceIdenticalMigrationResults" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.207" />
+  <testcase name="nonStringPlanElementFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.563" />
+  <testcase name="negativeMultiplicationOverflowFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.566" />
+  <testcase name="legalTimeHBoundaryMatrixMigratesWithIndependentExpectedValues" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.08" />
+  <testcase name="textTimeHStorageFailsBeforeNumericReadAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.594" />
+  <testcase name="positiveInfinityFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.563" />
+  <testcase name="negativeEpochRangeOverflowFailsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest" time="0.563" />
+  <testcase name="legitimateEpochZeroRemainsZeroAfterMigration" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.056" />
+  <testcase name="multipleSlotsPreserveOriginalOrder" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.055" />
+  <testcase name="singleSyntheticEventMigratesWithoutChangingLegacyValues" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="failedMigrationRollsBackSchemaDataAndUserVersion" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.59" />
+  <testcase name="deletingPlanCascadesOnlyItsSlots" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.079" />
+  <testcase name="fixedUuidV5VectorMatchesLockedExpectedValue" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.055" />
+  <testcase name="originalTimeOfDayStringsRemainByteForByteEquivalent" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.079" />
+  <testcase name="singlePlanCreatesOneSlotWithFixedUuidV5Vector" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="orphanSlotInsertIsRejectedByForeignKey" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.057" />
+  <testcase name="emptyJsonArrayCreatesNoSlotsAndRemainsUnchanged" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.083" />
+  <testcase name="uniquePlanPositionRejectsOnlyTrueConflicts" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="emptySqlStringCreatesNoSlotsAndRemainsUnchanged" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="foreignKeysAreEnabledAfterMigration" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.056" />
+  <testcase name="nonMinutePlanFailsWithStructuredContext" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.572" />
+  <testcase name="runtimeEntityStrictlyDerivesLegitimateOccurredAtValues" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.002" />
+  <testcase name="runtimeEntityRejectsEveryInvalidLegacyTimeValue" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.003" />
+  <testcase name="emptyV2DatabaseMigratesToValidatedV3Schema" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="duplicateTimesRemainDistinctByPositionAndSlotId" classname="io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest" time="0.054" />
+  <testcase name="generatedV2SchemaMatchesCurrentContract" classname="io.github.yingqiu0871.evolune.data.AppDatabaseV2BaselineTest" time="0.029" />
+  <testcase name="syntheticV2FixtureSurvivesCloseAndReopenWithoutPrecisionLoss" classname="io.github.yingqiu0871.evolune.data.AppDatabaseV2BaselineTest" time="0.054" />
+  <testcase name="freshV3ControlSupportsRepositoryPersistence" classname="io.github.yingqiu0871.evolune.data.Batch8CPreservedUpgradeTest" time="0.054" />
+  <testcase name="preservedV2DatabaseMigratesAndEveryAggregateIsRepositoryReadable" classname="io.github.yingqiu0871.evolune.data.Batch8CPreservedUpgradeTest" time="0.107" />
+  <testcase name="manual body weight writes local barrier atomically and keeps HC weight metadata" classname="io.github.yingqiu0871.evolune.data.SettingsDataStoreTest" time="0.105" />
+  <testcase name="Health Connect adoption uses observation timestamp rather than local clock" classname="io.github.yingqiu0871.evolune.data.SettingsDataStoreTest" time="0.002" />
+  <testcase name="same-value Health Connect metadata update advances observation barrier only" classname="io.github.yingqiu0871.evolune.data.SettingsDataStoreTest" time="0.03" />
+  <testcase name="restore settings writes local barrier and keeps HC weight metadata" classname="io.github.yingqiu0871.evolune.data.SettingsDataStoreTest" time="0.003" />
+  <testcase name="validSyntheticMatrixMigratesAndEveryAggregateIsRepositoryReadable" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="0.132" />
+  <testcase name="completeDatasetPreflightRejectsLateInvalidRowBeforeAnyBackfill" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="0.563" />
+  <testcase name="batch8BConverterCasesRejectAndRollBackBeforeRepositoryOpen" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="1.635" />
+  <testcase name="exactV2SchemaRejectsNotRepresentableNullNanAndDuplicatePrimaryKey" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="0.03" />
+  <testcase name="currentPreflightCasesRejectAndRollBackToExactV2Structure" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="2.753" />
+  <testcase name="declarativeMatrixLocksValidityStagesAndBatchOwnership" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="0.002" />
+  <testcase name="mutationAndPostconditionFailuresRollBackEntireUpgradeTransaction" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="1.666" />
+  <testcase name="noncanonicalEnabledIntegerRejectsAndRollsBack" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="0.566" />
+  <testcase name="batch8BMapperCasesRejectAndRollBackBeforeRepositoryOpen" classname="io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest" time="4.873" />
+  <testcase name="repairedV2CopyMigratesAndProductionRepositoriesReadIt" classname="io.github.yingqiu0871.evolune.data.migration.contract.RepairToolOutputMigrationTest" time="0.031">
+    <skipped />
+  </testcase>
+  <testcase name="sharedCorpusMatchesOfficialMigrationClassification" classname="io.github.yingqiu0871.evolune.data.migration.contract.RepairToolParityTest" time="12.244" />
+  <testcase name="repositoryUpdateFailureRollsBackEveryEventFieldAndHrtReportsStorageFailure" classname="io.github.yingqiu0871.evolune.data.repository.DoseEventProductionCutoverTest" time="0.105" />
+  <testcase name="providerAndHrtPathPersistReopenCasImportConflictAndDelete" classname="io.github.yingqiu0871.evolune.data.repository.DoseEventProductionCutoverTest" time="0.105" />
+  <testcase name="ViewModelProviderPathPersistsReopensEditsTogglesAndDeletesAggregate" classname="io.github.yingqiu0871.evolune.data.repository.MedicationPlanProductionCutoverTest" time="0.081" />
+  <testcase name="repositoryPersistsChronologicalPositionsWhileKeepingEditedSlotIdentity" classname="io.github.yingqiu0871.evolune.data.repository.MedicationPlanProductionCutoverTest" time="0.028" />
+  <testcase name="slotInsertFailureRollsBackPlanSlotsLegacyShadowAndReminder" classname="io.github.yingqiu0871.evolune.data.repository.MedicationPlanProductionCutoverTest" time="0.054" />
+  <testcase name="slotIdCollisionRollsBackPlanAndMapsStorageFailure" classname="io.github.yingqiu0871.evolune.data.repository.PlanSaveRegressionTest" time="0.028" />
+  <testcase name="exactUserScenarioPersistsAndReopensAfterSyntheticV2Migration" classname="io.github.yingqiu0871.evolune.data.repository.PlanSaveRegressionTest" time="0.079" />
+  <testcase name="existingPlanIdUsesDocumentedUpdatePathWithoutDuplicatingRows" classname="io.github.yingqiu0871.evolune.data.repository.PlanSaveRegressionTest" time="0.03" />
+  <testcase name="exactUserScenarioPersistsAndReopensInFreshV3" classname="io.github.yingqiu0871.evolune.data.repository.PlanSaveRegressionTest" time="0.053" />
+  <testcase name="dataSurvivesReopenThroughANewProviderForTheSameDisposableFile" classname="io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProviderTest" time="0.029" />
+  <testcase name="providerUsesStableContractRepositoriesFromOneInjectedDatabase" classname="io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProviderTest" time="0.03" />
+  <testcase name="concurrentWearActionsKeepOneAuthoritativeRow" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.054" />
+  <testcase name="conflictAndStorageFailureLeaveRowsUnchangedAndRunNoSuccessSideEffects" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.079" />
+  <testcase name="wearRecorderUsesStoredEventBeforePlanAndPreservesRepositoryEquality" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.054" />
+  <testcase name="notificationThenWidgetForTheSameOccurrenceReturnsWidgetReplay" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.054" />
+  <testcase name="invalidNotificationScheduledAtDoesNotWriteOrRunSuccessSideEffects" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.029" />
+  <testcase name="notificationAndWidgetActionsPersistReplayAndReopenThroughProviderContracts" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.104" />
+  <testcase name="delayedNotificationCompletesTheEarlySlotWithoutCompletingTheLaterSlot" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.053" />
+  <testcase name="slotDeletionDisablesAndDeletionOfPlanRejectStaleNotificationConservatively" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.08" />
+  <testcase name="eventDeleteAndDeleteAllReportNotFoundPrecisely" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.004" />
+  <testcase name="eventPkSelectionPreservesBothLegacyBranchOrders" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.056" />
+  <testcase name="eventPersistsAndReadsEveryV3FieldWithLegacyTimeShadow" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="eventUpdateEnforcesNoChangeRevisionAndConflicts" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planUpdatePreciselyReplacesSlotsAndLegacyTimes" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.033" />
+  <testcase name="planFieldUpdatePreservesSlotsAndIdempotentSaveIsNoChange" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="persistedLocalDateRangeQueryIsInclusiveAndIgnoresInstantDistance" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planUpdateToEmptySlotsLeavesNoPartialAggregate" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.001" />
+  <testcase name="planSavesBoundaryTimesAndFixedUuidV5Vector" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.032" />
+  <testcase name="planPreservesSuppliedStableSlotId" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.003" />
+  <testcase name="planSaveRollsBackPlanSlotsAndLegacyTimeWhenSlotInsertFails" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.03" />
+  <testcase name="planCanonicalizesChronologicalOrderWhilePreservingDuplicateTimesAndSlotIds" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.004" />
+  <testcase name="planDeleteAllCascadesEverySlot" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="eventLatestDeleteRechecksRecentIdentityInsideTheTransaction" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.028" />
+  <testcase name="planDeleteCascadesOnlyItsSlotsAndPreservesOtherPlan" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.031" />
+  <testcase name="eventSupportsEpochZeroAndPositiveAndNegativeTimes" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="planObservationReturnsAggregatesInContractOrderAndEnabledSubset" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.03" />
+  <testcase name="planSetEnabledUsesUpdatedNoChangeAndNotFound" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.012" />
+  <testcase name="eventConditionalDeleteRequiresTheCurrentRevisionAndDeletesAtomically" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.028" />
+  <testcase name="eventNullableMetadataRemainsNull" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.001" />
+  <testcase name="eventRangeAndObservationUseOccurredAtContractOrdering" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="planReadRejectsLegacySlotMismatchWithoutRepairingIt" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="planSavesEmptySlotsAndCanonicalEmptyLegacyArray" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="eventInsertDistinguishesIdempotentAndConflict" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.029" />
+  <testcase name="eventRejectsSubMillisecondTimeWithoutWritingFakeEpochZero" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="eventConstraintFailureIsAStorageExceptionAndLeavesNoRow" classname="io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest" time="0.002" />
+  <testcase name="fixedDatasetsProduceRepeatableRoomMeasurements" classname="io.github.yingqiu0871.evolune.data.repository.V15RoomPerformanceDeviceTest" time="0.258" />
+  <testcase name="concurrent duplicate and conflicting actions keep one authoritative row" classname="io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest" time="0.053" />
+  <testcase name="production Wear handler persists reopens and replays without plan lookup" classname="io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest" time="0.055" />
+  <testcase name="storage failure retains DataItem and performs no partial write" classname="io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest" time="0.03" />
+  <testcase name="deletion failure survives process restart and exact replay retries" classname="io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest" time="0.03" />
+  <testcase name="production conflicts and missing plan preserve rows and retain DataItem" classname="io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest" time="0.054" />
+  <testcase name="declaresHealthConnectPermissionRationaleEntryPoints" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectPermissionManifestTest" time="0.001" />
+  <testcase name="historyReadChannelsAreExplainedOnARealisticDataset" classname="io.github.yingqiu0871.evolune.history.HistoryIndexQueryPlanTest" time="1.019" />
+  <testcase name="readingHistoryNeverWritesToTheRealDatabase" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteDeviceTest" time="0.053" />
+  <testcase name="theProductionFactoryObtainsARealSavedStateHandleAndPersistsTheSelection" classname="io.github.yingqiu0871.evolune.history.HistorySavedStateFactoryTest" time="3.261" />
+  <testcase name="a relative selection is stored as a preset rather than frozen endpoints" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="0.969" />
+  <testcase name="theFactoryPersistsTheSelectionAndRestoresItAfterRecreation" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest" time="1.052" />
+  <testcase name="the cold start does not refresh on the initial start transition" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="0.801" />
+  <testcase name="composition entry refreshes once and a foreground return refreshes once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest" time="3.51" />
+  <testcase name="settingsRestoreDoesNotManufactureOnboardingAcknowledgement" classname="io.github.yingqiu0871.evolune.onboarding.OnboardingStateStoreTest" time="0.029" />
+  <testcase name="existingInstallationSkipsBeginnerTourButRequiresCurrentDisclosures" classname="io.github.yingqiu0871.evolune.onboarding.OnboardingStateStoreTest" time="0.031" />
+  <testcase name="freshInstallationPersistsAcknowledgementsAndCompletion" classname="io.github.yingqiu0871.evolune.onboarding.OnboardingStateStoreTest" time="0.031" />
+  <testcase name="verifyV15State" classname="io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest" time="0.004">
+    <skipped />
+  </testcase>
+  <testcase name="prepareV14State" classname="io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest" time="0.03">
+    <skipped />
+  </testcase>
+  <testcase name="synchronousRejectionsDoNotStartAsyncWork" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.001" />
+  <testcase name="notificationReceiverFinishesEveryTypedOutcomeExactlyOnce" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.028" />
+  <testcase name="malformedNewSlotIdentityDoesNotUseLegacyDeliveryPath" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.005" />
+  <testcase name="reminderRescheduleAndWidgetReceiversFinishTheirAsyncDeliveries" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.029" />
+  <testcase name="cancellationAndUnexpectedExceptionStillFinishOnce" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.001" />
+  <testcase name="receiverReturnsBeforeSuspendedWorkAndFinishesAfterResume" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.002" />
+  <testcase name="skippedOccurrenceDoesNotStartReminderDelivery" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.027" />
+  <testcase name="dateZoneAndDstBoundariesRemainStableOnDevice" classname="io.github.yingqiu0871.evolune.time.V15TimeBoundaryDeviceTest" time="0.003" />
+  <testcase name="dialogExplainsPurposeAndExposesContinueAndNotNow" classname="io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialogTest" time="1.071" />
+  <testcase name="healthConnectActionWaitsForExplanationDecision" classname="io.github.yingqiu0871.evolune.ui.screens.AuthorizationGuidanceTest" time="1.48" />
+  <testcase name="disconnectedGoogleDriveActionWaitsForExplanationDecision" classname="io.github.yingqiu0871.evolune.ui.screens.AuthorizationGuidanceTest" time="1.364" />
+  <testcase name="topAppBarTitleContrastPassesInLightDarkAndAmoled" classname="io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest" time="2.148" />
+  <testcase name="amoledThemeOptionCanBeSelected" classname="io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest" time="1.378" />
+  <testcase name="themeModeIconsStayVerticallyCentered" classname="io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest" time="1.416" />
+  <testcase name="disclosureSectionsAndVisibleBackActionAreAvailable" classname="io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreenTest" time="0.899" />
+  <testcase name="disclosuresStayReadableAtLargeFontScaleInWideWindow" classname="io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreenTest" time="0.846" />
+  <testcase name="tutorialCtasUseExistingEditorAndNavigationSurfaces" classname="io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialNavigationTest" time="2.859" />
+  <testcase name="activityRecreationRestoresSettingsNavigationRoute" classname="io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialNavigationTest" time="1.869" />
+  <testcase name="skipIsAvailableBeforeAnyAction" classname="io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreenTest" time="0.744" />
+  <testcase name="presentsSixOptionalStepsAndRoutesEachCallToAction" classname="io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreenTest" time="1.74" />
+  <testcase name="finalControlsRemainReachableAtLargeFontScaleInWideWindow" classname="io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreenTest" time="1.301" />
+  <testcase name="expandedRailAndSharedTopBarKeepStableGeometry" classname="io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest" time="0.947">
+    <skipped />
+  </testcase>
+  <testcase name="adaptiveNavigationMatchesCurrentWindowWidth" classname="io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest" time="0.95" />
+  <testcase name="editorOverlayKeepsBottomNavigationGeometryStableDuringBothDirections" classname="io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest" time="2.327" />
+  <testcase name="topLevelTitleRemainsCenteredThroughoutPageTransition" classname="io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest" time="0.9">
+    <skipped />
+  </testcase>
+  <testcase name="updateRequiredStateIsDisplayed" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.844" />
+  <testcase name="settingsHomeRoutesSyncAndBackupWithoutDirectFeatureControls" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="1.253" />
+  <testcase name="pageShowsWeightToggleMedicationPlaceholderAndPermissionEntry" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.846" />
+  <testcase name="settingsExposesFeatureTutorialSeparatelyFromDisclosureGuide" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.97" />
+  <testcase name="permissionRequiredEnabledStateOffersReauthorization" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.848" />
+  <testcase name="unavailableStateIsDisplayed" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.82" />
+  <testcase name="connectedStateShowsAdoptedMetadataAndNoDataStateIsExplicit" classname="io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest" time="0.822" />
+  <testcase name="everyPrimaryTabStillOpensAndOnlyTheSelectedOneIsMarked" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="2.633" />
+  <testcase name="navigationChromeStillHostsExactlyOneItemPerPrimaryDestination" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="0.926" />
+  <testcase name="historyTabOpensShowsTheCalendarAndIsSelected" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="1.124" />
+  <testcase name="leavingHistoryKeepsTheOtherTabsBehaviour" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest" time="1.866" />
+  <testcase name="returningToHistoryShowsAnIntakeRecordedWhileAway" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest" time="1.974" />
+  <testcase name="switchingToHistoryAndStayingThereDoesNotDuplicateQueries" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest" time="1.155" />
+  <testcase name="exactMatchedCardShowsStatusActualTimeAndCurrentScheduleContext" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.869" />
+  <testcase name="aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.87" />
+  <testcase name="errorStateOffersRetryAndRecovers" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.951" />
+  <testcase name="crossDateExactMatchStillShowsTheFullActualDate" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.845" />
+  <testcase name="daySummaryShowsTheThreeCounts" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.849" />
+  <testcase name="emptyDayShowsTheEmptyState" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.818" />
+  <testcase name="aDayWithoutHistoryReportsNoIndicators" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.842" />
+  <testcase name="unmatchedManualIntakeIsLabelledManual" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.851" />
+  <testcase name="delayedActualIntakeShowsAFullDateAndTime" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.803" />
+  <testcase name="inferredMatchedCardCarriesAProvenanceNeutralAnnotation" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.848" />
+  <testcase name="previousMonthLoadsOnceAndNextMonthIsDisabledAtTheCurrentMonth" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.027" />
+  <testcase name="calendarCellContentDescriptionCarriesTheRealDayCounts" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.05" />
+  <testcase name="unrecordedCardUsesNonBlamingWording" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="1.458" />
+  <testcase name="selectingAnotherDayOfTheSameMonthDoesNotQueryAgain" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.87" />
+  <testcase name="loadingStateIsRenderedWhileTheReadIsPending" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.818" />
+  <testcase name="unmatchedNonManualIntakeIsNotLabelledManual" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.821" />
+  <testcase name="currentMonthRendersWithTitleWeekdaysAndTodaySelected" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.872" />
+  <testcase name="calendarShowsAllThreeIndicatorClasses" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.895" />
+  <testcase name="unmatchedWithDerivedDateExplainsTheCurrentTimeZone" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.845" />
+  <testcase name="futureDatesAreDisabledAndNotSelectable" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest" time="0.92" />
+  <testcase name="captureCalendarMixedDayEmptyAndErrorStates" classname="io.github.yingqiu0871.evolune.ui.screens.HistoryVisualEvidenceTest" time="1.482" />
+  <testcase name="createSessionSurvivesRecomposition" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.899" />
+  <testcase name="invalidDraftSkipsRepositoryAndKeepsEditorOpen" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.133" />
+  <testcase name="unexpectedFailureIsTheOnlySavePathUsingUnknownError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.51" />
+  <testcase name="enablingPlanWithoutNotificationAccessShowsExplanationFirst" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.897" />
+  <testcase name="saveFailureKeepsEditorOpenAndShowsError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.03" />
+  <testcase name="portraitOptionGridKeepsRouteSizesStableAcrossSelection" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.053" />
+  <testcase name="dismissingImeKeepsEditorOpenAndPreservesDraft" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.687" />
+  <testcase name="deleteFailureKeepsEditorOpen" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.018" />
+  <testcase name="saveSuccessClosesEditorWithoutUnknownError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.945" />
+  <testcase name="operationInProgressConsumesBackInsteadOfClosingPlanEditor" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.002" />
+  <testcase name="busyPlanDisablesOnlyItsOwnSwitch" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.821" />
+  <testcase name="notificationSetupEntryAlsoShowsExplanationFirst" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.995" />
+  <testcase name="storageFailureShowsSaveFailureInsteadOfUnknownError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="0.948" />
+  <testcase name="editActionsHaveEqualStableSizes" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest" time="1.023" />
+  <testcase name="dismissingImeKeepsEditorOpenAndPreservesDraftThenSecondBackCloses" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="7.373" />
+  <testcase name="doseLabelsAndFieldsKeepRelativeGeometryAcrossFocusChanges" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="7.754" />
+  <testcase name="localValidationFailureKeepsEditorOpenAndShowsStructuredError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="1.561" />
+  <testcase name="createSuccessClosesEditorAfterContractInsert" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="2.456" />
+  <testcase name="deleteFailureKeepsEditorOpenAndShowsError" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="6.457" />
+  <testcase name="storageFailureKeepsEditorOpen" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="6.389" />
+  <testcase name="rapidDoubleTapInvokesOneInsert" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="7.452" />
+  <testcase name="cancelledRecordCardGestureDoesNotInvokeItsClickCallback" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="7.021" />
+  <testcase name="editSuccessPreservesDomainMetadataBeforeClosing" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="6.207" />
+  <testcase name="operationInProgressConsumesBackInsteadOfClosingRecordEditor" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="7.006" />
+  <testcase name="conflictKeepsEditorOpen" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="1.413" />
+  <testcase name="editActionsHaveEqualStableSizes" classname="io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest" time="6.336" />
+  <testcase name="migratedInstallationStartsAtRequiredDisclosureReview" classname="io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreenTest" time="0.951" />
+  <testcase name="requiredAcknowledgementsGateEachRequiredStep" classname="io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreenTest" time="1.41" />
+  <testcase name="currentAcknowledgementsAllowFinish" classname="io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreenTest" time="1.535" />
+  <testcase name="frameLevelImeMotionAnalysis" classname="io.github.yingqiu0871.evolune.ui.screens.RealAppImeFrameProbeTest" time="12.492" />
+  <testcase name="appearanceAndFormatKeepsThemeColorAndTimeSelectors" classname="io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest" time="1.203" />
+  <testcase name="updatePageKeepsToggleCheckAndVersionActions" classname="io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest" time="1.071" />
+  <testcase name="aboutPageKeepsContactLinksCopyrightAndDisclaimerDialogs" classname="io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest" time="1.56" />
+  <testcase name="basicDataKeepsBodyWeightInputAndValidationCallback" classname="io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest" time="1.231" />
+  <testcase name="settingsCategoryPagesNavigateBackToSettings" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest" time="2.303" />
+  <testcase name="settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest" time="1.948" />
+  <testcase name="googleDrivePageKeepsExistingBackupRestoreActions" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="0.998" />
+  <testcase name="backupPickerUsesNumberedRowsWithReadableTimesAndPreservesSelection" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.101" />
+  <testcase name="syncAndBackupPageExposesOnlyNavigationRowsAndPassiveSummaries" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.05" />
+  <testcase name="importExportPageKeepsExistingMahiroActions" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.663" />
+  <testcase name="historyOpensInsightsAndBackReturnsToHistory" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest" time="1.329" />
+  <testcase name="leavingAndReEnteringInsightsKeepsTheSurfaceUsable" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest" time="1.511" />
+  <testcase name="contentShowsEveryShippedSection" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="1.149" />
+  <testcase name="rangeSelectorExposesAllFiveOptionsAndDefaultsToLast30" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.867" />
+  <testcase name="selectingAnotherRangeAsksTheViewModelForItAndUpdatesTheSurface" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.922" />
+  <testcase name="everySourceAndConfidenceRowIsShippedWithItsOwnCount" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.969" />
+  <testcase name="timezoneDerivedDatesShowTheNeutralDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.822" />
+  <testcase name="noForbiddenMetricCopyIsRendered" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.974" />
+  <testcase name="loadingKeepsTheRangeSelectorAndShowsNoSections" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.912" />
+  <testcase name="unrecordedOnlyRangeIsContentAndNeverTheEmptyState" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.847" />
+  <testcase name="trulyEmptyRangeShowsTheEmptyMessageAndNoSections" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.913" />
+  <testcase name="unknownIdentityIsACountAndNeverADoseBucket" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.871" />
+  <testcase name="invalidRangeShowsTheTypedNeutralMessage" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.796" />
+  <testcase name="errorOffersRetryAndShowsNoStaleSummary" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.87" />
+  <testcase name="largeFontScaleKeepsTheSurfaceReadable" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.819" />
+  <testcase name="countsAreTextAndContentDescriptionForScreenReaders" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest" time="0.794" />
+  <testcase name="fixedDatasetsProduceRepeatablePkMeasurements" classname="io.github.yingqiu0871.evolune.viewmodel.V15PkPerformanceDeviceTest" time="9.13" />
+  <testcase name="wearAppCommandPrefixStillResolvesToTheWearAppListener" classname="io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest" time="0.003" />
+  <testcase name="skipNotificationDataChangedPathResolvesToTheWearAppListener" classname="io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest" time="0.002" />
+  <testcase name="snapshotRequestMessagePathStillResolvesToTheWearAppListener" classname="io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest" time="0.001" />
+  <testcase name="unrelatedWearAppPathsDoNotResolveToTheWearAppListener" classname="io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest" time="0.001" />
+  <testcase name="fixedDatasetsProduceRepeatableWidgetRefreshMeasurements" classname="io.github.yingqiu0871.evolune.widget.V15WidgetPerformanceDeviceTest" time="0.336" />
+  <testcase name="configurationIntentTargetsTheExactWidgetInstance" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.026" />
+  <testcase name="openAppReceiverLaunchesMainActivityWithoutStartingQuickActionWork" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.002" />
+  <testcase name="oneTwoThreeRowDensityInflatesAtBoundedPhysicalSizes" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.053" />
+  <testcase name="responsiveLayoutsAndDynamicChildrenInflateWithExpectedStructure" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.001" />
+  <testcase name="actionableOccurrenceCarriesExactIdentityAndBuildsCheckPendingIntent" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.003" />
+  <testcase name="desktopRowsUseEachWidgetsResolvedOpaqueRailRoles" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.003" />
+  <testcase name="openAppFillInCarriesReadOnlyWidgetOccurrenceIdentity" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.002" />
+  <testcase name="allProvidersRequireTheOfficialConfigurationActivityAndSupportReconfiguration" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.029" />
+  <testcase name="perWidgetAppearancePersistsIndependentlyAndDeletionIsScoped" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.001" />
+  <testcase name="pickerPreviewsInflateWithRemoteViewsAllowedViews" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.002" />
+  <testcase name="actionableAndCompletedChecksKeepStableCircularGeometry" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.002" />
+  <testcase name="samePlanSlotsHaveDistinctAndStableOccurrencePendingIntents" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.027" />
+</testsuite>

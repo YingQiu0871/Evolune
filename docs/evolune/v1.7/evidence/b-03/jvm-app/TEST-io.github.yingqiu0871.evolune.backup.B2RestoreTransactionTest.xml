@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:48.106Z" hostname="人面不知何处去" time="0.053">
+  <properties/>
+  <testcase name="committed startup recovery keeps target and only cleans journal" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.005"/>
+  <testcase name="room failure rolls back to the captured before state" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.005"/>
+  <testcase name="coroutine cancellation is propagated instead of becoming a restore error" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="committed journal write failure rolls back before the commit point" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="normal restore atomically replaces room and every setting and preserves dangling slot" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="postcondition failure rolls back instead of committing" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.0"/>
+  <testcase name="prepared startup recovery restores before state" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="corrupt and future journals fail closed" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="journal codec rejects truncation future version and unknown fields" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.005"/>
+  <testcase name="rollback failure leaves prepared journal and later startup recovery repairs it" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="settings failure rolls back both room and settings" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.001"/>
+  <testcase name="restore calls are serialized by the transaction mutex" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.03"/>
+  <testcase name="prepare and preview perform no persistence or journal writes" classname="io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

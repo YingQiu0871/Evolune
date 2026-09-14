@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:51.924Z" hostname="人面不知何处去" time="0.01">
+  <properties/>
+  <testcase name="the range heading is formatted from the resolved endpoints only" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.009"/>
+  <testcase name="a truly empty range shows the empty message and no sections" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="timezone derived dates expose the neutral disclosure and nothing else does" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="invalid ranges expose a typed neutral message and no range heading" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.001"/>
+  <testcase name="content exposes exactly the two shipped overview counts" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="a summary without provable medication identity explains why the dose list is empty" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="an unrecorded-only range is content and never the empty message" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="loading and error states expose no section and no stale summary" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="selection labels cover all five frozen presets" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="confidence keeps the four frozen buckets in order" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="medication dose rows are ordered deterministically and never summed" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="coverage ships both counts and both mandatory disclosure sentences" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <testcase name="every source keeps its own row in the frozen order" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

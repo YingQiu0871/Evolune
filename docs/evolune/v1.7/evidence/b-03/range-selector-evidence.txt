@@ -1,0 +1,13 @@
+# Range selector evidence
+
+- five options bound 1:1 to InsightsRangeSelection (Last7/Last30/Last90/CurrentMonth/Custom)
+- default selection = Last30Days (B-02 DEFAULT); asserted by InsightsScreenTest
+- the UI performs no date arithmetic: InsightsScreen.kt contains no minusDays/YearMonth
+- selecting another range forwards one intent: viewModel.selectRange(...)
+  - InsightsPresentationTest :: selection labels cover all five frozen presets
+  - InsightsScreenTest :: rangeSelectorExposesAllFiveOptionsAndDefaultsToLast30
+  - InsightsScreenTest :: selectingAnotherRangeAsksTheViewModelForItAndUpdatesTheSurface
+  - InsightsScreenTest :: loadingKeepsTheRangeSelectorAndShowsNoSections
+  - InsightsScreenTest :: unrecordedOnlyRangeIsContentAndNeverTheEmptyState
+  - InsightsScreenTest :: trulyEmptyRangeShowsTheEmptyMessageAndNoSections
+  - InsightsScreenTest :: invalidRangeShowsTheTypedNeutralMessage

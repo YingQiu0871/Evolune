@@ -1,0 +1,27 @@
+# Crash fix: InsightsRangeSelection.DEFAULT class-initialization order
+
+## symptom (device)
+java.lang.NullPointerException: Parameter specified as non-null is null:
+  method InsightsUiState.<init>, parameter selection
+  at InsightsUiState.<init>(InsightsUiState.kt:52)
+  at InsightsViewModel.<init>(InsightsViewModel.kt:79)
+  at InsightsViewModelFactory.create(InsightsViewModel.kt:379)
+  at androidx.lifecycle.viewmodel.compose.ViewModelKt viewModel(...)
+
+## bytecode evidence (javap -p -c on the compiled debug classes)
+InsightsRangeSelection (interface): declares a default method isRelativeToToday() and a
+  static {} that publishes Companion.
+InsightsRangeSelection$Companion: static {} does
+  putstatic $$INSTANCE, then getstatic InsightsRangeSelection$Last30Days.INSTANCE,
+  then putstatic DEFAULT.
+Because the interface declares a default method, the JVM initializes it before any implementor
+(JVMS 5.5). Touching Last30Days first runs the companion's initializer while Last30Days is still
+being initialized, so INSTANCE reads as null and DEFAULT is permanently null in that order.
+
+## regression (fresh classloader forces the object-first order)
+InsightsRangeSelectionInitTest:
+  before fix: FAILED - java.lang.AssertionError: InsightsRangeSelection.DEFAULT must never be null
+  after fix : PASSED (DEFAULT === Last30Days)
+
+## fix (1 line + KDoc, no semantic change)
+val DEFAULT: InsightsRangeSelection get() = Last30Days

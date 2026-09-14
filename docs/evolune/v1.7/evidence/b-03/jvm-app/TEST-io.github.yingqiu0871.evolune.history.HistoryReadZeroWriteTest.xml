@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:51.778Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="reading a history range performs reads and zero writes" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest" time="0.001"/>
+  <testcase name="refreshing and retrying read again but still never write" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest" time="0.002"/>
+  <testcase name="the initial month load performs reads and zero writes" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest" time="0.0"/>
+  <testcase name="selecting a day performs neither an additional read nor any write" classname="io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

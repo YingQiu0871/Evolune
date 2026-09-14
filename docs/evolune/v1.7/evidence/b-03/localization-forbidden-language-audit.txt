@@ -1,0 +1,32 @@
+# Localization + forbidden-language audit
+
+shipped Insights strings: 41 (in values/strings.xml and values-zh-rCN/strings.xml)
+language strategy preserved: default values/ (zh) + values-zh-rCN/ (zh), no hardcoded visible copy
+in the composables (grep of the UI package below).
+
+## forbidden Chinese tokens in shipped Insights copy
+  漏服: 0 hit(s)
+  依从率: 0 hit(s)
+  准时率: 0 hit(s)
+  延迟: 0 hit(s)
+  完成率: 0 hit(s)
+  合规: 0 hit(s)
+
+## forbidden English tokens in shipped Insights copy
+  adherence: 0 hit(s)
+  compliance: 0 hit(s)
+  completion rate: 0 hit(s)
+  missed: 0 hit(s)
+  skipped: 0 hit(s)
+  on time: 0 hit(s)
+  late: 0 hit(s)
+  delay: 0 hit(s)
+  percent: 0 hit(s)
+
+mandatory disclosure shipped verbatim:
+  计划时点由当前方案上下文生成。
+  没有记录并不能证明当时没有服药。
+frozen coverage subtitle shipped verbatim:
+  与生成的计划时点关联的记录
+
+Guard test: InsightsUiGuardTest (word-boundary + Chinese token scan over both resource files).

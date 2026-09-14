@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:51.894Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="every typed outcome finishes exactly once after work" classname="io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest" time="0.001"/>
+  <testcase name="unexpected and side effect failures finish once" classname="io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest" time="0.001"/>
+  <testcase name="in process cancellation finishes once and completes delivery job" classname="io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest" time="0.001"/>
+  <testcase name="cancelling one delivery does not affect another" classname="io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

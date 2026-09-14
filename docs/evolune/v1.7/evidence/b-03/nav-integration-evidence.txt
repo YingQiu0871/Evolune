@@ -1,0 +1,14 @@
+# Navigation integration evidence (real product path)
+
+route: private const val INSIGHTS_ROUTE = "insights" (sub-route shape reused from
+settings_*/sync_and_backup; the five-tab Screen enum is untouched).
+entry: HistoryScreen content item `history-insights-entry`.
+back: sub-route back semantics (bottom bar/rail hidden, top bar back -> popBackStack).
+
+instrumentation assertions (InsightsNavigationTest):
+  - InsightsNavigationTest :: historyOpensInsightsAndBackReturnsToHistory
+  - InsightsNavigationTest :: leavingAndReEnteringInsightsKeepsTheSurfaceUsable
+
+ViewModel ownership: Activity-scoped and created lazily inside the Insights destination
+(viewModel(viewModelStoreOwner = activity ?: entry, factory = insightsViewModelFactory)), so
+leave/re-enter keeps the B-02 surface-return refresh semantics without an eager startup read.

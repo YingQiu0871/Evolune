@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:51.891Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="Domain local schedules use Java defaults across DST gap and overlap" classname="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" time="0.001"/>
+  <testcase name="Domain reminder schedules cover every schedule type" classname="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" time="0.0"/>
+  <testcase name="request code offsets remain compatible with legacy alarm keys" classname="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" time="0.001"/>
+  <testcase name="duplicate times preserve source order and scheduling count" classname="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" time="0.0"/>
+  <testcase name="one hour reminder window boundary remains unchanged" classname="io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

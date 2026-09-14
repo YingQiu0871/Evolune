@@ -1,0 +1,215 @@
+# v1.7-B-03 source boundary
+# base = 56f32cd (B-02-R1 approval)
+# round commits: docs: close v1.7-B-03 Insights UI | test: verify Insights presentation and accessibility | feat: add Insights UI and History entry point
+
+## files allowed by the B-03 task
+OK         app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights (3 files)
+OK         app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt (1 files)
+OK         app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt (1 files)
+OK         app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt (1 files)
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/insights/InsightsRangeSelection.kt (1 files)
+OK         app/src/main/res/values/strings.xml (1 files)
+OK         app/src/main/res/values-zh-rCN/strings.xml (1 files)
+OK         app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/insights (2 files)
+OK         app/src/test/java/io/github/yingqiu0871/evolune/history/insights/InsightsRangeSelectionInitTest.kt (1 files)
+OK         app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights (2 files)
+OK         docs/evolune/v1.7/V17_B_03_INSIGHTS_UI.md (1 files)
+OK         docs/evolune/v1.7/evidence/b-03 (159 files)
+
+changed files outside the allowed set: 0
+
+## frozen surfaces (must be 0 files changed)
+OK         experience-core/src/main
+OK         app/src/main/java/io/github/yingqiu0871/evolune/data
+OK         app/schemas
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryReadService.kt
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/insights/InsightsViewModel.kt
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/insights/InsightsUiState.kt
+OK         app/src/main/java/io/github/yingqiu0871/evolune/history/insights/InsightsSurfaceLifecycle.kt
+OK         app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseMigrationMatrixTest.kt
+OK         app/src/main/java/io/github/yingqiu0871/evolune/wear
+OK         app/src/main/java/io/github/yingqiu0871/evolune/widget
+OK         app/src/main/java/io/github/yingqiu0871/evolune/pk
+OK         wear/src/main
+OK         gradle/libs.versions.toml
+OK         app/build.gradle.kts
+OK         docs/evolune/v1.7/evidence/b-02
+OK         docs/evolune/v1.7/evidence/b-02-r1
+
+## full round diff --stat
+.../ui/screens/insights/InsightsNavigationTest.kt  | 108 +++++
+ .../ui/screens/insights/InsightsScreenTest.kt      | 451 ++++++++++++++++++
+ .../io/github/yingqiu0871/evolune/MainActivity.kt  |  20 +-
+ .../history/insights/InsightsRangeSelection.kt     |  13 +-
+ .../evolune/navigation/AppNavigation.kt            |  27 +-
+ .../evolune/ui/screens/HistoryScreen.kt            |  56 ++-
+ .../ui/screens/insights/InsightsPresentation.kt    | 248 ++++++++++
+ .../ui/screens/insights/InsightsPreviews.kt        | 205 +++++++++
+ .../evolune/ui/screens/insights/InsightsScreen.kt  | 504 +++++++++++++++++++++
+ app/src/main/res/values-zh-rCN/strings.xml         |  43 ++
+ app/src/main/res/values/strings.xml                |  43 ++
+ .../insights/InsightsRangeSelectionInitTest.kt     |  60 +++
+ .../screens/insights/InsightsPresentationTest.kt   | 346 ++++++++++++++
+ .../ui/screens/insights/InsightsUiGuardTest.kt     | 155 +++++++
+ docs/evolune/v1.7/V17_B_03_INSIGHTS_UI.md          | 156 +++++++
+ docs/evolune/v1.7/evidence/b-03/MANIFEST.sha256    | 158 +++++++
+ .../v1.7/evidence/b-03/accessibility-evidence.txt  |   8 +
+ .../v1.7/evidence/b-03/androidtest-aggregate.tsv   |   3 +
+ docs/evolune/v1.7/evidence/b-03/b03-assemble.log   |  60 +++
+ .../evolune/v1.7/evidence/b-03/b03-focused-jvm.log | 105 +++++
+ docs/evolune/v1.7/evidence/b-03/b03-full-jvm.log   | 147 ++++++
+ docs/evolune/v1.7/evidence/b-03/b03-full-phone.log | 133 ++++++
+ .../v1.7/evidence/b-03/b03-targeted-android.log    |  99 ++++
+ .../v1.7/evidence/b-03/crash-fix-init-order.txt    |  27 ++
+ .../v1.7/evidence/b-03/focused-jvm-aggregate.tsv   |   2 +
+ ...ory.insights.InsightsOrchestrationGuardTest.xml |  11 +
+ ....history.insights.InsightsRangeResolverTest.xml |  18 +
+ ...ory.insights.InsightsRangeSelectionInitTest.xml |   7 +
+ ...y.insights.InsightsViewModelIntegrationTest.xml |   8 +
+ ...lune.history.insights.InsightsViewModelTest.xml |  53 +++
+ ...i.screens.insights.InsightsPresentationTest.xml |  19 +
+ ...une.ui.screens.insights.InsightsUiGuardTest.xml |  12 +
+ .../final-b03-TEST-Pixel_7-AVD-15-app.xml          | 281 ++++++++++++
+ docs/evolune/v1.7/evidence/b-03/jvm-aggregate.tsv  |   5 +
+ ....github.yingqiu0871.evolune.ExampleUnitTest.xml |   7 +
+ ...ngqiu0871.evolune.InitialRouteForIntentTest.xml |   8 +
+ ...ication.CrossEntryOccurrenceConcurrencyTest.xml |   9 +
+ ...871.evolune.application.DoseEventEditorTest.xml |  14 +
+ ...e.application.MahiroJsonV1ExportServiceTest.xml |   8 +
+ ...e.application.MahiroJsonV1ImportServiceTest.xml |  18 +
+ ...e.application.MedicationPlanDraftMapperTest.xml |  24 +
+ ...volune.application.MedicationPlanEditorTest.xml |  15 +
+ ...ation.NotificationOccurrenceConcurrencyTest.xml |  20 +
+ ...olune.application.RecordDoseEventActionTest.xml |  23 +
+ ...volune.application.ReplayPolicyBoundaryTest.xml |   7 +
+ ....application.WearAppConfirmationHandlerTest.xml |  12 +
+ ....evolune.application.WearAppUndoHandlerTest.xml |  17 +
+ ...olune.application.WearDoseActionHandlerTest.xml |  16 +
+ ...871.evolune.backup.B2RestoreTransactionTest.xml |  19 +
+ ...evolune.backup.BackupRestoreCoordinatorTest.xml |  24 +
+ ...u0871.evolune.backup.EvoluneBackupCodecTest.xml |  25 +
+ ....cloud.google.GoogleDriveBackupProviderTest.xml |  30 ++
+ ...kup.cloud.google.GoogleDriveRestGatewayTest.xml |  10 +
+ ...0871.evolune.brand.LauncherIconResourceTest.xml |  17 +
+ ...core.adapter.DomainDoseEventToPkAdapterTest.xml |  11 +
+ ...ore.adapter.DomainDoseEventToPkBoundaryTest.xml |   8 +
+ ....core.adapter.DomainDoseEventToPkParityTest.xml |   7 +
+ ...evolune.core.dataapi.RepositoryContractTest.xml |   9 +
+ ...ingqiu0871.evolune.core.model.DoseEventTest.xml |  11 +
+ ...u0871.evolune.core.model.MedicationPlanTest.xml |  24 +
+ ...71.evolune.core.model.ScheduledDoseSlotTest.xml |  15 +
+ ...tation.MedicationOccurrenceDomainMapperTest.xml |   8 +
+ ...871.evolune.core.time.LegacyTimeAdapterTest.xml |  18 +
+ ...olune.data.mapper.DoseEventEntityMapperTest.xml |  17 +
+ ...0871.evolune.data.mapper.ExtraKeyMapperTest.xml |  13 +
+ ....data.mapper.MedicationPlanEntityMapperTest.xml |  26 ++
+ ...ne.data.mapper.PersistenceInstantMapperTest.xml |   9 +
+ ....evolune.data.mapper.ScheduleTypeMapperTest.xml |   8 +
+ ...evolune.data.mapper.V3PersistenceMapperTest.xml |  16 +
+ ...data.migration.LegacyAggregatePreflightTest.xml |  11 +
+ ...une.data.migration.LegacyPlanTimeParserTest.xml |  29 ++
+ ...olune.data.migration.LegacyStorageClassTest.xml |  11 +
+ ...lune.data.migration.MigrationPrimitivesTest.xml |  21 +
+ ...n.contract.MigrationPersistenceContractTest.xml |  12 +
+ ...volune.external.mahiro.v1.MahiroV1CodecTest.xml |  18 +
+ ...xternal.mahiro.v1.MahiroV1DomainAdapterTest.xml |  19 +
+ ...althconnect.HealthConnectWeightProviderTest.xml |  26 ++
+ ...nect.HealthConnectWeightSyncCoordinatorTest.xml |  21 +
+ ...ne.history.HistoryCrossDatePresentationTest.xml |  14 +
+ ...history.HistoryFutureOccurrenceContractTest.xml |  10 +
+ ...871.evolune.history.HistoryPresentationTest.xml |  27 ++
+ ...lune.history.HistoryPresentationWordingTest.xml |  13 +
+ ...lune.history.HistoryQuickRecordInferredTest.xml |   8 +
+ ...e.history.HistoryReadServiceExtremeZoneTest.xml |  13 +
+ ...ry.HistoryReadServiceOccurrenceChunkingTest.xml |   9 +
+ ...history.HistoryReadServicePersistedDateTest.xml |  14 +
+ ...0871.evolune.history.HistoryReadServiceTest.xml |  17 +
+ ...71.evolune.history.HistoryReadZeroWriteTest.xml |  10 +
+ ...gqiu0871.evolune.history.HistoryRefreshTest.xml |  15 +
+ ...1.evolune.history.HistoryUndoProjectionTest.xml |  11 +
+ ...iu0871.evolune.history.HistoryViewModelTest.xml |  25 +
+ ...ory.insights.InsightsOrchestrationGuardTest.xml |  11 +
+ ....history.insights.InsightsRangeResolverTest.xml |  18 +
+ ...ory.insights.InsightsRangeSelectionInitTest.xml |   7 +
+ ...y.insights.InsightsViewModelIntegrationTest.xml |   8 +
+ ...lune.history.insights.InsightsViewModelTest.xml |  53 +++
+ ...evolune.navigation.FeatureTutorialRouteTest.xml |   9 +
+ ...0871.evolune.onboarding.OnboardingStateTest.xml |  11 +
+ ...-io.github.yingqiu0871.evolune.pk.EsterTest.xml |  11 +
+ ...hub.yingqiu0871.evolune.pk.PKParametersTest.xml |  18 +
+ ...ingqiu0871.evolune.pk.ParameterResolverTest.xml |  18 +
+ ...yingqiu0871.evolune.pk.SimulationEngineTest.xml |  19 +
+ ...iu0871.evolune.pk.ThreeCompartmentModelTest.xml |  14 +
+ ...e.reminder.Batch6ReceiverStaticBoundaryTest.xml |   7 +
+ ...871.evolune.reminder.DoseCheckInMatcherTest.xml |  10 +
+ ...reminder.MedicationPlanReminderScheduleTest.xml |  11 +
+ ...1.evolune.reminder.ReceiverWorkLauncherTest.xml |  10 +
+ ...71.evolune.reminder.ReminderDoseFactoryTest.xml |   9 +
+ ...1.evolune.reminder.ReminderReceiverWorkTest.xml |  17 +
+ ...volune.reminder.ReminderSkipStorePolicyTest.xml |   9 +
+ ...i.components.ConcentrationChartGeometryTest.xml |  14 +
+ ....ui.components.ConcentrationChartLayoutTest.xml |   9 +
+ ...evolune.ui.screens.HomeScheduleBoundaryTest.xml |   7 +
+ ...evolune.ui.screens.MotionListUxBoundaryTest.xml |   9 +
+ ...i.screens.insights.InsightsPresentationTest.xml |  19 +
+ ...une.ui.screens.insights.InsightsUiGuardTest.xml |  12 +
+ ...thub.yingqiu0871.evolune.ui.theme.ThemeTest.xml |   8 +
+ ...gqiu0871.evolune.utils.MahiroJsonFormatTest.xml |  20 +
+ ...une.utils.MedicationPlanPredictorParityTest.xml |   9 +
+ ...1.evolune.utils.MedicationPlanPredictorTest.xml |  17 +
+ ...gqiu0871.evolune.viewmodel.HRTViewModelTest.xml |  23 +
+ ...olune.viewmodel.MedicationPlanViewModelTest.xml |  19 +
+ ...volune.viewmodel.PkSimulationCalculatorTest.xml |   7 +
+ ...evolune.wear.WearAppLegacyCompatibilityTest.xml |   7 +
+ ...871.evolune.wear.WearAppSnapshotBuilderTest.xml |  21 +
+ ...olune.wear.WearAppSnapshotRevisionStoreTest.xml |   7 +
+ ....yingqiu0871.evolune.wear.WearDataLayerTest.xml |  11 +
+ ...olune.wear.WearProductionBypassBoundaryTest.xml |   9 +
+ ...evolune.wear.WearSkipNotificationPolicyTest.xml |   8 +
+ ...qiu0871.evolune.widget.WidgetAppearanceTest.xml |  19 +
+ ...u0871.evolune.widget.WidgetHostContractTest.xml |  16 +
+ ...u0871.evolune.widget.WidgetPresentationTest.xml |  15 +
+ ...hub.yingqiu0871.evolune.widget.WidgetUiTest.xml |  27 ++
+ ...b.yingqiu0871.evolune.widget.WidgetWorkTest.xml |  23 +
+ ...ce.HistoricalProjectionFutureOccurrenceTest.xml |  17 +
+ ...e.experience.HistoricalProjectionIntakeTest.xml |  15 +
+ ...perience.HistoricalProjectionProvenanceTest.xml |  16 +
+ ...nce.HistoricalReadModelFutureOccurrenceTest.xml |  10 +
+ ....evolune.experience.HistoricalReadModelTest.xml |  22 +
+ ...xperience.MedicationOccurrenceGeneratorTest.xml |  18 +
+ ...edicationOccurrenceIdentityGoldenVectorTest.xml |  12 +
+ ...experience.MedicationOccurrenceIdentityTest.xml |  10 +
+ ...rience.MedicationOccurrencePresentationTest.xml |  29 ++
+ ...e.experience.MedicationTimelineSelectorTest.xml |  12 +
+ ...olune.experience.PureDependencyBoundaryTest.xml |   8 +
+ ...perience.insights.InsightsBoundaryGuardTest.xml |  11 +
+ ...e.insights.MedicationInsightsAggregatorTest.xml |  27 ++
+ ...nsights.MedicationInsightsGoldenDatasetTest.xml |   8 +
+ ...ghts.MedicationInsightsPerformanceSmokeTest.xml |   7 +
+ ...rience.wear.WearAppConfirmationProtocolTest.xml |  11 +
+ ...une.experience.wear.WearAppRequestCodecTest.xml |  17 +
+ ...ne.experience.wear.WearAppSnapshotCodecTest.xml |  21 +
+ ...une.experience.wear.WearAppUndoProtocolTest.xml |  12 +
+ ...evolune.wear.WearAppCompatibilityMatrixTest.xml |  10 +
+ ....evolune.wear.WearAppFollowUpRegressionTest.xml |  23 +
+ ...u0871.evolune.wear.WearAppRefreshPolicyTest.xml |   8 +
+ ...b.yingqiu0871.evolune.wear.WearAppStateTest.xml |  27 ++
+ ...u0871.evolune.wear.WearAppearancePolicyTest.xml |   9 +
+ ...u0871.evolune.wear.WearComplicationTextTest.xml |  11 +
+ ...71.evolune.wear.WearConnectionSemanticsTest.xml |  18 +
+ ...qiu0871.evolune.wear.WearDashboardStateTest.xml |  20 +
+ ....yingqiu0871.evolune.wear.WearDashboardTest.xml |   7 +
+ ...0871.evolune.wear.WearGalleryTilePolicyTest.xml |  13 +
+ ...ne.wear.WearSurfaceRegistrationContractTest.xml |  10 +
+ .../b-03/localization-forbidden-language-audit.txt |  32 ++
+ .../evidence/b-03/nav-integration-evidence.txt     |  14 +
+ .../b-03/no-metric-recomputation-audit.txt         |  31 ++
+ .../v1.7/evidence/b-03/previews-inventory.txt      |  11 +
+ .../v1.7/evidence/b-03/range-selector-evidence.txt |  13 +
+ .../v1.7/evidence/b-03/screen-hierarchy.txt        |  18 +
+ .../v1.7/evidence/b-03/source-diff-stat.txt        | 215 +++++++++
+ .../targeted-b03-TEST-Pixel_7-AVD-15-app.xml       |  28 ++
+ .../v1.7/evidence/b-03/ui-semantics-snapshot.txt   |  45 ++
+ .../evidence/b-03/unrecorded-only-regression.txt   |  14 +
+ 174 files changed, 5921 insertions(+), 13 deletions(-)

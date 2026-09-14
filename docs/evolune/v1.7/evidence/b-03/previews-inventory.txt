@@ -1,0 +1,11 @@
+# Preview inventory (InsightsPreviews.kt, pure render state, no repository/ViewModel)
+
+  Insights content
+  Insights unrecorded only
+  Insights timezone disclosure
+  Insights unknown medication
+  Insights loading
+  Insights empty
+  Insights error
+  Insights invalid range
+  Insights large font

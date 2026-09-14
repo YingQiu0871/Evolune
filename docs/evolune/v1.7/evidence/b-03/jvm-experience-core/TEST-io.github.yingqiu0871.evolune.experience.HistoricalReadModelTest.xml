@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:34.119Z" hostname="人面不知何处去" time="0.011">
+  <properties/>
+  <testcase name="event without any occurrence becomes an unmatched intake" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="persisted recording date stays on the recorded day across display zones" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="range with identical bounds returns that single day" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="occurrence without any recorded intake becomes an unrecorded entry" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.001"/>
+  <testcase name="occurrence with a matching event becomes a recorded entry" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="unrecorded occurrence keeps current schedule context" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="a second event for the same occurrence is not consumed twice" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="entry order is deterministic and uses stable tie-breaks" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="range returns only days with entries in ascending order" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.001"/>
+  <testcase name="orphan intake from a deleted plan still appears on its recorded day" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="range with no entries returns an empty day list" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="day groups matched unrecorded and unmatched entries together" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.001"/>
+  <testcase name="mixed batch is complete and consumes nothing twice" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.002"/>
+  <testcase name="invalid range fails fast" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.003"/>
+  <testcase name="cross-midnight legacy event lands on the occurrence day" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.0"/>
+  <testcase name="true legacy orphan display day follows the display zone" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

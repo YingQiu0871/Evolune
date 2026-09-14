@@ -1,0 +1,45 @@
+# Insights UI semantics snapshot (testTags + accessibility contract)
+
+## test tags declared by the Insights screen (and the History entry)
+  history-calendar
+  history-cell-$date
+  history-content-list
+  history-day-summary
+  history-empty-day
+  history-entry-${entry.key}
+  history-entry-actual-time
+  history-entry-note
+  history-entry-schedule-time
+  history-entry-status
+  history-error
+  history-insights-entry
+  history-loading
+  history-month-title
+  history-next-month
+  history-previous-month
+  history-retry
+  history-screen
+  history-weekday-header
+  insights-confidence-explanation
+  insights-content-list
+  insights-custom-range-cancel
+  insights-custom-range-confirm
+  insights-custom-range-picker
+  insights-dose-empty
+  insights-dose-row-${row.medicationKey.name}
+  insights-empty
+  insights-error
+  insights-invalid-range
+  insights-loading
+  insights-range-heading
+  insights-range-selector
+  insights-retry
+  insights-screen
+  insights-unknown-identity
+
+## accessibility contract
+- every metric row is a real Text pair (label + count) AND carries
+  contentDescription = stringResource(R.string.insights_bar_description, label, count)
+- range chips expose Material selected semantics (asserted by InsightsScreenTest)
+- no colour-only / icon-only / geometry-only carrier exists (no chart, no progress metric)
+- fontScale 1.5f smoke covered by an @Preview and by InsightsScreenTest

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-14T13:20:36.727Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="wear app and Tiles share one moderate card radius" classname="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" time="0.0"/>
+  <testcase name="passive Tiles use a battery-conscious fifteen minute fallback" classname="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" time="0.0"/>
+  <testcase name="wear exposes system Monet and the same eight phone presets" classname="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
