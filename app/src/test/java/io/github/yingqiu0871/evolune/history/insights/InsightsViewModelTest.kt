@@ -790,6 +790,92 @@ class InsightsViewModelTest {
         }
     }
 
+    // ---------- B-04 carry-over closures (v1.7-B-04 §31) ----------
+
+    @Test
+    fun `a superseding selection that is invalid leaves no refresh latch behind`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            fixture.source.result = { call -> rangeWith(call, matched = 1) }
+
+            // A (Last30Days) is in flight and a refresh intent is queued for it
+            fixture.viewModel.onAppForegrounded()
+            assertEquals(1, fixture.source.calls.size)
+
+            // the user reselects a custom range that is invalid: no coroutine, no finally, so the
+            // queued intent must be cleared by the supersede itself
+            fixture.viewModel.selectRange(
+                InsightsRangeSelection.Custom(LocalDate.of(2026, 9, 10), LocalDate.of(2026, 9, 1))
+            )
+
+            val invalid = fixture.viewModel.uiState.value
+            assertEquals(InsightsPhase.INVALID_RANGE, invalid.phase)
+            assertEquals(InsightsRangeValidationError.START_AFTER_END, invalid.validationError)
+            assertEquals("the invalid selection must not read", 1, fixture.source.calls.size)
+
+            gate.complete(Unit)
+            assertEquals("the superseded load must not read again", 1, fixture.source.calls.size)
+
+            // and a later refresh of the now-invalid selection still reads nothing
+            fixture.viewModel.onAppForegrounded()
+            assertEquals("an invalid selection never reads", 1, fixture.source.calls.size)
+            assertEquals("the superseded read was cancelled before aggregating", 0, fixture.aggregator.calls)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a preserved refresh publishes the follow-up summary of the new selection`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            // B answers with a distinct signature; the follow-up answers with another one
+            var answers = 0
+            fixture.source.result = { call ->
+                answers += 1
+                if (answers == 1) rangeWith(call, matched = 1) else rangeWith(call, matched = 2, unrecorded = 5)
+            }
+
+            fixture.viewModel.selectRange(InsightsRangeSelection.Last7Days)
+            fixture.viewModel.onAppForegrounded()
+            gate.complete(Unit)
+
+            assertEquals("A, B and one refresh of B", 3, fixture.source.calls.size)
+            val state = fixture.viewModel.uiState.value
+            assertEquals(InsightsRangeSelection.Last7Days, state.selection)
+            val summary = requireNotNull(state.summary)
+            assertEquals("the follow-up summary must win", 2, summary.recordedIntakeCount)
+            assertEquals(5, summary.unrecordedOccurrenceCount)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a new custom selection performs exactly one read`() {
+        val fixture = fixture()
+        try {
+            fixture.viewModel.selectRange(
+                InsightsRangeSelection.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 10))
+            )
+
+            assertEquals("initial load plus one custom read", 2, fixture.source.calls.size)
+            assertEquals(2, fixture.aggregator.calls)
+            assertEquals(LocalDate.of(2026, 9, 1), fixture.source.calls.last().startDate)
+            assertEquals(LocalDate.of(2026, 9, 10), fixture.source.calls.last().endDate)
+
+            // and reselecting the identical custom endpoints stays a no-op
+            fixture.viewModel.selectRange(
+                InsightsRangeSelection.Custom(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 10))
+            )
+            assertEquals(2, fixture.source.calls.size)
+        } finally {
+            fixture.close()
+        }
+    }
+
     // ---------- request snapshot (v1.7-B-02-R1 sections 11/12) ----------
 
     @Test

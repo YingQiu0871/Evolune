@@ -94,6 +94,37 @@ class InsightsSurfaceLifecycleTest {
     }
 
     @Test
+    fun `a disposed bridge does not refresh on lifecycle transitions`() {
+        val source = RecordingSource()
+        val viewModel = viewModel(source)
+        var visible by mutableStateOf(true)
+
+        composeRule.setContent {
+            if (visible) {
+                InsightsSurfaceLifecycle(viewModel)
+            }
+        }
+        composeRule.waitForIdle()
+        assertEquals(1, source.calls.size)
+
+        // the destination leaves composition: the observer must be disposed with it
+        visible = false
+        composeRule.waitForIdle()
+
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
+        composeRule.waitForIdle()
+        composeRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        composeRule.waitForIdle()
+
+        assertEquals("no refresh may happen while Insights is not composed", 1, source.calls.size)
+
+        // re-entry refreshes exactly once through the surface-return contract
+        visible = true
+        composeRule.waitForIdle()
+        assertEquals("re-entry refreshes once", 2, source.calls.size)
+    }
+
+    @Test
     fun `the cold start does not refresh on the initial start transition`() {
         val source = RecordingSource()
         val viewModel = viewModel(source)

@@ -2,6 +2,9 @@ package io.github.yingqiu0871.evolune.ui.screens.insights
 
 import android.content.Context
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
@@ -14,7 +17,9 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
@@ -188,7 +193,7 @@ class InsightsScreenTest {
         setContent(state())
 
         val label = context.getString(R.string.history_source_manual)
-        val expected = context.getString(R.string.insights_bar_description, label, 3)
+        val expected = context.getString(R.string.insights_count_row_description, label, 3)
         composeRule.onNodeWithTag("insights-source-row-MANUAL").assertContentDescriptionEquals(expected)
     }
 
@@ -314,9 +319,10 @@ class InsightsScreenTest {
             .performScrollToNode(hasTestTag("insights-dose-section"))
         composeRule.onNodeWithTag("insights-unknown-identity").assertIsDisplayed()
         composeRule.onNodeWithTag("insights-dose-empty").assertIsDisplayed()
-        composeRule
-            .onNodeWithText(context.getString(R.string.insights_unknown_identity, 3))
-            .assertIsDisplayed()
+        // the count sentence is exposed once, as the row's merged fact
+        composeRule.onNodeWithTag("insights-unknown-identity").assertContentDescriptionEquals(
+            context.getString(R.string.insights_unknown_identity, 3)
+        )
     }
 
     @Test
@@ -369,6 +375,172 @@ class InsightsScreenTest {
     }
 
     @Test
+    fun everyMetricRowExposesExactlyOneSemanticFact() {
+        setContent(state())
+        composeRule.onNodeWithTag("insights-content-list")
+            .performScrollToNode(hasTestTag("insights-dose-section"))
+
+        // The merged tree is what TalkBack walks: each row must be exactly one node carrying the
+        // localized "label: value" fact, and the child label/value Texts must not appear as their
+        // own nodes (that was the B-03 P2 duplication risk).
+        fun assertSingleFact(tag: String, label: String, value: String, expected: String) {
+            assertEquals("$tag must be one merged node", 1, composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().size)
+            composeRule.onNodeWithTag(tag).assertContentDescriptionEquals(expected)
+            assertEquals(
+                "'$label' must not be exposed separately for $tag",
+                0,
+                composeRule.onAllNodesWithText(label).fetchSemanticsNodes().size
+            )
+            assertEquals(
+                "'$value' must not be exposed separately for $tag",
+                0,
+                composeRule.onAllNodesWithText(value).fetchSemanticsNodes().size
+            )
+        }
+
+        val intakes = context.getString(R.string.insights_card_recorded_intakes)
+        assertSingleFact(
+            "insights-card-recorded-intakes",
+            intakes,
+            "6",
+            context.getString(R.string.insights_count_row_description, intakes, 6)
+        )
+
+        val manual = context.getString(R.string.history_source_manual)
+        assertSingleFact(
+            "insights-source-row-MANUAL",
+            manual,
+            "3",
+            context.getString(R.string.insights_count_row_description, manual, 3)
+        )
+
+        val high = context.getString(R.string.insights_confidence_high)
+        assertSingleFact(
+            "insights-confidence-row-HIGH",
+            high,
+            "3",
+            context.getString(R.string.insights_count_row_description, high, 3)
+        )
+
+        val e2 = context.getString(R.string.ester_e2)
+        val doseText = io.github.yingqiu0871.evolune.history.HistoryFormatting.dose(12.5)
+        assertSingleFact(
+            "insights-dose-row-E2",
+            e2,
+            doseText,
+            context.getString(R.string.insights_value_row_description, e2, doseText)
+        )
+    }
+
+    @Test
+    fun coverageGoldenShowsOnlyTheTwoCountsAndNeverARatio() {
+        setContent(state())
+
+        composeRule.onNodeWithTag("insights-coverage-linked").assertContentDescriptionEquals(
+            context.getString(
+                R.string.insights_count_row_description,
+                context.getString(R.string.insights_coverage_linked),
+                4
+            )
+        )
+        composeRule.onNodeWithTag("insights-coverage-unlinked").assertIsDisplayed()
+        listOf("%", "4/7", "7/4", "0.57", "57").forEach { token ->
+            val matches = composeRule.onAllNodesWithText(token, substring = true).fetchSemanticsNodes()
+            assertEquals("coverage must not render '$token'", 0, matches.size)
+        }
+    }
+
+    @Test
+    fun unknownIdentityGoldenIsCountOnlyAndNeverADrugGuess() {
+        setContent(state(summary = summary(doses = emptyMap(), unknownIdentity = 3)))
+
+        composeRule.onNodeWithTag("insights-content-list")
+            .performScrollToNode(hasTestTag("insights-unknown-identity"))
+        composeRule.onNodeWithTag("insights-unknown-identity").assertIsDisplayed()
+        listOf("mg", "E2", "EV", "CPA", "spironolactone", "cyproterone", "antiandrogen").forEach { token ->
+            val matches = composeRule.onAllNodesWithText(token, substring = true, ignoreCase = true)
+                .fetchSemanticsNodes()
+            assertEquals("unknown identity must not render '$token'", 0, matches.size)
+        }
+    }
+
+    @Test
+    fun theStateMatrixKeepsOnlyTheAllowedNodesPerPhase() {
+        var current by mutableStateOf(phaseState(InsightsPhase.LOADING))
+        composeRule.setContent {
+            EvoluneTheme { InsightsScreenContent(state = current) }
+        }
+
+        // LOADING: selector + loading only
+        composeRule.onNodeWithTag("insights-range-selector").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights-loading").assertIsDisplayed()
+        listOf("insights-coverage-section", "insights-empty", "insights-error", "insights-invalid-range").forEach {
+            composeRule.onNodeWithTag(it).assertDoesNotExist()
+        }
+
+        // CONTENT: sections, no loading/empty/error/validation
+        current = phaseState(InsightsPhase.CONTENT, summary())
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("insights-coverage-section").assertIsDisplayed()
+        listOf("insights-loading", "insights-empty", "insights-error", "insights-invalid-range").forEach {
+            composeRule.onNodeWithTag(it).assertDoesNotExist()
+        }
+
+        // EMPTY: empty copy only
+        current = phaseState(
+            InsightsPhase.EMPTY,
+            summary(
+                recordedIntakes = 0, recordedDays = 0, matched = 0, unrecorded = 0, unmatched = 0,
+                high = 0, medium = 0, low = 0, sources = emptyMap(), doses = emptyMap(), unknownIdentity = 0
+            )
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("insights-empty").assertIsDisplayed()
+        listOf("insights-coverage-section", "insights-error", "insights-invalid-range", "insights-loading").forEach {
+            composeRule.onNodeWithTag(it).assertDoesNotExist()
+        }
+
+        // ERROR: retry only
+        current = phaseState(InsightsPhase.ERROR, null)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("insights-error").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights-retry").assertIsDisplayed()
+        listOf("insights-coverage-section", "insights-empty", "insights-invalid-range", "insights-loading").forEach {
+            composeRule.onNodeWithTag(it).assertDoesNotExist()
+        }
+
+        // INVALID_RANGE: typed copy only, controls stay
+        current = phaseState(
+            InsightsPhase.INVALID_RANGE,
+            null,
+            validationError = InsightsRangeValidationError.START_AFTER_END
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("insights-range-selector").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights-invalid-range").assertIsDisplayed()
+        listOf("insights-coverage-section", "insights-empty", "insights-error", "insights-loading").forEach {
+            composeRule.onNodeWithTag(it).assertDoesNotExist()
+        }
+    }
+
+    private fun phaseState(
+        phase: InsightsPhase,
+        summary: MedicationInsightsSummary? = null,
+        validationError: InsightsRangeValidationError? = null
+    ): InsightsUiState = state(
+        phase = phase,
+        summary = summary,
+        startDate = summary?.startDate ?: today.minusDays(29),
+        endDate = summary?.endDate ?: today,
+        validationError = validationError,
+        failure = if (phase == InsightsPhase.ERROR) {
+            InsightsLoadFailure.ReadFailure(IllegalStateException("matrix"))
+        } else {
+            null
+        }
+    )
+
+    @Test
     fun largeFontScaleKeepsTheSurfaceReadable() {
         composeRule.setContent {
             EvoluneTheme {
@@ -380,9 +552,36 @@ class InsightsScreenTest {
             }
         }
 
+        // core nodes must all still exist at 1.5x, with their full metric value
         composeRule.onNodeWithTag("insights-range-selector").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights-range-last30").assertIsDisplayed()
         composeRule.onNodeWithTag("insights-card-recorded-intakes").assertIsDisplayed()
+        composeRule.onNodeWithTag("insights-card-recorded-intakes")
+            .assertContentDescriptionEquals(
+                context.getString(
+                    R.string.insights_count_row_description,
+                    context.getString(R.string.insights_card_recorded_intakes),
+                    6
+                )
+            )
         composeRule.onNodeWithTag("insights-coverage-section").assertIsDisplayed()
+
+    }
+
+    @Test
+    fun theRangeSelectorStaysOperableAtLargeFontScale() {
+        var selected: InsightsRangeSelection? = null
+        composeRule.setContent {
+            EvoluneTheme {
+                CompositionLocalProvider(LocalDensity provides Density(density = 1f, fontScale = 1.5f)) {
+                    InsightsScreenContent(state = state(), onSelectRange = { selected = it })
+                }
+            }
+        }
+
+        composeRule.onNodeWithTag("insights-range-last7").performClick()
+        composeRule.waitForIdle()
+        assertEquals(InsightsRangeSelection.Last7Days, selected)
     }
 
     @Test

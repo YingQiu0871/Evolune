@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune.ui.screens.insights
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +33,16 @@ class InsightsUiGuardTest {
 
     private val zhStrings: String by lazy {
         Files.readString(Path.of("src/main/res/values-zh-rCN/strings.xml"))
+    }
+
+    /**
+     * The UI sources with comments removed: a KDoc sentence that *forbids* a metric is allowed,
+     * an identifier that implements one is not (v1.7-B-04 §33).
+     */
+    private val uiCode: String by lazy {
+        uiSources
+            .replace(Regex("""/[*][\s\S]*?[*]/"""), " ")
+            .replace(Regex("""//[^\n]*"""), " ")
     }
 
     private fun assertAbsent(source: String, token: String, what: String) {
@@ -145,6 +156,91 @@ class InsightsUiGuardTest {
             )
         }
     }
+
+    // ---------- v1.7-B-04 §12/§20 hardening ----------
+
+    @Test
+    fun `no chart or canvas primitive exists and no chart dependency is declared`() {
+        listOf("Canvas(", "drawArc", "drawPath", "drawScope", "Path(").forEach {
+            assertAbsent(uiSources, it, "the Insights UI")
+        }
+        val versions = Files.readString(Path.of("../gradle/libs.versions.toml"))
+        val appBuild = Files.readString(Path.of("build.gradle.kts"))
+        listOf("vico", "mpandroidchart", "compose-charts", "koalaplot", "charts").forEach { lib ->
+            assertFalse(
+                "no chart library may be declared ($lib)",
+                versions.contains(lib, ignoreCase = true) || appBuild.contains(lib, ignoreCase = true)
+            )
+        }
+        // and the presentation layer keeps consuming fixed-size maps only: it never touches the
+        // per-day HistoricalRange at all (no daily series may be derived here)
+        val mapper = Files.readString(uiDir.resolve("InsightsPresentation.kt"))
+        assertFalse("the mapper must not read the range", mapper.contains("HistoricalRange"))
+        assertFalse("the mapper must not read range days", mapper.contains(".days"))
+    }
+
+    @Test
+    fun `no forbidden metric identifier exists in the Insights UI sources`() {
+        listOf(
+            "adherence",
+            "compliance",
+            "completionRate",
+            "missedDose",
+            "skippedDose",
+            "onTimeRate",
+            "lateRate",
+            "timingDifference",
+            "averageDelay",
+            "percentage",
+            "percent",
+            "ratio"
+        ).forEach { token ->
+            assertAbsent(uiCode, token, "the Insights UI code")
+        }
+    }
+
+    @Test
+    fun `the shipped default locale copy is Chinese and both locales are complete`() {
+        // honest documentation of the language strategy: values/ is the Chinese default, so the
+        // English-token guard has limited value on its own and the Chinese token guard matters most
+        val cjk = Regex("[\\u4e00-\\u9fff]")
+        assertTrue(
+            "the default Insights copy is expected to be Chinese",
+            cjk.containsMatchIn(insightsValue(defaultStrings, "insights_empty"))
+        )
+        assertEquals(
+            "both locale files must expose the same Insights keys",
+            insightsKeys(defaultStrings),
+            insightsKeys(zhStrings)
+        )
+        assertTrue("localized Insights copy must exist", insightsKeys(defaultStrings).size >= 40)
+    }
+
+    @Test
+    fun `the accessibility description resources keep their placeholder contract`() {
+        listOf(defaultStrings, zhStrings).forEach { xml ->
+            assertEquals(
+                listOf("%1\$s", "%2\$d"),
+                Regex("%\\d\\\$[sd]").findAll(insightsValue(xml, "insights_count_row_description"))
+                    .map { it.value }.toList().sorted()
+            )
+            assertEquals(
+                listOf("%1\$s", "%2\$s"),
+                Regex("%\\d\\\$[sd]").findAll(insightsValue(xml, "insights_value_row_description"))
+                    .map { it.value }.toList().sorted()
+            )
+        }
+    }
+
+    private fun insightsKeys(xml: String): Set<String> =
+        Regex("<string name=\"(insights_[^\"]*)\"").findAll(xml).map { it.groupValues[1] }.toSet()
+
+    private fun insightsValue(xml: String, key: String): String =
+        Regex("<string name=\"$key\">(.*?)</string>", RegexOption.DOT_MATCHES_ALL)
+            .find(xml)
+            ?.groupValues
+            ?.get(1)
+            ?: error("missing $key")
 
     /** All `<string name="insights_*">` values of one resource file. */
     private fun insightsStringEntries(xml: String): List<String> =
