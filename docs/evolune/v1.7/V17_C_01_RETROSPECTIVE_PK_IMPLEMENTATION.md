@@ -28,6 +28,16 @@
 > `steps = max(ceil(hours * 12.0) + 1, 1000)`（与现行生产一致），短窗口不得判契约违例；
 > 计算仅在 366 天资源门通过后、以 checked 非饱和算术进行（§5.1/§9；测试 V22–V27）。
 > 其余 RC-1..RC-6 与全部 P3 内容不变。
+>
+> **R4.2（runtime contract conflict resolution，architect accepted）**：
+> ① 序列校验改为冻结容差规则（§5.5/§7.3(g)）：`RETROSPECTIVE_PK_NEGATIVE_ROUNDOFF_TOLERANCE_PG_ML = 1e-9`；
+> `[-1e-9, 0)` 合法且**保留原始 Double 不变**，`< -1e-9` / NaN / ±Inf 才抛
+> `RetrospectivePkContractViolationException`；**禁止**任何 clamp/floor/normalize/drop/shift，数值结果与
+> 未改动引擎输出逐位一致（唯一允许转换仍是 timeH → Instant）。
+> ② PATCH present-and-finite-`<= 0` release rate 的 producing 分类修正（§6/§7.3(c)(d)(e)）：
+> 事件保留为引擎输入、无 exclusion、贡献 0（现行参数解析）、**NOT producing**（即使 dose 为正）；
+> 只有此类事实时 → `NO_ELIGIBLE_RECORDED_INTAKES`。
+> 测试增量见 §13.0（R4.2 表）。其余 R4/R4.1 内容不变。
 
 **R1/R2/R3 已接受、不再 reopen**：单一 `HistoryReadService` reader + `AllAvailableHistory`；
 四条 limitation；affected-chain 补丁语法；单次 100k guard（无累计上限）；六个 extras；
@@ -428,8 +438,20 @@ class HistoricalOccurrenceLimitExceededException(message: String) : RuntimeExcep
 /** 回顾性层内部契约违例；fail-fast，服务不捕获。 */
 class RetrospectivePkContractViolationException(message: String) : IllegalStateException(message)
 
+/**
+ * R4.2：负向 roundoff 校验容差（数值输出校验 only；不是模型/科学参数，不是 clamp，不是 limitation）。
+ */
+const val RETROSPECTIVE_PK_NEGATIVE_ROUNDOFF_TOLERANCE_PG_ML = 1e-9
+
 object RetrospectivePkSeriesValidator {
-    /** 每点有限且非负；违反抛 RetrospectivePkContractViolationException。 */
+    /**
+     * 冻结有效域（R4.2；替换旧的“有限且非负”）：
+     *  - concentration finite；
+     *  - concentration >= 0                          -> valid；
+     *  - -1e-9 <= concentration < 0                  -> valid（tau=0 浮点消去伪影），保留原始 Double 不变；
+     *  - concentration < -1e-9 / NaN / +Inf / -Inf   -> RetrospectivePkContractViolationException。
+     * 禁止对任何点做 clamp/floor/normalize/drop/shift。
+     */
     fun validate(points: List<RetrospectivePkPoint>)
 }
 ```
@@ -529,44 +551,63 @@ retrospective-only raw-event join、依赖默认 `emptyMap()`。缺失键 = 合�
 
 | 输入 | 引擎分支/结果 |
 |---|---|
-| release rate 缺失 | 一阶 |
-| 有限 rate `> 0` | 零级 |
-| 有限 rate `<= 0` | 一阶 |
-| rate `NaN` | 一阶 |
-| rate `+Infinity` | 零级 + 非有限传播 |
-| rate `-Infinity` | 一阶 |
+| release rate 缺失 | 一阶（`GENERIC_K1`），由 `doseMG` 驱动 |
+| 有限 rate `> 0` | 零级，由释放速率驱动 |
+| 有限 rate `<= 0` | present-but-non-positive：参数走零级形状（`k1Fast = 0`）→ `patchAmount` 落入 bateman 分支且 `ka = 0` → **贡献 0** |
+| rate `NaN` | 比较为 false → 同 `<= 0` → 贡献 0 |
+| rate `+Infinity` | 零级 + 非有限量值传播（适配器排除，永不进入） |
+| rate `-Infinity` | 同 `<= 0` → 贡献 0 |
 | 剂量驱动模式 `doseMG <= 0`（有限） | 贡献 0 |
 
-### 7.3 回顾性适配器资格（冻结；R4 剂量规则）
+### 7.3 回顾性适配器资格（冻结；R4 剂量规则 + R4.2 producing 修正）
 
-**（a）release-rate**：缺失 → 一阶；有限 `> 0` → 零级；有限 `<= 0` → 现行一阶分支；
+**（a）release-rate**：缺失 → 一阶消费 `doseMG`；有限 `> 0` → 零级（释放速率驱动）；
+有限 `<= 0` → **present-but-non-positive 现行路径原样保留**（贡献 0）；
 `NaN`/`±Infinity` → 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT`。
 
 **（b）通用有限门**：**non-finite model-driving numeric value → exclude**
 （`UNSUPPORTED_OR_INCOMPLETE_EVENT`）；不得把“有限但未知”的值当作排除理由。
 
-**（c）剂量规则（R4 冻结，逐 route）**：
+**（c）剂量规则（R4 冻结，R4.2 修正 producing 列）**：
 
 | 情形 | 有限 `doseMG > 0` | 有限 `doseMG <= 0` | NaN/±Inf |
 |---|---|---|---|
 | 受支持非 patch（INJECTION EB/EV/EC/EN、ORAL 全部、SUBLINGUAL 全部、GEL 任意酯） | producing | **引擎输入保留（零贡献 parity）；非 producing；无 exclusion；不触发 `EXCLUDED_RECORDED_INTAKES`** | 排除 |
-| PATCH 零级（有限 rate `> 0`） | `doseMG` 可为 0 → producing | 负值保留 R2/R3 规则（排除） | 排除（R2/R3 规则，不扩大） |
-| PATCH 一阶（rate 缺失或有限 `<= 0`） | producing | **引擎输入保留（零贡献 parity）；非 producing；无 exclusion** | 排除 |
+| PATCH_APPLY，release rate **缺失**（一阶） | producing（现行一阶行为） | **引擎输入保留（零贡献 parity）；非 producing；无 exclusion** | 排除 |
+| PATCH_APPLY，release rate 有限 `> 0`（零级） | `doseMG` 可为 0 → producing | 负值保留 R2/R3 规则（排除） | 排除（R2/R3 规则，不扩大） |
+| PATCH_APPLY，release rate **present 且有限 `<= 0`** | **引擎输入保留；无 exclusion；贡献 0（现行参数解析）；NOT producing** | 同左（保留；无 exclusion；非 producing） | 排除 |
 
-**（d）producing 定义（冻结）**：
+**（d）producing 定义（冻结，R4.2 修正）**：
 
 ```
-producing ⇔ (zero-order PATCH with finite rate > 0)
-          ∨ (doseMG finite > 0 in a dose-driven mode)
+producing ⇔ (PATCH_APPLY with finite release rate > 0)                       // 零级
+          ∨ (PATCH_APPLY with release rate ABSENT and finite doseMG > 0)    // 一阶
+          ∨ (supported non-patch route with finite doseMG > 0)
 ```
 
-**（e）后果（冻结）**：全部为零贡献事实 → `concentrationProducingEventIds.isEmpty()`
-→ `NO_ELIGIBLE_RECORDED_INTAKES`；不得输出零值 Available 曲线。
+**present-but-finite-`<= 0` 的 release rate 不是 producing**：即使 `doseMG` 为正，也不得因剂量而
+把它算作 producing（现行引擎在该路径贡献为 0）。
+
+**（e）后果（冻结，R4.2 修正）**：若全部 recorded facts 均为非 producing 事件（finite 零/非正剂量，
+或 present-and-finite-`<= 0` release rate 的 PATCH），则
+`concentrationProducingEventIds.isEmpty()` → `NO_ELIGIBLE_RECORDED_INTAKES`；
+不得输出零值 Available 曲线。
 
 **（f）`SUBLINGUAL_TIER` 精确行为**：有限 `code.toInt()` ∈ {0,1,2,3} → 对应档位；
 其它有限 → current STANDARD fallback（不排除）；NaN/±Inf → 排除。
 
-**（g）输出保证**：`Available.series` 每点有限且非负（§5.5），违反 = 内部契约违例。
+**（g）输出保证（R4.2 冻结，替换“有限且非负”旧措辞）**：`Available.series` 每点 finite；并且
+
+```
+concentration >= 0            -> valid
+-1e-9 <= concentration < 0    -> valid（tau=0 浮点消去伪影）；保留原始 Double 不变
+concentration < -1e-9         -> RetrospectivePkContractViolationException
+NaN / +Inf / -Inf             -> RetrospectivePkContractViolationException
+```
+
+**禁止** clamp/floor/normalize/drop/shift/改写任何浓度点；`series` 的浓度值必须与
+`SimulationResult`（未改动引擎输出）逐位一致，唯一允许转换仍是 timeH → Instant 表示转换。
+UI 只能在渲染时视觉裁掉零点以下 roundoff，不得改动数值结果。
 
 ---
 
@@ -763,6 +804,21 @@ engineEvents = orderedUsableEvents - allExcludedIds
 | V26 | **366-day maximum window** | step 数 fits `Int` 且保持 12/hour 密度（105,409） |
 | V27 | **rejected >366-day window** | step 计算从未发生（runner 计数 = 0；与 V12 一致） |
 
+### 13.0a R4.2 delta（runtime contract conflict resolution；必须存在）
+
+| # | 用例 | 判定 |
+|---|---|---|
+| W1 | **tau=0 EV 注入的浮点消去伪影** | 引擎在 window.start == 事件 instant 的合法 fixture 上产生 `concPGmL[0] = -2.7255464005139244E-13`；validator **接受**；`series` 中该点与 `SimulationResult` **逐位相同**（exact Double，未改写为 0.0） |
+| W2 | **恰好 `-1e-9`** | 接受且保留原始 Double 不变 |
+| W3 | **略低于 `-1e-9`**（如 `-1.0000000001e-9`） | `RetrospectivePkContractViolationException` |
+| W4 | **NaN / +Inf / -Inf 输出** | `RetrospectivePkContractViolationException`（经 curve-runner 缝注入；不进入 Available） |
+| W5 | **series == SimulationResult 逐位相等** | 对全部接受点断言 exact `Double` 相等（非 tolerance 比较），无任何 clamp/normalize |
+| W6 | **PATCH rate 缺失 + 正 dose** | 现行一阶 producing 行为（与直接引擎对照） |
+| W7 | **PATCH rate 有限 `> 0` + dose 0** | 零级 producing（贡献 > 0） |
+| W8 | **PATCH rate present 且 finite `== 0` + 正 dose** | 引擎输入保留；无 exclusion；非 producing；贡献 == 0（引擎对照） |
+| W9 | **PATCH rate present 且 finite `< 0` + 正 dose** | 同 W8（保留；无 exclusion；非 producing；贡献 == 0） |
+| W10 | **仅 finite `<= 0`-rate PATCH facts** | `NO_ELIGIBLE_RECORDED_INTAKES`；不得输出全零 Available 曲线 |
+
 ### 13.1 `HistoryReadServiceAllAvailableTest`
 
 | # | 用例 | 判定 |
@@ -787,7 +843,7 @@ engineEvents = orderedUsableEvents - allExcludedIds
 | E3 | ANTIANDROGEN | 不在引擎输入；不解析 ester；reason 精确 |
 | E4 | 六键 extras 三层 parity | 逐键相等 |
 | E5a | NaN/±Inf model-driving | 排除；不在引擎输入 |
-| E5b | 有限 ≤0 rate + 正 dose（一阶 PATCH） | 走现行一阶分支（引擎对照逐点相等） |
+| E5b | 有限 ≤0 rate + 正 dose（present-and-non-positive PATCH） | 引擎输入保留、零贡献、无 exclusion、**非 producing**；与直接引擎对照逐点相等（R4.2 修正） |
 | E5c | **有限 ≤0 dose（非 patch / 一阶 patch）** | 引擎输入保留、零贡献、无 exclusion、非 producing（V1–V3） |
 | E5d | 零级 `doseMG == 0` + 正 rate | 保留且贡献 > 0 |
 | E9a | 有限未知 tier | STANDARD parity |
@@ -910,14 +966,20 @@ engineEvents = orderedUsableEvents - allExcludedIds
 - 独立复审重点：RC-1 逐 route 剂量语义（V1–V4）、matchKey 提取/失败分类（V7）、pk id（V5）、
   lookbackStart 精确（V6）、generator 专用异常与阈值 parity（V8）、防御 validator（V9）、
   366 天/安全带/溢出（V11–V14）、**1000 点网格 floor（V22–V27）**、取消与异常分类（V15–V17）、
-  fresh undo（V18）、extras equality（V19）、body weight（V20）；R1–R3 已接受面 0 改动；zero-write。
+  fresh undo（V18）、extras equality（V19）、body weight（V20）；
+  **R4.2：roundoff 容差与逐位相等（W1–W5）、PATCH present-and-non-positive producing 分类（W6–W10）**；
+  R1–R3 已接受面 0 改动；zero-write。
 
 ---
 
 ## 17. 结论
 
-C-01 规格完成（R4 corrected；R4.1 网格 floor 修正）：非正有限剂量逐 route 单值化；cursor 防御路径显式不可达；
-matchKey 提取顺序与失败分类、lookbackStart、pk id 冻结；generator 100k guard 专用异常类型化 + 精确 catch；
-366 天资源门 + 数值安全带 + **1000 点最小网格 floor（`max(ceil(hours*12.0)+1, 1000)`，
-资源门后 checked 非饱和计算，短窗不判违例）**；异常分类与协程取消纪律显式化；独立复审 P3 全部吸收。
-R1/R2/R3 已接受内容不变。**本轮不实现生产代码**；实现轮在独立复审后开工。
+C-01 规格完成（R4 corrected；R4.1 网格 floor 修正；R4.2 runtime contract conflict resolution）：
+非正有限剂量逐 route 单值化；**PATCH present-and-finite-`<= 0` release rate 明确为非 producing
+（贡献 0，即使 dose 为正）**；`Available.series` 采用冻结容差规则（`[-1e-9, 0)` 合法且保留原始
+Double，`< -1e-9`/NaN/±Inf 才违例，禁止任何 clamp/normalize，与未改动引擎输出逐位一致）；
+cursor 防御路径显式不可达；matchKey 提取顺序与失败分类、lookbackStart、pk id 冻结；
+generator 100k guard 专用异常类型化 + 精确 catch；366 天资源门 + 数值安全带 +
+**1000 点最小网格 floor（`max(ceil(hours*12.0)+1, 1000)`，资源门后 checked 非饱和计算，短窗不判违例）**；
+异常分类与协程取消纪律显式化；独立复审 P3 全部吸收。R1/R2/R3 已接受内容不变。
+**C-01 production 实现已暂停，等待本轮 hotfix 独立复审。**

@@ -16,6 +16,12 @@
 > R4.1（本轮窄修正，architect P2）：恢复冻结的 1000 点**最小网格 floor** ——
 > `steps = max(ceil(durationHours * 12.0) + 1, 1000)`，仅在 366 天资源门后以 checked 非饱和算术计算，
 > 短窗口不得判契约违例（§2.4）。
+> R4.2（runtime contract conflict resolution，architect accepted）：
+> ① 冻结负向 roundoff 校验容差 `RETROSPECTIVE_PK_NEGATIVE_ROUNDOFF_TOLERANCE_PG_ML = 1e-9`
+> （`[-1e-9, 0)` 合法且保留原始 Double；`< -1e-9` / NaN / ±Inf 才违例；禁止任何 clamp/normalize，
+> 与未改动引擎输出逐位一致，§4.3(h)）；
+> ② 修正 PATCH present-and-finite-`<= 0` release rate 的 producing 分类：事件保留为引擎输入、
+> 无 exclusion、贡献 0、**NOT producing**（即使 dose 为正），§4.3(b)(c)(d)(e)。
 > 依据：`V17_SPEC.md` §4/§11/§12/§14 · `V17_PLAN.md` §6 · `V17_ACCEPTANCE.md` §3（C1–C9）·
 > `V17_DATA_SEMANTICS.md`（Decision A–H）· `V17_A_01`–`V17_A_04` · `V17_B_00_INSIGHTS_SEMANTICS.md`
 > 配套实现规格：[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)
@@ -287,25 +293,33 @@ data class RecordedMedicationEvent(
 | rate `-Infinity` | 一阶 |
 | 剂量驱动模式下 `doseMG <= 0`（有限） | 贡献 0（`batemanAmount`/`analytic3C`/`dualAbs*` 的既有 guard） |
 
-**（b）release-rate 资格（R3 冻结不变）**：缺失 → 一阶；有限 `> 0` → 零级；有限 `<= 0` → 现行一阶分支；
-`NaN`/`±Infinity` → 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT`。
+**（b）release-rate 资格（R3 冻结；R4.2 细化了 `<= 0` 的 producing 分类）**：
+缺失 → 一阶消费 `doseMG`；有限 `> 0` → 零级（释放速率驱动）；有限 `<= 0` → **现行引擎路径原样保留**
+（present-but-non-positive：参数走零级形状、`k1Fast = 0`，贡献为 0）；`NaN`/`±Infinity` → 排除
+`UNSUPPORTED_OR_INCOMPLETE_EVENT`。
 
-**（c）剂量资格（R4 冻结，按 route）**：
+**（c）剂量资格（R4 冻结，R4.2 修正 producing 列）**：
 
 | 情形 | 有限 `doseMG > 0` | 有限 `doseMG <= 0` | `doseMG` NaN/±Inf |
 |---|---|---|---|
 | 受支持非 patch（INJECTION EB/EV/EC/EN、ORAL 全部、SUBLINGUAL 全部、GEL 任意酯） | 正常模型行为；concentration-producing | **保留为合法引擎输入（保持零贡献 parity）；非 producing；无 exclusion；不触发 `EXCLUDED_RECORDED_INTAKES`** | 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT`；永不进入引擎 |
-| PATCH 零级（有限 rate `> 0`） | `doseMG` 可为 0（有限且 ≥0）→ producing | 负值保留 R2/R3 规则（排除） | 排除（R2/R3 规则，不扩大） |
-| PATCH 一阶（rate 缺失或有限 `<= 0`） | producing | **保留为合法引擎输入（零贡献 parity）；非 producing；无 exclusion** | 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT` |
+| PATCH_APPLY，release rate **缺失**（一阶） | producing（现行一阶行为） | **保留为合法引擎输入（零贡献 parity）；非 producing；无 exclusion** | 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT` |
+| PATCH_APPLY，release rate 有限 `> 0`（零级） | `doseMG` 可为 0（有限且 ≥0）→ producing | 负值保留 R2/R3 规则（排除） | 排除（R2/R3 规则，不扩大） |
+| PATCH_APPLY，release rate **present 且有限 `<= 0`** | **保留为合法引擎输入；无 exclusion；贡献 0（现行参数解析）；NOT producing** | 同左（保留；无 exclusion；非 producing） | 排除 `UNSUPPORTED_OR_INCOMPLETE_EVENT` |
 
-**（d）concentration-producing 定义（冻结）**：usable 引擎输入中
+**（d）concentration-producing 定义（冻结，R4.2 修正）**：usable 引擎输入中
 
 ```
-producing ⇔ (zero-order PATCH with finite rate > 0)
-          ∨ (doseMG finite > 0 in a dose-driven mode)
+producing ⇔ (PATCH_APPLY with finite release rate > 0)                       // 零级
+          ∨ (PATCH_APPLY with release rate ABSENT and finite doseMG > 0)    // 一阶
+          ∨ (supported non-patch route with finite doseMG > 0)
 ```
 
-**（e）后果（冻结）**：若 authoritative recorded facts 全部为 finite-zero/非正非 producing 事件，
+**present-but-finite-`<= 0` 的 release rate 不是 producing**：即使 `doseMG` 为正，也不得因剂量而
+把它算作 producing（现行引擎在该路径贡献为 0）。
+
+**（e）后果（冻结，R4.2 修正）**：若 authoritative recorded facts 全部为非 producing 事件
+（finite 零/非正剂量，或 present-and-finite-`<= 0` release rate 的 PATCH），
 则 `concentrationProducingEventIds.isEmpty()` → `NO_ELIGIBLE_RECORDED_INTAKES`，
 **不得**输出零值 Available 曲线。
 
@@ -315,7 +329,21 @@ producing ⇔ (zero-order PATCH with finite rate > 0)
 
 **（g）特例保持**：`INJECTION × E2` → `UNSUPPORTED_CURRENT_MODEL_COMBINATION`（与剂量无关）。
 
-**（h）输出保证**：`Available.series` 每点有限且非负；违反 = 内部数值契约违例（fail-fast）。
+**（h）输出保证（R4.2 冻结，替换“有限且非负”旧措辞）**：`Available.series` 的每个点必须 finite；
+并且：
+
+```
+concentration >= 0            -> valid
+-1e-9 <= concentration < 0    -> valid（tau=0 浮点消去伪影）；保留原始 Double 不变
+concentration < -1e-9         -> RetrospectivePkContractViolationException
+NaN / +Inf / -Inf             -> RetrospectivePkContractViolationException
+```
+
+`RETROSPECTIVE_PK_NEGATIVE_ROUNDOFF_TOLERANCE_PG_ML = 1e-9` 是**数值输出校验容差**：
+不是 PK 模型参数、不是 parameter set 科学改动、不是 display clamp、不是 limitation enum 成员。
+**禁止**对任何浓度点做 clamp/floor/normalize/drop/shift/改写；数值结果必须与未改动的引擎输出
+逐位一致（唯一允许的转换仍是已批准的 timeH → Instant 表示转换）。未来 UI 可以在**渲染时**视觉裁掉
+零点以下的 roundoff，但**不得**改动数值结果。
 
 ---
 
@@ -521,7 +549,8 @@ history read **前**、read **后**、`SimulationEngine.run` **前**、**后**�
 不得为取消而修改 `SimulationEngine`；366 天资源门是对无挂起引擎调用的保护之一。
 
 **其它契约违例（fail-fast）**：重复 eventId；投影丢行/多行/重复消费；`status != RECORDED`/不可映射；
-entry `occurredAt > upperBoundInclusive`；matchKey route/ester 解析失败；series 非有限/负值。
+entry `occurredAt > upperBoundInclusive`；matchKey route/ester 解析失败；series 出现 NaN/±Inf 或
+低于 `-1e-9` 的负值（`[-1e-9, 0)` 的浮点消去伪影是合法值，保留原样，不属违例）。
 
 ---
 
@@ -580,6 +609,9 @@ entry `occurredAt > upperBoundInclusive`；matchKey route/ester 解析失败；s
 | 窗口对齐谓词改回 epoch-millis 转换判定 | 明确禁止 |
 | 有限未知 tier code 排除 | 明确禁止（STANDARD fallback） |
 | finite 非正剂量改为 exclusion | 明确禁止（R4：保留零贡献 parity，非 producing，无 exclusion） |
+| present-and-finite-`<= 0` release rate 的 PATCH 改为 producing | 明确禁止（R4.2：贡献 0，NOT producing，即使 dose 为正） |
+| 对浓度点做 clamp/floor/normalize（含把 roundoff 改写成 0.0） | 明确禁止（R4.2：保留原始 Double；唯一允许转换仍是 timeH → Instant） |
+| 改动 roundoff 校验容差（`1e-9`）或把它当成模型/科学参数 | 明确禁止；仅可在新契约轮修订 |
 | 366 天资源门 / 数值安全带放宽 | 需 C-00 修订（资源边界，非正确性） |
 | 跨 chunk 累计上限 | 明确禁止 |
 | 非有限值进入引擎 | 明确禁止 |
@@ -591,9 +623,13 @@ entry `occurredAt > upperBoundInclusive`；matchKey route/ester 解析失败；s
 
 ## 13. 结论
 
-`V17-C-00` 冻结完成（R4 corrected；R4.1 网格 floor 修正）：非正有限剂量行为逐 route 单值化（保留零贡献
-parity、非 producing、无 exclusion、不触发 `EXCLUDED_RECORDED_INTAKES`；全零贡献事实 →
-`NO_ELIGIBLE_RECORDED_INTAKES`）；数值网格保留现行 `max(ceil(hours*12.0)+1, 1000)` 规则（资源门后 checked、
-无饱和、短窗 floor）；cursor 防御路径显式不可达但不移除；matchKey 提取顺序/失败分类、lookbackStart、
-pk id 冻结；100k guard 专用异常类型化 + 精确 catch；366 天资源门 + 数值安全带；异常分类与取消纪律单值化。
-R1/R2/R3 已接受内容不变。C-01 未开工。
+`V17-C-00` 冻结完成（R4 corrected；R4.1 网格 floor 修正；R4.2 runtime contract conflict resolution）：
+非正有限剂量行为逐 route 单值化（保留零贡献 parity、非 producing、无 exclusion、不触发
+`EXCLUDED_RECORDED_INTAKES`；全零贡献事实 → `NO_ELIGIBLE_RECORDED_INTAKES`）；
+PATCH present-and-finite-`<= 0` release rate 明确为非 producing（贡献 0，即使 dose 为正）；
+`Available.series` 采用冻结容差规则（`[-1e-9, 0)` 合法且保留原始 Double，`< -1e-9`/NaN/±Inf 违例，
+禁止任何 clamp/normalize，与未改动引擎输出逐位一致）；数值网格保留现行
+`max(ceil(hours*12.0)+1, 1000)` 规则（资源门后 checked、无饱和、短窗 floor）；cursor 防御路径显式不可达但不移除；
+matchKey 提取顺序/失败分类、lookbackStart、pk id 冻结；100k guard 专用异常类型化 + 精确 catch；
+366 天资源门 + 数值安全带；异常分类与取消纪律单值化。R1/R2/R3 已接受内容不变。
+C-01 production 实现已暂停，等待本轮 hotfix 独立复审。
