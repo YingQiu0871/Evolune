@@ -129,20 +129,37 @@ B-02-R1（EMPTY 语义与 pending-refresh race 修复）→ B-03 Insights UI（H
 factual UI）→ **B-04 Phase-B hardening & release gate**（accessibility 合并语义、picker UTC 往返、
 lazy/retained ViewModel、zero-write 设备门、localization/禁用词/无重算三重审计、acceptance 映射）。
 
-Gate 结论（B-04，待独立复审）：read-only（0 authoritative writes）· 无百分比/timing 指标 · 无 chart
+Gate 结论（B-04 独立复审 **APPROVE**）：read-only（0 authoritative writes）· 无百分比/timing 指标 · 无 chart
 依赖、无逐日重算 · 导航未新增 tab、未重构 · schema/DAO 0 改动 · 旧 evidence 全冻结。
-Phase C（Retrospective PK）**未开始**。
+Phase B 已 **CLOSED**。
+
+### v1.7 Phase C — Retrospective PK — design/spec only (in progress)
+
+Phase C 采用“先契约、后规格、再实现”的顺序：
+
+- **C-00 语义契约**：`APPROVE V17-C-00 SEMANTICS CONTRACT`，落地文件
+  [`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)
+  （数据/参数/时间/extras/资格/贴片/确定性/typed 结果/zero-write 全部冻结）。
+- **C-01 实现规格**：[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)
+  （全历史只读通道 → Phase A 投影 → 提取/资格/排序/贴片预处理 → 未改动的 SimulationEngine → typed 结果；
+  文件级改动计划 + 测试矩阵），待独立复审。
+- **C-01 生产代码未开始**：本轮为 docs-only（无 Kotlin/Room/依赖改动；Home/Wear/Widget 现行 PK 管线保持原样）。
 
 ## Historical and future milestones
 
 v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备验收和发布封版。
 历史候选、阶段审阅与修复证据保存在 [v1.6 文档目录](v1.6/)。
 
-**v1.7 当前程序状态（2026-09-13 更新，历史叙述不改）**：v1.7 现定义为 **History & Insights** 计划，
+**v1.7 当前程序状态（2026-09-15 更新，历史叙述不改）**：v1.7 现定义为 **History & Insights** 计划，
 文档位于 [v1.7 文档目录](v1.7/)：
 **Phase A — History Foundation 已 CLOSED**（A-01/A-02/A-03/A-04 各自独立复审 APPROVE；
 候选实现见 [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md)），
-**Phase B — Adherence Insights：B-00 语义冻结进行中**（[`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md)）。
+**Phase B — Adherence Insights 已 CLOSED**（B-00 语义冻结 → B-01 domain → B-02/B-02-R1 → B-03 UI →
+B-04 hardening & release gate，全部独立复审 APPROVE），
+**Phase C — Retrospective PK 处于 design/spec 阶段**：C-00 语义契约已冻结
+（[`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)），
+C-01 实现规格待独立复审（[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)），
+**生产代码未开始**。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

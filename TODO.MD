@@ -44,12 +44,16 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
-## v1.7 — History & Insights program（Phase A + Phase B 已收口）
+## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C 处于 design/spec）
 
 - [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
 - [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
-      release gate 完成（待独立复审）：read-only、无百分比/timing、无图表依赖、schema 0 改动。
-- [ ] Phase C（Retrospective PK）：**未开始**，需单独立项（本轮 hardening 不触碰 PK 语义）。
+      release gate 独立复审 APPROVE：read-only、无百分比/timing、无图表依赖、schema 0 改动。
+- [x] Phase C 前置契约：C-00 回顾性 PK 语义契约冻结（`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`，
+      `APPROVE V17-C-00 SEMANTICS CONTRACT`）；C-01 实现规格就绪
+      （`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`，待独立复审；本轮 docs-only）。
+- [ ] Phase C 实现（C-01 及后续切片）：**未开始** —— 待 C-01 规格独立复审通过后开工；
+      实现前不得改动 pk/ 数值文件、Room schema 与 Phase A/B 冻结语义。
 - [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
 
