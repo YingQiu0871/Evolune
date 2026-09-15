@@ -67,6 +67,12 @@ class RoomDoseEventRepository(
         }
     }
 
+    override suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent> =
+        runStorageOperation("find all dose events up to") {
+            dao.getEventsUpToOccurredAt(endInclusive.requireEpochMillis())
+                .map { it.toV3DomainDoseEvent().orThrowCorrupt() }
+        }
+
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> =
         runStorageOperation("get dose events for PK") {
             val windowStart = try {

@@ -22,7 +22,15 @@ data class RecordedMedicationEvent(
     val matchKey: MedicationMatchKey,
     val source: MedicationIntakeSource,
     val localDate: LocalDate? = null,
-    val zoneId: ZoneId? = null
+    val zoneId: ZoneId? = null,
+    /**
+     * Derived-layer propagation of the authoritative event extras (V17-C-00 §4).
+     *
+     * The default is source/test compatibility only: the production mapper always
+     * populates every key the authoritative row carries and must never rely on the
+     * default. Adding this field changes equality/hashCode of the data class.
+     */
+    val extras: Map<HistoricalMedicationExtraKey, Double> = emptyMap()
 )
 
 enum class MedicationOccurrenceStatus {

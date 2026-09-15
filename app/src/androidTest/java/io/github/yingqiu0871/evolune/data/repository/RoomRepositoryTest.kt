@@ -539,6 +539,27 @@ class RoomRepositoryTest {
         assertEquals(listOf(newer), planRepository.observeEnabled().first())
     }
 
+    @Test
+    fun findAllOccurredUpToIsInclusiveAndOrderedWithoutLowerBound() = runBlocking {
+        val end = Instant.ofEpochMilli(1_750_000_000_000L)
+        val oldest = syntheticEvent(id = uuid(401), occurredAt = Instant.ofEpochMilli(1_000L))
+        val beforeEnd = syntheticEvent(id = uuid(402), occurredAt = end.minusMillis(1))
+        val atEnd = syntheticEvent(id = uuid(403), occurredAt = end)
+        val afterEnd = syntheticEvent(id = uuid(404), occurredAt = end.plusMillis(1))
+        listOf(atEnd, oldest, afterEnd, beforeEnd).forEach { event ->
+            assertEquals(InsertResult.Inserted, eventRepository.insert(event))
+        }
+
+        val result = eventRepository.findAllOccurredUpTo(end)
+
+        assertEquals(
+            "inclusive upper bound, no lower bound, ordered by (occurredAt, id)",
+            listOf(oldest.id, beforeEnd.id, atEnd.id),
+            result.map { it.id }
+        )
+        assertTrue("rows after the bound must never be returned", result.none { it.id == afterEnd.id })
+    }
+
     private fun syntheticEvent(
         id: UUID,
         occurredAt: Instant,

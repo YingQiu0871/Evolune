@@ -1,0 +1,27 @@
+V17-C-01 zero-write and static guard evidence (final state)
+
+## Zero-write
+
+Test: RetrospectivePkZeroWriteTest.`five intents perform zero writes and real reads`
+(XML: junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkZeroWriteTest.xml, tests=1, failures=0)
+
+Coverage:
+- counting decorator over `DoseEventRepository` covers insert / update / delete /
+  deleteIfRevisionMatches / deleteLatestRecordedIfRevisionMatches / deleteAll;
+- five intents: initial estimate, refresh, different window, typed storage read failure followed by a
+  successful retry, and the no-eligible-facts path;
+- assertions: `mutationCalls == 0` for both counting repositories, and real reads happened
+  (`allEventsUpperBoundCalls > 0` for both).
+
+## Static guard
+
+Tests: RetrospectivePkGuardTest (XML: junit/app/TEST-...RetrospectivePkGuardTest.xml, tests=3, failures=0)
+
+Scope: exactly `app/src/main/java/io/github/yingqiu0871/evolune/history/pk` (production package only;
+HistoryReadService and repository/data are excluded by design). Comments are stripped before scanning.
+Forbidden tokens verified absent: DoseEventRepository, DoseEventDao, AppDatabase, Entity,
+findAllOccurredUpTo, getEventsForPk, MedicationPlanPredictor, MedicationOccurrenceGenerator,
+HistoricalProjectionBuilder, MedicationOccurrenceMatcher, withTransaction, insert(, update(, delete,
+save(, setEnabled(, System.currentTimeMillis, SystemClock, ZoneId.systemDefault, ConcentrationChart,
+calculateVisibleWindowYScale, SimulationResult.concentration, coerceIn(.
+Non-vacuous positive control: `AllAvailableHistorySource` occurs in the scanned sources.

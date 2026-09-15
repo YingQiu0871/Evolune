@@ -8,10 +8,14 @@ import io.github.yingqiu0871.evolune.core.presentation.toRecordedMedicationEvent
 import io.github.yingqiu0871.evolune.experience.HistoricalProjectionBuilder
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.HistoricalReadModel
+import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
+import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerationLimitExceededException
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGenerator
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePolicy
 import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.experience.RecordedMedicationEvent
+import io.github.yingqiu0871.evolune.experience.UnmatchedHistoricalIntake
+import io.github.yingqiu0871.evolune.experience.UnrecordedHistoricalOccurrence
 import kotlinx.coroutines.flow.first
 import java.time.Duration
 import java.time.Instant
@@ -54,7 +58,7 @@ import java.util.UUID
 class HistoryReadService(
     private val medicationPlans: MedicationPlanRepository,
     private val doseEvents: DoseEventRepository
-) {
+) : AllAvailableHistorySource {
     suspend fun readRange(
         startDate: LocalDate,
         endDate: LocalDate,
@@ -117,6 +121,109 @@ class HistoryReadService(
         )
 
         return HistoricalReadModel.range(projection, startDate, endDate)
+    }
+
+    /**
+     * All-history read capability of the same History reader (V17-C-01 §4.2).
+     *
+     * Fetches every authoritative row with `occurredAt <= upperBoundInclusive` (no lower
+     * bound), asserts uniqueness/mappability, derives the occurrence context so that it
+     * also covers the span between the last recorded event and the upper bound, generates
+     * occurrences in the existing <=3660-day chunks (no cumulative cap) and performs ONE
+     * projection derive over the complete consumed event set.
+     */
+    override suspend fun readAllAvailable(
+        upperBoundInclusive: Instant,
+        displayZone: ZoneId,
+        policy: MedicationOccurrencePolicy
+    ): AllAvailableHistory {
+        val events = doseEvents.findAllOccurredUpTo(upperBoundInclusive)
+            .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
+
+        check(events.map { it.id }.toSet().size == events.size) {
+            "all-history read returned duplicate authoritative event ids"
+        }
+        val recordedEvents = events.map { event ->
+            event.toRecordedMedicationEvent()
+                ?: throw IllegalStateException(
+                    "authoritative event ${event.id} is not a recorded intake"
+                )
+        }
+
+        if (events.isEmpty()) {
+            return AllAvailableHistory(
+                upperBoundInclusive = upperBoundInclusive,
+                lookbackStart = null,
+                projection = HistoricalProjectionBuilder.derive(
+                    occurrences = emptyList(),
+                    events = emptyList(),
+                    now = upperBoundInclusive,
+                    displayZone = displayZone,
+                    policy = policy
+                )
+            )
+        }
+
+        // Occurrence context (R4.2): each authoritative event contributes exactly ONE candidate
+        // date - its persisted localDate when present, otherwise the occurredAt-derived date.
+        // The context is additionally anchored to the query's upper bound so that plan occurrences
+        // between the last recorded event and the bound are generated.
+        val candidateDates = events.map { event ->
+            event.localDate
+                ?: event.occurredAt.atZone(displayZone).toLocalDate()
+        }
+        val upperBoundLocalDate = upperBoundInclusive.atZone(displayZone).toLocalDate()
+        val contextStartDate = candidateDates.min().minusDays(OCCURRENCE_CONTEXT_DAYS)
+        val contextEndDate = maxOf(candidateDates.max(), upperBoundLocalDate)
+            .plusDays(OCCURRENCE_CONTEXT_DAYS)
+        val occurrenceWindowStart = contextStartDate.atStartOfDay(displayZone).toInstant()
+        val occurrenceWindowEndExclusive = contextEndDate
+            .plusDays(1)
+            .atStartOfDay(displayZone)
+            .toInstant()
+
+        val schedules = medicationPlans.observeAll().first().map { it.toMedicationSchedule() }
+        val occurrences = try {
+            generateContextOccurrences(
+                schedules = schedules,
+                windowStart = occurrenceWindowStart,
+                windowEndExclusive = occurrenceWindowEndExclusive,
+                displayZone = displayZone
+            )
+        } catch (error: MedicationOccurrenceGenerationLimitExceededException) {
+            throw HistoricalOccurrenceLimitExceededException(
+                error.message ?: "occurrence context generation exceeded the per-call limit"
+            )
+        }
+
+        val projection = HistoricalProjectionBuilder.derive(
+            occurrences = occurrences,
+            events = recordedEvents,
+            now = upperBoundInclusive,
+            displayZone = displayZone,
+            policy = policy
+        )
+
+        val projectedEventIds = projection.entries.mapNotNull { entry ->
+            when (entry) {
+                is MatchedHistoricalOccurrence -> entry.event.eventId
+                is UnmatchedHistoricalIntake -> entry.event.eventId
+                is UnrecordedHistoricalOccurrence -> null
+            }
+        }
+        val consumedEventIds = events.map { it.id }
+        check(
+            projectedEventIds.size == consumedEventIds.size &&
+                projectedEventIds.toSet() == consumedEventIds.toSet()
+        ) {
+            "all-history projection must contain every consumed authoritative event exactly once"
+        }
+
+        return AllAvailableHistory(
+            upperBoundInclusive = upperBoundInclusive,
+            lookbackStart = events.first().occurredAt,
+            projection = projection
+        )
     }
 
     /**

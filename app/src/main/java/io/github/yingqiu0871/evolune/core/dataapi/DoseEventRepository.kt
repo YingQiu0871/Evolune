@@ -39,6 +39,15 @@ interface DoseEventRepository {
     ): List<DoseEvent>
 
     /**
+     * Returns every authoritative row whose `occurredAt` is <= [endInclusive], ordered
+     * by `occurredAt` then id. There is deliberately NO lower bound: this is the
+     * all-history read channel used by HistoryReadService's retrospective entry
+     * (V17-C-01 §4.1). It must not be replaced by [getEventsForPk] (30d/20 heuristic)
+     * and must not be called from outside the History layer.
+     */
+    suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent>
+
+    /**
      * Preserves the current 30-day and 20-event selection rules.
      * The existing order of each selection branch must not be unified.
      */

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-15T21:21:46.572Z" hostname="人面不知何处去" time="0.0">
+  <properties/>
+  <testcase name="negativeMultiplicationOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="positiveValueImmediatelyAboveHalfMillisecondRoundsUp" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="failureRetainsEventIdAndRawTimeH" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="negativeValueImmediatelyBelowHalfMillisecondRoundsDown" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="millisecondPrecisionVectorRoundTripsExactly" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="positiveMultiplicationOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="positiveTimeHMapsToExpectedMillis" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="negativeInfinityReturnsStructuredNonFiniteFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="epochZeroMapsToZeroMillis" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="wrapperMatchesHardcodedLegacyAdapterVector" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="positiveEpochMillisRangeOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="nanReturnsStructuredNonFiniteFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="negativeEpochMillisRangeOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="positiveInfinityReturnsStructuredNonFiniteFailure" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <testcase name="negativeTimeHMapsToExpectedMillis" classname="io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

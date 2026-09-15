@@ -760,6 +760,11 @@ class HRTViewModelTest {
             !date.isBefore(startInclusive) && !date.isAfter(endInclusive)
         }
 
+        override suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent> =
+            observed.value
+                .filter { !it.occurredAt.isAfter(endInclusive) }
+                .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
+
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {
             getEventsForPkCalls += 1
             lastPkAsOf = asOf

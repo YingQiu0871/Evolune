@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-09-15T21:21:24.776Z" hostname="人面不知何处去" time="0.017">
+  <properties/>
+  <testcase name="refresh deadline is the next pending or freshness boundary" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.008"/>
+  <testcase name="future concentration keeps duplicate conflict and ordering semantics" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.001"/>
+  <testcase name="request throttle allows rollback and exact boundary" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="codec preserves producer identity" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="snapshot application removes timeout boundary and restart rebuilds from cache state" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="phone reset handshake raises generation and recovers without clearing Wear" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.001"/>
+  <testcase name="reserved revisions remain ordered when older capture completes last" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.003"/>
+  <testcase name="lower generation producer is rejected until phone negotiates a higher generation" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="clock rollback keeps pending state bounded and schedules a future boundary" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="same generation producer tie break is stable for every permutation" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.002"/>
+  <testcase name="real reducer keeps the highest producer for every three producer permutation" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="same producer uses revision and payload rules" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="producer ordering is deterministic when inputs are reversed" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="rotary handling requires a visible rotary scroll event" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.001"/>
+  <testcase name="same generation uses producer id as a deterministic tie breaker" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="async state transitions redraw at transport and freshness boundaries" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <testcase name="new producer revision one wins and delayed old producer cannot overwrite it" classname="io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

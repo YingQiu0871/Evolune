@@ -43,6 +43,17 @@ internal class FakeDoseEventRepository(
     var rangeEvents: List<DoseEvent>? = null
     var localDateRangeEvents: List<DoseEvent>? = null
     var pkEvents: List<DoseEvent>? = null
+
+    /**
+     * All-history channel override. When left null the channel answers from the live
+     * event map; either way the fake **always** honours the inclusive upper bound so a
+     * missing bound filter cannot hide defects (A-02-R1 lesson).
+     */
+    var allEventsUpTo: List<DoseEvent>? = null
+    var allEventsUpperBoundFailure: Throwable? = null
+    var allEventsUpperBoundCalls = 0
+    var lastAllEventsUpperBound: Instant? = null
+
     var insertCalls = 0
     var getCalls = 0
     var lastInserted: DoseEvent? = null
@@ -80,6 +91,16 @@ internal class FakeDoseEventRepository(
     ): List<DoseEvent> {
         lastLocalDateRange = startInclusive to endInclusive
         return localDateRangeEvents ?: events.values.toList()
+    }
+
+    override suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent> {
+        allEventsUpperBoundFailure?.let { throw it }
+        allEventsUpperBoundCalls += 1
+        lastAllEventsUpperBound = endInclusive
+        val source = allEventsUpTo ?: events.values.toList()
+        return source
+            .filter { !it.occurredAt.isAfter(endInclusive) }
+            .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
     }
 
     override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {

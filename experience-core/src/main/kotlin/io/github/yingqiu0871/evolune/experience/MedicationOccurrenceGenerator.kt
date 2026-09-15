@@ -24,6 +24,14 @@ data class OccurrenceGenerationWindow(
     }
 }
 
+/**
+ * Dedicated exception type for the single-call occurrence-count guard
+ * (V17-C-01 RC-4, exception typing only; threshold and control flow are unchanged).
+ */
+class MedicationOccurrenceGenerationLimitExceededException(
+    message: String
+) : IllegalStateException(message)
+
 object MedicationOccurrenceGenerator {
     private const val MAX_GENERATED_OCCURRENCES = 100_000
 
@@ -74,8 +82,10 @@ object MedicationOccurrenceGenerator {
                         scheduledAt >= window.startInclusive &&
                         scheduledAt < window.endExclusive
                     ) {
-                        check(destination.size < MAX_GENERATED_OCCURRENCES) {
-                            "occurrence result exceeds $MAX_GENERATED_OCCURRENCES items"
+                        if (destination.size >= MAX_GENERATED_OCCURRENCES) {
+                            throw MedicationOccurrenceGenerationLimitExceededException(
+                                "occurrence result exceeds $MAX_GENERATED_OCCURRENCES items"
+                            )
                         }
                         destination += MedicationOccurrence(
                             id = MedicationOccurrenceIdentity.derive(

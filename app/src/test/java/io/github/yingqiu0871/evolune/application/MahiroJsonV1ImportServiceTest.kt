@@ -312,6 +312,9 @@ class MahiroJsonV1ImportServiceTest {
             endInclusive: LocalDate
         ): List<DoseEvent> = emptyList()
 
+        override suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent> =
+            emptyList()
+
         override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> = emptyList()
 
         override suspend fun insert(event: DoseEvent): InsertResult {

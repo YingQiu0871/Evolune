@@ -1,0 +1,24 @@
+V17-C-01 Room instrumentation evidence (final state)
+
+Command:
+  .\gradlew.bat :app:connectedDebugAndroidTest
+    "-Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest#findAllOccurredUpToIsInclusiveAndOrderedWithoutLowerBound"
+    --console=plain
+
+Observed run output:
+  Starting 1 tests on Pixel_7(AVD) - 15
+  Finished 1 tests on Pixel_7(AVD) - 15
+  BUILD SUCCESSFUL in 18s
+
+Device: emulator-5554, Pixel_7 AVD, API 35 (sys.boot_completed=1 at run time).
+
+Authoritative result XML: instrumentation/TEST-Pixel_7(AVD) - 15-_app-.xml
+  (tests=1, failures=0, errors=0, skipped=0)
+
+Test scope: real Room in-memory database + production RoomDoseEventRepository:
+  - occurredAt == end is returned (inclusive upper bound);
+  - end + 1 ms is not returned;
+  - a very old row is returned (no lower bound);
+  - rows are ordered by (occurredAt, id).
+
+No other instrumentation suites were run in this round; the full Phone matrix belongs to C-08.

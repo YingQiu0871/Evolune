@@ -3,8 +3,10 @@ package io.github.yingqiu0871.evolune.core.presentation
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
+import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
+import io.github.yingqiu0871.evolune.experience.HistoricalMedicationExtraKey
 import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource
 import io.github.yingqiu0871.evolune.experience.MedicationMatchKey
 import io.github.yingqiu0871.evolune.experience.MedicationPresentation
@@ -54,9 +56,24 @@ fun DoseEvent.toRecordedMedicationEvent(): RecordedMedicationEvent? =
             ),
             source = event.source.toMedicationIntakeSource(),
             localDate = event.localDate,
-            zoneId = event.zoneId
+            zoneId = event.zoneId,
+            extras = event.extras.mapKeys { (key, _) -> key.toHistoricalMedicationExtraKey() }
         )
     }
+
+/**
+ * Exhaustive production mapping of the six authoritative extras keys into the
+ * approved derived layer (V17-C-00 §4). Deliberately has no `else` branch so a
+ * future key cannot be dropped silently.
+ */
+fun ExtraKey.toHistoricalMedicationExtraKey(): HistoricalMedicationExtraKey = when (this) {
+    ExtraKey.CONCENTRATION_MG_ML -> HistoricalMedicationExtraKey.CONCENTRATION_MG_ML
+    ExtraKey.AREA_CM2 -> HistoricalMedicationExtraKey.AREA_CM2
+    ExtraKey.RELEASE_RATE_UG_PER_DAY -> HistoricalMedicationExtraKey.RELEASE_RATE_UG_PER_DAY
+    ExtraKey.SUBLINGUAL_THETA -> HistoricalMedicationExtraKey.SUBLINGUAL_THETA
+    ExtraKey.SUBLINGUAL_TIER -> HistoricalMedicationExtraKey.SUBLINGUAL_TIER
+    ExtraKey.ANTI_ANDROGEN_TYPE -> HistoricalMedicationExtraKey.ANTI_ANDROGEN_TYPE
+}
 
 /**
  * Maps the authoritative Phone event origin onto the pure-Kotlin historical domain.

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-09-15T21:21:47.977Z" hostname="人面不知何处去" time="0.213">
+  <properties/>
+  <testcase name="cancellation releases operation gate for a later save" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.011"/>
+  <testcase name="create maps conflict invalid and exception without success event" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.011"/>
+  <testcase name="authoritative body weight changes trigger simulation without rebuilding view model" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.007"/>
+  <testcase name="JSON numeric id follows formal v1 invalid behavior without repository fallback" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.007"/>
+  <testcase name="create session survives validation and storage failure without changing identity" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.004"/>
+  <testcase name="JSON export uses the formal Domain protocol boundary and preserves order" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.006"/>
+  <testcase name="inserted and idempotent create return persisted event and success UI event" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.006"/>
+  <testcase name="cancelled simulation cannot publish over latest input" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.009"/>
+  <testcase name="duplicate create while first insert is suspended writes once" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.002"/>
+  <testcase name="quick add captures manual metadata and existing minute precision" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.003"/>
+  <testcase name="JSON import reports all contract outcomes and weight without fallback" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.004"/>
+  <testcase name="PK inputs preserve contract ordering and delegate selection to repository" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.005"/>
+  <testcase name="JSON storage failure is explicit and operation gate remains reusable" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.003"/>
+  <testcase name="CAS update uses original revision and publishes Repository persisted revision" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.006"/>
+  <testcase name="initial simulation triggers are coalesced and calculation runs off caller thread" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.119"/>
+  <testcase name="CAS failures keep complete edit session and never insert" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.005"/>
+  <testcase name="delete handles deleted not found and storage failure without fallback" classname="io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

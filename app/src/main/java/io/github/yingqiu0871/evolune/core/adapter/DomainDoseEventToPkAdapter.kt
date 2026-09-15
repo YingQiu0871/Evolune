@@ -4,6 +4,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent as DomainDoseEvent
 import io.github.yingqiu0871.evolune.core.model.ExtraKey as DomainExtraKey
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
+import io.github.yingqiu0871.evolune.experience.HistoricalMedicationExtraKey
 import io.github.yingqiu0871.evolune.pk.DoseEvent as PkDoseEvent
 
 object DomainDoseEventToPkAdapter {
@@ -35,4 +36,18 @@ fun DomainExtraKey.toPkExtraKey(): PkDoseEvent.ExtraKey = when (this) {
     DomainExtraKey.SUBLINGUAL_THETA -> PkDoseEvent.ExtraKey.SUBLINGUAL_THETA
     DomainExtraKey.SUBLINGUAL_TIER -> PkDoseEvent.ExtraKey.SUBLINGUAL_TIER
     DomainExtraKey.ANTI_ANDROGEN_TYPE -> PkDoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
+}
+
+/**
+ * Exhaustive derived-layer to pk compatibility mapping (V17-C-01 §7.1). No `else`
+ * branch: a future key cannot be dropped silently.
+ */
+fun HistoricalMedicationExtraKey.toPkExtraKey(): PkDoseEvent.ExtraKey = when (this) {
+    HistoricalMedicationExtraKey.CONCENTRATION_MG_ML -> PkDoseEvent.ExtraKey.CONCENTRATION_MG_ML
+    HistoricalMedicationExtraKey.AREA_CM2 -> PkDoseEvent.ExtraKey.AREA_CM2
+    HistoricalMedicationExtraKey.RELEASE_RATE_UG_PER_DAY ->
+        PkDoseEvent.ExtraKey.RELEASE_RATE_UG_PER_DAY
+    HistoricalMedicationExtraKey.SUBLINGUAL_THETA -> PkDoseEvent.ExtraKey.SUBLINGUAL_THETA
+    HistoricalMedicationExtraKey.SUBLINGUAL_TIER -> PkDoseEvent.ExtraKey.SUBLINGUAL_TIER
+    HistoricalMedicationExtraKey.ANTI_ANDROGEN_TYPE -> PkDoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE
 }

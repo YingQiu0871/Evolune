@@ -1,0 +1,60 @@
+V17-C-01 R4.2 runtime-contract matrix -> test mapping (final state)
+All entries PASS in junit/app (full fresh run) or junit/experience-core.
+
+W1  tau=0 EV injection roundoff accepted; value stays negative in [-1e-9,0);
+    series value exact == same-run engine output
+      -> RetrospectivePkServiceTest.`S1 W1 tau-zero EV fixture is accepted and keeps the exact negative roundoff`
+W2  exactly -1e-9 accepted unchanged
+      -> RetrospectivePkServiceTest.`W2 exactly minus one nanogram-gram is accepted unchanged`
+W3  slightly below -1e-9 rejected
+      -> RetrospectivePkServiceTest.`W3 below minus one nanogram-gram is a contract violation`
+W4  NaN / +Inf / -Inf rejected
+      -> RetrospectivePkServiceTest.`W4 non-finite engine output is a contract violation`
+W5  every accepted series concentration exactly equals SimulationResult concentration
+      -> RetrospectivePkServiceTest.`S8 W5 curve is the raw engine output and every series value is exact`
+W6  patch rate absent + positive dose -> producing
+      -> RetrospectivePkExtractorTest.`W6 patch first order with positive dose is producing`
+W7  patch rate finite > 0 + dose 0 -> producing
+      -> RetrospectivePkExtractorTest.`W7 zero order patch with positive rate and zero dose is producing`
+W8  patch rate present finite == 0 + positive dose -> retained, no exclusion, non-producing, zero contribution
+      -> RetrospectivePkExtractorTest.`E5b W8 finite zero release rate with positive dose is retained but not producing`
+W9  patch rate present finite < 0 + positive dose -> same retained / no-exclusion / non-producing parity
+      -> RetrospectivePkExtractorTest.`W9 finite negative release rate with positive dose is retained but not producing`
+W10 only finite <=0-rate patch facts -> NO_ELIGIBLE_RECORDED_INTAKES
+      -> RetrospectivePkServiceTest.`V4 W10 only zero-contribution facts yield NO_ELIGIBLE_RECORDED_INTAKES`
+
+V22 24h -> 1000        -> RetrospectivePkServiceTest.`V22 V23 V24 short windows floor the grid to 1000`
+V23 <83.25h -> 1000    -> same test
+V24 exactly 83.25h -> 1000 -> same test
+V25 84h -> 1009        -> RetrospectivePkServiceTest.`V25 84 hours produces 1009 steps`
+V26 366d -> 105409     -> RetrospectivePkServiceTest.`V26 366 days preserves the 12 per hour density with 105409 steps`
+V27 >366d rejected, step calculation never runs
+      -> RetrospectivePkServiceTest.`V12 366 days plus one millisecond is rejected before history and engine`
+
+V11 -> RetrospectivePkServiceTest.`V11 exactly 366 days is accepted and invokes the engine once`
+V12 -> RetrospectivePkServiceTest.`V12 366 days plus one millisecond is rejected before history and engine`
+V13 -> RetrospectivePkServiceTest.`S6 V13 out-of-band instants...` + `S6 V13 the safety band boundary itself is accepted`
+V14 -> covered by V25/V26 (steps fits Int, no saturation)
+V15 -> RetrospectivePkServiceTest.`S18 CancellationException escapes unchanged`
+V16 -> RetrospectivePkServiceTest.`S15 repository read failure becomes HISTORICAL_INPUT_UNAVAILABLE...`
+V17 -> RetrospectivePkServiceTest.`S19 internal IllegalStateException is not swallowed`
+V18 -> RetrospectivePkServiceTest.`S20 deleting the authoritative event removes the next-read contribution`
+V19 -> HistoricalMedicationExtraMappingTest.`adding extras changes data-class equality and hashCode`
+V20 -> RetrospectivePkServiceTest.`S21 V20 invalid body weight is a precondition failure...`
+V21 -> RetrospectivePkServiceTest.`V21 extreme local dates and date-times fail as request-boundary or typed errors`
+V5/V6/V7 -> extractor E8 (pk id), reader R1 + service S11 (lookbackStart), extractor E3 (parse failures)
+V8 -> experience-core `MedicationOccurrenceGeneratorLimitTest` (threshold parity) +
+      reader `readRange keeps its original behavior after the generator exception typing`
+V9 -> RetrospectivePkServiceTest.`S13c defensive interval validator reports the typed outside path`
+V10 -> RetrospectivePkServiceTest.`S13d cursor outside the visible window fails request construction`
+V1-V4 -> extractor E5c + service V4/W10 tests
+
+Zero write -> RetrospectivePkZeroWriteTest.`five intents perform zero writes and real reads`
+Guard -> RetrospectivePkGuardTest (3 tests incl. non-vacuous AllAvailableHistorySource token)
+Candidate date regression -> HistoryReadServiceAllAvailableTest.
+      `R4p2 occurrence context follows the persisted date only and does not expand both dates`
+
+R3 (S12 closure): S12 now additionally proves points.size == curve.timeH.size (and == concPGmL.size),
+first/last point instants equal the calculated window endpoints, and every curve.timeH[i] maps to
+series.points[i].instant through Instant.ofEpochMilli(Math.round(timeH * 3_600_000.0)) ? point by point.
+Result: PASS with unchanged production code.

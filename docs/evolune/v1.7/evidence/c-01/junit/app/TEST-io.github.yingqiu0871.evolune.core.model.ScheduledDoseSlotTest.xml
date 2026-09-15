@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-15T21:21:46.523Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="modelEnforcesTheSamePositionAndPrecisionInvariants" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.001"/>
+  <testcase name="zeroAndMaximumPositionsAreAccepted" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="negativePositionIsRejected" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="secondsAndNanosecondsAreRejectedWithoutTruncation" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="equalInputsAreStable" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="eachIdentityInputChangesTheId" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="invalidAndWhitespacePlanIdsReturnExplicitErrors" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.001"/>
+  <testcase name="fixedVectorMatchesTheResolvedUuidV5Design" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <testcase name="localeAndDefaultTimeZoneDoNotChangeTheResult" classname="io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-15T21:21:07.989Z" hostname="人面不知何处去" time="0.406">
+  <properties/>
+  <testcase name="R1 all history is consumed without any 30-day or recent-20 selection" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.039"/>
+  <testcase name="readRange keeps its original behavior after the generator exception typing" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.007"/>
+  <testcase name="R3 events older than 4000 days remain in the consumed projection" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.001"/>
+  <testcase name="R6 multiple legal chunks may total more than 100000 occurrences" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.304"/>
+  <testcase name="R2 upper bound is passed exactly to the all-history channel" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.002"/>
+  <testcase name="R8 empty consumed set yields null lookbackStart and an empty projection" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.001"/>
+  <testcase name="R9 duplicate authoritative event ids fail fast" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.0"/>
+  <testcase name="R7 occurrence context covers the span between the last event and the upper bound" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.002"/>
+  <testcase name="R4p2 occurrence context follows the persisted date only and does not expand both dates" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.001"/>
+  <testcase name="R10 delayed recording with far persisted date still matches phase 1" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.002"/>
+  <testcase name="R4 occurrence context beyond 3660 days is chunked without gaps or duplicates" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.01"/>
+  <testcase name="R5 a single generator call beyond 100000 occurrences fails as the history diagnostic" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

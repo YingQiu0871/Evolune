@@ -38,6 +38,23 @@ interface DoseEventDao {
     suspend fun getEventsAfterOccurredAt(startInclusive: Long): List<DoseEventEntity>
 
     /**
+     * All-history channel (V17-C-01 §4.1): every authoritative row with
+     * `occurredAtEpochMillis <= endInclusive`, without any lower bound.
+     *
+     * Used only by `HistoryReadService.readAllAvailable` for retrospective PK.
+     * The inclusive bound is the frozen upper bound; callers must not add a second
+     * selection rule here.
+     */
+    @Query(
+        """
+        SELECT * FROM dose_events
+        WHERE occurredAtEpochMillis <= :endInclusive
+        ORDER BY occurredAtEpochMillis ASC, id ASC
+        """
+    )
+    suspend fun getEventsUpToOccurredAt(endInclusive: Long): List<DoseEventEntity>
+
+    /**
      * Returns the authoritative rows whose **persisted** `localDate` falls inside the
      * inclusive range `[startInclusive, endInclusive]`.
      *
