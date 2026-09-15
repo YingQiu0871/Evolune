@@ -272,9 +272,16 @@ PK output must remain explicitly model-derived.
 > `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
 > `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence `docs/evolune/v1.7/evidence/c-01/`）；该交付已覆盖
 > 本序列中 "historical event adapter" 的核心（全历史读取 → Phase A 投影 → 提取/资格/排序/贴片预处理 →
-> typed 结果）。**C-01 冻结**：未经重新开启评审不得改动其生产合同。**NEXT: Phase-C next-slice planning /
-> contract definition** —— 计划序列中其余命名（C-03 retrospective interval calculation 等）保持原文，新切片
-> 需经契约定义后实施；本轮不发明 C-02 之外的任何范围。
+> typed 结果）。**C-01 冻结**：未经重新开启评审不得改动其生产合同。
+>
+> **Status note (2026-09-16)**: active next slice = **C-04 — Schedule-Context / Recorded-Intake markers &
+> retrospective PK surface (MVP)**；contract **R3 corrected**、**RE-REVIEW PENDING**、生产未开始：
+> [`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)
+> （R1：marker coverage 改由 range seam 提供 + localization wording 修正；R2：两 family 的 marker scope
+> 冻结为 summary ID join + 身份分类、policy 条款改为 value/semantics 等价；R3：same-ID mutation 的
+> non-atomic truthfulness 规则 + 图例披露修正）。
+> 原始命名序列（C-02 historical event adapter、C-03 retrospective interval calculation 等）保持原文；新切片
+> 需经契约批准后实施，本轮不发明契约之外的任何范围。
 
 ---
 

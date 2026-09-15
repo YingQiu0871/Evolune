@@ -143,8 +143,11 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）· golden PK regression preserved · zero-write PASS ·
     schema / PK numerical source / Home·Wear·Widget orchestration unchanged。
   - **C-01 冻结**：未经重新开启评审，不得再对 C-01 生产代码做改动；后续 Phase-C 切片必须消费已批准的 C-01
-    API/结果契约。**NEXT:** Phase-C next-slice planning / contract definition（V17_PLAN §6 仍保留原始
-    C-01…C-09 命名序列；C-02 契约尚未定义，本轮不发明）。
+    API/结果契约。
+  - C-04 contract（Schedule-Context / Recorded-Intake markers & retrospective PK surface MVP）—
+    **CONTRACT（R3 CORRECTED） / RE-REVIEW PENDING**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)）；
+    **C-04 生产未开始**。
+  - **NEXT:** C-04 contract R3 re-review（V17_PLAN §6 保留原始 C-01…C-09 命名序列，不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·

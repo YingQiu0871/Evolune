@@ -58,8 +58,10 @@
       0 skipped · fresh 54/54 Gradle tasks executed · Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）·
       golden PK regression preserved · zero-write PASS · schema / PK numerical source / Home·Wear·Widget
       orchestration unchanged。**C-01 冻结**：未经重开评审不得再改 C-01 生产代码；后续切片消费已批准 API/结果契约。
-- [ ] NEXT：**Phase-C next-slice planning / contract definition**（`V17_PLAN.md` §6 仍保留原始 C-01…C-09 命名；
-      C-02 契约尚未定义，不得自行发明生产范围）。
+- [ ] Phase C · C-04 **contract（R3 corrected）/ re-review pending**（`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`）：
+      Schedule-Context / Recorded-Intake markers & retrospective PK surface（MVP）；**C-04 生产未开始**。
+- [ ] NEXT：**C-04 contract R3 re-review**（契约批准前不得开工生产实现；`V17_PLAN.md` §6 仍保留原始
+      C-01…C-09 命名）。
 - [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
 - [ ] `v1.7` 早期草案的 Optional CPA PK Curve 保持独立科学/来源评审门槛，不因 C-01 关闭而改变状态。

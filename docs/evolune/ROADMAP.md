@@ -149,8 +149,10 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）· golden PK regression preserved · zero-write PASS ·
   schema / PK numerical source / Home·Wear·Widget orchestration unchanged。
 - **C-01 冻结**：未经重新开启评审，不得再对 C-01 生产代码做改动；后续 Phase-C 切片必须消费已批准的 C-01
-  API/结果契约。**NEXT:** Phase-C next-slice planning / contract definition（`V17_PLAN.md` §6 仍保留原始
-  C-01…C-09 命名序列；C-02 契约尚未定义，本轮不发明）。
+  API/结果契约。
+- **C-04 contract**（Schedule-Context / Recorded-Intake markers & retrospective PK surface MVP）—
+  **CONTRACT（R3 CORRECTED） / RE-REVIEW PENDING**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)）；
+  **C-04 生产未开始**。**NEXT:** C-04 contract R3 re-review（`V17_PLAN.md` §6 保留原始 C-01…C-09 命名）。
 
 ## Historical and future milestones
 
@@ -167,7 +169,7 @@ B-04 hardening & release gate，全部独立复审 APPROVE），
 HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
 `145d53bd922c30338171cc7b0529a36dc482b4a6`；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)，详见上方 Phase C 小节）。
-**NEXT:** Phase-C next-slice planning / contract definition（C-02 契约尚未定义，不得自行发明）。
+**NEXT:** C-04 contract R3 re-review（C-04 contract（R3 corrected）已就绪、生产未开始，不得自行发明范围）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 
