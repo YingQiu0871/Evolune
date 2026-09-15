@@ -1,0 +1,10 @@
+﻿== C-04 implementation R1 (T4 closure) — fresh gates ==
+command (full): gradlew test --rerun-tasks --console=plain (54/54 executed)
+counts from JUnit XML (refreshed R1):
+  app:             1072 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:              90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           1333 tests / 0 failures / 0 errors / 0 skipped (unchanged: R1 added no JVM tests)
+focused C-04 JVM (rerun): 73 tests / 0 failures / 0 errors / 0 skipped
+instrumentation (Pixel_7 AVD API 35): 14 tests / 0 failures (11 prior + 3 new T4 assertions)
+R1 executable production delta = 0 (see audits.txt / t4-disclosure-closure.txt)

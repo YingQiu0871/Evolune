@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:54.731Z" hostname="人面不知何处去" time="0.018">
+  <properties/>
+  <testcase name="adjacent context occurrences never leak into the returned range" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.002"/>
+  <testcase name="multi-day range returns ascending days that have entries only" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <testcase name="invalid range fails fast without touching repositories" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <testcase name="display zone drives the final day attribution of a true legacy orphan" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <testcase name="deleted plan keeps its orphan intake in the requested range" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <testcase name="cross-midnight legacy event is reported on the requested day" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.002"/>
+  <testcase name="start equals end returns that single day" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <testcase name="persisted recording date wins over the instant date" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.002"/>
+  <testcase name="event query uses the wider bounded context on each side" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.004"/>
+  <testcase name="occurrence generation covers the requested day through current plans" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.002"/>
+  <testcase name="context events outside the requested range are filtered out" classname="io.github.yingqiu0871.evolune.history.HistoryReadServiceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

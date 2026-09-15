@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:54.916Z" hostname="人面不知何处去" time="0.012">
+  <properties/>
+  <testcase name="E5d zero-order patch with zero dose and positive rate is producing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.005"/>
+  <testcase name="E5c finite zero dose is retained with zero contribution and no exclusion" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E5a non-finite model-driving extras are excluded before the engine" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E7 entries after the consumed upper bound are a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E9a finite unknown tier codes fall back to STANDARD" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E5b W8 finite zero release rate with positive dose is retained but not producing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="W6 patch first order with positive dose is producing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E2 excluding INJECTION x E2 changes no engine input" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E7 duplicate event ids are a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E5c negative dose cannot be constructed through the derived match key" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E3 unmapped ester on an E2 PK route is a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E6 unrepresentable instant is an exclusion for non-patch and unusable for patch" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E3 ANTIANDROGEN short-circuits before ester parsing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E3 unmapped route is a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="W9 finite negative release rate with positive dose is retained but not producing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E1 route and ester eligibility matrix matches the frozen contract" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E9b non-finite tier is excluded" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="W7 zero order patch with positive rate and zero dose is producing" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <testcase name="E8 engine input is ordered by instant then id and keeps authoritative ids" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.001"/>
+  <testcase name="E4 six-key extras pass through core, historical and pk mapping identically" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:32.419Z" hostname="人面不知何处去" time="0.044">
+  <properties/>
+  <testcase name="unknown protocol version is rejected by both v1 decoders" classname="io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest" time="0.036"/>
+  <testcase name="missing snapshot remains waiting without fabricating a summary" classname="io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest" time="0.003"/>
+  <testcase name="v1 request and snapshot codecs round trip" classname="io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest" time="0.003"/>
+  <testcase name="known v1 snapshot remains displayable when today summary is absent" classname="io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

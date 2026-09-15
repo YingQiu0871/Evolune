@@ -530,4 +530,26 @@
     <string name="insights_invalid_generic">该区间不可用。</string>
     <string name="insights_count_row_description">%1$s：%2$d</string>
     <string name="insights_value_row_description">%1$s：%2$s</string>
+
+    <!-- v1.7-C-04 Retrospective PK surface (contract §11.2; wording is frozen) -->
+    <string name="retrospective_title">回顾性 PK</string>
+    <string name="retrospective_entry_title">回顾性 PK</string>
+    <string name="retrospective_entry_subtitle">由已记录摄入推算的 30 天模型估算</string>
+    <string name="retrospective_entry_action">打开回顾性 PK</string>
+    <string name="retrospective_window_caption">最近 30×24 小时——截至 %1$s</string>
+    <string name="retrospective_disclosure">模型估算——并非实测血药浓度。</string>
+    <string name="retrospective_marker_legend_disclosure">方案标记表示当前方案上下文；摄入标记显示与本次估算关联的当前记录。若记录刚刚被修改，标记内容可能比曲线更新。</string>
+    <string name="retrospective_marker_schedule_context">当前方案上下文</string>
+    <string name="retrospective_marker_recorded_intake">已记录摄入</string>
+    <string name="retrospective_legend_entry_format">%1$s：%2$d</string>
+    <string name="retrospective_loading">加载中…</string>
+    <string name="retrospective_retry">重试</string>
+    <string name="retrospective_unavailable_no_eligible_intakes">此估算暂无可用的已记录摄入。</string>
+    <string name="retrospective_unavailable_invalid_interval">该时间范围无法计算。</string>
+    <string name="retrospective_unavailable_generic">估算暂不可用。</string>
+    <string name="retrospective_unavailable_history_unavailable">历史记录未能完整读取，请重试。</string>
+    <string name="retrospective_limitation_zero_baseline">曲线自最早可用记录起算，更早的浓度无从得知。</string>
+    <string name="retrospective_limitation_unrecorded_occurrences">部分计划时点在现有数据中没有对应的摄入记录。</string>
+    <string name="retrospective_limitation_excluded_intakes">部分已记录摄入未计入此估算。</string>
+    <string name="retrospective_limitation_ambiguous_patch">部分贴片记录无法可靠配对，未计入此估算。</string>
 </resources>

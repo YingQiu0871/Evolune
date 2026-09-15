@@ -1,0 +1,130 @@
+V17-C-04 ACCEPTANCE MATRIX → IMPLEMENTATION EVIDENCE MAPPING
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+(implementation commit carries this evidence; junit XMLs under junit/)
+
+Legend:
+  DER  = RetrospectiveMarkerDerivationTest (junit/focused + junit/app)
+  VM   = RetrospectivePkViewModelTest
+  CHT  = RetrospectiveChartDataTest (ui.screens.retrospective)
+  PRS  = RetrospectivePresentationTest
+  STR  = RetrospectiveStringsParityTest
+  WRD  = RetrospectiveWordingGuardTest
+  ARC  = RetrospectiveArchitectureGuardTest
+  POL  = RetrospectivePolicyInvariantTest
+  INSTR = RetrospectiveScreenTest / RetrospectiveNavigationTest (instrumentation/)
+
+14.1 Marker mapping
+  M1 DER#M1 matched occurrence yields one schedule marker and one intake marker by own instants
+  M2 DER#M2 unmatched accepted intake yields an intake marker only, never a synthetic schedule marker
+  M3 DER#M3 known-estrogen unrecorded occurrence yields a schedule marker only and never an intake marker
+  M4 DER#M4 markers derive only from entries - future occurrences can never become markers
+  M5 DER#M5 the window is inclusive on both ends for both families
+  M6 DER#M6 counts follow the frozen invariants - no dedup, no merge, no synthesis, deterministic order
+
+14.2 Marker coverage regressions (MC)
+  MC1 DER#MC1 schedule markers exist across the whole 30 day window even when accepted intakes are recent
+  MC2 DER#MC2 intake membership uses occurredAt only - a persisted date outside the local span still shows
+  MC3 DER#MC3 and MC4 boundary instants at start and end are included while 1ms outside is excluded
+  MC4 (same test as MC3)
+  MC5 DER#MC5 MC6 MC7 family counts per projection shape
+  MC6 (same test; unrecorded provenance asserted)
+  MC7 (same test; no synthetic schedule marker asserted)
+
+14.3 Schedule-marker identity scope (MS)
+  MS1 DER#MS1 every known estrogen key yields exactly one schedule marker
+  MS2 DER#MS2 antiandrogen schedule occurrences are hidden
+      + VM#MS2 schedule identity scope applies end-to-end
+  MS3 DER#MS3 partial or foreign medication identities are hidden
+  MS4 DER#MS4 unrecorded known-estrogen occurrence has a schedule marker and no classification side effect
+  MS5 DER#MS5 PATCH_REMOVE schedule occurrences are explicitly hidden even though the key classifies KNOWN
+
+14.4 Recorded-marker membership (MI)
+  MI1 DER#MI1 an accepted non-control ID present in Read2 inside the window yields one intake marker
+  MI2 DER#MI2 patch control IDs never become intake markers
+  MI3 DER#MI3 excluded identities absent from the accepted set never become intake markers
+  MI4 DER#MI4 retained zero-contribution non-control inputs remain markers when the summary retains them
+  MI5 DER#MI5 unmatched accepted actual yields one intake marker and no synthetic schedule marker
+  MI6 VM#MI6 an event appearing only in Read2 after Read1 is not rendered
+  MI7 VM#MI7 a Read1 accepted id that disappeared before Read2 renders no marker and no error
+  MI8 ARC#the single approved identity classifier is reused and no second classifier exists
+      + ARC#no new C-04 production file touches forbidden infrastructure
+  MI9 VM#MI9 a same-id edit between reads uses the current Read2 facts while the curve stays Read1
+  MI10 DER#MI10 same accepted ID mutated to ANTIANDROGEN is hidden by the current-payload guard
+  MI11 DER#MI11 same accepted ID mutated to PATCH_REMOVE is hidden
+  MI12 DER#MI12 same accepted ID mutated to a foreign identity is hidden
+
+14.5 Truthfulness
+  T1 ARC#the ui state and marker models expose no judgement fields
+  T2 WRD#no retrospective string classifies the user with adherence wording
+  T3 PRS#each marker family maps to its own mandatory visible label
+     + INSTR#contentStateShowsChartMandatoryLabelsAndTruthfulLegendDisclosure
+  T4 INSTR#t4ContentStateShowsTheMandatoryModelEstimateDisclosure
+     + INSTR#t4UnavailableStateShowsTheMandatoryModelEstimateDisclosure
+     + INSTR#t4ErrorStateShowsTheMandatoryModelEstimateDisclosure
+     (R1: explicit visible-disclaimer assertions in all three required states;
+      see t4-disclosure-closure.txt)
+  T5 INSTR#contentStateShowsChartMandatoryLabelsAndTruthfulLegendDisclosure
+     + STR#the mandatory disclosure and marker labels are verbatim frozen
+  T6 WRD#no copy claims the marker payload is the exact or same snapshot of the curve input
+     + WRD#the mandatory copy keeps the truthful non-atomic semantics
+
+14.6 Window
+  W1 VM#the window is exactly 720 hours, millisecond aligned and has no future segment
+  W2 VM#the once-per-load capture is shared by all three reads
+  W3 VM#the window is exactly 720 hours, millisecond aligned and has no future segment
+  W4 VM#the window is exactly 720 hours, millisecond aligned and has no future segment (cursor null)
+     + ARC#no new C-04 production file touches forbidden infrastructure (no cursor UI vocabulary in state)
+
+14.7 Curve
+  C1 CHT#C1 chart points mirror the approved series point-for-point with raw bit values
+  C2 CHT#C2 a small negative roundoff value is preserved unmodified and never clamped to zero
+  C3 CHT#C3 the viewport is exactly the series interval - 720 hours
+  C4 ARC#no new C-04 production file touches forbidden infrastructure (live chart unused)
+  C5 ARC#no new C-04 production file touches forbidden infrastructure + audits.txt dependency audit
+
+14.8 Orchestration
+  O1 VM#the once-per-load capture is shared by all three reads
+  O2 VM#initial content load performs exactly three history reads in the frozen order
+     + VM#an invalid body weight performs zero history reads and reports the defensive error
+     + VM#Read1 Unavailable stops the load with exactly one history read
+  O3 ARC#the stale-result guard pattern is present in the view model
+     + VM#retry while a load is running is coalesced into exactly one follow-up
+  O4 VM#retry starts a completely new load with a fresh rolling capture
+     + VM#retry while a load is running is coalesced into exactly one follow-up
+  O5 ARC#no new C-04 production file performs or declares writes
+  O6 VM#a Read2 failure yields ERROR and never runs Read3
+     + VM#a Read3 failure yields ERROR with no partial content
+
+14.9 Unavailable / limitations
+  U1 VM#the unavailable reason mapping stays inside the frozen taxonomy
+     + INSTR#unavailableNoEligibleIntakesRendersItsFrozenCopyWithRetry
+  U2 INSTR#unavailableInvalidIntervalRendersItsFrozenCopyWithRetry
+  U3 INSTR#unavailableDefensiveReasonRendersTheGenericCopyWithRetry
+  U4 INSTR#unavailableHistoryInputRendersItsFrozenCopyWithRetry
+  U5 PRS#all four limitations map to four distinct neutral resources
+     + INSTR#limitationCopyIsRenderedWhenTheResultCarriesLimitations
+  U6 VM#an invalid body weight performs zero history reads and reports the defensive error
+     + VM#a corrected body weight recovers through retry
+     + INSTR#errorStateRendersGenericCopyAndRetryInvokesTheCallback
+
+14.10 Navigation / UI
+  N1 INSTR#historyOpensRetrospectivePkAndBackReturnsToHistory (entry card exists and is clickable)
+  N2 INSTR#theRetrospectiveSubRouteDoesNotAddBottomNavigationEntries
+  N3 INSTR#historyOpensRetrospectivePkAndBackReturnsToHistory
+  N4 INSTR#loadingState... / contentState... / unavailable* / errorState tests
+  N5 STR#both shipped resources carry the same retrospective key set
+     + STR#every retrospective key keeps an identical placeholder signature in both files
+     + STR#the window caption keeps exactly one timestamp placeholder
+  N6 INSTR#chartExposesTheModelEstimateDisclosureAsItsAccessibilityDescription
+     + WRD#the retrospective ui sources carry no hardcoded user-visible copy
+
+14.11 Regression
+  R1 audits.txt C-01 zero-diff audit (empty) + full JVM green
+  R2 audits.txt schema/DAO/Room audit (empty)
+  R3 audits.txt Home/Wear/Widget/ConcentrationChart zero-diff audit (empty)
+  R4 audits.txt dependency/build audit (empty)
+  R5 jvm-summary.txt: 1333 total = 1260 baseline + 73 new, 0 failures
+
+Policy invariant (§8): POL#the frozen canonical policy values are unchanged
+                       + VM#the captured policy value is the frozen canonical default
+Race evidence (MI6/MI7/MI9-MI12): VM MI6/MI7/MI9 + DER MI10/MI11/MI12 (see read-count-and-race-evidence.txt)

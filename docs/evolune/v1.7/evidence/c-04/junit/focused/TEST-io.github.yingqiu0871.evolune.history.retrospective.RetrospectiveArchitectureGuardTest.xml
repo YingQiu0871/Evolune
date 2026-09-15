@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:15.203Z" hostname="人面不知何处去" time="0.057">
+  <properties/>
+  <testcase name="no new C-04 production file performs or declares writes" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.03"/>
+  <testcase name="no new C-04 production file touches forbidden infrastructure" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.007"/>
+  <testcase name="the stale-result guard pattern is present in the view model" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.002"/>
+  <testcase name="the single approved identity classifier is reused and no second classifier exists" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.005"/>
+  <testcase name="the composition-root-only concrete reader stays at the composition root" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.003"/>
+  <testcase name="read discipline guards - no live clock, no timer, no polling in the new surfaces" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.001"/>
+  <testcase name="the ui state and marker models expose no judgement fields" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

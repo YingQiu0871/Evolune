@@ -1,0 +1,38 @@
+V17-C-04 IMPLEMENTATION R1 — T4 DISCLOSURE CLOSURE
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+old implementation HEAD af9d5889c91ffc5f0d20102ba4380d11d4b53a36
+
+Branch applied: BRANCH A — production already satisfies T4.
+  Source: app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt
+  Placement: the mandatory disclosure Text(testTag "retrospective-disclosure",
+  text = R.string.retrospective_disclosure = 模型估算——并非实测血药浓度。) is rendered
+  unconditionally at the top of the screen Column (lines 114-121), OUTSIDE the
+  `when (state.phase)` body (line 132+). It is therefore visible in CONTENT,
+  UNAVAILABLE, ERROR (and LOADING).
+
+R1 executable production delta = 0 (no app/src/main changes).
+
+T4 closure results (Pixel_7(AVD) - 15, instrumentation 14/14, 0 failed):
+
+  CONTENT      visible disclaimer PASS
+      RetrospectiveScreenTest#t4ContentStateShowsTheMandatoryModelEstimateDisclosure
+  UNAVAILABLE  visible disclaimer PASS
+      RetrospectiveScreenTest#t4UnavailableStateShowsTheMandatoryModelEstimateDisclosure
+      (real RetrospectivePkResult.Unavailable with NO_ELIGIBLE_RECORDED_INTAKES; the frozen
+       reason copy and the disclaimer are both asserted displayed)
+  ERROR        visible disclaimer PASS
+      RetrospectiveScreenTest#t4ErrorStateShowsTheMandatoryModelEstimateDisclosure
+      (real C-04 ERROR presentation state: RetrospectiveLoadFailure.InvalidBodyWeight)
+
+Assertion shape per state (no substitutes accepted):
+  - onNodeWithTag("retrospective-disclosure").assertIsDisplayed()
+  - onNodeWithText(<frozen disclosure string>).assertIsDisplayed()
+  contentDescription-only, hidden semantics, resource existence and other-state coverage
+  are NOT used as T4 evidence.
+
+O3 disposition (recorded, no production change):
+  C-04 serializes/coalesces loads so at most one load is in flight (single loadJob +
+  pendingRefresh coalescing); an older load cannot complete concurrently after a newer load
+  has started. The stale-generation publish guard remains defensive and is preserved as-is
+  (generation-token checks + serialization/coalescing tests). No concurrent loads were
+  introduced to make the stale branch reachable.

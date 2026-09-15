@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:54.185Z" hostname="人面不知何处去" time="0.014">
+  <properties/>
+  <testcase name="delayed reminder confirmation at midnight boundary keeps the event zone" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.01"/>
+  <testcase name="unmatched intake without a persisted zone falls back to the display zone" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.002"/>
+  <testcase name="the persisted event zone decides the rendered local date" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.0"/>
+  <testcase name="same-day matched intake keeps the short time" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.001"/>
+  <testcase name="same-day unmatched intake keeps the short time" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.0"/>
+  <testcase name="an intake whose display date is derived from its instant stays a short time" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.0"/>
+  <testcase name="unmatched cross-date intake also shows the full date" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.0"/>
+  <testcase name="delayed reminder confirmation on the next local day shows the full date" classname="io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

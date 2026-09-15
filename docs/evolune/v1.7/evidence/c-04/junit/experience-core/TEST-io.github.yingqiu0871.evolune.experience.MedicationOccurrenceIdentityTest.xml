@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:29.497Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="duplicate local slots remain distinct occurrence keys" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest" time="0.0"/>
+  <testcase name="same plan slot and local date have stable identity" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest" time="0.001"/>
+  <testcase name="different local dates of one plan do not collide" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest" time="0.0"/>
+  <testcase name="different plans do not collide at the same instant" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

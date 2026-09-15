@@ -1,0 +1,39 @@
+V17-C-04 WORDING / DISCLOSURE GUARD EVIDENCE
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+
+Tests:
+  io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest (4 tests)
+  io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest (5 tests)
+Result XML: junit/focused/TEST-...RetrospectiveStringsParityTest.xml / ...WordingGuardTest.xml
+
+Resource parity (N5):
+  - both shipped files (values/strings.xml, values-zh-rCN/strings.xml) carry the same
+    20 retrospective_* keys and identical placeholder signatures;
+  - window caption keeps exactly one %1$s placeholder;
+  - the mandated strings are present verbatim in BOTH files:
+      模型估算——并非实测血药浓度。
+      方案标记表示当前方案上下文；摄入标记显示与本次估算关联的当前记录。若记录刚刚被修改，标记内容可能比曲线更新。
+      当前方案上下文 / 已记录摄入
+      此估算暂无可用的已记录摄入。 / 该时间范围无法计算。 / 估算暂不可用。 / 历史记录未能完整读取，请重试。
+
+Forbidden-token scans (T6 / §12):
+  - adherence family (EN: adherence, compliance, missed, skipped, late, on-time, delay;
+    zh: 依从, 漏服, 跳过, 迟到, 准时, 按时, 延迟): 0 occurrences in any retrospective_* value;
+  - concentration-implication terms (measured, actual concentration, true blood level,
+    lab result, 真实血药浓度, 化验): 0 occurrences outside the two mandated disclosure strings;
+  - marker↔curve overclaim terms (exact input, same snapshot, used payload, synchronized,
+    atomic; zh: 精确输入, 同一快照, 所用输入, 已同步, 原子): 0 occurrences anywhere;
+  - truthful non-atomic semantics asserted: the legend copy keeps
+    current-record / linked-by-identity / recent-edit-may-be-newer-than-curve semantics.
+  - no hardcoded CJK user-visible copy in the new retrospective sources (copy comes from
+    string resources only).
+
+Device-level disclosure visibility (INSTR):
+  - RetrospectiveScreenTest#loadingStateShowsTheMandatoryDisclosureWindowAndSpinner — the
+    model-estimate disclosure is on-screen in the loading state as well;
+  - RetrospectiveScreenTest#contentStateShowsChartMandatoryLabelsAndTruthfulLegendDisclosure —
+    chart + both mandatory marker labels + the truthful legend disclosure are visible
+    (scrolled into view and asserted displayed);
+  - RetrospectiveScreenTest#chartExposesTheModelEstimateDisclosureAsItsAccessibilityDescription —
+    the chart's accessibility description equals the model-estimate disclosure text
+    (no raw/empty Canvas semantics).

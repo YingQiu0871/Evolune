@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkZeroWriteTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:55.226Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="five intents perform zero writes and real reads" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkZeroWriteTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

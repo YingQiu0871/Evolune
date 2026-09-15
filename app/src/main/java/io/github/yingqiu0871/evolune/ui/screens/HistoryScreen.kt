@@ -111,7 +111,8 @@ fun HistoryScreen(
     modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
     showTopBar: Boolean = false,
-    onOpenInsights: () -> Unit = {}
+    onOpenInsights: () -> Unit = {},
+    onOpenRetrospectivePk: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -147,7 +148,8 @@ fun HistoryScreen(
         onRetry = viewModel::retry,
         modifier = modifier,
         showTopBar = showTopBar,
-        onOpenInsights = onOpenInsights
+        onOpenInsights = onOpenInsights,
+        onOpenRetrospectivePk = onOpenRetrospectivePk
     )
 }
 
@@ -165,7 +167,8 @@ fun HistoryScreenContent(
     onSelectDate: (LocalDate) -> Unit = {},
     onRetry: () -> Unit = {},
     showTopBar: Boolean = false,
-    onOpenInsights: () -> Unit = {}
+    onOpenInsights: () -> Unit = {},
+    onOpenRetrospectivePk: () -> Unit = {}
 ) {
     val model = remember(state) { HistoryPresentation.present(state) }
 
@@ -196,6 +199,7 @@ fun HistoryScreenContent(
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
             item { InsightsEntryCard(onOpenInsights) }
+            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
             item { WeekdayHeader() }
             item { HistoryMonthCalendar(model, onSelectDate) }
@@ -211,6 +215,52 @@ fun HistoryScreenContent(
                     }
                 }
             }
+        }
+    }
+}
+
+// ---------- Retrospective PK entry (v1.7-C-04) ----------
+
+/**
+ * The visible entry point into the retrospective PK surface: the estimate consumes the same
+ * authoritative history, so it is reached from History instead of a sixth bottom tab
+ * (V17-C-04 §7/§D-8). The card is presentational only; it never reads or derives anything.
+ */
+@Composable
+private fun RetrospectivePkEntryCard(onOpenRetrospectivePk: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 0.dp)
+            .clickable(
+                onClickLabel = stringResource(R.string.retrospective_entry_action)
+            ) { onOpenRetrospectivePk() }
+            .testTag("history-retrospective-entry"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.retrospective_entry_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.retrospective_entry_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
         }
     }
 }

@@ -1,0 +1,12 @@
+﻿== C-04 git identity ==
+branch: v1.7-development
+contract HEAD: 8be09339bfae1c4a138b4ccb739f86302c60d627
+parent of contract HEAD: 24f7d41963bec3616bd6467545d1f3fa6c298837
+worktree status: (see changed-files.txt; clean after implementation commit)
+implementation commit: (THIS EVIDENCE IS COMMITTED WITH IT; HEAD recorded in the review packet)
+date: 2026-09-16 01:32:36
+== C-04 git identity (R1) ==
+branch: v1.7-development
+contract HEAD: 8be09339bfae1c4a138b4ccb739f86302c60d627 (unchanged; not amended)
+old implementation HEAD: af9d5889c91ffc5f0d20102ba4380d11d4b53a36
+R1: amended implementation commit parent must remain 8be0933 (recorded in the R1 packet)

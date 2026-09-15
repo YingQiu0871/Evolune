@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:55.261Z" hostname="人面不知何处去" time="0.014">
+  <properties/>
+  <testcase name="retry while a load is running is coalesced into exactly one follow-up" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.007"/>
+  <testcase name="the window is exactly 720 hours, millisecond aligned and has no future segment" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a Read1 read failure yields ERROR with no marker reads" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.001"/>
+  <testcase name="initial content load performs exactly three history reads in the frozen order" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="the unavailable reason mapping stays inside the frozen taxonomy" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a Read1 contract violation stays typed and stops the load" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a real foreground return refreshes exactly once" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="the initial state carries the current window even before the load settles" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.001"/>
+  <testcase name="the first surface entry adds no load while a re-entry refreshes once" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="the captured policy value is the frozen canonical default" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="the once-per-load capture is shared by all three reads" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="Read1 Unavailable stops the load with exactly one history read" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a Read3 failure yields ERROR with no partial content" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a Read2 failure yields ERROR and never runs Read3" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.001"/>
+  <testcase name="retry starts a completely new load with a fresh rolling capture" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="a corrected body weight recovers through retry" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.002"/>
+  <testcase name="the body weight is read exactly once per load" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="MI6 an event appearing only in Read2 after Read1 is not rendered" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="MS2 schedule identity scope applies end-to-end" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="MI7 a Read1 accepted id that disappeared before Read2 renders no marker and no error" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="an invalid body weight performs zero history reads and reports the defensive error" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.001"/>
+  <testcase name="MI9 a same-id edit between reads uses the current Read2 facts while the curve stays Read1" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <testcase name="markers are published in deterministic instant order" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

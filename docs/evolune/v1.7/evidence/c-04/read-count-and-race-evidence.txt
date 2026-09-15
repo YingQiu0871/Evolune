@@ -1,0 +1,62 @@
+V17-C-04 READ-COUNT / POLICY / SAME-ID RACE EVIDENCE
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+
+Source test class: io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest
+Result XML: junit/focused/TEST-...RetrospectivePkViewModelTest.xml (23 tests / 0 failures)
+
+Read-count matrix (contract D-2) — proven by recording fakes at the three seam boundaries:
+  CONTENT            = exactly 3 history-layer reads
+      #initial content load performs exactly three history reads in the frozen order
+      #the once-per-load capture is shared by all three reads (same window/zone/upperBound/
+       capturedAt/policy instance across Read1+Read2; Read3 receives the widened local dates
+       and now = capturedAt)
+  Unavailable        = exactly 1 history-layer read
+      #Read1 Unavailable stops the load with exactly one history read
+  invalid body weight = 0 history-layer reads
+      #an invalid body weight performs zero history reads and reports the defensive error
+  Read1 failure      = stop, 0 marker reads
+      #a Read1 read failure yields ERROR with no marker reads
+      #a Read1 contract violation stays typed and stops the load
+  Read2 failure      = ERROR, never runs Read3 (no partial content)
+      #a Read2 failure yields ERROR and never runs Read3
+  Read3 failure      = ERROR, no partial content
+      #a Read3 failure yields ERROR with no partial content
+  retry              = brand-new generation, fresh rolling capture, coalesced when in flight
+      #retry starts a completely new load with a fresh rolling capture
+      #retry while a load is running is coalesced into exactly one follow-up
+  activation         = first entry adds no load; re-entry / foreground refresh once
+      #the first surface entry adds no load while a re-entry refreshes once
+      #a real foreground return refreshes exactly once
+
+Policy invariant (contract §8 / D-3):
+  RetrospectivePolicyInvariantTest#the frozen canonical policy values are unchanged
+      (fails if dueBefore/dueAfter/matchBefore/matchAfter/doseTolerance defaults drift)
+  RetrospectivePolicyInvariantTest#equality is by value so seam value-sharing is well defined
+  RetrospectivePkViewModelTest#the captured policy value is the frozen canonical default
+      (Read1 request policy == Read2 call policy by value; same captured instance asserted
+       with assertSame in #the once-per-load capture...)
+
+Same-ID mutation / non-atomic races (contract §4.2.1):
+  MI6  #an event appearing only in Read2 after Read1 is not rendered
+       — Read1 accepts ID A; Read2 carries a different, non-accepted ID: no marker, CONTENT.
+  MI7  #a Read1 accepted id that disappeared before Read2 renders no marker and no error
+       — deleted between reads: no marker, no retry, no ERROR; next generation converges.
+  MI9  #a same-id edit between reads uses the current Read2 facts while the curve stays Read1
+       — the marker shows the CURRENT Read2 occurredAt; state.result.series is assertSame
+       as the Read1 Available.series (immutable curve); no failure.
+  MI10/MI11/MI12 (derivation level, junit focused derivation XML):
+       — same accepted ID mutated to ANTIANDROGEN / PATCH_REMOVE / foreign identity is
+       hidden by the current-payload presentation guards.
+  No snapshot/revision/fingerprint comparison exists: the guards are the frozen
+  classifier-KNOWN + non-PATCH_REMOVE presentation checks only (see architecture guard).
+
+Window proof (from the same class):
+  #the window is exactly 720 hours, millisecond aligned and has no future segment
+  #the initial state carries the current window even before the load settles
+  #the body weight is read exactly once per load
+
+== R1 refresh (T4 disclosure closure) ==
+O3 disposition: C-04 serializes/coalesces loads so at most one load is in flight; an older
+load cannot complete concurrently after a newer load has started. The stale-generation
+publish guard remains defensive and is preserved (generation-token checks + coalescing tests).
+No concurrent loads were introduced to make the stale branch reachable.

@@ -1,0 +1,59 @@
+V17-C-04 STATIC ARCHITECTURE GUARD & ZERO-WRITE EVIDENCE
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+
+Test: io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest
+Result XML: junit/focused/TEST-...RetrospectiveArchitectureGuardTest.xml
+(7 tests / 0 failures / 0 errors / 0 skipped)
+
+Guarded files (new C-04 production scope, all under app/src/main/java/...):
+  history/retrospective/RetrospectiveMarkerModels.kt
+  history/retrospective/RetrospectivePkUiState.kt
+  history/retrospective/RetrospectivePkSurfaceCoordinator.kt
+  history/retrospective/RetrospectivePkViewModel.kt
+  ui/screens/retrospective/RetrospectivePresentation.kt
+  ui/screens/retrospective/RetrospectiveSurfaceLifecycle.kt
+  ui/screens/retrospective/RetrospectiveConcentrationChart.kt
+  ui/screens/retrospective/RetrospectivePkScreen.kt
+
+Assertions proven by the guard:
+  1. no forbidden infrastructure references in any new C-04 file:
+     DoseEventRepository / DoseEventDao / AppDatabase / MedicationPlanRepository /
+     HistoryReadService / RetrospectivePkExtractor / ParameterResolver / SimulationEngine /
+     ThreeCompartmentModel / PKParameters / no `io.github.yingqiu0871.evolune.pk.` import /
+     no `io.github.yingqiu0871.evolune.data.repository` import /
+     no live `ConcentrationChart(` call (word-boundary regex; only the new
+     RetrospectiveConcentrationChart component exists).
+  2. no write vocabulary/annotations in any new C-04 file:
+     insert / upsert / delete / persist / @Dao / @Entity / @Database /
+     SharedPreferences / DataStore.
+  3. the single approved B-00 MedicationIdentityClassifier is reused by the coordinator and
+     no second classifier declaration exists ("(class|object)\s+\w*Classifier" absent).
+  4. the concrete HistoryReadService appears exactly once in the composition root
+     (MainActivity: `RetrospectivePkService(historyReadService)` and the
+     `HistoryRangeSource { ... historyReadService.readRange(...) }` binding);
+     no new C-04 file mentions it.
+  5. read discipline: no System.currentTimeMillis / delay( / repeat( / while (true) /
+     Timer( in the new surfaces (the lifecycle bridge uses the approved A-04 observer shape).
+  6. the UI state and marker models expose no judgement fields (reflection over
+     RetrospectivePkUiState, ScheduleContextMarker, RecordedIntakeMarker, provenance /
+     phase enums; forbidden substrings: adherence, compliance, missed, skipped, late,
+     ontime, on_time, punctual, punctuality, delta, confidence, score).
+  7. the stale-result guard pattern exists in the view model:
+     `private fun publish(`, `if (token != generation) return`,
+     `val token = ++generation`, `loadJob?.cancel()`,
+     `if (token == generation) runPendingRefresh()`.
+
+Zero-write evidence (runtime + static):
+  - runtime: the ViewModel/coordinator consume only RetrospectivePkSource /
+    AllAvailableHistorySource / HistoryRangeSource / SettingsStore.userSettings (read-only);
+    RetrospectivePkViewModelTest drives every path with recording fakes and never observes a
+    write API (no repository/DAO exists in the surface at all).
+  - static: assertion 2 above; audits.txt schema/DAO/Room audit is empty (zero diff).
+  - C-01 read paths (`readAllAvailable`, `readRange`) are derived-only by their frozen
+    contract and are untouched (C-01 zero-diff audit empty).
+
+Boundary KDoc (explicit for reviewers):
+  - RetrospectivePkSurfaceCoordinator KDoc states the three-seam boundary and the
+    composition-root-only rule.
+  - RetrospectivePkViewModel / RetrospectivePkViewModelFactory KDoc repeats the boundary and
+    warns against confusing the MainActivity composition-root precedent with C-04 orchestration.

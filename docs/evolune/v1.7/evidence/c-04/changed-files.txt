@@ -1,0 +1,338 @@
+﻿== changed files (implementation R1) ==
+vs old implementation HEAD af9d5889c91ffc5f0d20102ba4380d11d4b53a36:
+ .../retrospective/RetrospectiveScreenTest.kt       |  36 +++++
+ .../evidence/c-04/acceptance-matrix-mapping.txt    |   7 +-
+ docs/evolune/v1.7/evidence/c-04/audits.txt         | 175 +++++++++++++++++++++
+ docs/evolune/v1.7/evidence/c-04/changed-files.txt  |  43 +----
+ .../v1.7/evidence/c-04/instrumentation-run.log     | Bin 9554 -> 9644 bytes
+ .../TEST-Pixel_7(AVD) - 15-_app-.xml               |  27 ++--
+ ....github.yingqiu0871.evolune.ExampleUnitTest.xml |   4 +-
+ ...ngqiu0871.evolune.InitialRouteForIntentTest.xml |   2 +-
+ ...ication.CrossEntryOccurrenceConcurrencyTest.xml |   8 +-
+ ...871.evolune.application.DoseEventEditorTest.xml |  10 +-
+ ...e.application.MahiroJsonV1ExportServiceTest.xml |   6 +-
+ ...e.application.MahiroJsonV1ImportServiceTest.xml |  14 +-
+ ...e.application.MedicationPlanDraftMapperTest.xml |  22 +--
+ ...volune.application.MedicationPlanEditorTest.xml |  10 +-
+ ...ation.NotificationOccurrenceConcurrencyTest.xml |  24 +--
+ ...olune.application.RecordDoseEventActionTest.xml |  18 +--
+ ...volune.application.ReplayPolicyBoundaryTest.xml |   2 +-
+ ....application.WearAppConfirmationHandlerTest.xml |  10 +-
+ ....evolune.application.WearAppUndoHandlerTest.xml |  12 +-
+ ...olune.application.WearDoseActionHandlerTest.xml |   6 +-
+ ...871.evolune.backup.B2RestoreTransactionTest.xml |  20 +--
+ ...evolune.backup.BackupRestoreCoordinatorTest.xml |  32 ++--
+ ...u0871.evolune.backup.EvoluneBackupCodecTest.xml |  38 ++---
+ ....cloud.google.GoogleDriveBackupProviderTest.xml |  18 +--
+ ...kup.cloud.google.GoogleDriveRestGatewayTest.xml |   6 +-
+ ...0871.evolune.brand.LauncherIconResourceTest.xml |  20 +--
+ ...core.adapter.DomainDoseEventToPkAdapterTest.xml |   2 +-
+ ...ore.adapter.DomainDoseEventToPkBoundaryTest.xml |   4 +-
+ ....core.adapter.DomainDoseEventToPkParityTest.xml |   4 +-
+ ...evolune.core.dataapi.RepositoryContractTest.xml |   4 +-
+ ...ingqiu0871.evolune.core.model.DoseEventTest.xml |   6 +-
+ ...u0871.evolune.core.model.MedicationPlanTest.xml |  10 +-
+ ...71.evolune.core.model.ScheduledDoseSlotTest.xml |   6 +-
+ ...tation.HistoricalMedicationExtraMappingTest.xml |   4 +-
+ ...tation.MedicationOccurrenceDomainMapperTest.xml |   6 +-
+ ...871.evolune.core.time.LegacyTimeAdapterTest.xml |  10 +-
+ ...olune.data.mapper.DoseEventEntityMapperTest.xml |   8 +-
+ ...0871.evolune.data.mapper.ExtraKeyMapperTest.xml |   2 +-
+ ....data.mapper.MedicationPlanEntityMapperTest.xml |  12 +-
+ ...ne.data.mapper.PersistenceInstantMapperTest.xml |   6 +-
+ ....evolune.data.mapper.ScheduleTypeMapperTest.xml |   4 +-
+ ...evolune.data.mapper.V3PersistenceMapperTest.xml |  14 +-
+ ...data.migration.LegacyAggregatePreflightTest.xml |   6 +-
+ ...une.data.migration.LegacyPlanTimeParserTest.xml |   8 +-
+ ...olune.data.migration.LegacyStorageClassTest.xml |   4 +-
+ ...lune.data.migration.MigrationPrimitivesTest.xml |   6 +-
+ ...n.contract.MigrationPersistenceContractTest.xml |   8 +-
+ ...volune.external.mahiro.v1.MahiroV1CodecTest.xml |   6 +-
+ ...xternal.mahiro.v1.MahiroV1DomainAdapterTest.xml |   8 +-
+ ...althconnect.HealthConnectWeightProviderTest.xml |  18 +--
+ ...nect.HealthConnectWeightSyncCoordinatorTest.xml |  18 +--
+ ...ne.history.HistoryCrossDatePresentationTest.xml |   6 +-
+ ...history.HistoryFutureOccurrenceContractTest.xml |   4 +-
+ ...871.evolune.history.HistoryPresentationTest.xml |  12 +-
+ ...lune.history.HistoryPresentationWordingTest.xml |   8 +-
+ ...lune.history.HistoryQuickRecordInferredTest.xml |   2 +-
+ ....history.HistoryReadServiceAllAvailableTest.xml |  16 +-
+ ...e.history.HistoryReadServiceExtremeZoneTest.xml |  10 +-
+ ...ry.HistoryReadServiceOccurrenceChunkingTest.xml |   8 +-
+ ...history.HistoryReadServicePersistedDateTest.xml |  14 +-
+ ...0871.evolune.history.HistoryReadServiceTest.xml |  20 +--
+ ...71.evolune.history.HistoryReadZeroWriteTest.xml |   6 +-
+ ...gqiu0871.evolune.history.HistoryRefreshTest.xml |   4 +-
+ ...1.evolune.history.HistoryUndoProjectionTest.xml |   8 +-
+ ...iu0871.evolune.history.HistoryViewModelTest.xml |  12 +-
+ ...ory.insights.InsightsOrchestrationGuardTest.xml |   8 +-
+ ....history.insights.InsightsRangeResolverTest.xml |   6 +-
+ ...ory.insights.InsightsRangeSelectionInitTest.xml |   2 +-
+ ...y.insights.InsightsViewModelIntegrationTest.xml |   4 +-
+ ...lune.history.insights.InsightsViewModelTest.xml |  42 ++---
+ ...une.history.pk.RetrospectivePkExtractorTest.xml |  16 +-
+ ...evolune.history.pk.RetrospectivePkGuardTest.xml |   8 +-
+ ...ory.pk.RetrospectivePkPatchPreprocessorTest.xml |   6 +-
+ ...olune.history.pk.RetrospectivePkServiceTest.xml |  30 ++--
+ ...une.history.pk.RetrospectivePkZeroWriteTest.xml |   4 +-
+ ...spective.RetrospectiveArchitectureGuardTest.xml |   8 +-
+ ...ospective.RetrospectiveMarkerDerivationTest.xml |  12 +-
+ ....retrospective.RetrospectivePkViewModelTest.xml |  16 +-
+ ...rospective.RetrospectivePolicyInvariantTest.xml |   2 +-
+ ...etrospective.RetrospectiveStringsParityTest.xml |   6 +-
+ ...retrospective.RetrospectiveWordingGuardTest.xml |   4 +-
+ ...evolune.navigation.FeatureTutorialRouteTest.xml |   2 +-
+ ...0871.evolune.onboarding.OnboardingStateTest.xml |   2 +-
+ ...-io.github.yingqiu0871.evolune.pk.EsterTest.xml |   2 +-
+ ...hub.yingqiu0871.evolune.pk.PKParametersTest.xml |   2 +-
+ ...ingqiu0871.evolune.pk.ParameterResolverTest.xml |   6 +-
+ ...yingqiu0871.evolune.pk.SimulationEngineTest.xml |   8 +-
+ ...iu0871.evolune.pk.ThreeCompartmentModelTest.xml |   2 +-
+ ...e.reminder.Batch6ReceiverStaticBoundaryTest.xml |   4 +-
+ ...871.evolune.reminder.DoseCheckInMatcherTest.xml |   4 +-
+ ...reminder.MedicationPlanReminderScheduleTest.xml |   4 +-
+ ...1.evolune.reminder.ReceiverWorkLauncherTest.xml |   2 +-
+ ...71.evolune.reminder.ReminderDoseFactoryTest.xml |   2 +-
+ ...1.evolune.reminder.ReminderReceiverWorkTest.xml |  20 +--
+ ...volune.reminder.ReminderSkipStorePolicyTest.xml |   4 +-
+ ...i.components.ConcentrationChartGeometryTest.xml |   6 +-
+ ....ui.components.ConcentrationChartLayoutTest.xml |   2 +-
+ ...evolune.ui.screens.HomeScheduleBoundaryTest.xml |   2 +-
+ ...evolune.ui.screens.MotionListUxBoundaryTest.xml |   6 +-
+ ...e.ui.screens.insights.InsightsHardeningTest.xml |   8 +-
+ ...i.screens.insights.InsightsPresentationTest.xml |   8 +-
+ ...une.ui.screens.insights.InsightsUiGuardTest.xml |  14 +-
+ ...ns.retrospective.RetrospectiveChartDataTest.xml |   2 +-
+ ...retrospective.RetrospectivePresentationTest.xml |   2 +-
+ ...thub.yingqiu0871.evolune.ui.theme.ThemeTest.xml |   4 +-
+ ...gqiu0871.evolune.utils.MahiroJsonFormatTest.xml |   6 +-
+ ...une.utils.MedicationPlanPredictorParityTest.xml |   8 +-
+ ...1.evolune.utils.MedicationPlanPredictorTest.xml |   2 +-
+ ...gqiu0871.evolune.viewmodel.HRTViewModelTest.xml |  24 +--
+ ...olune.viewmodel.MedicationPlanViewModelTest.xml |  10 +-
+ ...volune.viewmodel.PkSimulationCalculatorTest.xml |   4 +-
+ ...evolune.wear.WearAppLegacyCompatibilityTest.xml |   2 +-
+ ...871.evolune.wear.WearAppSnapshotBuilderTest.xml |  16 +-
+ ...olune.wear.WearAppSnapshotRevisionStoreTest.xml |   4 +-
+ ....yingqiu0871.evolune.wear.WearDataLayerTest.xml |   4 +-
+ ...olune.wear.WearProductionBypassBoundaryTest.xml |   6 +-
+ ...evolune.wear.WearSkipNotificationPolicyTest.xml |   6 +-
+ ...qiu0871.evolune.widget.WidgetAppearanceTest.xml |  20 +--
+ ...u0871.evolune.widget.WidgetHostContractTest.xml |  12 +-
+ ...u0871.evolune.widget.WidgetPresentationTest.xml |   2 +-
+ ...hub.yingqiu0871.evolune.widget.WidgetUiTest.xml |  12 +-
+ ...b.yingqiu0871.evolune.widget.WidgetWorkTest.xml |  12 +-
+ ...ce.HistoricalProjectionFutureOccurrenceTest.xml |  20 +--
+ ...e.experience.HistoricalProjectionIntakeTest.xml |  10 +-
+ ...perience.HistoricalProjectionProvenanceTest.xml |   8 +-
+ ...nce.HistoricalReadModelFutureOccurrenceTest.xml |   6 +-
+ ....evolune.experience.HistoricalReadModelTest.xml |  22 +--
+ ...ence.MedicationOccurrenceGeneratorLimitTest.xml |   6 +-
+ ...xperience.MedicationOccurrenceGeneratorTest.xml |  18 +--
+ ...edicationOccurrenceIdentityGoldenVectorTest.xml |   2 +-
+ ...experience.MedicationOccurrenceIdentityTest.xml |   4 +-
+ ...rience.MedicationOccurrencePresentationTest.xml |  26 +--
+ ...e.experience.MedicationTimelineSelectorTest.xml |  10 +-
+ ...olune.experience.PureDependencyBoundaryTest.xml |   4 +-
+ ...perience.insights.InsightsBoundaryGuardTest.xml |  12 +-
+ ...e.insights.MedicationInsightsAggregatorTest.xml |   8 +-
+ ...nsights.MedicationInsightsGoldenDatasetTest.xml |   2 +-
+ ...ghts.MedicationInsightsPerformanceSmokeTest.xml |   4 +-
+ ...rience.wear.WearAppConfirmationProtocolTest.xml |   8 +-
+ ...une.experience.wear.WearAppRequestCodecTest.xml |  10 +-
+ ...ne.experience.wear.WearAppSnapshotCodecTest.xml |  14 +-
+ ...une.experience.wear.WearAppUndoProtocolTest.xml |  12 +-
+ ...spective.RetrospectiveArchitectureGuardTest.xml |  12 +-
+ ...ospective.RetrospectiveMarkerDerivationTest.xml |  16 +-
+ ....retrospective.RetrospectivePkViewModelTest.xml |  18 +--
+ ...rospective.RetrospectivePolicyInvariantTest.xml |   2 +-
+ ...etrospective.RetrospectiveStringsParityTest.xml |   2 +-
+ ...retrospective.RetrospectiveWordingGuardTest.xml |   6 +-
+ ...ns.retrospective.RetrospectiveChartDataTest.xml |   2 +-
+ ...retrospective.RetrospectivePresentationTest.xml |   6 +-
+ ...evolune.wear.WearAppCompatibilityMatrixTest.xml |   8 +-
+ ....evolune.wear.WearAppFollowUpRegressionTest.xml |  16 +-
+ ...u0871.evolune.wear.WearAppRefreshPolicyTest.xml |   2 +-
+ ...b.yingqiu0871.evolune.wear.WearAppStateTest.xml |  18 +--
+ ...u0871.evolune.wear.WearAppearancePolicyTest.xml |   4 +-
+ ...u0871.evolune.wear.WearComplicationTextTest.xml |  10 +-
+ ...71.evolune.wear.WearConnectionSemanticsTest.xml |   8 +-
+ ...qiu0871.evolune.wear.WearDashboardStateTest.xml |   4 +-
+ ....yingqiu0871.evolune.wear.WearDashboardTest.xml |   4 +-
+ ...0871.evolune.wear.WearGalleryTilePolicyTest.xml |  10 +-
+ ...ne.wear.WearSurfaceRegistrationContractTest.xml |   8 +-
+ .../evolune/v1.7/evidence/c-04/jvm-focused-run.log | Bin 4508 -> 25246 bytes
+ docs/evolune/v1.7/evidence/c-04/jvm-full-fresh.log | Bin 29832 -> 29832 bytes
+ docs/evolune/v1.7/evidence/c-04/jvm-summary.txt    |  15 +-
+ .../evidence/c-04/read-count-and-race-evidence.txt |   6 +
+ 165 files changed, 946 insertions(+), 763 deletions(-)
+
+-- worktree status --
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt
+ M docs/evolune/v1.7/evidence/c-04/acceptance-matrix-mapping.txt
+ M docs/evolune/v1.7/evidence/c-04/audits.txt
+ M docs/evolune/v1.7/evidence/c-04/changed-files.txt
+ M docs/evolune/v1.7/evidence/c-04/instrumentation-run.log
+ M "docs/evolune/v1.7/evidence/c-04/instrumentation/TEST-Pixel_7(AVD) - 15-_app-.xml"
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ExampleUnitTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.InitialRouteForIntentTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.DoseEventEditorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.MahiroJsonV1ExportServiceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.MahiroJsonV1ImportServiceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.MedicationPlanDraftMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.MedicationPlanEditorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.ReplayPolicyBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.WearAppUndoHandlerTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.backup.B2RestoreTransactionTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveRestGatewayTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.brand.LauncherIconResourceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkAdapterTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkParityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.model.DoseEventTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.model.MedicationPlanTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.presentation.MedicationOccurrenceDomainMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapterTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.ExtraKeyMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.MedicationPlanEntityMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.PersistenceInstantMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.ScheduleTypeMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.mapper.V3PersistenceMapperTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.migration.LegacyAggregatePreflightTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.migration.LegacyPlanTimeParserTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.migration.LegacyStorageClassTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.migration.MigrationPrimitivesTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.data.migration.contract.MigrationPersistenceContractTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DomainAdapterTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryPresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryQuickRecordInferredTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadServiceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryRefreshTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.HistoryViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.insights.InsightsRangeSelectionInitTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.insights.InsightsViewModelIntegrationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.pk.RetrospectivePkZeroWriteTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.navigation.FeatureTutorialRouteTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.onboarding.OnboardingStateTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.pk.EsterTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.pk.PKParametersTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.pk.ParameterResolverTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.pk.SimulationEngineTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.Batch6ReceiverStaticBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.DoseCheckInMatcherTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.MedicationPlanReminderScheduleTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.ReceiverWorkLauncherTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.ReminderDoseFactoryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.ReminderReceiverWorkTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.reminder.ReminderSkipStorePolicyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.MotionListUxBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.insights.InsightsPresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectivePresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.ui.theme.ThemeTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.utils.MahiroJsonFormatTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorParityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.viewmodel.PkSimulationCalculatorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearAppLegacyCompatibilityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStoreTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearDataLayerTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.wear.WearSkipNotificationPolicyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.widget.WidgetAppearanceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.widget.WidgetHostContractTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.widget.WidgetPresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.widget.WidgetUiTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/app/TEST-io.github.yingqiu0871.evolune.widget.WidgetWorkTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.HistoricalProjectionIntakeTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.HistoricalReadModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorLimitTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationOccurrencePresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.MedicationTimelineSelectorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.PureDependencyBoundaryTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsGoldenDatasetTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsPerformanceSmokeTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodecTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/experience-core/TEST-io.github.yingqiu0871.evolune.experience.wear.WearAppUndoProtocolTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/focused/TEST-io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectivePresentationTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearAppCompatibilityMatrixTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearAppFollowUpRegressionTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearAppRefreshPolicyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearAppStateTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearComplicationTextTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearConnectionSemanticsTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearDashboardStateTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearDashboardTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearGalleryTilePolicyTest.xml
+ M docs/evolune/v1.7/evidence/c-04/junit/wear/TEST-io.github.yingqiu0871.evolune.wear.WearSurfaceRegistrationContractTest.xml
+ M docs/evolune/v1.7/evidence/c-04/jvm-focused-run.log
+ M docs/evolune/v1.7/evidence/c-04/jvm-full-fresh.log
+ M docs/evolune/v1.7/evidence/c-04/jvm-summary.txt
+ M docs/evolune/v1.7/evidence/c-04/read-count-and-race-evidence.txt
+?? docs/evolune/v1.7/evidence/c-04/t4-disclosure-closure.txt
+
+R1 production delta: app/src/main = 0 files (only androidTest + evidence refresh).

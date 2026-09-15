@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:29.635Z" hostname="人面不知何处去" time="0.026">
+  <properties/>
+  <testcase name="success requires a real event id and rejects never carry one" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.021"/>
+  <testcase name="command round trips and carries no authoritative presentation fields" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.002"/>
+  <testcase name="unknown field is ignored while duplicate known field rejects" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.001"/>
+  <testcase name="paths are strict and bind operation id" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.001"/>
+  <testcase name="unsupported and malformed commands are rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

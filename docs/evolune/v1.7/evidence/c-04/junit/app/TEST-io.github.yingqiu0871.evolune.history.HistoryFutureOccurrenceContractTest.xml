@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:54.200Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="future occurrence of today is not presented as an unrecorded history entry" classname="io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest" time="0.002"/>
+  <testcase name="previous days keep every unmatched occurrence as unrecorded" classname="io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest" time="0.001"/>
+  <testcase name="today keeps only its arrived slots in history and reports no missing intake for later ones" classname="io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest" time="0.001"/>
+  <testcase name="an intake recorded before its scheduled time is still history" classname="io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-16T07:44:54.037Z" hostname="人面不知何处去" time="0.0">
+  <properties/>
+  <testcase name="adding extras changes data-class equality and hashCode" classname="io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest" time="0.0"/>
+  <testcase name="missing keys stay absent and never rely on the default map" classname="io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest" time="0.0"/>
+  <testcase name="core extras map exhaustively into the derived layer" classname="io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest" time="0.0"/>
+  <testcase name="derived extras map into the pk layer exactly like the direct adapter" classname="io.github.yingqiu0871.evolune.core.presentation.HistoricalMedicationExtraMappingTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" tests="14" failures="0" errors="0" skipped="0" time="20.649" timestamp="2026-09-16T07:42:25" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="errorStateRendersGenericCopyAndRetryInvokesTheCallback" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="2.841" />
+  <testcase name="unavailableNoEligibleIntakesRendersItsFrozenCopyWithRetry" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.116" />
+  <testcase name="contentStateShowsChartMandatoryLabelsAndTruthfulLegendDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.248" />
+  <testcase name="t4UnavailableStateShowsTheMandatoryModelEstimateDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.04" />
+  <testcase name="unavailableInvalidIntervalRendersItsFrozenCopyWithRetry" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="0.959" />
+  <testcase name="unavailableDefensiveReasonRendersTheGenericCopyWithRetry" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="0.989" />
+  <testcase name="limitationCopyIsRenderedWhenTheResultCarriesLimitations" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.064" />
+  <testcase name="chartExposesTheModelEstimateDisclosureAsItsAccessibilityDescription" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.033" />
+  <testcase name="t4ErrorStateShowsTheMandatoryModelEstimateDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="0.866" />
+  <testcase name="loadingStateShowsTheMandatoryDisclosureWindowAndSpinner" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="1.119" />
+  <testcase name="unavailableHistoryInputRendersItsFrozenCopyWithRetry" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="0.884" />
+  <testcase name="t4ContentStateShowsTheMandatoryModelEstimateDisclosure" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest" time="0.946" />
+  <testcase name="historyOpensRetrospectivePkAndBackReturnsToHistory" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveNavigationTest" time="3.535" />
+  <testcase name="theRetrospectiveSubRouteDoesNotAddBottomNavigationEntries" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveNavigationTest" time="1.791" />
+</testsuite>

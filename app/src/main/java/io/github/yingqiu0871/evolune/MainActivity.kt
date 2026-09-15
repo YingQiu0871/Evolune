@@ -44,8 +44,11 @@ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import io.github.yingqiu0871.evolune.history.HistoryReadService
+import io.github.yingqiu0871.evolune.history.HistoryRangeSource
 import io.github.yingqiu0871.evolune.history.HistoryViewModel
 import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
+import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
+import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
@@ -230,6 +233,20 @@ class MainActivity : ComponentActivity() {
                     historyReadService = historyReadService
                 )
 
+                // C-04 composition root (V17-C-04 §2.5): the concrete HistoryReadService is bound to
+                // the three approved seams ONLY here. Retrospective orchestration receives the seams
+                // (plus the read-only settings store) and never the reader itself.
+                val retrospectivePkSource = RetrospectivePkService(historyReadService)
+                val historyRangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
+                    historyReadService.readRange(startDate, endDate, zone, now)
+                }
+                val retrospectiveViewModelFactory = RetrospectivePkViewModelFactory(
+                    retrospectivePkSource = retrospectivePkSource,
+                    allAvailableHistorySource = historyReadService,
+                    historyRangeSource = historyRangeSource,
+                    settingsStore = settingsDataStore
+                )
+
                 // 创建 MedicationPlanViewModel
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
@@ -308,6 +325,7 @@ class MainActivity : ComponentActivity() {
                         hrtViewModel = hrtViewModel,
                         historyViewModel = historyViewModel,
                         insightsViewModelFactory = insightsViewModelFactory,
+                        retrospectiveViewModelFactory = retrospectiveViewModelFactory,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,

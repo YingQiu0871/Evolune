@@ -1,0 +1,47 @@
+V17-C-04 MARKER-SCOPE EVIDENCE (MS / MI / MC)
+contract HEAD 8be09339bfae1c4a138b4ccb739f86302c60d627
+
+Source test class: io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest
+Result XML: junit/focused/TEST-...RetrospectiveMarkerDerivationTest.xml (23 tests / 0 failures)
+
+ScheduleContextMarker identity scope (Read 3 + MedicationIdentityClassifier):
+  MS1  every known estrogen key (E2/EB/EV/EC/EN) yields exactly one schedule marker
+  MS2  antiandrogen schedule occurrences are hidden (classifier UNAVAILABLE)
+       + VM-level end-to-end reflection in RetrospectivePkViewModelTest#MS2
+  MS3  partial / foreign medication identities are hidden (classifier PARTIAL)
+  MS4  unrecorded known-estrogen occurrence: schedule marker only, provenance internal,
+       no missed/skipped classification side effect
+  MS5  PATCH_REMOVE schedule occurrences are explicitly hidden even though the key alone
+       would classify KNOWN (frozen explicit route guard; reachability proven in contract §2.1.3)
+  Coverage: MC1 (range-seam necessity) shows schedule markers across the whole 720h window
+       even when accepted intakes are recent (the all-history read cannot supply them).
+
+RecordedIntakeMarker membership (Read 2 ∩ immutable Read 1 summary IDs):
+  eligibleRecordedMarkerIds = engineInputEventIds − patchControlEventIds (contract §3.2A)
+  MI1  accepted non-control ID present in Read2 inside window -> one marker
+  MI2  patch control IDs never become markers
+  MI3  excluded identities (absent from the accepted set) never become markers
+  MI4  retained zero-contribution non-control inputs remain markers (proves the
+       concentrationProducingEventIds-alone rule is NOT used)
+  MI5  unmatched accepted actual -> one marker, no synthetic schedule marker
+  MI6  Read2-only new event -> no marker
+  MI7  Read1 id deleted before Read2 -> no marker, no retry, no ERROR
+  MI9  same-id edit -> current Read2 payload shown, curve stays Read1
+  MI10 same-id -> ANTIANDROGEN -> hidden
+  MI11 same-id -> PATCH_REMOVE -> hidden
+  MI12 same-id -> foreign identity -> hidden
+  MI8  (static) no extractor / parameter resolver / simulation engine usage in marker scope:
+       RetrospectiveArchitectureGuardTest#the single approved identity classifier is reused
+       and no second classifier exists + #no new C-04 production file touches forbidden
+       infrastructure.
+
+Count invariants (contract §3.3) asserted by M1-M6 / MC5-MC7:
+  scheduleMarkerCount = matched + unrecorded KNOWN in-window occurrences;
+  intakeMarkerCount = Read2 facts whose id is in the accepted non-control set and whose
+  occurredAt is in-window; no dedup / merge / synthesis / compensation.
+
+Marker families never mix beyond the frozen rules:
+  - schedule markers never come from Read 2;
+  - intake markers never come from Read 3;
+  - unmatched intakes never invent a schedule marker;
+  - unrecorded occurrences never become intake markers and never carry missed/skipped copy.
