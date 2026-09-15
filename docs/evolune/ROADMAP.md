@@ -133,17 +133,24 @@ Gate 结论（B-04 独立复审 **APPROVE**）：read-only（0 authoritative wri
 依赖、无逐日重算 · 导航未新增 tab、未重构 · schema/DAO 0 改动 · 旧 evidence 全冻结。
 Phase B 已 **CLOSED**。
 
-### v1.7 Phase C — Retrospective PK — design/spec only (in progress)
+### v1.7 Phase C — Retrospective PK — C-01 CLOSED
 
-Phase C 采用“先契约、后规格、再实现”的顺序：
+Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过最终独立实现复审并关闭：
 
-- **C-00 语义契约**：`APPROVE V17-C-00 SEMANTICS CONTRACT`，落地文件
+- **C-00 语义契约** — **APPROVED / FROZEN**：`APPROVE V17-C-00 SEMANTICS CONTRACT`，落地文件
   [`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)
   （数据/参数/时间/extras/资格/贴片/确定性/typed 结果/zero-write 全部冻结）。
-- **C-01 实现规格**：[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)
-  （全历史只读通道 → Phase A 投影 → 提取/资格/排序/贴片预处理 → 未改动的 SimulationEngine → typed 结果；
-  文件级改动计划 + 测试矩阵），待独立复审。
-- **C-01 生产代码未开始**：本轮为 docs-only（无 Kotlin/Room/依赖改动；Home/Wear/Widget 现行 PK 管线保持原样）。
+- **C-01 实现规格** — **APPROVED**：[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)
+  （全历史只读通道 → Phase A 投影 → 提取/资格/排序/贴片预处理 → 未改动的 SimulationEngine → typed 结果）。
+- **C-01 生产实现** — **APPROVED / CLOSED**（final independent implementation review **APPROVE**）：
+  contract HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
+  `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence [`v1.7/evidence/c-01/`](v1.7/evidence/c-01/)。
+- 最终验证摘要：1260 JVM tests / 0 failures / 0 errors / 0 skipped · fresh 54/54 Gradle tasks executed ·
+  Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）· golden PK regression preserved · zero-write PASS ·
+  schema / PK numerical source / Home·Wear·Widget orchestration unchanged。
+- **C-01 冻结**：未经重新开启评审，不得再对 C-01 生产代码做改动；后续 Phase-C 切片必须消费已批准的 C-01
+  API/结果契约。**NEXT:** Phase-C next-slice planning / contract definition（`V17_PLAN.md` §6 仍保留原始
+  C-01…C-09 命名序列；C-02 契约尚未定义，本轮不发明）。
 
 ## Historical and future milestones
 
@@ -156,10 +163,11 @@ v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备�
 候选实现见 [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md)），
 **Phase B — Adherence Insights 已 CLOSED**（B-00 语义冻结 → B-01 domain → B-02/B-02-R1 → B-03 UI →
 B-04 hardening & release gate，全部独立复审 APPROVE），
-**Phase C — Retrospective PK 处于 design/spec 阶段**：C-00 语义契约已冻结
-（[`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)），
-C-01 实现规格待独立复审（[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)），
-**生产代码未开始**。
+**Phase C — Retrospective PK：C-01 已 CLOSED**（C-00 契约冻结、C-01 规格与生产实现 APPROVED；contract
+HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
+`145d53bd922c30338171cc7b0529a36dc482b4a6`；evidence 见
+[`evidence/c-01/`](v1.7/evidence/c-01/)，详见上方 Phase C 小节）。
+**NEXT:** Phase-C next-slice planning / contract definition（C-02 契约尚未定义，不得自行发明）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

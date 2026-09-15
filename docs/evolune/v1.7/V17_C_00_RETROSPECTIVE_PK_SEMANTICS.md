@@ -1,6 +1,9 @@
 # V17-C-00 — Retrospective PK — Semantics Contract Landing
 
 > 状态：`SEMANTICS FROZEN / DESIGN GATE`（**R4 corrected**；无生产代码改动；docs-only）
+> C-01 状态（2026-09-15）：**APPROVED / CLOSED**（final independent implementation review APPROVE；
+> contract HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`；approved implementation HEAD
+> `145d53bd922c30338171cc7b0529a36dc482b4a6`）。本文件的语义内容保持冻结，未因关闭而改动。
 > Round：v1.7-C / **C-00**（契约落地、既有语义冻结、C-01 实现边界定义）
 > 起始 HEAD：`97943722a5f37efb7dff8d4b39e500df2017db82`（B-04 APPROVE / **PHASE B CLOSED**）
 > 权威：`APPROVE V17-C-00 SEMANTICS CONTRACT`（架构/产品门）；本文件负责原文落地，不重新裁决。
@@ -632,4 +635,6 @@ PATCH present-and-finite-`<= 0` release rate 明确为非 producing（贡献 0�
 `max(ceil(hours*12.0)+1, 1000)` 规则（资源门后 checked、无饱和、短窗 floor）；cursor 防御路径显式不可达但不移除；
 matchKey 提取顺序/失败分类、lookbackStart、pk id 冻结；100k guard 专用异常类型化 + 精确 catch；
 366 天资源门 + 数值安全带；异常分类与取消纪律单值化。R1/R2/R3 已接受内容不变。
-C-01 production 实现已暂停，等待本轮 hotfix 独立复审。
+C-01 production 实现已 **APPROVED / CLOSED**（final independent implementation review APPROVE；
+approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence
+`docs/evolune/v1.7/evidence/c-01/`）。未经重开评审不得再改 C-01 生产代码。

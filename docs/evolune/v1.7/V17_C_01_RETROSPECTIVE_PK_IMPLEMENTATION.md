@@ -1,6 +1,8 @@
 # V17-C-01 — Retrospective PK — Implementation Specification
 
-> 状态：`IMPLEMENTATION SPEC / NOT IMPLEMENTED`（**R4 corrected**；docs-only；不写生产代码）
+> 状态：`IMPLEMENTATION SPEC — APPROVED / IMPLEMENTED / CLOSED`（**R4 corrected**；
+> C-01 production 实现已按本规格交付并通过最终独立复审；approved implementation HEAD
+> `145d53bd922c30338171cc7b0529a36dc482b4a6`；evidence `docs/evolune/v1.7/evidence/c-01/`）
 > Round：v1.7-C / **C-01**（approved history architecture → projection result → retrospective
 > extraction → eligibility → ordering → patch grammar → unchanged SimulationEngine → typed result）
 > 起始 HEAD：`97943722a5f37efb7dff8d4b39e500df2017db82`（B-04 APPROVE / **PHASE B CLOSED**）
@@ -982,4 +984,7 @@ cursor 防御路径显式不可达；matchKey 提取顺序与失败分类、look
 generator 100k guard 专用异常类型化 + 精确 catch；366 天资源门 + 数值安全带 +
 **1000 点最小网格 floor（`max(ceil(hours*12.0)+1, 1000)`，资源门后 checked 非饱和计算，短窗不判违例）**；
 异常分类与协程取消纪律显式化；独立复审 P3 全部吸收。R1/R2/R3 已接受内容不变。
-**C-01 production 实现已暂停，等待本轮 hotfix 独立复审。**
+**C-01 production 实现已 APPROVED / CLOSED**（final independent implementation review APPROVE；
+approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence
+`docs/evolune/v1.7/evidence/c-01/`）。未经重开评审不得再改 C-01 生产代码；后续 Phase-C 切片必须消费
+本规格已批准的 API/结果契约。

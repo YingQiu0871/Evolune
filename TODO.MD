@@ -44,18 +44,25 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
-## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C 处于 design/spec）
+## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：C-01 已关闭）
 
 - [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
 - [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
       release gate 独立复审 APPROVE：read-only、无百分比/timing、无图表依赖、schema 0 改动。
-- [x] Phase C 前置契约：C-00 回顾性 PK 语义契约冻结（`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`，
-      `APPROVE V17-C-00 SEMANTICS CONTRACT`）；C-01 实现规格就绪
-      （`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`，待独立复审；本轮 docs-only）。
-- [ ] Phase C 实现（C-01 及后续切片）：**未开始** —— 待 C-01 规格独立复审通过后开工；
-      实现前不得改动 pk/ 数值文件、Room schema 与 Phase A/B 冻结语义。
+- [x] Phase C 前置契约：C-00 回顾性 PK 语义契约 — **APPROVED / FROZEN**（`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`，
+      `APPROVE V17-C-00 SEMANTICS CONTRACT`）；C-01 实现规格 — **APPROVED**
+      （`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`）。
+- [x] Phase C · C-01 生产实现 — **APPROVED / CLOSED**（final independent implementation review APPROVE）：
+      contract HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
+      `145d53bd922c30338171cc7b0529a36dc482b4a6`；最终验证：1260 JVM tests / 0 failures / 0 errors /
+      0 skipped · fresh 54/54 Gradle tasks executed · Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）·
+      golden PK regression preserved · zero-write PASS · schema / PK numerical source / Home·Wear·Widget
+      orchestration unchanged。**C-01 冻结**：未经重开评审不得再改 C-01 生产代码；后续切片消费已批准 API/结果契约。
+- [ ] NEXT：**Phase-C next-slice planning / contract definition**（`V17_PLAN.md` §6 仍保留原始 C-01…C-09 命名；
+      C-02 契约尚未定义，不得自行发明生产范围）。
 - [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
+- [ ] `v1.7` 早期草案的 Optional CPA PK Curve 保持独立科学/来源评审门槛，不因 C-01 关闭而改变状态。
 
 ## v1.7 — Optional CPA PK Curve
 

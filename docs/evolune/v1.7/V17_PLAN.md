@@ -267,6 +267,15 @@ Gate:
 
 PK output must remain explicitly model-derived.
 
+> **Status note (2026-09-15)**: 上述 C-01…C-09 是本 Phase 的原始计划命名，保持计划原文。在 C-00 语义契约
+> 与 C-01 实现规格获批后，**C-01 生产实现已 APPROVED / CLOSED**（contract HEAD
+> `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
+> `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence `docs/evolune/v1.7/evidence/c-01/`）；该交付已覆盖
+> 本序列中 "historical event adapter" 的核心（全历史读取 → Phase A 投影 → 提取/资格/排序/贴片预处理 →
+> typed 结果）。**C-01 冻结**：未经重新开启评审不得改动其生产合同。**NEXT: Phase-C next-slice planning /
+> contract definition** —— 计划序列中其余命名（C-03 retrospective interval calculation 等）保持原文，新切片
+> 需经契约定义后实施；本轮不发明 C-02 之外的任何范围。
+
 ---
 
 ## 7. Phase D — Medication Timeline
