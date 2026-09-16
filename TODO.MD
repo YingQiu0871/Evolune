@@ -85,10 +85,13 @@
 - [x] Phase D · D-02 — **FULLY CONSUMED BY CLOSED D-01**（chronological grouping 由 D-01 的
       date-section model + canonical ordering + same-instant determinism 交付；不创建 D-02 contract，
       不重编号）。
-- [ ] Phase D · D-03 contract — **CONTRACT — REVIEW PENDING**（`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`）：
-      Timeline Range / Date Read Orchestration（month-scoped、read-only、无 UI/ViewModel）；
-      **D-03 production NOT STARTED**；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
-- [ ] NEXT：**V17-D-03 contract review**（契约批准前不得开工 D-03 生产；不自行发明范围）。
+- [x] Phase D · D-03 contract — **APPROVED / FROZEN**（`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`，
+      `APPROVE V17-D03 CONTRACT`；含 R1/R2）：contract HEAD
+      `ec0416e32ca0094ce3347a776f76c66b63c0261e`。
+- [ ] Phase D · D-03 implementation — **implemented / REVIEW PENDING**（`TimelineRangeCoordinator` /
+      `TimelineRangeState` 等 month-scoped read-only orchestration；focused 50/0/0/0 · fresh full JVM
+      1415/0/0/0 · 54/54 tasks）；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
+- [ ] NEXT：**V17-D-03 implementation review**（独立复审；不自行发明范围）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" tests="42" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.711Z" hostname="人面不知何处去" time="0.218">
+  <properties/>
+  <testcase name="S8 W5 curve is the raw engine output and every series value is exact" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.009"/>
+  <testcase name="S19 internal IllegalStateException is not swallowed" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="D1 DST gap resolution is typed as GapAdjusted" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S6 V13 out-of-band instants are INVALID_QUERY_INTERVAL without any read" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="D2 DST overlap requires an explicit offset choice" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S14 cursor interpolation is a true interpolation not an endpoint clamp" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="S9 every result carries the enum-typed model provenance" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.003"/>
+  <testcase name="S1 W1 tau-zero EV fixture is accepted and keeps the exact negative roundoff" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="V22 V23 V24 short windows floor the grid to 1000" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="W3 below minus one nanogram-gram is a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S13c defensive interval validator reports the typed outside path" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S6 V13 the safety band boundary itself is accepted" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S2 enabled plans never contribute predicted doses to the curve" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.005"/>
+  <testcase name="S5 all-excluded facts yield NO_ELIGIBLE_RECORDED_INTAKES" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S5 no recorded intakes yields NO_ELIGIBLE_RECORDED_INTAKES" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S12 series endpoints equal the window endpoints and round-trip exactly" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.005"/>
+  <testcase name="V4 W10 only zero-contribution facts yield NO_ELIGIBLE_RECORDED_INTAKES" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="D3 date-line jump windows construct deterministically" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S10 unrecorded occurrences present over the full consumed lookback" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S21 V20 invalid body weight is a precondition failure and never reaches the engine" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S4 doses long before the window still shape the curve" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="S20 deleting the authoritative event removes the next-read contribution" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="T1 identical instants across display zones produce identical curves" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="V26 366 days preserves the 12 per hour density with 105409 steps" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.006"/>
+  <testcase name="S18 CancellationException escapes unchanged" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S3 the inclusive upper bound is enforced and late rows are not exclusions" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S17 public enum cardinalities are exactly frozen" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S10 excluded intakes and ambiguous pairing set their limitations" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="S16 generator limit diagnostic becomes HISTORICAL_INPUT_UNAVAILABLE" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="V11 exactly 366 days is accepted and invokes the engine once" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.006"/>
+  <testcase name="V12 366 days plus one millisecond is rejected before history and engine" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <testcase name="S13b cursor at start inside and end interpolates the series" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="P10k ten thousand events remain linear smoke" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.147"/>
+  <testcase name="W2 exactly minus one nanogram-gram is accepted unchanged" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S13a null cursor produces no estimate" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.002"/>
+  <testcase name="V25 84 hours produces 1009 steps" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S15 repository read failure becomes HISTORICAL_INPUT_UNAVAILABLE without partial output" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="V21 extreme local dates and date-times fail as request-boundary or typed errors" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S11 summary exposes exact lookbackStart and the three id lists" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="W4 non-finite engine output is a contract violation" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.001"/>
+  <testcase name="S7 repeated estimation is deterministic" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.003"/>
+  <testcase name="S13d cursor outside the visible window fails request construction" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

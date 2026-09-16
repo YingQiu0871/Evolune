@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.570Z" hostname="人面不知何处去" time="0.015">
+  <properties/>
+  <testcase name="undoing an early intake makes the future occurrence vanish from History instead of becoming unrecorded" classname="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" time="0.01"/>
+  <testcase name="undo across a DST day keeps attribution correct and leaves no ghost" classname="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" time="0.001"/>
+  <testcase name="phone delete removes an unmatched actual intake without inventing an occurrence" classname="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" time="0.001"/>
+  <testcase name="wear latest-delete removes a cross-date intake and keeps the display-date attribution" classname="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" time="0.002"/>
+  <testcase name="phone delete turns a matched intake back into a no-recorded-intake entry" classname="io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+﻿== changed files vs contract HEAD ec0416e ==
+
+-- worktree status --
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinator.kt
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeState.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeArchitectureGuardTest.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinatorTest.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangePurityTest.kt
+?? docs/evolune/v1.7/evidence/d-03/
+
+-- new D-03 files --
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeState.kt
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinator.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinatorTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangePurityTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeArchitectureGuardTest.kt

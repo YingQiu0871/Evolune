@@ -176,11 +176,12 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   **D-01 冻结**：未经重开评审不得再改 D-01 生产。
 - **Phase D · D-02** — **FULLY CONSUMED BY CLOSED D-01**（chronological grouping 由 D-01 交付；
   不创建 D-02 contract、不重编号）。
-- **Phase D · D-03 contract** — **CONTRACT — REVIEW PENDING**
+- **Phase D · D-03** — contract **APPROVED / FROZEN**（含 R1/R2，contract HEAD
+  `ec0416e32ca0094ce3347a776f76c66b63c0261e`）；implementation **implemented / REVIEW PENDING**
   （[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)）：
-  month-scoped read-only orchestration（无 UI/ViewModel）；**D-03 production NOT STARTED**；
+  month-scoped read-only orchestration；focused 50/0/0/0 · fresh full JVM 1415/0/0/0 · 54/54 tasks；
   D-04/D-05 NOT STARTED；D-06 recurring gate；D-07 final gate。
-  **NEXT:** V17-D-03 contract review。
+  **NEXT:** V17-D-03 implementation review。
 
 ## Historical and future milestones
 
@@ -200,8 +201,8 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** V17-D-03 contract review（[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)
-为 `CONTRACT — REVIEW PENDING`；D-03 生产未开始；D-02 已由 D-01 完全消费）。
+**NEXT:** V17-D-03 implementation review（contract 已 APPROVED / FROZEN；`history/timeline/` D-03
+实现已提交，REVIEW PENDING）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

@@ -168,11 +168,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
     169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
   - Phase D · D-02 — **FULLY CONSUMED BY CLOSED D-01**（不创建 D-02 contract、不重编号）。
-  - Phase D · D-03 contract — **CONTRACT — REVIEW PENDING**
-    （[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)）：
-    month-scoped Timeline Range / Date Read Orchestration（read-only，无 UI/ViewModel）；
-    **D-03 production NOT STARTED**；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
-  - **NEXT:** V17-D-03 contract review（契约批准前不得开工 D-03 生产；不自行发明范围）。
+  - Phase D · D-03 contract — **APPROVED / FROZEN**（[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)，
+    contract HEAD `ec0416e32ca0094ce3347a776f76c66b63c0261e`；含 R1/R2）；D-03 implementation —
+    **implemented / REVIEW PENDING**（month-scoped read-only orchestration；focused 50/0/0/0 ·
+    fresh full JVM 1415/0/0/0 · 54/54 tasks）；D-04/D-05 NOT STARTED；D-06 = recurring gate；
+    D-07 = final gate。
+  - **NEXT:** V17-D-03 implementation review（独立复审；不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·

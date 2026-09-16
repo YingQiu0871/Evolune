@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" tests="50" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.662Z" hostname="人面不知何处去" time="0.016">
+  <properties/>
+  <testcase name="a stale contract violation cannot replace the newer content" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.003"/>
+  <testcase name="the default selection is last 30 days" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="current month rolls into the new month" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a contract violation is surfaced as its own failure and never as empty data" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="current month resolves to the first of the month through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a refresh that arrives after a new selection is preserved" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="repeated selection changes leave only the newest selection authoritative" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="last 7 days resolves to today - 6 through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a custom range ending in the future is invalid and reads nothing" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="reselecting the same custom range that became invalid reads nothing" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a pending refresh still runs after an ordinary read failure" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a restored custom range is restored and validated" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="the first surface entry does not add a second read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="the read receives the resolved endpoints, the display zone and now" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a relative preset rolls with the day" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="reselecting the same preset after midnight re-resolves it and reads once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="last 90 days resolves to today - 89 through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a mixed recorded and unrecorded range is content" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a tab return refreshes the current selection exactly once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a restored custom range that is no longer valid reads nothing" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="an unrecorded-only range is content because it carries historical facts" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a timezone change re-resolves today before reading" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="an explicit selection change supersedes a pending refresh and still reads exactly twice" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="one request captures exactly one zone and instant snapshot" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a superseding selection that is invalid leaves no refresh latch behind" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a preserved refresh publishes the follow-up summary of the new selection" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="refresh requests during a load coalesce into exactly one follow-up load" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a new custom selection performs exactly one read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a live timezone change that makes a custom range invalid reads nothing" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="last 30 days resolves to today - 29 through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="custom endpoints stay fixed across a rollover" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="retry performs exactly one read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="selecting custom endpoints identical to the active selection performs no read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="an ordinary read failure keeps the selection and endpoints and offers retry" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="selection changes are persisted for restoration" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="an empty successful range is Empty rather than Error" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="malformed saved state falls back to the default selection" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="selecting the already active range performs no read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a range change performs exactly one read" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a restored relative preset is re-resolved against today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a foreground return refreshes exactly once" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a stale success that ignores cancellation cannot replace the newer selection" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a custom range with start after end is invalid and reads nothing" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a stale failure cannot turn the newer success into an error" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="an unmatched-only range is content" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="the initial load performs exactly one read and one aggregation" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a selection change during a load supersedes it instead of waiting" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="a pending refresh still runs after a contract violation" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <testcase name="no summary or range is ever persisted" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.001"/>
+  <testcase name="a valid custom range is forwarded unchanged" classname="io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

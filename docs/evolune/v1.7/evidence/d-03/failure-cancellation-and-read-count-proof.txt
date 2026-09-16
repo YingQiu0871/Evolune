@@ -1,0 +1,27 @@
+V17-D-03 — FAILURE / CANCELLATION / READ-COUNT PROOF
+contract HEAD ec0416e32ca0094ce3347a776f76c66b63c0261e
+
+Failure taxonomy (contract §14, unchanged by R2):
+  - CancellationException always rethrows: production catches cancellation before any generic
+    handler and `throw cancellation` (architecture guard F15); behavior verified by TR15
+    (scope cancellation during a gated read leaves LOADING and never publishes ERROR).
+  - Known source/read failures -> ReadFailure -> ERROR: TR14 asserts ERROR + ReadFailure with
+    no model and never an EMPTY phase; TR13 retries after ERROR with +1 read.
+  - Dedicated typed contract violations would map to ContractViolation; none exist in the
+    history layer today, so no broad reinterpretation is performed (documented in the
+    TimelineRangeFailure KDoc). Unexpected throwables follow the established precedent ->
+    ReadFailure -> ERROR, never swallowed into emptiness.
+
+Read-count matrix (contract §9):
+  valid load (past/current)            = exactly 1   TR1/TR2
+  future month                         = 0           TR3
+  selection outside month              = 0           TR4
+  selection after today                = 0           TR5
+  in-month selectDate                  = 0           TR9/TR10/TR11/HC6
+  refresh                              = +1          TR12
+  retry after ERROR                    = +1          TR13
+  superseded pending context           = 0           TR34 (B never reads)
+  pending INVALID_REQUEST/NOT_LOADABLE = 0           TR33/TR17a
+  exactly one projection per read      = TR19 (PU) + F5 single-call guard
+
+Evidence: junit/focused XMLs; full run junit/app.

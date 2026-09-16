@@ -1,0 +1,22 @@
+V17-D-03 — SELECTED-DATE PROOF (incl. P3 clarification)
+contract HEAD ec0416e32ca0094ce3347a776f76c66b63c0261e
+
+Frozen selection semantics (contract §6/§12.2):
+  - out-of-month selection -> INVALID_REQUEST / 0 reads (TR4)
+  - selection after today  -> NOT_LOADABLE / 0 reads (TR5)
+  - in-month selectDate    -> 0 reads, no new read generation (TR9/TR10, HC6)
+  - CONTENT <-> EMPTY_DAY switching without re-read (TR10/TR11)
+  - empty selected date    -> neutral EMPTY_DAY, no adherence semantics (TR7/HC7)
+
+Latest valid intent survives in-flight work:
+  TR17 (selection changed during a gated read is used when the read publishes)
+  combination test (active A; pending load B; selectDate inside B's month; B executes and
+  publishes the latest valid B selection with NO extra source read from selectDate)
+
+P3 clarification (recorded in production KDoc, TimelineRangeCoordinator):
+  "an invalid or out-of-month selection during in-flight work does not replace the current
+   valid selected-date intent — it requires a valid selection or a new load context."
+Implementation: selectDate() ignores invalid/out-of-month dates (no state change) and never
+creates a read generation; valid in-flight selections update the intent only.
+
+Evidence: junit/focused/TEST-...TimelineRangeCoordinatorTest.xml.

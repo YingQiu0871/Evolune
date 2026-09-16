@@ -347,6 +347,15 @@ PK output must remain explicitly model-derived.
 > generation/stale 与 coalescing、failure taxonomy、HC1–HC7、TR1–TR24、F1–F16；**D-03 production
 > NOT STARTED**（无 UI、无 ViewModel）。**NEXT: V17-D-03 contract review**；D-04/D-05 NOT STARTED；
 > D-06 = recurring gate；D-07 = final Phase-D gate；Phase C 保持 CLOSED。
+>
+> **Status note (2026-09-16, D-03 implementation)**: **D-03 contract APPROVED / FROZEN**（含 R1
+> capture/generation closure 与 R2 request replacement/revalidation；contract HEAD
+> `ec0416e32ca0094ce3347a776f76c66b63c0261e`）；**D-03 implementation 已提交、REVIEW PENDING**：
+> `history/timeline/` month-scoped read-only orchestration（TimelineMonthRequest / 7 phases /
+> typed state+failure / TimelineRangeCoordinator；global ≤1 active read + ≤1 latest pending context、
+> latest-request-wins、fresh capturedAt per generation、0-read pending validation、selected-date
+> intent survival；无 UI/ViewModel）。验证：focused 50/0/0/0 · fresh full JVM 1415/0/0/0 · 54/54 tasks。
+> **NEXT: V17-D-03 implementation review**；D-04/D-05 NOT STARTED；Phase C 保持 CLOSED、D-01 未被修改。
 
 ---
 

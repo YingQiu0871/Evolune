@@ -1,0 +1,14 @@
+﻿== V17-D-03 fresh JVM summary ==
+focused command: gradlew :app:testDebugUnitTest --rerun-tasks --tests io.github.yingqiu0871.evolune.history.timeline.TimelineRange*
+full command: gradlew test --rerun-tasks --console=plain (54/54 actionable tasks executed)
+
+focused D-03: 50 tests / 0 failures / 0 errors / 0 skipped
+full JVM (from JUnit XML):
+  app:             1154 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:              90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           1415 tests / 0 failures / 0 errors / 0 skipped
+
+baseline before D-03: 1365 (app 1104 + ec 171 + wear 90); D-03 adds 50 app tests (app 1154).
+Android instrumentation: NOT REQUIRED (D-03 is Android/UI-free; none fabricated).
+Evidence logs are UTF-8 (per D-01 review P3 preference).

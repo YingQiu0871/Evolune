@@ -1,0 +1,31 @@
+﻿== V17-D-03 audits ==
+generated: 2026-09-16 12:50:56
+contract HEAD: ec0416e32ca0094ce3347a776f76c66b63c0261e
+
+== D-01 production zero-diff (must be empty) ==
+[empty]
+
+== Phase-C production zero-diff (history/pk + history/retrospective) ==
+[empty]
+
+== shared history reader/projection zero-diff ==
+[empty]
+
+== schema/DAO/Room zero-diff ==
+[empty]
+
+== Home/Wear/Widget zero-diff ==
+[empty]
+
+== UI/navigation/resources zero-diff ==
+[empty]
+
+== dependency/build zero-diff ==
+[empty]
+
+== D-03 executable delta (only the new package + tests) ==
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinator.kt
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeState.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeArchitectureGuardTest.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinatorTest.kt
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangePurityTest.kt

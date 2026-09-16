@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:09.922Z" hostname="人面不知何处去" time="0.008">
+  <properties/>
+  <testcase name="projection provenance agrees with the presentation matcher for the same input" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.001"/>
+  <testcase name="same-day fallback explains why a late null-slot candidate with a persisted date still matches" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.001"/>
+  <testcase name="phase three legacy null slot inside the window is a window match" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.002"/>
+  <testcase name="ambiguous candidates stay unmatched instead of upgrading to certainty" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.0"/>
+  <testcase name="phase one slot and local date match is exact" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.001"/>
+  <testcase name="closed window boundary is inclusive in both directions while one second outside stays unmatched" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.0"/>
+  <testcase name="phase two slot without local date is a bounded window match" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.0"/>
+  <testcase name="phase four null slot outside the window is a same-day fallback match" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.0"/>
+  <testcase name="cross date legacy match is inferred and flagged as crossing the local date boundary" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.001"/>
+  <testcase name="an inferred match is never reported as an exact match" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionProvenanceTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

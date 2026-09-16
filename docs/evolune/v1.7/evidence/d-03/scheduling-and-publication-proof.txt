@@ -1,0 +1,29 @@
+V17-D-03 — SCHEDULING / PUBLICATION PROOF (R1 + R2)
+contract HEAD ec0416e32ca0094ce3347a776f76c66b63c0261e
+
+Global one-active/one-pending rule (R2 §12.1):
+  - at most ONE active HistoryRangeSource read; while a read is in flight any accepted newer
+    operation becomes the single pending context:
+      TR16  (stale A cannot publish after B accepted; calls stay 1 while B pending)
+      TR29  (load B while A reading: no parallel read while pending; B executes afterward)
+      TR34  (A active, B pending, C accepted -> only C executes; B never runs)
+  - latest accepted context wins regardless of operation kind (no type priority):
+      TR30  (refresh then load -> load wins; refresh after load targets the latest logical
+             month with the fresh capture)
+
+Publication authority:
+  - ownership moves at ACCEPTANCE time; old active completion is ignored:
+      TR16, TR17a, TR28 (0-read NOT_LOADABLE generation defeats the old active read:
+      total source reads stays 1), TR34.
+
+Pending validation before source read (R2):
+  TR33 (pending invalid selection publishes INVALID_REQUEST with 0 additional reads),
+  TR17a (same for the in-flight case).
+
+Fresh capture + latest logical context (R1):
+  TR27 (coalesced refreshes use the latest capturedAt),
+  TR30 (refresh targets latest logical month, never the last published model),
+  TR25/TR26 (fresh capture changes today/range classification).
+
+Evidence: junit/focused/TEST-...TimelineRangeCoordinatorTest.xml (36 tests / 0 failures);
+full run junit/app.

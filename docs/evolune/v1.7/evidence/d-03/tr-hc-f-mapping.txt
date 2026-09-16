@@ -1,0 +1,73 @@
+V17-D-03 — TR / HC / F ACCEPTANCE MAPPING
+contract HEAD ec0416e32ca0094ce3347a776f76c66b63c0261e
+evidence: junit/focused (50 tests / 0 failures) + junit/app (full run); logs jvm-focused-run.log / jvm-full-fresh.log
+All items PASS.
+
+Test classes:
+  CO = TimelineRangeCoordinatorTest (36 tests)
+  PU = TimelineRangePurityTest (4 tests)
+  GU = TimelineRangeArchitectureGuardTest (10 tests)
+
+TR1  past month complete inclusive month / 1 read ....... CO#TR1
+TR2  current month start..today / 1 read ................ CO#TR2 and TR21
+TR3  future month NOT_LOADABLE / 0 reads ................ CO#TR3
+TR4  selection outside month INVALID_REQUEST / 0 reads .. CO#TR4
+TR5  selection after today NOT_LOADABLE / 0 reads ....... CO#TR5
+TR6  non-empty selected day CONTENT ..................... CO#TR6
+TR7  empty selected day inside non-empty range EMPTY_DAY  CO#TR7
+TR8  completely empty range EMPTY_RANGE ................. CO#TR8
+TR9  in-range selectDate 0 reads ........................ CO#TR9 TR10 ... (HC6)
+TR10 CONTENT -> EMPTY_DAY without re-read ............... CO#TR9 (combined)
+TR11 EMPTY_DAY -> CONTENT without re-read ............... CO#TR11
+TR12 refresh +1 read .................................... CO#TR12
+TR13 retry after ERROR +1 read .......................... CO#TR13
+TR14 read failure ERROR never EMPTY ..................... CO#TR14
+TR15 cancellation propagates, not ERROR ................. CO#TR15
+TR16 stale generation cannot publish .................... CO#TR16
+TR17 in-flight selection survives completion ............ CO#TR17
+TR17a 0-read generation invalidates old read ........... CO#TR17a
+TR18 in-flight duplicate refresh coalesced .............. CO#TR18 and TR27
+TR19 projected exactly once through D-01 builder ........ PU#TR19 (+ GU#F5 single-call guard)
+TR20 displayDate/date sections not recomputed ........... CO#TR20
+TR21 current-month future dates never reach source ...... CO#TR2 and TR21
+TR22 no future rows synthesized ......................... CO#TR22 + PU#TR22
+TR23 no delta/adherence semantics ....................... PU#TR23 (+ GU#F8)
+TR24 identical input deterministic ...................... PU#TR24
+TR25 midnight refresh fresh capture / new end ........... CO#TR25
+TR26 month rollover reclassification .................... CO#TR26
+TR27 coalescing uses latest capture ..................... CO#TR18 and TR27
+TR28 0-read generation defeats old active ............... CO#TR28
+TR29 load replacement without parallel read ............. CO#TR29
+TR30 mixed operation latest-wins ........................ CO#TR30
+TR31 future month becomes loadable ...................... CO#TR31
+TR32 future selected date becomes today ................. CO#TR32
+TR33 pending zero-read validation ....................... CO#TR33
+TR34 B pending replaced by C ............................ CO#TR34
+
+HC1 projection displayDate preserved .................... CO#HC1
+HC2 date boundaries inclusive ........................... CO#HC2
+HC3 future month 0 reads ................................ CO#HC3
+HC4 current month ends at today ......................... CO#HC4
+HC5 past month complete ................................. CO#HC5
+HC6 in-month selectDate 0 reads ......................... CO#TR9 TR10 ... (HC6)
+HC7 empty selected date neutral EMPTY_DAY ............... CO#HC7
+
+F1  no new truth seam ................................... GU#F1 F3 F4 F6 ...
+F2  no DAO/repository/Room .............................. GU#F2
+F3  no direct HistoryReadService ........................ GU#F1 F3 F4 F6 ...
+F4  no second matcher/generator ......................... GU#F1 F3 F4 F6 ...
+F5  no D-01 modification ................................ GU#F5
+F6  no Phase-C/PK dependency ............................ GU#F1 F3 F4 F6 ...
+F7  no future read/rows ................................. GU#F7 (+ CO#TR2/TR22/TR3)
+F8  no timing/adherence ................................. GU#F8 (+ PU#TR23)
+F9  no writes ........................................... GU#F9 F13 ...
+F10 no UI/Compose/navigation ............................ GU#F10 F11 ...
+F11 no ViewModel/Lifecycle .............................. GU#F10 F11 ...
+F12 no localized/formatted strings ...................... GU#F12
+F13 no polling/live subscription/persistent cache ....... GU#F9 F13 ...
+F14 no global/unmanaged scope ........................... GU#F14
+F15 cancellation is not user ERROR ...................... GU#F15 (+ CO#TR15)
+F16 no new dependency ................................... audits.txt dependency/build zero-diff
+
+Combination test (§22): CO#combination test - pending load keeps the latest valid selection and
+adds no extra read.

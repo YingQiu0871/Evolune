@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.977Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="every retrospective key keeps an identical placeholder signature in both files" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest" time="0.002"/>
+  <testcase name="the window caption keeps exactly one timestamp placeholder" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest" time="0.0"/>
+  <testcase name="the mandatory disclosure and marker labels are verbatim frozen" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest" time="0.001"/>
+  <testcase name="both shipped resources carry the same retrospective key set" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.027Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="negativeInfinityTimeHReturnsSpecificFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.001"/>
+  <testcase name="nanTimeHReturnsSpecificFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="legacyExtraValuesArePreservedWithoutNewValidation" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.001"/>
+  <testcase name="unknownRouteReturnsExplicitFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="defaultLocaleAndTimeZoneDoNotAffectMapping" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="unknownExtraKeyReturnsExplicitFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.001"/>
+  <testcase name="positiveInfinityTimeHReturnsSpecificFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="validSyntheticEntityMapsEveryFieldAndLegacyDefault" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="negativeTimeHOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="unknownEsterReturnsExplicitFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <testcase name="positiveTimeHOverflowReturnsFailure" classname="io.github.yingqiu0871.evolune.data.mapper.DoseEventEntityMapperTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
