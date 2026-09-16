@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.956Z" hostname="人面不知何处去" time="0.005">
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.583Z" hostname="人面不知何处去" time="0.004">
   <properties/>
-  <testcase name="MI3 excluded identities absent from the accepted set never become intake markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.002"/>
+  <testcase name="MI3 excluded identities absent from the accepted set never become intake markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.001"/>
   <testcase name="MC1 schedule markers exist across the whole 30 day window even when accepted intakes are recent" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.002"/>
   <testcase name="M4 markers derive only from entries - future occurrences can never become markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
   <testcase name="MI4 retained zero-contribution non-control inputs remain markers when the summary retains them" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>

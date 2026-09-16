@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.976Z" hostname="人面不知何处去" time="0.0">
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.604Z" hostname="人面不知何处去" time="0.0">
   <properties/>
   <testcase name="equality is by value so seam value-sharing is well defined" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest" time="0.0"/>
   <testcase name="the frozen canonical policy values are unchanged" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest" time="0.0"/>

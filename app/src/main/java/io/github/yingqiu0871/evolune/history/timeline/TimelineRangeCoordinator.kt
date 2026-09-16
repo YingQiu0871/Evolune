@@ -111,8 +111,11 @@ class TimelineRangeCoordinator(
 
     /**
      * Refreshes the LATEST LOGICAL context (not the last published model) with a freshly supplied
-     * [capturedAt]. Never derives its target from the last successful publication. No-op before
-     * the first load.
+     * [capturedAt]. Never derives its target from the last successful publication.
+     *
+     * The constructor performs the initial [load] before the instance escapes construction, so a
+     * public refresh can never observe a missing logical context (the initial read may still be
+     * in flight and is then coalesced by the pending-context rule).
      */
     fun refresh(capturedAt: Instant) {
         val logical = latestLogicalContext ?: return
@@ -203,13 +206,15 @@ class TimelineRangeCoordinator(
         val today = context.capturedAt.atZone(displayZone).toLocalDate()
         val intent = validIntent(context, requestedMonth, today)
 
-        // Generation validation BEFORE any source read (R2).
-        if (requestedMonth > YearMonth.from(today)) {
-            publishTerminal(context, requestedMonth, displayZone, today, intent, TimelineRangePhase.NOT_LOADABLE)
-            return
-        }
+        // Generation validation BEFORE any source read (R2), in the frozen precedence order:
+        // STEP 1 structural validity (time-independent): selection outside the requested month.
         if (YearMonth.from(intent) != requestedMonth) {
             publishTerminal(context, requestedMonth, displayZone, today, intent, TimelineRangePhase.INVALID_REQUEST)
+            return
+        }
+        // STEP 2 temporal/loadability validity (time-dependent).
+        if (requestedMonth > YearMonth.from(today)) {
+            publishTerminal(context, requestedMonth, displayZone, today, intent, TimelineRangePhase.NOT_LOADABLE)
             return
         }
         if (intent > today) {

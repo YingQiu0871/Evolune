@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetUiTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.488Z" hostname="人面不知何处去" time="0.008">
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetUiTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:50.187Z" hostname="人面不知何处去" time="0.009">
   <properties/>
   <testcase name="chart geometry reserves vertical chrome for every responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
-  <testcase name="past today remains a scheduled-time check action with empty progress" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.003"/>
+  <testcase name="past today remains a scheduled-time check action with empty progress" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.004"/>
   <testcase name="2x1 retains all today rows for collection scrolling" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
   <testcase name="chart typography scales with the responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="next dose style exposes only the highest priority upcoming occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
@@ -11,9 +11,9 @@
   <testcase name="recorded completion alone fills progress and increments header count" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="height primarily controls row capacity" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="truthful no plan no upcoming loading and failure states remain distinct" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
-  <testcase name="2x1 never adopts expanded single-row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="2x1 never adopts expanded single-row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
   <testcase name="chart geometry never restores a minimum that breaks peak headroom" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
-  <testcase name="PK chart policy keeps bounded offsets and rejects invalid samples" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="PK chart policy keeps bounded offsets and rejects invalid samples" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="2x2 maps all three daily occurrences with complete row metadata" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="mixed plans are counted by total visible occurrences" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
   <testcase name="one two and three rows use bounded adaptive density and distribution" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>

@@ -71,3 +71,12 @@ F16 no new dependency ................................... audits.txt dependency/
 
 Combination test (§22): CO#combination test - pending load keeps the latest valid selection and
 adds no extra read.
+
+Implementation R1 (validation precedence hardening; contract unchanged):
+  R1-A future month + out-of-month selection -> INVALID_REQUEST / 0 reads  CO#R1-A
+  R1-B current month + future out-of-month selection -> INVALID_REQUEST    CO#R1-B
+  R1-C structurally valid future month -> NOT_LOADABLE / 0 reads          CO#R1-C
+  R1-D INVALID_REQUEST stable across rollover / 0 reads                   CO#R1-D
+  R1-E pending invalid context: generation claimed, 0 reads, old defeated CO#R1-E
+  R1 constructor sanity: immediate refresh honored (logical context exists) CO#R1 constructor ...
+  See validation-precedence-proof.txt.

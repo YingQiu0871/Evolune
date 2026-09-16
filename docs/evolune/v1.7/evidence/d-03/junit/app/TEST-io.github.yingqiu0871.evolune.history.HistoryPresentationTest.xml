@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.144Z" hostname="人面不知何处去" time="0.003">
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:48.774Z" hostname="人面不知何处去" time="0.003">
   <properties/>
   <testcase name="past month can move forward and past day cells stay enabled" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.002"/>
   <testcase name="unmatched entry does not claim plan ownership" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
@@ -10,9 +10,9 @@
   <testcase name="unrecorded entry keeps the non-blaming wording" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
   <testcase name="matched actual time uses the persisted event zone" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
   <testcase name="unmatched manual entry is marked manual" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
-  <testcase name="dose and timestamp formatting follow the existing conventions" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="dose and timestamp formatting follow the existing conventions" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.001"/>
   <testcase name="current schedule context is exposed for matched and unrecorded entries" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
-  <testcase name="same day actual intake shows time only" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.001"/>
+  <testcase name="same day actual intake shows time only" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
   <testcase name="inferred matched entry is visibly annotated" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
   <testcase name="anti androgen route does not claim an ester name" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
   <testcase name="a day without history reports zero counts and no indicators" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>

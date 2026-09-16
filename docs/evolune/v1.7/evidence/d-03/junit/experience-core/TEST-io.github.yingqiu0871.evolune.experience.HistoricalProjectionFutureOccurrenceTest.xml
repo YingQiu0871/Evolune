@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:09.846Z" hostname="人面不知何处去" time="0.064">
+<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:27.707Z" hostname="人面不知何处去" time="0.073">
   <properties/>
-  <testcase name="early intake before its scheduled time stays a matched history entry" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.045"/>
-  <testcase name="one second on either side of the horizon is classified differently" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.002"/>
-  <testcase name="horizon classification is an instant comparison independent of the display zone" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.007"/>
-  <testcase name="DST overlap - a repeated wall-clock hour still splits on instants" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.001"/>
+  <testcase name="early intake before its scheduled time stays a matched history entry" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.053"/>
+  <testcase name="one second on either side of the horizon is classified differently" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.003"/>
+  <testcase name="horizon classification is an instant comparison independent of the display zone" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.008"/>
+  <testcase name="DST overlap - a repeated wall-clock hour still splits on instants" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.002"/>
   <testcase name="future context is ordered by scheduled instant" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.0"/>
   <testcase name="an occurrence at or before now is always history" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.004"/>
   <testcase name="mixed current-day occurrences split at the horizon without losing early intake" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.001"/>
   <testcase name="occurrence exactly at now counts as arrived and stays unrecorded" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.0"/>
-  <testcase name="DST gap - the horizon uses the resolved instant, not the nominal wall clock" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.001"/>
-  <testcase name="only unmatched occurrences leave history - a recorded future occurrence stays" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.0"/>
+  <testcase name="DST gap - the horizon uses the resolved instant, not the nominal wall clock" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.0"/>
+  <testcase name="only unmatched occurrences leave history - a recorded future occurrence stays" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.001"/>
   <testcase name="unmatched occurrence strictly after now is upcoming context, not history" classname="io.github.yingqiu0871.evolune.experience.HistoricalProjectionFutureOccurrenceTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

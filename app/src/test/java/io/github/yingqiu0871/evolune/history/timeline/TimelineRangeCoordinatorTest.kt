@@ -139,7 +139,10 @@ class TimelineRangeCoordinatorTest {
 
     @Test
     fun `TR3 future month is NOT_LOADABLE with zero reads`() {
-        val fixture = fixture(month = YearMonth.of(2026, 10))
+        val fixture = fixture(
+            month = YearMonth.of(2026, 10),
+            selectedDate = LocalDate.of(2026, 10, 1)
+        )
         try {
             assertTrue(fixture.source.calls.isEmpty())
             val state = fixture.coordinator.state.value
@@ -735,6 +738,115 @@ class TimelineRangeCoordinatorTest {
             assertEquals(LocalDate.of(2026, 8, 20), state.selectedDate)
             assertEquals(LocalDate.of(2026, 8, 20), state.selectedDay?.date)
             assertEquals(TimelineRangePhase.CONTENT, state.phase)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    // ---------- R1: structural-validation precedence (INVALID_REQUEST before NOT_LOADABLE) ----------
+
+    @Test
+    fun `R1-A future month with out-of-month selection is INVALID_REQUEST not NOT_LOADABLE`() {
+        val fixture = fixture(
+            month = YearMonth.of(2026, 10),
+            selectedDate = LocalDate.of(2026, 9, 30),
+            capturedAt = instant(LocalDate.of(2026, 9, 30))
+        )
+        try {
+            assertTrue(fixture.source.calls.isEmpty())
+            assertEquals(TimelineRangePhase.INVALID_REQUEST, fixture.coordinator.state.value.phase)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `R1-B current month with future out-of-month selection is INVALID_REQUEST`() {
+        val fixture = fixture(selectedDate = LocalDate.of(2026, 10, 1))
+        try {
+            assertTrue(fixture.source.calls.isEmpty())
+            assertEquals(TimelineRangePhase.INVALID_REQUEST, fixture.coordinator.state.value.phase)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `R1-C structurally valid future month remains NOT_LOADABLE`() {
+        val fixture = fixture(
+            month = YearMonth.of(2026, 10),
+            selectedDate = LocalDate.of(2026, 10, 1),
+            capturedAt = instant(LocalDate.of(2026, 9, 30))
+        )
+        try {
+            assertTrue(fixture.source.calls.isEmpty())
+            assertEquals(TimelineRangePhase.NOT_LOADABLE, fixture.coordinator.state.value.phase)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `R1-D invalid request stays INVALID_REQUEST across rollover and performs no reads`() {
+        val fixture = fixture(
+            month = YearMonth.of(2026, 10),
+            selectedDate = LocalDate.of(2026, 9, 30),
+            capturedAt = instant(LocalDate.of(2026, 9, 30))
+        )
+        try {
+            assertEquals(TimelineRangePhase.INVALID_REQUEST, fixture.coordinator.state.value.phase)
+
+            fixture.coordinator.refresh(instant(LocalDate.of(2026, 10, 1)))
+
+            assertEquals("no read for a structurally invalid request", 0, fixture.source.calls.size)
+            assertEquals(TimelineRangePhase.INVALID_REQUEST, fixture.coordinator.state.value.phase)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `R1-E a pending structurally invalid context claims a generation and defeats the old read`() {
+        val source = RecordingRangeSource()
+        val gate = CompletableDeferred<Unit>()
+        source.gate = gate
+        val fixture = fixture(source = source)
+        try {
+            fixture.coordinator.load(
+                TimelineMonthRequest(
+                    month = YearMonth.of(2026, 10),
+                    selectedDate = LocalDate.of(2026, 9, 30),
+                    displayZone = utc,
+                    capturedAt = instant(LocalDate.of(2026, 9, 30))
+                )
+            )
+            gate.complete(Unit)
+
+            assertEquals(1, fixture.source.calls.size)
+            val state = fixture.coordinator.state.value
+            assertEquals(TimelineRangePhase.INVALID_REQUEST, state.phase)
+            assertEquals(YearMonth.of(2026, 10), state.requestedMonth)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `R1 constructor establishes the logical context so an immediate refresh is honored`() {
+        val source = RecordingRangeSource()
+        val gate = CompletableDeferred<Unit>()
+        source.gate = gate
+        val fixture = fixture(source = source)
+        try {
+            assertEquals(1, fixture.source.calls.size)
+
+            val fresh = instant(today, hour = 15)
+            fixture.coordinator.refresh(fresh)
+
+            gate.complete(Unit)
+
+            assertEquals(2, fixture.source.calls.size)
+            assertEquals("the immediate refresh must not be discarded", fresh, fixture.source.calls[1].now)
         } finally {
             fixture.close()
         }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.627Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.240Z" hostname="人面不知何处去" time="0.001">
   <properties/>
   <testcase name="a valid custom range resolves unchanged" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.001"/>
   <testcase name="current month is the first of the month through today" classname="io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest" time="0.0"/>

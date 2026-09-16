@@ -1,0 +1,34 @@
+V17-D-03 IMPLEMENTATION R1 — VALIDATION PRECEDENCE PROOF
+contract HEAD ec0416e32ca0094ce3347a776f76c66b63c0261e
+original implementation HEAD d04e6d171d9f3af667c7d63762f68bb406bd0c35
+R1 fix commit: fix: enforce D-03 structural validation precedence
+
+Frozen precedence implemented in TimelineRangeCoordinator.execute (single validation path):
+  STEP 1 structural validity (time-independent):
+    YearMonth.from(selectedDate) != requestedMonth -> INVALID_REQUEST / 0 reads
+  STEP 2 temporal/loadability validity (time-dependent):
+    requestedMonth > YearMonth.from(today)  -> NOT_LOADABLE / 0 reads
+    selectedDate > today                    -> NOT_LOADABLE / 0 reads
+  STEP 3 valid historical request -> effective range + at most one HistoryRangeSource read.
+
+Regression tests (new; existing TR/HC/F matrix unchanged):
+  R1-A future month + out-of-month selection (today Sep 30, month Oct, selected Sep 30)
+       -> INVALID_REQUEST / 0 reads            PASS
+  R1-B current month + future out-of-month selection (today Sep 16, month Sep, selected Oct 1)
+       -> INVALID_REQUEST / 0 reads            PASS
+  R1-C structurally valid future month (Sep 30, month Oct, selected Oct 1)
+       -> NOT_LOADABLE / 0 reads               PASS  (protects TR3/TR31)
+  R1-D invalid request remains INVALID_REQUEST across rollover:
+       Sep 30 (month Oct, selected Sep 30) -> INVALID_REQUEST / 0 reads;
+       Oct 1 refresh with fresh capturedAt -> INVALID_REQUEST / 0 reads   PASS
+       (taxonomy does NOT drift from INVALID_REQUEST to NOT_LOADABLE by time alone)
+  R1-E pending structurally invalid context while another read is active:
+       newer generation claims authority immediately; pending validates INVALID_REQUEST;
+       0 source reads for that generation; old active result cannot publish  PASS
+  R1 constructor sanity: the constructor performs the initial load before the instance escapes
+       construction, so an immediate refresh() can never observe a missing logical context;
+       an immediate refresh during the initial in-flight read is honored as the latest pending
+       context (fresh capture used by the follow-up).      PASS
+
+Read-count unchanged: R1-A/B/C/D all 0 reads; R1-E total reads = 1 (the original active read).
+No clock introduced; no scheduling semantics changed.

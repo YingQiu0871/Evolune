@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:10.310Z" hostname="人面不知何处去" time="0.025">
+<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:28.158Z" hostname="人面不知何处去" time="0.022">
   <properties/>
-  <testcase name="success requires a real event id and rejects never carry one" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.021"/>
+  <testcase name="success requires a real event id and rejects never carry one" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.018"/>
   <testcase name="command round trips and carries no authoritative presentation fields" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.003"/>
   <testcase name="unknown field is ignored while duplicate known field rejects" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.0"/>
   <testcase name="paths are strict and bind operation id" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmationProtocolTest" time="0.001"/>

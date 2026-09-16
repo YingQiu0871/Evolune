@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.042Z" hostname="人面不知何处去" time="0.0">
+<testsuite name="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.692Z" hostname="人面不知何处去" time="0.0">
   <properties/>
   <testcase name="testDualAbsAmountSublingualE2" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
   <testcase name="testOneCompAmountOralE2" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>

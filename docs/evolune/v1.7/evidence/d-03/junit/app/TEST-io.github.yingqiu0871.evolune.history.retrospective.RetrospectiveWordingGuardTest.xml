@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.982Z" hostname="人面不知何处去" time="0.009">
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.610Z" hostname="人面不知何处去" time="0.008">
   <properties/>
-  <testcase name="the mandatory copy keeps the truthful non-atomic semantics" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.001"/>
-  <testcase name="no copy claims the marker payload is the exact or same snapshot of the curve input" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.003"/>
-  <testcase name="the retrospective ui sources carry no hardcoded user-visible copy" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.002"/>
-  <testcase name="no retrospective string classifies the user with adherence wording" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.001"/>
+  <testcase name="the mandatory copy keeps the truthful non-atomic semantics" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.0"/>
+  <testcase name="no copy claims the marker payload is the exact or same snapshot of the curve input" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.004"/>
+  <testcase name="the retrospective ui sources carry no hardcoded user-visible copy" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.001"/>
+  <testcase name="no retrospective string classifies the user with adherence wording" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.002"/>
   <testcase name="no retrospective string implies a measured concentration outside the mandated disclosure" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

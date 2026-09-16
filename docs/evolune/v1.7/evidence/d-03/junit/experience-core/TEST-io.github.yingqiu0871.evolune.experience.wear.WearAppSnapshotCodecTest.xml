@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:10.364Z" hostname="人面不知何处去" time="0.04">
+<testsuite name="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:28.207Z" hostname="人面不知何处去" time="0.036">
   <properties/>
-  <testcase name="duplicate or malformed today summary field is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.032"/>
-  <testcase name="legacy recent dose without revision remains displayable but has no undo authority" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="zero concentration is a valid model result only when timestamped" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="unsupported protocol version is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
-  <testcase name="legacy snapshot without concentration field remains readable" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="oversized snapshot payload is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="duplicate or malformed today summary field is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.029"/>
+  <testcase name="legacy recent dose without revision remains displayable but has no undo authority" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="zero concentration is a valid model result only when timestamped" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="unsupported protocol version is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
+  <testcase name="legacy snapshot without concentration field remains readable" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="oversized snapshot payload is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
   <testcase name="unknown fields are ignored" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
-  <testcase name="today summary temporal count and state constraints are enforced" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="duplicate concentration field is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
-  <testcase name="legacy v1 snapshot without today summary remains readable" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="today summary optional field round trips through the v1 decoder" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="today summary temporal count and state constraints are enforced" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="duplicate concentration field is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
+  <testcase name="legacy v1 snapshot without today summary remains readable" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="today summary optional field round trips through the v1 decoder" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
   <testcase name="available concentration with invalid timestamp is rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="valid snapshot round trips through shared codec" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
-  <testcase name="invalid concentration values and units are rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="valid snapshot round trips through shared codec" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
+  <testcase name="invalid concentration values and units are rejected" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.001"/>
   <testcase name="empty concentration remains empty instead of becoming zero" classname="io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodecTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:13.400Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:31.449Z" hostname="人面不知何处去" time="0.002">
   <properties/>
   <testcase name="wear app and Tiles share one moderate card radius" classname="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" time="0.0"/>
   <testcase name="passive Tiles use a battery-conscious fifteen minute fallback" classname="io.github.yingqiu0871.evolune.wear.WearAppearancePolicyTest" time="0.0"/>

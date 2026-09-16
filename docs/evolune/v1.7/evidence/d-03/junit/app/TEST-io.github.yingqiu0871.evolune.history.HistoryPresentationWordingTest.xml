@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:29.148Z" hostname="人面不知何处去" time="0.017">
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:48.778Z" hostname="人面不知何处去" time="0.018">
   <properties/>
-  <testcase name="only the shared rule decides whether an actual intake shows its full date" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.003"/>
-  <testcase name="calendar cells are the only place where a calendar date is disabled" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.0"/>
+  <testcase name="only the shared rule decides whether an actual intake shows its full date" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.002"/>
+  <testcase name="calendar cells are the only place where a calendar date is disabled" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.001"/>
   <testcase name="the neutral no-intake caveat is phrased as a disclaimer" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.004"/>
   <testcase name="history presentation never filters the future or re-derives domain facts" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.007"/>
   <testcase name="history labels never use adherence judgement wording" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.002"/>
-  <testcase name="the inferred match note never claims a legacy origin" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.0"/>
-  <testcase name="ui reads history only through the history read service seam" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.0"/>
+  <testcase name="the inferred match note never claims a legacy origin" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.001"/>
+  <testcase name="ui reads history only through the history read service seam" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.pk.PKParametersTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.037Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.pk.PKParametersTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.684Z" hostname="人面不知何处去" time="0.001">
   <properties/>
-  <testcase name="testInjectionPKFormationFraction" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.001"/>
+  <testcase name="testInjectionPKFormationFraction" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
   <testcase name="testTwoPartDepotPKK1Fast" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
   <testcase name="testTwoPartDepotPKK1Slow" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
   <testcase name="testOralPKConstants" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>

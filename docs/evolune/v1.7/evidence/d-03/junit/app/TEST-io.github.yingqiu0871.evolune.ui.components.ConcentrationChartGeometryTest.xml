@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.074Z" hostname="人面不知何处去" time="0.002">
+<testsuite name="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.744Z" hostname="人面不知何处去" time="0.002">
   <properties/>
   <testcase name="history forecast and invalid values are combined safely" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.001"/>
   <testcase name="plot geometry is centered and coordinate transforms invert" classname="io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest" time="0.001"/>

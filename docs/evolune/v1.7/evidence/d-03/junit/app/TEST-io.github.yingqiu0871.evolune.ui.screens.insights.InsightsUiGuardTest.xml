@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.106Z" hostname="人面不知何处去" time="0.055">
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.776Z" hostname="人面不知何处去" time="0.051">
   <properties/>
-  <testcase name="no forbidden metric identifier exists in the Insights UI sources" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.032"/>
+  <testcase name="no forbidden metric identifier exists in the Insights UI sources" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.029"/>
   <testcase name="the shipped default locale copy is Chinese and both locales are complete" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.001"/>
   <testcase name="no forbidden metric vocabulary is shipped as an Insights string" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.002"/>
-  <testcase name="no chart or canvas primitive exists and no chart dependency is declared" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.008"/>
+  <testcase name="no chart or canvas primitive exists and no chart dependency is declared" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.007"/>
   <testcase name="the Insights copy never names an unrecorded occurrence with blame" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.001"/>
-  <testcase name="no forbidden Chinese metric vocabulary is shipped as an Insights string" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.0"/>
+  <testcase name="no forbidden Chinese metric vocabulary is shipped as an Insights string" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.001"/>
   <testcase name="the frozen disclosure and the linked-record subtitle are shipped verbatim" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.0"/>
   <testcase name="the UI consumes the frozen summary fields instead of restating them" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.001"/>
   <testcase name="the accessibility description resources keep their placeholder contract" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.0"/>
-  <testcase name="no metric recomputation primitive exists in the Insights UI" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.01"/>
+  <testcase name="no metric recomputation primitive exists in the Insights UI" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsUiGuardTest" time="0.009"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

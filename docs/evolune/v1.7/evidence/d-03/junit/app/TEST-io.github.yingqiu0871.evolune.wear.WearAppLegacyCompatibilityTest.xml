@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppLegacyCompatibilityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.398Z" hostname="人面不知何处去" time="0.0">
+<testsuite name="io.github.yingqiu0871.evolune.wear.WearAppLegacyCompatibilityTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:50.078Z" hostname="人面不知何处去" time="0.0">
   <properties/>
   <testcase name="legacy and v1 paths remain additive at the Phone boundary" classname="io.github.yingqiu0871.evolune.wear.WearAppLegacyCompatibilityTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>

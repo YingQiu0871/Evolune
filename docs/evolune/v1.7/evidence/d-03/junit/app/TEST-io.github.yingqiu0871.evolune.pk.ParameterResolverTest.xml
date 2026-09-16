@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.038Z" hostname="人面不知何处去" time="0.001">
+<testsuite name="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.686Z" hostname="人面不知何处去" time="0.001">
   <properties/>
-  <testcase name="testResolveSublingualEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
-  <testcase name="testResolveInjectionEB" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.001"/>
+  <testcase name="testResolveSublingualEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.001"/>
+  <testcase name="testResolveInjectionEB" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
   <testcase name="testResolveInjectionEV" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
   <testcase name="testResolvePatchApplyZeroOrder" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>
   <testcase name="testResolvePatchApplyFirstOrder" classname="io.github.yingqiu0871.evolune.pk.ParameterResolverTest" time="0.0"/>

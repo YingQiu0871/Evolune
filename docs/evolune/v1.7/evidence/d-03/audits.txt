@@ -1,14 +1,15 @@
-﻿== V17-D-03 audits ==
-generated: 2026-09-16 12:50:56
+﻿== V17-D-03 audits (R1) ==
+generated: 2026-09-16 14:13:09
 contract HEAD: ec0416e32ca0094ce3347a776f76c66b63c0261e
+R1 parent (original implementation): d04e6d171d9f3af667c7d63762f68bb406bd0c35
 
 == D-01 production zero-diff (must be empty) ==
 [empty]
 
-== Phase-C production zero-diff (history/pk + history/retrospective) ==
+== Phase-C production zero-diff ==
 [empty]
 
-== shared history reader/projection zero-diff ==
+== shared reader/projection zero-diff ==
 [empty]
 
 == schema/DAO/Room zero-diff ==
@@ -23,9 +24,6 @@ contract HEAD: ec0416e32ca0094ce3347a776f76c66b63c0261e
 == dependency/build zero-diff ==
 [empty]
 
-== D-03 executable delta (only the new package + tests) ==
-?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinator.kt
-?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeState.kt
-?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeArchitectureGuardTest.kt
-?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinatorTest.kt
-?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangePurityTest.kt
+== R1 executable delta (production correction localized) ==
+ M app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinator.kt
+ M app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineRangeCoordinatorTest.kt

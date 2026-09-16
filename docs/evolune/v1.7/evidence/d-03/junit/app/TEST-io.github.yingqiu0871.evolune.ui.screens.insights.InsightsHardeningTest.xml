@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:30.084Z" hostname="人面不知何处去" time="0.016">
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:49.756Z" hostname="人面不知何处去" time="0.016">
   <properties/>
   <testcase name="only a custom selection carries picker endpoints" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
-  <testcase name="source rows are exactly the six frozen sources" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.009"/>
-  <testcase name="unknown identity is a count outside the dose list" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
+  <testcase name="source rows are exactly the six frozen sources" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.01"/>
+  <testcase name="unknown identity is a count outside the dose list" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.001"/>
   <testcase name="count row placeholders stay string-plus-integer and value rows stay string-plus-string" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.001"/>
   <testcase name="the render matrix is locked for every phase" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
-  <testcase name="both shipped locales expose the same Insights keys with compatible format arguments" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.005"/>
-  <testcase name="a ninety day range with several hundred intakes stays linear and cheap to present" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
+  <testcase name="both shipped locales expose the same Insights keys with compatible format arguments" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.003"/>
+  <testcase name="a ninety day range with several hundred intakes stays linear and cheap to present" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.001"/>
   <testcase name="the timezone disclosure appears only when the aggregate says so" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
-  <testcase name="picker millis round-trip every season and never consult the system zone" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.001"/>
+  <testcase name="picker millis round-trip every season and never consult the system zone" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
   <testcase name="confidence rows are exactly the four frozen buckets" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
   <testcase name="coverage always ships both disclosures together" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>
   <testcase name="dose rows only carry provable medication keys and never a combined total" classname="io.github.yingqiu0871.evolune.ui.screens.insights.InsightsHardeningTest" time="0.0"/>

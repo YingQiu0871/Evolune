@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-09-16T10:50:28.446Z" hostname="人面不知何处去" time="0.038">
+<testsuite name="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-09-16T12:12:48.051Z" hostname="人面不知何处去" time="0.04">
   <properties/>
   <testcase name="readback mismatch fails and never prunes old generations" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.009"/>
   <testcase name="download sha mismatch is rejected instead of returning bytes" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
-  <testcase name="upload mutex prevents second create until first upload completes" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.004"/>
+  <testcase name="upload mutex prevents second create until first upload completes" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.005"/>
   <testcase name="disconnect authorization failure is mapped without deleting remote backups" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
-  <testcase name="authorized access is reused for successful foreground operation" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
-  <testcase name="failed orphan cleanup is reported without touching old generations" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
-  <testcase name="pagination token loop returns malformed metadata without another page request" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.0"/>
+  <testcase name="authorized access is reused for successful foreground operation" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
+  <testcase name="failed orphan cleanup is reported without touching old generations" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
+  <testcase name="pagination token loop returns malformed metadata without another page request" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
   <testcase name="download enforces body cap when size is missing and when stream overflows" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
-  <testcase name="verified current is retained with ten existing generations" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
+  <testcase name="verified current is retained with ten existing generations" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
   <testcase name="download body is consumed on injected io dispatcher" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
-  <testcase name="retention keeps latest three after zero two three and ten existing files" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.004"/>
+  <testcase name="retention keeps latest three after zero two three and ten existing files" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.005"/>
   <testcase name="download rejects metadata above cap before opening body" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
-  <testcase name="resolution cancellation unavailable and token errors do not mutate Drive" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.002"/>
-  <testcase name="second 401 becomes token expired after exactly one retry" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.0"/>
+  <testcase name="resolution cancellation unavailable and token errors do not mutate Drive" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
+  <testcase name="second 401 becomes token expired after exactly one retry" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
   <testcase name="retention deletion failure returns verified success with pending warning" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
   <testcase name="list reads every page filters markers and sorts equal timestamps by file id" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>
   <testcase name="download maps not found and interrupted stream to stable failures" classname="io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProviderTest" time="0.001"/>

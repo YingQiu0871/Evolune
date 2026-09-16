@@ -1,5 +1,6 @@
-﻿== V17-D-03 git identity ==
+﻿== V17-D-03 git identity (R1) ==
 branch: v1.7-development
 contract HEAD: ec0416e32ca0094ce3347a776f76c66b63c0261e
-worktree: clean at evidence generation (implementation commit pending; recorded in review packet)
-date: 2026-09-16 12:50:47
+original implementation HEAD (R1 parent): d04e6d171d9f3af667c7d63762f68bb406bd0c35
+worktree: clean at evidence generation (R1 fix commit pending; recorded in review packet)
+date: 2026-09-16 14:13:18
