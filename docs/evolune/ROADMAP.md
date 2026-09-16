@@ -182,11 +182,13 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   implementation HEAD `d7d27f204e0eb298ca9a1ac629c7022ef621f603`）：month-scoped read-only
   orchestration · focused 56/0/0/0 · fresh full JVM 1421/0/0/0 · 54/54 tasks ·
   D-04/D-05 NOT STARTED · D-06 recurring gate · D-07 final gate。**D-03 关闭**。
-- **Phase D · D-04 contract** — **CONTRACT — REVIEW PENDING**
-  （[`V17_D_04_TIMELINE_UI_CONTRACT.md`](v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md)）：Timeline UI
-  （History → 入口卡片 → dedicated sub-route；calendar 居中 / body 左对齐；selectedDate = focus；
-  无 timing-delta/adherence、无 route date 参数、无持久化）；**D-04 PRODUCTION NOT STARTED**。
-  **NEXT:** V17-D-04 contract review。
+- **Phase D · D-04 contract** — **APPROVED / FROZEN**
+  （[`V17_D_04_TIMELINE_UI_CONTRACT.md`](v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md)；approved final
+  semantic contract HEAD `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；Architect APPROVE +
+  independent APPROVE，P0/P1/P2 = none）：Timeline UI（History → 入口卡片 → dedicated sub-route；
+  calendar 居中 / body 左对齐；selectedDate = focus；逻辑 intent 含 `requestToday`；无
+  timing-delta/adherence、无 route date 参数、无持久化）。**D-04 production — NOT STARTED**。
+  **NEXT:** V17-D-04 production implementation。
 
 ## Historical and future milestones
 
@@ -206,7 +208,8 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** V17-D-04 contract review（D-04 contract 已起草、REVIEW PENDING；D-04 生产未开始）。
+**NEXT:** V17-D-04 production implementation（D-04 contract 已 APPROVED / FROZEN @
+`c934c24532025f7c82654a7af4e5cd0bafd4f40d`；production 未开始）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

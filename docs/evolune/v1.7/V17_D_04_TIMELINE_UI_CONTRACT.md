@@ -1,6 +1,9 @@
 # V17-D-04 — Timeline UI — Contract
 
-> 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-04 PRODUCTION — NOT STARTED**）
+> 状态：`CONTRACT — APPROVED / FROZEN`（**D-04 PRODUCTION — NOT STARTED**）；
+> approved final semantic contract HEAD：`c934c24532025f7c82654a7af4e5cd0bafd4f40d`
+> （Architect APPROVED；独立复审 APPROVED，P0/P1/P2 = none；closure 记录见 §38）
+> docs-only contract；R1/R2/R3 修正已并入。
 > R1：display-zone ownership / zone-change load semantics / presentation-zone consistency /
 > day-strip viewport-centering 澄清已并入（§3.1/§6.1/§11.1/§23.1-23.3/§31/§35/§37）；其余冻结决定不变。
 > R2：logical-request-intent ownership / published-vs-logical separation / pending-zone command
@@ -873,10 +876,12 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 
 ## 37. Documentation status
 
-- 本契约状态：`CONTRACT — REVIEW PENDING`；
+- 本契约状态：`CONTRACT — APPROVED / FROZEN`（Architect APPROVED；独立复审 APPROVED，
+  P0/P1/P2 = none；P3 editorial dispositions 见 §38）；
 - **D-04 PRODUCTION — NOT STARTED**；
 - D-05 NOT STARTED；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` /
-  `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-04 contract review**。
+  `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-04 production implementation**
+  （仅可针对 frozen final contract @ `c934c24532025f7c82654a7af4e5cd0bafd4f40d`）。
 - **R1 amendment（architect REQUEST_CHANGES；docs-only）**：已并入
   §3.1 display-zone generation ownership（capturedAt + currentDisplayZone 成对捕获）、
   §6.1 same-zone refresh vs zone-change reload（zone-change 走 D-03 `load(newRequest)`，
@@ -903,3 +908,61 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
   §23.5 logical `requestToday` vs published `state.today` 分离、
   §31 的 UI54–UI59、§35 的 F29–F32。其余 D-04 决定（含 R1/R2 全部内容与 centering rules）不变；
   状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
+
+---
+
+## 38. Final contract closure（bookkeeping；APPROVED / FROZEN）
+
+- Approved final semantic contract HEAD：`c934c24532025f7c82654a7af4e5cd0bafd4f40d`；
+- Architect verdict：**APPROVE V17-D04 CONTRACT — ARCHITECT CLOSURE**；
+- Independent verdict：**APPROVE V17-D04 CONTRACT**（independent reviewer：Qwen3.8 Flash，
+  fresh independent read-only session；reviewed final contract HEAD 同上）；
+- Independent findings：P0 = none，P1 = none，P2 = none；
+- 本契约进入 `CONTRACT — APPROVED / FROZEN`；**No further D-04 contract semantic changes
+  without explicit reopening**；
+- 本 closure 为 bookkeeping/status：**不新增、不改变任何 D-04 语义要求**；D-01/D-03 remain
+  frozen；
+- Production implementation 仅授权针对上述 frozen final contract HEAD 进行。
+
+### 38.1 P3 dispositions（editorial；不重写 frozen 契约正文）
+
+- **P3-1**：部分 frozen-document 的 heading/status prose 仍保留早期范围简写
+  `UI1–UI39 / F1–F21`；**权威 mandatory ranges = `UI1–UI59` / `F1–F32`**。Implementation
+  planning / review / evidence 必须使用**最终表格本身**，不得依赖 stale heading-range
+  shorthand。仅为该 editorial 问题**不**重写 approved contract body。
+- **P3-2**：§32 的 literal “no verbal self-certification” 句子只点名 UI35–UI39；但最终契约通过
+  mandatory UI matrix、geometry/instrumentation scope 与 §11.1 viewport-centering rules 独立要求
+  UI46–UI47。因此 implementation review **必须**对 **UI35–UI39 AND UI46–UI47** 要求真实几何验证：
+  deterministic Compose geometry assertions / captured-device visual evidence / 既有 approved
+  visual-evidence mechanism 之一；verbal-only implementation claims 不足。无需重写 approved
+  契约语义。
+
+### 38.2 Final frozen D-04 summary（要点）
+
+- Navigation：History → Timeline entry card → dedicated `TIMELINE_ROUTE`；no sixth tab / Home /
+  embed / deep-link / date route argument；
+- Ownership：one activity-scoped `TimelineViewModel` + one `TimelineRangeCoordinator`；no direct
+  source/repository/DAO/Room bypass；
+- Initial：current month + today；
+- Logical command intent：`requestedMonth` / `selectedDate` / `displayZone` / `requestToday`；
+- Published rendering：`TimelineRangeState` / `state.today` / `state.displayZone`；
+- Command–render split：`latestLogicalIntent.requestToday` → next command / selectDate
+  validation；published `state.today` → current snapshot rendering；
+- Zone：same-zone → refresh/retry-compatible path；changed-zone → new D-03 `load(newRequest)`；
+- Lifecycle：initial read once；re-entry/foreground fresh generation；recomposition 0 reads；
+  selection 0 reads；
+- Timeline：selectedDate = focus, not filter；whole loaded month visible；newest day sections
+  first；rows canonical ascending；
+- Rows：MATCHED = schedule + recorded sides；UNRECORDED = schedule + neutral
+  no-recorded-intake；UNMATCHED = recorded only；
+- Identity：KNOWN / PARTIAL / UNAVAILABLE truth preserved；
+- Forbidden：delta / early / late / on-time / adherence；route in MVP；planName-as-identity；
+  AA guessing；internal IDs；new truth store；PK coupling；
+- Visual：calendar/date selector centered；month title geometrically centered；symmetric nav
+  slots；weekday/date/highlight share center axis；selected date number centered on both axes；
+  selected cell viewport-centered when practical；Timeline body left aligned；
+- Verification：`UI1–UI59` + `F1–F32`；Android instrumentation required；real geometry evidence
+  required for UI35–UI39 and UI46–UI47；
+- D-05：final accessibility/localization hardening remains open；
+- **NEXT：V17-D-04 production implementation**（仅针对 frozen contract @
+  `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；本 closure 不新增语义）。

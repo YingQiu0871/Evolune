@@ -374,6 +374,16 @@ PK output must remain explicitly model-derived.
 > timing-delta/adherence；calendar 居中 + body 左对齐的几何规则（UI35–UI39、F19–F21）；
 > UI1–UI39 测试矩阵 + F1–F21 guards；evidence logs UTF-8 卫生。**D-04 PRODUCTION NOT STARTED**；
 > **NEXT: V17-D-04 contract review**；D-05 NOT STARTED；Phase C 保持 CLOSED；D-01/D-03 零修改。
+>
+> **Status note (2026-09-16, D-04 contract closure)**: **D-04 contract APPROVED / FROZEN**
+> （Architect **APPROVE V17-D04 CONTRACT — ARCHITECT CLOSURE**；独立复审 **APPROVE V17-D04
+> CONTRACT**（Qwen3.8 Flash，fresh independent read-only session），P0/P1/P2 = none）：
+> approved final semantic contract HEAD `c934c24532025f7c82654a7af4e5cd0bafd4f40d`（含 R1 display-zone
+> ownership、R2 logical intent + snapshot-today、R3 requestToday/selectDate validation）。
+> P3 editorial dispositions（heading-range 简写与 §32 措辞）记录于契约 §38.1：mandatory ranges =
+> **UI1–UI59 / F1–F32**；implementation review 必须对 **UI35–UI39 AND UI46–UI47** 提供真实几何验证。
+> **D-04 冻结**：未经重开评审不得改 D-04 契约语义。**D-04 production — NOT STARTED**；
+> **NEXT: V17-D-04 production implementation**（仅可针对 frozen contract @ `c934c24...`）。
 
 ---
 
