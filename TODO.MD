@@ -142,8 +142,17 @@
       （d-01/d-03/d-04/d-05）未被改写；ACCEPTANCE D1–D5 与 G1–G7 满足；packet
       `review-packets/v17-d07-final-phase-d-independent-review.txt`。**Phase D — CLOSED / FROZEN**
       （未经重开评审不得改 Phase-D 语义；本收口 docs-only）。
-- [ ] NEXT：**Phase E — Export & Data Portability**（V17_PLAN §8；须显式授权与独立 Phase-E 契约后
-      方可启动；本收口不实现 Phase E）。
+- [ ] Phase E contract — **PHASE-E CONTRACT — REVIEW PENDING**
+      （`V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`）：E-01 export contract / E-02 CSV v1 schema /
+      E-03 Evolune Portable JSON v1 schema 三合一冻结。要点：portable truth = dose_events only
+      （12 字段 full-fidelity；无 weight/plans/settings/derived）；canonical JSON `schema=
+      "evolune-portable"`/`version=1` strict（unknown field/duplicate key/version fail-closed；
+      import 全量预校验 + additive per-record + stable-ID replay-safe）；Mahiro v1 保持 legacy
+      兼容并加 `meta.version==1` gate；CSV export-only 17 列（planned_time/timing_delta 恒 empty；
+      medication 穷举映射表）；ranges 30/90/all（绝对 Instant）；E1 zero-write、E3 逐字节确定性、
+      E4 backup 分离（EG3–EG6）、E6 隐私/clipboard 确认；P2-1/2/3 全部在契约内闭环。
+      **PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。
+- [ ] NEXT：**Phase-E contract review**（契约批准前不得启动 Phase-E 生产；不自行发明范围）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

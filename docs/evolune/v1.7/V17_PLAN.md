@@ -493,6 +493,25 @@ PK output must remain explicitly model-derived.
 > **Phase D — CLOSED / FROZEN**：未经重开评审不得改 Phase-D 语义（D-01/D-03/D-04/D-05 各自
 > 冻结不变，不重开）。**NEXT: Phase E — Export & Data Portability**（PLAN §8；本收口不启动
 > Phase-E 任何实现；进入前须显式授权与独立契约）。
+>
+> **Status note (2026-09-16, Phase-E contract)**: **V17 Phase-E contract 已起草** —
+> `V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`，状态 `PHASE-E CONTRACT — REVIEW PENDING`；
+> **PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。输入为 strict read-only
+> pre-contract audit（`review-packets/v17-phase-e-pre-contract-audit.txt`；P0/P1 = none，
+> 3 项 P2、5 项 P3）。冻结要点：portable truth = **dose_events only**（12 字段 full-fidelity；
+> 明确排除 weight/plans/settings/derived）；两套 JSON 分离（canonical **Evolune Portable JSON
+> v1** `schema="evolune-portable"`/`version=1` strict，unknown-field/duplicate-key/version
+> fail-closed，import 全量预校验 + additive per-record + stable-ID replay-safe；legacy **Mahiro
+> JSON v1** 保持兼容并加 `meta.version==1` gate，legacy id/atomicity 行为显式记录）；
+> backup 完全分离（EG3–EG6/EG12，不触碰 envelope/B2/Drive/`.evbackup`）；CSV **export-only**
+> 17 列（`planned_time`/`timing_delta` 恒 empty 保全 Decision A/C + D-01 §10；`medication`
+> 穷举映射表 Table D；`event_id/ester/zone_id/slot_id/source/revision/extras_json` lossless
+> support）；ranges 30/90/all（绝对 Instant、边界 inclusive、无设备时区）；E1 zero-write、
+> E3 byte-determinism（同一 capturedAt+snapshot）、E4 分离、E5 边界/DST、E6 隐私 + legacy
+> clipboard 确认、E7 round-trip + replay fixtures；import size bounds（32 MiB / 100000 events）
+> + off-main + typed results（P2-1/2/3 全部在契约内闭环）。验收矩阵 E1.*–E7.* + guards
+> EG1–EG25 + evidence gate 已冻结。**NEXT: Phase-E contract review**（批准前不启动实现；
+> Phase A–D 全部 CLOSED / FROZEN 不变）。
 
 ---
 

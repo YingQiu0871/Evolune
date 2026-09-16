@@ -242,8 +242,18 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     独立证据成立；D-01/D-03/D-04/D-05 各自保持 CLOSED / FROZEN / VERIFIED，D-02 FULLY CONSUMED
     BY D-01，D-06 PASS / VERIFIED，D-07 PASS）：未经重开评审不得改 Phase-D 语义；本收口
     docs-only，零可执行/测试/资源/证据变更。
-  - **NEXT:** Phase E — Export & Data Portability（见 [`v1.7/V17_PLAN.md`](v1.7/V17_PLAN.md) §8；
-    本收口不启动 Phase-E 实现；进入前须显式授权与独立契约）。
+  - Phase E contract — **PHASE-E CONTRACT — REVIEW PENDING**
+    （[`V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`](v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md)）：
+    E-01/E-02/E-03 三合一冻结。portable truth = dose_events only（12 字段 full-fidelity；
+    无 weight/plans/settings/derived）；canonical Evolune Portable JSON v1（`schema=
+    "evolune-portable"`/`version=1`，unknown-field/duplicate-key/version fail-closed，全量预校验
+    + additive import + stable-ID replay-safe）；legacy Mahiro v1 保持兼容并加 `meta.version==1`
+    gate（legacy id/atomicity 行为记录）；CSV export-only 17 列（planned_time/timing_delta 恒
+    empty；medication 穷举映射；lossless support 列）；ranges 30/90/all（绝对 Instant 边界
+    inclusive）；E1 zero-write / E3 byte-determinism / E4 backup 分离 / E6 隐私与 clipboard
+    确认 / E7 round-trip 与 replay；审计 P2-1/2/3 全部在契约内闭环。**PHASE-E PRODUCTION —
+    NOT STARTED**（E-04…E-07 未授权）。
+  - **NEXT:** Phase-E contract review（契约批准前不得启动 Phase-E 生产；不自行发明范围）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

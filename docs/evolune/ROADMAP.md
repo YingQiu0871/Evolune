@@ -221,7 +221,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `8f77a6dab307bb140277dc23c618341eacd92f00`）⇒ 批准后零可执行变更；八问全 YES；历史证据树
   未被改写；ACCEPTANCE §5 D1–D5 与 §0 G1–G7 满足。**Phase D — CLOSED / FROZEN**（未经重开评审
   不得改 Phase-D 语义；D-01…D-05 各自冻结不变）。
-  **NEXT:** Phase E — Export & Data Portability（PLAN §8；须显式授权与独立契约后启动）。
+- **Phase E · contract** — **PHASE-E CONTRACT — REVIEW PENDING**
+  （[`V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`](v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md)）：
+  E-01 export contract / E-02 CSV v1 schema / E-03 Evolune Portable JSON v1 schema。portable
+  truth = dose_events only（12 字段 full-fidelity）；canonical `schema="evolune-portable"` /
+  `version=1` strict；legacy Mahiro v1 保持兼容 + `meta.version==1` gate；CSV export-only 17 列
+  （planned_time/timing_delta 恒 empty；medication 穷举映射）；ranges 30/90/all；E1 zero-write /
+  E3 byte-determinism / E4 backup 分离 / E6 隐私 / E7 round-trip + replay；审计 P2-1/2/3 内闭环。
+  **PHASE-E PRODUCTION — NOT STARTED**。**NEXT:** Phase-E contract review。
 
 ## Historical and future milestones
 
@@ -241,14 +248,13 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** Phase E — Export & Data Portability（D-04 CLOSED / FROZEN @
+**NEXT:** Phase-E contract review（D-04 CLOSED / FROZEN @
 `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract
 `b1cdd662fe1bee14beab5cad651aef772f211c68` + final implementation HEAD
 `2a79f1d048905113f53d4be470071a94072c2f96`；D-06 recurring verification gate **PASS** @ verified
 executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；D-07 final Phase-D independent
 gate **PASS** @ verified gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723` ⇒
-**Phase D — CLOSED / FROZEN**，未经重开评审不得改 Phase-D 语义）。Phase E 进入前须显式授权与
-独立契约；本收口不启动 Phase E 实现。
+**Phase D — CLOSED / FROZEN**；Phase-E contract 已起草、REVIEW PENDING；Phase-E 生产未启动）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 
