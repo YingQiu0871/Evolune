@@ -417,6 +417,20 @@ PK output must remain explicitly model-derived.
 > D-04 geometry/navigation/lifecycle tests 必须保持 green。
 > **NEXT: V17-D-05 contract review**（契约批准前不得开工 D-05 生产；D-06 recurring gate；
 > D-07 final Phase-D gate）。
+>
+> **Status note (2026-09-16, D-05 contract closure)**: **V17-D-05 contract APPROVED / FROZEN**
+> （Architect **APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE**；独立复审 **APPROVE V17-D05
+> CONTRACT**（Qwen3.8 Flash，fresh independent read-only session），P0/P1/P2 = none）；
+> approved semantic contract HEAD `b1cdd662fe1bee14beab5cad651aef772f211c68`。Closure 为
+> bookkeeping + 两项 factual §0 anchor 修正（**不新增/不改变任何 D-05 语义**）：P3-1 全局资源
+> 计数事实修正（values/ 540 vs values-zh-rCN/ 532 unique keys；8 个 PRE-EXISTING default-only
+> NON-TIMELINE keys 属历史遗留、不在 D-05 范围；Timeline keys 保持 22/22 parity；D-05 parity
+> 义务仅限 `timeline_*` + `timeline_a11y_*`）；P3-2 `DAY_CELL_WIDTH` / `DAY_HIGHLIGHT_SIZE` /
+> `MONTH_CONTROL_SLOT` 行锚修正为 `TimelineScreen.kt:70–72`。P3-3 section-header 单 spoken
+> phrase auditability 为 NON-BLOCKING 记录（独立批准后不新增/不重编号 A11Y/FONT/LOC/DG）。
+> 冻结范围不变：**A11Y1–A11Y21 / FONT1–FONT11 / LOC1–LOC9 / DG1–DG23**；D-04 boundary 原样。
+> **D-05 PRODUCTION — NOT STARTED**；**NEXT: V17-D-05 production implementation**（仅可针对
+> frozen semantic contract @ `b1cdd66...`）；D-06 recurring gate；D-07 final Phase-D gate。
 
 ---
 

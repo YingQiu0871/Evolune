@@ -1,7 +1,12 @@
 # V17-D-05 — Accessibility / Localization Hardening — Contract
 
-> 状态：`CONTRACT — REVIEW PENDING`（**D-05 PRODUCTION — NOT STARTED**）；
-> docs-only contract；批准后未经重开评审不得改 D-05 语义。
+> 状态：`CONTRACT — APPROVED / FROZEN`（**D-05 PRODUCTION — NOT STARTED**）；
+> approved semantic contract HEAD：`b1cdd662fe1bee14beab5cad651aef772f211c68`
+> （Architect **APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE**；独立复审 **APPROVE V17-D05
+> CONTRACT**（Qwen3.8 Flash，fresh independent read-only session），P0/P1/P2 = none；
+> P3 dispositions 与 closure 记录见 §47）；**No further semantic D-05 contract change without
+> explicit reopening**；
+> docs-only contract；D-05 只加固 presentation/accessibility/localization，不重解释 D-04。
 > Slice：**V17-D-05 — final accessibility + localization hardening of the shipped D-04 Timeline
 > surface（只加固 presentation/accessibility/localization，不重解释 D-04）**
 > Base HEAD：`e631bf75852cbf9ebf286059eea70a489a096328`（D-04 CLOSED / FROZEN）
@@ -21,7 +26,7 @@
 
 | 事实 | 位置（D-04 生产，审计时核对） |
 |---|---|
-| day-cell 结构：Column(width 48dp) → weekday Text + Box(36dp, CircleShape) → number Text | `TimelineScreen.kt:369-426`；常量 `DAY_CELL_WIDTH = 48.dp`（:46）、`DAY_HIGHLIGHT_SIZE = 36.dp`（:47）、`MONTH_CONTROL_SLOT = 48.dp`（:48） |
+| day-cell 结构：Column(width 48dp) → weekday Text + Box(36dp, CircleShape) → number Text | `TimelineScreen.kt:369-426`；常量 `DAY_CELL_WIDTH = 48.dp`（:70）、`DAY_HIGHLIGHT_SIZE = 36.dp`（:71）、`MONTH_CONTROL_SLOT = 48.dp`（:72） |
 | day-cell 现状语义：`clickable(enabled)` + `semantics(mergeDescendants = true) { contentDescription = dayCellDescription; selected; disabled }` | `TimelineScreen.kt:385-395` |
 | day-cell 现状 description：ISO 日期 + “今天/已选中/未到日期”（全角逗号 joinToString） | `dayCellDescription` `TimelineScreen.kt:429-435` |
 | scroll/scroll-to-section（视觉 only） | `TimelineScreen.kt:334-338`（strip 居中）、`LaunchedEffect(state.selectedDate, model.sections)`（body focus，视觉 only） |
@@ -36,7 +41,7 @@
 | 现有 weekday 资源（可见，单字符） | `history_weekday_mon..sun`（values/ + values-zh-rCN/ 均有） |
 | 现有状态资源 | `history_cell_today`（今天）、`history_cell_selected`（已选中）、`history_cell_not_arrived`（未到日期） |
 | 现有 identity/dose/time 资源 | `ester_e2..en`、`timeline_identity_partial`、`timeline_identity_unavailable`、`timeline_row_identity_dose`、`history_label_current_schedule_context`、`history_label_actual_time` |
-| 资源权威：`values/`（中文默认）与 `values-zh-rCN/`（中文）；**无 `values-en/`**；两文件各 532 keys、其中 `timeline_*` 22 keys、当前完全 parity | 审计 §14/§15（source-verified） |
+| 资源权威：`values/`（中文默认）与 `values-zh-rCN/`（中文）；**无 `values-en/`**。当前整文件集合为 values/ 540 unique keys vs values-zh-rCN/ 532（**非全局 532/532 parity**）；其中 8 个为 **PRE-EXISTING default-only NON-TIMELINE keys**（`about_developer_contact_email`、`about_developer_contact_uri`、`about_website_url`、`export_filename`、`home_concentration_placeholder`、`home_level_placeholder`、`records_quick_add_format`、`unit_mg`），属历史遗留、**不在 D-05 范围**（不扩张为整应用 localization cleanup）。Timeline keys 保持 **22/22 parity**；D-05 parity 义务仅适用于 `timeline_*` + `timeline_a11y_*` | 审计 §14/§15（source-verified）+ P3-1 closure 修正 |
 | 现有执行性 guards | `TimelineUiArchitectureGuardTest`（25 tests，含 forbidden wording + timeline key parity） |
 | 现有 geometry/instrumentation 断言基线 | `TimelineGeometryTest`（8）、`TimelineNavigationTest`（3）、`TimelineLifecycleTest`（4）、`TimelineScreenTest`（23） |
 | Compose test 依赖 | composeBom 2026.02.01；`androidx.compose.ui.test:ui-test-junit4`；`DeviceConfigurationOverride`（Compose UI test 公共 API，>=1.7）用于 fontScale override |
@@ -617,8 +622,55 @@ production 不得超出上述范围（扩展需在实现评审中说明理由）
 
 ## 46. Documentation status
 
-- 本契约状态：`CONTRACT — REVIEW PENDING`；
+- 本契约状态：`CONTRACT — APPROVED / FROZEN`（Architect APPROVED；独立复审 APPROVED，
+  P0/P1/P2 = none；closure 记录见 §47）；
 - **D-05 PRODUCTION — NOT STARTED**；
 - D-06 recurring verification gate；D-07 final Phase-D independent gate；
 - D-01/D-03/D-04 保持 CLOSED / FROZEN；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` /
-  `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-05 contract review**。
+  `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-05 production implementation**
+  （仅可针对 frozen semantic contract @ `b1cdd662fe1bee14beab5cad651aef772f211c68`）。
+
+---
+
+## 47. Final contract closure（bookkeeping）
+
+- Approved semantic contract HEAD：`b1cdd662fe1bee14beab5cad651aef772f211c68`；
+- Architect verdict：**APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE**；
+- Independent verdict：**APPROVE V17-D05 CONTRACT**（independent reviewer：Qwen3.8 Flash，
+  fresh independent read-only session；reviewed final contract HEAD 同上）；
+- Final blocking findings：P0 = none，P1 = none，P2 = none；
+- 本契约进入 `CONTRACT — APPROVED / FROZEN`；**No further semantic D-05 contract change without
+  explicit reopening**；
+- 本 closure 为 bookkeeping + 两项 factual §0 anchor 修正：**不新增、不改变任何 D-05 语义要求**
+  （§3–§44 规范行为、A11Y1–A11Y21、FONT1–FONT11、LOC1–LOC9、DG1–DG23、day-cell 规则、heading
+  规则、MATCHED grouping、font-scale target、uniform resolved cell width、localization/date-time
+  authority、live-region/focus 决策、D-04 frozen boundary 全部原样保留）；
+- Production implementation 仅授权针对上述 frozen semantic contract HEAD 进行。
+
+### 47.1 P3 dispositions（closure 记录）
+
+- **P3-1（global resource count source-fact）**：修正 §0 的资源事实——整文件集合为 values/ 540
+  unique keys vs values-zh-rCN/ 532，其中 8 个 PRE-EXISTING default-only NON-TIMELINE keys 属历史
+  遗留、**不在 D-05 范围**；Timeline keys 22/22 parity；D-05 parity 义务仅限
+  `timeline_*` + `timeline_a11y_*`。**不**扩张为整应用 localization cleanup；
+- **P3-2（stale line anchors）**：§0 中 `DAY_CELL_WIDTH` / `DAY_HIGHLIGHT_SIZE` /
+  `MONTH_CONTROL_SLOT` 的源码行锚由 `TimelineScreen.kt:46–48` 修正为
+  `TimelineScreen.kt:70–72`（independent verified）；几何规则本身不变；
+- **P3-3（section-header single-spoken-phrase auditability）**：absolute-date section header 的
+  “one meaningful spoken phrase / 不重复播报 visible 短星期 + full-weekday description” 结果已由
+  §9 + §39 + §42.1 冻结，但无独立 acceptance/guard ID；**NON-BLOCKING**，且 independent
+  approval 之后 **不新增/不重编号** 任何 A11Y/FONT/LOC/DG ID。改为记录：implementation review
+  必须显式验证 absolute-date section header 只产生一个 meaningful spoken phrase、不
+  double-announce。
+
+### 47.2 Frozen acceptance / guard ranges
+
+- Acceptance：**A11Y1–A11Y21**、**FONT1–FONT11**、**LOC1–LOC9**（未重编号、未增删）；
+- Guards：**DG1–DG23**（未重编号、未增删）。
+
+### 47.3 Implementation authorization
+
+- D-05 production implementation authorized ONLY against the frozen semantic contract reviewed
+  at `b1cdd662fe1bee14beab5cad651aef772f211c68`；
+- 本 closure commit 为 bookkeeping/factual-anchor correction only，不新增语义要求；
+- **NEXT: V17-D-05 production implementation**。
