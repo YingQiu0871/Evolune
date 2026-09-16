@@ -336,6 +336,17 @@ PK output must remain explicitly model-derived.
 > "chronological grouping" 需先对账**：**NEXT: Phase-D post-D01 remaining-scope audit /
 > D-02…D-03 reconciliation**；D-02…D-07 未完成、不发明 D-02 contract；Phase C 保持 CLOSED；
 > delta/early-late/on-time 等 gated 语义保持未授权。
+>
+> **Status note (2026-09-16, D-02 reconciliation / D-03 contract)**: **D-02 "chronological
+> grouping" 正式记录为 FULLY CONSUMED BY CLOSED D-01**（date-section model + canonical ordering +
+> same-instant determinism；TLM17–TLM20/TLM25），不创建 D-02 contract、不重编号；section 渲染/
+> sticky/scrolling → D-04，selection/range behavior → D-03。**V17-D-03 Timeline Range / Date Read
+> Orchestration contract 已起草**（[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)，
+> `CONTRACT — REVIEW PENDING`）：month-scoped 请求、past/current/future 边界（current month 至 today、
+> future 不读）、selected-date 语义、7-phase taxonomy、read-count discipline、refresh/retry、
+> generation/stale 与 coalescing、failure taxonomy、HC1–HC7、TR1–TR24、F1–F16；**D-03 production
+> NOT STARTED**（无 UI、无 ViewModel）。**NEXT: V17-D-03 contract review**；D-04/D-05 NOT STARTED；
+> D-06 = recurring gate；D-07 = final Phase-D gate；Phase C 保持 CLOSED。
 
 ---
 

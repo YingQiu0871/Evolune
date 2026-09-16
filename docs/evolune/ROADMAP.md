@@ -174,7 +174,13 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   验证：focused 32/0/0/0 · fresh full JVM 1365/0/0/0 · 54/54 tasks · instrumentation N/A
   （无 Android/UI surface）· evidence 167/167 manifest coverage、169/169 blob verification、0 mismatches。
   **D-01 冻结**：未经重开评审不得再改 D-01 生产。
-  **NEXT:** Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation。
+- **Phase D · D-02** — **FULLY CONSUMED BY CLOSED D-01**（chronological grouping 由 D-01 交付；
+  不创建 D-02 contract、不重编号）。
+- **Phase D · D-03 contract** — **CONTRACT — REVIEW PENDING**
+  （[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)）：
+  month-scoped read-only orchestration（无 UI/ViewModel）；**D-03 production NOT STARTED**；
+  D-04/D-05 NOT STARTED；D-06 recurring gate；D-07 final gate。
+  **NEXT:** V17-D-03 contract review。
 
 ## Historical and future milestones
 
@@ -194,8 +200,8 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation（D-01 已 APPROVED /
-CLOSED；D-02…D-07 未完成，不发明 D-02 contract）。
+**NEXT:** V17-D-03 contract review（[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)
+为 `CONTRACT — REVIEW PENDING`；D-03 生产未开始；D-02 已由 D-01 完全消费）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

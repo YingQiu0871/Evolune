@@ -167,8 +167,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     fresh full JVM 1365 / 0 failures / 0 errors / 0 skipped · 54/54 Gradle tasks executed ·
     instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
     169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
-  - **NEXT:** Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation（D-02…D-07 未完成；
-    不自行发明范围）。
+  - Phase D · D-02 — **FULLY CONSUMED BY CLOSED D-01**（不创建 D-02 contract、不重编号）。
+  - Phase D · D-03 contract — **CONTRACT — REVIEW PENDING**
+    （[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)）：
+    month-scoped Timeline Range / Date Read Orchestration（read-only，无 UI/ViewModel）；
+    **D-03 production NOT STARTED**；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
+  - **NEXT:** V17-D-03 contract review（契约批准前不得开工 D-03 生产；不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·

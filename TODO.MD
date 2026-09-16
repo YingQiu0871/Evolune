@@ -82,9 +82,13 @@
       fresh full JVM 1365 / 0 failures / 0 errors / 0 skipped · 54/54 Gradle tasks executed ·
       instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
       169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
-- [ ] NEXT：**Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation**（D-01 已交付 row
-      projection / date-section model / canonical ordering / same-instant determinism，故 PLAN §7 的
-      D-02 "chronological grouping" 需先对账；D-02…D-07 未完成、不发明 D-02 contract）。
+- [x] Phase D · D-02 — **FULLY CONSUMED BY CLOSED D-01**（chronological grouping 由 D-01 的
+      date-section model + canonical ordering + same-instant determinism 交付；不创建 D-02 contract，
+      不重编号）。
+- [ ] Phase D · D-03 contract — **CONTRACT — REVIEW PENDING**（`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`）：
+      Timeline Range / Date Read Orchestration（month-scoped、read-only、无 UI/ViewModel）；
+      **D-03 production NOT STARTED**；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
+- [ ] NEXT：**V17-D-03 contract review**（契约批准前不得开工 D-03 生产；不自行发明范围）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，
