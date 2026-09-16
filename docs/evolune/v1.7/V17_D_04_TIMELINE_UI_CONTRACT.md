@@ -5,6 +5,8 @@
 > day-strip viewport-centering 澄清已并入（§3.1/§6.1/§11.1/§23.1-23.3/§31/§35/§37）；其余冻结决定不变。
 > R2：logical-request-intent ownership / published-vs-logical separation / pending-zone command
 > targeting / snapshot-relative `state.today` 已并入（§3.2/§6.1-6.4/§23.4/§31/§35/§37）。
+> R3：logical `requestToday` ownership / refresh advancement / selectDate validation authority /
+> logical-vs-published today separation 已并入（§3.2/§5/§6.2-6.5/§23.5/§31/§35/§37）。
 > Slice：**V17-D-04 — Timeline UI**
 > Base HEAD：`544b1a85368502807171908954ae26bf8c732d10`（D-03 APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -111,17 +113,24 @@ D-04 **不得**依赖私有字段，**不得**仅为 UI 添加 D-03 accessor。
 TimelineUiRequestIntent(
     requestedMonth: YearMonth,
     selectedDate: LocalDate,
-    displayZone: ZoneId
+    displayZone: ZoneId,
+    requestToday: LocalDate
 )
 ```
 
 （Exact Kotlin name 为实现规划值。）
+
+`requestToday` 定义（R3 冻结）：today derived from the capturedAt + displayZone of the
+**latest accepted generation-producing D-04 command**。它**不**意味着：renderer today /
+continuously running wall-clock today / background timer date / 独立观测的 `LocalDate.now()`。
 
 规则：
 
 - 该 mirror **不是**第二套 Timeline state machine；
 - 它**不得**包含：generation、pending/read-in-flight flags、loading phase、`TimelineReadModel`、
   `TimelineDay`、failure、source-read status、retry scheduler；
+- `requestToday` 只是从构造 accepted D-03 command 的**同一 explicit capture context** 派生的
+  immutable value；加入它**不**使 mirror 成为另一个 coordinator（F26 边界保持）；
 - D-03 仍是唯一 orchestration/publication authority；
 - 其唯一用途：当 published state 落后于更新的 pending logical request 时，**正确构造下一个 UI command**。
 
@@ -141,6 +150,7 @@ VM 首次构造：
 capturedAt   = externally captured current Instant  (Clock 注入；D-03 不内置 clock)
 displayZone  = current display zone
 today        = capturedAt.atZone(displayZone).toLocalDate()
+requestToday = today        // 初始 logical intent 与 D-03 initial request 共用同一 capture context
 month        = YearMonth.from(today)
 selectedDate = today
 ```
@@ -230,11 +240,39 @@ initial intent = current month + today + displayZone
 
 | command | intent 更新 |
 |---|---|
-| `load` / month change | intent = 新 request 的 month + selectedDate + displayZone（在提交 `coordinator.load(newRequest)` 的同时） |
-| zone-change load | 同上：resolved newRequest → intent 立即更新 → `coordinator.load(newRequest)` |
-| valid `selectDate` | `logicalIntent.selectedDate = selectedDate` + `coordinator.selectDate(selectedDate)`（两者对 selection 均 0-read） |
+| `load` / month change | intent = 新 request 的 month + selectedDate + displayZone + `requestToday = commandToday`（在提交 `coordinator.load(newRequest)` 的同时） |
+| zone-change load | 同上（含 `requestToday`）：resolved newRequest → intent 立即更新 → `coordinator.load(newRequest)` |
+| valid `selectDate` | `logicalIntent.selectedDate = selectedDate` + `coordinator.selectDate(selectedDate)`（两者对 selection 均 0-read；`requestToday` 不变） |
 | invalid/out-of-month/future selection | **不**替换 logical intent（与 CLOSED D-03 语义一致） |
-| same-zone refresh | 只改变 capturedAt/generation；**不**改变 month/selectedDate/displayZone → intent 保持不变 |
+| same-zone refresh | 保留 month/selectedDate/displayZone；**更新 `requestToday` = 该 refresh fresh capturedAt 派生值**（R3 修正 R2 的 “intent 保持不变” 表述） |
+
+**每个 generation-producing command 都更新 requestToday（R3 冻结）**：每次捕获
+`capturedAt + currentDisplayZone` 时派生
+
+```text
+commandToday = capturedAt.atZone(currentDisplayZone).toLocalDate()
+```
+
+latest logical intent 同步记录 `requestToday = commandToday`。适用于：initial load、explicit
+month load、same-zone activation refresh、zone-change load、foreground refresh/load、retry、
+return-to-current-month recovery。
+
+示例（same-zone refresh advancement）：
+
+```text
+Oct 1:  intent.requestToday = Oct 1
+Oct 20 route re-entry: refresh(capturedAt Oct 20)
+-> latest logical intent after acceptance:
+   requestedMonth = October
+   selectedDate   = previous valid intent
+   displayZone    = same zone
+   requestToday   = Oct 20
+```
+
+这与 CLOSED D-03 的 new-generation today 语义一致。Refresh 后若被保留的 logical selectedDate
+在新 command context 下变为 invalid：按已冻结的 D-03-compatible request resolution rules 处理
+（同一 zone 且时钟向前时，已 valid 的 selectedDate 通常保持 valid；zone-change 继续走 R1
+Case A/B）。**不得**发明额外的自动 selection 移动。
 
 ### 6.3 Never derive command target from last published state（R2 冻结）
 
@@ -266,10 +304,13 @@ Example B
 
 ### 6.4 Retry ownership / return-to-current-month recovery（R2 冻结）
 
-**Retry after ERROR** 使用：latest logical intent + fresh capturedAt + fresh currentDisplayZone：
+**Retry after ERROR** 使用：latest logical intent + fresh capturedAt + fresh currentDisplayZone +
+fresh `commandToday`：
 
-- zone 未变 → 走 D-03-compatible 的 `coordinator.retry/refresh` 路径；
-- zone 已变 → resolve new request、更新 logical intent、`coordinator.load(newRequest)`；
+- zone 未变 → 保留 requestedMonth/selectedDate/displayZone、更新 `requestToday = commandToday`，
+  走 D-03-compatible 的 `coordinator.retry/refresh` 路径；
+- zone 已变 → 应用 R1 zone-resolution rules、更新**完整** logical intent（含 `requestToday`）、
+  `coordinator.load(newRequest)`；
 - **不得**从 stale rendered state 推导 retry target。
 
 **INVALID_REQUEST / NOT_LOADABLE defensive recovery**：
@@ -277,11 +318,40 @@ Example B
 ```text
 fresh capture capturedAt + currentDisplayZone
 newToday = capturedAt.atZone(zone).toLocalDate()
-logical intent = YearMonth.from(newToday) + newToday + zone
+logical intent = YearMonth.from(newToday) + newToday + zone + requestToday = newToday
 coordinator.load(newRequest)   // exactly once
 ```
 
 不得使用 stale published month/date 作为 command authority。
+
+### 6.5 selectDate validation authority（R3 冻结）
+
+VM selection command boundary：candidate date 为 valid **iff**：
+
+```text
+YearMonth.from(candidate) == latestLogicalIntent.requestedMonth
+AND
+candidate <= latestLogicalIntent.requestToday
+```
+
+Valid → `logicalIntent.selectedDate = candidate` + `coordinator.selectDate(candidate)`；
+source reads = **0**。Invalid → logical intent 不变、coordinator selection intent 不变、**0 reads**。
+必须与 CLOSED D-03 语义一致。
+
+**不得**用 published state 验证：`candidate <= coordinator.state.value.today` **不是**通用
+command-validity 规则（published state 可能落后于 latest accepted logical context）。示例：
+
+```text
+published state.today = Sep 16
+latest logical refresh requestToday = Sep 17（refresh 仍 pending）
+candidate = Sep 17
+-> VM 按 latestLogicalIntent.requestToday = Sep 17 判定（不是 stale published Sep 16）
+```
+
+**不得**用 live wall clock 验证：selection handler **不得**用 `LocalDate.now()` / `Instant.now()` /
+`Clock.instant()` / `ZoneId.systemDefault()` 独立推导 validity；selection command 作用于 latest
+accepted logical request context，而不是无关的更新 wall-clock 观测。fresh wall-clock/zone capture
+只在**有意接受一个 generation-producing command** 时发生。
 
 ---
 
@@ -551,6 +621,25 @@ D-04 **不得**发明 UI-local pending state machine：只渲染 D-03 实际发�
 - 当用户实际触发一个 generation-creating action 时：ViewModel 捕获 fresh current time + display
   zone，并按更新的 context resolve command（§6.2）。
 
+### 23.5 logical requestToday vs published state.today（R3 冻结）
+
+- `latestLogicalIntent.requestToday` 用途：**next-command construction / selection validation**；
+- `TimelineRangeState.today` 用途：**current published snapshot rendering**；
+- 两者在新工作 pending 期间**可以合法地不同**。示例：
+
+  ```text
+  published state.today       = Sep 16
+  logical intent.requestToday = Sep 17（refresh/load pending）
+  -> UI rendering:  Sep 16 仍是 "Today"
+  -> command validation: Sep 17 已可作为 valid selectedDate
+     （若 Sep 17 属于 latest logical request month）
+  ```
+
+  该区分是刻意设计；
+- mirror **不自动 tick**：`requestToday` 只在新的 generation-producing D-04 command 捕获 fresh
+  Instant/zone 时前进；**不得**引入 midnight timer、polling、date-change loop 或 renderer
+  clock observation。
+
 ## 24. Functional strings / localization split（冻结；F13）
 
 - D-04 可添加**最小功能** `timeline_*` resource keys（title、entry card、month title pattern、
@@ -689,6 +778,12 @@ Phase-C production、schema/DAO/Room、Home/Wear/Widget、build/dependencies。
 | UI51 | an unchanged published snapshot crossing midnight does NOT independently change Today/Yesterday labels; labels derive from state.today |
 | UI52 | after a new generation publishes a new state.today, relative date labels update to the new snapshot reference date |
 | UI53 | month-navigation enabled/disabled rendering derives from state.today and does not change merely from recomposition/current wall-clock passage |
+| UI54 | same-zone refresh across midnight updates latestLogicalIntent.requestToday while preserving requestedMonth/selectedDate/displayZone as valid |
+| UI55 | same-zone refresh later in the same current month advances requestToday; a date previously future but now <= requestToday becomes a valid 0-read selectDate |
+| UI56 | published state.today may lag a pending logical requestToday; selectDate validity follows requestToday, not published state.today |
+| UI57 | a candidate date later than latestLogicalIntent.requestToday is rejected even if an independently observed wall clock would already consider it today |
+| UI58 | month-change / retry / zone-change commands update requestToday from the same capturedAt + displayZone used for the submitted D-03 generation |
+| UI59 | renderer relative labels continue to use published state.today and never latestLogicalIntent.requestToday |
 
 Tests **不得**依赖精确动画时长。
 
@@ -762,6 +857,10 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 | F26 | VM-owned logical intent 变成第二套 orchestration machine（持有 generation counter、pending/read status、`TimelineReadModel`、phase 或 failure） |
 | F27 | Timeline renderer 用 `LocalDate.now()`/`Instant.now()`/`Clock` 读取来推导未变化 published snapshot 的 Today/Yesterday 或当前月控件状态 |
 | F28 | Today/Yesterday/current-month presentation 不派生自已发布的 `TimelineRangeState.today` |
+| F29 | TimelineViewModel 在可能已存在更新 logical request context 时用 published `TimelineRangeState.today` 验证 `selectDate` |
+| F30 | TimelineViewModel 用独立读取的 live wall clock 验证 `selectDate`（validity 必须用 `latestLogicalIntent.requestToday`） |
+| F31 | `latestLogicalIntent.requestToday` 未从每个被接受的 generation-producing command 的 capturedAt + displayZone 刷新 |
+| F32 | logical `requestToday` 被用作 CURRENT snapshot rendering 中 published `TimelineRangeState.today` 的替代 |
 
 ## 36. Status mapping（truthful）
 
@@ -793,5 +892,14 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
   不得用 `coordinator.state.value.displayZone`）、§6.2 intent 初始化/同步更新规则、
   §6.3 published-vs-logical 分离 + pending-zone 示例 A/B、§6.4 retry/recovery targeting、
   §23.4 snapshot-relative `state.today`（Today/Yesterday 与当前月控件），
-  §31 的 UI48–UI53、§35 的 F25–F28。其余 D-04 决定（含 R1 全部内容与 centering rules）不变；
+  §31 的 UI48–UI53、§35 的 F25–F28。  其余 D-04 决定（含 R1 全部内容与 centering rules）不变；
+  状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
+- **R3 amendment（architect REQUEST_CHANGES；docs-only）**：已并入
+  §3.2 扩展的 `requestToday`（narrow mirror 的 immutable capture 派生值，F26 边界保持）、
+  §5 初始 `requestToday = today`、§6.2 每个 generation-producing command 更新 `requestToday`
+  （含 same-zone refresh advancement 示例与 “intent 保持不变” 表述的 R3 修正）、
+  §6.4 retry/recovery 的 `commandToday`/`requestToday` 同步、§6.5 selectDate validation authority
+  （`requestToday` 判定、不用 published state.today、不用 live wall clock）、
+  §23.5 logical `requestToday` vs published `state.today` 分离、
+  §31 的 UI54–UI59、§35 的 F29–F32。其余 D-04 决定（含 R1/R2 全部内容与 centering rules）不变；
   状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
