@@ -198,8 +198,16 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     R1 real route-cycle executed proof + mapping 修正 + UTF-8 evidence 卫生 → **APPROVE V17-D04
     IMPLEMENTATION R1**（Architect + final independent，P0/P1/P2 = none）。D-04 P3 hygiene
     （F14 标签漂移 / 未使用 helper / KDoc 范围注释）为 CLOSED / 非阻塞，不重开 D-04。
-  - **NEXT:** V17-D-05（accessibility / localization hardening）；D-05 NOT STARTED；D-06
-    recurring gate；D-07 final gate。
+  - Phase D · D-05 contract — **CONTRACT — REVIEW PENDING**
+    （[`V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`](v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md)）：
+    final accessibility/localization hardening of the shipped D-04 Timeline surface；五项 P2 已闭环
+    （day-cell 单 accessibility node + `Role.Button` + selected/disabled semantic properties +
+    localized 非 ISO spoken 语法 + full weekday；month-title + section-header `heading()`；
+    History entry card `Role.Button`；font-scale 1.0/1.3/1.5/2.0 responsive 规则 + uniform
+    resolved cell width + executed 2.0x evidence；MATCHED 双侧 semantic groups + natural
+    separator）。含 timeline key/placeholder parity guards、hit target ≥48dp、无 live-region、
+    无程序化 a11y focus。**D-05 PRODUCTION — NOT STARTED**；D-06 recurring gate；D-07 final gate。
+  - **NEXT:** V17-D-05 contract review（契约批准前不得开工 D-05 生产；不自行发明范围）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

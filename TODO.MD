@@ -113,9 +113,15 @@
       executed proof，无 production test hook）。验收：focused JVM 65/0、full JVM 1486/0、
       instrumentation 39/39（Pixel_7 API 35）；UI35–UI39/UI46–UI47 真实几何断言关闭。
       **D-04 冻结**：未经重开评审不得改 D-04 语义。
-- [ ] Phase D · D-05（accessibility / localization hardening）— **NOT STARTED**；D-06 recurring gate；
-      D-07 final gate。
-- [ ] NEXT：**V17-D-05**。
+- [ ] Phase D · D-05 contract — **CONTRACT — REVIEW PENDING**
+      （`V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`）：final accessibility/localization
+      hardening of the shipped D-04 Timeline surface（五项 P2 已闭环：day-cell 单节点 +
+      Role.Button + selected/disabled + localized 非 ISO spoken 语法；month-title/section
+      heading；entry-card Role.Button；font-scale 1.0/1.3/1.5/2.0 responsive + executed 2.0x
+      evidence；MATCHED 双侧 semantic groups + natural separator）。含 key/placeholder parity
+      guards、uniform resolved cell width、无 live-region、无程序化 a11y focus。
+      **D-05 PRODUCTION — NOT STARTED**；D-06 recurring gate；D-07 final gate。
+- [ ] NEXT：**V17-D-05 contract review**（契约批准前不得开工 D-05 生产；不自行发明范围）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

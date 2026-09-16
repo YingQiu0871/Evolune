@@ -401,6 +401,22 @@ PK output must remain explicitly model-derived.
 > （Pixel_7 AVD API 35）；UI35–UI39 + UI46–UI47 真实几何断言关闭（supplementary PNG evidence）。
 > P3 hygiene（F14 标签漂移 / 未使用 helper / KDoc 范围注释）为 CLOSED / 非阻塞；不重开 D-04。
 > **NEXT: V17-D-05**（accessibility/localization hardening）；D-06 recurring gate；D-07 final gate。
+>
+> **Status note (2026-09-16, D-05 contract)**: **V17-D-05 Accessibility / Localization
+> Hardening contract 已起草** — `V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`，状态
+> `CONTRACT — REVIEW PENDING`；**D-05 PRODUCTION — NOT STARTED**。设计输入为 strict read-only
+> pre-contract audit（`review-packets/v17-d05-pre-contract-audit.txt`；P0/P1 = none，5 项 P2）。
+> 五项 P2 已在契约中闭环并冻结为可测要求：① day-cell 单 accessibility node + `Role.Button` +
+> selected/disabled semantic properties + localized 非 ISO spoken 语法（full weekday，
+> `timeline_a11y_*` 资源）；② month title + section headers `heading()`；③ History entry card
+> `Role.Button`；④ font-scale 1.0/1.3/1.5/2.0 支持 + responsive 规则（uniform resolved cell
+> width / highlight 增长 / viewport centering 使用 resolved width）+ executed 2.0x evidence 门禁；
+> ⑤ MATCHED 双侧分离 semantic groups + natural localized separator（不依赖 “·”）。另冻结：
+> 无 live-region、无程序化 a11y focus、hit target ≥48dp、key/placeholder parity executable guards、
+> 术语统一 “方案”、D-04 geometry 1.0x 不变且 relational invariants 全 scale 保持；
+> D-04 geometry/navigation/lifecycle tests 必须保持 green。
+> **NEXT: V17-D-05 contract review**（契约批准前不得开工 D-05 生产；D-06 recurring gate；
+> D-07 final Phase-D gate）。
 
 ---
 
