@@ -1,0 +1,59 @@
+V17-D-04 frozen-surface audit (pre-commit candidate)
+
+git diff --name-only (implementation + tests only):
+
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineLifecycleTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
+app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineViewModel.kt
+app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineSurfaceLifecycle.kt
+app/src/main/res/values-zh-rCN/strings.xml
+app/src/main/res/values/strings.xml
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineViewModelTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+
+
+Explicit zero-diff verification for frozen paths (must be absent from the delta):
+- history/timeline/TimelineReadModel.kt, TimelineProjectionBuilder.kt  -> ABSENT
+- history/timeline/TimelineRangeState.kt, TimelineRangeCoordinator.kt   -> ABSENT
+- history/timeline/TimelineArchitectureGuardTest.kt and D-01/D-03 test files -> ABSENT
+- history/HistoryReadService.kt, HistoryRangeSource.kt, HistoricalProjectionBuilder -> ABSENT
+- occurrence matcher/generator/MedicationOccurrencePolicy -> ABSENT
+- Phase-C / PK / retrospective production -> ABSENT
+- Room schema/DAO/migrations/AppDatabase -> ABSENT
+- Home/Wear/Widget production -> ABSENT
+- Gradle files, version catalogs, dependencies -> ABSENT
+
+Changed production files (all D-04 scope):
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineLifecycleTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
+app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineViewModel.kt
+app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineSurfaceLifecycle.kt
+app/src/main/res/values-zh-rCN/strings.xml
+app/src/main/res/values/strings.xml
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineViewModelTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+
+
+F1/F15 note: the only pre-existing production files touched are the approved wiring
+surfaces (MainActivity composition root, AppNavigation sub-route, HistoryScreen entry
+card) and the two existing string resource files; no frozen semantic file is modified.

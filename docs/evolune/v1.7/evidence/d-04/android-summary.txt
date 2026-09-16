@@ -1,0 +1,40 @@
+V17-D-04 Android instrumentation summary
+
+Device (established project validation target)
+  emulator   : Pixel_7 AVD (sdk_gphone64_x86_64)
+  API        : 35 (Android 15)
+  serial     : emulator-5554
+
+Final full D-04 instrumentation run (log: logs/android-instrumentation.log)
+  command: .\gradlew.bat :app:connectedDebugAndroidTest
+           -Pandroid.testInstrumentationRunnerArguments.class=
+             ...TimelineScreenTest,...TimelineGeometryTest,...TimelineLifecycleTest,
+             ...TimelineNavigationTest,...TimelineVisualEvidenceTest
+  result : tests=38 failures=0 errors=0 skipped=0  (device XML: androidtest/TEST-Pixel_7_API35_app-final.xml)
+    23  TimelineScreenTest   (seven-state rendering, month controls, day selection,
+                              row truthfulness, identity statuses, 12/24h, selection focus)
+     8  TimelineGeometryTest (UI35/UI36/UI37/UI38/UI39/UI46/UI47 real geometry assertions)
+     4  TimelineLifecycleTest (cold start 1 read, re-entry refresh, foreground refresh,
+                               disposed bridge, recomposition 0 reads, selection 0 reads)
+     2  TimelineNavigationTest (History -> Timeline -> back; sub-route hides bottom bar)
+     1  TimelineVisualEvidenceTest (captured-device PNGs, see visual-evidence/)
+
+Navigation proof (real MainActivity navigation, no harness ViewModel)
+  - history-timeline-entry exists on History and opens timeline-screen (UI31)
+  - system back from Timeline returns to history-screen (UI32)
+  - nav-bar-timeline never exists; bottom bar is hidden on the Timeline sub-route (UI33)
+  - title override: timeline_title on the sub-route (AppNavigation titleOverride + top bar)
+
+Read-count proof (TimelineLifecycleTest, recording HistoryRangeSource)
+  - cold start: exactly 1 source read (initial D-03 load owns it)  [UI1]
+  - composition re-entry: exactly 1 additional refresh read      [UI2]
+  - real ON_STOP -> ON_START: exactly 1 additional refresh read   [UI3]
+  - ordinary recomposition: 0 reads                               [UI4]
+  - day selection: 0 reads                                        [UI8]
+  - disposed bridge: 0 reads on lifecycle transitions
+
+Supplementary visual evidence (captured on the same Pixel 7 API 35 device during the run)
+  visual-evidence/d-04-01-calendar-centered-content.png
+  visual-evidence/d-04-02-month-navigation-enabled.png
+  visual-evidence/d-04-03-empty-day-with-other-sections.png
+  visual-evidence/d-04-04-error-retry.png

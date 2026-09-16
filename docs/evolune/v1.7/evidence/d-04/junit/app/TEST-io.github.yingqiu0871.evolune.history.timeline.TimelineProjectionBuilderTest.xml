@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-09-16T14:09:48.719Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="TLM4 future occurrences are structurally excluded and there is no fourth family" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.001"/>
+  <testcase name="TLM7 unrecorded to matched keeps the occurrence-backed identity" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM3 unmatched event maps to exactly one UNMATCHED_INTAKE row" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM20 unmatched same-instant rows order deterministically by eventId" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM2 unrecorded entry maps to exactly one neutral UNRECORDED_SCHEDULE row" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM25 repeated projection of identical input is deterministic" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM11 unrecorded carries schedule-context facts only" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM16 displayDate is preserved exactly from the historical projection" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM13 KNOWN identity is preserved through the existing classifier" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM6 unmatched intake uses Event identity" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM23 project input can never contain future rows" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.001"/>
+  <testcase name="TLM19 occurrence-backed rows order before unmatched intakes at the same instant" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM22 no synthesized empty sections or rows" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM15 UNAVAILABLE antiandrogen identity is not invented" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM12 unmatched carries recorded facts only" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM9 matched row keeps both sides distinct even with identical match keys" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM14 PARTIAL never becomes a specific medication" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM24 projection is pure and carries no mutable instance state" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM21 no delta or timing classification fields exist in the model" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM1 matched entry maps to exactly one MATCHED row" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.001"/>
+  <testcase name="TLM8 matched to unrecorded keeps the occurrence-backed identity" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM5 occurrence-backed rows use Occurrence identity" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM10 matched actual dose and identity come from the event side" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <testcase name="TLM17 canonical ascending date and instant ordering" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

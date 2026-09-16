@@ -49,6 +49,7 @@ import io.github.yingqiu0871.evolune.history.HistoryViewModel
 import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
+import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
@@ -247,6 +248,13 @@ class MainActivity : ComponentActivity() {
                     settingsStore = settingsDataStore
                 )
 
+                // D-04 composition root (V17-D-04 §3): the Timeline factory receives ONLY the
+                // approved HistoryRangeSource seam plus the clock/display-zone defaults; the
+                // concrete HistoryReadService stays bound to that seam here.
+                val timelineViewModelFactory = TimelineViewModelFactory(
+                    rangeSource = historyRangeSource
+                )
+
                 // 创建 MedicationPlanViewModel
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
@@ -326,6 +334,7 @@ class MainActivity : ComponentActivity() {
                         historyViewModel = historyViewModel,
                         insightsViewModelFactory = insightsViewModelFactory,
                         retrospectiveViewModelFactory = retrospectiveViewModelFactory,
+                        timelineViewModelFactory = timelineViewModelFactory,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,

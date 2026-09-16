@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-16T14:09:48.772Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="testSingleInjectionEVEvent" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testMultipleOralEvents" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testConcentrationInterpolationBounds" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testGelApplication" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testSingleOralE2Event" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testSublingualE2" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testTimeRangeGeneration" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testInvalidParameters" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testPatchWithRemoval" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testDifferentBodyWeights" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.001"/>
+  <testcase name="testEmptyEventList" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="fixed range representative output remains numerically stable" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <testcase name="testConcentrationInterpolation" classname="io.github.yingqiu0871.evolune.pk.SimulationEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

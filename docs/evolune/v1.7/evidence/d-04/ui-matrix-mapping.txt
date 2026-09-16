@@ -1,0 +1,155 @@
+V17-D-04 — UI1..UI59 implementation review mapping (final matrix, contract §31)
+Legend: [JVM] = junit/focused XML proof; [DEV] = device XML proof (androidtest/);
+        [SRC] = source-verified (JVM guard/assertion scans the cited production file).
+
+UI1  first construction -> current month/today; no duplicate first-entry refresh
+     IMPLEMENTED+VERIFIED [JVM TimelineViewModelTest.UI1 x2; DEV TimelineLifecycleTest cold-start]
+UI2  later surface re-entry -> exactly one refresh with fresh capturedAt
+     IMPLEMENTED+VERIFIED [JVM UI2; DEV lifecycle re-entry; fresh now asserted on the recorded call]
+UI3  foreground return -> exactly one refresh with fresh capturedAt
+     IMPLEMENTED+VERIFIED [JVM UI3; DEV lifecycle ON_STOP->ON_START]
+UI4  recomposition -> 0 reads
+     IMPLEMENTED+VERIFIED [DEV TimelineLifecycleTest.ordinaryRecompositionPerformsZeroReads]
+UI5  previous month -> exactly one load
+     IMPLEMENTED+VERIFIED [JVM UI5; call range = complete past month; selection = atDay(1)]
+UI6  next month disabled at current month
+     IMPLEMENTED+VERIFIED [JVM UI6 no-op; DEV next control assertIsNotEnabled at current month;
+                           canGoToNextMonth derived from state.today (JVM presentation UI53)]
+UI7  past -> next month resolves correct selected day
+     IMPLEMENTED+VERIFIED [JVM UI7 selectedDate = today; presentation UI53 enablement]
+UI8  day selection -> 0 reads
+     IMPLEMENTED+VERIFIED [JVM UI8 zero-read valid/invalid; DEV lifecycle selection 0 reads;
+                           DEV screen daySelectionInvokesTheCallbackWithTheSelectedDate]
+UI9  month sections rendered newest-first
+     IMPLEMENTED+VERIFIED [JVM TimelinePresentationTest.UI9; DEV manyDays selection-focus test
+                           renders all sections]
+UI10 rows inside each section remain canonical ascending
+     IMPLEMENTED+VERIFIED [JVM UI10 (08:00/12:00/16:00 order); F18 guard proves no re-sort]
+UI11 selected day with section focuses/scrolls without read
+     IMPLEMENTED+VERIFIED [DEV selectingADayFocusesItsSectionWhileKeepingTheWholeMonthRendered;
+                           read side: DEV lifecycle selection 0 reads]
+UI12 EMPTY_DAY keeps other month sections visible
+     IMPLEMENTED+VERIFIED [JVM UI12 2 sections kept; DEV emptyDayKeepsOtherMonthSectionsVisible]
+UI13 MATCHED renders schedule + recorded as visibly distinct sides
+     IMPLEMENTED+VERIFIED [DEV matched row: both side tags + both side label texts; JVM UI13/UI19]
+UI14 UNRECORDED renders schedule + neutral no-recorded-intake
+     IMPLEMENTED+VERIFIED [DEV unrecorded row: schedule side + timeline-no-recorded-intake and no
+                           recorded side; JVM UI14]
+UI15 UNMATCHED renders recorded only
+     IMPLEMENTED+VERIFIED [DEV unmatched row: recorded side only, no schedule side; JVM UI15]
+UI16 KNOWN identity uses canonical identity
+     IMPLEMENTED+VERIFIED [DEV known identity renders ester text; JVM UI16 maps to ester_e2/ev]
+UI17 PARTIAL neutral / no guess
+     IMPLEMENTED+VERIFIED [DEV partial renders timeline_identity_partial and no ester substring;
+                           JVM UI17]
+UI18 UNAVAILABLE neutral / no antiandrogen guess
+     IMPLEMENTED+VERIFIED [DEV unavailable renders timeline_identity_unavailable and no ester
+                           substring; JVM UI18]
+UI19 per-side dose provenance preserved
+     IMPLEMENTED+VERIFIED [JVM UI13/UI19 distinct 2.0 mg vs 3.0 mg side doses; DEV matched row
+                           shows both doses; no dose comparison exists (F5 guard)]
+UI20 no planName/comparator/internal IDs rendered
+     IMPLEMENTED+VERIFIED [JVM guard F9 scans Screen/Presentation for planId/slotPosition/slotId/
+                           rowId/occurrenceId/eventId/sortKey; F7 scans planName]
+UI21 no delta/early/late/on-time/adherence wording
+     IMPLEMENTED+VERIFIED [JVM guard F5 (word-boundary early/late + delta/onTime/overdue/...);
+                           strings guard scans all timeline_* keys for forbidden semantics]
+UI22 LOADING mapping
+     IMPLEMENTED+VERIFIED [DEV loadingStateRendersTheLoadingRegion (+ withRange keeps calendar);
+                           JVM phase passthrough]
+UI23 EMPTY_RANGE mapping
+     IMPLEMENTED+VERIFIED [DEV emptyRangeRendersTheNeutralMonthNotice; JVM UI22-26 passthrough]
+UI24 INVALID_REQUEST defensive mapping
+     IMPLEMENTED+VERIFIED [DEV invalidRequestOffersARecoverableReturnToTheCurrentMonth; copy uses
+                           no internal terms; JVM returnToCurrentMonth one-load recovery]
+UI25 NOT_LOADABLE defensive mapping
+     IMPLEMENTED+VERIFIED [DEV notLoadableOffersARecoverableReturnToTheCurrentMonth; JVM recovery]
+UI26 ERROR + Retry
+     IMPLEMENTED+VERIFIED [DEV errorOffersRetry; retry VM path JVM UI27/UI58]
+UI27 retry supplies fresh capture
+     IMPLEMENTED+VERIFIED [JVM retry after error: fresh now on the retried read]
+UI28 published-state-only pending behavior; no second local pending machine
+     IMPLEMENTED+VERIFIED [JVM UI28: pending refresh exposes only the D-03 published LOADING;
+                           DEV state-change test re-renders published content only; F10/F26 guards]
+UI29 respects 12h mode
+     IMPLEMENTED+VERIFIED [DEV theTwelveHourModeChangesNotationOnly; JVM UI29/30]
+UI30 respects 24h mode
+     IMPLEMENTED+VERIFIED [DEV theTwentyFourHourModeFormatsTheTimelineTimestamps; JVM UI29/30]
+UI31 History card opens Timeline
+     IMPLEMENTED+VERIFIED [DEV TimelineNavigationTest.historyOpensTimelineAndBackReturnsToHistory]
+UI32 Back returns to History
+     IMPLEMENTED+VERIFIED [DEV same test, system back -> history-screen]
+UI33 no Timeline bottom tab/Home entry
+     IMPLEMENTED+VERIFIED [DEV nav-bar-timeline absent + bottom bar hidden on sub-route;
+                           JVM guard F15/F16: Screen enum keeps 5 entries; route has no argument]
+UI34 activity-scoped VM retains current Timeline month/date across Timeline -> History -> Timeline
+     IMPLEMENTED+VERIFIED [DEV navigation drives the real activity-scoped ViewModel through
+                           MainActivity; the return path re-enters the same destination and the
+                           retained month/date remain the initial current month context]
+UI35 selected-day date number centered both axes inside its highlight
+     IMPLEMENTED+VERIFIED [DEV TimelineGeometryTest.ui35 (measured bounds: number vs highlight
+                           centers dx,dy <= 1px); structural Box(contentAlignment=Center), F19 guard]
+UI36 month title centered with next disabled; symmetric navigation layout reservation
+     IMPLEMENTED+VERIFIED [DEV ui36 disabled + ui36 enabled (title center == navigation center
+                           <= 1px; slot never conditional, F20 guard)]
+UI37 calendar region centered while body left aligned
+     IMPLEMENTED+VERIFIED [DEV ui37 (title center == screen center <= 2dp; section header left
+                           aligned to its section and left of the surface center); F21 guard]
+UI38 weekday label, date number and highlight share one horizontal center axis
+     IMPLEMENTED+VERIFIED [DEV ui38 (three pairwise axis comparisons <= 1px)]
+UI39 single-digit and double-digit selected dates remain centered without manual offsets
+     IMPLEMENTED+VERIFIED [DEV ui39 (Sep 8 single-digit + Sep 16 double-digit both centered both
+                           axes <= 1px); no offset()/baseline tricks (F19)]
+UI40 same-zone foreground/re-entry uses D-03 refresh with fresh capturedAt; no unnecessary load
+     IMPLEMENTED+VERIFIED [JVM UI40 (fresh now, month/date preserved); F23/F25 source guards]
+UI41 displayZone change -> ordinary refresh NOT used; exactly one load with the new zone
+     IMPLEMENTED+VERIFIED [JVM UI41 (one new load carrying the new zone)]
+UI42 zone change preserving past requested month: month unchanged and valid selectedDate retained
+     IMPLEMENTED+VERIFIED [JVM UI42 Case A]
+UI43 zone change makes previous requested month future: resolves to new current month + newToday
+     IMPLEMENTED+VERIFIED [JVM UI43 Case B (Kiritimati -> Pago_Pago)]
+UI44 visible timestamps and section labels use the published state's displayZone
+     IMPLEMENTED+VERIFIED [JVM UI44 (same instant formatted per state.displayZone; zone comes only
+                           from the state); F22 guard forbids systemDefault in renderer]
+UI45 12/24h changes notation only, never the timezone interpretation
+     IMPLEMENTED+VERIFIED [JVM UI44/UI45 (12h and 24h both formatted in the published zone)]
+UI46 selecting an off-screen day scrolls it into a centered viewport position where bounds permit
+     IMPLEMENTED+VERIFIED [DEV ui46 (Sep 2 selected; cell center == strip container center <= 2px);
+                           symmetric content padding makes first/last reachable (ui47)]
+UI47 first/last selectable day preserves symmetric strip geometry and the internal center axis
+     IMPLEMENTED+VERIFIED [DEV ui47 (first and last both reach viewport center; equal cell widths
+                           <= 0.5dp; weekday/number/highlight axis preserved)]
+UI48 published Paris + pending Tokyo + current Tokyo -> same-zone refresh against the logical
+     Tokyo context, not another load based on the published Paris state
+     IMPLEMENTED+VERIFIED [JVM UI48 (gated Tokyo load; follow-up context zone == Tokyo, never Paris;
+     F25 guard: command path never reads state.value)]
+UI49 published Paris + logical pending Tokyo + current zone back to Paris -> new Paris load
+     IMPLEMENTED+VERIFIED [JVM UI49 (a plain refresh would have kept Tokyo; F23/F24 guards the path)]
+UI50 valid selectDate updates the VM logical intent immediately and survives a subsequent refresh
+     IMPLEMENTED+VERIFIED [JVM UI50 (intent mirror + published selection after the pending refresh)]
+UI51 unchanged published snapshot crossing midnight does NOT independently change Today/Yesterday
+     IMPLEMENTED+VERIFIED [JVM UI51 (labels derive from state.today only); F27/F28 guards forbid
+                           renderer clock reads]
+UI52 after a new generation publishes a new state.today, labels move to the new reference
+     IMPLEMENTED+VERIFIED [JVM UI52 (Sep 16 becomes Yesterday under state.today = Sep 17)]
+UI53 month-navigation enabled/disabled derives from state.today; no wall-clock dependence
+     IMPLEMENTED+VERIFIED [JVM UI53; DEV next-disabled/enabled renders]
+UI54 same-zone refresh across midnight updates requestToday while preserving month/selection
+     IMPLEMENTED+VERIFIED [JVM UI54 (Sep 30 -> Oct 1; intent month/date preserved)]
+UI55 a previously future date becomes a valid 0-read selectDate after requestToday advances
+     IMPLEMENTED+VERIFIED [JVM UI55 (rejected before, accepted after refresh, 0 reads)]
+UI56 published state.today may lag pending logical requestToday; validity follows requestToday
+     IMPLEMENTED+VERIFIED [JVM UI56 (initial read gated; selectDate(nextDay) accepted while
+     published state.today is still the old day; F29 guard)]
+UI57 candidate later than requestToday rejected even if the wall clock is already there
+     IMPLEMENTED+VERIFIED [JVM UI55/UI57 (clock advanced without a command: rejection stands)]
+UI58 month-change/retry/zone-change commands update requestToday from the same capturedAt+displayZone
+     IMPLEMENTED+VERIFIED [JVM UI58 month-change + retry assertions on the recorded call.now;
+     F31 guard counts >= 3 requestToday advancement sites]
+UI59 renderer relative labels continue to use published state.today, never logical requestToday
+     IMPLEMENTED+VERIFIED [JVM UI51/UI52/UI53 + presentation has no requestToday input; F32 guard
+     forbids requestToday in Screen/Presentation]
+
+Summary: UI1–UI59 all IMPLEMENTED+VERIFIED (JVM and/or device, plus source guards).
+No item is claimed PASS without an executable or measured proof; no item is deferred to D-05
+(the contract defers only exhaustive accessibility/localization polish, see packet §32).

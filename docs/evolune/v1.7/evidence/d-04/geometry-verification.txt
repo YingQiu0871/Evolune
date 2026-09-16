@@ -1,0 +1,46 @@
+V17-D-04 — geometry verification for the mandatory items (contract §38.1 P3-2: UI35–UI39 AND UI46–UI47)
+Mechanism: deterministic Compose geometry assertions on the Pixel 7 API 35 AVD
+           (TimelineGeometryTest, 8 tests, all PASS; device XML androidtest/TEST-Pixel_7_API35_app-final.xml).
+Method: measured semantics bounds via getUnclippedBoundsInRoot(); centers compared with
+        explicit tolerances (1px internal-cell axes, 1dp month-title axis, 2px strip viewport).
+Supplementary: captured-device PNGs in visual-evidence/.
+
+UI35 selected-date number centered both axes inside its highlight
+  assertion : |number.center.x - highlight.center.x| <= 1px AND |number.center.y -
+              highlight.center.y| <= 1px for the selected cell (2026-09-16)
+  structure : Box(size = 36.dp, contentAlignment = Alignment.Center) with the number Text as the
+              only child; the highlight background is that same Box (no separate offset surface).
+UI36 month title centered while next disabled; symmetric slots
+  assertion : |title.center.x - month-navigation.center.x| <= 1px with next DISABLED (current
+              month) and again with next ENABLED (past month); the title center is identical in
+              both states.
+  structure : fixed 48dp left/right slots (Box(size = MONTH_CONTROL_SLOT) both sides; the right
+              slot always composed, IconButton only toggles `enabled`), title in a weighted Box
+              with contentAlignment = Center. F20 guard proves the slot is never conditional.
+UI37 calendar centered vs body left aligned
+  assertion : |title.center.x - screen.center.x| <= 2dp; the absolute section header's left edge
+              equals its section's left edge (<= 1px) and sits > 100dp left of the surface center.
+  structure : calendar region is a centered Column; sections/rows use start alignment only.
+UI38 shared horizontal center axis inside each cell
+  assertion : pairwise |weekday.x - number.x| <= 1px, |weekday.x - highlight.x| <= 1px,
+              |number.x - highlight.x| <= 1px for the selected cell.
+  structure : Column(horizontalAlignment = CenterHorizontally) + centered highlight Box.
+UI39 single-digit and double-digit centering
+  assertion : Sep 8 (single digit) and Sep 16 (double digit) each centered both axes inside their
+              highlight (<= 1px) after selection; no asymmetric/spacing difference between them.
+  structure : the number Text is the centered child in both cases; F19 guard forbids offset(),
+              baselineShift, absoluteOffset or nudge in the screen source.
+UI46 off-screen day centered in the strip viewport
+  assertion : after selecting 2026-09-02 (scrolled into view, then clicked),
+              |cell.center.x - strip-container.center.x| <= 2px.
+  structure : LazyRow with symmetric contentPadding = (viewport - 48dp) / 2 and
+              animateScrollToItem(index, 0) — no manual x offsets (F19).
+UI47 first/last day symmetric geometry
+  assertion : selecting 2026-09-01 and then 2026-09-16 each brings the cell center within 2px of
+              the strip viewport center (edge cells reachable thanks to symmetric padding); first
+              and last highlight widths are equal within 0.5dp; the weekday/number/highlight axis
+              is preserved (<= 1px) after scrolling.
+
+Note: the contract's P3-2 disposition requires real geometry verification for UI35–UI39 AND
+UI46–UI47; this file cites the executable assertions (primary evidence, re-runnable) and the PNG
+captures (supplementary, human-reviewable). No verbal-only claim is used.

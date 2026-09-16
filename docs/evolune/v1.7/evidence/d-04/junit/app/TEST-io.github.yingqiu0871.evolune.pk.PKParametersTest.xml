@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.pk.PKParametersTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-16T14:09:48.769Z" hostname="人面不知何处去" time="0.0">
+  <properties/>
+  <testcase name="testInjectionPKFormationFraction" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testTwoPartDepotPKK1Fast" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testTwoPartDepotPKK1Slow" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testOralPKConstants" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testTransdermalGelPKParameters" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testTwoPartDepotPKFracFast" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testTransdermalGelPKZeroDose" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testPatchPKGenericK1" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testEsterPKK2" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testSublingualThetaHoldMinutes" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testSublingualThetaRecommended" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <testcase name="testCorePKConstants" classname="io.github.yingqiu0871.evolune.pk.PKParametersTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

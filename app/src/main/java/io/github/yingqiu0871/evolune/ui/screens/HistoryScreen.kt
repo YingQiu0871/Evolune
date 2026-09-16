@@ -112,7 +112,8 @@ fun HistoryScreen(
     is24Hour: Boolean = true,
     showTopBar: Boolean = false,
     onOpenInsights: () -> Unit = {},
-    onOpenRetrospectivePk: () -> Unit = {}
+    onOpenRetrospectivePk: () -> Unit = {},
+    onOpenTimeline: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -149,7 +150,8 @@ fun HistoryScreen(
         modifier = modifier,
         showTopBar = showTopBar,
         onOpenInsights = onOpenInsights,
-        onOpenRetrospectivePk = onOpenRetrospectivePk
+        onOpenRetrospectivePk = onOpenRetrospectivePk,
+        onOpenTimeline = onOpenTimeline
     )
 }
 
@@ -168,7 +170,8 @@ fun HistoryScreenContent(
     onRetry: () -> Unit = {},
     showTopBar: Boolean = false,
     onOpenInsights: () -> Unit = {},
-    onOpenRetrospectivePk: () -> Unit = {}
+    onOpenRetrospectivePk: () -> Unit = {},
+    onOpenTimeline: () -> Unit = {}
 ) {
     val model = remember(state) { HistoryPresentation.present(state) }
 
@@ -200,6 +203,7 @@ fun HistoryScreenContent(
         ) {
             item { InsightsEntryCard(onOpenInsights) }
             item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
+            item { TimelineEntryCard(onOpenTimeline) }
             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
             item { WeekdayHeader() }
             item { HistoryMonthCalendar(model, onSelectDate) }
@@ -255,6 +259,53 @@ private fun RetrospectivePkEntryCard(onOpenRetrospectivePk: () -> Unit) {
                     text = stringResource(R.string.retrospective_entry_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+    }
+}
+
+// ---------- Timeline entry (v1.7-D-04) ----------
+
+/**
+ * The visible entry point into the Timeline surface: the Timeline renders the same authoritative
+ * history as a month-scoped calendar + row list, so it is reached from History instead of a sixth
+ * bottom tab (V17-D-04 §2). The card carries no date/month argument (F16) and never reads or
+ * derives anything.
+ */
+@Composable
+private fun TimelineEntryCard(onOpenTimeline: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClickLabel = stringResource(R.string.timeline_entry_action)) {
+                onOpenTimeline()
+            }
+            .testTag("history-timeline-entry"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.timeline_entry_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.timeline_entry_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
             Icon(

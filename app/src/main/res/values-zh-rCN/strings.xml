@@ -542,4 +542,28 @@
     <string name="retrospective_limitation_unrecorded_occurrences">部分计划时点在现有数据中没有对应的摄入记录。</string>
     <string name="retrospective_limitation_excluded_intakes">部分已记录摄入未计入此估算。</string>
     <string name="retrospective_limitation_ambiguous_patch">部分贴片记录无法可靠配对，未计入此估算。</string>
+
+    <!-- v1.7-D-04 Timeline UI surface (functional; D-05 owns final wording and localization) -->
+    <string name="timeline_title">用药时间线</string>
+    <string name="timeline_entry_title">用药时间线</string>
+    <string name="timeline_entry_subtitle">按月份查看计划上下文与已记录摄入的时间线</string>
+    <string name="timeline_entry_action">打开用药时间线</string>
+    <string name="timeline_month_title">%1$d年%2$d月</string>
+    <string name="timeline_previous_month">上一月</string>
+    <string name="timeline_next_month">下一月</string>
+    <string name="timeline_today">今天</string>
+    <string name="timeline_yesterday">昨天</string>
+    <string name="timeline_section_date_weekday">%1$s %2$s</string>
+    <string name="timeline_row_identity_dose">%1$s · %2$s</string>
+    <string name="timeline_no_recorded_intake">未记录摄入</string>
+    <string name="timeline_identity_partial">用药信息不完整</string>
+    <string name="timeline_identity_unavailable">用药身份不可用</string>
+    <string name="timeline_loading">正在加载时间线…</string>
+    <string name="timeline_empty_range">该月份没有时间线记录。</string>
+    <string name="timeline_empty_day">所选日期没有时间线记录。</string>
+    <string name="timeline_invalid_request">无法显示所选月份，请返回当前月份。</string>
+    <string name="timeline_not_loadable">该月份暂不可用，请返回当前月份。</string>
+    <string name="timeline_return_current_month">返回当前月份</string>
+    <string name="timeline_error">无法读取时间线记录。</string>
+    <string name="timeline_retry">重试</string>
 </resources>

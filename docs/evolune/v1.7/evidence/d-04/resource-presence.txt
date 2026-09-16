@@ -1,0 +1,27 @@
+timeline_* functional keys - values/ vs values-zh-rCN/
+values count: 22
+values-zh-rCN count: 22
+parity: True
+
+timeline_title
+timeline_entry_title
+timeline_entry_subtitle
+timeline_entry_action
+timeline_month_title
+timeline_previous_month
+timeline_next_month
+timeline_today
+timeline_yesterday
+timeline_section_date_weekday
+timeline_row_identity_dose
+timeline_no_recorded_intake
+timeline_identity_partial
+timeline_identity_unavailable
+timeline_loading
+timeline_empty_range
+timeline_empty_day
+timeline_invalid_request
+timeline_not_loadable
+timeline_return_current_month
+timeline_error
+timeline_retry

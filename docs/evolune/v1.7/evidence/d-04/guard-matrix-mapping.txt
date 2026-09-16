@@ -1,0 +1,90 @@
+V17-D-04 — F1..F32 guard mapping (contract §35)
+Guards live in TimelineUiArchitectureGuardTest (JVM, source scans; XML in junit/focused/) plus the
+named runtime tests. Comment text is stripped before scanning, so documentation may name closed
+surfaces while code may not reference them.
+
+F1  D-01/D-03 semantics modification         GUARDED: closed types consumed, never redeclared;
+                                             no D-01/D-03 production file in the delta (frozen audit).
+F2  VM/UI direct read/repository/DAO/Room    GUARDED: F2 scan (HistoryReadService, repositories,
+                                             DAOs, Room, @dao/@entity/@database absent from the 4
+                                             D-04 production files).
+F3  second matcher/generator/truth store     GUARDED: F3 scan (matcher/generator/policy/truthStore
+                                             absent); TimelineRangeCoordinator is constructed, not
+                                             reimplemented.
+F4  Phase-C/PK coupling                      GUARDED: F4 scan (retrospective/SimulationEngine/
+                                             ThreeCompartmentModel/ParameterResolver/pk.* absent).
+F5  timing delta/adherence semantics         GUARDED: F5 scan (timingDelta/onTime/overdue/
+                                             adherence/compliance/punctuality/Duration.between/
+                                             delta + word-boundary early/late absent) + strings
+                                             wording scan over every timeline_* key.
+F6  future Timeline rows                     GUARDED: F6 scan (futureOccurrences/FutureOccurrence/
+                                             futureRows absent); strip cells carry enabled guard.
+F7  planName-as-identity                     GUARDED: F7 scan (planName absent from all D-04 files).
+F8  antiandrogen guessing                    GUARDED: F7/F8 scan (antiAndrogen absent);
+                                             presentation maps UNAVAILABLE to the neutral resource.
+F9  internal comparator/UUID fields rendered GUARDED: F9 scan (planId/slotPosition/slotId/rowId/
+                                             occurrenceId/eventId/sortKey absent from Screen and
+                                             Presentation).
+F10 UI-local pending orchestration machine   GUARDED: F10/F26 scan (no TimelineRangePhase/
+                                             TimelineReadModel/TimelineDay/readInFlight/
+                                             pendingContext/generationCounter in the VM) + runtime
+                                             UI28/UI50/UI56 pending tests.
+F11 polling/timer/live subscription          GUARDED: F11 scan (delay(/Timer(/repeat(/while(true)/
+                                             bare collect( absent; only collectAsState in the route).
+F12 persisted Timeline state store           GUARDED: F12 scan (SavedStateHandle/DataStore/persist/
+                                             lastViewedTimeline absent).
+F13 hardcoded user-facing strings            GUARDED: F13 CJK scan over the 4 production files +
+                                             R.string.timeline_* usage assertions.
+F14 new dependency                           GUARDED: F14 scan (GlobalScope/runBlocking/created
+                                             scopes absent); no Gradle/dependency change in delta.
+F15 Home/Wear/Widget modification            GUARDED: F15 route/tab guard + frozen audit (no
+                                             Home/Wear/Widget/Database file in the delta; bottom-tab
+                                             enum keeps exactly five entries).
+F16 D-04 MVP route date/month argument       GUARDED: F15/F16 scan (route is the literal
+                                             "timeline"; no "timeline/" pattern; entry card carries
+                                             no argument).
+F17 selectedDate filtering the model         GUARDED: F17 scan (no filter{ / .filter( in Screen and
+                                             Presentation) + JVM UI12 (whole month kept).
+F18 D-01 row ordering modified               GUARDED: F18 scan (no sortedWith/sortedBy/.sorted(/
+                                             .reversed( in D-04 files; only days.asReversed()).
+F19 manual x/y nudge or asymmetric padding   GUARDED: F19 scan (no offset(/baselineShift/
+                                             absoluteOffset/nudge) + DEV geometry UI35/UI38/UI39.
+F20 month title moves when a control is off  GUARDED: F20 scan (slot never conditional; equal fixed
+                                             MONTH_CONTROL_SLOT both sides) + DEV geometry UI36.
+F21 Timeline body globally centered          GUARDED: F21 scan (single TextAlign.Center = month
+                                             title; section block has no centering) + DEV geometry
+                                             UI37.
+F22 renderer systemDefault reinterpretation  GUARDED: F22/F27 scan of Screen/Presentation/Lifecycle
+                                             (no LocalDate.now/Instant.now/systemDefault/
+                                             Clock.system/LocalTime.now) + JVM UI44 (zone comes
+                                             from the published state).
+F23 zone change handled by plain refresh     GUARDED: JVM UI41/UI49 (new load carrying the new
+                                             zone; a refresh would keep the old logical zone).
+F24 zone change outside D-03 load(newRequest)GUARDED: JVM UI41/UI49 (the only path is
+                                             coordinator.load; F2/F3 scans forbid a direct source
+                                             read or a second orchestration path).
+F25 command targeting from published state   GUARDED: F25 scan (VM never reads state.value) + JVM
+                                             UI48 (follow-up targets logical Tokyo, not published
+                                             Paris) + UI49.
+F26 logical intent as second state machine   GUARDED: F10/F26 scan + reflection assertion
+                                             (intent fields = requestedMonth/selectedDate/
+                                             displayZone/requestToday exactly).
+F27 renderer live clock for relative labels  GUARDED: F27 scan + JVM UI51 (labels stable for the
+                                             unchanged snapshot).
+F28 relative labels not from state.today     GUARDED: JVM UI51/UI52 (labels move exactly when
+                                             state.today moves).
+F29 selectDate validated against published   GUARDED: F29 scan (no state.value in the VM) + JVM
+     state.today                             UI56 (valid against pending requestToday while the
+                                             published today still lags).
+F30 selectDate validated against live clock  GUARDED: F30 scan (no LocalDate.now/Instant.now/
+                                             ZoneId.systemDefault() call in the VM) + JVM UI55/UI57
+                                             (rejected while requestToday is older; accepted only
+                                             after an explicit capture).
+F31 requestToday not refreshed per command   GUARDED: F31 scan (>=3 requestToday advancement
+                                             sites) + JVM UI54/UI55/UI58.
+F32 logical requestToday used for rendering  GUARDED: F32 scan (requestToday absent from Screen/
+                                             Presentation; state.today is the renderer input) +
+                                             JVM UI51/UI52/UI59.
+
+Summary: F1–F32 all GUARDED (executable source-scan guards, reflection assertion, runtime JVM
+tests and/or device geometry tests as cited). No guard is source-free or verbal-only.

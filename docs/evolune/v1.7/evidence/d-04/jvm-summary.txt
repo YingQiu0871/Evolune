@@ -1,0 +1,26 @@
+V17-D-04 JVM validation summary (counts derived from the FINAL JUnit XML in junit/)
+
+Focused D-04 JVM run (log: logs/jvm-focused-d04.log)
+  command: .\gradlew.bat :app:testDebugUnitTest
+           --tests "io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest"
+           --tests "io.github.yingqiu0871.evolune.ui.screens.timeline.*" --rerun
+  tests=65 failures=0 errors=0 skipped=0
+    23  io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest
+    17  io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest
+    25  io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest
+  (XMLs: junit/focused/)
+
+Fresh full JVM suite (log: logs/jvm-full-fresh.log)
+  command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:test --rerun
+  app            tests=1225 failures=0 errors=0 skipped=0
+  experience-core tests=171  failures=0 errors=0 skipped=0
+  wear           tests=90   failures=0 errors=0 skipped=0
+  TOTAL          tests=1486 failures=0 errors=0 skipped=0
+  (previous baseline: 1421 total = 1160 app + 171 experience-core + 90 wear;
+   D-04 adds exactly the 65 focused tests -> 1160 + 65 = 1225 app)
+  (XMLs: junit/app/, junit/experience-core/, junit/wear/)
+
+Gradle task status
+  focused run: 28 actionable tasks (test task re-executed fresh via --rerun; no stale XML retained)
+  full run   : 54 actionable tasks; the three test tasks re-executed fresh via --rerun
+  Both runs: BUILD SUCCESSFUL; no UP-TO-DATE test-result reuse (test-results deleted before each run).

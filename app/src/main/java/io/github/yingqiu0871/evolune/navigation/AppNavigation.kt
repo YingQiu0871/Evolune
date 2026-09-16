@@ -140,8 +140,10 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.yingqiu0871.evolune.history.insights.InsightsViewModel
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModel
+import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModel
 import io.github.yingqiu0871.evolune.ui.screens.insights.InsightsRoute
 import io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveRoute
+import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
@@ -157,6 +159,7 @@ private const val ONBOARDING_ROUTE = "onboarding"
 private const val DISCLOSURES_ROUTE = "disclosures"
 private const val INSIGHTS_ROUTE = "insights"
 private const val RETROSPECTIVE_ROUTE = "retrospective"
+private const val TIMELINE_ROUTE = "timeline"
 internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
@@ -191,6 +194,7 @@ fun AppNavigation(
     historyViewModel: HistoryViewModel,
     insightsViewModelFactory: ViewModelProvider.Factory,
     retrospectiveViewModelFactory: ViewModelProvider.Factory,
+    timelineViewModelFactory: ViewModelProvider.Factory,
     settingsViewModel: SettingsViewModel,
     medicationPlanViewModel: MedicationPlanViewModel,
     backupRestoreViewModel: BackupRestoreViewModel,
@@ -553,7 +557,8 @@ fun AppNavigation(
         currentRoute == DISCLOSURES_ROUTE ||
         currentRoute == FEATURE_TUTORIAL_ROUTE ||
         currentRoute == INSIGHTS_ROUTE ||
-        currentRoute == RETROSPECTIVE_ROUTE
+        currentRoute == RETROSPECTIVE_ROUTE ||
+        currentRoute == TIMELINE_ROUTE
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -591,6 +596,7 @@ fun AppNavigation(
                             stringResource(R.string.feature_tutorial_title)
                         INSIGHTS_ROUTE -> stringResource(R.string.insights_title)
                         RETROSPECTIVE_ROUTE -> stringResource(R.string.retrospective_title)
+                        TIMELINE_ROUTE -> stringResource(R.string.timeline_title)
                         else -> null
                     },
                 onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
@@ -701,6 +707,9 @@ fun AppNavigation(
                     },
                     onOpenRetrospectivePk = {
                         navController.navigate(RETROSPECTIVE_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenTimeline = {
+                        navController.navigate(TIMELINE_ROUTE) { launchSingleTop = true }
                     }
                 )
             }
@@ -726,6 +735,21 @@ fun AppNavigation(
                 )
                 RetrospectiveRoute(
                     viewModel = retrospectiveViewModel,
+                    is24Hour = is24Hour,
+                    showTopBar = false
+                )
+            }
+            composable(TIMELINE_ROUTE) { entry ->
+                // Same owner discipline as Insights / Retrospective (V17-D-04 §3): the Timeline
+                // ViewModel is scoped to the hosting Activity so a leave/return keeps the current
+                // month/date and the activation refresh applies to the real product path.
+                val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
+                val timelineViewModel: TimelineViewModel = viewModel(
+                    viewModelStoreOwner = owner,
+                    factory = timelineViewModelFactory
+                )
+                TimelineRoute(
+                    viewModel = timelineViewModel,
                     is24Hour = is24Hour,
                     showTopBar = false
                 )

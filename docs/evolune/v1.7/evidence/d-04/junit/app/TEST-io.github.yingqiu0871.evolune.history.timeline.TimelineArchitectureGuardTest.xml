@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-16T14:09:48.702Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="no write path exists in production" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.002"/>
+  <testcase name="the public generator is referenced only from the TLM18 parity test" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.001"/>
+  <testcase name="no timing metrics, clocks, coroutines or state in production" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.001"/>
+  <testcase name="no Phase-C, PK, Android, Compose or navigation references in production" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.0"/>
+  <testcase name="production files exist and reference only approved domain types" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.001"/>
+  <testcase name="no persistence, reader, matcher or generator references in production" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
