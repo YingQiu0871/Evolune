@@ -2,6 +2,7 @@
 
 > 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-03 production NOT STARTED**）
 > R1：capture / generation closure 修正已并入（§4/§5.1/§10/§12.1/§14/§16/§22）；其余冻结语义不变。
+> R2：request replacement / NOT_LOADABLE revalidation 修正已并入（§7.1/§7.2/§9/§12.1/§12.2/§16/§22）。
 > Round：v1.7-D / **D-03**（Timeline Range / Date Read Orchestration；read-only，无 UI、无 ViewModel）
 > Base HEAD：`a536e27fea49ec488c2c3a241e0bdb4182df6912`（D-01 APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -195,6 +196,32 @@ ERROR
 
 **empty 与 error 永不混同。**
 
+### 7.1 NOT_LOADABLE re-evaluation（R2 冻结）
+
+`NOT_LOADABLE` **不是**永久终态：后续 `refresh`（fresh capturedAt/context）必须使用**新的
+generation capture** 重新执行 request validation。
+
+```text
+Future month becomes current
+  Sep 30: requestedMonth = October -> NOT_LOADABLE / 0 reads
+  Oct 1 refresh: requestedMonth = October, fresh capturedAt
+      -> current month -> effective Oct 1..today -> exactly 1 read
+
+Future selected date becomes today
+  Sep 16: selectedDate = Sep 17 -> NOT_LOADABLE / 0 reads
+  Sep 17 refresh: same logical selection, fresh capturedAt
+      -> valid -> exactly 1 range read
+```
+
+**不**需要 UI workaround，也**不得**伪造新 request。
+
+### 7.2 INVALID_REQUEST 保持结构性无效（R2 冻结）
+
+`INVALID_REQUEST` 与 `NOT_LOADABLE` 必须区分。示例：`requestedMonth = September` 且
+`selectedDate = August 31` → `INVALID_REQUEST`。plain refresh 使用同一逻辑 request **不能**
+修复它：重新验证后**仍为** `INVALID_REQUEST`、reads = 0。只有 caller 提交**真正修正过的**
+load/request context 才能变为 valid。
+
 ---
 
 ## 8. State shape（冻结；无本地化字符串、无预格式化）
@@ -234,7 +261,11 @@ TimelineRangeState(
 | `retry` after ERROR | **恰好 1**（新读） |
 
 - 成功读取**恰好一次**经过 `TimelineProjectionBuilder`（TR19）；
-- **不得**为推导 selection 做第二次 historical read。
+- **不得**为推导 selection 做第二次 historical read；
+- **superseded 的 pending context → 0 reads**；
+- **pending context 验证为 `INVALID_REQUEST` / `NOT_LOADABLE` → 0 reads**；
+- 因此 coalescing 发生时，operation-call 总数**不必然**等于 source-read 数；
+- 不变量保持：一个被接受的 valid generation context → **至多一次** source read。
 
 ---
 
@@ -284,23 +315,63 @@ D-03 只暴露 `refresh()`。后续 D-04 ViewModel/surface contract 可用已批
 - 但：读取在飞行期间发生的 selection 变更，**不得**在读取完成时被该请求的旧 selectedDate 覆盖
   —— 完成发布时必须用**当前** `selectedDate` 重新派生 `selectedDay`/phase（TR17 必须显式测试）。
 
-### 12.1 Coalescing + generation race closure（R1 冻结）
+### 12.1 Global scheduling（R1 建立；R2 泛化：latest-request-wins）
 
-若 generation N 的读取在飞行中且 refresh 被接受：
+**全局并发规则（冻结）：**
 
-1. **立即** reserve/claim 一个更新的 generation；
-2. generation N 从此**不能**再发布终态；
-3. 排队**恰好一个** follow-up 权威读取。
+- 全局**至多一个** active `HistoryRangeSource` read —— 不只是"每 generation 一个"；
+- 另有**至多一个** pending request context 等待在 active read 之后；
+- pending context **永远**是**最新被接受的** load / refresh / retry context；
+- 更早的 pending contexts 被 **superseded**；
+- **不得**并行权威读取。
 
-若 follow-up 开始前又有更多 refresh 到达：
+**泛化到所有会创建新 generation 的被接受操作**：`load(new request)`、
+`refresh(fresh capture/context)`、`retry(fresh capture/context)`。若 generation N 有
+active source read 且任何更新的操作被接受：
 
-- 不启动并行读取；全部 coalesce 进那一个 pending follow-up；
-- pending follow-up 使用**最新被接受的 refresh capture context**（含最新 `capturedAt`）；
-- 更早排队的 capture contexts 被 **superseded**。
+1. 立即 claim 更新的 generation；
+2. generation N **立即**失去发布权；
+3. **不**启动第二个并发 source read；
+4. 保留**恰好一个** pending latest context；
+5. 更新的被接受 context **替换**先前 pending context。
 
-冻结不变量：maximum concurrent authoritative reads = **1**；pending follow-up count **≤ 1**；
-stale active result **不能发布**；queued follow-up capture = **latest accepted context**。
-不引入 polling / cache / subscription。
+active source read 结束/取消后：**只评估/执行最新的 pending context**。
+
+**操作优先级是时间序，不是类型序（冻结）：** 不得 `load > refresh`、`refresh > retry`
+或任何静态优先级；**latest accepted context wins regardless of operation kind**。
+
+```text
+active Sep read -> refresh(Sep, capturedAt2) -> load(Aug, capturedAt3)
+final pending context = Aug
+
+active Sep read -> load(Aug) -> refresh(current logical Aug context)
+final pending context = latest Aug refresh context
+```
+
+**load(request B) 替换规则（冻结）**：当 request A 正在读取时接受 `load(request B)`：
+不得启动并行读取、不得丢弃 B；A 立即 stale；B 成为 latest pending context；
+B 在 active source operation 释放后执行。若 B 执行前又到达 `load(request C)`：C 替换 B，
+最终只评估/读取 C。（此规则为 D-04 month/date navigation 提供**唯一**编排策略。）
+
+**Publication authority（冻结）**：generation ownership 在**更新操作被接受的那一刻**改变，
+而不是在其 source read 刚开始时。因此 old active read 的完成**不能**发布，即使新的 context
+仍然只是 pending。R1 TR28 保持有效。
+
+**Pending context 在 source read 之前先验证（R2 冻结）**：active read 释放且存在 pending
+latest context 时，**先做 generation validation**。若 latest context 解析为
+`INVALID_REQUEST` 或 `NOT_LOADABLE`：发布该 0-read phase、该 generation 的
+`HistoryRangeSource` reads = **0**、**不**启动 follow-up source read。
+
+> R1 措辞修正：把 "queue exactly one follow-up authoritative read" 修正为
+> **“queue exactly one follow-up CONTEXT；它在验证后产生 0-read 终态或恰好一次 source read”**。
+
+### 12.2 Selection interaction（R1 保留；R2 澄清）
+
+- `selectDate()` 执行 **0 reads**，且**不**创建 read generation；
+- 若 selection 在 active read 或 pending context 存在期间变化：该 context 最终发布时，
+  **必须使用最新的 valid selectedDate intent**；不得被本地 selection 之前捕获的 selectedDate
+  snapshot 覆盖；
+- 既有 TR17 保持权威。
 
 ---
 
@@ -392,6 +463,13 @@ sticky headers。
 | TR26 | refresh 跨月边界把原 current month 重新归类为 past month，并使用完整月份边界 |
 | TR27 | 一次飞行读取期间多次 refresh 合并为恰好一个 follow-up，且使用最新供给的 capturedAt/context |
 | TR28 | 更新的 0-read INVALID_REQUEST/NOT_LOADABLE generation 被认领后，旧飞行 generation 不能发布 |
+| TR29 | 旧读取在飞行时接受新 load：旧 generation 立即 stale；无并行 source read；新请求随后执行 |
+| TR30 | 多种 pending 操作类型混合：无论 load/refresh/retry，latest accepted context 获胜 |
+| TR31 | future month NOT_LOADABLE -> 跨月 rollover 后 refresh：变为可装载且恰好 1 次读取 |
+| TR32 | future selectedDate NOT_LOADABLE -> 该日期变为 today 后 refresh：变为 valid 且恰好 1 次读取 |
+| TR33 | pending latest context 验证为 INVALID_REQUEST/NOT_LOADABLE：该 generation 0 次 source read，
+         且不启动不必要的 follow-up 读取 |
+| TR34 | pending request 替换：A active、B pending、C 被接受 -> B 永不执行，只执行 C |
 
 Architecture/static guards（实现轮必须证明不存在）：DAO/Room/repository、`HistoryReadService`、
 `AllAvailableHistorySource`、matcher/generator、D-01 修改、retrospective/PK、Compose/navigation/
@@ -482,6 +560,12 @@ historical prescription reconstruction、anti-androgen identity expansion、PK�
   §14 failure mapping 澄清、§16 的 TR25–TR28；其余冻结语义不变（D-02 consumed、month-scoped、
   past/current/future boundaries、selection 规则、七相位、read-count、no-future、D-01 freeze、
   D-04/D-05 留开、gated 语义、D-06/D-07 分类、F1–F16 均未改动）；
+- **R2（request replacement / NOT_LOADABLE revalidation，architect REQUEST_CHANGES）**：已并入
+  §7.1（NOT_LOADABLE 可重新评估）、§7.2（INVALID_REQUEST 结构性无效）、§9（superseded /
+  0-read pending validation 的 read-count 澄清）、§12.1（全局至多一个 active source read +
+  单一 latest pending context + latest-request-wins + load 替换 + publication authority +
+  pending 验证先于 source read）、§12.2（selection interaction 澄清）、§16 的 TR29–TR34；
+  failure mapping（§14）与 R1/既有冻结语义保持不变；状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED；
 - D-03 production：**NOT STARTED**；
 - Phase D：IN PROGRESS；D-01 CLOSED；**D-02 FULLY CONSUMED BY D-01**；D-04/D-05 NOT STARTED；
   D-06 = RECURRING GATE；D-07 = FINAL PHASE-D GATE；
