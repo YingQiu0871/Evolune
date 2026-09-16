@@ -384,6 +384,23 @@ PK output must remain explicitly model-derived.
 > **UI1–UI59 / F1–F32**；implementation review 必须对 **UI35–UI39 AND UI46–UI47** 提供真实几何验证。
 > **D-04 冻结**：未经重开评审不得改 D-04 契约语义。**D-04 production — NOT STARTED**；
 > **NEXT: V17-D-04 production implementation**（仅可针对 frozen contract @ `c934c24...`）。
+>
+> **Status note (2026-09-16, D-04 production closure)**: **D-04 CLOSED / FROZEN**。final
+> implementation HEAD `e53342bcd6c4c4af428adc5822f603c71ed8bb24`（candidate `b53b83e` + R1
+> evidence/test closure；R1 production 零语义 diff）。Architect **APPROVE V17-D04 IMPLEMENTATION —
+> ARCHITECT CANDIDATE CLOSURE** → 初始独立复审 **REQUEST_CHANGES V17-D04 IMPLEMENTATION**
+> （0 P0 / 0 P1 / 1 P2：mandatory UI34 缺 executed proof）→ R1 real MainActivity route-cycle
+> executed proof（generation ladder 1 → 2 → 2 → 2 → 3 → settle 3；retained month/day/zone；
+> visible month title + selected-day semantics；no production test hook）+ truthful mapping
+> correction + evidence UTF-8 卫生 → Architect **APPROVE V17-D04 IMPLEMENTATION R1 — ARCHITECT
+> CLOSURE** + final independent **APPROVE V17-D04 IMPLEMENTATION R1**（P0/P1/P2 = none）。
+> EVIDENCE — COMPLETE（`evidence/d-04/`：179 files / 178 manifest entries，178/178 coverage，
+> sha256(MANIFEST.sha256) = `b6f3d8dd17c5fba754205f5aab4abd2de64ee590ac18ff6534b38c43f6c71278`，
+> 179/179 HEAD-blob verify，0 mismatch，UTF-8 clean）。验收：focused D-04 JVM 65/0/0/0；fresh full
+> JVM 1486/0/0/0（app 1225 + experience-core 171 + wear 90）；Android instrumentation 39/0/0/0
+> （Pixel_7 AVD API 35）；UI35–UI39 + UI46–UI47 真实几何断言关闭（supplementary PNG evidence）。
+> P3 hygiene（F14 标签漂移 / 未使用 helper / KDoc 范围注释）为 CLOSED / 非阻塞；不重开 D-04。
+> **NEXT: V17-D-05**（accessibility/localization hardening）；D-06 recurring gate；D-07 final gate。
 
 ---
 

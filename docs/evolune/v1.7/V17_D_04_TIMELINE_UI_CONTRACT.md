@@ -1,6 +1,8 @@
 # V17-D-04 — Timeline UI — Contract
 
-> 状态：`CONTRACT — APPROVED / FROZEN`（**D-04 PRODUCTION — NOT STARTED**）；
+> 状态：`CONTRACT — APPROVED / FROZEN`；**PRODUCTION — IMPLEMENTED / APPROVED / CLOSED**；
+> **EVIDENCE — COMPLETE**（final implementation HEAD：
+> `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；final closure 记录见 §39）；
 > approved final semantic contract HEAD：`c934c24532025f7c82654a7af4e5cd0bafd4f40d`
 > （Architect APPROVED；独立复审 APPROVED，P0/P1/P2 = none；closure 记录见 §38）
 > docs-only contract；R1/R2/R3 修正已并入。
@@ -876,12 +878,14 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 
 ## 37. Documentation status
 
-- 本契约状态：`CONTRACT — APPROVED / FROZEN`（Architect APPROVED；独立复审 APPROVED，
-  P0/P1/P2 = none；P3 editorial dispositions 见 §38）；
-- **D-04 PRODUCTION — NOT STARTED**；
+- 本契约状态：`CONTRACT — APPROVED / FROZEN`；**PRODUCTION — IMPLEMENTED / APPROVED / CLOSED**；
+  **EVIDENCE — COMPLETE**（Architect APPROVED；独立复审 APPROVED，P0/P1/P2 = none；
+  P3 editorial dispositions 见 §38；implementation P3 dispositions 见 §39.2）；
+- final implementation HEAD：`e53342bcd6c4c4af428adc5822f603c71ed8bb24`
+  （candidate `b53b83eff1fe21d2c2e78d3699db7aa083b8e86c` + R1 evidence/test closure
+  `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；R1 production 零语义 diff）；
 - D-05 NOT STARTED；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` /
-  `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-04 production implementation**
-  （仅可针对 frozen final contract @ `c934c24532025f7c82654a7af4e5cd0bafd4f40d`）。
+  `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-05**（accessibility / localization hardening）。
 - **R1 amendment（architect REQUEST_CHANGES；docs-only）**：已并入
   §3.1 display-zone generation ownership（capturedAt + currentDisplayZone 成对捕获）、
   §6.1 same-zone refresh vs zone-change reload（zone-change 走 D-03 `load(newRequest)`，
@@ -966,3 +970,58 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 - D-05：final accessibility/localization hardening remains open；
 - **NEXT：V17-D-04 production implementation**（仅针对 frozen contract @
   `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；本 closure 不新增语义）。
+
+---
+
+## 39. Final production closure（bookkeeping；CLOSED / FROZEN）
+
+- Final implementation HEAD：`e53342bcd6c4c4af428adc5822f603c71ed8bb24`
+  （candidate production `b53b83eff1fe21d2c2e78d3699db7aa083b8e86c` + R1 evidence/test closure
+  `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；R1 production 零语义 diff）；
+- Architect candidate review：**APPROVE V17-D04 IMPLEMENTATION — ARCHITECT CANDIDATE CLOSURE**；
+- Initial independent implementation review：**REQUEST_CHANGES V17-D04 IMPLEMENTATION**
+  （0 P0 / 0 P1 / 1 P2：mandatory UI34 缺 executed proof）；
+- R1 fix：real MainActivity route-cycle executed proof for UI34（generation ladder
+  1 → 2 → 2 → 2 → 3 → settle remains 3；retained month/day/displayZone；visible month title +
+  retained selected-day semantics；no production test hook added）+ truthful mapping correction +
+  evidence hygiene closure（implementation.diff UTF-8 规范化，零语义改动）；
+- Architect R1 review：**APPROVE V17-D04 IMPLEMENTATION R1 — ARCHITECT CLOSURE**；
+- Final independent R1 delta review：**APPROVE V17-D04 IMPLEMENTATION R1**；
+- Final blocking findings：P0 = none，P1 = none，P2 = none；
+- Final validation：focused D-04 JVM 65/0/0/0；fresh full JVM 1486/0/0/0（app 1225 +
+  experience-core 171 + wear 90）；Android instrumentation 39/0/0/0 on Pixel_7 AVD API 35
+  （TimelineScreenTest 23 / TimelineGeometryTest 8 / TimelineLifecycleTest 4 /
+  TimelineNavigationTest 3 / TimelineVisualEvidenceTest 1）；
+- Evidence：`docs/evolune/v1.7/evidence/d-04/` — 179 files / 178 manifest-listed data files，
+  coverage 178/178，sha256(MANIFEST.sha256) =
+  `b6f3d8dd17c5fba754205f5aab4abd2de64ee590ac18ff6534b38c43f6c71278`，179/179 HEAD-blob
+  verification，0 mismatches，UTF-8 hygiene clean（implementation.diff 为 git-native UTF-8，
+  与旧编码 artifact 逐行同构）；
+- Geometry：UI35–UI39 + UI46–UI47 verified by deterministic Compose geometry assertions on
+  device（supplementary captured-device PNG evidence）；no verbal-only proof accepted；
+- Frozen surfaces：zero unauthorized semantic change（D-01/D-03/Phase C/schema/DAO/Room/
+  Home/Wear/Widget/Gradle 未触碰）；
+- **D-04 — CLOSED / FROZEN**；Phase D remains IN PROGRESS；**NEXT: V17-D-05**；
+- D-04 语义变更仍需显式重开评审；本 §39 仅记录 closure metadata，不改变任何 D-04 语义要求。
+
+### 39.1 UI34 closure record（要点）
+
+- Real shipped path：History → Timeline → previous month → deterministic day selection →
+  Back to History → Timeline re-entry；
+- Executed generation ladder：1 → 2 → 2 → 2 → 3 → settle remains 3
+  （1 = one initial generation；2 = exactly one previous-month load；2 = selection creates no
+  generation；2 = leaving Timeline creates no generation；3 = exactly one re-entry activation
+  refresh；3 = no duplicate refresh）；
+- Retention proven：requested month retained / selected day retained / display zone retained；
+- Visible UI proven：retained month title / retained selected-day semantics；
+- No production test hook was added。
+
+### 39.2 P3 dispositions（implementation；CLOSED / non-blocking，不重开 D-04）
+
+- P3-1：`TimelineUiArchitectureGuardTest` 标签 “F14” 用于 coroutine-scope guard，与最终契约
+  F14（new dependency）编号漂移——naming/traceability only，无行为缺陷；可在未来自然触碰的
+  test-hygiene/docs pass 清理；
+- P3-2：`TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both axes）与实现
+  （仅 x）不一致——unused helper hygiene；实际几何断言不依赖它且显式验证两轴；
+- P3-3：`TimelineNavigationTest` class KDoc 仍写 UI31–UI33（现亦含 UI34 executed test）——
+  comment-only，可在未来自然触碰时修正。

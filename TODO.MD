@@ -102,16 +102,26 @@
       P3 hygiene（仅记录，不改证据）：tr-hc-f-mapping.txt 头部为 pre-R1 计数（50/36），最终证据
       为 56/42（复审已核实）；d-03 Gradle 日志为 UTF-16-LE（完整性已核实）——D-04 起新日志
       显式 UTF-8 落盘、证据汇总计数从最终 XML 更新。
-- [x] Phase D · D-04 contract — **APPROVED / FROZEN**（`V17_D_04_TIMELINE_UI_CONTRACT.md`；
-      approved final semantic contract HEAD `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；Architect
-      APPROVE + independent APPROVE，P0/P1/P2 = none；R1/R2/R3 已并入）：Timeline UI（History →
-      入口卡片 → dedicated sub-route；calendar 居中 / body 左对齐；selectedDate = focus；逻辑
-      command intent 含 `requestToday`；无 timing-delta/adherence、无 route date 参数、无持久化）。
-      **D-04 冻结**：未经重开评审不得改 D-04 契约语义。
-- [ ] Phase D · D-04 production — **NOT STARTED**；D-05 NOT STARTED；D-06 recurring gate；
+- [x] Phase D · D-04 — **CLOSED / FROZEN**（contract `V17_D_04_TIMELINE_UI_CONTRACT.md` @
+      `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；final implementation HEAD
+      `e53342bcd6c4c4af428adc5822f603c71ed8bb24` = candidate `b53b83e` + R1 evidence/test
+      closure `e53342b`，R1 production 零语义 diff）。
+      CONTRACT — APPROVED / FROZEN；PRODUCTION — IMPLEMENTED / APPROVED / CLOSED；EVIDENCE —
+      COMPLETE（`evidence/d-04/` 179 files / 178 manifest entries，178/178 coverage，0 mismatch）。
+      Architect candidate **APPROVE** → 初始独立复审 **REQUEST_CHANGES**（1 P2：UI34 缺 executed
+      proof）→ R1 **APPROVE**（Architect + final independent；P0/P1/P2 = none；UI34 real route-cycle
+      executed proof，无 production test hook）。验收：focused JVM 65/0、full JVM 1486/0、
+      instrumentation 39/39（Pixel_7 API 35）；UI35–UI39/UI46–UI47 真实几何断言关闭。
+      **D-04 冻结**：未经重开评审不得改 D-04 语义。
+- [ ] Phase D · D-05（accessibility / localization hardening）— **NOT STARTED**；D-06 recurring gate；
       D-07 final gate。
-- [ ] NEXT：**V17-D-04 production implementation**（仅可针对 frozen contract @
-      `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；不自行发明范围；geometry evidence 要求见契约 §38.1）。
+- [ ] NEXT：**V17-D-05**。
+- P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
+      标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
+      无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
+      axes）与实现（仅 x）不一致——实际几何断言不依赖它；③ `TimelineNavigationTest` 类 KDoc 仍写
+      UI31–UI33（现亦含 UI34 executed test）——注释级。均可在未来自然触碰的 test-hygiene/docs pass
+      中清理。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

@@ -186,15 +186,20 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     飞行代失效；NOT_LOADABLE 以 fresh capture 重评估；latest logical context ≠ last published state；
     飞行中有效 selectedDate 存活；cancellation rethrow / failure 永不转 EMPTY；Android/ViewModel/
     lifecycle-free。**D-03 关闭**——未经重开评审不得再改 D-03 生产。
-  - Phase D · D-04 contract — **APPROVED / FROZEN**
-    （[`V17_D_04_TIMELINE_UI_CONTRACT.md`](v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md)；approved final
-    semantic contract HEAD `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；Architect APPROVE +
-    independent APPROVE，P0/P1/P2 = none；R1/R2/R3 已并入；P3 editorial dispositions 见契约
-    §38.1）：Timeline UI（History → 入口卡片 → dedicated sub-route；calendar 居中 / body 左对齐；
-    selectedDate = focus；逻辑 command intent 含 `requestToday`；无 timing-delta/adherence、
-    无 route date 参数、无持久化）。**D-04 production — NOT STARTED**；D-05 NOT STARTED。
-  - **NEXT:** V17-D-04 production implementation（仅可针对 frozen contract @ `c934c24...`；
-    不自行发明范围；UI35–UI39 + UI46–UI47 需真实几何验证）。
+  - Phase D · D-04 — **CLOSED / FROZEN**（contract
+    [`V17_D_04_TIMELINE_UI_CONTRACT.md`](v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md) @
+    `c934c24532025f7c82654a7af4e5cd0bafd4f40d`；final implementation HEAD
+    `e53342bcd6c4c4af428adc5822f603c71ed8bb24` = candidate `b53b83e` + R1 evidence/test closure，
+    R1 production 零语义 diff）：CONTRACT — APPROVED / FROZEN；PRODUCTION — IMPLEMENTED /
+    APPROVED / CLOSED；EVIDENCE — COMPLETE（`evidence/d-04/` 178/178 manifest，0 mismatch；
+    focused JVM 65/0；full JVM 1486/0；instrumentation 39/39 Pixel_7 API 35；UI35–UI39 +
+    UI46–UI47 真实几何断言关闭）。Architect **APPROVE V17-D04 IMPLEMENTATION — ARCHITECT
+    CANDIDATE CLOSURE** → 初始独立复审 **REQUEST_CHANGES**（1 P2：UI34 缺 executed proof）→
+    R1 real route-cycle executed proof + mapping 修正 + UTF-8 evidence 卫生 → **APPROVE V17-D04
+    IMPLEMENTATION R1**（Architect + final independent，P0/P1/P2 = none）。D-04 P3 hygiene
+    （F14 标签漂移 / 未使用 helper / KDoc 范围注释）为 CLOSED / 非阻塞，不重开 D-04。
+  - **NEXT:** V17-D-05（accessibility / localization hardening）；D-05 NOT STARTED；D-06
+    recurring gate；D-07 final gate。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
