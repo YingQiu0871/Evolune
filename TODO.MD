@@ -132,7 +132,18 @@
       forbidden semantics 0 hits。evidence `evidence/d-06/`（179/179 manifest，
       sha256(MANIFEST.sha256) = `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。
       **Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）。
-- [ ] NEXT：**V17-D-07 final Phase-D independent gate**。
+- [x] Phase D · D-07 — **FINAL PHASE-D INDEPENDENT GATE — PASS**（**APPROVE V17-D07 FINAL
+      PHASE-D GATE**；独立复审 Qwen3.8 Flash，fresh independent read-only session；P0/P1/P2 = none、
+      无新 P3）：verified gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723`；verified executable
+      source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；executable tree 与 D-05 approved
+      implementation `2a79f1d...` 逐字节一致（app `2ceebb6e76f91d4d20be2e9e992f7c438876f3dd` ·
+      experience-core `b4a7af411f93662098fc22e6119892dbcbe67359` · wear
+      `8f77a6dab307bb140277dc23c618341eacd92f00`）⇒ 批准后零可执行变更；八问全 YES；历史证据树
+      （d-01/d-03/d-04/d-05）未被改写；ACCEPTANCE D1–D5 与 G1–G7 满足；packet
+      `review-packets/v17-d07-final-phase-d-independent-review.txt`。**Phase D — CLOSED / FROZEN**
+      （未经重开评审不得改 Phase-D 语义；本收口 docs-only）。
+- [ ] NEXT：**Phase E — Export & Data Portability**（V17_PLAN §8；须显式授权与独立 Phase-E 契约后
+      方可启动；本收口不实现 Phase E）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

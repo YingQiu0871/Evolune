@@ -473,6 +473,26 @@ PK output must remain explicitly model-derived.
 > delta；可选强化留给后续按需进行）；zh-expectation P3 保持 non-blocking。
 > **Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）；**NEXT: V17-D-07 final Phase-D independent
 > gate**。
+>
+> **Status note (2026-09-16, D-07 final gate — Phase D closure)**: **D-07 FINAL PHASE-D
+> INDEPENDENT GATE — PASS**（**APPROVE V17-D07 FINAL PHASE-D GATE**；独立复审 Qwen3.8 Flash，
+> fresh independent read-only session；P0/P1/P2 = none、无新 P3）：verified repository gate
+> HEAD `2560afcf4f28557a92667db973a5ce3cac280723`；verified executable source HEAD
+> `13aeaf6ab60cbe58236290de063122e42a4296de`；executable tree identity（与 D-05 approved
+> implementation `2a79f1d048905113f53d4be470071a94072c2f96` 逐字节一致）：app
+> `2ceebb6e76f91d4d20be2e9e992f7c438876f3dd` · experience-core
+> `b4a7af411f93662098fc22e6119892dbcbe67359` · wear
+> `8f77a6dab307bb140277dc23c618341eacd92f00` ⇒ D-05 最终批准后零可执行变更。八问全 YES：树同一
+> · 四契约互洽 · D-06 fresh 证据建立全部 slice 家族 · 157/1490/59 由 XML+source+log 独立核实 ·
+> manifest 179/179 + sha256 `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`
+> 复核一致 · 无批准后漂移 · carried P3 均未升级 · Phase D 具备最终收口条件。历史证据树
+> （d-01 `5d79f0ad7` / d-03 `c30e662df` / d-04 `101b1a33f` / d-05 `8b1c03b63`）与批准时一致、
+> 未被改写。ACCEPTANCE §5 D1–D5 与 §0 G1–G7 满足。Review packet：
+> `review-packets/v17-d07-final-phase-d-independent-review.txt`。Phase gate
+> `APPROVE V1.7-D CANDIDATE IMPLEMENTATION` 的全部要件由独立证据成立 ⇒
+> **Phase D — CLOSED / FROZEN**：未经重开评审不得改 Phase-D 语义（D-01/D-03/D-04/D-05 各自
+> 冻结不变，不重开）。**NEXT: Phase E — Export & Data Portability**（PLAN §8；本收口不启动
+> Phase-E 任何实现；进入前须显式授权与独立契约）。
 
 ---
 

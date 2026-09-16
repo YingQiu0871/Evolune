@@ -224,9 +224,26 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     authority 0 forbidden APIs、forbidden semantics 0 hits；D-01/D-03/D-04/D-05 全部
     requirement families PASS（consolidated matrix 见 `evidence/d-06/phase-d-verification-matrix.txt`）。
     evidence `evidence/d-06/`（179/179 manifest，sha256(MANIFEST.sha256) =
-    `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。**Phase D 仍
-    IN PROGRESS**（不标记 CLOSED）。
-  - **NEXT:** V17-D-07 final Phase-D independent gate。
+    `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。
+  - Phase D · D-07 — **FINAL PHASE-D INDEPENDENT GATE — PASS**（**APPROVE V17-D07 FINAL
+    PHASE-D GATE**；独立复审 Qwen3.8 Flash，fresh independent read-only session；P0/P1/P2 =
+    none、无新 P3）：verified repository gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723`；
+    verified executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；executable tree
+    identity 与 D-05 approved implementation `2a79f1d048905113f53d4be470071a94072c2f96` 逐字节
+    一致（app `2ceebb6e76f91d4d20be2e9e992f7c438876f3dd` · experience-core
+    `b4a7af411f93662098fc22e6119892dbcbe67359` · wear
+    `8f77a6dab307bb140277dc23c618341eacd92f00`）⇒ D-05 最终批准后零可执行变更；八问全 YES
+    （树同一 / 四契约互洽 / D-06 fresh 证据建立全部 slice 家族 / 157·1490·59 独立核实 /
+    manifest 179/179 + 期望 SHA 复核一致 / 无批准后漂移 / carried P3 未升级 / 具备收口条件）；
+    历史证据树 d-01 `5d79f0ad7` · d-03 `c30e662df` · d-04 `101b1a33f` · d-05 `8b1c03b63` 与
+    批准时一致、未被改写；ACCEPTANCE §5 D1–D5 与 §0 G1–G7 满足；review packet
+    `review-packets/v17-d07-final-phase-d-independent-review.txt`。
+  - **Phase D — CLOSED / FROZEN**（Phase gate `APPROVE V1.7-D CANDIDATE IMPLEMENTATION` 要件由
+    独立证据成立；D-01/D-03/D-04/D-05 各自保持 CLOSED / FROZEN / VERIFIED，D-02 FULLY CONSUMED
+    BY D-01，D-06 PASS / VERIFIED，D-07 PASS）：未经重开评审不得改 Phase-D 语义；本收口
+    docs-only，零可执行/测试/资源/证据变更。
+  - **NEXT:** Phase E — Export & Data Portability（见 [`v1.7/V17_PLAN.md`](v1.7/V17_PLAN.md) §8；
+    本收口不启动 Phase-E 实现；进入前须显式授权与独立契约）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

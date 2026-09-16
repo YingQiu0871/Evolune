@@ -209,9 +209,19 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   Phase-D JVM 157/0 · fresh full JVM 1490/0 · fresh Android 59/0（Pixel_7 API 35）。
   Post-approval production drift 空（当前可执行树 = 独立批准的 D-05 树）。Resource parity 34/34、
   placeholder parity 0 mismatch、date/time authority 0 forbidden、forbidden semantics 0 hits。
-  Consolidated D-01/D-03/D-04/D-05 matrix PASS。evidence `evidence/d-06/`（179/179 manifest @
-  `20145e46...`）。**Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）。
-  **NEXT:** V17-D-07 final Phase-D independent gate。
+   Consolidated D-01/D-03/D-04/D-05 matrix PASS。evidence `evidence/d-06/`（179/179 manifest @
+   `20145e46...`）。
+- **Phase D · D-07** — **FINAL PHASE-D INDEPENDENT GATE — PASS**（**APPROVE V17-D07 FINAL
+  PHASE-D GATE**；独立复审 Qwen3.8 Flash，fresh independent read-only session；P0/P1/P2 = none、
+  无新 P3）：verified gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723`；verified executable
+  source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；executable tree 与 D-05 approved
+  implementation `2a79f1d048905113f53d4be470071a94072c2f96` 逐字节一致（app
+  `2ceebb6e76f91d4d20be2e9e992f7c438876f3dd` · experience-core
+  `b4a7af411f93662098fc22e6119892dbcbe67359` · wear
+  `8f77a6dab307bb140277dc23c618341eacd92f00`）⇒ 批准后零可执行变更；八问全 YES；历史证据树
+  未被改写；ACCEPTANCE §5 D1–D5 与 §0 G1–G7 满足。**Phase D — CLOSED / FROZEN**（未经重开评审
+  不得改 Phase-D 语义；D-01…D-05 各自冻结不变）。
+  **NEXT:** Phase E — Export & Data Portability（PLAN §8；须显式授权与独立契约后启动）。
 
 ## Historical and future milestones
 
@@ -231,11 +241,14 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** V17-D-07 final Phase-D independent gate（D-04 CLOSED / FROZEN @
+**NEXT:** Phase E — Export & Data Portability（D-04 CLOSED / FROZEN @
 `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract
 `b1cdd662fe1bee14beab5cad651aef772f211c68` + final implementation HEAD
 `2a79f1d048905113f53d4be470071a94072c2f96`；D-06 recurring verification gate **PASS** @ verified
-executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；Phase D 仍 IN PROGRESS）。
+executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；D-07 final Phase-D independent
+gate **PASS** @ verified gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723` ⇒
+**Phase D — CLOSED / FROZEN**，未经重开评审不得改 Phase-D 语义）。Phase E 进入前须显式授权与
+独立契约；本收口不启动 Phase E 实现。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 
