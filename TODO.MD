@@ -74,8 +74,11 @@
       `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
       `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
       生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
-- [ ] NEXT：**Phase D — Medication Timeline planning / contract design**（Phase D 未启动；不实现、
-      不发明 Phase-D contract；retrospective selector/cursor polish 不因此转入 Phase D）。
+- [ ] Phase D（Medication Timeline）planning started：D-01 contract — **CONTRACT — REVIEW PENDING**
+      （`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`）：Timeline read-model / row projection（semantics-only，
+      无 UI）；**D-01 production NOT STARTED**、D-02…D-07 未开始。
+- [ ] NEXT：**V17-D-01 contract review**（契约批准前不得开工 D-01 生产；Phase D 未开始实现；
+      retrospective selector/cursor polish 不因此转入 Phase D）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

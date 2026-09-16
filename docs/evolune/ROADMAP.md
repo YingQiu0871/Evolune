@@ -165,7 +165,11 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **Phase-C closure** — **PHASE-C CLOSED — APPROVED**（[`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)）：
   Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
   `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
-  生产。**NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动）。
+  生产。
+- **Phase D（Medication Timeline）planning started**：D-01 contract — **CONTRACT — REVIEW PENDING**
+  （[`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)）：
+  read-only projection over `HistoryRangeSource`；**D-01 production NOT STARTED**、Phase D 未开始实现。
+  **NEXT:** V17-D-01 contract review。
 
 ## Historical and future milestones
 
@@ -185,7 +189,8 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动；不自行发明范围）。
+**NEXT:** V17-D-01 contract review（D-01 contract [`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)
+为 `CONTRACT — REVIEW PENDING`；Phase D 未开始实现）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

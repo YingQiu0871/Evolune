@@ -308,6 +308,15 @@ PK output must remain explicitly model-derived.
 > **NEXT: Phase D — Medication Timeline planning / contract design**（Phase D 未启动；本记录不发明
 > Phase-D contract；retrospective selector/cursor polish 不因此转入 Phase D）。gated 候选保持未授权；
 > T*/release gates 保持独立（Phase C CLOSED ≠ v1.7 release 全局批准）。
+>
+> **Status note (2026-09-16, Phase-D planning / D-01 contract)**: Phase D planning started；
+> **V17-D-01 Timeline read-model / semantics contract 已起草**（
+> [`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)，
+> `CONTRACT — REVIEW PENDING`）：read-only projection over `HistoryRangeSource`；三 row families
+> （MATCHED / UNRECORDED_SCHEDULE / UNMATCHED_INTAKE）、typed row identity、schedule-context 与
+> recorded-intake 分离、delta 显式排除、ordering 冻结（OCCURRENCE_ORDER 字段序列）、displayDate/
+> D3 基础；**D-01 production NOT STARTED**，D-02…D-07 未开始。**NEXT: V17-D-01 contract review**。
+> Phase C 保持 CLOSED；C-01/C-04 不被依赖。
 
 ---
 

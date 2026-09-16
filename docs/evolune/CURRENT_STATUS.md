@@ -160,7 +160,11 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
     `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
     生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
-  - **NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动；不自行发明范围）。
+  - Phase D（Medication Timeline）planning started：D-01 contract — **CONTRACT — REVIEW PENDING**
+    （[`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)）：
+    read-only projection over `HistoryRangeSource`（semantics-only，无 UI）；**D-01 production
+    NOT STARTED**、D-02…D-07 未开始。
+  - **NEXT:** V17-D-01 contract review（Phase D 未开始实现；不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·
