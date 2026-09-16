@@ -1,0 +1,11 @@
+V17-D-06 — fresh full JVM gate
+Log: logs/jvm-full-fresh.log ; XMLs: junit/app/, junit/experience-core/, junit/wear/
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:test --rerun
+
+  app             tests=1229 failures=0 errors=0 skipped=0
+  experience-core tests=171  failures=0 errors=0 skipped=0
+  wear            tests=90   failures=0 errors=0 skipped=0
+  TOTAL           tests=1490 failures=0 errors=0 skipped=0
+
+No skips occurred; no accepted-skip exception was needed.
+The prior D-05 total (1490) is confirmed by fresh XML, not carried over.

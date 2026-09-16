@@ -1,0 +1,36 @@
+V17-D-06 frozen-surface audit (fresh, read-only)
+
+1. Post-approval production drift (must be empty):
+   git diff 2a79f1d..13aeaf6 -- app            -> EMPTY
+   git diff 2a79f1d..13aeaf6 -- experience-core -> EMPTY
+   git diff 2a79f1d..13aeaf6 -- wear           -> EMPTY
+   => the integrated executable tree at 13aeaf6 is exactly the independently approved D-05
+      executable tree (only the D-05 docs-only closure commit follows 2a79f1d).
+
+2. Authorized production delta history (already reviewed and approved):
+   c298bac..2a79f1d (D-05 implementation) touched ONLY:
+     app/src/main/java/.../ui/screens/timeline/TimelineScreen.kt
+     app/src/main/java/.../ui/screens/timeline/TimelinePresentation.kt
+     app/src/main/java/.../ui/screens/HistoryScreen.kt
+     app/src/main/res/values/strings.xml
+     app/src/main/res/values-zh-rCN/strings.xml
+     plus D-05 test files (regression adaptations + 2 new classes) and evidence/d-05.
+   No other production file was touched across D-05.
+
+3. Frozen boundaries confirmed intact at current HEAD (zero drift since approval):
+   TimelineReadModel / TimelineProjectionBuilder (D-01 production) — unchanged
+   TimelineRangeState / TimelineRangeCoordinator (D-03 production) — unchanged
+   TimelineViewModel / TimelineSurfaceLifecycle — unchanged since D-04 approval
+   HistoryRangeSource / HistoryReadService / HistoricalProjectionBuilder — unchanged
+   MainActivity / AppNavigation — unchanged
+   Room schema/DAO / migrations / AppDatabase — unchanged
+   Phase C / PK / retrospective production — unchanged
+   Home / Wear / Widget production — unchanged
+   Gradle files / version catalog / dependencies — unchanged
+   D-01 / D-03 / D-04 / D-05 approved contracts and their evidence trees — unmutated
+
+4. Integrated cross-slice consistency (fresh executions):
+   - D-01 guards (TimelineArchitectureGuardTest 6, TimelineOrderingGeneratorParityTest 2) green
+   - D-03 guards (TimelineRangeArchitectureGuardTest 10, TimelineRangePurityTest 4) green
+   - D-04/D-05 guard class (TimelineUiArchitectureGuardTest 28, incl. F1–F32 + D-05 guards) green
+   - full JVM 1490/0 and Android 59/0 confirm the integrated tree behaves as approved.

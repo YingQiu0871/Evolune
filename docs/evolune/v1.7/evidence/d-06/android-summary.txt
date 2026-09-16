@@ -1,0 +1,17 @@
+V17-D-06 — fresh Android Phase-D instrumentation gate
+Log: logs/android-instrumentation.log ; XML: androidtest/TEST-Pixel_7_API35_app-final.xml
+Device: Pixel_7 AVD (sdk_gphone64_x86_64), API 35, emulator-5554
+Command: .\gradlew.bat :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=
+         TimelineScreenTest,TimelineGeometryTest,TimelineLifecycleTest,TimelineNavigationTest,
+         TimelineVisualEvidenceTest,TimelineAccessibilityTest,TimelineFontScaleTest
+
+  TimelineScreenTest          23
+  TimelineGeometryTest         8
+  TimelineLifecycleTest        4
+  TimelineNavigationTest       3
+  TimelineVisualEvidenceTest   2
+  TimelineAccessibilityTest   13
+  TimelineFontScaleTest        6
+  TOTAL                       59
+
+Result: tests=59 failures=0 errors=0 skipped=0 (fresh run at current HEAD; XML-derived).

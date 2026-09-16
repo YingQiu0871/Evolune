@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T20:40:30.866Z" hostname="人面不知何处去" time="0.029">
+  <properties/>
+  <testcase name="the summary model exposes counts and distributions but no derived judgement field" classname="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" time="0.002"/>
+  <testcase name="no second truth derivation is reachable from the aggregator" classname="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" time="0.016"/>
+  <testcase name="no persistence transport or ui dependency is imported" classname="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" time="0.004"/>
+  <testcase name="the aggregator consumes only frozen history entry types" classname="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" time="0.001"/>
+  <testcase name="no forbidden metric or judgement vocabulary exists in production insights code" classname="io.github.yingqiu0871.evolune.experience.insights.InsightsBoundaryGuardTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

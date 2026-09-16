@@ -1,0 +1,12 @@
+D-06 fresh date/time authority audit (read-only)
+generated at HEAD 13aeaf6
+scope: Timeline renderer sources
+
+forbidden API occurrences (ZoneId.systemDefault / Instant.now / LocalDate.now / Clock):
+(none)
+
+authority checks (source-verified):
+- TimelinePresentation.timeText -> HistoryFormatting.timeText(instant, state.displayZone, is24Hour)
+- state.today drives Today/Yesterday + month-control enablement (F27/F28 guards green in full JVM)
+- 12/24h is notation-only (TimelineFontScaleTest fontScale20TwelveAndTwentyFourHourSanity green)
+- requestToday used only for command/selectDate validation (F29/F30/F31 guards green)

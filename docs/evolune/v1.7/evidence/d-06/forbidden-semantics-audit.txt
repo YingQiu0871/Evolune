@@ -1,0 +1,6 @@
+D-06 fresh forbidden-semantics audit (read-only)
+generated at HEAD 13aeaf6
+scanned: all timeline_* + timeline_a11y_* values in both resource files
+forbidden terms: missed, skipped, overdue, late, early, adherence, compliance, punctuality, delta, failed, noncompliant, non-adherent, grading, shame, 漏服, 错过, 迟到, 逾期, 依从, 准点, 未服, 依从性, 迟服
+
+hits: 0

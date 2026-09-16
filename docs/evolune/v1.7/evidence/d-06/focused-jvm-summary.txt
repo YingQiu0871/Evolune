@@ -1,0 +1,23 @@
+V17-D-06 — focused Phase-D JVM verification (fresh, --rerun)
+Log: logs/jvm-focused-d06.log ; XMLs: junit/focused/ (9 files, final XML)
+Command: .\gradlew.bat :app:testDebugUnitTest
+         --tests "io.github.yingqiu0871.evolune.history.timeline.*"
+         --tests "io.github.yingqiu0871.evolune.ui.screens.timeline.*" --rerun
+
+Classes executed (enumerated from source, not assumed):
+  D-01 slice
+    TimelineArchitectureGuardTest          6
+    TimelineOrderingGeneratorParityTest    2
+    TimelineProjectionBuilderTest         24
+  D-03 slice
+    TimelineRangeArchitectureGuardTest    10
+    TimelineRangeCoordinatorTest          42
+    TimelineRangePurityTest                4
+  D-04 slice
+    TimelineViewModelTest                 23
+  D-04/D-05 slice
+    TimelinePresentationTest              18
+    TimelineUiArchitectureGuardTest       28
+
+TOTAL: tests=157 failures=0 errors=0 skipped=0
+Counts derived from the final focused XML; no count was hardcoded before execution.

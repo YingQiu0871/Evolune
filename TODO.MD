@@ -124,8 +124,15 @@
       单节点 + Role.Button；section-header 单短语；MATCHED 双侧）· font-scale 1.0/1.3/1.5/2.0
       measured · touch target ≥48dp（touchBoundsInRoot）· Timeline families 34/34 parity。
       P3-1/2/3 为 CLOSED / 非阻塞。**D-05 冻结**：未经重开评审不得改 D-05 语义。
-- [ ] NEXT：**V17-D-06 recurring verification gate**；D-07 final Phase-D independent gate remains
-      required（**不**标记 Phase D CLOSED）。
+- [x] Phase D · D-06 — **RECURRING VERIFICATION GATE — PASS**（verified executable source HEAD
+      `13aeaf6ab60cbe58236290de063122e42a4296de`；fresh：focused Phase-D JVM 157/0/0/0、full JVM
+      1490/0/0/0（app 1229 + ec 171 + wear 90）、Android 59/0/0/0（Pixel_7 API 35）；post-approval
+      production drift 为空（`git diff 2a79f1d..13aeaf6 -- app/experience-core/wear` 均空）；
+      resource parity 34/34、placeholder parity 0 mismatch；date/time authority 0 forbidden APIs；
+      forbidden semantics 0 hits。evidence `evidence/d-06/`（179/179 manifest，
+      sha256(MANIFEST.sha256) = `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。
+      **Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）。
+- [ ] NEXT：**V17-D-07 final Phase-D independent gate**。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

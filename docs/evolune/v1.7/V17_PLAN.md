@@ -455,6 +455,24 @@ PK output must remain explicitly model-derived.
 > CLOSED / 非阻塞；不重开 D-05。
 > **NEXT: V17-D-06 recurring verification gate**（D-07 final Phase-D independent gate remains
 > required；Phase D 仍 IN PROGRESS）。
+>
+> **Status note (2026-09-16, D-06 recurring verification gate)**: **D-06 RECURRING VERIFICATION
+> GATE — PASS**（verified executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`）。
+> Fresh executions at the integrated HEAD：focused Phase-D JVM **157/0/0/0**（9 classes：D-01 32 /
+> D-03 56 / D-04 23 / D-04+D-05 46）；fresh full JVM **1490/0/0/0**（app 1229 + experience-core
+> 171 + wear 90）；fresh Android instrumentation **59/0/0/0**（Pixel_7 AVD API 35；
+> TimelineScreenTest 23 / Geometry 8 / Lifecycle 4 / Navigation 3 / VisualEvidence 2 /
+> Accessibility 13 / FontScale 6）。Integrated frozen-boundary audit：post-approval production
+> drift 为空（`git diff 2a79f1d..13aeaf6 -- app/experience-core/wear` 均空 ⇒ 当前可执行树即
+> 独立批准的 D-05 树）；resource parity 34/34、placeholder parity 0 mismatch、date/time authority
+> 0 forbidden APIs、forbidden semantics 0 hits；consolidated D-01/D-03/D-04/D-05 verification
+> matrix 全 PASS（`evidence/d-06/phase-d-verification-matrix.txt`）。Evidence `evidence/d-06/`
+> （179 files / 179 manifest entries，sha256(MANIFEST.sha256) =
+> `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。FONT9 P3 follow-up：
+> 未引入新 verification test（保持 D-05 evidence 充分性判定，D-06 不新增 executable-source
+> delta；可选强化留给后续按需进行）；zh-expectation P3 保持 non-blocking。
+> **Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）；**NEXT: V17-D-07 final Phase-D independent
+> gate**。
 
 ---
 

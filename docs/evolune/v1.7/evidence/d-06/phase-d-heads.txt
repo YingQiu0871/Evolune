@@ -1,0 +1,40 @@
+==========================================================================
+V17-D-06 — resolved closed Phase-D heads (independently verified via git)
+==========================================================================
+D-01
+  contract (approved semantic) : a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+                                 ("docs: define v1.7 D-01 timeline read model contract")
+  implementation               : 97838fbf7c8692ada9d44d8401a6008283fac178
+                                 ("feat: implement v1.7 D-01 timeline read model")
+  closure                      : a536e27fea49ec488c2c3a241e0bdb4182df6912
+                                 ("docs: close v1.7 D-01 timeline read model")
+  status                       : CLOSED / FROZEN
+
+D-03
+  contract (approved semantic) : ec0416e32ca0094ce3347a776f76c66b63c0261e
+                                 ("docs: close D-03 request replacement semantics")
+  implementation               : d7d27f204e0eb298ca9a1ac629c7022ef621f603
+                                 ("fix: enforce D-03 structural validation precedence")
+  closure                      : 544b1a85368502807171908954ae26bf8c732d10
+                                 ("docs: close v1.7 D-03 timeline range orchestration")
+  status                       : CLOSED / FROZEN
+
+D-04
+  contract (approved semantic) : c934c24532025f7c82654a7af4e5cd0bafd4f40d
+  contract freeze              : 89d38eec8a53e8eda1b0ee302ff8c22a3bc56cf5
+  approved implementation      : e53342bcd6c4c4af428adc5822f603c71ed8bb24
+                                 ("test: close v1.7 D-04 UI34 retention evidence")
+  closure                      : e631bf75852cbf9ebf286059eea70a489a096328
+                                 ("docs: close v1.7 D-04 timeline UI")
+  status                       : CLOSED / FROZEN
+
+D-05
+  contract (approved semantic) : b1cdd662fe1bee14beab5cad651aef772f211c68
+  contract freeze              : c298bac36bff7c979210ef11c35798f30de82bda
+  approved implementation      : 2a79f1d048905113f53d4be470071a94072c2f96
+  closure                      : 13aeaf6ab60cbe58236290de063122e42a4296de
+  status                       : CLOSED / FROZEN
+
+Gate status truth (from TODO.MD / CURRENT_STATUS.md / ROADMAP.md / V17_PLAN.md):
+  Phase D — IN PROGRESS; D-06 — recurring verification gate (this run);
+  D-07 — final Phase-D independent gate.

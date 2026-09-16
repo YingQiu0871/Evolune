@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" tests="59" failures="0" errors="0" skipped="0" time="105.636" timestamp="2026-09-16T20:42:38" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="aMatchedRowRendersTwoVisiblyDistinctTruthfulSides" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="3.479" />
+  <testcase name="loadingStateWithRangeKeepsTheCalendarUsable" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="2.139" />
+  <testcase name="emptyDayKeepsOtherMonthSectionsVisible" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.887" />
+  <testcase name="selectingADayFocusesItsSectionWhileKeepingTheWholeMonthRendered" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.8" />
+  <testcase name="aStateChangeReRendersPublishedContentWithoutAnyLocalPendingOverlay" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.413" />
+  <testcase name="contentRendersAllMonthSectionsAndTheStrip" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.5" />
+  <testcase name="notLoadableOffersARecoverableReturnToTheCurrentMonth" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.531" />
+  <testcase name="allTimelineRowCardsStayWithinTheirSection" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.889" />
+  <testcase name="nextMonthIsDisabledAtTheCurrentMonthAndPreviousStillWorks" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.442" />
+  <testcase name="loadingStateRendersTheLoadingRegion" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.216" />
+  <testcase name="identityStatusesRenderCanonicalPartialAndUnavailableWording" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.283" />
+  <testcase name="nextMonthIsEnabledOnAPastMonthAndInvokesTheCommand" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.531" />
+  <testcase name="daySelectionInvokesTheCallbackWithTheSelectedDate" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.643" />
+  <testcase name="dayCellsCarrySelectionAndTodaySemantics" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.621" />
+  <testcase name="errorOffersRetry" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.486" />
+  <testcase name="theTwelveHourModeChangesNotationOnly" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.867" />
+  <testcase name="aPartialIdentityRendersTheNeutralIncompleteWording" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.779" />
+  <testcase name="invalidRequestOffersARecoverableReturnToTheCurrentMonth" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.236" />
+  <testcase name="emptyRangeRendersTheNeutralMonthNotice" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.327" />
+  <testcase name="anUnrecordedRowRendersTheScheduleSideAndTheNeutralNoticeOnly" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.553" />
+  <testcase name="anUnavailableIdentityRendersTheNeutralUnavailableWording" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.432" />
+  <testcase name="anUnmatchedRowRendersTheRecordedSideOnly" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.361" />
+  <testcase name="theTwentyFourHourModeFormatsTheTimelineTimestamps" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest" time="1.868" />
+  <testcase name="ui39SingleDigitAndDoubleDigitSelectedDatesStayGeometricallyCentered" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.925" />
+  <testcase name="ui47FirstAndLastSelectableDaysKeepSymmetricStripGeometry" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="2.037" />
+  <testcase name="ui46SelectingAnOffCenterDayCentersItInTheStripViewport" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.565" />
+  <testcase name="ui35SelectedDateNumberIsCenteredBothAxesInsideItsHighlight" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.415" />
+  <testcase name="ui38WeekdayDateNumberAndHighlightShareOneHorizontalCenterAxis" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.557" />
+  <testcase name="ui36MonthTitleStaysCenteredWhileTheNextControlIsDisabled" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.247" />
+  <testcase name="ui37CalendarRegionIsCenteredWhileSectionContentIsLeftAligned" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.544" />
+  <testcase name="ui36MonthTitleRemainsCenteredWhenNextIsEnabled" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest" time="1.355" />
+  <testcase name="daySelectionPerformsZeroReads" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineLifecycleTest" time="1.295" />
+  <testcase name="ordinaryRecompositionPerformsZeroReads" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineLifecycleTest" time="1.196" />
+  <testcase name="aDisposedBridgeDoesNotRefreshOnLifecycleTransitions" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineLifecycleTest" time="3.83" />
+  <testcase name="coldStartReEntryAndForegroundReturnEachDriveExactlyOneRead" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineLifecycleTest" time="3.87" />
+  <testcase name="theTimelineSubRouteAddsNoBottomEntryAndHidesTheBottomBar" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineNavigationTest" time="3.871" />
+  <testcase name="timelineContextIsRetainedAcrossHistoryRoundTripWithExactlyOneReentryRefresh" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineNavigationTest" time="3.545" />
+  <testcase name="historyOpensTimelineAndBackReturnsToHistory" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineNavigationTest" time="2.343" />
+  <testcase name="captureCalendarContentNavigationAndStateSurfaces" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineVisualEvidenceTest" time="1.971" />
+  <testcase name="captureFontScale20ContentAndStateSurfaces" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineVisualEvidenceTest" time="1.747" />
+  <testcase name="dayCellIsExactlyOneButtonNodeWithChildrenExcludedFromTheAccessibilityTree" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.557" />
+  <testcase name="interactiveTargetsAreAtLeast48dp" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.371" />
+  <testcase name="unmatchedRowExposesRecordedGroupOnly" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.332" />
+  <testcase name="matchedRowExposesExactlyTwoSideGroupsWithNaturalSeparators" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.323" />
+  <testcase name="defensiveFutureCellsExposeDisabledSemanticsAndNeverInvokeSelection" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.484" />
+  <testcase name="monthTitleIsAHeading" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.294" />
+  <testcase name="unrecordedRowExposesScheduleGroupAndNeutralNoticeOnly" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.391" />
+  <testcase name="dayCellAxisIsIntactForAccessibilityGrouping" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.195" />
+  <testcase name="dayCellSpeaksLocalizedNonIsoGrammarWithFullWeekday" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.484" />
+  <testcase name="selectionAndMonthChangeDoNotMoveAccessibilityFocus" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.997" />
+  <testcase name="entryCardIsOneButtonNodeWithSilentDecorativeIcon" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.222" />
+  <testcase name="sectionHeadersAreHeadingsAndAbsoluteHeaderSpeaksOneFullWeekdayPhrase" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.477" />
+  <testcase name="sevenStatesExposeMeaningfulTargetsAndDistinctActionLabels" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest" time="1.628" />
+  <testcase name="fontScale10KeepsD04RelationalGeometry" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="1.76" />
+  <testcase name="fontScale13And15KeepDayCellContentFitted" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="2.168" />
+  <testcase name="fontScale20KeepsMonthTitleCenteredNavSymmetricAndBodyLeftAligned" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="1.457" />
+  <testcase name="fontScale20ViewportCenteringAndEdgeSymmetry" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="1.76" />
+  <testcase name="fontScale20GrowsHighlightKeepsNumberInsideAndKeepsUniformWidth" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="1.738" />
+  <testcase name="fontScale20TwelveAndTwentyFourHourSanity" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest" time="1.799" />
+</testsuite>

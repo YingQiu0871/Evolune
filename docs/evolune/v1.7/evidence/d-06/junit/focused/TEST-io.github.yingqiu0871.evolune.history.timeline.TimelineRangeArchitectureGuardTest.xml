@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-16T20:42:53.580Z" hostname="人面不知何处去" time="0.02">
+  <properties/>
+  <testcase name="F10 F11 no UI navigation view model android or lifecycle references" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.007"/>
+  <testcase name="F12 no localized or formatted strings" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.002"/>
+  <testcase name="F7 no future rows or future source reads are reachable" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.0"/>
+  <testcase name="F1 F3 F4 F6 the only read seam is HistoryRangeSource and no forbidden machinery exists" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.002"/>
+  <testcase name="F9 F13 no writes polling or live subscriptions" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.001"/>
+  <testcase name="F2 no repository DAO or Room references" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.001"/>
+  <testcase name="F8 no timing or adherence semantics" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.003"/>
+  <testcase name="F14 no global or internally created coroutine scope" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.001"/>
+  <testcase name="F15 cancellation is caught before any generic failure mapping" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.0"/>
+  <testcase name="F5 D-01 is consumed but never reimplemented or re-declared" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

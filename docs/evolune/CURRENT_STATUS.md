@@ -214,8 +214,19 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     D-04 regression: Geometry 8/8 · Lifecycle 4/4 · Navigation 3/3 · Screen 23/23 green。
     P3-1（FONT9 evidence strength）/ P3-2（zh expectations）/ P3-3（packet breakdown typo）均为
     CLOSED / 非阻塞，不重开 D-05。
-  - **NEXT:** V17-D-06 recurring verification gate；D-07 final Phase-D independent gate remains
-    required（Phase D 仍 IN PROGRESS，不标记 CLOSED）。
+  - Phase D · D-06 — **RECURRING VERIFICATION GATE — PASS**
+    （verified executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；fresh
+    executions：focused Phase-D JVM 157/0/0/0（9 classes：D-01 32 / D-03 56 / D-04 23 /
+    D-04+D-05 46）、fresh full JVM 1490/0/0/0（app 1229 + experience-core 171 + wear 90）、
+    fresh Android 59/0/0/0（Pixel_7 API 35；VisualEvidence = 2）；post-approval production
+    drift 为空（`git diff 2a79f1d..13aeaf6 -- app/experience-core/wear` 均空 ⇒ 当前可执行树
+    即独立批准的 D-05 树）；resource parity 34/34、placeholder parity 0 mismatch、date/time
+    authority 0 forbidden APIs、forbidden semantics 0 hits；D-01/D-03/D-04/D-05 全部
+    requirement families PASS（consolidated matrix 见 `evidence/d-06/phase-d-verification-matrix.txt`）。
+    evidence `evidence/d-06/`（179/179 manifest，sha256(MANIFEST.sha256) =
+    `20145e461c65267af0ee94207a01f87d32b42fe7d1f3a27e499a2437a0b43091`）。**Phase D 仍
+    IN PROGRESS**（不标记 CLOSED）。
+  - **NEXT:** V17-D-07 final Phase-D independent gate。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

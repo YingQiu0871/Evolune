@@ -204,8 +204,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   font-scale 1.0/1.3/1.5/2.0 measured · touch target ≥48dp（touchBoundsInRoot）· Timeline families
   34/34 parity。Architect candidate APPROVE + 独立复审 APPROVE（P0/P1/P2 = none）。P3-1/2/3 为
   CLOSED / 非阻塞。**D-05 关闭**。
-  **NEXT:** V17-D-06 recurring verification gate；D-07 final Phase-D independent gate remains
-  required（Phase D 仍 IN PROGRESS）。
+- **Phase D · D-06** — **RECURRING VERIFICATION GATE — PASS**
+  （verified executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`）：fresh focused
+  Phase-D JVM 157/0 · fresh full JVM 1490/0 · fresh Android 59/0（Pixel_7 API 35）。
+  Post-approval production drift 空（当前可执行树 = 独立批准的 D-05 树）。Resource parity 34/34、
+  placeholder parity 0 mismatch、date/time authority 0 forbidden、forbidden semantics 0 hits。
+  Consolidated D-01/D-03/D-04/D-05 matrix PASS。evidence `evidence/d-06/`（179/179 manifest @
+  `20145e46...`）。**Phase D 仍 IN PROGRESS**（**不**标记 CLOSED）。
+  **NEXT:** V17-D-07 final Phase-D independent gate。
 
 ## Historical and future milestones
 
@@ -225,11 +231,11 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** V17-D-06 recurring verification gate（D-04 CLOSED / FROZEN @
+**NEXT:** V17-D-07 final Phase-D independent gate（D-04 CLOSED / FROZEN @
 `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract
 `b1cdd662fe1bee14beab5cad651aef772f211c68` + final implementation HEAD
-`2a79f1d048905113f53d4be470071a94072c2f96`；D-07 final Phase-D independent gate remains
-required，Phase D 仍 IN PROGRESS）。
+`2a79f1d048905113f53d4be470071a94072c2f96`；D-06 recurring verification gate **PASS** @ verified
+executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；Phase D 仍 IN PROGRESS）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

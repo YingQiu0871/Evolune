@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-16T20:40:24.612Z" hostname="人面不知何处去" time="0.011">
+  <properties/>
+  <testcase name="storage failure remains retryable and the same operation eventually succeeds" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.003"/>
+  <testcase name="different operations competing for one occurrence create one event" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.003"/>
+  <testcase name="same operation with changed payload is a conflict and cannot create another event" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.001"/>
+  <testcase name="stale producer and disabled plan reject without an event id" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.001"/>
+  <testcase name="first operation writes exact current plan event and replay returns same result" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.001"/>
+  <testcase name="existing exact legacy window and safe same-day events are already confirmed" classname="io.github.yingqiu0871.evolune.application.WearAppConfirmationHandlerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

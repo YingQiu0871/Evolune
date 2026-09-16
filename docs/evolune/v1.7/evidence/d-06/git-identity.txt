@@ -1,0 +1,29 @@
+==========================================================================
+EVOLUNE v1.7 — V17-D-06 RECURRING VERIFICATION GATE — EVIDENCE
+identity / lineage
+Generated: 2026-09-16 (evidence root: docs/evolune/v1.7/evidence/d-06/)
+==========================================================================
+
+Branch                    : v1.7-development
+Verified HEAD             : 13aeaf6ab60cbe58236290de063122e42a4296de
+Parent                    : 2a79f1d048905113f53d4be470071a94072c2f96  [MATCH]
+Worktree                  : clean (git status --porcelain empty)
+git diff --check          : PASS
+
+Chain (most recent first):
+  13aeaf6 docs: close v1.7 D-05 accessibility localization
+  2a79f1d feat: implement v1.7 D-05 accessibility localization hardening
+  c298bac docs: freeze v1.7 D-05 accessibility localization contract
+  b1cdd66 docs: define v1.7 D-05 accessibility localization contract
+  e631bf7 docs: close v1.7 D-04 timeline UI
+  e53342b test: close v1.7 D-04 UI34 retention evidence
+  b53b83e feat: implement v1.7 D-04 timeline UI
+  89d38ee docs: freeze v1.7 D-04 timeline UI contract
+  c934c24 docs: close D-04 logical request-today semantics
+
+D-06 interpretation: RECURRING VERIFICATION GATE only — no feature slice, no architecture
+slice, no contract slice, no refactor authorization. It proves the integrated Phase-D state
+still satisfies the already-approved D-01 / D-03 / D-04 / D-05 contracts. D-07 remains the
+final Phase-D independent gate.
+
+No push / merge / tag / release.

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" tests="42" skipped="0" failures="0" errors="0" timestamp="2026-09-16T20:42:53.606Z" hostname="人面不知何处去" time="0.07">
+  <properties/>
+  <testcase name="R1-B current month with future out-of-month selection is INVALID_REQUEST" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.035"/>
+  <testcase name="TR2 and TR21 current month reads from the first through today and never sends future dates" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.002"/>
+  <testcase name="TR15 cancellation propagates and never becomes ERROR" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.016"/>
+  <testcase name="R1-D invalid request stays INVALID_REQUEST across rollover and performs no reads" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="HC5 past month reads the complete month" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR3 future month is NOT_LOADABLE with zero reads" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="HC2 date boundaries are inclusive" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR5 selection after today is NOT_LOADABLE with zero reads" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR28 an accepted zero-read generation defeats the old active publication" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.002"/>
+  <testcase name="TR29 a new load while reading does not start a parallel read and executes afterward" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR18 and TR27 coalesced refreshes produce exactly one follow-up using the latest capture" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR6 a successful load with rows on the selected date is CONTENT" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR1 past month reads the complete inclusive month exactly once" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR17a a zero-read terminal generation claims a newer generation and defeats the old read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR11 selection switches EMPTY_DAY back to CONTENT without a re-read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR7 a range with history but an empty selected date is EMPTY_DAY" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR17 selection changed during an in-flight read survives completion" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="HC3 future month performs zero reads" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="HC1 projection displayDate is preserved unchanged" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="R1-A future month with out-of-month selection is INVALID_REQUEST not NOT_LOADABLE" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR33 a pending zero-read context validates before reading and starts no follow-up read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR31 a future month becomes loadable after the month rollover refresh" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="R1-E a pending structurally invalid context claims a generation and defeats the old read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR22 no future rows are synthesized" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR9 TR10 and HC6 in-month selection performs zero reads and switches CONTENT to EMPTY_DAY" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR34 a pending request replaced by a newer one never executes" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="HC4 current month read ends at today" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR12 refresh performs exactly one additional read with the fresh capture" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR26 refresh across the month boundary reclassifies the previous current month as past" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR16 a stale older generation cannot publish after a newer context was accepted" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="R1 constructor establishes the logical context so an immediate refresh is honored" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="combination test - pending load keeps the latest valid selection and adds no extra read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR8 a completely empty range is EMPTY_RANGE" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR32 a future selected date becomes loadable when it becomes today" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="R1-C structurally valid future month remains NOT_LOADABLE" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR25 refresh across local midnight uses the fresh capture and expands the current month end" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR30 latest accepted context wins regardless of operation kind" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="HC7 an empty selected date is the neutral EMPTY_DAY phase" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR14 read failure is ERROR and never an empty state" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR20 displayDate is preserved from the projection and never recomputed" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.001"/>
+  <testcase name="TR4 selection outside the requested month is INVALID_REQUEST with zero reads" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <testcase name="TR13 retry after ERROR performs exactly one additional read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

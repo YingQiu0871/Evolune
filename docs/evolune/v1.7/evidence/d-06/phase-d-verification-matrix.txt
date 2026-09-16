@@ -1,0 +1,92 @@
+==========================================================================
+V17-D-06 — CONSOLIDATED PHASE-D VERIFICATION MATRIX
+Verified executable HEAD: 13aeaf6ab60cbe58236290de063122e42a4296de
+Fresh executions: focused JVM 157/0 · full JVM 1490/0 · Android instrumentation 59/0
+Columns: requirement family | owning slice | current test/evidence | fresh D-06 result
+==========================================================================
+
+D-01 — timeline read model / projection (CLOSED / FROZEN)
+--------------------------------------------------------------------------
+pure HistoricalRange -> TimelineReadModel projection
+  | D-01 | TimelineProjectionBuilderTest (24) | PASS 24/0
+exact row families MATCHED / UNRECORDED_SCHEDULE / UNMATCHED_INTAKE
+  | D-01 | TimelineProjectionBuilderTest + TimelineArchitectureGuardTest (6) | PASS
+no future rows
+  | D-01 | TimelineArchitectureGuardTest + TimelineProjectionBuilderTest +
+         TimelineOrderingGeneratorParityTest (TLM18 live generator parity) | PASS 32/0
+MATCHED sides remain distinct; per-side dose provenance
+  | D-01 | TimelineProjectionBuilderTest + device TimelineScreenTest/AccessibilityTest | PASS
+identity truth = existing classifier truth
+  | D-01 | TimelineProjectionBuilderTest (+ experience-core classifier suites 171/0) | PASS
+no timing/adherence classification
+  | D-01 | TimelineArchitectureGuardTest (source guards) + forbidden-semantics audit (0 hits) | PASS
+canonical row ordering (displayDate -> sortInstant -> same-instant rules)
+  | D-01 | TimelineProjectionBuilderTest + TimelineOrderingGeneratorParityTest | PASS
+no writes / no clock / no Android in the projection
+  | D-01 | TimelineArchitectureGuardTest (F-scans) | PASS
+
+D-03 — range / date orchestration (CLOSED / FROZEN)
+--------------------------------------------------------------------------
+explicit month/date request behavior; current-month clamp at today; future block
+  | D-03 | TimelineRangeCoordinatorTest (42: boundaries/validation families) | PASS
+valid selection = zero read
+  | D-03 | TimelineRangeCoordinatorTest + TimelineRangePurityTest (4) | PASS 46/0
+one accepted generation <= one source read; coalescing; stale-result safety
+  | D-03 | TimelineRangeCoordinatorTest + TimelineRangePurityTest | PASS
+refresh/retry behavior; cancellation rethrow; failure never EMPTY
+  | D-03 | TimelineRangeCoordinatorTest + TimelineRangeArchitectureGuardTest (10) | PASS 52/0
+seven phases
+  | D-03 | TimelineRangeCoordinatorTest | PASS
+no polling / live cache / write path; D-03 public API unchanged
+  | D-03 | TimelineRangeArchitectureGuardTest + TimelineRangePurityTest | PASS
+
+D-04 — Timeline UI (CLOSED / FROZEN)
+--------------------------------------------------------------------------
+History -> TIMELINE_ROUTE; activity-scoped VM; one coordinator; UI34 retention
+  | D-04 | device TimelineNavigationTest (3) + TimelineViewModelTest (23) | PASS 26/0
+initial one read; re-entry refresh; foreground refresh; recomposition 0; selection 0
+  | D-04 | device TimelineLifecycleTest (4) + TimelineViewModelTest UI1–UI3/UI8 | PASS 27/0
+requestToday/logical-intent command authority; published-state render authority
+  | D-04 | TimelineViewModelTest (UI48–UI58) + TimelineUiArchitectureGuardTest (F25/F29–F32) | PASS
+zone-change Case A/B; same-zone refresh
+  | D-04 | TimelineViewModelTest (UI40–UI43, UI48–UI49) | PASS
+whole-month rendering; selectedDate = focus not filter; newest-day sections first;
+canonical row order
+  | D-04 | TimelinePresentationTest (18) + device TimelineScreenTest (23) | PASS 41/0
+MATCHED / UNRECORDED / UNMATCHED truthfulness; identity rules; no timing/adherence UI
+  | D-04 | TimelinePresentationTest + device TimelineScreenTest + UI guard (28) | PASS
+seven presentation states
+  | D-04 | TimelinePresentationTest (UI22–UI26) + device TimelineScreenTest | PASS
+centered calendar / left-aligned body; geometry relations
+  | D-04 | device TimelineGeometryTest (8) + TimelineVisualEvidenceTest (2) | PASS 10/0
+
+D-05 — accessibility / localization hardening (CLOSED / FROZEN)
+--------------------------------------------------------------------------
+one merged day-cell accessibility node; Role.Button; selected; defensive disabled;
+localized non-ISO speech; full weekday; unmerged geometry tags retained
+  | D-05 | device TimelineAccessibilityTest (13) | PASS 13/0
+month-title heading; section-header heading; absolute header single spoken phrase (§39)
+  | D-05 | device TimelineAccessibilityTest | PASS
+History entry Role.Button
+  | D-05 | device TimelineAccessibilityTest | PASS
+MATCHED exactly two semantic side groups; UNRECORDED neutral; UNMATCHED recorded-only
+  | D-05 | device TimelineAccessibilityTest + TimelineScreenTest | PASS
+no live region; no programmatic a11y-focus jump
+  | D-05 | device TimelineAccessibilityTest + JVM guard (DG9/DG10) | PASS
+effective touch targets >= 48dp
+  | D-05 | device TimelineAccessibilityTest (touchBoundsInRoot) | PASS
+fontScale 1.0 / 1.3 / 1.5 / 2.0; uniform resolved day-cell width; responsive highlight;
+resolved-width viewport centering
+  | D-05 | device TimelineFontScaleTest (6) | PASS 6/0
+Timeline resource parity; placeholder parity; “方案” terminology
+  | D-05 | TimelineUiArchitectureGuardTest (D-05 guards) + fresh resource-parity audit
+         (34/34, 0 placeholder mismatches) | PASS
+12/24 notation-only; explicit displayZone ownership
+  | D-05 | TimelineFontScaleTest 12/24 sanity + D-04 F22/F27/F28 guards + fresh
+         date-time-authority audit (0 forbidden API hits) | PASS
+
+TOTALS (fresh, XML-derived)
+  focused Phase-D JVM : 157 tests / 0 failures / 0 errors / 0 skipped
+  full JVM            : 1490 tests / 0 failures / 0 errors / 0 skipped
+  Android             : 59 tests / 0 failures / 0 errors / 0 skipped
+No requirement family is BLOCKED. No new D-06 product requirement was invented.

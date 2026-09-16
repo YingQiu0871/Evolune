@@ -1,0 +1,42 @@
+D-06 fresh Timeline resource parity audit (read-only)
+generated at HEAD 13aeaf6
+
+timeline_* + timeline_a11y_* key count: values=34 zh-rCN=34
+key set equality: True
+
+timeline_a11y_date_weekday | ph: %1$s,%2$s | values='%1$s，%2$s'
+timeline_a11y_day_cell_disabled | ph: %1$s,%2$s,%3$s | values='%1$s，%2$s，%3$s'
+timeline_a11y_day_cell_today | ph: %1$s,%2$s,%3$s | values='%1$s，%2$s，%3$s'
+timeline_a11y_day_format | ph: %1$d,%2$d | values='%1$d月%2$d日'
+timeline_a11y_row_side | ph: %1$s,%2$s,%3$s,%4$s | values='%1$s，%2$s，%3$s，%4$s'
+timeline_a11y_weekday_fri | ph:  | values='星期五'
+timeline_a11y_weekday_mon | ph:  | values='星期一'
+timeline_a11y_weekday_sat | ph:  | values='星期六'
+timeline_a11y_weekday_sun | ph:  | values='星期日'
+timeline_a11y_weekday_thu | ph:  | values='星期四'
+timeline_a11y_weekday_tue | ph:  | values='星期二'
+timeline_a11y_weekday_wed | ph:  | values='星期三'
+timeline_empty_day | ph:  | values='所选日期没有时间线记录。'
+timeline_empty_range | ph:  | values='该月份没有时间线记录。'
+timeline_entry_action | ph:  | values='打开用药时间线'
+timeline_entry_subtitle | ph:  | values='按月份查看当前方案与已记录摄入'
+timeline_entry_title | ph:  | values='用药时间线'
+timeline_error | ph:  | values='无法读取时间线记录。'
+timeline_identity_partial | ph:  | values='用药信息不完整'
+timeline_identity_unavailable | ph:  | values='用药身份不可用'
+timeline_invalid_request | ph:  | values='无法显示所选月份，请返回当前月份。'
+timeline_loading | ph:  | values='正在加载时间线…'
+timeline_month_title | ph: %1$d,%2$d | values='%1$d年%2$d月'
+timeline_next_month | ph:  | values='下一月'
+timeline_no_recorded_intake | ph:  | values='未记录摄入'
+timeline_not_loadable | ph:  | values='该月份暂不可用，请返回当前月份。'
+timeline_previous_month | ph:  | values='上一月'
+timeline_retry | ph:  | values='重试'
+timeline_return_current_month | ph:  | values='返回当前月份'
+timeline_row_identity_dose | ph: %1$s,%2$s | values='%1$s · %2$s'
+timeline_section_date_weekday | ph: %1$s,%2$s | values='%1$s %2$s'
+timeline_title | ph:  | values='用药时间线'
+timeline_today | ph:  | values='今天'
+timeline_yesterday | ph:  | values='昨天'
+
+placeholder mismatches: 0
