@@ -88,10 +88,22 @@
 - [x] Phase D · D-03 contract — **APPROVED / FROZEN**（`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`，
       `APPROVE V17-D03 CONTRACT`；含 R1/R2）：contract HEAD
       `ec0416e32ca0094ce3347a776f76c66b63c0261e`。
-- [ ] Phase D · D-03 implementation — **implemented / REVIEW PENDING**（`TimelineRangeCoordinator` /
-      `TimelineRangeState` 等 month-scoped read-only orchestration；focused 50/0/0/0 · fresh full JVM
-      1415/0/0/0 · 54/54 tasks）；D-04/D-05 NOT STARTED；D-06 = recurring gate；D-07 = final gate。
-- [ ] NEXT：**V17-D-03 implementation review**（独立复审；不自行发明范围）。
+- [x] Phase D · D-03 implementation — **APPROVED / CLOSED**（final independent implementation review
+      `APPROVE V17-D03 IMPLEMENTATION`；implementation HEAD `d7d27f204e0eb298ca9a1ac629c7022ef621f603`；
+      evidence `docs/evolune/v1.7/evidence/d-03/`）。验证摘要：focused D-03 JVM 56 / 0 / 0 / 0 ·
+      fresh full JVM 1421 / 0 / 0 / 0（app 1160 · experience-core 171 · wear 90）· 54/54 tasks ·
+      instrumentation not applicable（Android/UI-free）· evidence 170 files / 168/168 manifest
+      coverage / 170/170 HEAD blob verification / 0 mismatches · sha256(MANIFEST.sha256)
+      `bddfcd4eb8ea51d3d47c6fb12dfcba270278824616bf312a23e2f22a6b7a4d5e`。收口要点：month-scoped
+      只读编排 + client-supplied capturedAt/displayZone；结构性 INVALID_REQUEST 先于时间性
+      NOT_LOADABLE；全局 ≤1 active source read / ≤1 latest pending context / latest-request-wins；
+      publication authority 在接受时转移；pending 先验证后读；0-read generation 使旧飞行代失效；
+      NOT_LOADABLE fresh-capture 重评估。**D-03 关闭**——未经重开评审不得再改 D-03 生产。
+      P3 hygiene（仅记录，不改证据）：tr-hc-f-mapping.txt 头部为 pre-R1 计数（50/36），最终证据
+      为 56/42（复审已核实）；d-03 Gradle 日志为 UTF-16-LE（完整性已核实）——D-04 起新日志
+      显式 UTF-8 落盘、证据汇总计数从最终 XML 更新。
+- [ ] NEXT：**V17-D-04 Timeline UI pre-contract audit**（仅对账既有 deferred UI 决策，不直接
+      实现 D-04；不发明 timing-delta/adherence UI）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

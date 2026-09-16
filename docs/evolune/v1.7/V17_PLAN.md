@@ -348,14 +348,19 @@ PK output must remain explicitly model-derived.
 > NOT STARTED**（无 UI、无 ViewModel）。**NEXT: V17-D-03 contract review**；D-04/D-05 NOT STARTED；
 > D-06 = recurring gate；D-07 = final Phase-D gate；Phase C 保持 CLOSED。
 >
-> **Status note (2026-09-16, D-03 implementation)**: **D-03 contract APPROVED / FROZEN**（含 R1
-> capture/generation closure 与 R2 request replacement/revalidation；contract HEAD
-> `ec0416e32ca0094ce3347a776f76c66b63c0261e`）；**D-03 implementation 已提交、REVIEW PENDING**：
+> **Status note (2026-09-16, D-03 implementation closure)**: **D-03 contract APPROVED / FROZEN**（含 R1
+> capture/generation closure 与 R2 request replacement/revalidation，contract HEAD
+> `ec0416e32ca0094ce3347a776f76c66b63c0261e`）。**D-03 implementation — APPROVED / CLOSED**：
+> final independent implementation review `APPROVE V17-D03 IMPLEMENTATION`；implementation HEAD
+> `d7d27f204e0eb298ca9a1ac629c7022ef621f603`（R1 structural-validation precedence 强化已并入：
+> INVALID_REQUEST 结构性优先于 NOT_LOADABLE；R1-A…R1-E + constructor/combination 回归锁定）。
 > `history/timeline/` month-scoped read-only orchestration（TimelineMonthRequest / 7 phases /
-> typed state+failure / TimelineRangeCoordinator；global ≤1 active read + ≤1 latest pending context、
-> latest-request-wins、fresh capturedAt per generation、0-read pending validation、selected-date
-> intent survival；无 UI/ViewModel）。验证：focused 50/0/0/0 · fresh full JVM 1415/0/0/0 · 54/54 tasks。
-> **NEXT: V17-D-03 implementation review**；D-04/D-05 NOT STARTED；Phase C 保持 CLOSED、D-01 未被修改。
+> typed state+failure / TimelineRangeCoordinator：global ≤1 active read + ≤1 latest pending context +
+> latest-request-wins + fresh capturedAt per generation + 0-read pending validation + publication
+> authority at acceptance + in-flight valid selection survival；无 UI/ViewModel）。验证：focused
+> 56/0/0/0 · fresh full JVM 1421/0/0/0 · 54/54 tasks。**D-03 CLOSED**——未经重开评审不得再改
+> D-03 生产。**NEXT: V17-D-04 Timeline UI pre-contract audit**（仅对账既有 deferred UI 决策；
+> D-04/D-05 NOT STARTED；Phase C 保持 CLOSED；D-01 零修改）。
 
 ---
 

@@ -170,10 +170,30 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - Phase D · D-02 — **FULLY CONSUMED BY CLOSED D-01**（不创建 D-02 contract、不重编号）。
   - Phase D · D-03 contract — **APPROVED / FROZEN**（[`V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md`](v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md)，
     contract HEAD `ec0416e32ca0094ce3347a776f76c66b63c0261e`；含 R1/R2）；D-03 implementation —
-    **implemented / REVIEW PENDING**（month-scoped read-only orchestration；focused 50/0/0/0 ·
-    fresh full JVM 1415/0/0/0 · 54/54 tasks）；D-04/D-05 NOT STARTED；D-06 = recurring gate；
-    D-07 = final gate。
-  - **NEXT:** V17-D-03 implementation review（独立复审；不自行发明范围）。
+    **APPROVED / CLOSED**（final independent implementation review `APPROVE V17-D03 IMPLEMENTATION`；
+    implementation HEAD `d7d27f204e0eb298ca9a1ac629c7022ef621f603`；evidence
+    [`v1.7/evidence/d-03/`](v1.7/evidence/d-03/)）。验证摘要：focused D-03 JVM **56 / 0 failures /
+    0 errors / 0 skipped** · fresh full JVM **1421 / 0 / 0 / 0**（app 1160 · experience-core 171 ·
+    wear 90）· Gradle **54/54** actionable tasks executed · instrumentation **not applicable**
+    （D-03 Android/UI-free）· evidence **170 files · 168/168 manifest coverage · 170/170 HEAD
+    blob verification · 0 mismatches** · sha256(MANIFEST.sha256)
+    `bddfcd4eb8ea51d3d47c6fb12dfcba270278824616bf312a23e2f22a6b7a4d5e`。
+    收口语义（要点）：month-scoped 历史编排 + 显式 client-supplied capturedAt/displayZone；
+    结构性 INVALID_REQUEST 先于时间性 NOT_LOADABLE；past/current/future 边界与 History 一致；
+    selected-date 0-read 语义；恰七相位；HistoryRangeSource → coordinator → closed D-01 projector；
+    全局 ≤1 active source read + ≤1 latest pending context + latest-request-wins（load/refresh/retry
+    无类型优先级）；publication authority 在接受时转移；pending 先验证后读；0-read generation 使旧
+    飞行代失效；NOT_LOADABLE 以 fresh capture 重评估；latest logical context ≠ last published state；
+    飞行中有效 selectedDate 存活；cancellation rethrow / failure 永不转 EMPTY；Android/ViewModel/
+    lifecycle-free。**D-03 关闭**——未经重开评审不得再改 D-03 生产。
+  - **NEXT:** V17-D-04 Timeline UI pre-contract audit（仅对账 D-01/D-03 刻意 deferred 的 UI 决策；
+    不直接实现 D-04；不发明 timing-delta/adherence UI）。
+  - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
+    头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
+    Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
+    证据生成流程应从最终 XML 更新汇总计数。② d-03 Gradle 日志为 UTF-16-LE（UTF-8 卫生偏好
+    之外）；哈希/manifest/blob 完整性与解码内容已独立核实；不回写历史日志；D-04 起的证据生成
+    应在 manifest 构造前把新文本日志显式规范化为 UTF-8。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·

@@ -1,6 +1,12 @@
 # V17-D-03 — Timeline Range / Date Read Orchestration — Contract
 
-> 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-03 production NOT STARTED**）
+> 状态：`CONTRACT — APPROVED / FROZEN`；**D-03 IMPLEMENTATION — APPROVED / CLOSED**
+> （`APPROVE V17-D03 CONTRACT` 后 R1/R2 语义已并入本冻结文本；最终独立实现复审
+> `APPROVE V17-D03 IMPLEMENTATION`）
+> Approved final contract HEAD：`ec0416e32ca0094ce3347a776f76c66b63c0261e`
+> Approved final implementation HEAD：`d7d27f204e0eb298ca9a1ac629c7022ef621f603`
+> evidence：`docs/evolune/v1.7/evidence/d-03/`
+> **D-03 closure 之后，未经重开评审不得再改 D-03 生产实现。**
 > R1：capture / generation closure 修正已并入（§4/§5.1/§10/§12.1/§14/§16/§22）；其余冻结语义不变。
 > R2：request replacement / NOT_LOADABLE revalidation 修正已并入（§7.1/§7.2/§9/§12.1/§12.2/§16/§22）。
 > Round：v1.7-D / **D-03**（Timeline Range / Date Read Orchestration；read-only，无 UI、无 ViewModel）
@@ -554,7 +560,8 @@ historical prescription reconstruction、anti-androgen identity expansion、PK�
 
 ## 22. Documentation status
 
-- 本契约状态：`CONTRACT — REVIEW PENDING`；
+- 本契约状态：**`CONTRACT — APPROVED / FROZEN`**（`APPROVE V17-D03 CONTRACT` 后 R1/R2 语义并入
+  本冻结文本）；
 - **R1（capture / generation closure，architect REQUEST_CHANGES）**：已并入 §4 的 capture 归属、
   §5.1 跨午夜/跨月示例、§10 fresh-capture API 形态、§12.1 coalescing / latest-context 规则、
   §14 failure mapping 澄清、§16 的 TR25–TR28；其余冻结语义不变（D-02 consumed、month-scoped、
@@ -565,9 +572,13 @@ historical prescription reconstruction、anti-androgen identity expansion、PK�
   0-read pending validation 的 read-count 澄清）、§12.1（全局至多一个 active source read +
   单一 latest pending context + latest-request-wins + load 替换 + publication authority +
   pending 验证先于 source read）、§12.2（selection interaction 澄清）、§16 的 TR29–TR34；
-  failure mapping（§14）与 R1/既有冻结语义保持不变；状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED；
-- D-03 production：**NOT STARTED**；
-- Phase D：IN PROGRESS；D-01 CLOSED；**D-02 FULLY CONSUMED BY D-01**；D-04/D-05 NOT STARTED；
-  D-06 = RECURRING GATE；D-07 = FINAL PHASE-D GATE；
-- NEXT：**V17-D-03 contract review**；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` /
-  `V17_PLAN.md` 的最小状态行。
+  failure mapping（§14）与 R1/既有冻结语义保持不变；
+- **D-03 production：APPROVED / CLOSED** @ `d7d27f204e0eb298ca9a1ac629c7022ef621f603`
+  （最终独立实现复审 `APPROVE V17-D03 IMPLEMENTATION`；证据 `docs/evolune/v1.7/evidence/d-03/`：
+  focused 56/0/0/0 · fresh full JVM 1421/0/0/0 · 54/54 tasks · 168/168 manifest coverage ·
+  170/170 HEAD blob verification · 0 mismatches）；
+- **未经重开评审，不得再改 D-03 生产实现**；
+- Phase D：IN PROGRESS；D-01 CLOSED；**D-02 FULLY CONSUMED BY D-01**；**D-03 CLOSED**；
+  D-04/D-05 NOT STARTED；D-06 = RECURRING GATE；D-07 = FINAL PHASE-D GATE；
+- NEXT：**V17-D-04 Timeline UI pre-contract audit**（仅对账既有 deferred UI 决策，不直接实现
+  D-04，不发明 timing-delta/adherence UI）。
