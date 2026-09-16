@@ -160,10 +160,15 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
     `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
     生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
-  - Phase D · D-01 contract — **APPROVED**（[`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)）；
-    D-01 implementation — **implemented / REVIEW PENDING**（`history/timeline/` read-model；focused
-    32/0/0/0 · fresh full JVM 1365/0/0/0）；D-02…D-07 未开始。
-  - **NEXT:** V17-D-01 implementation review（Phase D 其余切片未开始；不自行发明范围）。
+  - Phase D · D-01 contract — **APPROVED / FROZEN**（[`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)，
+    contract HEAD `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`）；D-01 implementation —
+    **APPROVED / CLOSED**（implementation HEAD `97838fbf7c8692ada9d44d8401a6008283fac178`；
+    evidence [`v1.7/evidence/d-01/`](v1.7/evidence/d-01/)）。验证摘要：focused D-01 JVM 32 / 0 / 0 / 0 ·
+    fresh full JVM 1365 / 0 failures / 0 errors / 0 skipped · 54/54 Gradle tasks executed ·
+    instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
+    169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
+  - **NEXT:** Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation（D-02…D-07 未完成；
+    不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·

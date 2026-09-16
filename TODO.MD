@@ -74,12 +74,17 @@
       `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
       `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
       生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
-- [x] Phase D · D-01 contract — **APPROVED**（`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`，
-      `APPROVE V17-D01 CONTRACT`）。
-- [ ] Phase D · D-01 implementation — **implemented / REVIEW PENDING**：`history/timeline/` read-model
-      （pure projection over `HistoricalRange`；TLM1–TLM25 + TLM18 generator-parity + architecture guards；
-      focused 32/0/0/0、fresh full JVM 1365/0/0/0）；D-02…D-07 未开始。
-- [ ] NEXT：**V17-D-01 implementation review**（独立复审；Phase D 其余切片未开始）。
+- [x] Phase D · D-01 contract — **APPROVED / FROZEN**（`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`，
+      `APPROVE V17-D01 CONTRACT`）：contract HEAD `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`。
+- [x] Phase D · D-01 implementation — **APPROVED / CLOSED**（final independent implementation review
+      APPROVE）：implementation HEAD `97838fbf7c8692ada9d44d8401a6008283fac178`；
+      evidence `docs/evolune/v1.7/evidence/d-01/`。验证摘要：focused D-01 JVM 32 / 0 / 0 / 0 ·
+      fresh full JVM 1365 / 0 failures / 0 errors / 0 skipped · 54/54 Gradle tasks executed ·
+      instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
+      169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
+- [ ] NEXT：**Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation**（D-01 已交付 row
+      projection / date-section model / canonical ordering / same-instant determinism，故 PLAN §7 的
+      D-02 "chronological grouping" 需先对账；D-02…D-07 未完成、不发明 D-02 contract）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

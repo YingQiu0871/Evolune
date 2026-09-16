@@ -324,6 +324,18 @@ PK output must remain explicitly model-derived.
 > delta 显式排除、OCCURRENCE_ORDER 字段序列排序 + TLM18 live generator-parity、architecture guards）；
 > focused 32/0/0/0 · fresh full JVM 1365/0/0/0 · 54/54 tasks。**NEXT: V17-D-01 implementation review**；
 > D-02…D-07 未开始；Phase C 保持 CLOSED、C-01/C-04 未被依赖或修改。
+>
+> **Status note (2026-09-16, D-01 closure)**: **D-01 implementation APPROVED / CLOSED**（final
+> independent implementation review APPROVE）：contract HEAD
+> `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`（APPROVED / FROZEN），implementation HEAD
+> `97838fbf7c8692ada9d44d8401a6008283fac178`，evidence `docs/evolune/v1.7/evidence/d-01/`。
+> 验证：focused 32/0/0/0 · fresh full JVM 1365/0/0/0 · 54/54 tasks · instrumentation N/A
+> （无 Android/UI surface）· evidence 167/167 manifest coverage、169/169 blob verification、0 mismatches。
+> **D-01 冻结**：未经重开评审不得再改 D-01 生产。由于 D-01 已交付 row projection / date-section
+> model / canonical chronological ordering / same-instant determinism，**PLAN §7 的 D-02
+> "chronological grouping" 需先对账**：**NEXT: Phase-D post-D01 remaining-scope audit /
+> D-02…D-03 reconciliation**；D-02…D-07 未完成、不发明 D-02 contract；Phase C 保持 CLOSED；
+> delta/early-late/on-time 等 gated 语义保持未授权。
 
 ---
 

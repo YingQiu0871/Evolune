@@ -1,6 +1,10 @@
 # V17-D-01 — Timeline Read Model / Row Projection — Contract
 
-> 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-01 production NOT STARTED**）
+> 状态：`CONTRACT — APPROVED / FROZEN`（**D-01 APPROVED / CLOSED**）
+> Approved contract HEAD：`a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`
+> Approved implementation HEAD：`97838fbf7c8692ada9d44d8401a6008283fac178`
+> evidence：`docs/evolune/v1.7/evidence/d-01/`
+> **No further D-01 production changes are authorized without reopening review.**
 > Round：v1.7-D / **D-01**（Timeline Read Model / Row Projection；semantics/read-model only，无 UI）
 > Base HEAD：`cfbf545dd81105367e304814c7ece9d7d79292c1`（Phase C APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -399,7 +403,18 @@ reconstruction · anti-androgen identity expansion · CPA PK · 任何 PK calcul
 
 ## 23. Documentation status
 
-- 本契约状态：`CONTRACT — REVIEW PENDING`；
-- D-01 production：**NOT STARTED**；
-- Phase D：planning started；D-02…D-07 未开始；
+- 本契约状态：`CONTRACT — APPROVED / FROZEN`；
+- D-01 production：**APPROVED / CLOSED** @ `97838fbf7c8692ada9d44d8401a6008283fac178`
+  （approved contract HEAD `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`；evidence
+  `docs/evolune/v1.7/evidence/d-01/`）；**No further D-01 production changes are authorized
+  without reopening review.**
+- Phase D：IN PROGRESS；**D-02…D-07 NOT STARTED / unreconciled after D-01**（下一步为
+  Phase-D post-D01 remaining-scope audit / D-02…D-03 reconciliation）。
 - 指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` / `V17_PLAN.md` 的最小状态行。
+
+### 23.1 Implementation-review P3 dispositions（recorded only；不修改生产）
+
+- D-01 的 Gradle 证据日志恰好以 UTF-16-LE 存储；历史文件保持原样不动，未来 evidence logs
+  宜优先使用 UTF-8。
+- `compareAtSameInstant` 的防御性非空断言由 Timeline row-construction invariant 支撑；
+  非阻塞，不为此改动生产。
