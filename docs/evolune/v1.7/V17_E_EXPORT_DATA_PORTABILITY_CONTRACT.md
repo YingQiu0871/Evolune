@@ -56,13 +56,18 @@ schema/DAO/migration 改动。
 
 ## 2. Portable truth scope（冻结）
 
-Canonical Phase-E portable truth **仅包含 `dose_events`**，且包含精确可携所需的**全部持久化
-事件真值字段**：
+Canonical Phase-E portable truth **仅包含 `dose_events`**，且包含精确可携所需的**全部
+portable 事件语义字段（11 项）**：
 
 ```text
 id, actual_time(occurredAt), local_date, zone_id, route, ester, dose_mg, extras,
-slot_id, source, status, revision
+slot_id, source, status
 ```
+
+**revision 分类（R1 冻结）**：`revision` 是 **repository optimistic-concurrency metadata**，
+**不是** Phase-E portable medication truth。Canonical export 不含 `revision`；canonical
+import 不重建 `revision`（新导入事件由既有 repository insert contract 以 **`revision = 1`**
+创建）。**No repository/DAO/schema reopen is authorized**（EG2）。
 
 **明确排除**（不得进入 canonical 导出）：body weight、plans、scheduled slots、settings、
 theme/preferences、tutorial/onboarding state、Drive state、Health Connect state、
@@ -78,7 +83,8 @@ generated occurrences、UI state。
 ```text
 A. Evolune Portable JSON v1
    - 新的 canonical Phase-E structured portability 格式
-   - dose_events full-fidelity；import + export；由 Evolune 版本化
+   - dose_events portable-field fidelity（11 项语义字段；`revision` 除外，见 §2）；
+     import + export；由 Evolune 版本化
    - 用于满足 E2/E3/E7
 B. Mahiro JSON v1
    - 既有 legacy compatibility 格式（外部/历史互操作）
@@ -116,7 +122,9 @@ version != 1 / future version
 ```
 
 返回 typed unsupported/invalid-format 结果。**禁止** silent version fallback。
-（对比：现有 Mahiro codec 从不读 version —— 该缺口由 §20 legacy version gate 单独关闭。）
+（对比：既有 Mahiro codec 有意不读 version、且接受无 meta 文档 —— 该 legacy 宽松性是**刻意
+保留**的兼容面（§20）；canonical strict schema/version 边界由 Evolune Portable JSON v1 自己
+提供，E2 不依赖加固 Mahiro。）
 
 ## 6. JSON 顶层 schema（冻结；Table A）
 
@@ -182,7 +190,7 @@ E1 要求 export 全程 **zero writes**（§47 E1.*；§58 计数型替身断言
 ## 10. Canonical event JSON fields（冻结；Table B）
 
 每个 event object 字段**固定顺序**、全部必存（nullable 字段以 JSON `null` 显式存在，禁止
-silently omit）：
+silently omit）。Canonical event 共 **11 字段**：
 
 | # | field | type | semantics |
 |---|---|---|---|
@@ -197,7 +205,9 @@ silently omit）：
 | 9 | `slot_id` | string\|null | 持久 `slotId` UUID 字符串或 null |
 | 10 | `source` | string | 持久 source wire（§0 词汇） |
 | 11 | `status` | string | 持久 status wire（§16） |
-| 12 | `revision` | integer | 持久 revision（>=1） |
+
+**`revision` 不在 canonical event schema 中**（§2 分类：repository optimistic-concurrency
+metadata；import 不重建，新行由既有 insert contract 以 `revision = 1` 创建）。
 
 **禁止**：planName、schedule context、medication identity inference（来自 UI label/plan）、
 derived provenance。Canonical JSON 的 route/ester/extras 就是 lossless authority。
@@ -251,12 +261,13 @@ Null remains null（保留歧义，不猜测；Decision G 语义不变）。
 - CSV 使用同一 canonical numeric text；
 - **无单位换算**；unit 由 schema 定义为 mg。
 
-## 16. Source / Status / Revision（冻结）
+## 16. Source / Status（冻结）
 
-- 精确保留持久 `source` / `status` / `revision`，使用稳定 wire 值（§0 词汇）；
+- 精确保留持久 `source` / `status`，使用稳定 wire 值（§0 词汇）；
 - `status` 不映射为 missed/late/on-time/adherent/non-adherent（除非该字面值已存在于权威
   持久 enum —— 当前唯一值为 `RECORDED`）；
-- **无** derived timing/adherence classification。
+- **无** derived timing/adherence classification；
+- `revision` 不属于 portable truth（§2）：export 不输出、import 不重建。
 
 ## 17. JSON unknown-field policy（冻结）
 
@@ -282,11 +293,23 @@ additive —— 不是 restore，不是 replace，不 merge plans/settings
 field、校验每个 event、校验 event IDs、校验 finite numbers、校验 enum wire values、
 校验 extras 键词汇、校验大小上限（§32）。只有全部结构/语义校验通过后才允许 repository 写入。
 
+**Collision equality（R1 冻结）**：canonical import 的相等性判定覆盖 **11 个 portable
+字段**（id + 其余 10 个），**有意忽略 repository `revision`**：
+
+```text
+same id + 其余 10 个 portable 字段全部相等 -> IDEMPOTENT（zero write）
+same id + 任一 portable 字段不同          -> CONFLICT（拒绝、计数；不 overwrite）
+absent id                                 -> 构造 event 且 revision = 1，再经既有
+                                             DoseEventRepository.insert 插入
+```
+
+**禁止** DAO bypass；**禁止** repository API extension；**禁止** restore path。
+
 | 场景 | 结果（观察性） |
 |---|---|
-| same id + same authoritative payload | **IDEMPOTENT**（不覆盖、不重复） |
-| same id + different authoritative payload | **CONFLICT**（拒绝该条、计数；不 overwrite） |
-| new id | **INSERTED** |
+| same id + same authoritative payload（11 portable 字段相等） | **IDEMPOTENT**（不覆盖、不重复；忽略 revision） |
+| same id + different authoritative payload（任一 portable 字段不同） | **CONFLICT**（拒绝该条、计数；不 overwrite） |
+| new id | **INSERTED**（revision = 1） |
 | 语义等价但不同 id | 作为独立新事件插入（**无** semantic-equality dedup） |
 | settings/plans | **不写**（canonical import 不触碰） |
 
@@ -307,18 +330,23 @@ Canonical import **不是** file-transactional（明确冻结，非意外行为�
 因为 canonical rows 始终携带稳定 UUID，**重试同一份 canonical 文件对已插入的 identical rows
 是 replay-safe 的**（idents -> Idempotent；冲突行 -> Conflict；不会重复）。
 
-## 20. Legacy Mahiro version gate（冻结）
+## 20. Legacy Mahiro version policy（冻结 — permissive compatibility）
 
-对 legacy Mahiro JSON v1 import 进行**窄化加固**：
+Legacy Mahiro JSON v1 保持**既有宽松兼容面**，Phase E **不引入**任何新的 Mahiro version
+rejection：
 
 ```text
-meta.version 必须存在且等于数值 1
+existing accepted documents remain accepted
+meta may be absent
+meta.version is NOT used as the canonical Evolune version authority
+existing unrelated/unknown-field tolerance remains
+existing ID-generation behavior remains
+existing lossy field behavior remains
 ```
 
-在任何 event 写入之前拒绝：missing meta/version、wrong type、version != 1；返回 typed
-legacy-format/version failure。已接受的 Mahiro v1 文档内部：继续保留既有的
-unrelated/unknown fields 兼容规则（除非既有 Mahiro authority 明确禁止）。**禁止**把 Mahiro
-改造成严格的 Evolune schema。
+**禁止**把 Mahiro 改造成严格 schema；**禁止**声称 Mahiro 是 schema-strict；**禁止**用
+Mahiro 作为 canonical E2/E7 证明。canonical strict schema/version 边界完全由 §5 的
+Evolune Portable JSON v1 承担（format/UI/action 显式区分，见 §3/§35）。
 
 ## 21. Legacy Mahiro id behavior（冻结）
 
@@ -338,7 +366,7 @@ missing/malformed/non-UUID id : legacy importer 可照现状生成新 UUID
 行为，并满足：
 
 ```text
-possible 时在写入前完成 whole-document schema/version 校验；
+possible 时在写入前完成 whole-document 结构解析校验（no new version gate）；
 storage abort 时返回 typed partial summary；
 不得有 uncaught exception 进入 UI；
 不得复用任何 B2 restore machinery。
@@ -351,7 +379,7 @@ CSV v1 是 **EXPORT ONLY**（spreadsheets / analysis）。v1.7 Phase E **无 CSV
 
 ## 24. CSV exact columns（冻结；Table C）
 
-精确 v1 header order（**17 列**，顺序固定、无未文档化列）：
+精确 v1 header order（**16 列**，顺序固定、无未文档化列）：
 
 | # | column | semantics |
 |---|---|---|
@@ -370,15 +398,16 @@ CSV v1 是 **EXPORT ONLY**（spreadsheets / analysis）。v1.7 Phase E **无 CSV
 | 13 | `zone_id` | 持久 zone_id 文本，否则 empty |
 | 14 | `slot_id` | 持久 slot_id 文本，否则 empty |
 | 15 | `source` | 持久 source wire |
-| 16 | `revision` | 持久 revision 文本 |
-| 17 | `extras_json` | canonical compact JSON object（键 lexical 升序；§28） |
+| 16 | `extras_json` | canonical compact JSON object（键 lexical 升序；§28） |
+
+（`revision` 列已移除；R1 冻结 —— 不以任何其他 internal-concurrency 列替代，§2。）
 
 Header 顺序文本（唯一权威列举）：
 
 ```text
 schema_version, event_id, date, medication, dose, route, planned_time,
 actual_time, timing_delta, event_type, status, ester, zone_id, slot_id,
-source, revision, extras_json
+source, extras_json
 ```
 
 Header alone 标识一个 empty v1 export（零事件时仅 header + final LF）。
@@ -426,8 +455,8 @@ route/ester 值在无新合约前一律 empty（fail closed 到空而非猜测�
 
 ## 28. CSV lossless support fields 与序列化（冻结）
 
-`event_id` / `ester` / `zone_id` / `slot_id` / `source` / `revision` / `extras_json` 存在的
-目的即为防止 human-readable 列破坏事件真值：
+`event_id` / `ester` / `zone_id` / `slot_id` / `source` / `extras_json` 存在的
+目的即为防止 human-readable 列破坏事件真值（`revision` 不在此列 —— §2 分类）：
 
 - `extras_json`：canonical **compact** JSON object（无 pretty 缩进；键 lexical 升序；数值同
   §15 canonical text）；UTF-8 内容由 normal CSV quoting 转义；
@@ -596,14 +625,17 @@ SAF destination 由用户选择。不得做未测量的 security 断言（§49 E
 
 ```text
 export from repository A -> import into an empty compatible repository B
-must preserve exactly the exported dose-event truth:
+must preserve all Phase-E portable medication-event semantics exactly:
 id, actual_time, local_date, zone_id, route, ester, dose_mg, extras,
-slot_id, source, status, revision
+slot_id, source, status
+repository concurrency revision is intentionally outside the portability contract.
 ```
 
 除同一值的 canonical textual serialization 外**无任何 normalization**。
-再次导入同一份 canonical 文件：全部 identical existing rows -> idempotent，无 duplicate；
-conflicting same IDs -> 报告为 conflicts，不 overwrite。
+Required empty-repository round-trip preserves the 11 portable fields above；imported
+repository rows 的 `revision` 从 **1** 开始 —— **不**归类为 semantic data loss。
+再次导入同一份 canonical 文件：全部 identical existing rows（11 portable 字段相等）-> idempotent，
+无 duplicate；conflicting same IDs -> 报告为 conflicts，不 overwrite。
 
 ## 39. E7 event classes（冻结；必需 fixture）
 
@@ -639,7 +671,7 @@ canonical round-trip 格式（不得用作 E7 证明）。
 |---|---|
 | 输出形状/词汇/文件命名 | 保持现状（golden/固定时钟测试锁定） |
 | import 对 unknown fields | 保持 v1 兼容忽略规则 |
-| import version gate | 由 §20 加固（meta.version == 1，缺失/错误类型/≠1 拒绝，zero writes） |
+| import version policy | **permissive legacy**：无新 version gate；meta 可缺失；meta.version 不作为 canonical Evolune version authority；既有接受行为保持（§20） |
 | id 行为 | 由 §21 冻结（valid UUID 保留；missing/malformed 可生成新 UUID —— documented legacy limitation） |
 | atomicity | 由 §22 冻结（additive per-record；typed partial；无 uncaught） |
 | plans/settings/weight | 不扩展；Mahiro 的历史 weight 行为不变 |
@@ -677,7 +709,7 @@ Export-vs-backup boundary（Table H）：
 |---|---|---|
 | audience | user / analyst / other app | Evolune only |
 | readability | plaintext | AES-GCM ciphertext + passphrase |
-| content | dose_events（full-fidelity, 12 fields） | plans + slots + full events + settings |
+| content | dose_events（11 portable fields；revision 为 repository-local concurrency metadata，不在格式内） | plans + slots + full events + settings |
 | versioning | `schema` + `version`（strict, fail-closed） | envelope/payload versions（strict, fail-closed） |
 | restore path | none（additive import only） | B2 journaled full replacement |
 | names | `evolune-export-<range>-<date>.json/.csv` | `evolune-backup-<ts>-<uuid>.evbackup` |
@@ -688,11 +720,18 @@ Export-vs-backup boundary（Table H）：
 - **P2-1（无 uncaught export exception / 无 main-thread serializer path）**：§33 typed export
   result 模型 + §32 off-main 冻结 + §27（legacy UI 序列化 off-main）+ §47 E6.1/E6.7。
   No UI callback may receive uncaught `IllegalArgumentException`；用户可见 localized error。
-- **P2-2（version policy 冻结）**：§5 canonical strict schema/version（含 future-version 拒绝）；
-  §20 legacy `meta.version == 1` explicit gate（zero writes on rejection）。
+- **P2-2（version policy — R1 修正措辞）**：旧 Mahiro path **刻意保留为 permissive legacy
+  compatibility surface**（§20）；Phase E **不**把它当作 canonical structured-portability
+  contract，也**不**宣称它 fail-closed。新的 **Evolune Portable JSON v1**（§5）提供 E2/E7 所需的
+  strict schema/version 边界（missing/wrong schema、missing/non-integer/wrong/future version、
+  unknown canonical field、duplicate key -> 全部在任何写入前拒绝）。由于 UI/actions/format 显式
+  区分（§3/§35），未来任何 canonical Evolune 文档**不会**静默落入 Mahiro parser。
 - **P2-3（import atomicity 冻结）**：§18 全量预校验 + additive per-record writes；§19
-  documented partial storage-failure 语义；stable-ID replay safety（canonical）；§21 legacy
-  id rule documented。
+  documented partial storage-failure 语义；§18 stable-ID replay safety（canonical；equality
+  覆盖 11 portable 字段、忽略 revision）；§21 legacy id rule documented。
+- **revision 边界（R1 补充）**：exact repository revision/state preservation 属于 application
+  recovery 语义，不属于 user-data portability；Phase E **不得**为保留 revision 而复制
+  backup/restore machinery（§4/E4 不变）。
 
 No P2 may remain “implementation choice”。
 
@@ -724,9 +763,9 @@ No P2 may remain “implementation choice”。
 | # | requirement | 判定 / 证据 |
 |---|---|---|
 | E2.1 | Canonical JSON v1 schema 文档化：`schema`/`version` 标识、五顶层字段、事件字段顺序、null/empty 语义、wire 词汇 | 本契约 §5/§6/§10/§14/§16 + golden fixtures 绑定 |
-| E2.2 | CSV v1 schema 文档化：17 列固定顺序、header-only 空导出、`schema_version=1` | 本契约 §24 + golden fixtures |
+| E2.2 | CSV v1 schema 文档化：16 列固定顺序、header-only 空导出、`schema_version=1` | 本契约 §24 + golden fixtures |
 | E2.3 | import failure matrix：missing/wrong schema、missing/future version、unknown field、duplicate key、malformed JSON、invalid UUID、invalid enum、non-finite number、over-size、over-count -> typed failure + zero writes | JVM 测试矩阵（§47 EG19/EG17） |
-| E2.4 | legacy Mahiro failure acceptance：meta.version==1 接受；missing/version≠1 拒绝且 zero writes；v1 unknown-field 兼容保持；wire spellings 保持 | JVM legacy 测试补充（§20/§40） |
+| E2.4 | legacy Mahiro **compatibility-regression**（R1）：无 meta/version 文档 accepted；既有 v1 exported 文档 accepted；unrelated `meta.version` 值**不**成为 canonical Evolune version authority；既有 unknown-field 兼容保持；既有 wire spellings 保持；**无**新增 Mahiro version rejection | JVM legacy regression 补充（§20/§40） |
 | E2.5 | CSV medication mapping 穷举且可测（Table D 每一行） | JVM fixture 覆盖每一条映射规则 |
 
 ### E3 — 序列化确定性
@@ -770,7 +809,7 @@ No P2 may remain “implementation choice”。
 
 | # | requirement | 判定 / 证据 |
 |---|---|---|
-| E7.1 | export -> import into empty repo：12 字段精确保留 | round-trip fixture（§38/Table I） |
+| E7.1 | export -> import into empty repo：11 portable 字段语义精确保留（revision 不在内；imported revision 从 1 开始，不算 semantic data loss） | round-trip fixture（§38/Table I） |
 | E7.2 | §39 九类事件 fixture 全部无损表示（含 null/partial/ambiguous） | fixture 测试 |
 | E7.3 | CSV fixture：每类事件 truthful deterministic 表示，无 invented planned/delta/adherence | CSV golden 断言（§25/§26） |
 | E7.4 | legacy Mahiro lossiness 保留为显式文档，不作为 E7 证明 | §40 记录（Table G） |
@@ -807,7 +846,7 @@ No P2 may remain “implementation choice”。
 | EG17 | 超限输入继续 parse/write（未在写入前执行 MAX_INPUT_BYTES / MAX_EVENT_COUNT） |
 | EG18 | uncaught exporter/serializer exception 进入 UI；stack trace/path 作为用户文案 |
 | EG19 | canonical import 在完整预校验前开始写入（validation failure 必须 zero writes） |
-| EG20 | legacy Mahiro import 跳过 meta.version == 1 gate |
+| EG20 | canonical strict schema/version 逻辑被委托给 Mahiro；Mahiro 被当作 canonical（或被改造成 strict schema）；Phase-E 实现为满足 canonical E2 versioning 而破坏既有 legacy decoder 兼容（permissive meta 行为、unknown-field 容忍、wire spellings） |
 | EG21 | canonical import 重新生成 event ID（identity 必须保留） |
 | EG22 | 依赖 DAO/返回顺序的序列化排序（必须 §30 排序） |
 | EG23 | main-thread full-history serialization / blocking IO |
@@ -831,7 +870,8 @@ zero-write counting（E1）
 round-trip + replay suite（E7.1/E7.5）
 boundary + DST/timezone fixtures（E5）
 large-history bounded fixture（E5.4）
-legacy version-gate + compatibility fixtures（E2.4）
+legacy compatibility-regression fixtures（E2.4：no-meta accepted / unrelated meta.version 非
+authority / unknown-field 容忍 / wire spellings 保持）
 resource parity（Phase-E key family）+ placeholder parity + forbidden-vocabulary scan
 UTF-8 文本证据（manifest 前归一化；无 UTF-16；implementation.diff 用 git-native 字节重定向）
 MANIFEST.sha256 + coverage + post-commit HEAD-blob verification（0 mismatch）
