@@ -1,6 +1,7 @@
 # V17-D-03 — Timeline Range / Date Read Orchestration — Contract
 
 > 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-03 production NOT STARTED**）
+> R1：capture / generation closure 修正已并入（§4/§5.1/§10/§12.1/§14/§16/§22）；其余冻结语义不变。
 > Round：v1.7-D / **D-03**（Timeline Range / Date Read Orchestration；read-only，无 UI、无 ViewModel）
 > Base HEAD：`a536e27fea49ec488c2c3a241e0bdb4182df6912`（D-01 APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -105,8 +106,13 @@ TimelineMonthRequest(
 规则：
 
 - **不得**使用隐式 system time / system zone：`capturedAt` 由调用方提供，`displayZone` 显式；
-- `today = capturedAt.atZone(displayZone).toLocalDate()`；
-- `capturedAt` **每 generation 只捕获一次**（由调用方在构造 request 时捕获；coordinator 不改写）。
+- `today = generationCapturedAt.atZone(displayZone).toLocalDate()`；
+- **每个新的 load generation 都必须接收新供给的 `capturedAt`**；`capturedAt` 在该 generation 内
+  不可变；
+- `refresh` / `retry` **不得**静默复用上一 generation 的 `capturedAt`（API 归属见 §10）；
+- `today` 对每个新的 load / refresh / retry generation **重新计算一次**；
+- **不得**内部使用：`Instant.now()`、`Clock.system*`、`ZoneId.systemDefault()`；
+- D-03 无隐式 clock：`capturedAt` 一律由调用方在构造 request/context 时供给。
 
 ---
 
@@ -121,6 +127,23 @@ TimelineMonthRequest(
 - 规则与 History 现行装载语义逐条一致（§0 引用 `HistoryViewModel.kt:138`）；
 - **未来日期绝不发送给 `HistoryRangeSource`**；
 - **不**把 future month clamp 进别的月份；**不**产生 future rows。
+
+### 5.1 Cross-midnight / cross-month examples（冻结示例）
+
+```text
+Generation N:
+  capturedAt = Sep 16 23:59 (displayZone)  ->  today = Sep 16
+
+refresh generation N+1:
+  capturedAt = Sep 17 00:01                ->  today = Sep 17
+  -> current-month effective end 变为 Sep 17
+
+Sep 30 -> Oct 1 refresh（requested month 仍为 Sep）:
+  Sep 变为 past month
+  -> effective Sep range = 完整月份（atDay(1) .. atEndOfMonth()）
+```
+
+这是预期的 **new-generation capture** 行为，**不是** request mutation。
 
 ---
 
@@ -215,19 +238,29 @@ TimelineRangeState(
 
 ---
 
-## 10. Refresh semantics（冻结）
+## 10. Refresh semantics（R1 修订：fresh-capture 归属）
 
-D-03 只拥有显式：
+D-03 只拥有显式 refresh / retry，且**每次都必须接收新供给的 capture 上下文**。
 
-- `refresh()`
-- `retry()`
+允许的等价实现形态（Kotlin 名称为实现规划值）：
 
-二者都针对**当前 month/request 上下文**发起**新的 load generation**：
+- `refresh(capturedAt: Instant)` / `retry(capturedAt: Instant)`；或
+- `refresh(newRequestContext)` / `retry(newRequestContext)`——新上下文提供 fresh `capturedAt`，
+  同时按需保留当前 requested month / selected date / display zone。
 
-- CONTENT / EMPTY_RANGE / EMPTY_DAY 之后 `refresh()` → 新权威读取；
-- ERROR 之后 `retry()` → 新权威读取。
+规则：
 
-**不得**增加：polling、timer refresh、live subscription、persisted cache、background monitor。
+- 每个新 generation 使用**新供给的** `capturedAt`；`today` 对该 generation 重新计算（§4/§5.1）；
+- **不允许**无参 refresh/retry 复用上一 generation 的 `capturedAt`，除非显式注入的 capture
+  provider 提供了新的 Instant；D-03 已选择 client-supplied capture，因此**优先显式 fresh-capture
+  形态**，**不**引入内部 clock abstraction；
+- `retry` 在 ERROR 后启动新 generation 且接收 fresh `capturedAt`；它保留逻辑 requested month 与
+  当前 selected-date intent，但**必须按新 generation 的 `today` 重新校验**——跨午夜后 valid 性
+  变化按新 today 判定（例如原本 in-month-and-<=today 的选择变为仍 valid；原本 <=today 但如今
+  仍 valid；任何变为 future 的选择按新 today 进入 NOT_LOADABLE），**不得**复用 stale today；
+- CONTENT / EMPTY_RANGE / EMPTY_DAY 之后 `refresh` → 新权威读取；
+- ERROR 之后 `retry` → 新权威读取；
+- **不得**增加：polling、timer refresh、live subscription、persisted cache、background monitor。
 
 ---
 
@@ -251,6 +284,24 @@ D-03 只暴露 `refresh()`。后续 D-04 ViewModel/surface contract 可用已批
 - 但：读取在飞行期间发生的 selection 变更，**不得**在读取完成时被该请求的旧 selectedDate 覆盖
   —— 完成发布时必须用**当前** `selectedDate` 重新派生 `selectedDay`/phase（TR17 必须显式测试）。
 
+### 12.1 Coalescing + generation race closure（R1 冻结）
+
+若 generation N 的读取在飞行中且 refresh 被接受：
+
+1. **立即** reserve/claim 一个更新的 generation；
+2. generation N 从此**不能**再发布终态；
+3. 排队**恰好一个** follow-up 权威读取。
+
+若 follow-up 开始前又有更多 refresh 到达：
+
+- 不启动并行读取；全部 coalesce 进那一个 pending follow-up；
+- pending follow-up 使用**最新被接受的 refresh capture context**（含最新 `capturedAt`）；
+- 更早排队的 capture contexts 被 **superseded**。
+
+冻结不变量：maximum concurrent authoritative reads = **1**；pending follow-up count **≤ 1**；
+stale active result **不能发布**；queued follow-up capture = **latest accepted context**。
+不引入 polling / cache / subscription。
+
 ---
 
 ## 13. Coalescing（冻结最小纪律）
@@ -272,14 +323,22 @@ sealed interface TimelineRangeFailure
 
 （形状沿用 `InsightsLoadFailure` 惯例；§0 引用。）
 
-规则：
+规则（R1 澄清；source-verified precedent：`InsightsViewModel` / `RetrospectivePkViewModel`）：
 
-- **source/read failure ≠ EMPTY_RANGE**：读取失败必须进入 ERROR + failure，永不转成空；
+- `CancellationException` **永远 rethrow**，绝不转成 ERROR；
+- 已知 source/read failures → `ReadFailure` → ERROR（**source/read failure ≠ EMPTY_RANGE**，
+  永不转成空）；
+- **显式识别的**（dedicated typed）orchestration/projection contract failure → `ContractViolation`
+  → ERROR；当前 history 读取层没有此类专用违例类型，因此实现轮只可为**明确类型化**的违例做
+  该映射；
+- 其余 unexpected programmer/invariant exceptions（含 `RuntimeException`）按项目先例映射为
+  `ReadFailure` → ERROR（precedent：`catch (error: Throwable) -> ReadFailure`），
+  **绝不**被吞掉为 EMPTY；
 - **contract-invalid request**（INVALID_REQUEST）与 **future/not-loadable**（NOT_LOADABLE）是
   typed **phase**，不是 `TimelineRangeFailure`；
-- `CancellationException` **永远 rethrow**，绝不转成 ERROR；
-- programmer/invariant violations（如 D-01 投影抛错）→ `ContractViolation` → ERROR，
-  **不得**被静默转换为用户可见的空。
+- reviewer-attention：若实现轮希望把特定 fail-fast 上游类型（例如 history 层的
+  `IllegalStateException` check 失败）单独映射为 `ContractViolation`，必须在实现评审中显式论证，
+  不得默认 broad catch。
 
 ---
 
@@ -329,6 +388,10 @@ sticky headers。
 | TR22 | 不合成 future rows |
 | TR23 | 无 delta/adherence 语义 |
 | TR24 | 相同 request + 相同 source 结果 -> 确定性输出 |
+| TR25 | refresh 跨本地午夜使用 fresh capturedAt，并把 current month 的 effective end 扩展到新 today |
+| TR26 | refresh 跨月边界把原 current month 重新归类为 past month，并使用完整月份边界 |
+| TR27 | 一次飞行读取期间多次 refresh 合并为恰好一个 follow-up，且使用最新供给的 capturedAt/context |
+| TR28 | 更新的 0-read INVALID_REQUEST/NOT_LOADABLE generation 被认领后，旧飞行 generation 不能发布 |
 
 Architecture/static guards（实现轮必须证明不存在）：DAO/Room/repository、`HistoryReadService`、
 `AllAvailableHistorySource`、matcher/generator、D-01 修改、retrospective/PK、Compose/navigation/
@@ -414,6 +477,11 @@ historical prescription reconstruction、anti-androgen identity expansion、PK�
 ## 22. Documentation status
 
 - 本契约状态：`CONTRACT — REVIEW PENDING`；
+- **R1（capture / generation closure，architect REQUEST_CHANGES）**：已并入 §4 的 capture 归属、
+  §5.1 跨午夜/跨月示例、§10 fresh-capture API 形态、§12.1 coalescing / latest-context 规则、
+  §14 failure mapping 澄清、§16 的 TR25–TR28；其余冻结语义不变（D-02 consumed、month-scoped、
+  past/current/future boundaries、selection 规则、七相位、read-count、no-future、D-01 freeze、
+  D-04/D-05 留开、gated 语义、D-06/D-07 分类、F1–F16 均未改动）；
 - D-03 production：**NOT STARTED**；
 - Phase D：IN PROGRESS；D-01 CLOSED；**D-02 FULLY CONSUMED BY D-01**；D-04/D-05 NOT STARTED；
   D-06 = RECURRING GATE；D-07 = FINAL PHASE-D GATE；
