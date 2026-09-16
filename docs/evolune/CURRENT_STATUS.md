@@ -186,8 +186,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     飞行代失效；NOT_LOADABLE 以 fresh capture 重评估；latest logical context ≠ last published state；
     飞行中有效 selectedDate 存活；cancellation rethrow / failure 永不转 EMPTY；Android/ViewModel/
     lifecycle-free。**D-03 关闭**——未经重开评审不得再改 D-03 生产。
-  - **NEXT:** V17-D-04 Timeline UI pre-contract audit（仅对账 D-01/D-03 刻意 deferred 的 UI 决策；
-    不直接实现 D-04；不发明 timing-delta/adherence UI）。
+  - Phase D · D-04 contract — **CONTRACT — REVIEW PENDING**
+    （[`V17_D_04_TIMELINE_UI_CONTRACT.md`](v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md)）：Timeline UI
+    （History → 入口卡片 → dedicated sub-route；calendar 居中 / body 左对齐；selectedDate = focus；
+    无 timing-delta/adherence、无 route date 参数、无持久化）；**D-04 PRODUCTION NOT STARTED**；
+    D-05 NOT STARTED。
+  - **NEXT:** V17-D-04 contract review（契约批准前不得开工 D-04 生产；不自行发明范围）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

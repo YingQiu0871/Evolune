@@ -102,8 +102,11 @@
       P3 hygiene（仅记录，不改证据）：tr-hc-f-mapping.txt 头部为 pre-R1 计数（50/36），最终证据
       为 56/42（复审已核实）；d-03 Gradle 日志为 UTF-16-LE（完整性已核实）——D-04 起新日志
       显式 UTF-8 落盘、证据汇总计数从最终 XML 更新。
-- [ ] NEXT：**V17-D-04 Timeline UI pre-contract audit**（仅对账既有 deferred UI 决策，不直接
-      实现 D-04；不发明 timing-delta/adherence UI）。
+- [ ] Phase D · D-04 contract — **CONTRACT — REVIEW PENDING**（`V17_D_04_TIMELINE_UI_CONTRACT.md`）：
+      Timeline UI（History → 入口卡片 → dedicated sub-route；calendar 居中 / body 左对齐；
+      selectedDate = focus 非过滤；无 timing-delta/adherence；无 route date 参数；无持久化）。
+      **D-04 PRODUCTION NOT STARTED**；D-05 NOT STARTED；D-06 recurring gate；D-07 final gate。
+- [ ] NEXT：**V17-D-04 contract review**（契约批准前不得开工 D-04 生产；不自行发明范围）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

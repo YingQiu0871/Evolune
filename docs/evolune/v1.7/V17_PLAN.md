@@ -361,6 +361,19 @@ PK output must remain explicitly model-derived.
 > 56/0/0/0 · fresh full JVM 1421/0/0/0 · 54/54 tasks。**D-03 CLOSED**——未经重开评审不得再改
 > D-03 生产。**NEXT: V17-D-04 Timeline UI pre-contract audit**（仅对账既有 deferred UI 决策；
 > D-04/D-05 NOT STARTED；Phase C 保持 CLOSED；D-01 零修改）。
+>
+> **Status note (2026-09-16, D-04 contract)**: **V17-D-04 Timeline UI contract 已起草**
+> （[`V17_D_04_TIMELINE_UI_CONTRACT.md`](V17_D_04_TIMELINE_UI_CONTRACT.md)，
+> `CONTRACT — REVIEW PENDING`）：History → 入口卡片 → dedicated sub-route（无第六 tab、无 route
+> date 参数）；一个 activity-scoped `TimelineViewModel` 拥有一个 `TimelineRangeCoordinator`（无
+> 持久化、process recreation 重置 current month + today）；initial load 恰好一读、re-entry/foreground
+> refresh(fresh capturedAt)、recomposition 0 reads；month controls（next 在 current month 禁用）+
+> compact day strip（≤31 cells）；**selectedDate = focus 而非过滤**、sections newest-first、rows
+> canonical ascending；MATCHED 双侧分离 / UNRECORDED 中性 / UNMATCHED 仅 recorded；identity
+> status（KNOWN/PARTIAL/UNAVAILABLE）如实呈现、无 planName 证据、无 antiandrogen 猜测；无
+> timing-delta/adherence；calendar 居中 + body 左对齐的几何规则（UI35–UI39、F19–F21）；
+> UI1–UI39 测试矩阵 + F1–F21 guards；evidence logs UTF-8 卫生。**D-04 PRODUCTION NOT STARTED**；
+> **NEXT: V17-D-04 contract review**；D-05 NOT STARTED；Phase C 保持 CLOSED；D-01/D-03 零修改。
 
 ---
 
