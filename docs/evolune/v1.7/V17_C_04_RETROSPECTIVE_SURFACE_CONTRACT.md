@@ -1,6 +1,7 @@
 # V17-C-04 — Retrospective PK Surface & Markers — Contract
 
-> 状态：`CONTRACT — R3 CORRECTED / RE-REVIEW PENDING`（docs-only contract；**C-04 生产未开始**）
+> 状态：`CONTRACT — APPROVED / FROZEN`（**C-04 生产 APPROVED / CLOSED** @
+> `823bd9ce5c276dc473cc041efba409bd931c589f`；evidence `docs/evolune/v1.7/evidence/c-04/`）
 > Round：v1.7-C / **C-04**（Schedule-Context / Recorded-Intake markers & retrospective PK surface, MVP）
 > R1：marker-window 修正（range seam 覆盖）已 ACCEPTED。R2：marker scope 与 policy 修正已 ACCEPTED。
 > R3：本轮只闭合 non-atomic same-ID mutation truthfulness gap，见 §0.1；其余已接受决定不变。
@@ -1073,4 +1074,6 @@ zh：`精确输入`、`同一快照`、`所用输入`、`已同步`、`原子`
 
 - 本文件创建于 contract landing 轮；R1/R2 轮只修订本文件并 amend 同一 contract commit；
   不伴随任何生产代码、测试、schema、资源改动。
-- 状态结论：**C-01 CLOSED** · **C-04 CONTRACT（R3 CORRECTED） / RE-REVIEW PENDING** · **C-04 PRODUCTION NOT STARTED**。
+- 状态结论：**C-01 CLOSED** · **C-04 CONTRACT APPROVED / FROZEN** · **C-04 PRODUCTION APPROVED / CLOSED**
+  @ `823bd9ce5c276dc473cc041efba409bd931c589f`。
+- 本契约冻结（APPROVED / FROZEN）；后续 Phase-C 切片必须消费本契约与 C-01 API/结果契约，不得随意改动。

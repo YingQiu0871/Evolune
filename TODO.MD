@@ -44,7 +44,7 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
-## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：C-01 已关闭）
+## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：C-01 与 C-04 已关闭）
 
 - [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
 - [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
@@ -58,10 +58,24 @@
       0 skipped · fresh 54/54 Gradle tasks executed · Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）·
       golden PK regression preserved · zero-write PASS · schema / PK numerical source / Home·Wear·Widget
       orchestration unchanged。**C-01 冻结**：未经重开评审不得再改 C-01 生产代码；后续切片消费已批准 API/结果契约。
-- [ ] Phase C · C-04 **contract（R3 corrected）/ re-review pending**（`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`）：
-      Schedule-Context / Recorded-Intake markers & retrospective PK surface（MVP）；**C-04 生产未开始**。
-- [ ] NEXT：**C-04 contract R3 re-review**（契约批准前不得开工生产实现；`V17_PLAN.md` §6 仍保留原始
-      C-01…C-09 命名）。
+- [x] Phase C · C-04 contract — **APPROVED / FROZEN**（`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`，
+      `APPROVE V17-C04 CONTRACT`；R1/R2/R3 修正已并入）：contract HEAD
+      `8be09339bfae1c4a138b4ccb739f86302c60d627`。
+- [x] Phase C · C-04 生产实现 — **APPROVED / CLOSED**（final independent implementation review APPROVE；
+      R1 T4 disclosure closure 后通过）：approved implementation HEAD
+      `823bd9ce5c276dc473cc041efba409bd931c589f`；evidence `docs/evolune/v1.7/evidence/c-04/`。
+      最终验证：focused C-04 JVM 73 / 0 / 0 / 0 · fresh full JVM 1333 tests / 0 failures / 0 errors / 0 skipped ·
+      fresh 54/54 Gradle tasks executed · affected instrumentation 14/14 PASS（Pixel_7 AVD API 35）·
+      evidence 169/169 manifest data entries · 171/171 HEAD blob verification · 0 mismatches ·
+      C-01 / schema / PK numerical source / Home·Wear·Widget / ConcentrationChart / build-dependency 全部 zero-diff。
+      **C-04 冻结**：未经重开评审不得再改 C-04 生产；后续切片必须消费已批准的 C-01 retrospective PK
+      API/结果契约与 C-04 只读 surface 行为。
+- [ ] NEXT：**Phase-C post-C04 remaining-scope audit / next-slice contract definition**（`V17_PLAN.md` §6 仍保留原始
+      C-01…C-09 命名；不得自行发明生产范围）。
+- P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
+      `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
+      percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，
+      历史 evidence 中的 pre-amend 引用仅为过程信息。
 - [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
 - [ ] `v1.7` 早期草案的 Optional CPA PK Curve 保持独立科学/来源评审门槛，不因 C-01 关闭而改变状态。

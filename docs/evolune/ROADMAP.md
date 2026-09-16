@@ -133,7 +133,7 @@ Gate 结论（B-04 独立复审 **APPROVE**）：read-only（0 authoritative wri
 依赖、无逐日重算 · 导航未新增 tab、未重构 · schema/DAO 0 改动 · 旧 evidence 全冻结。
 Phase B 已 **CLOSED**。
 
-### v1.7 Phase C — Retrospective PK — C-01 CLOSED
+### v1.7 Phase C — Retrospective PK — C-01 / C-04 CLOSED
 
 Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过最终独立实现复审并关闭：
 
@@ -151,25 +151,38 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **C-01 冻结**：未经重新开启评审，不得再对 C-01 生产代码做改动；后续 Phase-C 切片必须消费已批准的 C-01
   API/结果契约。
 - **C-04 contract**（Schedule-Context / Recorded-Intake markers & retrospective PK surface MVP）—
-  **CONTRACT（R3 CORRECTED） / RE-REVIEW PENDING**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)）；
-  **C-04 生产未开始**。**NEXT:** C-04 contract R3 re-review（`V17_PLAN.md` §6 保留原始 C-01…C-09 命名）。
+  **APPROVED / FROZEN**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)），
+  contract HEAD `8be09339bfae1c4a138b4ccb739f86302c60d627`。
+- **C-04 生产实现** — **APPROVED / CLOSED**（final independent implementation review **APPROVE**；R1 T4
+  disclosure closure 后通过）：approved implementation HEAD
+  `823bd9ce5c276dc473cc041efba409bd931c589f`，evidence [`v1.7/evidence/c-04/`](v1.7/evidence/c-04/)。
+- C-04 最终验证摘要：focused C-04 JVM 73 / 0 / 0 / 0 · fresh full JVM 1333 / 0 failures / 0 errors / 0 skipped ·
+  54/54 Gradle tasks executed · affected instrumentation 14/14 PASS（Pixel_7 AVD API 35） · evidence 169/169
+  manifest data entries、171/171 HEAD blob verification、0 mismatches · C-01 / schema / PK numerical source /
+  Home·Wear·Widget / ConcentrationChart / build-dependency zero-diff。
+- **C-04 冻结**：未经重新开启评审，不得再对 C-04 生产代码做改动；后续切片必须消费已批准的 C-01
+  retrospective PK API/结果契约与 C-04 只读 surface 行为。**NEXT:** Phase-C post-C04 remaining-scope audit /
+  next-slice contract definition（`V17_PLAN.md` §6 保留原始 C-01…C-09 命名，不自行发明范围）。
 
 ## Historical and future milestones
 
 v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备验收和发布封版。
 历史候选、阶段审阅与修复证据保存在 [v1.6 文档目录](v1.6/)。
 
-**v1.7 当前程序状态（2026-09-15 更新，历史叙述不改）**：v1.7 现定义为 **History & Insights** 计划，
+**v1.7 当前程序状态（2026-09-16 更新，历史叙述不改）**：v1.7 现定义为 **History & Insights** 计划，
 文档位于 [v1.7 文档目录](v1.7/)：
 **Phase A — History Foundation 已 CLOSED**（A-01/A-02/A-03/A-04 各自独立复审 APPROVE；
 候选实现见 [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md)），
 **Phase B — Adherence Insights 已 CLOSED**（B-00 语义冻结 → B-01 domain → B-02/B-02-R1 → B-03 UI →
 B-04 hardening & release gate，全部独立复审 APPROVE），
-**Phase C — Retrospective PK：C-01 已 CLOSED**（C-00 契约冻结、C-01 规格与生产实现 APPROVED；contract
-HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
-`145d53bd922c30338171cc7b0529a36dc482b4a6`；evidence 见
-[`evidence/c-01/`](v1.7/evidence/c-01/)，详见上方 Phase C 小节）。
-**NEXT:** C-04 contract R3 re-review（C-04 contract（R3 corrected）已就绪、生产未开始，不得自行发明范围）。
+**Phase C — Retrospective PK：C-01 与 C-04 均已 CLOSED**（C-00 契约冻结、C-01 规格与生产实现 APPROVED；
+C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED；contract HEAD
+`34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`（C-01）/ `8be09339bfae1c4a138b4ccb739f86302c60d627`（C-04），
+approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
+`823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
+[`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
+**NEXT:** Phase-C post-C04 remaining-scope audit / next-slice contract definition（C-01…C-09 原始命名保留；
+不得自行发明范围）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

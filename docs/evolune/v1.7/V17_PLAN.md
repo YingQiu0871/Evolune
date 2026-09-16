@@ -282,6 +282,16 @@ PK output must remain explicitly model-derived.
 > non-atomic truthfulness 规则 + 图例披露修正）。
 > 原始命名序列（C-02 historical event adapter、C-03 retrospective interval calculation 等）保持原文；新切片
 > 需经契约批准后实施，本轮不发明契约之外的任何范围。
+>
+> **Status note (2026-09-16, C-04 closure)**: **C-04 生产实现已 APPROVED / CLOSED**（final independent
+> implementation review APPROVE；R1 T4 disclosure closure 后通过）：contract HEAD
+> `8be09339bfae1c4a138b4ccb739f86302c60d627`（APPROVED / FROZEN），approved implementation HEAD
+> `823bd9ce5c276dc473cc041efba409bd931c589f`，evidence `docs/evolune/v1.7/evidence/c-04/`。
+> 交付：Schedule-Context / Recorded-Intake markers + 30×24h retrospective PK read-only surface（MVP）——
+> 三次读非原子架构、body-weight gate、typed unavailable/limitations、disclosure 与 marker scope 全部冻结。
+> **C-04 冻结**：未经重开评审不得再改 C-04 生产。**NEXT: Phase-C post-C04 remaining-scope audit /
+> next-slice contract definition**；原始命名序列保持原文，gated 候选（daily series/chart、coverage %、
+> Option-2 timing metric、anti-androgen 真身份、CPA curve）仍未授权，新切片需经契约定义后实施。
 
 ---
 

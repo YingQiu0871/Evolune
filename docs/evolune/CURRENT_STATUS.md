@@ -132,7 +132,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   （B-04 APPROVE）：B-00（语义冻结）· B-01（domain 聚合）· B-02/B-02-R1（编排与 race 修复）·
   B-03（Insights UI）全部 APPROVE；Phase B release gate 结论：read-only（zero-write 设备门）·
   无百分比/timing 指标 · 无图表/无新依赖 · schema/DAO 0 改动（除 B-03 已申报的 1 行崩溃修复）。
-  **Phase C（Retrospective PK）— C-01 CLOSED**：
+  **Phase C（Retrospective PK）— C-01 / C-04 CLOSED**：
   - C-00 语义契约 — **APPROVED / FROZEN**（`APPROVE V17-C-00 SEMANTICS CONTRACT`；
     [`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)）。
   - C-01 实现规格 — **APPROVED**（[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)）。
@@ -145,9 +145,19 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - **C-01 冻结**：未经重新开启评审，不得再对 C-01 生产代码做改动；后续 Phase-C 切片必须消费已批准的 C-01
     API/结果契约。
   - C-04 contract（Schedule-Context / Recorded-Intake markers & retrospective PK surface MVP）—
-    **CONTRACT（R3 CORRECTED） / RE-REVIEW PENDING**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)）；
-    **C-04 生产未开始**。
-  - **NEXT:** C-04 contract R3 re-review（V17_PLAN §6 保留原始 C-01…C-09 命名序列，不自行发明范围）。
+    **APPROVED / FROZEN**（[`V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md`](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md)），
+    contract HEAD `8be09339bfae1c4a138b4ccb739f86302c60d627`。
+  - C-04 生产实现 — **APPROVED / CLOSED**（final independent implementation review APPROVE；R1 T4 disclosure
+    closure 后通过）：approved implementation HEAD `823bd9ce5c276dc473cc041efba409bd931c589f`，
+    evidence [`v1.7/evidence/c-04/`](v1.7/evidence/c-04/)。
+  - C-04 最终验证摘要：focused C-04 JVM 73 / 0 / 0 / 0 · fresh full JVM 1333 tests / 0 failures / 0 errors /
+    0 skipped · fresh 54/54 Gradle tasks executed · affected instrumentation 14/14 PASS（Pixel_7 AVD API 35）·
+    evidence 169/169 manifest data entries · 171/171 HEAD blob verification · 0 mismatches ·
+    C-01 / schema / PK numerical source / Home·Wear·Widget / ConcentrationChart / build-dependency zero-diff。
+  - **C-04 冻结**：未经重新开启评审，不得再对 C-04 生产代码做改动；后续切片必须消费已批准的 C-01
+    retrospective PK API/结果契约与 C-04 只读 surface 行为。
+  - **NEXT:** Phase-C post-C04 remaining-scope audit / next-slice contract definition（V17_PLAN §6 保留原始
+    C-01…C-09 命名序列，不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·
