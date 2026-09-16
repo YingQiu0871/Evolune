@@ -292,6 +292,13 @@ PK output must remain explicitly model-derived.
 > **C-04 冻结**：未经重开评审不得再改 C-04 生产。**NEXT: Phase-C post-C04 remaining-scope audit /
 > next-slice contract definition**；原始命名序列保持原文，gated 候选（daily series/chart、coverage %、
 > Option-2 timing metric、anti-androgen 真身份、CPA curve）仍未授权，新切片需经契约定义后实施。
+>
+> **Status note (2026-09-16, Phase-C closure candidate)**: Phase-C closure record 已创建
+> （[`V17_C_PHASE_CLOSURE.md`](V17_C_PHASE_CLOSURE.md)）——`PHASE-C CANDIDATE CLOSURE — REVIEW PENDING`：
+> C1–C9 验收矩阵完整映射到 closed C-01/C-04，Phase-C product scope functionally complete；
+> 本 Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` **待独立/架构复审**，当前不自我批准，
+> **Phase C 尚未标记 CLOSED**。本记录为 docs-only：未重跑测试、未重生成证据；gated 候选保持未授权；
+> optional interaction/detail residue（selectors / cursor / marker detail）不构成 closure 缺失。
 
 ---
 

@@ -70,8 +70,11 @@
       C-01 / schema / PK numerical source / Home·Wear·Widget / ConcentrationChart / build-dependency 全部 zero-diff。
       **C-04 冻结**：未经重开评审不得再改 C-04 生产；后续切片必须消费已批准的 C-01 retrospective PK
       API/结果契约与 C-04 只读 surface 行为。
-- [ ] NEXT：**Phase-C post-C04 remaining-scope audit / next-slice contract definition**（`V17_PLAN.md` §6 仍保留原始
-      C-01…C-09 命名；不得自行发明生产范围）。
+- [ ] Phase C · closure candidate — **PHASE-C CANDIDATE CLOSURE — REVIEW PENDING**
+      （`V17_C_PHASE_CLOSURE.md`）：C1–C9 验收矩阵完整映射 closed C-01/C-04、product scope functionally
+      complete；PLAN §6 gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` **尚未批准（不自我批准）**；
+      **Phase C 尚未标记 CLOSED**。
+- [ ] NEXT：**Phase-C closure review**（独立/架构复审 `V17_C_PHASE_CLOSURE.md`；Phase-C 生产工作未授权）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，
