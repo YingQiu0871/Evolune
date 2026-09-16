@@ -1,9 +1,10 @@
 # V17-C — Phase C Closure Record（Phase C 候选收口记录）
 
-> 状态：`PHASE-C CANDIDATE CLOSURE — REVIEW PENDING`
+> 状态：`PHASE-C CLOSED — APPROVED`
+> Phase gate：`APPROVE V1.7-C CANDIDATE IMPLEMENTATION`（独立/架构 closure review **APPROVED**）
+> Approved Phase-C closure candidate HEAD：`19652baa07b5057f4aa6c07a79a77a158ac31468`
 > 本文件是 **closure / mapping record**，不是新的语义契约；不修改 C-00/C-01/C-04 任何冻结语义。
-> Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION`（`V17_PLAN.md` §6）**尚未批准**，
-> 本文件不得自我批准该 gate。
+> **Phase C is CLOSED. No further Phase-C production changes are authorized without reopening review.**
 >
 > Frozen identities：
 > - C-00（Retrospective PK semantics）— **APPROVED / FROZEN**
@@ -50,7 +51,7 @@
 | **C2** | 区间输入显式：给定 `[start, end]` 重建曲线（不再依赖 `currentTimeH ± 15d` 硬编码路径） | **C-01**（API）+ **C-04**（surface） | C-01：`RetrospectivePkRequest.visibleWindow`（显式 `[startInclusive, endInclusive]`，ms 对齐）与 `RetrospectivePkResult.calculatedInterval`；C-04：显式固定 rolling 720h（30×24h）visible interval（`RetrospectivePkViewModel.captureWindow`） | C-01 request/interval tests；C-04 W1–W4（720h / ms 归一 / 无未来段 / cursor null）与读取计数 0/1/3 证据（`evidence/c-04/junit/focused`） | **CLOSED**（closure interpretation 见 §2） |
 | **C3** | 取数使用半开区间且有上界（不得把 `end` 之后的事件算入） | **C-01**（closed；frozen inclusive-endpoint reconciliation） | `readAllAvailable(upperBoundInclusive)` 只消费 `occurredAt <= upperBoundInclusive` 的权威行；extractor 对 `occurredAt.isAfter(window.endInclusive)` 直接 fail-fast（C-01 §5/§6）；C-04 `endInclusive = capturedAt` | C-01 all-history/upper-bound tests；C-04 MC3/MC4（边界时刻含入、±1ms 排除） | **CLOSED**（不重开 inclusive/half-open 语义） |
 | **C4** | 前史处理显式（长尾 depot 起始条件）并文档化 | **C-01**（closed） | `lookbackStart = min(consumed occurredAt)`（精确）；`EARLIEST_AVAILABLE_HISTORY_ZERO_BASELINE` limitation 语义（C-00/C-01 frozen） | `evidence/c-01`（lookback/limitation 测试；C-01 spec §9） | **CLOSED** |
-| **C5** | 计划/实际标记与差值来自 Phase A 投影，不重算匹配 | **C-04**（closed；closure meaning 见 §3） | ScheduleContextMarker ← `HistoryRangeSource`（Phase A 投影经既有 single reader）；RecordedIntakeMarker ← `AllAvailableHistorySource`（Phase A 投影）∩ 不可变 Read-1 accepted ID 集；无第二匹配实现（architecture guard 证明无 matcher/DAW/repository 复刻） | `evidence/c-04`（MS1–MS5 / MI1–MI12 / MC1–MC7；`RetrospectiveArchitectureGuardTest`） | **CLOSED**；actual-vs-planned **delta 不在本 closure 要求内**（gated，见 §5） |
+| **C5** | 计划/实际标记与差值来自 Phase A 投影，不重算匹配 | **C-04**（closed；closure meaning 见 §3） | ScheduleContextMarker ← `HistoryRangeSource`（Phase A 投影经既有 single reader）；RecordedIntakeMarker ← `AllAvailableHistorySource`（Phase A 投影）∩ 不可变 Read-1 accepted ID 集；无第二匹配实现（architecture guard 证明无 matcher/DAO/repository 复刻） | `evidence/c-04`（MS1–MS5 / MI1–MI12 / MC1–MC7；`RetrospectiveArchitectureGuardTest`） | **CLOSED**；actual-vs-planned **delta 不在本 closure 要求内**（gated，见 §5） |
 | **C6** | 数值回归：黄金值不变 + 新增历史区间锁定值 | **C-01**（closed；recurring gate） | 未改动 `SimulationEngine` / `ThreeCompartmentModel` / `ParameterResolver` / `PKParameters`（Audit zero-diff）；C-01 默认 curve runner 调用未改动引擎 | `evidence/c-01`：golden AUC `23285.499354395688 ± 1e-9` / 固定采样；R4.2 runtime fixture AUC `48338.59081520633`；C-04 最终 fresh full JVM 1333 / 0 / 0 / 0（含全部既有 PK 测试） | **CLOSED** |
 | **C7** | 时区/DST：历史区间在 DST gap/overlap 下不产生重复或丢失事件 | **C-01**（closed；recurring gate）+ **C-04**（窗口边界） | C-01：typed DST 解析（gap 前移 / overlap 取较早 offset）、ms 端点、极端时区覆盖；C-04：ms 归一端点、Instant-only 窗口成员判定 | `evidence/c-01`（ExtremeZone / DST / 毫秒端点测试）；`evidence/c-04`（W3/W4、MC3/MC4、wrapper 无重算） | **CLOSED**（release 级 obligations 见 §7） |
 | **C8** | 呈现明确标注为模型估算，非实测血药浓度 | **C-04**（closed） | mandatory 常显 disclosure「模型估算——并非实测血药浓度。」（`RetrospectivePkScreen`，位于 phase body 之外）；不得只藏 dialog | C-04 R1 T4 三态设备闭合：CONTENT / UNAVAILABLE / ERROR 可见披露 PASS（`t4ContentStateShowsTheMandatoryModelEstimateDisclosure`、`t4UnavailableStateShowsTheMandatoryModelEstimateDisclosure`、`t4ErrorStateShowsTheMandatoryModelEstimateDisclosure`）；字符串双文件 parity | **CLOSED** |
@@ -190,16 +191,21 @@ C-04（final approved evidence）：
 
 ---
 
-## 9. Phase gate（pending）
+## 9. Phase gate（APPROVED）
 
 `V17_PLAN.md` §6 的 Phase gate：
 
 `APPROVE V1.7-C CANDIDATE IMPLEMENTATION`
 
-当前状态（本文件基线）：
+最终状态：
 
-- **REVIEW PENDING** —— 本记录不自我批准该 gate；
-- C-01 / C-04 已分别 APPROVED / CLOSED；Phase C 仅待该 gate 的独立/架构复审结论。
+- **APPROVED** —— 独立/架构 Phase-C closure review 通过；
+- Approved Phase-C closure candidate HEAD：`19652baa07b5057f4aa6c07a79a77a158ac31468`；
+- C-00 APPROVED / FROZEN；C-01 APPROVED / CLOSED；C-04 APPROVED / FROZEN + APPROVED / CLOSED。
+
+**Phase C is CLOSED.**
+**No further Phase-C production changes are authorized without reopening review.**
+后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
 
 ---
 
@@ -208,3 +214,4 @@ C-04（final approved evidence）：
 | 日期 | 变更 |
 |---|---|
 | 2026-09-16 | 初始创建：PHASE-C CANDIDATE CLOSURE — REVIEW PENDING（docs-only；无生产/测试/证据变更）。 |
+| 2026-09-16 | Final closure bookkeeping：状态更新为 `PHASE-C CLOSED — APPROVED`；记录 gate 批准、approved closure candidate HEAD `19652baa07b5057f4aa6c07a79a77a158ac31468`；P3 typo `DAW` → `DAO`；未改动 C1–C9 语义。 |

@@ -299,6 +299,15 @@ PK output must remain explicitly model-derived.
 > 本 Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` **待独立/架构复审**，当前不自我批准，
 > **Phase C 尚未标记 CLOSED**。本记录为 docs-only：未重跑测试、未重生成证据；gated 候选保持未授权；
 > optional interaction/detail residue（selectors / cursor / marker detail）不构成 closure 缺失。
+>
+> **Status note (2026-09-16, Phase-C closure approved)**: Phase gate `APPROVE V1.7-C CANDIDATE
+> IMPLEMENTATION` 已由独立/架构 closure review **APPROVED**：**Phase C is CLOSED**（approved
+> Phase-C closure HEAD `19652baa07b5057f4aa6c07a79a77a158ac31468`，closure record
+> [`V17_C_PHASE_CLOSURE.md`](V17_C_PHASE_CLOSURE.md)）。未经重开评审不得再改 Phase-C 生产；
+> 后续切片必须消费已批准的 C-01 API/结果契约与 C-04 只读 surface 行为。
+> **NEXT: Phase D — Medication Timeline planning / contract design**（Phase D 未启动；本记录不发明
+> Phase-D contract；retrospective selector/cursor polish 不因此转入 Phase D）。gated 候选保持未授权；
+> T*/release gates 保持独立（Phase C CLOSED ≠ v1.7 release 全局批准）。
 
 ---
 

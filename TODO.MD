@@ -44,7 +44,7 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
-## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：C-01 与 C-04 已关闭）
+## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：APPROVED / CLOSED）
 
 - [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
 - [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
@@ -70,11 +70,12 @@
       C-01 / schema / PK numerical source / Home·Wear·Widget / ConcentrationChart / build-dependency 全部 zero-diff。
       **C-04 冻结**：未经重开评审不得再改 C-04 生产；后续切片必须消费已批准的 C-01 retrospective PK
       API/结果契约与 C-04 只读 surface 行为。
-- [ ] Phase C · closure candidate — **PHASE-C CANDIDATE CLOSURE — REVIEW PENDING**
-      （`V17_C_PHASE_CLOSURE.md`）：C1–C9 验收矩阵完整映射 closed C-01/C-04、product scope functionally
-      complete；PLAN §6 gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` **尚未批准（不自我批准）**；
-      **Phase C 尚未标记 CLOSED**。
-- [ ] NEXT：**Phase-C closure review**（独立/架构复审 `V17_C_PHASE_CLOSURE.md`；Phase-C 生产工作未授权）。
+- [x] Phase C · closure — **PHASE-C CLOSED — APPROVED**（`V17_C_PHASE_CLOSURE.md`）：Phase gate
+      `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
+      `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
+      生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
+- [ ] NEXT：**Phase D — Medication Timeline planning / contract design**（Phase D 未启动；不实现、
+      不发明 Phase-D contract；retrospective selector/cursor polish 不因此转入 Phase D）。
 - P3（非阻塞，仅记录）：marker 家族身份通过图例 + marker 样式呈现，不新增逐 marker 文本标签要求；
       `retrospective_legend_entry_format` 为实现确认的 presentation-only cardinality key，不授权 ratio /
       percentage / coverage / adherence / punctuality / scoring 语义；最终实现身份为 `823bd9ce...`，

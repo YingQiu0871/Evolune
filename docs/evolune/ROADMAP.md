@@ -133,7 +133,7 @@ Gate 结论（B-04 独立复审 **APPROVE**）：read-only（0 authoritative wri
 依赖、无逐日重算 · 导航未新增 tab、未重构 · schema/DAO 0 改动 · 旧 evidence 全冻结。
 Phase B 已 **CLOSED**。
 
-### v1.7 Phase C — Retrospective PK — C-01 / C-04 CLOSED
+### v1.7 Phase C — Retrospective PK — APPROVED / CLOSED
 
 Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过最终独立实现复审并关闭：
 
@@ -162,10 +162,10 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   Home·Wear·Widget / ConcentrationChart / build-dependency zero-diff。
 - **C-04 冻结**：未经重新开启评审，不得再对 C-04 生产代码做改动；后续切片必须消费已批准的 C-01
   retrospective PK API/结果契约与 C-04 只读 surface 行为。
-- **Phase-C closure candidate** — **PHASE-C CANDIDATE CLOSURE — REVIEW PENDING**
-  （[`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)）：C1–C9 映射完整、Phase-C product scope
-  functionally complete；PLAN §6 gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 待独立复审，
-  **Phase C 尚未标记 CLOSED**。**NEXT:** Phase-C closure review。
+- **Phase-C closure** — **PHASE-C CLOSED — APPROVED**（[`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)）：
+  Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
+  `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
+  生产。**NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动）。
 
 ## Historical and future milestones
 
@@ -178,14 +178,14 @@ v1.6 Widget Gallery 已完成 A–G 阶段、独立最终复审、真实设备�
 候选实现见 [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md)），
 **Phase B — Adherence Insights 已 CLOSED**（B-00 语义冻结 → B-01 domain → B-02/B-02-R1 → B-03 UI →
 B-04 hardening & release gate，全部独立复审 APPROVE），
-**Phase C — Retrospective PK：C-01 与 C-04 均已 CLOSED**（C-00 契约冻结、C-01 规格与生产实现 APPROVED；
-C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED；contract HEAD
+**Phase C — Retrospective PK：APPROVED / CLOSED**（C-00 契约冻结、C-01 规格与生产实现 APPROVED；
+C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C closure APPROVED
+@ `19652baa07b5057f4aa6c07a79a77a158ac31468`；contract HEAD
 `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`（C-01）/ `8be09339bfae1c4a138b4ccb739f86302c60d627`（C-04），
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** Phase-C closure review（closure candidate [`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)
-为 `REVIEW PENDING`；Phase C 尚未标记 CLOSED）。
+**NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动；不自行发明范围）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

@@ -132,7 +132,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   （B-04 APPROVE）：B-00（语义冻结）· B-01（domain 聚合）· B-02/B-02-R1（编排与 race 修复）·
   B-03（Insights UI）全部 APPROVE；Phase B release gate 结论：read-only（zero-write 设备门）·
   无百分比/timing 指标 · 无图表/无新依赖 · schema/DAO 0 改动（除 B-03 已申报的 1 行崩溃修复）。
-  **Phase C（Retrospective PK）— C-01 / C-04 CLOSED**：
+  **Phase C（Retrospective PK）— APPROVED / CLOSED**：
   - C-00 语义契约 — **APPROVED / FROZEN**（`APPROVE V17-C-00 SEMANTICS CONTRACT`；
     [`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md)）。
   - C-01 实现规格 — **APPROVED**（[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)）。
@@ -156,11 +156,11 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     C-01 / schema / PK numerical source / Home·Wear·Widget / ConcentrationChart / build-dependency zero-diff。
   - **C-04 冻结**：未经重新开启评审，不得再对 C-04 生产代码做改动；后续切片必须消费已批准的 C-01
     retrospective PK API/结果契约与 C-04 只读 surface 行为。
-  - Phase-C closure candidate — **PHASE-C CANDIDATE CLOSURE — REVIEW PENDING**
-    （[`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)）：C1–C9 验收矩阵完整映射 closed
-    C-01/C-04、Phase-C product scope functionally complete；PLAN §6 gate
-    `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 待独立复审；**Phase C 尚未标记 CLOSED**。
-  - **NEXT:** Phase-C closure review（复审 `V17_C_PHASE_CLOSURE.md`；Phase-C 生产工作未授权）。
+  - Phase-C closure — **PHASE-C CLOSED — APPROVED**（[`V17_C_PHASE_CLOSURE.md`](v1.7/V17_C_PHASE_CLOSURE.md)）：
+    Phase gate `APPROVE V1.7-C CANDIDATE IMPLEMENTATION` 已批准；approved Phase-C closure HEAD
+    `19652baa07b5057f4aa6c07a79a77a158ac31468`。**Phase C is CLOSED**：未经重开评审不得再改 Phase-C
+    生产；后续切片必须消费已批准的 C-01 retrospective PK API/结果契约与 C-04 只读 surface 行为。
+  - **NEXT:** Phase D — Medication Timeline planning / contract design（Phase D 未启动；不自行发明范围）。
   当前程序定义见 [`v1.7/`](v1.7/) 目录（[`V17_SPEC.md`](v1.7/V17_SPEC.md) · [`V17_PLAN.md`](v1.7/V17_PLAN.md) ·
   [`V17_ACCEPTANCE.md`](v1.7/V17_ACCEPTANCE.md) · [`V17_A_04_HARDENING.md`](v1.7/V17_A_04_HARDENING.md) ·
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·
