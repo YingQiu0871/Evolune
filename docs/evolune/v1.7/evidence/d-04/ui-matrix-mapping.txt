@@ -82,10 +82,21 @@ UI32 Back returns to History
 UI33 no Timeline bottom tab/Home entry
      IMPLEMENTED+VERIFIED [DEV nav-bar-timeline absent + bottom bar hidden on sub-route;
                            JVM guard F15/F16: Screen enum keeps 5 entries; route has no argument]
-UI34 activity-scoped VM retains current Timeline month/date across Timeline -> History -> Timeline
-     IMPLEMENTED+VERIFIED [DEV navigation drives the real activity-scoped ViewModel through
-                           MainActivity; the return path re-enters the same destination and the
-                           retained month/date remain the initial current month context]
+UI34 activity-scoped VM retains the CURRENT Timeline month/date across Timeline -> History -> Timeline
+     IMPLEMENTED+VERIFIED [DEV TimelineNavigationTest.
+     timelineContextIsRetainedAcrossHistoryRoundTripWithExactlyOneReentryRefresh — executed on the
+     real MainActivity route cycle: first entry = exactly one load generation (gen 1, month =
+     today); previous-month change = exactly one load generation (gen 2, selection = previous
+     month day 1); deterministic day selection (day 10) = 0 generation-producing commands;
+     Back to History = generation unchanged (no unintended Timeline command) while the REAL
+     activity-scoped ViewModel (read through the Activity ViewModelStore) still carries the
+     previous month + day 10; re-entry = exactly one activation refresh (gen 3) with previous
+     month + day 10 retained and the display zone unchanged (a recreated/default VM would reset
+     to the current month at gen 1), plus a settle re-check that no duplicate refresh claimed a
+     further generation; the UI month title shows the previous month and the day-10 cell keeps its
+     selected semantics after re-entry. Same bridge mechanism literal source-read counts:
+     TimelineLifecycleTest cold start 1 read / re-entry exactly +1 refresh / disposed 0 /
+     recomposition 0 / selection 0.]
 UI35 selected-day date number centered both axes inside its highlight
      IMPLEMENTED+VERIFIED [DEV TimelineGeometryTest.ui35 (measured bounds: number vs highlight
                            centers dx,dy <= 1px); structural Box(contentAlignment=Center), F19 guard]

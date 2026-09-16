@@ -57,3 +57,12 @@ app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiAr
 F1/F15 note: the only pre-existing production files touched are the approved wiring
 surfaces (MainActivity composition root, AppNavigation sub-route, HistoryScreen entry
 card) and the two existing string resource files; no frozen semantic file is modified.
+
+R1 follow-up note (test: close v1.7 D-04 UI34 retention evidence):
+The R1 delta versus b53b83e is confined to
+  app/src/androidTest/.../ui/screens/timeline/TimelineNavigationTest.kt (one new UI34 test +
+  probe helpers) and docs/evolune/v1.7/evidence/d-04/** (evidence refresh).
+Zero production diff versus b53b83e: TimelineViewModel.kt / TimelinePresentation.kt /
+TimelineScreen.kt / TimelineSurfaceLifecycle.kt / MainActivity.kt / AppNavigation.kt /
+HistoryScreen.kt / resources / D-01 / D-03 / Phase C / schema-DAO-Room / Home / Wear / Widget /
+Gradle dependencies are all untouched.

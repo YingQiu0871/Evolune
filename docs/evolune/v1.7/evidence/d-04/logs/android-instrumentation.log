@@ -86,17 +86,17 @@ The current default is 'true'.
 > Task :app:writeDebugAndroidTestSigningConfigVersions UP-TO-DATE
 > Task :app:packageDebugAndroidTest UP-TO-DATE
 > Task :app:createDebugAndroidTestApkListingFileRedirect UP-TO-DATE
-Starting 38 tests on Pixel_7(AVD) - 15
-Pixel_7(AVD) - 15 Tests 6/38 completed. (0 skipped) (0 failed)
-Pixel_7(AVD) - 15 Tests 13/38 completed. (0 skipped) (0 failed)
+Starting 39 tests on Pixel_7(AVD) - 15
+Pixel_7(AVD) - 15 Tests 5/39 completed. (0 skipped) (0 failed)
 > Task :app:connectedDebugAndroidTest
 
-Pixel_7(AVD) - 15 Tests 21/38 completed. (0 skipped) (0 failed)
-Pixel_7(AVD) - 15 Tests 28/38 completed. (0 skipped) (0 failed)
-Pixel_7(AVD) - 15 Tests 34/38 completed. (0 skipped) (0 failed)
-Pixel_7(AVD) - 15 Tests 38/38 completed. (0 skipped) (0 failed)
-Finished 38 tests on Pixel_7(AVD) - 15
+Pixel_7(AVD) - 15 Tests 12/39 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 20/39 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 26/39 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 33/39 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 36/39 completed. (0 skipped) (0 failed)
+Finished 39 tests on Pixel_7(AVD) - 15
 
-BUILD SUCCESSFUL in 1m 12s
+BUILD SUCCESSFUL in 1m 17s
 69 actionable tasks: 1 executed, 68 up-to-date
 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

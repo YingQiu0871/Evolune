@@ -1,4 +1,4 @@
-V17-D-04 Android instrumentation summary
+V17-D-04 Android instrumentation summary (R1 — final, includes the UI34 executed proof)
 
 Device (established project validation target)
   emulator   : Pixel_7 AVD (sdk_gphone64_x86_64)
@@ -10,13 +10,14 @@ Final full D-04 instrumentation run (log: logs/android-instrumentation.log)
            -Pandroid.testInstrumentationRunnerArguments.class=
              ...TimelineScreenTest,...TimelineGeometryTest,...TimelineLifecycleTest,
              ...TimelineNavigationTest,...TimelineVisualEvidenceTest
-  result : tests=38 failures=0 errors=0 skipped=0  (device XML: androidtest/TEST-Pixel_7_API35_app-final.xml)
+  result : tests=39 failures=0 errors=0 skipped=0  (device XML: androidtest/TEST-Pixel_7_API35_app-final.xml)
     23  TimelineScreenTest   (seven-state rendering, month controls, day selection,
                               row truthfulness, identity statuses, 12/24h, selection focus)
      8  TimelineGeometryTest (UI35/UI36/UI37/UI38/UI39/UI46/UI47 real geometry assertions)
      4  TimelineLifecycleTest (cold start 1 read, re-entry refresh, foreground refresh,
                                disposed bridge, recomposition 0 reads, selection 0 reads)
-     2  TimelineNavigationTest (History -> Timeline -> back; sub-route hides bottom bar)
+     3  TimelineNavigationTest (History -> Timeline -> back; sub-route hides bottom bar;
+                               UI34 real route-cycle retention + refresh-count proof)
      1  TimelineVisualEvidenceTest (captured-device PNGs, see visual-evidence/)
 
 Navigation proof (real MainActivity navigation, no harness ViewModel)
@@ -24,14 +25,31 @@ Navigation proof (real MainActivity navigation, no harness ViewModel)
   - system back from Timeline returns to history-screen (UI32)
   - nav-bar-timeline never exists; bottom bar is hidden on the Timeline sub-route (UI33)
   - title override: timeline_title on the sub-route (AppNavigation titleOverride + top bar)
+  - UI34 (R1 executed proof): History -> Timeline -> previous month + day 10 selection ->
+    Back -> re-enter Timeline on the REAL activity-scoped ViewModel:
+      first entry generation = 1 (one initial load, month = today, selection = today)
+      previous-month change  = generation 2 (exactly one load; selection = previous month day 1)
+      day-10 selection       = generation unchanged (zero generation-producing commands)
+      after Back             = generation unchanged, month/date retained (no Timeline command)
+      after re-entry         = generation 3 (exactly one activation refresh; month + day 10 +
+                               display zone retained; failed default-reset assertion otherwise)
+      settle re-check        = generation still 3 (no duplicate refresh)
+      UI assertions          = previous-month title + day-10 selected semantics after re-entry
+    Generation is the frozen D-03 counter of accepted generation-producing commands
+    (TimelineRangeState.generation, already-public state read through the Activity
+    ViewModelStore; no production seam added).
 
 Read-count proof (TimelineLifecycleTest, recording HistoryRangeSource)
   - cold start: exactly 1 source read (initial D-03 load owns it)  [UI1]
-  - composition re-entry: exactly 1 additional refresh read      [UI2]
+  - composition re-entry: exactly 1 additional refresh read      [UI2/UI34 bridge mechanism]
   - real ON_STOP -> ON_START: exactly 1 additional refresh read   [UI3]
   - ordinary recomposition: 0 reads                               [UI4]
   - day selection: 0 reads                                        [UI8]
   - disposed bridge: 0 reads on lifecycle transitions
+  UI34 note: the real MainActivity path exposes no read counter, so the refresh-count half of
+  UI34 is proven (a) command-acceptance-exact via the real VM's generation deltas above and
+  (b) literal source-read-exact through this existing D-04 bridge seam; no production test hook
+  was added.
 
 Supplementary visual evidence (captured on the same Pixel 7 API 35 device during the run)
   visual-evidence/d-04-01-calendar-centered-content.png
