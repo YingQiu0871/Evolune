@@ -3,6 +3,8 @@
 > 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-04 PRODUCTION — NOT STARTED**）
 > R1：display-zone ownership / zone-change load semantics / presentation-zone consistency /
 > day-strip viewport-centering 澄清已并入（§3.1/§6.1/§11.1/§23.1-23.3/§31/§35/§37）；其余冻结决定不变。
+> R2：logical-request-intent ownership / published-vs-logical separation / pending-zone command
+> targeting / snapshot-relative `state.today` 已并入（§3.2/§6.1-6.4/§23.4/§31/§35/§37）。
 > Slice：**V17-D-04 — Timeline UI**
 > Base HEAD：`544b1a85368502807171908954ae26bf8c732d10`（D-03 APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -94,6 +96,35 @@ retained VM 的语义冲突。未来 contextual date handoff 需要自己的显�
   retry、return-to-current-month recovery；
 - `selectDate()` 保持 **0-read local selection**，**不**创建新的 zone/request generation。
 
+### 3.2 VM-owned logical request intent（R2 冻结）
+
+**D-03 public/private API audit（source-verified）**：closed D-03 coordinator 的 D-04-consumable
+public surface 仅 `load(request)` / `refresh(capturedAt)` / `retry(capturedAt)` /
+`selectDate(date)` / `state`；其内部概念（`latestLogicalContext` / `latestAcceptedContext` /
+`pendingContext` / `selectedDateIntent` / `generationCounter` / `readInFlight`）均为 **private**。
+D-04 **不得**依赖私有字段，**不得**仅为 UI 添加 D-03 accessor。
+
+因此 TimelineViewModel 必须拥有一个**窄的 VM-owned logical request intent mirror**，表示 D-04
+自身最近提交/接受的 request intent：
+
+```text
+TimelineUiRequestIntent(
+    requestedMonth: YearMonth,
+    selectedDate: LocalDate,
+    displayZone: ZoneId
+)
+```
+
+（Exact Kotlin name 为实现规划值。）
+
+规则：
+
+- 该 mirror **不是**第二套 Timeline state machine；
+- 它**不得**包含：generation、pending/read-in-flight flags、loading phase、`TimelineReadModel`、
+  `TimelineDay`、failure、source-read status、retry scheduler；
+- D-03 仍是唯一 orchestration/publication authority；
+- 其唯一用途：当 published state 落后于更新的 pending logical request 时，**正确构造下一个 UI command**。
+
 ## 4. State retention（冻结；D-04 MVP）
 
 - month/date state 在 activity-scoped VM 存活期间保留；
@@ -137,13 +168,13 @@ Insights/Retrospective lifecycle helpers。除既有先例外，不要求额外�
 
 ### 6.1 Same-zone refresh vs zone-change reload（R1 冻结）
 
-**Same zone**（`currentDisplayZone == latestLogicalRequest.displayZone`）：
+**Same zone**（`currentDisplayZone == TimelineViewModel.latestLogicalIntent.displayZone`）：
 
 - 普通 activation/retry refresh 可继续使用 D-03 已冻结 API：
   `coordinator.refresh(freshCapturedAt)`；
 - **不得**改动 D-03。
 
-**Zone changed**（`currentDisplayZone != latestLogicalRequest.displayZone`）：
+**Zone changed**（`currentDisplayZone != TimelineViewModel.latestLogicalIntent.displayZone`）：
 
 - **不得**使用 `refresh(capturedAt)` —— D-03 refresh 会保留先前 logical request 的 displayZone；
 - 必须构造**新的** `TimelineMonthRequest`：
@@ -178,6 +209,79 @@ newCurrentMonth = YearMonth.from(newToday)
   - `selectedDate = newToday`；
 - 正常 D-04 activation **不得**仅因系统 display zone 变化而把用户留在 future-month request；
 - 这**不**改变 D-03 `NOT_LOADABLE` 语义；只是 D-04 控件构造了一个新的 valid logical request。
+
+> **R2 comparison source（冻结）**：same-zone/zone-change 判断必须比较
+> `currentDisplayZone` 与 **`TimelineViewModel.latestLogicalIntent.displayZone`**，
+> **不得**使用 `coordinator.state.value.displayZone`——pending context 可能使二者不同；
+> published state 只回答"当前渲染的是什么"，logical intent 才回答"下一个 command 作用于什么"。
+> `coordinator.state.value.displayZone` 仅当两者已被证明指向同一 latest logical context 时才可使用。
+
+### 6.2 Intent-mirror 初始化与更新规则（R2 冻结）
+
+初始化（VM construction）：
+
+```text
+capture fresh capturedAt + displayZone -> derive today/current month
+initial intent = current month + today + displayZone
+同一组值构造唯一的 D-03 initial request（intent 与 initial request 起始一致，无第二读）
+```
+
+更新规则（同步，在 D-04 **接受/发出** logical command 时，而不是 D-03 稍后发布 state 时）：
+
+| command | intent 更新 |
+|---|---|
+| `load` / month change | intent = 新 request 的 month + selectedDate + displayZone（在提交 `coordinator.load(newRequest)` 的同时） |
+| zone-change load | 同上：resolved newRequest → intent 立即更新 → `coordinator.load(newRequest)` |
+| valid `selectDate` | `logicalIntent.selectedDate = selectedDate` + `coordinator.selectDate(selectedDate)`（两者对 selection 均 0-read） |
+| invalid/out-of-month/future selection | **不**替换 logical intent（与 CLOSED D-03 语义一致） |
+| same-zone refresh | 只改变 capturedAt/generation；**不**改变 month/selectedDate/displayZone → intent 保持不变 |
+
+### 6.3 Never derive command target from last published state（R2 冻结）
+
+- D-04 command construction 必须使用 **VM-owned latest logical intent**，**不得**把最后发布的
+  `TimelineRangeState` 当作 logical request target；
+- published state 的权威范围：**当前渲染的内容**；
+- logical intent 的权威范围：**D-04 意图让下一个 command 操作的对象**；
+- 二者必须保持分离（镜像 D-03 已冻结的 latest logical context vs last published state 区分）。
+
+**Pending-zone 示例（确定性冻结）：**
+
+```text
+Example A
+  published state zone = Europe/Paris
+  latest logical intent = Asia/Tokyo（Tokyo load 仍 pending）
+  current display zone = Asia/Tokyo
+  -> foreground/re-entry: current zone == logical intent zone
+     => refresh(freshCapturedAt)（作用于 D-03 的 latest logical Tokyo request）
+     不得因为 published state 仍是 Paris 而再发一次 zone-change Tokyo load
+
+Example B
+  published state zone = Europe/Paris
+  latest logical intent = Asia/Tokyo（Tokyo request pending）
+  current display zone 变回 Europe/Paris
+  -> foreground/re-entry: current zone != logical intent zone
+     => 构造/load 新的 Europe/Paris request
+     不得因为旧 published state 也是 Europe/Paris 而调用 plain refresh
+```
+
+### 6.4 Retry ownership / return-to-current-month recovery（R2 冻结）
+
+**Retry after ERROR** 使用：latest logical intent + fresh capturedAt + fresh currentDisplayZone：
+
+- zone 未变 → 走 D-03-compatible 的 `coordinator.retry/refresh` 路径；
+- zone 已变 → resolve new request、更新 logical intent、`coordinator.load(newRequest)`；
+- **不得**从 stale rendered state 推导 retry target。
+
+**INVALID_REQUEST / NOT_LOADABLE defensive recovery**：
+
+```text
+fresh capture capturedAt + currentDisplayZone
+newToday = capturedAt.atZone(zone).toLocalDate()
+logical intent = YearMonth.from(newToday) + newToday + zone
+coordinator.load(newRequest)   // exactly once
+```
+
+不得使用 stale published month/date 作为 command authority。
 
 ---
 
@@ -423,6 +527,30 @@ D-04 **不得**发明 UI-local pending state machine：只渲染 D-03 实际发�
   （例如用于 section date/weekday 派生），**不得**改动 History 行为、**不得**做 broad History refactor；
 - dose formatting 复用保持不变。
 
+### 23.4 Snapshot-relative today（R2 冻结）
+
+- 对**每一个已发布的 `TimelineRangeState`**，UI 必须把 `state.today` 当作该渲染快照的**权威
+  "today" 引用**；这与"用户/生命周期创建新 generation 时捕获 fresh current Instant/zone"是两件事；
+- renderer **不得**为了在一个未变化的 published snapshot 内改变相对标签而独立读取
+  `LocalDate.now()` / `Clock.instant()` / `Instant.now()`；
+- **Today / Yesterday 标签**：
+
+  ```text
+  section.date == state.today               -> Today
+  section.date == state.today.minusDays(1)  -> Yesterday
+  otherwise                                  -> absolute date + weekday
+  （全部使用 published state 的 display context）
+  ```
+
+  标签在 D-03 发布更新 generation 之前保持稳定。示例：`state.today = Sep 16`，屏幕跨午夜保持
+  打开且无 refresh/load —— Sep 16 对未变化的快照仍是 **Today**；在合法 fresh generation 发布
+  `state.today = Sep 17` 之后，Sep 16 才可以变为 **Yesterday**；
+- **当前月控件状态**：渲染已发布快照的 month control enabled/disabled 时，派生
+  `publishedCurrentMonth = YearMonth.from(state.today)`；Compose rendering 期间**不得**独立读取
+  wall-clock。因此 next-month 的 enabled/disabled 渲染保持 snapshot-consistent；
+- 当用户实际触发一个 generation-creating action 时：ViewModel 捕获 fresh current time + display
+  zone，并按更新的 context resolve command（§6.2）。
+
 ## 24. Functional strings / localization split（冻结；F13）
 
 - D-04 可添加**最小功能** `timeline_*` resource keys（title、entry card、month title pattern、
@@ -555,6 +683,12 @@ Phase-C production、schema/DAO/Room、Home/Wear/Widget、build/dependencies。
 | UI45 | 12/24h preference changes notation only and does not change the timezone used to interpret the published Timeline snapshot |
 | UI46 | selecting an off-screen day scrolls it into a centered/visually centered viewport position where layout bounds permit |
 | UI47 | first/last selectable day preserves symmetric strip geometry and never disturbs the internal weekday/date/highlight center axis |
+| UI48 | published state Paris + latest logical intent pending Tokyo + current zone Tokyo -> activation chooses same-zone refresh against the logical Tokyo context, not another load based on the published Paris state |
+| UI49 | published state Paris + logical pending Tokyo + current zone changes back to Paris -> activation performs a new Paris load rather than a plain refresh |
+| UI50 | valid selectDate updates the VM logical intent immediately and remains the selection used by a subsequent refresh while older published state is still visible |
+| UI51 | an unchanged published snapshot crossing midnight does NOT independently change Today/Yesterday labels; labels derive from state.today |
+| UI52 | after a new generation publishes a new state.today, relative date labels update to the new snapshot reference date |
+| UI53 | month-navigation enabled/disabled rendering derives from state.today and does not change merely from recomposition/current wall-clock passage |
 
 Tests **不得**依赖精确动画时长。
 
@@ -624,6 +758,10 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 | F22 | row/section renderer 独立用 `ZoneId.systemDefault()` 重新解释 Timeline instants（而非已发布的 D-03 displayZone） |
 | F23 | displayZone 变化被 plain `coordinator.refresh(capturedAt)` 处理（该 API 会保留旧 logical zone） |
 | F24 | zone-change 处理走 D-03 `load(newRequest)` 之外的路径（直接 source read、repository call 或第二 orchestration path） |
+| F25 | D-04 generation-command targeting 用最后的 published `TimelineRangeState` 替代 VM 的 latest logical request intent |
+| F26 | VM-owned logical intent 变成第二套 orchestration machine（持有 generation counter、pending/read status、`TimelineReadModel`、phase 或 failure） |
+| F27 | Timeline renderer 用 `LocalDate.now()`/`Instant.now()`/`Clock` 读取来推导未变化 published snapshot 的 Today/Yesterday 或当前月控件状态 |
+| F28 | Today/Yesterday/current-month presentation 不派生自已发布的 `TimelineRangeState.today` |
 
 ## 36. Status mapping（truthful）
 
@@ -648,4 +786,12 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
   §31 的 UI40–UI47、§35 的 F22–F24。其余 D-04 决定（surface/nav、ownership、retention、
   lifecycle、selectedDate-as-focus、ordering、row truthfulness、identity/dose、delta 禁令、
   七相位映射、pending 政策、centering rules、D-05 split、UTF-8 evidence）保持不变；
+  状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
+- **R2 amendment（architect REQUEST_CHANGES；docs-only）**：已并入
+  §3.2 VM-owned logical request intent（含 D-03 public/private API audit；narrow intent mirror；
+  非第二 state machine）、§6.1 R2 comparison source（`latestLogicalIntent.displayZone`，
+  不得用 `coordinator.state.value.displayZone`）、§6.2 intent 初始化/同步更新规则、
+  §6.3 published-vs-logical 分离 + pending-zone 示例 A/B、§6.4 retry/recovery targeting、
+  §23.4 snapshot-relative `state.today`（Today/Yesterday 与当前月控件），
+  §31 的 UI48–UI53、§35 的 F25–F28。其余 D-04 决定（含 R1 全部内容与 centering rules）不变；
   状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
