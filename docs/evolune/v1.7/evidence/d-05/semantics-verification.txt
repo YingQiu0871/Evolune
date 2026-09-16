@@ -1,0 +1,45 @@
+V17-D-05 — semantics verification summary
+(Real Compose semantics-tree assertions on Pixel_7 API 35; class TimelineAccessibilityTest,
+13 methods, all green — see androidtest/TEST-Pixel_7_API35_app-final.xml.)
+
+Day cell (P2-1 closure)
+  - merged/accessibility tree: EXACTLY ONE node carrying timeline-day-cell-<date>; it has
+    Role.Button (expectValue(SemanticsProperties.Role, Role.Button)), a click action, the
+    `selected` property on the selected cell, and — in the defensive fixture — `disabled`.
+  - the merged node's spoken content is the localized non-ISO phrase; the visible weekday and
+    number are NOT present as text nodes in the merged tree (onAllNodesWithText("三")/"16" are
+    empty; children carry ClearAndSetSemantics = true).
+  - unmerged test tree: timeline-day-weekday-<date>, timeline-day-highlight-<date>,
+    timeline-day-number-<date> remain queryable (asserted) — D-04 geometry proof preserved
+    (TimelineGeometryTest still 8/8 green).
+  - phrase grammar measured: “9月16日，星期三，今天” and “9月10日，星期四”; defensive future
+    cell: “9月17日，星期四，未到日期” + disabled semantics + selection never invoked.
+
+Headings (P2-2 closure)
+  - month title: heading() defined; visible text unchanged.
+  - section headers: heading() on both relatives; the absolute header exposes EXACTLY ONE node
+    whose description is “2026年9月12日，星期六” (full weekday) with NO Text property, and the
+    visible short-weekday form is absent from the semantics tree (§39 single-phrase proof).
+
+Entry card (P2-3 closure)
+  - one merged clickable node with Role.Button, no custom contentDescription (icon silent),
+    title/subtitle text present, onClickLabel == timeline_entry_action, touch target >= 48dp.
+
+MATCHED grouping / separator (P2-5 closure)
+  - exactly two side nodes (one schedule-side, one recorded-side); phrases measured:
+    “当前方案时间，08:00，雌二醇，2.0 mg” / “实际时间，08:05，雌二醇，3.0 mg”;
+    children do not remain as separate spoken stops (no text node equals “08:00”);
+    the visible “·” string is untouched visually and never required for speech.
+
+UNRECORDED / UNMATCHED
+  - UNRECORDED: schedule group + separate neutral node equal to 未记录摄入; no recorded node.
+  - UNMATCHED: recorded group only; no schedule/planned/prescription node or description.
+
+States / actions / live behavior
+  - seven phases each expose a reachable region node; retry and return-to-month labels are
+    distinct resources; zero LiveRegion nodes; no focus property appears before/after
+    selection and month change (no programmatic focus).
+
+Hit targets
+  - touchBoundsInRoot >= 48dp for previous/next month, day cell, retry, return-to-month;
+    entry card >= 48dp (layout bounds).

@@ -228,6 +228,20 @@ object TimelinePresentation {
         DayOfWeek.SUNDAY -> R.string.history_weekday_sun
     }
 
+    /**
+     * V17-D-05 §6/§9/§35 — full weekday vocabulary for accessibility speech only. The visible
+     * day strip and section headers keep the short form; spoken phrases use these full names.
+     */
+    fun fullWeekdayRes(dayOfWeek: DayOfWeek): Int = when (dayOfWeek) {
+        DayOfWeek.MONDAY -> R.string.timeline_a11y_weekday_mon
+        DayOfWeek.TUESDAY -> R.string.timeline_a11y_weekday_tue
+        DayOfWeek.WEDNESDAY -> R.string.timeline_a11y_weekday_wed
+        DayOfWeek.THURSDAY -> R.string.timeline_a11y_weekday_thu
+        DayOfWeek.FRIDAY -> R.string.timeline_a11y_weekday_fri
+        DayOfWeek.SATURDAY -> R.string.timeline_a11y_weekday_sat
+        DayOfWeek.SUNDAY -> R.string.timeline_a11y_weekday_sun
+    }
+
     private val DATE_FORMATTER: DateTimeFormatter =
         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
 }

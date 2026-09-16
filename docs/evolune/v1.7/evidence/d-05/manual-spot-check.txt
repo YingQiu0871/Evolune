@@ -1,0 +1,26 @@
+V17-D-05 — manual / visual spot-check record (bounded, per contract §42.6)
+
+Reviewed artifacts (captured on the Pixel_7 API 35 AVD during the run)
+  visual-evidence/d-04-01-calendar-centered-content.png   normal-font CONTENT
+  visual-evidence/d-04-02-month-navigation-enabled.png    normal-font past month (next enabled)
+  visual-evidence/d-04-03-empty-day-with-other-sections.png
+  visual-evidence/d-04-04-error-retry.png
+  visual-evidence/d-05-01-font20-content.png              2.0x CONTENT
+  visual-evidence/d-05-02-font20-day-strip.png            2.0x day strip region
+  visual-evidence/d-05-03-font20-empty-day.png            2.0x EMPTY_DAY
+  visual-evidence/d-05-04-font20-error-retry.png          2.0x ERROR / recovery
+
+Manual observations
+  - selected day: primaryContainer circle + onPrimaryContainer number; TODAY:
+    secondaryContainer circle; ordinary day: no container. Selected vs today remain
+    distinguishable by container color; the semantic distinction is carried by the
+    `selected` property + “今天” phrase component, not by color alone.
+  - defensive disabled/future branch is not reachable through normal D-03 ranges; its visual
+    (dimmed number) and semantics (disabled + 未到日期) were exercised only by the controlled
+    fixture in TimelineAccessibilityTest.
+  - schedule vs recorded sides: label text (“当前方案时间” / “实际时间”) plus label color; the
+    two sides remain visually separated by the divider; no flattening observed at 1.0x or 2.0x.
+  - 2.0x captures: day strip numbers remain fully inside their highlight circles; month title
+    wraps without clipping; body text wraps and grows downward; no overlapping cells observed.
+  - No formal WCAG contrast ratio is claimed — no measurement instrument was used; the theme
+    was NOT redesigned (contract §31/§49).

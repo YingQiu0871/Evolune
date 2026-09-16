@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:27.400Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="UI28 while a refresh is pending only the D-03 published state is visible" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.002"/>
+  <testcase name="UI7 from a past month the next month resolves to today" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.001"/>
+  <testcase name="UI3 a foreground return refreshes once with a fresh capturedAt" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI56 selectDate follows the pending logical requestToday while the published state still lags" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI43 Case B resolves a now-future requested month to the new current month" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI1 the first surface-shown entry never adds a duplicate read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI48 activation targets the pending logical Tokyo context instead of the published Paris state" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI40 same-zone activation refreshes with a fresh capture and preserves month and date" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI49 a zone change back to the published zone performs a new load rather than a plain refresh" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI2 a later surface re-entry refreshes once with a fresh capturedAt" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.001"/>
+  <testcase name="UI50 a valid selection updates the logical intent immediately and survives a refresh" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI55 and UI57 selection validity follows requestToday, not an independently observed wall clock" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI8 valid selection is zero-read while out-of-month and future selections are ignored" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI6 next month is a no-op at the current month" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI54 a same-zone refresh across midnight advances requestToday and preserves month and date" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="returnToCurrentMonth loads the fresh current month exactly once" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI41 a display-zone change submits exactly one load carrying the new zone" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI42 Case A keeps a past requested month and a still-valid selection" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI27 and UI58 retry after an error supplies a fresh capture for the same logical request" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="the intent mirror never exposes a generation, phase or read status" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI58 a month change updates requestToday from the same capture that produced the read" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.001"/>
+  <testcase name="UI1 first construction performs exactly one load for the current month and today" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <testcase name="UI5 previous month performs exactly one load and selects the first of that month" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

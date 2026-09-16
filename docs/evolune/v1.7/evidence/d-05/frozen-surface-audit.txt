@@ -1,0 +1,46 @@
+V17-D-05 frozen-surface audit (pre-commit candidate)
+
+git diff --name-only -- app (production + tests only):
+
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineAccessibilityTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+app/src/main/res/values-zh-rCN/strings.xml
+app/src/main/res/values/strings.xml
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+
+Changed production files (all inside the D-05 authorized boundary):
+  ui/screens/timeline/TimelineScreen.kt      (semantics/heading/role/phrase composition +
+                                              resolved day-cell metrics)
+  ui/screens/timeline/TimelinePresentation.kt(fullWeekdayRes accessibility vocabulary)
+  ui/screens/HistoryScreen.kt                (entry-card Role.Button)
+  res/values/strings.xml, values-zh-rCN/strings.xml (entry subtitle wording + 12 timeline_a11y_* keys)
+
+Changed tests (D-04 adaptations permitted by contract §42.8 + new D-05 classes):
+  TimelineScreenTest (assertion mechanics only), TimelineNavigationTest (selected-property
+  assertion only), TimelineTestStates (defensive fixture), TimelineVisualEvidenceTest (2.0x
+  captures), TimelinePresentationTest (+1), TimelineUiArchitectureGuardTest (+3),
+  TimelineAccessibilityTest (new), TimelineFontScaleTest (new).
+
+Explicitly zero-diff (not in the delta):
+  history/timeline/TimelineViewModel.kt, TimelineRangeState.kt, TimelineRangeCoordinator.kt,
+  TimelineReadModel.kt, TimelineProjectionBuilder.kt, TimelineSurfaceLifecycle.kt
+  history/HistoryReadService.kt, HistoryRangeSource.kt, HistoricalProjectionBuilder,
+  matcher/generator/MedicationOccurrencePolicy
+  MainActivity.kt, navigation/AppNavigation.kt
+  TimelineGeometryTest.kt, TimelineLifecycleTest.kt
+  Phase-C / PK / retrospective production, Room schema/DAO/migrations,
+  Home/Wear/Widget production, Gradle files/dependencies/version metadata.
+
+Frozen D-04 semantics preserved: navigation route, activity-scoped VM ownership, coordinator
+count (1), requestToday/state.today/displayZone authorities, same-zone refresh vs zone-change
+load, month-navigation semantics, focus-not-filter, whole-month rendering, newest-day section
+ordering, canonical row ordering, row truthfulness, identity truth, dose provenance, seven
+phases, no local pending machine. (D-04 architecture guards + regression tests green.)

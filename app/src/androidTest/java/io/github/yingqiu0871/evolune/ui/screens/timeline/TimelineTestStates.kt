@@ -177,6 +177,17 @@ internal object TimelineTestStates {
 
     fun zoneState(zone: ZoneId): TimelineRangeState = contentState(displayZone = zone)
 
+    /**
+     * V17-D-05 §37 defensive fixture: the effective range reaches beyond today, so the strip
+     * exposes non-selectable future cells. This is a controlled presentation fixture only — no
+     * product route/state is added.
+     */
+    fun defensiveFutureState(): TimelineRangeState = state(
+        days = daysFrom(today to listOf(unrecordedRow(today, slotId = 601L))),
+        effectiveStart = month.atDay(1),
+        effectiveEnd = today.plusDays(2)
+    )
+
     /** Six one-row sections: the oldest section is off-screen on the Pixel 7 viewport. */
     fun manyDaysState(): TimelineRangeState {
         val days = (11..16).map { day ->

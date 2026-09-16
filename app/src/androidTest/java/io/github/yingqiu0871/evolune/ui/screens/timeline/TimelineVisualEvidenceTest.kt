@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.FontScale
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
@@ -68,5 +70,36 @@ class TimelineVisualEvidenceTest {
                 .compress(Bitmap.CompressFormat.PNG, 100, stream)
         }
         return file.absolutePath
+    }
+
+    // ---------- V17-D-05 §42/§48: bounded 2.0x captured-device evidence ----------
+
+    @Test
+    fun captureFontScale20ContentAndStateSurfaces() {
+        var state by mutableStateOf(TimelineTestStates.contentState())
+        composeRule.setContent {
+            EvoluneTheme {
+                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(2.0f)) {
+                    TimelineScreenContent(state = state)
+                }
+            }
+        }
+        composeRule.waitForIdle()
+        val outputs = mutableListOf<String>()
+        outputs += capture("d-05-01-font20-content")
+        outputs += capture("d-05-02-font20-day-strip")
+
+        state = TimelineTestStates.emptyDayState()
+        composeRule.waitForIdle()
+        outputs += capture("d-05-03-font20-empty-day")
+
+        state = TimelineTestStates.errorState()
+        composeRule.waitForIdle()
+        outputs += capture("d-05-04-font20-error-retry")
+
+        outputs.forEach { path ->
+            val file = File(path)
+            assertTrue("screenshot must exist: $path", file.exists() && file.length() > 0L)
+        }
     }
 }

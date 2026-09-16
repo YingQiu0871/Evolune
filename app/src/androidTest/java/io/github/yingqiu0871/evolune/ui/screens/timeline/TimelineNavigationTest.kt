@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertContentDescriptionContains
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -200,10 +200,7 @@ class TimelineNavigationTest {
             .performScrollToNode(hasTestTag("timeline-day-cell-$selectedDay"))
         composeRule
             .onNodeWithTag("timeline-day-cell-$selectedDay")
-            .assertContentDescriptionContains(
-                context.getString(R.string.history_cell_selected),
-                substring = true
-            )
+            .assertIsSelected()
     }
 
     // ---------- UI34 probe helpers ----------

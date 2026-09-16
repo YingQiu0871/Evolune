@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
@@ -283,7 +284,10 @@ private fun TimelineEntryCard(onOpenTimeline: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable(onClickLabel = stringResource(R.string.timeline_entry_action)) {
+            .clickable(
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.timeline_entry_action)
+            ) {
                 onOpenTimeline()
             }
             .testTag("history-timeline-entry"),

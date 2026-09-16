@@ -546,7 +546,7 @@
     <!-- v1.7-D-04 Timeline UI surface (functional; D-05 owns final wording and localization) -->
     <string name="timeline_title">用药时间线</string>
     <string name="timeline_entry_title">用药时间线</string>
-    <string name="timeline_entry_subtitle">按月份查看计划上下文与已记录摄入的时间线</string>
+    <string name="timeline_entry_subtitle">按月份查看当前方案与已记录摄入</string>
     <string name="timeline_entry_action">打开用药时间线</string>
     <string name="timeline_month_title">%1$d年%2$d月</string>
     <string name="timeline_previous_month">上一月</string>
@@ -566,4 +566,18 @@
     <string name="timeline_return_current_month">返回当前月份</string>
     <string name="timeline_error">无法读取时间线记录。</string>
     <string name="timeline_retry">重试</string>
+
+    <!-- v1.7-D-05 Timeline accessibility speech (spoken-only vocabulary; visible text unchanged) -->
+    <string name="timeline_a11y_day_format">%1$d月%2$d日</string>
+    <string name="timeline_a11y_weekday_mon">星期一</string>
+    <string name="timeline_a11y_weekday_tue">星期二</string>
+    <string name="timeline_a11y_weekday_wed">星期三</string>
+    <string name="timeline_a11y_weekday_thu">星期四</string>
+    <string name="timeline_a11y_weekday_fri">星期五</string>
+    <string name="timeline_a11y_weekday_sat">星期六</string>
+    <string name="timeline_a11y_weekday_sun">星期日</string>
+    <string name="timeline_a11y_date_weekday">%1$s，%2$s</string>
+    <string name="timeline_a11y_day_cell_today">%1$s，%2$s，%3$s</string>
+    <string name="timeline_a11y_day_cell_disabled">%1$s，%2$s，%3$s</string>
+    <string name="timeline_a11y_row_side">%1$s，%2$s，%3$s，%4$s</string>
 </resources>

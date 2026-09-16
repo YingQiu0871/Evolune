@@ -21,6 +21,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -387,5 +388,22 @@ class TimelinePresentationTest {
             label.dateText
         )
         assertEquals(R.string.history_weekday_thu, label.weekdayRes)
+    }
+
+    @Test
+    fun `D05 full weekday accessibility vocabulary maps every day deterministically`() {
+        val expected = mapOf(
+            DayOfWeek.MONDAY to R.string.timeline_a11y_weekday_mon,
+            DayOfWeek.TUESDAY to R.string.timeline_a11y_weekday_tue,
+            DayOfWeek.WEDNESDAY to R.string.timeline_a11y_weekday_wed,
+            DayOfWeek.THURSDAY to R.string.timeline_a11y_weekday_thu,
+            DayOfWeek.FRIDAY to R.string.timeline_a11y_weekday_fri,
+            DayOfWeek.SATURDAY to R.string.timeline_a11y_weekday_sat,
+            DayOfWeek.SUNDAY to R.string.timeline_a11y_weekday_sun
+        )
+        expected.forEach { (day, res) ->
+            assertEquals("full weekday mapping for $day", res, TimelinePresentation.fullWeekdayRes(day))
+        }
+        assertEquals(7, expected.values.toSet().size)
     }
 }

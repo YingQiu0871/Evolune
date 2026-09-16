@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryQuickRecordInferredTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:25.968Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="a quick record on the same day is never described as a legacy record" classname="io.github.yingqiu0871.evolune.history.HistoryQuickRecordInferredTest" time="0.002"/>
+  <testcase name="a production quick record matched by the time window gets the neutral inferred wording" classname="io.github.yingqiu0871.evolune.history.HistoryQuickRecordInferredTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

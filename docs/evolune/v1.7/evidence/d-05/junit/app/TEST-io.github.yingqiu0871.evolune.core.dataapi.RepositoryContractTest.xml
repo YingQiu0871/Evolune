@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:25.707Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="medicationPlanContractUsesOnlyDomainTypes" classname="io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" time="0.002"/>
+  <testcase name="allResolvedResultVariantsRemainDistinctAndExhaustive" classname="io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" time="0.002"/>
+  <testcase name="doseEventContractUsesOnlyDomainAndStandardTimeTypes" classname="io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

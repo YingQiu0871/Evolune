@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:25.806Z" hostname="人面不知何处去" time="0.029">
+  <properties/>
+  <testcase name="provider update required is distinct from unavailable" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.014"/>
+  <testcase name="permission error is forwarded as weight read error" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.002"/>
+  <testcase name="no records returns explicit no data without writes" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.003"/>
+  <testcase name="status and platform exceptions map to stable errors" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="required permissions contain only read weight" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="sdk statuses map to stable Evolune availability values" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="available status is exposed" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="latest valid weight is selected from the recent thirty day window" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="Android 14 and newer keeps SDK status authoritative" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="permission unavailable is forwarded as weight unavailable" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="weight read cancellation is rethrown" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="permission check cancellation is rethrown" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="availability cancellation is rethrown" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="invalid time window is rejected without platform access" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="unavailable status is preserved" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="records outside the requested window are ignored" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="permission state reports granted and not granted" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="permission denial prevents a read" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <testcase name="missing provider on Android 12 through 13 is unavailable" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.0"/>
+  <testcase name="invalid records are rejected and do not become observations" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProviderTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

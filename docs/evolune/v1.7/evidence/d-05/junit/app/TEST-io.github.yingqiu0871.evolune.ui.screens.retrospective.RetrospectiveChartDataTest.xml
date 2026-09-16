@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:27.591Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="C3 the viewport is exactly the series interval - 720 hours" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" time="0.002"/>
+  <testcase name="C1 chart points mirror the approved series point-for-point with raw bit values" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" time="0.0"/>
+  <testcase name="the y axis falls back to one only when nothing positive exists" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" time="0.0"/>
+  <testcase name="C2 a small negative roundoff value is preserved unmodified and never clamped to zero" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" time="0.001"/>
+  <testcase name="marker hour offsets are derived from the same frozen series start" classname="io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveChartDataTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

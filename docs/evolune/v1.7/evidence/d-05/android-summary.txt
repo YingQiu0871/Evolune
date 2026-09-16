@@ -1,0 +1,53 @@
+V17-D-05 Android instrumentation summary
+
+Device (established project validation target)
+  emulator : Pixel_7 AVD (sdk_gphone64_x86_64)
+  API      : 35 (Android 15)
+  serial   : emulator-5554
+
+Final full D-05 instrumentation run (log: logs/android-instrumentation.log)
+  command: .\gradlew.bat :app:connectedDebugAndroidTest
+           -Pandroid.testInstrumentationRunnerArguments.class=
+             ...TimelineScreenTest,...TimelineGeometryTest,...TimelineLifecycleTest,
+             ...TimelineNavigationTest,...TimelineVisualEvidenceTest,
+             ...TimelineAccessibilityTest,...TimelineFontScaleTest
+  result : tests=59 failures=0 errors=0 skipped=0
+           (device XML: androidtest/TEST-Pixel_7_API35_app-final.xml)
+    23 TimelineScreenTest        (D-04 regression; assertions adapted to D-05 semantics only)
+     8 TimelineGeometryTest      (D-04 geometry regression, unchanged and green)
+     4 TimelineLifecycleTest     (D-04 lifecycle regression, unchanged)
+     3 TimelineNavigationTest    (D-04 navigation regression; UI34 selected-state assertion
+                                  adapted to the semantic selected property)
+     1 TimelineVisualEvidenceTest (normal-font captures + new 2.0x captures)
+    13 TimelineAccessibilityTest (NEW D-05 semantics)
+     6 TimelineFontScaleTest     (NEW D-05 font-scale measurements)
+
+New D-05 instrumentation (19 methods; bounded per contract §42.7)
+  TimelineAccessibilityTest (13): entry-card single Role.Button + silent icon + distinct
+    onClickLabel; month-title heading; section-header headings + absolute header single
+    full-weekday phrase (§39) + short form absent; day cell exactly one Role.Button node,
+    children excluded from the accessibility tree, unmerged geometry tags retained, selected
+    property; localized non-ISO spoken grammar (9月16日，星期三，今天 / 9月10日，星期四);
+    defensive future cells disabled + selection never invoked; MATCHED exactly two side groups
+    with composed phrases and no residual child stops; UNRECORDED schedule group + separate
+    neutral notice; UNMATCHED recorded-only; seven states reachable with distinct action labels
+    and zero live regions; no programmatic a11y-focus movement on selection/month change;
+    platform touch targets >= 48dp (touchBoundsInRoot) for month controls, day cell, retry,
+    return-to-month; day-axis intact under grouping.
+  TimelineFontScaleTest (6): 1.0x relational geometry (number-in-highlight, axis, uniform width,
+    selected-centered); 1.3x and 1.5x content-fitted measurements; 2.0x number-in-grown-
+    highlight + equal w/h + uniform width across single/double digits + >=48dp cell; 2.0x
+    month-title centered, nav slots symmetric, body left aligned, side laid out; 2.0x viewport
+    centering (far/first/last cells reach center <= 3dp); 2.0x 12h/24h phrase sanity against
+    the published UTC zone.
+
+Textual evidence (UTF-8, no BOM; normalized before MANIFEST construction)
+  visual-evidence/d-04-*.png (normal-font content/navigation/empty-day/error)
+  visual-evidence/d-05-*.png (2.0x content/day-strip/empty-day/error)
+
+D-04 regression: all five D-04 instrumentation classes pass unchanged except the two
+assertion-mechanics adaptations explicitly permitted by the D-05 contract (§42.8):
+  - TimelineScreenTest: row text assertions moved to grouped side phrases/labels
+    (visible text unchanged; behaviour intent preserved);
+  - TimelineNavigationTest (UI34): selected-day "已选中" text assertion -> assertIsSelected().
+  TimelineGeometryTest / TimelineLifecycleTest required no change.

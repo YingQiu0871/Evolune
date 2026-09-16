@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:26.908Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="P1 two applies at the same instant are ambiguous" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 unsettled chain stays one affected chain" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P7 unusable orphan remove only affects its own chain" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 same-instant apply and remove are both ambiguous" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P4 same-instant ambiguity does not depend on event id ordering" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 apply remove pair is kept" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P7 unusable apply alone is excluded as incomplete" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 affected chain is scoped - unrelated earlier and later chains survive" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P7 unusable remove cannot turn a preceding apply into a valid open patch" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 orphan remove is ambiguous" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 duplicate remove only excludes the affected orphan removal" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 apply remove apply is kept - final apply may remain open" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 single apply stays open" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P1 overlapping applies are ambiguous" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.0"/>
+  <testcase name="P4 removal and next apply at the same instant entangle the prior chain" classname="io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

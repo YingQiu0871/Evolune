@@ -1,0 +1,37 @@
+V17-D-05 — FONT1..FONT11 acceptance mapping (executed, measured on Pixel_7 API 35)
+Class: TimelineFontScaleTest (DeviceConfigurationOverride.FontScale; device XML in
+androidtest/TEST-Pixel_7_API35_app-final.xml).
+
+FONT1  1.0x D-04 geometry preserved
+       -> fontScale10KeepsD04RelationalGeometry (number-in-highlight both axes; weekday/number/
+          highlight shared axis; uniform cell width; selected cell at viewport center <= 2dp);
+          plus the unchanged D-04 TimelineGeometryTest (8/8 green) which remains the 1.0x
+          regression proof.
+FONT2  1.3x day-cell content fits
+       -> fontScale13And15KeepDayCellContentFitted (number bounds inside highlight; shared axis;
+          uniform width)
+FONT3  1.5x day-cell content fits
+       -> same method after updateScale(1.5f)
+FONT4  2.0x day-cell content fits
+       -> fontScale20GrowsHighlightKeepsNumberInsideAndKeepsUniformWidth (number inside grown
+          highlight; highlight > 36dp baseline; equal w/h; cell >= 48dp)
+FONT5  uniform resolved cell width per scale
+       -> assertUniformCellWidth (single-digit vs double-digit cells; measured at 1.0/1.3/1.5/
+          2.0 across the three font methods)
+FONT6  number centered in grown highlight
+       -> assertCenteredAxis at 2.0x (x and y <= 1.5dp)
+FONT7  weekday/date/highlight common axis
+       -> assertCenteredAxis at every measured scale
+FONT8  2.0x month title centered, nav slots symmetric, disabled-next slot reserved
+       -> fontScale20KeepsMonthTitleCenteredNavSymmetricAndBodyLeftAligned (title center ==
+          navigation center <= 1.5dp; left/right slot widths equal; slot is structurally fixed,
+          F20 guard from D-04 still enforced)
+FONT9  2.0x body left aligned, critical text not clipped/ellipsized
+       -> same method (section header left == section left; header left of surface center;
+          grouped side laid out with non-degenerate bounds) + visual-evidence PNGs
+FONT10 viewport centering uses resolved cell width
+       -> fontScale20ViewportCenteringAndEdgeSymmetry (selected far cell reaches viewport
+          center <= 3dp; symmetric padding computed from the resolved width)
+FONT11 first/last edge symmetry at large font
+       -> same method (first and last selectable cells reach the viewport center <= 3dp; no
+          manual x-offset exists — guard F19/DG16)

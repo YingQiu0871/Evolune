@@ -1,0 +1,39 @@
+timeline_* + timeline_a11y_* resource parity (values/ vs values-zh-rCN/)
+values count: 34
+zh-rCN count: 34
+key parity: True
+
+timeline_a11y_date_weekday | values='%1$s，%2$s' | zh='%1$s，%2$s' | ph: %1$s,%2$s / %1$s,%2$s
+timeline_a11y_day_cell_disabled | values='%1$s，%2$s，%3$s' | zh='%1$s，%2$s，%3$s' | ph: %1$s,%2$s,%3$s / %1$s,%2$s,%3$s
+timeline_a11y_day_cell_today | values='%1$s，%2$s，%3$s' | zh='%1$s，%2$s，%3$s' | ph: %1$s,%2$s,%3$s / %1$s,%2$s,%3$s
+timeline_a11y_day_format | values='%1$d月%2$d日' | zh='%1$d月%2$d日' | ph: %1$d,%2$d / %1$d,%2$d
+timeline_a11y_row_side | values='%1$s，%2$s，%3$s，%4$s' | zh='%1$s，%2$s，%3$s，%4$s' | ph: %1$s,%2$s,%3$s,%4$s / %1$s,%2$s,%3$s,%4$s
+timeline_a11y_weekday_fri | values='星期五' | zh='星期五' | ph:  / 
+timeline_a11y_weekday_mon | values='星期一' | zh='星期一' | ph:  / 
+timeline_a11y_weekday_sat | values='星期六' | zh='星期六' | ph:  / 
+timeline_a11y_weekday_sun | values='星期日' | zh='星期日' | ph:  / 
+timeline_a11y_weekday_thu | values='星期四' | zh='星期四' | ph:  / 
+timeline_a11y_weekday_tue | values='星期二' | zh='星期二' | ph:  / 
+timeline_a11y_weekday_wed | values='星期三' | zh='星期三' | ph:  / 
+timeline_empty_day | values='所选日期没有时间线记录。' | zh='所选日期没有时间线记录。' | ph:  / 
+timeline_empty_range | values='该月份没有时间线记录。' | zh='该月份没有时间线记录。' | ph:  / 
+timeline_entry_action | values='打开用药时间线' | zh='打开用药时间线' | ph:  / 
+timeline_entry_subtitle | values='按月份查看当前方案与已记录摄入' | zh='按月份查看当前方案与已记录摄入' | ph:  / 
+timeline_entry_title | values='用药时间线' | zh='用药时间线' | ph:  / 
+timeline_error | values='无法读取时间线记录。' | zh='无法读取时间线记录。' | ph:  / 
+timeline_identity_partial | values='用药信息不完整' | zh='用药信息不完整' | ph:  / 
+timeline_identity_unavailable | values='用药身份不可用' | zh='用药身份不可用' | ph:  / 
+timeline_invalid_request | values='无法显示所选月份，请返回当前月份。' | zh='无法显示所选月份，请返回当前月份。' | ph:  / 
+timeline_loading | values='正在加载时间线…' | zh='正在加载时间线…' | ph:  / 
+timeline_month_title | values='%1$d年%2$d月' | zh='%1$d年%2$d月' | ph: %1$d,%2$d / %1$d,%2$d
+timeline_next_month | values='下一月' | zh='下一月' | ph:  / 
+timeline_no_recorded_intake | values='未记录摄入' | zh='未记录摄入' | ph:  / 
+timeline_not_loadable | values='该月份暂不可用，请返回当前月份。' | zh='该月份暂不可用，请返回当前月份。' | ph:  / 
+timeline_previous_month | values='上一月' | zh='上一月' | ph:  / 
+timeline_retry | values='重试' | zh='重试' | ph:  / 
+timeline_return_current_month | values='返回当前月份' | zh='返回当前月份' | ph:  / 
+timeline_row_identity_dose | values='%1$s · %2$s' | zh='%1$s · %2$s' | ph: %1$s,%2$s / %1$s,%2$s
+timeline_section_date_weekday | values='%1$s %2$s' | zh='%1$s %2$s' | ph: %1$s,%2$s / %1$s,%2$s
+timeline_title | values='用药时间线' | zh='用药时间线' | ph:  / 
+timeline_today | values='今天' | zh='今天' | ph:  / 
+timeline_yesterday | values='昨天' | zh='昨天' | ph:  / 

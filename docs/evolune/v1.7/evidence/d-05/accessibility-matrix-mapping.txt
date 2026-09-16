@@ -1,0 +1,59 @@
+V17-D-05 — A11Y1..A11Y21 acceptance mapping (executed proofs)
+All device proofs: androidtest/TEST-Pixel_7_API35_app-final.xml (TimelineAccessibilityTest,
+TimelineFontScaleTest etc.). Semantics = real Compose semantics-tree assertions.
+
+A11Y1  entry card one Role.Button node (title+subtitle+onClickLabel readable, icon silent)
+       -> TimelineAccessibilityTest.entryCardIsOneButtonNodeWithSilentDecorativeIcon
+A11Y2  month title heading()
+       -> TimelineAccessibilityTest.monthTitleIsAHeading
+A11Y3  every section header heading()
+       -> TimelineAccessibilityTest.sectionHeadersAreHeadingsAndAbsoluteHeaderSpeaksOne
+          FullWeekdayPhrase (relative + absolute)
+A11Y4  day cell exactly ONE meaningful accessibility node
+       -> TimelineAccessibilityTest.dayCellIsExactlyOneButtonNodeWithChildrenExcludedFromThe
+          AccessibilityTree (merged-tree count == 1)
+A11Y5  day cell Role.Button
+       -> same test (expectValue(SemanticsProperties.Role, Role.Button) + hasClickAction)
+A11Y6  day cell selected semantic property
+       -> same test (assertIsSelected on the selected cell)
+A11Y7  disabled semantics on the defensive non-selectable branch
+       -> defensiveFutureCellsExposeDisabledSemanticsAndNeverInvokeSelection
+          (fixture-only future range; assertIsNotEnabled; selection never invoked)
+A11Y8  no duplicate weekday/date child announcement; no extra stops
+       -> dayCellIsExactlyOne... (onAllNodesWithText("三") / ("16") both empty in the merged
+          tree; children carry ClearAndSetSemantics = true nodes only)
+A11Y9  spoken day grammar localized, non-ISO
+       -> dayCellSpeaksLocalizedNonIsoGrammarWithFullWeekday
+          (assertContentDescriptionEquals("9月16日，星期三，今天") / ("9月10日，星期四"))
+A11Y10 full weekday spoken (星期X), never the single-character visible form
+       -> same test + section-header phrase "2026年9月12日，星期六"
+A11Y11 MATCHED exactly two side groups
+       -> matchedRowExposesExactlyTwoSideGroupsWithNaturalSeparators
+          (exactly one schedule-side + one recorded-side node in a single-row fixture)
+A11Y12 schedule group truth/order (label -> time -> identity -> dose, schedule fields only)
+       -> same test: phrase == "当前方案时间，08:00，雌二醇，2.0 mg"
+A11Y13 recorded group truth/order (recorded fields only)
+       -> same test: phrase == "实际时间，08:05，雌二醇，3.0 mg"
+A11Y14 UNRECORDED neutral (schedule group + 未记录摄入; no forbidden wording)
+       -> unrecordedRowExposesScheduleGroupAndNeutralNoticeOnly (+ TimelineScreenTest
+          D-04 wording checks adapted to grouped phrases)
+A11Y15 UNMATCHED recorded-only (no schedule/planned/prescription node)
+       -> unmatchedRowExposesRecordedGroupOnly
+A11Y16 decorative elements silent
+       -> entryCardIsOneButtonNodeWithSilentDecorativeIcon (no contentDescription on the
+          clicked card; icon null) + divider/highlight carry no semantics (TimelineScreen
+          source structure; merged-tree checks show no icon-name announcements)
+A11Y17 seven states each meaningful reachable target
+       -> sevenStatesExposeMeaningfulTargetsAndDistinctActionLabels (all seven regions)
+A11Y18 distinct recovery labels
+       -> same test (重试 vs 返回当前月份 resources distinct)
+A11Y19 no live-region auto announcement
+       -> same test (zero nodes with SemanticsProperties.LiveRegion) + JVM guard
+          D05 no programmatic focus or live-region APIs
+A11Y20 no programmatic a11y-focus jump
+       -> selectionAndMonthChangeDoNotMoveAccessibilityFocus (focused-node count unchanged and
+          zero before/after) + JVM guard (no requestFocus/moveFocus/FocusManager)
+A11Y21 >=48dp interactive targets
+       -> interactiveTargetsAreAtLeast48dp measured via touchBoundsInRoot for previous/next
+          month, day cell, retry, return-to-month; entry card >= 48dp in
+          entryCardIsOneButtonNodeWithSilentDecorativeIcon

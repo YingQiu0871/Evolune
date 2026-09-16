@@ -1,0 +1,29 @@
+V17-D-05 — font-scale verification summary
+(Class TimelineFontScaleTest, DeviceConfigurationOverride.FontScale, Pixel_7 API 35; all green.)
+
+Implemented mechanism (source-verified)
+  - resolveDayCellMetrics(): per strip configuration resolves
+      cellWidth     = max(48dp, widest required visible content + 8dp padding)
+      highlightSize = max(36dp, max(number width, number height) + 8dp padding)
+    measured once with TextMeasurer under the current Density (fontScale included);
+    every cell uses the same resolved width; strip side padding = (viewport - cellWidth)/2.
+  - at 1.0x the resolved values equal the D-04 baselines (48dp / 36dp).
+
+Measured scale results
+  1.0x : number inside highlight; weekday/number/highlight shared axis; uniform cell width;
+         selected cell at viewport center (<= 2dp).
+  1.3x : number inside highlight; axis intact; uniform width.
+  1.5x : number inside highlight; axis intact; uniform width.
+  2.0x : number inside highlight; highlight measured larger than the 36dp baseline with equal
+         width/height; uniform width across single-digit and double-digit cells; cell >= 48dp;
+         month title centered (<= 1.5dp) with symmetric nav slots; body left aligned; grouped
+         side laid out with non-degenerate bounds; far/first/last selectable cells reach the
+         strip viewport center (<= 3dp); 12h and 24h phrases both contain the expected
+         published-zone timestamp.
+
+Interpretation limits
+  - The 2.0x assertions are relational (centering/containment/uniformity), not pixel-identical
+    to 1.0x, per the frozen contract §30.
+  - “Not clipped” is evidenced by: number fully inside the highlight, non-degenerate grouped
+    side bounds, visible text wrapping in the captured PNGs, and the measured growth of the
+    highlight/card layout at 2.0x (no fixed-height container).

@@ -1,0 +1,24 @@
+V17-D-05 JVM validation summary (counts derived from the FINAL JUnit XML in junit/)
+
+Focused D-05 JVM run (log: logs/jvm-focused-d05.log)
+  command: .\gradlew.bat :app:testDebugUnitTest
+           --tests "io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest"
+           --tests "io.github.yingqiu0871.evolune.ui.screens.timeline.*" --rerun
+  tests=69 failures=0 errors=0 skipped=0
+    23  TimelineViewModelTest            (frozen D-04 VM boundary, unchanged behaviour)
+    18  TimelinePresentationTest        (17 + 1 new D-05 full-weekday mapping test)
+    28  TimelineUiArchitectureGuardTest (25 + 3 new D-05 guards: a11y keys, placeholder parity,
+                                        no-focus/live-region APIs)
+  (XMLs: junit/focused/)
+
+Fresh full JVM suite (log: logs/jvm-full-fresh.log)
+  command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:test --rerun
+  app             tests=1229 failures=0 errors=0 skipped=0
+  experience-core tests=171  failures=0 errors=0 skipped=0
+  wear            tests=90   failures=0 errors=0 skipped=0
+  TOTAL           tests=1490 failures=0 errors=0 skipped=0
+  (previous D-04 baseline: 1486 total = 1225 app + 171 + 90; D-05 adds exactly the 4 new JVM
+   tests -> 1225 + 4 = 1229 app)
+  (XMLs: junit/app/, junit/experience-core/, junit/wear/)
+
+All counts are from the final XML; no stale pre-run summaries are retained.

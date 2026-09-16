@@ -1,0 +1,1636 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineAccessibilityTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineAccessibilityTest.kt
+new file mode 100644
+index 0000000..460fab9
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineAccessibilityTest.kt
+@@ -0,0 +1,458 @@
++package io.github.yingqiu0871.evolune.ui.screens.timeline
++
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.SemanticsActions
++import androidx.compose.ui.semantics.SemanticsProperties
++import androidx.compose.ui.test.SemanticsMatcher
++import androidx.compose.ui.test.assert
++import androidx.compose.ui.test.assertContentDescriptionContains
++import androidx.compose.ui.test.assertContentDescriptionEquals
++import androidx.compose.ui.test.assertIsNotEnabled
++import androidx.compose.ui.test.assertIsSelected
++import androidx.compose.ui.test.assertTextEquals
++import androidx.compose.ui.test.getUnclippedBoundsInRoot
++import androidx.compose.ui.test.hasClickAction
++import androidx.compose.ui.test.hasTestTag
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithContentDescription
++import androidx.compose.ui.test.onAllNodesWithTag
++import androidx.compose.ui.test.onAllNodesWithText
++import androidx.compose.ui.test.onNodeWithTag
++import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollToNode
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import androidx.test.platform.app.InstrumentationRegistry
++import io.github.yingqiu0871.evolune.R
++import io.github.yingqiu0871.evolune.history.HistoryUiState
++import io.github.yingqiu0871.evolune.history.timeline.TimelineRangeState
++import io.github.yingqiu0871.evolune.ui.screens.HistoryScreenContent
++import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Rule
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.time.LocalDate
++import java.time.YearMonth
++import java.time.ZoneOffset
++import kotlin.math.abs
++
++/**
++ * V17-D-05 §38 — executed accessibility-tree behaviour for the shipped Timeline surface.
++ *
++ * These tests assert the REAL Compose semantics tree (roles, headings, states, merged node
++ * counts, grouped phrases) — never source text alone. Contract: A11Y1–A11Y21.
++ */
++@RunWith(AndroidJUnit4::class)
++class TimelineAccessibilityTest {
++
++    @get:Rule
++    val composeRule = createComposeRule()
++
++    private val context = InstrumentationRegistry.getInstrumentation().targetContext
++    private var selectedDates = mutableListOf<LocalDate>()
++
++    private fun setContent(state: TimelineRangeState, is24Hour: Boolean = true) {
++        composeRule.setContent {
++            EvoluneTheme {
++                TimelineScreenContent(
++                    state = state,
++                    is24Hour = is24Hour,
++                    onSelectDate = { selectedDates += it }
++                )
++            }
++        }
++        composeRule.waitForIdle()
++    }
++
++    private fun scrollStripTo(date: LocalDate) {
++        composeRule.onNodeWithTag("timeline-day-strip")
++            .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
++        composeRule.waitForIdle()
++    }
++
++    private fun centerOf(tag: String): Offset {
++        val bounds = composeRule.onNodeWithTag(tag, useUnmergedTree = true).getUnclippedBoundsInRoot()
++        return Offset((bounds.left + bounds.right).value / 2f, (bounds.top + bounds.bottom).value / 2f)
++    }
++
++    private fun sizeOf(tag: String): Pair<Float, Float> {
++        val bounds = composeRule.onNodeWithTag(tag, useUnmergedTree = true).getUnclippedBoundsInRoot()
++        return Pair((bounds.right - bounds.left).value, (bounds.bottom - bounds.top).value)
++    }
++
++    // ---------- entry card ----------
++
++    @Test
++    fun entryCardIsOneButtonNodeWithSilentDecorativeIcon() {
++        val historyState = HistoryUiState(
++            visibleMonth = YearMonth.of(2026, 9),
++            selectedDate = LocalDate.of(2026, 9, 16),
++            today = LocalDate.of(2026, 9, 16),
++            displayZone = ZoneOffset.UTC,
++            loadedMonth = YearMonth.of(2026, 9),
++            loadedDays = emptyMap(),
++            loading = false,
++            failed = false
++        )
++        composeRule.setContent {
++            EvoluneTheme {
++                HistoryScreenContent(state = historyState)
++            }
++        }
++        composeRule.waitForIdle()
++
++        val entry = composeRule.onNode(
++            hasTestTag("history-timeline-entry") and hasClickAction()
++        )
++        entry.assertExists()
++        entry.assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
++        entry.assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.ContentDescription))
++        composeRule.onAllNodesWithText(context.getString(R.string.timeline_entry_title)).fetchSemanticsNodes()
++            .let { assertTrue("entry title must be announced", it.isNotEmpty()) }
++        composeRule.onAllNodesWithText(context.getString(R.string.timeline_entry_subtitle)).fetchSemanticsNodes()
++            .let { assertTrue("entry subtitle must be announced", it.isNotEmpty()) }
++        val onClickLabel = entry.fetchSemanticsNode().config[SemanticsActions.OnClick].label
++        assertEquals(context.getString(R.string.timeline_entry_action), onClickLabel)
++        val (width, height) = sizeOf("history-timeline-entry")
++        assertTrue("entry card hit target >= 48dp", width >= 48f && height >= 48f)
++    }
++
++    // ---------- headings ----------
++
++    @Test
++    fun monthTitleIsAHeading() {
++        setContent(TimelineTestStates.contentState())
++        composeRule.onNodeWithTag("timeline-month-title")
++            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
++    }
++
++    @Test
++    fun sectionHeadersAreHeadingsAndAbsoluteHeaderSpeaksOneFullWeekdayPhrase() {
++        val absoluteDate = LocalDate.of(2026, 9, 12)
++        setContent(
++            TimelineTestStates.state(
++                days = TimelineTestStates.daysFrom(
++                    absoluteDate to listOf(
++                        TimelineTestStates.unrecordedRow(absoluteDate, slotId = 631L)
++                    ),
++                    TimelineTestStates.today to listOf(
++                        TimelineTestStates.unrecordedRow(TimelineTestStates.today, slotId = 632L)
++                    )
++                )
++            )
++        )
++
++        // Relative header (today): visible text is the spoken content.
++        composeRule.onNodeWithTag("timeline-section-header-2026-09-16")
++            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
++        composeRule.onNodeWithTag("timeline-section-header-2026-09-16")
++            .assertTextEquals(context.getString(R.string.timeline_today))
++
++        // Absolute header: heading + exactly ONE full-weekday phrase (no visible short form).
++        composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
++            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
++        composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
++            .assertContentDescriptionEquals("2026年9月12日，星期六")
++        composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
++            .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Text))
++
++        // §39 single-phrase proof: the visible short-weekday form is not exposed as a second
++        // spoken node; exactly one node carries the header's tag and phrase.
++        val shortForm = context.getString(
++            R.string.timeline_section_date_weekday,
++            "2026年9月12日",
++            context.getString(R.string.history_weekday_sat)
++        )
++        assertTrue(
++            "visible short-weekday form must not be announced",
++            composeRule.onAllNodesWithText(shortForm).fetchSemanticsNodes().isEmpty()
++        )
++        assertEquals(
++            "exactly one section-header node",
++            1,
++            composeRule.onAllNodesWithTag("timeline-section-header-2026-09-12").fetchSemanticsNodes().size
++        )
++    }
++
++    // ---------- day cell ----------
++
++    @Test
++    fun dayCellIsExactlyOneButtonNodeWithChildrenExcludedFromTheAccessibilityTree() {
++        setContent(TimelineTestStates.contentState())
++
++        composeRule.onNode(hasTestTag("timeline-day-cell-2026-09-16") and hasClickAction())
++            .assertExists()
++            .assert(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Button))
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-16").assertIsSelected()
++
++        assertEquals(
++            "exactly one day-cell accessibility node",
++            1,
++            composeRule.onAllNodesWithTag("timeline-day-cell-2026-09-16").fetchSemanticsNodes().size
++        )
++        assertTrue(
++            "weekday visual child must not be a separate spoken node",
++            composeRule.onAllNodesWithText("三").fetchSemanticsNodes().isEmpty()
++        )
++        assertTrue(
++            "date-number visual child must not be a separate spoken node",
++            composeRule.onAllNodesWithText("16").fetchSemanticsNodes().isEmpty()
++        )
++
++        // Geometry/test tags remain queryable in the unmerged tree (D-04 proof preserved).
++        composeRule.onNodeWithTag("timeline-day-weekday-2026-09-16", useUnmergedTree = true).assertExists()
++        composeRule.onNodeWithTag("timeline-day-highlight-2026-09-16", useUnmergedTree = true).assertExists()
++        composeRule.onNodeWithTag("timeline-day-number-2026-09-16", useUnmergedTree = true).assertExists()
++    }
++
++    @Test
++    fun dayCellSpeaksLocalizedNonIsoGrammarWithFullWeekday() {
++        setContent(TimelineTestStates.contentState())
++
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-16")
++            .assertContentDescriptionEquals("9月16日，星期三，今天")
++        scrollStripTo(LocalDate.of(2026, 9, 10))
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-10")
++            .assertContentDescriptionEquals("9月10日，星期四")
++    }
++
++    @Test
++    fun defensiveFutureCellsExposeDisabledSemanticsAndNeverInvokeSelection() {
++        val future = TimelineTestStates.today.plusDays(1)
++        setContent(TimelineTestStates.defensiveFutureState())
++        scrollStripTo(future)
++
++        composeRule.onNodeWithTag("timeline-day-cell-$future")
++            .assertExists()
++            .assertIsNotEnabled()
++        composeRule.onNodeWithTag("timeline-day-cell-$future")
++            .assertContentDescriptionContains("9月17日", substring = true)
++        composeRule.onNodeWithTag("timeline-day-cell-$future")
++            .assertContentDescriptionContains(
++                context.getString(R.string.history_cell_not_arrived),
++                substring = true
++            )
++
++        composeRule.onNodeWithTag("timeline-day-cell-$future").performClick()
++        composeRule.waitForIdle()
++        assertTrue("a non-selectable cell must not invoke selection", selectedDates.isEmpty())
++    }
++
++    // ---------- rows ----------
++
++    @Test
++    fun matchedRowExposesExactlyTwoSideGroupsWithNaturalSeparators() {
++        setContent(TimelineTestStates.singleSectionState(TimelineTestStates.today))
++
++        assertEquals(
++            "exactly one schedule group",
++            1,
++            composeRule.onAllNodesWithTag("timeline-schedule-side").fetchSemanticsNodes().size
++        )
++        assertEquals(
++            "exactly one recorded group",
++            1,
++            composeRule.onAllNodesWithTag("timeline-recorded-side").fetchSemanticsNodes().size
++        )
++        composeRule.onNodeWithTag("timeline-schedule-side")
++            .assertContentDescriptionEquals("当前方案时间，08:00，雌二醇，2.0 mg")
++        composeRule.onNodeWithTag("timeline-recorded-side")
++            .assertContentDescriptionEquals("实际时间，08:05，雌二醇，3.0 mg")
++        assertTrue(
++            "grouped side children must not remain separate spoken stops",
++            composeRule.onAllNodesWithText("08:00").fetchSemanticsNodes().isEmpty()
++        )
++    }
++
++    @Test
++    fun unrecordedRowExposesScheduleGroupAndNeutralNoticeOnly() {
++        val date = LocalDate.of(2026, 9, 14)
++        setContent(
++            TimelineTestStates.state(
++                days = TimelineTestStates.daysFrom(
++                    date to listOf(TimelineTestStates.unrecordedRow(date, slotId = 621L))
++                )
++            )
++        )
++        composeRule.onNodeWithTag("timeline-schedule-side").assertExists()
++        composeRule.onNodeWithTag("timeline-no-recorded-intake")
++            .assertExists()
++            .assertTextEquals(context.getString(R.string.timeline_no_recorded_intake))
++        assertEquals(
++            "no recorded side may be synthesized",
++            0,
++            composeRule.onAllNodesWithTag("timeline-recorded-side").fetchSemanticsNodes().size
++        )
++    }
++
++    @Test
++    fun unmatchedRowExposesRecordedGroupOnly() {
++        val date = TimelineTestStates.today
++        setContent(
++            TimelineTestStates.state(
++                days = TimelineTestStates.daysFrom(
++                    date to listOf(TimelineTestStates.unmatchedRow(date, id = 622L))
++                )
++            )
++        )
++        composeRule.onNodeWithTag("timeline-recorded-side").assertExists()
++        assertEquals(
++            "no schedule group may be synthesized",
++            0,
++            composeRule.onAllNodesWithTag("timeline-schedule-side").fetchSemanticsNodes().size
++        )
++        assertTrue(
++            composeRule.onAllNodesWithContentDescription("当前方案时间", substring = true)
++                .fetchSemanticsNodes()
++                .isEmpty()
++        )
++    }
++
++    // ---------- seven states / actions / live regions ----------
++
++    @Test
++    fun sevenStatesExposeMeaningfulTargetsAndDistinctActionLabels() {
++        var state by mutableStateOf(TimelineTestStates.loadingState(withRange = true))
++        composeRule.setContent {
++            EvoluneTheme {
++                TimelineScreenContent(state = state)
++            }
++        }
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-loading").assertExists()
++
++        state = TimelineTestStates.emptyRangeState()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-empty-range").assertExists()
++
++        state = TimelineTestStates.emptyDayState()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-empty-day").assertExists()
++
++        state = TimelineTestStates.invalidRequestState()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-invalid-request").assertExists()
++        composeRule.onNodeWithTag("timeline-return-current-month").assertExists()
++
++        state = TimelineTestStates.notLoadableState()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-not-loadable").assertExists()
++
++        state = TimelineTestStates.errorState()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-error").assertExists()
++        composeRule.onNodeWithTag("timeline-retry").assertExists()
++
++        assertTrue(
++            "retry and return-to-month labels must be distinct",
++            context.getString(R.string.timeline_retry) !=
++                context.getString(R.string.timeline_return_current_month)
++        )
++        assertTrue(
++            "no automatic live-region announcements may exist",
++            composeRule.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.LiveRegion))
++                .fetchSemanticsNodes()
++                .isEmpty()
++        )
++    }
++
++    @Test
++    fun selectionAndMonthChangeDoNotMoveAccessibilityFocus() {
++        var state by mutableStateOf(TimelineTestStates.contentState())
++        composeRule.setContent {
++            EvoluneTheme {
++                TimelineScreenContent(
++                    state = state,
++                    onSelectDate = { state = state.copy(selectedDate = it) },
++                    onPreviousMonth = { }
++                )
++            }
++        }
++        composeRule.waitForIdle()
++
++        val focusedBefore = composeRule
++            .onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Focused, true))
++            .fetchSemanticsNodes()
++            .size
++
++        scrollStripTo(LocalDate.of(2026, 9, 10))
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-10").performClick()
++        composeRule.waitForIdle()
++        composeRule.onNodeWithTag("timeline-previous-month").performClick()
++        composeRule.waitForIdle()
++
++        val focusedAfter = composeRule
++            .onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Focused, true))
++            .fetchSemanticsNodes()
++            .size
++        assertEquals(
++            "selection/month change must not programmatically move a11y focus",
++            focusedBefore,
++            focusedAfter
++        )
++        assertEquals(0, focusedAfter)
++    }
++
++    // ---------- hit targets ----------
++
++    /**
++     * Measures the platform TOUCH target (touchBoundsInRoot) — the effective interactive area,
++     * including Material minimum-interactive-component expansion — converted to dp.
++     */
++    private fun touchSizeOf(tag: String): Pair<Float, Float> {
++        val bounds = composeRule.onNodeWithTag(tag).fetchSemanticsNode().touchBoundsInRoot
++        val density = composeRule.density
++        return Pair(
++            with(density) { (bounds.right - bounds.left).toDp().value },
++            with(density) { (bounds.bottom - bounds.top).toDp().value }
++        )
++    }
++
++    @Test
++    fun interactiveTargetsAreAtLeast48dp() {
++        var state by mutableStateOf(TimelineTestStates.contentState())
++        composeRule.setContent {
++            EvoluneTheme {
++                TimelineScreenContent(state = state)
++            }
++        }
++        composeRule.waitForIdle()
++
++        listOf(
++            "timeline-previous-month",
++            "timeline-next-month",
++            "timeline-day-cell-2026-09-16"
++        ).forEach { tag ->
++            val (width, height) = touchSizeOf(tag)
++            assertTrue("$tag touch width >= 48dp (was $width)", width >= 48f)
++            assertTrue("$tag touch height >= 48dp (was $height)", height >= 48f)
++        }
++
++        state = TimelineTestStates.errorState()
++        composeRule.waitForIdle()
++        val (retryWidth, retryHeight) = touchSizeOf("timeline-retry")
++        assertTrue("retry touch target >= 48dp (was ${retryWidth}x$retryHeight)", retryWidth >= 48f && retryHeight >= 48f)
++
++        state = TimelineTestStates.invalidRequestState()
++        composeRule.waitForIdle()
++        val (returnWidth, returnHeight) = touchSizeOf("timeline-return-current-month")
++        assertTrue(
++            "return-to-month touch target >= 48dp (was ${returnWidth}x$returnHeight)",
++            returnWidth >= 48f && returnHeight >= 48f
++        )
++    }
++
++    @Test
++    fun dayCellAxisIsIntactForAccessibilityGrouping() {
++        setContent(TimelineTestStates.contentState())
++        val number = centerOf("timeline-day-number-2026-09-16")
++        val highlight = centerOf("timeline-day-highlight-2026-09-16")
++        assertTrue(abs(number.x - highlight.x) <= 1f)
++        assertTrue(abs(number.y - highlight.y) <= 1f)
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+new file mode 100644
+index 0000000..387ebfb
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+@@ -0,0 +1,285 @@
++package io.github.yingqiu0871.evolune.ui.screens.timeline
++
++import androidx.compose.runtime.MutableFloatState
++import androidx.compose.runtime.mutableFloatStateOf
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.semantics.SemanticsProperties
++import androidx.compose.ui.test.DeviceConfigurationOverride
++import androidx.compose.ui.test.FontScale
++import androidx.compose.ui.test.getUnclippedBoundsInRoot
++import androidx.compose.ui.test.hasTestTag
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithTag
++import androidx.compose.ui.test.onFirst
++import androidx.compose.ui.test.onNodeWithTag
++import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollToNode
++import androidx.compose.ui.unit.DpRect
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import io.github.yingqiu0871.evolune.history.HistoryFormatting
++import io.github.yingqiu0871.evolune.history.timeline.TimelineRangeState
++import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
++import org.junit.Assert.assertTrue
++import org.junit.Rule
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.time.LocalDate
++import kotlin.math.abs
++
++/**
++ * V17-D-05 §40/§41 — executed font-scale evidence for the responsive day-strip rules.
++ *
++ * Uses [DeviceConfigurationOverride.FontScale] to render the real Timeline surface at
++ * 1.0 / 1.3 / 1.5 / 2.0 and MEASURES the relational geometry (number inside the highlight,
++ * shared axis, uniform resolved cell width, month-title centering, nav-slot symmetry, body
++ * alignment, viewport centering and edge symmetry). Contract: FONT1–FONT11.
++ */
++@RunWith(AndroidJUnit4::class)
++class TimelineFontScaleTest {
++
++    @get:Rule
++    val composeRule = createComposeRule()
++
++    private val today = TimelineTestStates.today
++
++    private lateinit var scaleState: MutableFloatState
++
++    /**
++     * Renders the surface under a live font-scale state so one method can measure several scales
++     * in sequence (a composition rule allows exactly one setContent per test).
++     */
++    private fun renderWithScale(
++        initialScale: Float,
++        state: TimelineRangeState = TimelineTestStates.contentState(),
++        liveSelection: Boolean = false
++    ) {
++        scaleState = mutableFloatStateOf(initialScale)
++        val stateHolder = mutableStateOf(state)
++        composeRule.setContent {
++            val scale = scaleState.floatValue
++            EvoluneTheme {
++                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(scale)) {
++                    TimelineScreenContent(
++                        state = stateHolder.value,
++                        onSelectDate = if (liveSelection) {
++                            { date -> stateHolder.value = stateHolder.value.copy(selectedDate = date) }
++                        } else {
++                            {}
++                        }
++                    )
++                }
++            }
++        }
++        composeRule.waitForIdle()
++    }
++
++    private fun updateScale(value: Float) {
++        scaleState.floatValue = value
++        composeRule.waitForIdle()
++    }
++
++    private fun boundsOf(tag: String): DpRect =
++        composeRule.onNodeWithTag(tag, useUnmergedTree = true).getUnclippedBoundsInRoot()
++
++    private fun centerOf(tag: String): Offset {
++        val b = boundsOf(tag)
++        return Offset((b.left + b.right).value / 2f, (b.top + b.bottom).value / 2f)
++    }
++
++    private fun sizeOf(tag: String): Pair<Float, Float> {
++        val b = boundsOf(tag)
++        return Pair((b.right - b.left).value, (b.bottom - b.top).value)
++    }
++
++    private fun scrollStripTo(date: LocalDate) {
++        composeRule.onNodeWithTag("timeline-day-strip")
++            .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
++        composeRule.waitForIdle()
++    }
++
++    private fun assertNumberInsideHighlight(date: LocalDate) {
++        val number = boundsOf("timeline-day-number-$date")
++        val highlight = boundsOf("timeline-day-highlight-$date")
++        val numberLeft = number.left.value
++        val numberRight = number.right.value
++        val numberTop = number.top.value
++        val numberBottom = number.bottom.value
++        val highlightLeft = highlight.left.value
++        val highlightRight = highlight.right.value
++        val highlightTop = highlight.top.value
++        val highlightBottom = highlight.bottom.value
++        assertTrue(
++            "number $number must fit inside highlight $highlight",
++            numberLeft >= highlightLeft - 0.5f &&
++                numberRight <= highlightRight + 0.5f &&
++                numberTop >= highlightTop - 0.5f &&
++                numberBottom <= highlightBottom + 0.5f
++        )
++    }
++
++    private fun assertCenteredAxis(date: LocalDate) {
++        val weekday = centerOf("timeline-day-weekday-$date")
++        val number = centerOf("timeline-day-number-$date")
++        val highlight = centerOf("timeline-day-highlight-$date")
++        assertTrue("weekday/number axis", abs(weekday.x - number.x) <= 1.5f)
++        assertTrue("number/highlight x axis", abs(number.x - highlight.x) <= 1.5f)
++        assertTrue("number/highlight y axis", abs(number.y - highlight.y) <= 1.5f)
++    }
++
++    private fun assertUniformCellWidth(dateA: LocalDate, dateB: LocalDate) {
++        scrollStripTo(dateA)
++        val a = sizeOf("timeline-day-cell-$dateA").first
++        scrollStripTo(dateB)
++        val b = sizeOf("timeline-day-cell-$dateB").first
++        assertTrue("uniform cell width ($a vs $b)", abs(a - b) <= 0.5f)
++    }
++
++    // FONT1
++    @Test
++    fun fontScale10KeepsD04RelationalGeometry() {
++        renderWithScale(1.0f)
++        assertCenteredAxis(today)
++        assertNumberInsideHighlight(today)
++        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
++        val container = centerOf("timeline-day-strip-container")
++        val selected = centerOf("timeline-day-cell-$today")
++        assertTrue("selected cell rests at the viewport center", abs(container.x - selected.x) <= 2f)
++    }
++
++    // FONT2 / FONT3
++    @Test
++    fun fontScale13And15KeepDayCellContentFitted() {
++        renderWithScale(1.3f)
++        assertNumberInsideHighlight(today)
++        assertCenteredAxis(today)
++        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
++
++        updateScale(1.5f)
++        assertNumberInsideHighlight(today)
++        assertCenteredAxis(today)
++        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
++    }
++
++    // FONT4 / FONT5 / FONT6 / FONT7
++    @Test
++    fun fontScale20GrowsHighlightKeepsNumberInsideAndKeepsUniformWidth() {
++        renderWithScale(2.0f)
++        assertNumberInsideHighlight(today)
++        assertCenteredAxis(today)
++        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
++
++        val (highlightWidth, highlightHeight) = sizeOf("timeline-day-highlight-$today")
++        assertTrue("highlight must grow above the 36dp baseline at 2.0x", highlightWidth > 36f)
++        assertTrue("highlight keeps equal width/height", abs(highlightWidth - highlightHeight) <= 0.5f)
++
++        val (cellWidth, cellHeight) = sizeOf("timeline-day-cell-$today")
++        assertTrue("cell keeps >= 48dp hit target", cellWidth >= 48f && cellHeight >= 48f)
++    }
++
++    // FONT8 / FONT9
++    @Test
++    fun fontScale20KeepsMonthTitleCenteredNavSymmetricAndBodyLeftAligned() {
++        renderWithScale(2.0f)
++        val title = centerOf("timeline-month-title")
++        val navigation = centerOf("timeline-month-navigation")
++        assertTrue("month title centered at 2.0x", abs(title.x - navigation.x) <= 1.5f)
++
++        val leftSlot = sizeOf("timeline-previous-month-slot").first
++        val rightSlot = sizeOf("timeline-next-month-slot").first
++        assertTrue("nav slots symmetric", abs(leftSlot - rightSlot) <= 0.5f)
++
++        val screenCenter = centerOf("timeline-screen")
++        val headerLeft = boundsOf("timeline-section-header-2026-09-15").left.value
++        val sectionLeft = boundsOf("timeline-section-2026-09-15").left.value
++        assertTrue("section header left aligned with its section", abs(headerLeft - sectionLeft) <= 1f)
++        assertTrue("body stays left aligned", headerLeft < screenCenter.x - 100f)
++
++        val (sideWidth, sideHeight) = composeRule.onAllNodesWithTag("timeline-schedule-side")
++            .onFirst()
++            .getUnclippedBoundsInRoot()
++            .let { it.right.value - it.left.value to it.bottom.value - it.top.value }
++        assertTrue("grouped side remains laid out (no degenerate clip)", sideWidth > 0f && sideHeight > 0f)
++    }
++
++    // FONT10 / FONT11
++    @Test
++    fun fontScale20ViewportCenteringAndEdgeSymmetry() {
++        renderWithScale(2.0f, liveSelection = true)
++
++        // The initial state already has today selected and centered — measure it before any
++        // click, because selecting a date that HAS a section scrolls the body (calendar out of
++        // view) as frozen by D-04.
++        val container = centerOf("timeline-day-strip-container")
++        val lastCenter = centerOf("timeline-day-cell-$today")
++        assertTrue("last selectable cell reaches viewport center", abs(container.x - lastCenter.x) <= 3f)
++
++        val farDate = LocalDate.of(2026, 9, 2)
++        scrollStripTo(farDate)
++        composeRule.onNodeWithTag("timeline-day-cell-$farDate").performClick()
++        composeRule.waitForIdle()
++        val containerAfterFar = centerOf("timeline-day-strip-container")
++        val farCenter = centerOf("timeline-day-cell-$farDate")
++        assertTrue(
++            "selected cell reaches viewport center at 2.0x",
++            abs(containerAfterFar.x - farCenter.x) <= 3f
++        )
++
++        val firstDate = LocalDate.of(2026, 9, 1)
++        scrollStripTo(firstDate)
++        composeRule.onNodeWithTag("timeline-day-cell-$firstDate").performClick()
++        composeRule.waitForIdle()
++        val containerAfterFirst = centerOf("timeline-day-strip-container")
++        val firstCenter = centerOf("timeline-day-cell-$firstDate")
++        assertTrue("first cell reaches viewport center", abs(containerAfterFirst.x - firstCenter.x) <= 3f)
++    }
++
++    // §41 bounded 12/24h large-font sanity (no cross product)
++    @Test
++    fun fontScale20TwelveAndTwentyFourHourSanity() {
++        val is24 = mutableStateOf(true)
++        scaleState = mutableFloatStateOf(2.0f)
++        composeRule.setContent {
++            val scale = scaleState.floatValue
++            EvoluneTheme {
++                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(scale)) {
++                    TimelineScreenContent(
++                        state = TimelineTestStates.contentState(),
++                        is24Hour = is24.value
++                    )
++                }
++            }
++        }
++        composeRule.waitForIdle()
++
++        val instant = TimelineTestStates.matchedInstant
++        val zone = TimelineTestStates.utc
++        val expected24 = HistoryFormatting.timeText(instant, zone, true)
++        assertTrue(
++            "24h phrase must contain the published-zone time",
++            schedulePhrase().contains(expected24)
++        )
++
++        is24.value = false
++        composeRule.waitForIdle()
++        val expected12 = HistoryFormatting.timeText(instant, zone, false)
++        assertTrue(
++            "12h phrase must contain the published-zone time",
++            schedulePhrase().contains(expected12)
++        )
++        assertTrue("12h and 24h must differ", expected12 != expected24)
++
++        val (_, sideHeight) = composeRule.onAllNodesWithTag("timeline-schedule-side")
++            .onFirst()
++            .getUnclippedBoundsInRoot()
++            .let { it.right.value - it.left.value to it.bottom.value - it.top.value }
++        assertTrue("row text remains laid out at 2.0x", sideHeight > 0f)
++    }
++
++    private fun schedulePhrase(): String =
++        composeRule.onAllNodesWithTag("timeline-schedule-side")
++            .onFirst()
++            .fetchSemanticsNode()
++            .config[SemanticsProperties.ContentDescription]
++            .joinToString(separator = " ")
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+index 0382ffa..3850944 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+@@ -4,7 +4,7 @@ import android.content.Context
+ import android.content.Intent
+ import android.os.SystemClock
+ import androidx.compose.ui.test.ExperimentalTestApi
+-import androidx.compose.ui.test.assertContentDescriptionContains
++import androidx.compose.ui.test.assertIsSelected
+ import androidx.compose.ui.test.hasTestTag
+ import androidx.compose.ui.test.junit4.createEmptyComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+@@ -200,10 +200,7 @@ class TimelineNavigationTest {
+             .performScrollToNode(hasTestTag("timeline-day-cell-$selectedDay"))
+         composeRule
+             .onNodeWithTag("timeline-day-cell-$selectedDay")
+-            .assertContentDescriptionContains(
+-                context.getString(R.string.history_cell_selected),
+-                substring = true
+-            )
++            .assertIsSelected()
+     }
+ 
+     // ---------- UI34 probe helpers ----------
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+index 676c578..0cd2c61 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+@@ -7,13 +7,16 @@ import androidx.compose.ui.test.assertContentDescriptionContains
+ import androidx.compose.ui.test.assertIsDisplayed
+ import androidx.compose.ui.test.assertIsEnabled
+ import androidx.compose.ui.test.assertIsNotEnabled
++import androidx.compose.ui.test.assertIsSelected
+ import androidx.compose.ui.test.hasTestTag
+ import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithContentDescription
+ import androidx.compose.ui.test.onAllNodesWithTag
+ import androidx.compose.ui.test.onAllNodesWithText
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.performClick
+ import androidx.compose.ui.test.performScrollToNode
++import androidx.compose.ui.semantics.SemanticsProperties
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+ import androidx.test.platform.app.InstrumentationRegistry
+ import io.github.yingqiu0871.evolune.R
+@@ -78,6 +81,20 @@ class TimelineScreenTest {
+         composeRule.waitForIdle()
+     }
+ 
++    /** V17-D-05: a grouped side speaks ONE phrase (label, time, identity, dose). */
++    private fun assertSidePhraseContains(sideTag: String, vararg expectedParts: String) {
++        val phrases = composeRule.onAllNodesWithTag(sideTag)
++            .fetchSemanticsNodes()
++            .map { node ->
++                node.config[SemanticsProperties.ContentDescription].joinToString(separator = " ")
++            }
++        assertTrue("expected at least one '$sideTag' node", phrases.isNotEmpty())
++        assertTrue(
++            "expected one '$sideTag' phrase to contain ${expectedParts.toList()}; got $phrases",
++            phrases.any { phrase -> expectedParts.all { phrase.contains(it) } }
++        )
++    }
++
+     // ---------- seven-state mapping ----------
+ 
+     @Test
+@@ -180,17 +197,23 @@ class TimelineScreenTest {
+         setContent(TimelineTestStates.contentState())
+         composeRule
+             .onNodeWithTag("timeline-day-cell-2026-09-16")
+-            .assertContentDescriptionContains("2026-09-16", substring = true)
++            .assertContentDescriptionContains("9月16日", substring = true)
++        composeRule
++            .onNodeWithTag("timeline-day-cell-2026-09-16")
++            .assertContentDescriptionContains(
++                context.getString(R.string.timeline_a11y_weekday_wed),
++                substring = true
++            )
+         composeRule
+             .onNodeWithTag("timeline-day-cell-2026-09-16")
+-            .assertContentDescriptionContains(context.getString(R.string.history_cell_selected), substring = true)
++            .assertIsSelected()
+         composeRule
+             .onNodeWithTag("timeline-day-cell-2026-09-16")
+             .assertContentDescriptionContains(context.getString(R.string.history_cell_today), substring = true)
+         scrollStripTo(LocalDate.of(2026, 9, 1))
+         composeRule
+             .onNodeWithTag("timeline-day-cell-2026-09-01")
+-            .assertContentDescriptionContains("2026-09-01", substring = true)
++            .assertContentDescriptionContains("9月1日", substring = true)
+     }
+ 
+     @Test
+@@ -231,10 +254,22 @@ class TimelineScreenTest {
+         composeRule.onNodeWithTag(row).assertExists()
+         composeRule.onNodeWithTag("timeline-schedule-side", useUnmergedTree = true).assertExists()
+         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertExists()
+-        assertTextExists(context.getString(R.string.history_label_current_schedule_context))
+-        assertTextExists(context.getString(R.string.history_label_actual_time))
+-        assertTextExists("雌二醇 · 2.0 mg")
+-        assertTextExists("雌二醇 · 3.0 mg")
++        // V17-D-05: each side is ONE grouped accessibility node speaking label → time →
++        // identity → dose with natural separators (no reliance on the visible “·”).
++        assertSidePhraseContains(
++            "timeline-schedule-side",
++            context.getString(R.string.history_label_current_schedule_context),
++            "08:00",
++            "雌二醇",
++            "2.0 mg"
++        )
++        assertSidePhraseContains(
++            "timeline-recorded-side",
++            context.getString(R.string.history_label_actual_time),
++            "08:05",
++            "雌二醇",
++            "3.0 mg"
++        )
+     }
+ 
+     @Test
+@@ -248,6 +283,10 @@ class TimelineScreenTest {
+         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertDoesNotExist()
+         composeRule.onNodeWithTag("timeline-no-recorded-intake", useUnmergedTree = true).assertExists()
+         assertTextExists(context.getString(R.string.timeline_no_recorded_intake))
++        assertSidePhraseContains(
++            "timeline-schedule-side",
++            context.getString(R.string.history_label_current_schedule_context)
++        )
+     }
+ 
+     @Test
+@@ -259,7 +298,7 @@ class TimelineScreenTest {
+         setContent(state)
+         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertExists()
+         composeRule.onNodeWithTag("timeline-schedule-side", useUnmergedTree = true).assertDoesNotExist()
+-        assertTextExists("戊酸雌二醇", substring = true)
++        assertSidePhraseContains("timeline-recorded-side", "戊酸雌二醇", "5.0 mg")
+     }
+ 
+     @Test
+@@ -278,7 +317,7 @@ class TimelineScreenTest {
+                 )
+             )
+         )
+-        assertTextExists("雌二醇 · 2.0 mg")
++        assertSidePhraseContains("timeline-schedule-side", "雌二醇", "2.0 mg")
+     }
+ 
+     @Test
+@@ -293,10 +332,14 @@ class TimelineScreenTest {
+                 )
+             )
+         )
+-        assertTextExists(context.getString(R.string.timeline_identity_partial), substring = true)
++        assertSidePhraseContains(
++            "timeline-schedule-side",
++            context.getString(R.string.timeline_identity_partial)
++        )
+         assertTrue(
+             "a partial identity must never guess an ester name",
+-            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
++            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty() &&
++                composeRule.onAllNodesWithContentDescription("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
+         )
+     }
+ 
+@@ -312,10 +355,14 @@ class TimelineScreenTest {
+                 )
+             )
+         )
+-        assertTextExists(context.getString(R.string.timeline_identity_unavailable), substring = true)
++        assertSidePhraseContains(
++            "timeline-schedule-side",
++            context.getString(R.string.timeline_identity_unavailable)
++        )
+         assertTrue(
+             "an unavailable identity must never be mapped to an ester",
+-            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
++            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty() &&
++                composeRule.onAllNodesWithContentDescription("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
+         )
+     }
+ 
+@@ -325,14 +372,14 @@ class TimelineScreenTest {
+     fun theTwentyFourHourModeFormatsTheTimelineTimestamps() {
+         setContent(TimelineTestStates.contentState(), is24Hour = true)
+         val expected = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, true)
+-        assertTextExists(expected)
++        assertSidePhraseContains("timeline-schedule-side", expected)
+     }
+ 
+     @Test
+     fun theTwelveHourModeChangesNotationOnly() {
+         setContent(TimelineTestStates.contentState(), is24Hour = false)
+         val expected = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, false)
+-        assertTextExists(expected)
++        assertSidePhraseContains("timeline-schedule-side", expected)
+         val twentyFour = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, true)
+         assertTrue("12h and 24h renderings must differ", expected != twentyFour)
+     }
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
+index 663525e..fb85697 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineTestStates.kt
+@@ -177,6 +177,17 @@ internal object TimelineTestStates {
+ 
+     fun zoneState(zone: ZoneId): TimelineRangeState = contentState(displayZone = zone)
+ 
++    /**
++     * V17-D-05 §37 defensive fixture: the effective range reaches beyond today, so the strip
++     * exposes non-selectable future cells. This is a controlled presentation fixture only — no
++     * product route/state is added.
++     */
++    fun defensiveFutureState(): TimelineRangeState = state(
++        days = daysFrom(today to listOf(unrecordedRow(today, slotId = 601L))),
++        effectiveStart = month.atDay(1),
++        effectiveEnd = today.plusDays(2)
++    )
++
+     /** Six one-row sections: the oldest section is off-screen on the Pixel 7 viewport. */
+     fun manyDaysState(): TimelineRangeState {
+         val days = (11..16).map { day ->
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
+index 9d0a523..20dc79f 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt
+@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.setValue
+ import androidx.compose.ui.graphics.asAndroidBitmap
++import androidx.compose.ui.test.DeviceConfigurationOverride
++import androidx.compose.ui.test.FontScale
+ import androidx.compose.ui.test.captureToImage
+ import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onRoot
+@@ -69,4 +71,35 @@ class TimelineVisualEvidenceTest {
+         }
+         return file.absolutePath
+     }
++
++    // ---------- V17-D-05 §42/§48: bounded 2.0x captured-device evidence ----------
++
++    @Test
++    fun captureFontScale20ContentAndStateSurfaces() {
++        var state by mutableStateOf(TimelineTestStates.contentState())
++        composeRule.setContent {
++            EvoluneTheme {
++                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(2.0f)) {
++                    TimelineScreenContent(state = state)
++                }
++            }
++        }
++        composeRule.waitForIdle()
++        val outputs = mutableListOf<String>()
++        outputs += capture("d-05-01-font20-content")
++        outputs += capture("d-05-02-font20-day-strip")
++
++        state = TimelineTestStates.emptyDayState()
++        composeRule.waitForIdle()
++        outputs += capture("d-05-03-font20-empty-day")
++
++        state = TimelineTestStates.errorState()
++        composeRule.waitForIdle()
++        outputs += capture("d-05-04-font20-error-retry")
++
++        outputs.forEach { path ->
++            val file = File(path)
++            assertTrue("screenshot must exist: $path", file.exists() && file.length() > 0L)
++        }
++    }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+index 28c929d..710f999 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.semantics.Role
+ import androidx.compose.ui.semantics.clearAndSetSemantics
+ import androidx.compose.ui.semantics.contentDescription
+ import androidx.compose.ui.semantics.disabled
+@@ -283,7 +284,10 @@ private fun TimelineEntryCard(onOpenTimeline: () -> Unit) {
+         modifier = Modifier
+             .fillMaxWidth()
+             .padding(horizontal = 16.dp, vertical = 8.dp)
+-            .clickable(onClickLabel = stringResource(R.string.timeline_entry_action)) {
++            .clickable(
++                role = Role.Button,
++                onClickLabel = stringResource(R.string.timeline_entry_action)
++            ) {
+                 onOpenTimeline()
+             }
+             .testTag("history-timeline-entry"),
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+index 34b3bf9..fe38e4e 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+@@ -228,6 +228,20 @@ object TimelinePresentation {
+         DayOfWeek.SUNDAY -> R.string.history_weekday_sun
+     }
+ 
++    /**
++     * V17-D-05 §6/§9/§35 — full weekday vocabulary for accessibility speech only. The visible
++     * day strip and section headers keep the short form; spoken phrases use these full names.
++     */
++    fun fullWeekdayRes(dayOfWeek: DayOfWeek): Int = when (dayOfWeek) {
++        DayOfWeek.MONDAY -> R.string.timeline_a11y_weekday_mon
++        DayOfWeek.TUESDAY -> R.string.timeline_a11y_weekday_tue
++        DayOfWeek.WEDNESDAY -> R.string.timeline_a11y_weekday_wed
++        DayOfWeek.THURSDAY -> R.string.timeline_a11y_weekday_thu
++        DayOfWeek.FRIDAY -> R.string.timeline_a11y_weekday_fri
++        DayOfWeek.SATURDAY -> R.string.timeline_a11y_weekday_sat
++        DayOfWeek.SUNDAY -> R.string.timeline_a11y_weekday_sun
++    }
++
+     private val DATE_FORMATTER: DateTimeFormatter =
+         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+index 2253778..e925395 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+@@ -51,14 +51,25 @@ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.semantics.SemanticsProperties
++import androidx.compose.ui.semantics.clearAndSetSemantics
+ import androidx.compose.ui.semantics.contentDescription
+ import androidx.compose.ui.semantics.disabled
++import androidx.compose.ui.semantics.heading
+ import androidx.compose.ui.semantics.selected
+ import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.text.AnnotatedString
++import androidx.compose.ui.text.TextMeasurer
++import androidx.compose.ui.text.TextStyle
+ import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.rememberTextMeasurer
+ import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.unit.Density
++import androidx.compose.ui.unit.Dp
+ import androidx.compose.ui.unit.dp
+ import io.github.yingqiu0871.evolune.R
+ import io.github.yingqiu0871.evolune.history.timeline.TimelineRangePhase
+@@ -66,11 +77,21 @@ import io.github.yingqiu0871.evolune.history.timeline.TimelineRangeState
+ import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModel
+ import java.time.LocalDate
+ 
+-/** Day-cell slot geometry: one fixed width per cell keeps the strip symmetric (D-04 §11). */
++/**
++ * Day-cell geometry baselines (D-04 §11, 1.0x values). V17-D-05 §24/§25/§26 resolves larger
++ * uniform values per rendered configuration when the current font scale needs them; these remain
++ * the minimums (cell effective size must never drop below [DAY_CELL_WIDTH]).
++ */
+ private val DAY_CELL_WIDTH = 48.dp
+ private val DAY_HIGHLIGHT_SIZE = 36.dp
+ private val MONTH_CONTROL_SLOT = 48.dp
+ 
++/** Internal horizontal padding added to the widest day-cell content when resolving cell width. */
++private val DAY_CELL_CONTENT_PADDING = 8.dp
++
++/** Internal padding added to the date-number text when resolving the highlight size. */
++private val DAY_HIGHLIGHT_CONTENT_PADDING = 8.dp
++
+ /**
+  * V17-D-04 §26 — the production Timeline destination.
+  *
+@@ -294,7 +315,9 @@ private fun MonthNavigationRow(
+                 ),
+                 style = MaterialTheme.typography.titleLarge,
+                 textAlign = TextAlign.Center,
+-                modifier = Modifier.testTag("timeline-month-title")
++                modifier = Modifier
++                    .semantics { heading() }
++                    .testTag("timeline-month-title")
+             )
+         }
+         Box(
+@@ -319,16 +342,79 @@ private fun MonthNavigationRow(
+ 
+ // ---------- compact day strip (centered) ----------
+ 
++/**
++ * V17-D-05 §24–§26 — resolved day-cell metrics for one strip configuration.
++ *
++ * [cellWidth] and [highlightSize] are resolved ONCE per strip from the widest required visible
++ * content (`max(48dp, content + padding)`); every cell shares the same resolved width, so the
++ * viewport-centering math stays exact at every supported font scale. At 1.0x the resolved values
++ * equal the D-04 baselines (48dp / 36dp).
++ */
++private data class DayCellMetrics(
++    val cellWidth: Dp,
++    val highlightSize: Dp
++)
++
++@Composable
++private fun resolveDayCellMetrics(
++    dayCells: List<TimelinePresentation.DayCell>,
++    weekdayLabels: List<String>
++): DayCellMetrics {
++    val textMeasurer = rememberTextMeasurer()
++    val density = LocalDensity.current
++    val numberStyle: TextStyle = MaterialTheme.typography.bodyMedium
++    val weekdayStyle: TextStyle = MaterialTheme.typography.labelSmall
++    val widestNumberLabel = (dayCells.maxOfOrNull { it.date.dayOfMonth } ?: 1).toString()
++    return remember(dayCells, weekdayLabels, widestNumberLabel, density, numberStyle, weekdayStyle) {
++        val numberSize = textMeasurer.measure(
++            text = AnnotatedString(widestNumberLabel),
++            style = numberStyle,
++            density = density
++        ).size
++        val widestWeekdayPx = weekdayLabels.maxOfOrNull { label ->
++            textMeasurer.measure(
++                text = AnnotatedString(label),
++                style = weekdayStyle,
++                density = density
++            ).size.width
++        } ?: 0
++        val cellPaddingPx = with(density) { DAY_CELL_CONTENT_PADDING.roundToPx() }
++        val highlightPaddingPx = with(density) { DAY_HIGHLIGHT_CONTENT_PADDING.roundToPx() }
++        val minCellPx = with(density) { DAY_CELL_WIDTH.roundToPx() }
++        val minHighlightPx = with(density) { DAY_HIGHLIGHT_SIZE.roundToPx() }
++        val contentWidthPx = maxOf(numberSize.width, widestWeekdayPx)
++        val highlightContentPx = maxOf(numberSize.width, numberSize.height)
++        DayCellMetrics(
++            cellWidth = with(density) { maxOf(minCellPx, contentWidthPx + cellPaddingPx).toDp() },
++            highlightSize = with(density) {
++                maxOf(minHighlightPx, highlightContentPx + highlightPaddingPx).toDp()
++            }
++        )
++    }
++}
++
+ /**
+  * Compact horizontal strip over `effectiveStartDate .. effectiveEndDate` (ascending, at most 31
+- * cells). Symmetric content padding lets the selected cell rest at the horizontal center of the
+- * viewport, including the first and last selectable days (D-04 §11/§11.1, UI46/UI47).
++ * cells). Symmetric content padding (computed from the RESOLVED uniform cell width — V17-D-05
++ * §27) lets the selected cell rest at the horizontal center of the viewport, including the first
++ * and last selectable days (D-04 §11/§11.1, UI46/UI47).
+  */
+ @Composable
+ private fun DayStrip(
+     model: TimelinePresentation.Model,
+     onSelectDate: (LocalDate) -> Unit
+ ) {
++    val weekdayLabels = listOf(
++        stringResource(R.string.history_weekday_mon),
++        stringResource(R.string.history_weekday_tue),
++        stringResource(R.string.history_weekday_wed),
++        stringResource(R.string.history_weekday_thu),
++        stringResource(R.string.history_weekday_fri),
++        stringResource(R.string.history_weekday_sat),
++        stringResource(R.string.history_weekday_sun)
++    )
++    val metrics = resolveDayCellMetrics(model.dayCells, weekdayLabels)
++
+     val stripState = rememberLazyListState()
+     val selectedIndex = model.dayCells.indexOfFirst { it.isSelected }
+     LaunchedEffect(selectedIndex, model.effectiveStartDate, model.effectiveEndDate) {
+@@ -342,7 +428,7 @@ private fun DayStrip(
+             .fillMaxWidth()
+             .testTag("timeline-day-strip-container")
+     ) {
+-        val sidePadding = ((maxWidth - DAY_CELL_WIDTH) / 2).coerceAtLeast(0.dp)
++        val sidePadding = ((maxWidth - metrics.cellWidth) / 2).coerceAtLeast(0.dp)
+         LazyRow(
+             state = stripState,
+             modifier = Modifier
+@@ -354,7 +440,7 @@ private fun DayStrip(
+                 items = model.dayCells,
+                 key = { _, cell -> cell.date }
+             ) { _, cell ->
+-                TimelineDayCell(cell = cell, onSelectDate = onSelectDate)
++                TimelineDayCell(cell = cell, metrics = metrics, onSelectDate = onSelectDate)
+             }
+         }
+     }
+@@ -364,10 +450,17 @@ private fun DayStrip(
+  * One day cell: weekday label, date number and selected highlight share one horizontal center
+  * axis; the selected number is centered on both axes inside its highlight by structural
+  * `Alignment.Center` (no offsets, no asymmetric padding, no baseline tricks — D-04 §10, F19).
++ *
++ * V17-D-05 §3–§6: the cell is EXACTLY ONE accessibility node — `Role.Button`, selected/disabled
++ * semantic state, and a single localized spoken phrase (localized month/day + full weekday +
++ * optional Today; no ISO machine date, no single-character weekday). The visual weekday/number
++ * children are excluded from the accessibility tree while their test tags stay queryable in the
++ * unmerged tree for the D-04 geometry proof.
+  */
+ @Composable
+ private fun TimelineDayCell(
+     cell: TimelinePresentation.DayCell,
++    metrics: DayCellMetrics,
+     onSelectDate: (LocalDate) -> Unit
+ ) {
+     val containerColor = when {
+@@ -380,14 +473,14 @@ private fun TimelineDayCell(
+         cell.isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+         else -> MaterialTheme.colorScheme.onSurface
+     }
+-    val description = dayCellDescription(cell)
++    val phrase = dayCellAccessibilityPhrase(cell)
+ 
+     Column(
+         modifier = Modifier
+-            .width(DAY_CELL_WIDTH)
+-            .clickable(enabled = cell.enabled) { onSelectDate(cell.date) }
++            .width(metrics.cellWidth)
++            .clickable(role = Role.Button, enabled = cell.enabled) { onSelectDate(cell.date) }
+             .semantics(mergeDescendants = true) {
+-                contentDescription = description
++                contentDescription = phrase
+                 selected = cell.isSelected
+                 if (!cell.enabled) disabled()
+             }
+@@ -399,12 +492,14 @@ private fun TimelineDayCell(
+             text = stringResource(TimelinePresentation.weekdayRes(cell.date.dayOfWeek)),
+             style = MaterialTheme.typography.labelSmall,
+             color = MaterialTheme.colorScheme.onSurfaceVariant,
+-            modifier = Modifier.testTag("timeline-day-weekday-${cell.date}")
++            modifier = Modifier.clearAndSetSemantics {
++                this[SemanticsProperties.TestTag] = "timeline-day-weekday-${cell.date}"
++            }
+         )
+         Spacer(modifier = Modifier.height(2.dp))
+         Box(
+             modifier = Modifier
+-                .size(DAY_HIGHLIGHT_SIZE)
++                .size(metrics.highlightSize)
+                 .clip(CircleShape)
+                 .background(containerColor)
+                 .testTag("timeline-day-highlight-${cell.date}"),
+@@ -419,19 +514,44 @@ private fun TimelineDayCell(
+                 } else {
+                     FontWeight.Normal
+                 },
+-                modifier = Modifier.testTag("timeline-day-number-${cell.date}")
++                modifier = Modifier.clearAndSetSemantics {
++                    this[SemanticsProperties.TestTag] = "timeline-day-number-${cell.date}"
++                }
+             )
+         }
+     }
+ }
+ 
++/**
++ * V17-D-05 §6 — the ONE spoken phrase for a day cell: localized month/day + full weekday +
++ * optional Today (and the defensive not-arrived marker on the non-selectable branch). The
++ * selected state is expressed by the semantic `selected` property, not by this phrase.
++ */
+ @Composable
+-private fun dayCellDescription(cell: TimelinePresentation.DayCell): String {
+-    val parts = mutableListOf(cell.date.toString())
+-    if (cell.isToday) parts += stringResource(R.string.history_cell_today)
+-    if (cell.isSelected) parts += stringResource(R.string.history_cell_selected)
+-    if (!cell.enabled) parts += stringResource(R.string.history_cell_not_arrived)
+-    return parts.joinToString("，")
++private fun dayCellAccessibilityPhrase(cell: TimelinePresentation.DayCell): String {
++    val dateText = stringResource(
++        R.string.timeline_a11y_day_format,
++        cell.date.monthValue,
++        cell.date.dayOfMonth
++    )
++    val weekdayText = stringResource(TimelinePresentation.fullWeekdayRes(cell.date.dayOfWeek))
++    return when {
++        !cell.enabled -> stringResource(
++            R.string.timeline_a11y_day_cell_disabled,
++            dateText,
++            weekdayText,
++            stringResource(R.string.history_cell_not_arrived)
++        )
++
++        cell.isToday -> stringResource(
++            R.string.timeline_a11y_day_cell_today,
++            dateText,
++            weekdayText,
++            stringResource(R.string.history_cell_today)
++        )
++
++        else -> stringResource(R.string.timeline_a11y_date_weekday, dateText, weekdayText)
++    }
+ }
+ 
+ // ---------- month sections (left aligned) ----------
+@@ -450,19 +570,32 @@ private fun TimelineSection(section: TimelinePresentation.Section) {
+                 text = stringResource(label.labelRes),
+                 style = MaterialTheme.typography.titleMedium,
+                 fontWeight = FontWeight.Medium,
+-                modifier = Modifier.testTag("timeline-section-header-${section.date}")
++                modifier = Modifier
++                    .semantics { heading() }
++                    .testTag("timeline-section-header-${section.date}")
+             )
+ 
+-            is TimelinePresentation.SectionLabel.Absolute -> Text(
+-                text = stringResource(
+-                    R.string.timeline_section_date_weekday,
++            is TimelinePresentation.SectionLabel.Absolute -> {
++                val spokenPhrase = stringResource(
++                    R.string.timeline_a11y_date_weekday,
+                     label.dateText,
+-                    stringResource(label.weekdayRes)
+-                ),
+-                style = MaterialTheme.typography.titleMedium,
+-                fontWeight = FontWeight.Medium,
+-                modifier = Modifier.testTag("timeline-section-header-${section.date}")
+-            )
++                    stringResource(TimelinePresentation.fullWeekdayRes(section.date.dayOfWeek))
++                )
++                Text(
++                    text = stringResource(
++                        R.string.timeline_section_date_weekday,
++                        label.dateText,
++                        stringResource(label.weekdayRes)
++                    ),
++                    style = MaterialTheme.typography.titleMedium,
++                    fontWeight = FontWeight.Medium,
++                    modifier = Modifier.clearAndSetSemantics {
++                        heading()
++                        contentDescription = spokenPhrase
++                        this[SemanticsProperties.TestTag] = "timeline-section-header-${section.date}"
++                    }
++                )
++            }
+         }
+         section.rows.forEachIndexed { index, row ->
+             TimelineRowCard(
+@@ -537,10 +670,20 @@ private fun ScheduleSide(
+     identity: TimelinePresentation.IdentityUi,
+     doseText: String
+ ) {
++    val spokenPhrase = stringResource(
++        R.string.timeline_a11y_row_side,
++        stringResource(R.string.history_label_current_schedule_context),
++        timeText,
++        stringResource(identity.labelRes),
++        doseText
++    )
+     Column(
+         modifier = Modifier
+             .fillMaxWidth()
+-            .testTag("timeline-schedule-side"),
++            .clearAndSetSemantics {
++                contentDescription = spokenPhrase
++                this[SemanticsProperties.TestTag] = "timeline-schedule-side"
++            },
+         verticalArrangement = Arrangement.spacedBy(2.dp)
+     ) {
+         Text(
+@@ -571,10 +714,20 @@ private fun RecordedSide(
+     identity: TimelinePresentation.IdentityUi,
+     doseText: String
+ ) {
++    val spokenPhrase = stringResource(
++        R.string.timeline_a11y_row_side,
++        stringResource(R.string.history_label_actual_time),
++        timeText,
++        stringResource(identity.labelRes),
++        doseText
++    )
+     Column(
+         modifier = Modifier
+             .fillMaxWidth()
+-            .testTag("timeline-recorded-side"),
++            .clearAndSetSemantics {
++                contentDescription = spokenPhrase
++                this[SemanticsProperties.TestTag] = "timeline-recorded-side"
++            },
+         verticalArrangement = Arrangement.spacedBy(2.dp)
+     ) {
+         Text(
+diff --git a/app/src/main/res/values-zh-rCN/strings.xml b/app/src/main/res/values-zh-rCN/strings.xml
+index 3951f2b..b81e98c 100644
+--- a/app/src/main/res/values-zh-rCN/strings.xml
++++ b/app/src/main/res/values-zh-rCN/strings.xml
+@@ -546,7 +546,7 @@
+     <!-- v1.7-D-04 Timeline UI surface (functional; D-05 owns final wording and localization) -->
+     <string name="timeline_title">用药时间线</string>
+     <string name="timeline_entry_title">用药时间线</string>
+-    <string name="timeline_entry_subtitle">按月份查看计划上下文与已记录摄入的时间线</string>
++    <string name="timeline_entry_subtitle">按月份查看当前方案与已记录摄入</string>
+     <string name="timeline_entry_action">打开用药时间线</string>
+     <string name="timeline_month_title">%1$d年%2$d月</string>
+     <string name="timeline_previous_month">上一月</string>
+@@ -566,4 +566,18 @@
+     <string name="timeline_return_current_month">返回当前月份</string>
+     <string name="timeline_error">无法读取时间线记录。</string>
+     <string name="timeline_retry">重试</string>
++
++    <!-- v1.7-D-05 Timeline accessibility speech (spoken-only vocabulary; visible text unchanged) -->
++    <string name="timeline_a11y_day_format">%1$d月%2$d日</string>
++    <string name="timeline_a11y_weekday_mon">星期一</string>
++    <string name="timeline_a11y_weekday_tue">星期二</string>
++    <string name="timeline_a11y_weekday_wed">星期三</string>
++    <string name="timeline_a11y_weekday_thu">星期四</string>
++    <string name="timeline_a11y_weekday_fri">星期五</string>
++    <string name="timeline_a11y_weekday_sat">星期六</string>
++    <string name="timeline_a11y_weekday_sun">星期日</string>
++    <string name="timeline_a11y_date_weekday">%1$s，%2$s</string>
++    <string name="timeline_a11y_day_cell_today">%1$s，%2$s，%3$s</string>
++    <string name="timeline_a11y_day_cell_disabled">%1$s，%2$s，%3$s</string>
++    <string name="timeline_a11y_row_side">%1$s，%2$s，%3$s，%4$s</string>
+ </resources>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 3e251af..8713607 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -556,7 +556,7 @@
+     <!-- v1.7-D-04 Timeline UI surface (functional; D-05 owns final wording and localization) -->
+     <string name="timeline_title">用药时间线</string>
+     <string name="timeline_entry_title">用药时间线</string>
+-    <string name="timeline_entry_subtitle">按月份查看计划上下文与已记录摄入的时间线</string>
++    <string name="timeline_entry_subtitle">按月份查看当前方案与已记录摄入</string>
+     <string name="timeline_entry_action">打开用药时间线</string>
+     <string name="timeline_month_title">%1$d年%2$d月</string>
+     <string name="timeline_previous_month">上一月</string>
+@@ -576,4 +576,18 @@
+     <string name="timeline_return_current_month">返回当前月份</string>
+     <string name="timeline_error">无法读取时间线记录。</string>
+     <string name="timeline_retry">重试</string>
++
++    <!-- v1.7-D-05 Timeline accessibility speech (spoken-only vocabulary; visible text unchanged) -->
++    <string name="timeline_a11y_day_format">%1$d月%2$d日</string>
++    <string name="timeline_a11y_weekday_mon">星期一</string>
++    <string name="timeline_a11y_weekday_tue">星期二</string>
++    <string name="timeline_a11y_weekday_wed">星期三</string>
++    <string name="timeline_a11y_weekday_thu">星期四</string>
++    <string name="timeline_a11y_weekday_fri">星期五</string>
++    <string name="timeline_a11y_weekday_sat">星期六</string>
++    <string name="timeline_a11y_weekday_sun">星期日</string>
++    <string name="timeline_a11y_date_weekday">%1$s，%2$s</string>
++    <string name="timeline_a11y_day_cell_today">%1$s，%2$s，%3$s</string>
++    <string name="timeline_a11y_day_cell_disabled">%1$s，%2$s，%3$s</string>
++    <string name="timeline_a11y_row_side">%1$s，%2$s，%3$s，%4$s</string>
+ </resources>
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+index bcadfa0..1f6a999 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+@@ -21,6 +21,7 @@ import org.junit.Assert.assertNotEquals
+ import org.junit.Assert.assertNull
+ import org.junit.Assert.assertTrue
+ import org.junit.Test
++import java.time.DayOfWeek
+ import java.time.Instant
+ import java.time.LocalDate
+ import java.time.LocalTime
+@@ -388,4 +389,21 @@ class TimelinePresentationTest {
+         )
+         assertEquals(R.string.history_weekday_thu, label.weekdayRes)
+     }
++
++    @Test
++    fun `D05 full weekday accessibility vocabulary maps every day deterministically`() {
++        val expected = mapOf(
++            DayOfWeek.MONDAY to R.string.timeline_a11y_weekday_mon,
++            DayOfWeek.TUESDAY to R.string.timeline_a11y_weekday_tue,
++            DayOfWeek.WEDNESDAY to R.string.timeline_a11y_weekday_wed,
++            DayOfWeek.THURSDAY to R.string.timeline_a11y_weekday_thu,
++            DayOfWeek.FRIDAY to R.string.timeline_a11y_weekday_fri,
++            DayOfWeek.SATURDAY to R.string.timeline_a11y_weekday_sat,
++            DayOfWeek.SUNDAY to R.string.timeline_a11y_weekday_sun
++        )
++        expected.forEach { (day, res) ->
++            assertEquals("full weekday mapping for $day", res, TimelinePresentation.fullWeekdayRes(day))
++        }
++        assertEquals(7, expected.values.toSet().size)
++    }
+ }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+index 41a91a9..d7c55a0 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+@@ -356,4 +356,100 @@ class TimelineUiArchitectureGuardTest {
+         assertTrue(lifecycle.contains("Lifecycle.Event.ON_START"))
+         assertTrue(lifecycle.contains("viewModel.onAppForegrounded()"))
+     }
++
++    // ---------- V17-D-05 accessibility/localization guards (DG10/DG11/DG18/DG19/DG20/DG21) ----------
++
++    @Test
++    fun `D05 timeline accessibility keys exist with full weekdays in both files`() {
++        val values = Files.readString(Path.of("src/main/res/values/strings.xml"))
++        val zh = Files.readString(Path.of("src/main/res/values-zh-rCN/strings.xml"))
++        val pattern = Regex("<string name=\"(timeline_a11y_[A-Za-z0-9_]+)\">([^<]*)</string>")
++        val valuesEntries = pattern.findAll(values).associate { it.groupValues[1] to it.groupValues[2] }
++        val zhEntries = pattern.findAll(zh).associate { it.groupValues[1] to it.groupValues[2] }
++
++        assertTrue("the accessibility key family must exist", valuesEntries.size >= 12)
++        assertEquals(
++            "accessibility keys must exist in both resource authorities",
++            valuesEntries.keys,
++            zhEntries.keys
++        )
++        val weekdays = listOf(
++            "timeline_a11y_weekday_mon" to "星期一",
++            "timeline_a11y_weekday_tue" to "星期二",
++            "timeline_a11y_weekday_wed" to "星期三",
++            "timeline_a11y_weekday_thu" to "星期四",
++            "timeline_a11y_weekday_fri" to "星期五",
++            "timeline_a11y_weekday_sat" to "星期六",
++            "timeline_a11y_weekday_sun" to "星期日"
++        )
++        weekdays.forEach { (key, expected) ->
++            assertEquals("$key (values)", expected, valuesEntries[key])
++            assertEquals("$key (zh-rCN)", expected, zhEntries[key])
++        }
++        listOf(
++            "timeline_a11y_day_format",
++            "timeline_a11y_date_weekday",
++            "timeline_a11y_day_cell_today",
++            "timeline_a11y_day_cell_disabled",
++            "timeline_a11y_row_side"
++        ).forEach { key ->
++            assertTrue("$key must exist in values/", valuesEntries.containsKey(key))
++            assertTrue("$key must exist in values-zh-rCN/", zhEntries.containsKey(key))
++        }
++    }
++
++    @Test
++    fun `D05 placeholder parity holds for every timeline formatted key`() {
++        val values = Files.readString(Path.of("src/main/res/values/strings.xml"))
++        val zh = Files.readString(Path.of("src/main/res/values-zh-rCN/strings.xml"))
++        val pattern = Regex("<string name=\"(timeline_[A-Za-z0-9_]+)\">([^<]*)</string>")
++        val valuesEntries = pattern.findAll(values).associate { it.groupValues[1] to it.groupValues[2] }
++        val zhEntries = pattern.findAll(zh).associate { it.groupValues[1] to it.groupValues[2] }
++        val placeholderPattern = Regex("%(\\d+)\\$([sd])")
++
++        assertEquals(valuesEntries.keys, zhEntries.keys)
++        valuesEntries.keys.forEach { key ->
++            val valuesPlaceholders = placeholderPattern.findAll(valuesEntries.getValue(key))
++                .map { it.groupValues[1] to it.groupValues[2] }
++                .toList()
++            val zhPlaceholders = placeholderPattern.findAll(zhEntries.getValue(key))
++                .map { it.groupValues[1] to it.groupValues[2] }
++                .toList()
++            assertEquals("placeholder sequence mismatch for $key", valuesPlaceholders, zhPlaceholders)
++        }
++        assertEquals(
++            listOf("1" to "d", "2" to "d"),
++            placeholderPattern.findAll(valuesEntries.getValue("timeline_a11y_day_format"))
++                .map { it.groupValues[1] to it.groupValues[2] }
++                .toList()
++        )
++        assertEquals(
++            listOf("1" to "s", "2" to "s", "3" to "s", "4" to "s"),
++            placeholderPattern.findAll(valuesEntries.getValue("timeline_a11y_row_side"))
++                .map { it.groupValues[1] to it.groupValues[2] }
++                .toList()
++        )
++    }
++
++    @Test
++    fun `D05 no programmatic focus or live-region APIs exist in the hardened sources`() {
++        val forbidden = listOf(
++            "requestFocus(",
++            "moveFocus(",
++            "FocusManager",
++            "focusRequester",
++            "liveRegion",
++            "LiveRegion",
++            "announceForAccessibility("
++        )
++        listOf(vmFile, screenFile, presentationFile, lifecycleFile).forEach { path ->
++            val fileCode = code(path)
++            forbidden.forEach { term ->
++                assertFalse("$path must not contain '$term' (DG9/DG10)", fileCode.contains(term))
++            }
++        }
++        // The frozen speech vocabulary is resource-backed and must include full weekday names.
++        assertTrue(code(screenFile).contains("timeline_a11y_row_side"))
++        assertTrue(code(screenFile).contains("SemanticsProperties.TestTag"))
++    }
+ }

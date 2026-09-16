@@ -356,4 +356,100 @@ class TimelineUiArchitectureGuardTest {
         assertTrue(lifecycle.contains("Lifecycle.Event.ON_START"))
         assertTrue(lifecycle.contains("viewModel.onAppForegrounded()"))
     }
+
+    // ---------- V17-D-05 accessibility/localization guards (DG10/DG11/DG18/DG19/DG20/DG21) ----------
+
+    @Test
+    fun `D05 timeline accessibility keys exist with full weekdays in both files`() {
+        val values = Files.readString(Path.of("src/main/res/values/strings.xml"))
+        val zh = Files.readString(Path.of("src/main/res/values-zh-rCN/strings.xml"))
+        val pattern = Regex("<string name=\"(timeline_a11y_[A-Za-z0-9_]+)\">([^<]*)</string>")
+        val valuesEntries = pattern.findAll(values).associate { it.groupValues[1] to it.groupValues[2] }
+        val zhEntries = pattern.findAll(zh).associate { it.groupValues[1] to it.groupValues[2] }
+
+        assertTrue("the accessibility key family must exist", valuesEntries.size >= 12)
+        assertEquals(
+            "accessibility keys must exist in both resource authorities",
+            valuesEntries.keys,
+            zhEntries.keys
+        )
+        val weekdays = listOf(
+            "timeline_a11y_weekday_mon" to "星期一",
+            "timeline_a11y_weekday_tue" to "星期二",
+            "timeline_a11y_weekday_wed" to "星期三",
+            "timeline_a11y_weekday_thu" to "星期四",
+            "timeline_a11y_weekday_fri" to "星期五",
+            "timeline_a11y_weekday_sat" to "星期六",
+            "timeline_a11y_weekday_sun" to "星期日"
+        )
+        weekdays.forEach { (key, expected) ->
+            assertEquals("$key (values)", expected, valuesEntries[key])
+            assertEquals("$key (zh-rCN)", expected, zhEntries[key])
+        }
+        listOf(
+            "timeline_a11y_day_format",
+            "timeline_a11y_date_weekday",
+            "timeline_a11y_day_cell_today",
+            "timeline_a11y_day_cell_disabled",
+            "timeline_a11y_row_side"
+        ).forEach { key ->
+            assertTrue("$key must exist in values/", valuesEntries.containsKey(key))
+            assertTrue("$key must exist in values-zh-rCN/", zhEntries.containsKey(key))
+        }
+    }
+
+    @Test
+    fun `D05 placeholder parity holds for every timeline formatted key`() {
+        val values = Files.readString(Path.of("src/main/res/values/strings.xml"))
+        val zh = Files.readString(Path.of("src/main/res/values-zh-rCN/strings.xml"))
+        val pattern = Regex("<string name=\"(timeline_[A-Za-z0-9_]+)\">([^<]*)</string>")
+        val valuesEntries = pattern.findAll(values).associate { it.groupValues[1] to it.groupValues[2] }
+        val zhEntries = pattern.findAll(zh).associate { it.groupValues[1] to it.groupValues[2] }
+        val placeholderPattern = Regex("%(\\d+)\\$([sd])")
+
+        assertEquals(valuesEntries.keys, zhEntries.keys)
+        valuesEntries.keys.forEach { key ->
+            val valuesPlaceholders = placeholderPattern.findAll(valuesEntries.getValue(key))
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toList()
+            val zhPlaceholders = placeholderPattern.findAll(zhEntries.getValue(key))
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toList()
+            assertEquals("placeholder sequence mismatch for $key", valuesPlaceholders, zhPlaceholders)
+        }
+        assertEquals(
+            listOf("1" to "d", "2" to "d"),
+            placeholderPattern.findAll(valuesEntries.getValue("timeline_a11y_day_format"))
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toList()
+        )
+        assertEquals(
+            listOf("1" to "s", "2" to "s", "3" to "s", "4" to "s"),
+            placeholderPattern.findAll(valuesEntries.getValue("timeline_a11y_row_side"))
+                .map { it.groupValues[1] to it.groupValues[2] }
+                .toList()
+        )
+    }
+
+    @Test
+    fun `D05 no programmatic focus or live-region APIs exist in the hardened sources`() {
+        val forbidden = listOf(
+            "requestFocus(",
+            "moveFocus(",
+            "FocusManager",
+            "focusRequester",
+            "liveRegion",
+            "LiveRegion",
+            "announceForAccessibility("
+        )
+        listOf(vmFile, screenFile, presentationFile, lifecycleFile).forEach { path ->
+            val fileCode = code(path)
+            forbidden.forEach { term ->
+                assertFalse("$path must not contain '$term' (DG9/DG10)", fileCode.contains(term))
+            }
+        }
+        // The frozen speech vocabulary is resource-backed and must include full weekday names.
+        assertTrue(code(screenFile).contains("timeline_a11y_row_side"))
+        assertTrue(code(screenFile).contains("SemanticsProperties.TestTag"))
+    }
 }

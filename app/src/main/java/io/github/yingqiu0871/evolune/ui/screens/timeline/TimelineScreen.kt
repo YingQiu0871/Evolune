@@ -51,14 +51,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.history.timeline.TimelineRangePhase
@@ -66,10 +77,20 @@ import io.github.yingqiu0871.evolune.history.timeline.TimelineRangeState
 import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModel
 import java.time.LocalDate
 
-/** Day-cell slot geometry: one fixed width per cell keeps the strip symmetric (D-04 §11). */
+/**
+ * Day-cell geometry baselines (D-04 §11, 1.0x values). V17-D-05 §24/§25/§26 resolves larger
+ * uniform values per rendered configuration when the current font scale needs them; these remain
+ * the minimums (cell effective size must never drop below [DAY_CELL_WIDTH]).
+ */
 private val DAY_CELL_WIDTH = 48.dp
 private val DAY_HIGHLIGHT_SIZE = 36.dp
 private val MONTH_CONTROL_SLOT = 48.dp
+
+/** Internal horizontal padding added to the widest day-cell content when resolving cell width. */
+private val DAY_CELL_CONTENT_PADDING = 8.dp
+
+/** Internal padding added to the date-number text when resolving the highlight size. */
+private val DAY_HIGHLIGHT_CONTENT_PADDING = 8.dp
 
 /**
  * V17-D-04 §26 — the production Timeline destination.
@@ -294,7 +315,9 @@ private fun MonthNavigationRow(
                 ),
                 style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.testTag("timeline-month-title")
+                modifier = Modifier
+                    .semantics { heading() }
+                    .testTag("timeline-month-title")
             )
         }
         Box(
@@ -320,15 +343,78 @@ private fun MonthNavigationRow(
 // ---------- compact day strip (centered) ----------
 
 /**
+ * V17-D-05 §24–§26 — resolved day-cell metrics for one strip configuration.
+ *
+ * [cellWidth] and [highlightSize] are resolved ONCE per strip from the widest required visible
+ * content (`max(48dp, content + padding)`); every cell shares the same resolved width, so the
+ * viewport-centering math stays exact at every supported font scale. At 1.0x the resolved values
+ * equal the D-04 baselines (48dp / 36dp).
+ */
+private data class DayCellMetrics(
+    val cellWidth: Dp,
+    val highlightSize: Dp
+)
+
+@Composable
+private fun resolveDayCellMetrics(
+    dayCells: List<TimelinePresentation.DayCell>,
+    weekdayLabels: List<String>
+): DayCellMetrics {
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val numberStyle: TextStyle = MaterialTheme.typography.bodyMedium
+    val weekdayStyle: TextStyle = MaterialTheme.typography.labelSmall
+    val widestNumberLabel = (dayCells.maxOfOrNull { it.date.dayOfMonth } ?: 1).toString()
+    return remember(dayCells, weekdayLabels, widestNumberLabel, density, numberStyle, weekdayStyle) {
+        val numberSize = textMeasurer.measure(
+            text = AnnotatedString(widestNumberLabel),
+            style = numberStyle,
+            density = density
+        ).size
+        val widestWeekdayPx = weekdayLabels.maxOfOrNull { label ->
+            textMeasurer.measure(
+                text = AnnotatedString(label),
+                style = weekdayStyle,
+                density = density
+            ).size.width
+        } ?: 0
+        val cellPaddingPx = with(density) { DAY_CELL_CONTENT_PADDING.roundToPx() }
+        val highlightPaddingPx = with(density) { DAY_HIGHLIGHT_CONTENT_PADDING.roundToPx() }
+        val minCellPx = with(density) { DAY_CELL_WIDTH.roundToPx() }
+        val minHighlightPx = with(density) { DAY_HIGHLIGHT_SIZE.roundToPx() }
+        val contentWidthPx = maxOf(numberSize.width, widestWeekdayPx)
+        val highlightContentPx = maxOf(numberSize.width, numberSize.height)
+        DayCellMetrics(
+            cellWidth = with(density) { maxOf(minCellPx, contentWidthPx + cellPaddingPx).toDp() },
+            highlightSize = with(density) {
+                maxOf(minHighlightPx, highlightContentPx + highlightPaddingPx).toDp()
+            }
+        )
+    }
+}
+
+/**
  * Compact horizontal strip over `effectiveStartDate .. effectiveEndDate` (ascending, at most 31
- * cells). Symmetric content padding lets the selected cell rest at the horizontal center of the
- * viewport, including the first and last selectable days (D-04 §11/§11.1, UI46/UI47).
+ * cells). Symmetric content padding (computed from the RESOLVED uniform cell width — V17-D-05
+ * §27) lets the selected cell rest at the horizontal center of the viewport, including the first
+ * and last selectable days (D-04 §11/§11.1, UI46/UI47).
  */
 @Composable
 private fun DayStrip(
     model: TimelinePresentation.Model,
     onSelectDate: (LocalDate) -> Unit
 ) {
+    val weekdayLabels = listOf(
+        stringResource(R.string.history_weekday_mon),
+        stringResource(R.string.history_weekday_tue),
+        stringResource(R.string.history_weekday_wed),
+        stringResource(R.string.history_weekday_thu),
+        stringResource(R.string.history_weekday_fri),
+        stringResource(R.string.history_weekday_sat),
+        stringResource(R.string.history_weekday_sun)
+    )
+    val metrics = resolveDayCellMetrics(model.dayCells, weekdayLabels)
+
     val stripState = rememberLazyListState()
     val selectedIndex = model.dayCells.indexOfFirst { it.isSelected }
     LaunchedEffect(selectedIndex, model.effectiveStartDate, model.effectiveEndDate) {
@@ -342,7 +428,7 @@ private fun DayStrip(
             .fillMaxWidth()
             .testTag("timeline-day-strip-container")
     ) {
-        val sidePadding = ((maxWidth - DAY_CELL_WIDTH) / 2).coerceAtLeast(0.dp)
+        val sidePadding = ((maxWidth - metrics.cellWidth) / 2).coerceAtLeast(0.dp)
         LazyRow(
             state = stripState,
             modifier = Modifier
@@ -354,7 +440,7 @@ private fun DayStrip(
                 items = model.dayCells,
                 key = { _, cell -> cell.date }
             ) { _, cell ->
-                TimelineDayCell(cell = cell, onSelectDate = onSelectDate)
+                TimelineDayCell(cell = cell, metrics = metrics, onSelectDate = onSelectDate)
             }
         }
     }
@@ -364,10 +450,17 @@ private fun DayStrip(
  * One day cell: weekday label, date number and selected highlight share one horizontal center
  * axis; the selected number is centered on both axes inside its highlight by structural
  * `Alignment.Center` (no offsets, no asymmetric padding, no baseline tricks — D-04 §10, F19).
+ *
+ * V17-D-05 §3–§6: the cell is EXACTLY ONE accessibility node — `Role.Button`, selected/disabled
+ * semantic state, and a single localized spoken phrase (localized month/day + full weekday +
+ * optional Today; no ISO machine date, no single-character weekday). The visual weekday/number
+ * children are excluded from the accessibility tree while their test tags stay queryable in the
+ * unmerged tree for the D-04 geometry proof.
  */
 @Composable
 private fun TimelineDayCell(
     cell: TimelinePresentation.DayCell,
+    metrics: DayCellMetrics,
     onSelectDate: (LocalDate) -> Unit
 ) {
     val containerColor = when {
@@ -380,14 +473,14 @@ private fun TimelineDayCell(
         cell.isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurface
     }
-    val description = dayCellDescription(cell)
+    val phrase = dayCellAccessibilityPhrase(cell)
 
     Column(
         modifier = Modifier
-            .width(DAY_CELL_WIDTH)
-            .clickable(enabled = cell.enabled) { onSelectDate(cell.date) }
+            .width(metrics.cellWidth)
+            .clickable(role = Role.Button, enabled = cell.enabled) { onSelectDate(cell.date) }
             .semantics(mergeDescendants = true) {
-                contentDescription = description
+                contentDescription = phrase
                 selected = cell.isSelected
                 if (!cell.enabled) disabled()
             }
@@ -399,12 +492,14 @@ private fun TimelineDayCell(
             text = stringResource(TimelinePresentation.weekdayRes(cell.date.dayOfWeek)),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.testTag("timeline-day-weekday-${cell.date}")
+            modifier = Modifier.clearAndSetSemantics {
+                this[SemanticsProperties.TestTag] = "timeline-day-weekday-${cell.date}"
+            }
         )
         Spacer(modifier = Modifier.height(2.dp))
         Box(
             modifier = Modifier
-                .size(DAY_HIGHLIGHT_SIZE)
+                .size(metrics.highlightSize)
                 .clip(CircleShape)
                 .background(containerColor)
                 .testTag("timeline-day-highlight-${cell.date}"),
@@ -419,19 +514,44 @@ private fun TimelineDayCell(
                 } else {
                     FontWeight.Normal
                 },
-                modifier = Modifier.testTag("timeline-day-number-${cell.date}")
+                modifier = Modifier.clearAndSetSemantics {
+                    this[SemanticsProperties.TestTag] = "timeline-day-number-${cell.date}"
+                }
             )
         }
     }
 }
 
+/**
+ * V17-D-05 §6 — the ONE spoken phrase for a day cell: localized month/day + full weekday +
+ * optional Today (and the defensive not-arrived marker on the non-selectable branch). The
+ * selected state is expressed by the semantic `selected` property, not by this phrase.
+ */
 @Composable
-private fun dayCellDescription(cell: TimelinePresentation.DayCell): String {
-    val parts = mutableListOf(cell.date.toString())
-    if (cell.isToday) parts += stringResource(R.string.history_cell_today)
-    if (cell.isSelected) parts += stringResource(R.string.history_cell_selected)
-    if (!cell.enabled) parts += stringResource(R.string.history_cell_not_arrived)
-    return parts.joinToString("，")
+private fun dayCellAccessibilityPhrase(cell: TimelinePresentation.DayCell): String {
+    val dateText = stringResource(
+        R.string.timeline_a11y_day_format,
+        cell.date.monthValue,
+        cell.date.dayOfMonth
+    )
+    val weekdayText = stringResource(TimelinePresentation.fullWeekdayRes(cell.date.dayOfWeek))
+    return when {
+        !cell.enabled -> stringResource(
+            R.string.timeline_a11y_day_cell_disabled,
+            dateText,
+            weekdayText,
+            stringResource(R.string.history_cell_not_arrived)
+        )
+
+        cell.isToday -> stringResource(
+            R.string.timeline_a11y_day_cell_today,
+            dateText,
+            weekdayText,
+            stringResource(R.string.history_cell_today)
+        )
+
+        else -> stringResource(R.string.timeline_a11y_date_weekday, dateText, weekdayText)
+    }
 }
 
 // ---------- month sections (left aligned) ----------
@@ -450,19 +570,32 @@ private fun TimelineSection(section: TimelinePresentation.Section) {
                 text = stringResource(label.labelRes),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.testTag("timeline-section-header-${section.date}")
+                modifier = Modifier
+                    .semantics { heading() }
+                    .testTag("timeline-section-header-${section.date}")
             )
 
-            is TimelinePresentation.SectionLabel.Absolute -> Text(
-                text = stringResource(
-                    R.string.timeline_section_date_weekday,
+            is TimelinePresentation.SectionLabel.Absolute -> {
+                val spokenPhrase = stringResource(
+                    R.string.timeline_a11y_date_weekday,
                     label.dateText,
-                    stringResource(label.weekdayRes)
-                ),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.testTag("timeline-section-header-${section.date}")
-            )
+                    stringResource(TimelinePresentation.fullWeekdayRes(section.date.dayOfWeek))
+                )
+                Text(
+                    text = stringResource(
+                        R.string.timeline_section_date_weekday,
+                        label.dateText,
+                        stringResource(label.weekdayRes)
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clearAndSetSemantics {
+                        heading()
+                        contentDescription = spokenPhrase
+                        this[SemanticsProperties.TestTag] = "timeline-section-header-${section.date}"
+                    }
+                )
+            }
         }
         section.rows.forEachIndexed { index, row ->
             TimelineRowCard(
@@ -537,10 +670,20 @@ private fun ScheduleSide(
     identity: TimelinePresentation.IdentityUi,
     doseText: String
 ) {
+    val spokenPhrase = stringResource(
+        R.string.timeline_a11y_row_side,
+        stringResource(R.string.history_label_current_schedule_context),
+        timeText,
+        stringResource(identity.labelRes),
+        doseText
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("timeline-schedule-side"),
+            .clearAndSetSemantics {
+                contentDescription = spokenPhrase
+                this[SemanticsProperties.TestTag] = "timeline-schedule-side"
+            },
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(
@@ -571,10 +714,20 @@ private fun RecordedSide(
     identity: TimelinePresentation.IdentityUi,
     doseText: String
 ) {
+    val spokenPhrase = stringResource(
+        R.string.timeline_a11y_row_side,
+        stringResource(R.string.history_label_actual_time),
+        timeText,
+        stringResource(identity.labelRes),
+        doseText
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("timeline-recorded-side"),
+            .clearAndSetSemantics {
+                contentDescription = spokenPhrase
+                this[SemanticsProperties.TestTag] = "timeline-recorded-side"
+            },
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(

@@ -1,0 +1,34 @@
+V17-D-05 — LOC1..LOC9 acceptance mapping
+
+LOC1  current resource authorities only (no new locale / no values-en)
+      -> repository structure unchanged: app/src/main/res/values/strings.xml +
+         values-zh-rCN/strings.xml only; no values-en directory exists (frozen audit).
+LOC2  Timeline keys (timeline_* + timeline_a11y_*) identical key sets across both files
+      -> JVM guard `D05 timeline accessibility keys exist with full weekdays in both files`
+         (a11y family parity) + existing `functional timeline strings ... stay in parity`
+         (all timeline_* keys); mechanical summary in resource-parity.txt (key parity true).
+LOC3  placeholder count/type/order parity for every Timeline formatted key
+      -> JVM guard `D05 placeholder parity holds for every timeline formatted key` (per-key
+         %N$s/%N$d sequence comparison, plus explicit shapes for day_format/row_side);
+         mechanical detail in resource-parity.txt.
+LOC4  no user-visible hardcoded literal in D-05-touched sources
+      -> existing F13 CJK scan over the four Timeline production files (still green; all new
+         phrases resolve from resources) + `D05 no programmatic focus or live-region APIs`
+         asserting the resource-backed phrases are referenced.
+LOC5  entry terminology uses “方案”
+      -> timeline_entry_subtitle (both files) = “按月份查看当前方案与已记录摄入”;
+         no “计划上下文” remains in Timeline copy (resource-parity.txt).
+LOC6  accessibility weekday uses the full weekday vocabulary
+      -> 7 keys timeline_a11y_weekday_mon..sun = 星期一..星期日 in BOTH files (JVM guard
+         asserts exact values) + day/section spoken phrases measured on device.
+LOC7  explicit-zone formatting preserved
+      -> all D-04 F22/F27/F28 guards remain green (renderer uses state.displayZone only; no
+         systemDefault/live clock); TimelineFontScaleTest 12/24h sanity formats the UTC instant
+         through HistoryFormatting with the published zone.
+LOC8  12/24h changes notation only
+      -> fontScale20TwelveAndTwentyFourHourSanity (same published-zone instant, different
+         notation, both phrases correct) + D-04 TimelineScreenTest 12h/24h regression
+         (expected strings computed from the same explicit zone).
+LOC9  forbidden/adherence language absent (including new a11y copy)
+      -> extended D-05 forbidden-wording guard over all timeline_* + timeline_a11y_* values
+         (English + Chinese lists) plus the existing source scan; manual spot-check record.

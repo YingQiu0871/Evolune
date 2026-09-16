@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T19:28:29.548Z" hostname="人面不知何处去" time="0.014">
+  <properties/>
+  <testcase name="anti-androgen routes are unavailable even when they carry an ester placeholder" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.003"/>
+  <testcase name="known ester keys classify as known" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="an entry outside its day is rejected" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.003"/>
+  <testcase name="day counts are derived from entries so the recomputation is defence in depth" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.002"/>
+  <testcase name="coverage counts include every matched provenance but never unmatched intakes" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="matched exact inferred unrecorded and unmatched are counted per frozen rules" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="current timezone derived dates raise the disclosure flag" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="a duplicated day is rejected" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.001"/>
+  <testcase name="recorded days count distinct display dates and ignore unrecorded-only days" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="unknown or foreign keys classify as partial without inventing a drug" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="unknown identity intakes are counted but never summed into a dose" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="binding confidence maps the four provenances and unmatched to NONE" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.001"/>
+  <testcase name="the authoritative event dose wins over the generated schedule dose" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="all six authoritative sources are reported and sum to the recorded intakes" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="dose totals use the authoritative event dose per known medication" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="an empty range aggregates to zeros without failing" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="legacy is never merged into manual" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.001"/>
+  <testcase name="an inverted range is rejected" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="unrecorded schedule doses never enter dose totals" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="source and binding confidence are independent dimensions" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.0"/>
+  <testcase name="a duplicated authoritative event is rejected instead of double counted" classname="io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsAggregatorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,64 @@
+V17-D-05 — DG1..DG23 guard mapping
+
+DG1  direct D-01/D-03 semantic change
+     -> frozen-surface audit: no D-01/D-03 production or test file in the delta; F1/F5 guards
+        green; D-04 architecture guards unchanged.
+DG2  row-family change
+     -> TimelineScreen/Presentation unchanged families; D-04 guard F3/F6 green; device row
+        tests assert the three families only.
+DG3  truthfulness change
+     -> MATCHED two-side phrases use per-side fields only (measured); UNRECORDED/UNMATCHED
+        device tests; no flatten/cross-substitute code paths exist.
+DG4  new Timeline state
+     -> seven-phase enum untouched (TimelineRangeState not in the delta); seven-state device
+        test enumerates exactly the seven.
+DG5  navigation redesign
+     -> AppNavigation/MainActivity untouched; D-04 navigation tests green (including UI34).
+DG6  new Timeline persistence
+     -> no persistence code/files in the delta; F12 guard green.
+DG7  PK/schema/truth-store coupling
+     -> no PK/schema/TOS files in the delta; F4 guard green.
+DG8  renderer systemDefault/live clock
+     -> F22/F27/F28 guards green; TimelineScreen/Presentation contain no systemDefault/
+        LocalDate.now/Instant.now (scanned).
+DG9  programmatic a11y-focus jump
+     -> JVM guard `D05 no programmatic focus or live-region APIs` (no requestFocus/moveFocus/
+        FocusManager/focusRequester in the four files) + device
+        selectionAndMonthChangeDoNotMoveAccessibilityFocus.
+DG10 automatic live-region announcement
+     -> same JVM guard (no liveRegion/LiveRegion/announceForAccessibility) + device
+        sevenStatesExposeMeaningfulTargetsAndDistinctActionLabels (zero LiveRegion nodes).
+DG11 day-cell spoken ISO machine date
+     -> device dayCellSpeaksLocalizedNonIsoGrammarWithFullWeekday (exact non-ISO phrases).
+DG12 day-cell child duplicate announcement
+     -> device dayCellIsExactlyOneButtonNodeWithChildrenExcludedFromTheAccessibilityTree
+        (merged-tree count == 1; weekday/number texts absent; children cleared).
+DG13 MATCHED sides merged together
+     -> device matchedRowExposesExactlyTwoSideGroupsWithNaturalSeparators (exactly two groups).
+DG14 sub-48dp interactive targets
+     -> device interactiveTargetsAreAtLeast48dp (touchBoundsInRoot measurements) + entry-card
+        measurement; all >= 48dp.
+DG15 hardcoded 48/36 geometry clipping above 1.0x
+     -> resolved metrics grow under font scale (device: highlight > 36dp at 2.0x; number fits);
+        the 48/36 constants are used as MINIMUMS only (source-verified).
+DG16 per-cell variable width causing centering drift
+     -> uniform resolved width (device assertUniformCellWidth at 1.0/1.3/1.5/2.0); strip
+        padding computed from the resolved width (device viewport-centering tests).
+DG17 new locale creation
+     -> repository structure unchanged (no values-en); frozen-surface audit.
+DG18 resource key mismatch
+     -> JVM parity guards (timeline_* and timeline_a11y_*) + resource-parity.txt.
+DG19 placeholder mismatch
+     -> JVM placeholder-parity guard + resource-parity.txt per-key sequences.
+DG20 hardcoded user-visible D-05 strings
+     -> F13 CJK scan green over the four production files; all new speech resolves via
+        R.string.timeline_a11y_*.
+DG21 adherence/grading vocabulary
+     -> extended forbidden-wording JVM guard (English + Chinese lists over all timeline keys)
+        + D-04 source scan; manual record.
+DG22 source-scan-only A11Y proof
+     -> all A11Y semantics items have real Compose semantics assertions on the device
+        (TimelineAccessibilityTest 13 methods; see accessibility-matrix-mapping.txt).
+DG23 font-scale cheating (lowering text below system scale)
+     -> no fontSize/TextUnit override exists in the D-05 sources (device font tests render
+        the system-scaled text; measured growth confirms real scaling).

@@ -7,13 +7,16 @@ import androidx.compose.ui.test.assertContentDescriptionContains
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.R
@@ -76,6 +79,20 @@ class TimelineScreenTest {
         composeRule.onNodeWithTag("timeline-day-strip")
             .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
         composeRule.waitForIdle()
+    }
+
+    /** V17-D-05: a grouped side speaks ONE phrase (label, time, identity, dose). */
+    private fun assertSidePhraseContains(sideTag: String, vararg expectedParts: String) {
+        val phrases = composeRule.onAllNodesWithTag(sideTag)
+            .fetchSemanticsNodes()
+            .map { node ->
+                node.config[SemanticsProperties.ContentDescription].joinToString(separator = " ")
+            }
+        assertTrue("expected at least one '$sideTag' node", phrases.isNotEmpty())
+        assertTrue(
+            "expected one '$sideTag' phrase to contain ${expectedParts.toList()}; got $phrases",
+            phrases.any { phrase -> expectedParts.all { phrase.contains(it) } }
+        )
     }
 
     // ---------- seven-state mapping ----------
@@ -180,17 +197,23 @@ class TimelineScreenTest {
         setContent(TimelineTestStates.contentState())
         composeRule
             .onNodeWithTag("timeline-day-cell-2026-09-16")
-            .assertContentDescriptionContains("2026-09-16", substring = true)
+            .assertContentDescriptionContains("9月16日", substring = true)
         composeRule
             .onNodeWithTag("timeline-day-cell-2026-09-16")
-            .assertContentDescriptionContains(context.getString(R.string.history_cell_selected), substring = true)
+            .assertContentDescriptionContains(
+                context.getString(R.string.timeline_a11y_weekday_wed),
+                substring = true
+            )
+        composeRule
+            .onNodeWithTag("timeline-day-cell-2026-09-16")
+            .assertIsSelected()
         composeRule
             .onNodeWithTag("timeline-day-cell-2026-09-16")
             .assertContentDescriptionContains(context.getString(R.string.history_cell_today), substring = true)
         scrollStripTo(LocalDate.of(2026, 9, 1))
         composeRule
             .onNodeWithTag("timeline-day-cell-2026-09-01")
-            .assertContentDescriptionContains("2026-09-01", substring = true)
+            .assertContentDescriptionContains("9月1日", substring = true)
     }
 
     @Test
@@ -231,10 +254,22 @@ class TimelineScreenTest {
         composeRule.onNodeWithTag(row).assertExists()
         composeRule.onNodeWithTag("timeline-schedule-side", useUnmergedTree = true).assertExists()
         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertExists()
-        assertTextExists(context.getString(R.string.history_label_current_schedule_context))
-        assertTextExists(context.getString(R.string.history_label_actual_time))
-        assertTextExists("雌二醇 · 2.0 mg")
-        assertTextExists("雌二醇 · 3.0 mg")
+        // V17-D-05: each side is ONE grouped accessibility node speaking label → time →
+        // identity → dose with natural separators (no reliance on the visible “·”).
+        assertSidePhraseContains(
+            "timeline-schedule-side",
+            context.getString(R.string.history_label_current_schedule_context),
+            "08:00",
+            "雌二醇",
+            "2.0 mg"
+        )
+        assertSidePhraseContains(
+            "timeline-recorded-side",
+            context.getString(R.string.history_label_actual_time),
+            "08:05",
+            "雌二醇",
+            "3.0 mg"
+        )
     }
 
     @Test
@@ -248,6 +283,10 @@ class TimelineScreenTest {
         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertDoesNotExist()
         composeRule.onNodeWithTag("timeline-no-recorded-intake", useUnmergedTree = true).assertExists()
         assertTextExists(context.getString(R.string.timeline_no_recorded_intake))
+        assertSidePhraseContains(
+            "timeline-schedule-side",
+            context.getString(R.string.history_label_current_schedule_context)
+        )
     }
 
     @Test
@@ -259,7 +298,7 @@ class TimelineScreenTest {
         setContent(state)
         composeRule.onNodeWithTag("timeline-recorded-side", useUnmergedTree = true).assertExists()
         composeRule.onNodeWithTag("timeline-schedule-side", useUnmergedTree = true).assertDoesNotExist()
-        assertTextExists("戊酸雌二醇", substring = true)
+        assertSidePhraseContains("timeline-recorded-side", "戊酸雌二醇", "5.0 mg")
     }
 
     @Test
@@ -278,7 +317,7 @@ class TimelineScreenTest {
                 )
             )
         )
-        assertTextExists("雌二醇 · 2.0 mg")
+        assertSidePhraseContains("timeline-schedule-side", "雌二醇", "2.0 mg")
     }
 
     @Test
@@ -293,10 +332,14 @@ class TimelineScreenTest {
                 )
             )
         )
-        assertTextExists(context.getString(R.string.timeline_identity_partial), substring = true)
+        assertSidePhraseContains(
+            "timeline-schedule-side",
+            context.getString(R.string.timeline_identity_partial)
+        )
         assertTrue(
             "a partial identity must never guess an ester name",
-            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
+            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty() &&
+                composeRule.onAllNodesWithContentDescription("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
         )
     }
 
@@ -312,10 +355,14 @@ class TimelineScreenTest {
                 )
             )
         )
-        assertTextExists(context.getString(R.string.timeline_identity_unavailable), substring = true)
+        assertSidePhraseContains(
+            "timeline-schedule-side",
+            context.getString(R.string.timeline_identity_unavailable)
+        )
         assertTrue(
             "an unavailable identity must never be mapped to an ester",
-            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
+            composeRule.onAllNodesWithText("雌二醇", substring = true).fetchSemanticsNodes().isEmpty() &&
+                composeRule.onAllNodesWithContentDescription("雌二醇", substring = true).fetchSemanticsNodes().isEmpty()
         )
     }
 
@@ -325,14 +372,14 @@ class TimelineScreenTest {
     fun theTwentyFourHourModeFormatsTheTimelineTimestamps() {
         setContent(TimelineTestStates.contentState(), is24Hour = true)
         val expected = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, true)
-        assertTextExists(expected)
+        assertSidePhraseContains("timeline-schedule-side", expected)
     }
 
     @Test
     fun theTwelveHourModeChangesNotationOnly() {
         setContent(TimelineTestStates.contentState(), is24Hour = false)
         val expected = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, false)
-        assertTextExists(expected)
+        assertSidePhraseContains("timeline-schedule-side", expected)
         val twentyFour = HistoryFormatting.timeText(TimelineTestStates.matchedInstant, TimelineTestStates.utc, true)
         assertTrue("12h and 24h renderings must differ", expected != twentyFour)
     }
