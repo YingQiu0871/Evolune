@@ -1,0 +1,32 @@
+V17-D-01 — ARCHITECTURE GUARD & ZERO-WRITE PROOF
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Test: io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest
+Result XML: junit/focused/TEST-...TimelineArchitectureGuardTest.xml (6 tests / 0 failures)
+
+Guarded production files:
+  app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineReadModel.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilder.kt
+
+Assertions proven:
+  1. approved domain types only: HistoricalRange + MedicationOccurrence + MedicationIdentityClassifier
+     are present; planName is absent;
+  2. no persistence/reader/matcher/generator references: DoseEventDao, DoseEventRepository,
+     AppDatabase, Room, HistoryReadService, HistoryRangeSource, AllAvailableHistorySource,
+     MedicationOccurrenceMatcher, MedicationOccurrenceGenerator, HistoryViewModel,
+     HistoryPresentation;
+  3. no Phase-C/PK/Android/Compose/navigation/resource references: history.retrospective,
+     RetrospectivePk, RetrospectiveMarker, SimulationEngine, ThreeCompartmentModel,
+     ParameterResolver, evolune.pk, androidx., import android.content, navigation package, R.string;
+  4. no timing metrics/clocks/coroutines/state: Duration.between, timingDelta,
+     System.currentTimeMillis, Clock, ViewModel, Flow, CoroutineScope, suspend , delay(,
+     adherence/compliance/missed/skipped/onTime/late/overdue;
+  5. no write vocabulary: insert, upsert, delete, persist, @Dao, @Entity, @Database, write;
+  6. the public MedicationOccurrenceGenerator is referenced ONLY by the TLM18 parity TEST
+     (production generator usage forbidden).
+
+Zero-write evidence:
+  - static: assertion 5 (no write vocabulary) + assertion 2 (no repository/DAO types);
+  - structural: TLM24 proves the builder is a stateless object (no mutable instance state) and
+    the public surface has no ambient dependencies (TLM23);
+  - runtime: TLM25 proves deterministic pure output for identical input.

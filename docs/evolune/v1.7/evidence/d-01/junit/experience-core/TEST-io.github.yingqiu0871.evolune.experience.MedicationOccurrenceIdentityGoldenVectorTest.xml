@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:56:59.041Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="golden vector changes when the slot changes" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.0"/>
+  <testcase name="golden vector changes when the plan changes" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.0"/>
+  <testcase name="golden vector is stable across repeated derivation" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.0"/>
+  <testcase name="golden vector pins the exact occurrence uuid" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.001"/>
+  <testcase name="golden vector changes when the intended local date changes" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.0"/>
+  <testcase name="occurrence identity is a version 3 uuid" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentityGoldenVectorTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

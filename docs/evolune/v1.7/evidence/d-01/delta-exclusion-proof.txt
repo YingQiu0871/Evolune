@@ -1,0 +1,17 @@
+V17-D-01 — DELTA-EXCLUSION PROOF
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Frozen exclusion (contract §10): no signed delta, no Duration.between presentation metric,
+no +2h41m/-7m fields, no early/late/on-time/overdue, no adherence/compliance interpretation.
+Both raw timestamps may coexist.
+
+Evidence:
+  - TLM21 (TimelineProjectionBuilderTest): reflection over TimelineRow + TimelineScheduleContext
+    + TimelineRecordedIntake + TimelineDay + TimelineReadModel + TimelineRowId fields and all
+    TimelineRowKind constants; forbidden substrings include delta/timing/late/early/ontime/
+    on_time/overdue/missed/skipped/adherence/compliance/lateness/delay/offset -> PASS.
+  - Static guard (TimelineArchitectureGuardTest): production source must not contain
+    "Duration.between" / "timingDelta" / adherence vocabulary -> PASS.
+  - audits.txt + architecture guard: no PK/simulation references anywhere in production.
+
+Result: PASS (junit/focused; junit/app). No derived timing field exists in the D-01 model.

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetUiTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:25.367Z" hostname="人面不知何处去" time="0.013">
+  <properties/>
+  <testcase name="chart geometry reserves vertical chrome for every responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.002"/>
+  <testcase name="past today remains a scheduled-time check action with empty progress" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.006"/>
+  <testcase name="2x1 retains all today rows for collection scrolling" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="chart typography scales with the responsive layout" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="next dose style exposes only the highest priority upcoming occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="Samsung calibrated 2x2 is complete and 2x1 is the compact fallback" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="one plans visible occurrence count drives three two and one row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="recorded completion alone fills progress and increments header count" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="height primarily controls row capacity" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="truthful no plan no upcoming loading and failure states remain distinct" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="2x1 never adopts expanded single-row density" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="chart geometry never restores a minimum that breaks peak headroom" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="PK chart policy keeps bounded offsets and rejects invalid samples" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="2x2 maps all three daily occurrences with complete row metadata" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="mixed plans are counted by total visible occurrences" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="one two and three rows use bounded adaptive density and distribution" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="current E2 style keeps computed value and hides medication rows" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="read only styles retain scalar data when there are no enabled plans" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="current widget size follows the active screen orientation" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <testcase name="rows beyond viewport capacity remain in model for collection scrolling" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.001"/>
+  <testcase name="width changes density without removing three row completeness" classname="io.github.yingqiu0871.evolune.widget.WidgetUiTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

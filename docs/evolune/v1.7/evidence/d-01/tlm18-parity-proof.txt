@@ -1,0 +1,42 @@
+V17-D-01 — TLM18 LIVE GENERATOR BEHAVIORAL PARITY PROOF
+(binding prerequisite from final contract review)
+
+Test: io.github.yingqiu0871.evolune.history.timeline.TimelineOrderingGeneratorParityTest
+Result XML: junit/focused/TEST-...TimelineOrderingGeneratorParityTest.xml (2 tests / 0 failures)
+Full run XML: junit/app/TEST-...TimelineOrderingGeneratorParityTest.xml
+
+Generator construction (initialState):
+  - Zone: UTC; date 2026-09-16; target wall-clock time 08:00 (same instant for all plans).
+  - Three enabled DAILY MedicationSchedule objects at the SAME local time, deliberately supplied
+    in shuffled order:
+      planLsb=10 with TWO slots (positions 0 and 1, same 08:00 time),
+      planLsb=1  with ONE slot,
+      planLsb=2  with ONE slot.
+  - Window: OccurrenceGenerationWindow(2026-09-16T00:00Z, 2026-09-17T00:00Z), zone UTC.
+  - Call: MedicationOccurrenceGenerator.generate(schedules, window, zone)  [PUBLIC API]
+
+Same-instant occurrence set:
+  - targetInstant = 2026-09-16T08:00:00Z
+  - generatorSameInstant = generated.filter { it.scheduledAt == targetInstant }
+  - asserted non-trivial: size >= 4; 3 distinct planIds; one planId carries >= 2 slots
+    (slot-position tie inside the same instant).
+
+Feeding the Timeline:
+  - entries = generatorSameInstant.reversed().map { unrecordedEntry(occurrence = it) }
+    (REVERSED input, so accidental input-order dependence is exposed)
+  - range = testRange(date-1..date+1 with one day section)
+  - rows = TimelineProjectionBuilder.build(range) ... filter { it.sortInstant == targetInstant }
+
+Equality asserted:
+  expectedOrder = generatorSameInstant.map { it.id.value }            (generator order)
+  actualOrder   = rows.map { (rowId as TimelineRowId.Occurrence).occurrenceId.value }
+  assertEquals(expectedOrder, actualOrder)   -> PASS
+  assertNotEquals(expectedOrder, expectedOrder.reversed())            (sanity)
+  sizes equal (every same-instant occurrence covered)
+
+Drift detection: if the internal OCCURRENCE_ORDER changes, the generator sequence changes and
+this test fails unless the Timeline comparator is updated consistently. No hard-coded expected
+UUID list is used.
+
+Additional bound coverage (second test): a two-day window with a daily schedule generates two
+occurrences on consecutive local dates; asserted count and +24h spacing.

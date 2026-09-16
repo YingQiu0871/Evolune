@@ -317,6 +317,13 @@ PK output must remain explicitly model-derived.
 > recorded-intake 分离、delta 显式排除、ordering 冻结（OCCURRENCE_ORDER 字段序列）、displayDate/
 > D3 基础；**D-01 production NOT STARTED**，D-02…D-07 未开始。**NEXT: V17-D-01 contract review**。
 > Phase C 保持 CLOSED；C-01/C-04 不被依赖。
+>
+> **Status note (2026-09-16, D-01 implementation)**: **D-01 contract APPROVED**（`APPROVE V17-D01
+> CONTRACT`）；**D-01 implementation 已提交、REVIEW PENDING**：`history/timeline/` pure read-model
+> projection over `HistoricalRange`（三 row family、typed row identity、schedule/recorded 分离、
+> delta 显式排除、OCCURRENCE_ORDER 字段序列排序 + TLM18 live generator-parity、architecture guards）；
+> focused 32/0/0/0 · fresh full JVM 1365/0/0/0 · 54/54 tasks。**NEXT: V17-D-01 implementation review**；
+> D-02…D-07 未开始；Phase C 保持 CLOSED、C-01/C-04 未被依赖或修改。
 
 ---
 

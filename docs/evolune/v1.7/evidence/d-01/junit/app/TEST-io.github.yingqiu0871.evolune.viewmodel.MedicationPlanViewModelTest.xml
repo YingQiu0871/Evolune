@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:25.210Z" hostname="人面不知何处去" time="0.02">
+  <properties/>
+  <testcase name="delete success cancels once while NotFound and storage failure do not" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.005"/>
+  <testcase name="repository cancellation returns operation to idle instead of unknown failure" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.002"/>
+  <testcase name="duplicate save while first write is suspended invokes Repository once" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.001"/>
+  <testcase name="disabled save cancels only after persistence success" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.0"/>
+  <testcase name="setEnabled applies matching side effect only for successful Repository results" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.002"/>
+  <testcase name="create session remains stable through recomposition validation and save failure" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.002"/>
+  <testcase name="Created Updated and NoChange are successful before one reminder side effect" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.001"/>
+  <testcase name="unexpected repository runtime failure is distinct from storage failure" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.002"/>
+  <testcase name="enabled updates isolate target rows and reject only same-row duplicates" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.001"/>
+  <testcase name="storage failure is structured and has no reminder fallback" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.001"/>
+  <testcase name="reschedule reads contract plans and reports reminder result" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.002"/>
+  <testcase name="reminder failure remains separate from successful persistence" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.0"/>
+  <testcase name="Draft and Repository invalid failures never call reminder" classname="io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

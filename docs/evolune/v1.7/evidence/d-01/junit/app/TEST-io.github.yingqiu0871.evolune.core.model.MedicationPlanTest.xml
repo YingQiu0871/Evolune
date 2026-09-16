@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:23.445Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="weeklyAllowsEmptyDaysOfWeek" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.001"/>
+  <testcase name="createdAtRetainsOrdinaryInstant" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="mismatchedSlotPlanIdIsRejected" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.001"/>
+  <testcase name="intervalDaysOneIsValid" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="intervalDaysZeroIsRejected" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="dailyRetainsIrrelevantScheduleFields" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="scheduleTypeContainsOnlyResolvedValues" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="negativeIntervalDaysAreRejected" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="intervalDaysMaximumIsValid" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="positionsMustBeContinuous" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.001"/>
+  <testcase name="slotsAreNotAutomaticallySorted" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="firstPositionMustBeZero" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="duplicateLocalTimesAreValid" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="eachPositionMustMatchItsListIndex" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.001"/>
+  <testcase name="completeValidPlanCanBeCreated" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="emptySlotsAreValid" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="nameDoseAndExtrasReceiveNoNewCompatibilityValidation" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <testcase name="customRetainsDaysOfWeek" classname="io.github.yingqiu0871.evolune.core.model.MedicationPlanTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

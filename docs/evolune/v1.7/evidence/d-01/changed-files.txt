@@ -1,0 +1,13 @@
+﻿== changed files vs contract HEAD a245a5e ==
+
+-- worktree status --
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/
+?? app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/
+?? docs/evolune/v1.7/evidence/d-01/
+
+-- new D-01 files --
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineReadModel.kt
+app/src/main/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilder.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineOrderingGeneratorParityTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineArchitectureGuardTest.kt

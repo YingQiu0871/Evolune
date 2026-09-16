@@ -1,0 +1,5 @@
+﻿== V17-D-01 git identity ==
+branch: v1.7-development
+contract HEAD: a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+worktree: clean at evidence generation (implementation commit pending; recorded in review packet)
+date: 2026-09-16 11:57:43

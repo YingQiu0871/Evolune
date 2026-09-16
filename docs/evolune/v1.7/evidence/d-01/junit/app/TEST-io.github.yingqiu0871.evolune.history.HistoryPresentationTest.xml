@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:23.630Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="past month can move forward and past day cells stay enabled" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.002"/>
+  <testcase name="unmatched entry does not claim plan ownership" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="unmatched non manual entry is never marked manual" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="exact matched entry carries recorded status and both times" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.001"/>
+  <testcase name="month grid has leading blanks today selection and disabled future days" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="matched actual time falls back to the display zone" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="unrecorded entry keeps the non-blaming wording" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="matched actual time uses the persisted event zone" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="unmatched manual entry is marked manual" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="dose and timestamp formatting follow the existing conventions" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.001"/>
+  <testcase name="current schedule context is exposed for matched and unrecorded entries" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="same day actual intake shows time only" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="inferred matched entry is visibly annotated" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="anti androgen route does not claim an ester name" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="a day without history reports zero counts and no indicators" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="calendar cells carry the real day counts" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.001"/>
+  <testcase name="loading and error phases keep the month grid" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="local time in another zone is rendered in that zone" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="legacy and modern inferred matches share the same neutral wording" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="unmatched entry with a derived date explains the current time zone" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <testcase name="delayed actual intake shows a full date and time" classname="io.github.yingqiu0871.evolune.history.HistoryPresentationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,22 @@
+V17-D-01 — TRUTHFULNESS PROOF (schedule context vs recorded fact; dose/identity provenance)
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Implementation: TimelineReadModel.kt
+  - `TimelineScheduleContext` (occurrence side; KDoc: "current schedule context materialized for
+    this historical occurrence — never a historical prescription snapshot/prescribed dose/
+    plan-at-that-time") and `TimelineRecordedIntake` (authoritative actual fact) are separate
+    structured properties on TimelineRow; neither overwrites the other.
+  - planName is deliberately absent from the model (normalized guard: production files must not
+    contain "planName").
+
+Tests:
+  TLM9  matched keeps both sides distinct even with identical match keys ............ PASS
+  TLM10 matched actual dose/identity from the event side (E2/2.0 vs EV/3.0/SUBLINGUAL) PASS
+  TLM11 unrecorded carries schedule-context facts only ............................ PASS
+  TLM12 unmatched carries recorded facts only ...................................... PASS
+  TLM13 KNOWN identity preserved via the existing classifier (EN) ................. PASS
+  TLM14 PARTIAL never becomes a specific medication (key == null) ................. PASS
+  TLM15 UNAVAILABLE antiandrogen identity not invented (key == null) .............. PASS
+
+Reuse proof: production references `MedicationIdentityClassifier` (approved single classifier)
+and contains no second classifier (architecture guard).

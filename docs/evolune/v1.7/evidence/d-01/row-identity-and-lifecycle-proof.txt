@@ -1,0 +1,19 @@
+V17-D-01 — ROW IDENTITY / LIFECYCLE PROOF
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Implementation: TimelineReadModel.kt (sealed TimelineRowId { Occurrence(occurrenceId), Event(eventId) })
+  MATCHED / UNRECORDED_SCHEDULE -> Occurrence(occurrence.id)
+  UNMATCHED_INTAKE              -> Event(event.eventId)
+  Derived, non-persistent; no persistent Timeline ID store exists (architecture guard).
+
+Tests:
+  TLM5  occurrence-backed rows use Occurrence identity (matched + unrecorded)
+  TLM6  unmatched intake uses Event identity
+  TLM7  UNRECORDED -> MATCHED keeps the same occurrence-backed rowId
+  TLM8  MATCHED -> UNRECORDED keeps the same occurrence-backed rowId
+Result: PASS (junit/focused; junit/app).
+
+Notes:
+  - A genuine UNMATCHED -> MATCHED reconciliation may change Event -> Occurrence because the
+    authoritative projection family changed (documented in the TimelineRowId KDoc).
+  - HistoricalEntry.sortKey is not used as row identity.

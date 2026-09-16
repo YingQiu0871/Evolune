@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:24.235Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="returning to the surface refreshes the visible month exactly once" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.002"/>
+  <testcase name="day rollover leaves a historical month being browsed alone" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <testcase name="a stale success that ignores cancellation cannot replace the newer request" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.001"/>
+  <testcase name="returning to the surface while a load is in flight is coalesced" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <testcase name="a cold start performs exactly one read" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.001"/>
+  <testcase name="a background to foreground transition refreshes once" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <testcase name="a stale failure that ignores cancellation cannot poison the newer request" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <testcase name="selecting a day performs no additional read" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <testcase name="day rollover advances the visible month and today" classname="io.github.yingqiu0871.evolune.history.HistoryRefreshTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

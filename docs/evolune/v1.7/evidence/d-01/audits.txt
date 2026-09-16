@@ -1,0 +1,21 @@
+﻿== V17-D-01 audits ==
+generated: 2026-09-16 11:57:43
+contract HEAD: a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+== forbidden-surface zero-diff (must all be empty) ==
+[empty]
+
+== Home/Wear/Widget zero-diff ==
+[empty]
+
+== schema/Room zero-diff ==
+[empty]
+
+== dependency/build zero-diff ==
+[empty]
+
+== UI/navigation/strings zero-diff (no UI worked) ==
+[empty]
+
+== D-01 executable delta (only the new package) ==
+[untracked-new-files-in-status]

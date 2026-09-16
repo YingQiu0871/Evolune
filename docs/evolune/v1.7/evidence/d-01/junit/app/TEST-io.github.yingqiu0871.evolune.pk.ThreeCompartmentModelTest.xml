@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:24.785Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="testDualAbsAmountSublingualE2" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.001"/>
+  <testcase name="testOneCompAmountOralE2" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testDualAbsMixedAmountSublingualEV" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testPatchAmountZeroOrder" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testInjAmountEV" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testPatchAmountFirstOrder" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testBatemanAmountZeroDose" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <testcase name="testBatemanAmountNegativeTime" classname="io.github.yingqiu0871.evolune.pk.ThreeCompartmentModelTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

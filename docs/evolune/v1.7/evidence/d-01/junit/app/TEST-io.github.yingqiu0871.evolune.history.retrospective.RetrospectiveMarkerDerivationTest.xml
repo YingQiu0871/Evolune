@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-09-16T09:57:24.711Z" hostname="人面不知何处去" time="0.006">
+  <properties/>
+  <testcase name="MI3 excluded identities absent from the accepted set never become intake markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.002"/>
+  <testcase name="MC1 schedule markers exist across the whole 30 day window even when accepted intakes are recent" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.002"/>
+  <testcase name="M4 markers derive only from entries - future occurrences can never become markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI4 retained zero-contribution non-control inputs remain markers when the summary retains them" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI12 same accepted ID mutated to a foreign identity is hidden" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="M6 counts follow the frozen invariants - no dedup, no merge, no synthesis, deterministic order" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.001"/>
+  <testcase name="M2 unmatched accepted intake yields an intake marker only, never a synthetic schedule marker" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MS4 unrecorded known-estrogen occurrence has a schedule marker and no classification side effect" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI11 same accepted ID mutated to PATCH_REMOVE is hidden" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI2 patch control IDs never become intake markers" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MS2 antiandrogen schedule occurrences are hidden" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI1 an accepted non-control ID present in Read2 inside the window yields one intake marker" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MS5 PATCH_REMOVE schedule occurrences are explicitly hidden even though the key classifies KNOWN" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI10 same accepted ID mutated to ANTIANDROGEN is hidden by the current-payload guard" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="M1 matched occurrence yields one schedule marker and one intake marker by own instants" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MC2 intake membership uses occurredAt only - a persisted date outside the local span still shows" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MS3 partial or foreign medication identities are hidden" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="M5 the window is inclusive on both ends for both families" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.001"/>
+  <testcase name="MS1 every known estrogen key yields exactly one schedule marker" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MI5 unmatched accepted actual yields one intake marker and no synthetic schedule marker" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MC3 and MC4 boundary instants at start and end are included while 1ms outside is excluded" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="MC5 MC6 MC7 family counts per projection shape" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <testcase name="M3 known-estrogen unrecorded occurrence yields a schedule marker only and never an intake marker" classname="io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

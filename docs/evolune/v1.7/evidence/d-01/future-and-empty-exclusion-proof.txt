@@ -1,0 +1,18 @@
+V17-D-01 — FUTURE / EMPTY-ROW EXCLUSION PROOF
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Future rows:
+  - The projection input type `HistoricalRange` declares no future/futureOccurrences field
+    (revealed by reflection in TLM4) and the builder's only public entry point accepts exactly
+    `HistoricalRange` (TLM23 reflection over declared public methods).
+  - Architecture guard: no future vocabulary; no AllAvailableHistorySource (whose projection
+    carries futureOccurrences) is referenced by production.
+  - TimelineRowKind has exactly three constants (TLM4) — no fourth family.
+Result: PASS.
+
+Empty rows/sections:
+  - TLM22: an empty range produces zero days; a non-empty range produces no day with an empty
+    row list. No fake rows and no synthesized empty date sections are ever produced.
+Result: PASS.
+
+(delta and future are additionally covered by delta-exclusion-proof.txt and ordering-proof.txt.)

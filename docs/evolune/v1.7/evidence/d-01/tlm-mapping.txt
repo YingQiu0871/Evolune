@@ -1,0 +1,40 @@
+V17-D-01 — TLM1–TLM25 ACCEPTANCE MAPPING
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+evidence: junit/focused (focused run) + junit/app (full run); logs jvm-focused-run.log / jvm-full-fresh.log
+All items PASS (focused 32/0/0/0; full JVM 1365/0/0/0).
+
+TLM1  matched -> one MATCHED row ................. TimelineProjectionBuilderTest#TLM1
+TLM2  unrecorded -> neutral UNRECORDED_SCHEDULE ... #TLM2
+TLM3  unmatched -> UNMATCHED_INTAKE ............... #TLM3
+TLM4  future excluded / no fourth family .......... #TLM4 (HistoricalRange has no future field;
+       TimelineRowKind has exactly 3 constants)
+TLM5  occurrence-backed ID = Occurrence(occId) .... #TLM5
+TLM6  unmatched ID = Event(eventId) ............... #TLM6
+TLM7  UNRECORDED -> MATCHED identity stable ....... #TLM7
+TLM8  MATCHED -> UNRECORDED identity stable ....... #TLM8
+TLM9  matched keeps two sides (identical keys) .... #TLM9
+TLM10 actual dose/identity from event side ........ #TLM10
+TLM11 unrecorded carries schedule side only ....... #TLM11
+TLM12 unmatched carries recorded side only ........ #TLM12
+TLM13 KNOWN identity preserved .................... #TLM13
+TLM14 PARTIAL not promoted to a medication ........ #TLM14
+TLM15 UNAVAILABLE/ANTIANDROGEN not invented ....... #TLM15
+TLM16 displayDate exact preservation .............. #TLM16
+TLM17 canonical ascending date/instant ordering ... #TLM17
+TLM18 live generator behavioral parity ............ TimelineOrderingGeneratorParityTest
+       (see tlm18-parity-proof.txt; binding review prerequisite)
+TLM19 occurrence-backed before unmatched .......... TimelineProjectionBuilderTest#TLM19
+TLM20 unmatched same-instant deterministic by id .. #TLM20
+TLM21 no delta / no timing classification ......... #TLM21 (+ architecture guard source scan)
+TLM22 no synthesized empty rows/sections .......... #TLM22
+TLM23 no future rows (public surface proof) ....... #TLM23
+TLM24 pure projection / no mutable state .......... #TLM24 (+ architecture guard)
+TLM25 repeated projection deterministic ........... #TLM25
+
+Static architecture guards: TimelineArchitectureGuardTest (6 tests):
+  - approved domain types only; planName absent;
+  - no persistence/reader/matcher/generator references;
+  - no Phase-C/PK/Android/Compose/navigation/resource references;
+  - no timing metrics/clocks/coroutines/state;
+  - no write vocabulary;
+  - generator referenced only by the TLM18 test.

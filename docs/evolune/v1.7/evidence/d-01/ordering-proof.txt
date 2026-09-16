@@ -1,0 +1,28 @@
+V17-D-01 — ORDERING PROOF
+contract HEAD a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34
+
+Implemented comparator: app/src/main/java/.../history/timeline/TimelineProjectionBuilder.kt
+  TIMELINE_ROW_ORDER = displayDate ascending -> sortInstant ascending -> same-instant tie-break:
+    (A) occurrence-backed pairs: verified OCCURRENCE_ORDER field sequence
+        scheduledAt (equal) -> planId.toString() -> slotPosition -> slotId.toString()
+        -> occurrenceId.value.toString()
+    (B) occurrence-backed before unmatched
+    (C) unmatched pairs: eventId.toString() lexical
+  `HistoricalEntry.sortKey` is NOT the occurrence-backed comparator and is not required for the
+  frozen order (per-occurrence/event uniqueness gives a total order under A/B/C).
+
+Intentional History-vs-Timeline difference KDoc (near TIMELINE_ROW_ORDER, TimelineProjectionBuilder.kt):
+  "HistoricalEntry.sortKey prefixes the family ('0:' matched, '1:' unrecorded), so History may
+   place MATCHED before UNRECORDED at the same instant even when OCCURRENCE_ORDER semantics say
+   otherwise. Timeline deliberately uses the OCCURRENCE_ORDER field sequence for occurrence-backed
+   same-instant rows, as frozen by D-01. This is a deterministic presentation-order difference
+   only — not a different medication fact and not a second matcher."
+
+Verification:
+  - TLM17 canonical ascending date/instant ordering (TimelineProjectionBuilderTest)
+  - TLM18 live behavioral parity against MedicationOccurrenceGenerator (see tlm18-parity-proof.txt)
+  - TLM19 occurrence-backed first at the same instant
+  - TLM20 unmatched same-instant determinism by eventId
+Result XML: junit/focused (32 tests, 0 failures) and junit/app (full run).
+OCCURRENCE_ORDER was NOT made public and experience-core was not modified (audits.txt empty
+for experience-core generator/matcher diff).
