@@ -1,6 +1,8 @@
 # V17-D-04 — Timeline UI — Contract
 
 > 状态：`CONTRACT — REVIEW PENDING`（docs-only contract；**D-04 PRODUCTION — NOT STARTED**）
+> R1：display-zone ownership / zone-change load semantics / presentation-zone consistency /
+> day-strip viewport-centering 澄清已并入（§3.1/§6.1/§11.1/§23.1-23.3/§31/§35/§37）；其余冻结决定不变。
 > Slice：**V17-D-04 — Timeline UI**
 > Base HEAD：`544b1a85368502807171908954ae26bf8c732d10`（D-03 APPROVED / CLOSED）
 > 上游（约束性输入，**优先于本文件**）：
@@ -76,6 +78,22 @@ retained VM 的语义冲突。未来 contextual date handoff 需要自己的显�
   factory 只注入 seam/Clock/displayZone（先例：`MainActivity.kt:229-241`）；
 - UI 只消费 VM/coordinator state，不开独立 read path。
 
+### 3.1 Display-zone generation ownership（R1 冻结）
+
+`displayZone` 是 **generation/request context**，不是一次附属的 UI formatting lookup。
+
+- TimelineViewModel owns a **current display-zone provider**；
+- 对**任何**可能创建新 D-03 authoritative request generation 的操作，必须**成对捕获**：
+
+  ```text
+  capturedAt
+  currentDisplayZone
+  ```
+
+- 适用操作（全部）：initial request、route re-entry、app foreground return、month change、
+  retry、return-to-current-month recovery；
+- `selectDate()` 保持 **0-read local selection**，**不**创建新的 zone/request generation。
+
 ## 4. State retention（冻结；D-04 MVP）
 
 - month/date state 在 activity-scoped VM 存活期间保留；
@@ -116,6 +134,50 @@ selectedDate = today
 **禁止**：polling、timer refresh、periodic refresh、live subscription。**不得修改** closed
 Insights/Retrospective lifecycle helpers。除既有先例外，不要求额外的 configuration-change
 检测机制。
+
+### 6.1 Same-zone refresh vs zone-change reload（R1 冻结）
+
+**Same zone**（`currentDisplayZone == latestLogicalRequest.displayZone`）：
+
+- 普通 activation/retry refresh 可继续使用 D-03 已冻结 API：
+  `coordinator.refresh(freshCapturedAt)`；
+- **不得**改动 D-03。
+
+**Zone changed**（`currentDisplayZone != latestLogicalRequest.displayZone`）：
+
+- **不得**使用 `refresh(capturedAt)` —— D-03 refresh 会保留先前 logical request 的 displayZone；
+- 必须构造**新的** `TimelineMonthRequest`：
+
+  ```text
+  fresh capturedAt
+  new displayZone
+  resolved month
+  resolved selectedDate
+  ```
+
+  并通过已批准的 D-03 `load(newRequest)` 提交 —— 即**一个新的 D-03 generation**；
+- **不得**直接调用 `HistoryRangeSource` 或任何 repository。
+
+**Zone-change month/date resolution（确定性；冻结）：**
+
+```text
+newToday        = freshCapturedAt.atZone(newDisplayZone).toLocalDate()
+newCurrentMonth = YearMonth.from(newToday)
+起点            = latest logical Timeline request
+```
+
+- **Case A — 旧 requested month 仍为 historical/loadable**（`oldRequestedMonth <= newCurrentMonth`）:
+  - `requestedMonth` 保持 `oldRequestedMonth`；
+  - 仅当 `YearMonth.from(oldSelectedDate) == oldRequestedMonth` **且** `oldSelectedDate <= newToday`
+    时保留旧 selectedDate；
+  - 否则解析：`oldRequestedMonth == newCurrentMonth` → `selectedDate = newToday`；
+    否则 → `selectedDate = oldRequestedMonth.atDay(1)`。
+- **Case B — 旧 requested month 在新 zone 下成为 future**（`oldRequestedMonth > newCurrentMonth`，
+  向西跨时区月界可能发生）:
+  - `requestedMonth = newCurrentMonth`；
+  - `selectedDate = newToday`；
+- 正常 D-04 activation **不得**仅因系统 display zone 变化而把用户留在 future-month request；
+- 这**不**改变 D-03 `NOT_LOADABLE` 语义；只是 D-04 控件构造了一个新的 valid logical request。
 
 ---
 
@@ -192,6 +254,20 @@ Insights/Retrospective lifecycle helpers。除既有先例外，不要求额外�
   - selected/current date 应在适当时被带入合理可见位置；
   - 滚动**永不**改变 weekday/date/highlight 内部对齐；
 - 滚动动画细节非契约关键。
+
+### 11.1 Selected-cell viewport centering（R1 澄清）
+
+在既有 UI35–UI39 / F19–F21 之外补充一个 presentation 点：
+
+- **selected day cell 应在实际可行时被带入 day-strip viewport 的水平视觉中心**；
+- 这**独立于** day-cell 内部居中：
+  - selected date number → 几何居中于自身 highlight；
+  - selected day cell → 在 layout bounds 允许时居中于可见 day-strip viewport；
+- 边缘日期：优先使用**对称 content padding** 的布局，使 first/last selectable cell 在所选
+  Compose primitive 允许的情况下也能到达视觉居中位置；
+- **禁止** manual x-offset magic number；
+- 若平台约束下无法精确 viewport 居中：selected cell **至少必须完全可见**，且 day-strip
+  容器本身保持对称。
 
 ## 12. selectedDate = focus，不是 Timeline filtering（关键；F17）
 
@@ -319,6 +395,34 @@ D-04 **不得**发明 UI-local pending state machine：只渲染 D-03 实际发�
 - **禁止**：domain/VM state 内硬编码用户可见 date/time format string；D-03 models 内
   存放 formatted/localized string。
 
+### 23.1 No timezone-split presentation（R1 冻结）
+
+- **每一个可见 Timeline timestamp，只要属于一个已发布的 D-03 state，就必须以该 state/request 的
+  displayZone 格式化**；适用：`scheduledAt`、`occurredAt`、presentation 需要的 section-date 计算、
+  Today/Yesterday 判定、absolute date labels、weekday labels、任何 focus/scroll date mapping；
+- row/section renderer **不得**独立调用 `ZoneId.systemDefault()` 去重新解释已发布 model；
+- 该渲染快照的权威 displayZone 是 D-03 已发布的 displayZone。
+
+### 23.2 12/24h 独立于 display zone（R1 冻结）
+
+- 12/24h choice → 现行 app/system time-format preference（既有约定）；
+- 但 **time-format preference != timezone source**：
+  - `displayZone = Europe/Paris` + `is24Hour = false` 意味着：**在 Europe/Paris 中格式化该 instant，
+    使用 12-hour 表示法**；
+  - 它**绝不**意味着：render 时用当时 `ZoneId.systemDefault()` 去转换 instant。
+
+### 23.3 Formatter requirement（R1；source-audited）
+
+- 源核对结果：`HistoryFormatting.timeText(instant, zone, is24Hour)`、
+  `fullDateTimeText(instant, zone, is24Hour)`、`actualTimestampPresentation(...)`、
+  `scheduleTimeText(instant, zone, ...)` **均已接受显式 `ZoneId`**，内部不使用
+  `ZoneId.systemDefault()` → D-04 必须传入 D-03 state 的 `displayZone`，可直接复用；
+- 若某个既有 helper 隐式使用 system default 而无法满足本契约：**不得**为 Timeline timestamp
+  conversion 静默复用它；
+- D-04 可添加一个只接收 `Instant / ZoneId / is24Hour` 的窄 presentation formatter/helper
+  （例如用于 section date/weekday 派生），**不得**改动 History 行为、**不得**做 broad History refactor；
+- dose formatting 复用保持不变。
+
 ## 24. Functional strings / localization split（冻结；F13）
 
 - D-04 可添加**最小功能** `timeline_*` resource keys（title、entry card、month title pattern、
@@ -443,6 +547,14 @@ Phase-C production、schema/DAO/Room、Home/Wear/Widget、build/dependencies。
 | UI37 | calendar/day-selection region is visually centered while Timeline section headings and medication content below remain left aligned |
 | UI38 | weekday label, date number and selected-state background share one horizontal center axis inside each day cell |
 | UI39 | single-digit and double-digit selected dates remain geometrically centered without manual offsets |
+| UI40 | same displayZone foreground/re-entry: uses D-03 refresh with fresh capturedAt; no unnecessary load |
+| UI41 | displayZone changes while activity-scoped VM survives: ordinary refresh path is NOT used; exactly one D-03 load with the new displayZone is submitted |
+| UI42 | zone change preserving a past requested month: requested month unchanged and valid selectedDate retained |
+| UI43 | zone change makes the previous requested month future: request resolves to new current month + newToday |
+| UI44 | visible scheduled/actual timestamps and section labels use the published state's displayZone, not an independently queried system zone |
+| UI45 | 12/24h preference changes notation only and does not change the timezone used to interpret the published Timeline snapshot |
+| UI46 | selecting an off-screen day scrolls it into a centered/visually centered viewport position where layout bounds permit |
+| UI47 | first/last selectable day preserves symmetric strip geometry and never disturbs the internal weekday/date/highlight center axis |
 
 Tests **不得**依赖精确动画时长。
 
@@ -509,6 +621,9 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 | F19 | calendar selected-day layout 用 manual x/y nudge 或 asymmetric padding 伪造居中 |
 | F20 | month title 在一个 navigation control 禁用时移动 |
 | F21 | Timeline body 因 calendar-centering 要求而全局居中 |
+| F22 | row/section renderer 独立用 `ZoneId.systemDefault()` 重新解释 Timeline instants（而非已发布的 D-03 displayZone） |
+| F23 | displayZone 变化被 plain `coordinator.refresh(capturedAt)` 处理（该 API 会保留旧 logical zone） |
+| F24 | zone-change 处理走 D-03 `load(newRequest)` 之外的路径（直接 source read、repository call 或第二 orchestration path） |
 
 ## 36. Status mapping（truthful）
 
@@ -525,3 +640,12 @@ TIMELINE INFORMATION BODY = LEFT ALIGNED
 - **D-04 PRODUCTION — NOT STARTED**；
 - D-05 NOT STARTED；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` /
   `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-04 contract review**。
+- **R1 amendment（architect REQUEST_CHANGES；docs-only）**：已并入
+  §3.1 display-zone generation ownership（capturedAt + currentDisplayZone 成对捕获）、
+  §6.1 same-zone refresh vs zone-change reload（zone-change 走 D-03 `load(newRequest)`，
+  Case A/B month/date resolution）、§11.1 selected-cell viewport centering、
+  §23.1-23.3 presentation-zone consistency / 12-24h 独立 / formatter source audit、
+  §31 的 UI40–UI47、§35 的 F22–F24。其余 D-04 决定（surface/nav、ownership、retention、
+  lifecycle、selectedDate-as-focus、ordering、row truthfulness、identity/dose、delta 禁令、
+  七相位映射、pending 政策、centering rules、D-05 split、UTF-8 evidence）保持不变；
+  状态保持 `CONTRACT — REVIEW PENDING`、production 保持 NOT STARTED。
