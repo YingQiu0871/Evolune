@@ -193,17 +193,19 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   instrumentation 39/39（Pixel_7 API 35）· UI35–UI39/UI46–UI47 真实几何断言关闭。Architect
   candidate APPROVE → 初始独立复审 REQUEST_CHANGES（1 P2：UI34 缺 executed proof）→ R1
   APPROVE（P0/P1/P2 = none）。**D-04 关闭**。
-- **Phase D · D-05 contract** — **APPROVED / FROZEN**
+- **Phase D · D-05** — **CLOSED / FROZEN**
   （[`V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`](v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md)；
-  approved semantic contract HEAD `b1cdd662fe1bee14beab5cad651aef772f211c68`；Architect
-  **APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE** + 独立复审 **APPROVE**，P0/P1/P2 = none）：
-  final accessibility/localization hardening of the shipped D-04 Timeline surface。五项审计 P2 已闭环
-  （day-cell 单 accessibility node + `Role.Button` + selected/disabled 属性 + localized 非 ISO
-  spoken 语法 + full weekday；month-title/section-header `heading()`；entry-card `Role.Button`；
-  font-scale 1.0/1.3/1.5/2.0 responsive + uniform resolved cell width + executed 2.0x evidence；
-  MATCHED 双侧 semantic groups + natural separator）。含 key/placeholder parity guards、hit target
-  ≥48dp、无 live-region、无程序化 a11y focus。**D-05 冻结**；**D-05 PRODUCTION — NOT STARTED**。
-  **NEXT:** V17-D-05 production implementation（仅针对 frozen contract @ `b1cdd66...`）。
+  contract @ `b1cdd662fe1bee14beab5cad651aef772f211c68`；final implementation HEAD
+  `2a79f1d048905113f53d4be470071a94072c2f96`）：final accessibility/localization hardening of the
+  shipped D-04 Timeline surface。CONTRACT — APPROVED / FROZEN；PRODUCTION — IMPLEMENTED /
+  APPROVED / CLOSED；EVIDENCE — COMPLETE（186/186 manifest，187 files，0 mismatch）。验收：
+  focused JVM 69/0 · full JVM 1490/0 · instrumentation 59/59（Pixel_7 API 35；VisualEvidence = 2）·
+  semantics-tree closure（day-cell 单节点 + `Role.Button`；section-header 单短语；MATCHED 双侧）·
+  font-scale 1.0/1.3/1.5/2.0 measured · touch target ≥48dp（touchBoundsInRoot）· Timeline families
+  34/34 parity。Architect candidate APPROVE + 独立复审 APPROVE（P0/P1/P2 = none）。P3-1/2/3 为
+  CLOSED / 非阻塞。**D-05 关闭**。
+  **NEXT:** V17-D-06 recurring verification gate；D-07 final Phase-D independent gate remains
+  required（Phase D 仍 IN PROGRESS）。
 
 ## Historical and future milestones
 
@@ -223,9 +225,11 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** V17-D-05 production implementation（D-04 CLOSED / FROZEN @ final implementation HEAD
-`e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 contract APPROVED / FROZEN @
-`b1cdd662fe1bee14beab5cad651aef772f211c68`；D-05 生产未开始）。
+**NEXT:** V17-D-06 recurring verification gate（D-04 CLOSED / FROZEN @
+`e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract
+`b1cdd662fe1bee14beab5cad651aef772f211c68` + final implementation HEAD
+`2a79f1d048905113f53d4be470071a94072c2f96`；D-07 final Phase-D independent gate remains
+required，Phase D 仍 IN PROGRESS）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

@@ -198,23 +198,24 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     R1 real route-cycle executed proof + mapping 修正 + UTF-8 evidence 卫生 → **APPROVE V17-D04
     IMPLEMENTATION R1**（Architect + final independent，P0/P1/P2 = none）。D-04 P3 hygiene
     （F14 标签漂移 / 未使用 helper / KDoc 范围注释）为 CLOSED / 非阻塞，不重开 D-04。
-  - Phase D · D-05 contract — **APPROVED / FROZEN**
-    （[`V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`](v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md)；
-    approved semantic contract HEAD `b1cdd662fe1bee14beab5cad651aef772f211c68`；Architect
-    **APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE** + 独立复审 **APPROVE**（Qwen3.8 Flash），
-    P0/P1/P2 = none；P3-1 全局资源计数事实修正（8 个 pre-existing default-only NON-TIMELINE keys
-    不属 D-05 范围；Timeline 22/22 parity 不变）；P3-2 §0 行锚修正为 `TimelineScreen.kt:70–72`；
-    P3-3 section-header 单短语 auditability 记录，不重编号）：final accessibility/localization
-    hardening of the shipped D-04 Timeline surface；五项 P2 已闭环（day-cell 单 accessibility
-    node + `Role.Button` + selected/disabled semantic properties + localized 非 ISO spoken 语法 +
-    full weekday；month-title + section-header `heading()`；History entry card `Role.Button`；
-    font-scale 1.0/1.3/1.5/2.0 responsive 规则 + uniform resolved cell width + executed 2.0x
-    evidence；MATCHED 双侧 semantic groups + natural separator）。含 timeline key/placeholder
-    parity guards、hit target ≥48dp、无 live-region、无程序化 a11y focus。
-    **D-05 冻结**：未经重开评审不得改 D-05 语义。**D-05 PRODUCTION — NOT STARTED**；D-06
-    recurring gate；D-07 final gate。
-  - **NEXT:** V17-D-05 production implementation（仅可针对 frozen semantic contract @
-    `b1cdd662fe1bee14beab5cad651aef772f211c68`；不自行发明范围）。
+  - Phase D · D-05 — **CLOSED / FROZEN**（contract
+    [`V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md`](v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md) @
+    `b1cdd662fe1bee14beab5cad651aef772f211c68`；final implementation HEAD
+    `2a79f1d048905113f53d4be470071a94072c2f96`）：CONTRACT — APPROVED / FROZEN；PRODUCTION —
+    IMPLEMENTED / APPROVED / CLOSED；EVIDENCE — COMPLETE（`evidence/d-05/` 186/186 manifest，
+    0 mismatch；focused JVM 69/0；full JVM 1490/0；instrumentation 59/59 Pixel_7 API 35，
+    VisualEvidence = 2）。Architect **APPROVE V17-D05 IMPLEMENTATION — ARCHITECT CANDIDATE
+    CLOSURE** + 独立复审 **APPROVE**（Qwen3.8 Flash，P0/P1/P2 = none）。Executed closure：
+    day-cell 单 accessibility node + `Role.Button` + selected/disabled + localized 非 ISO 语法；
+    month-title/section-header `heading()` + absolute header 单 full-weekday phrase（§39 duty
+    CLOSED）；entry-card `Role.Button`；MATCHED 恰两 side groups；UNRECORDED/UNMATCHED truthful；
+    no live-region / no focus jump；font-scale 1.0/1.3/1.5/2.0 measured；touch target ≥48dp
+    （`touchBoundsInRoot`）；Timeline families 34/34 parity（22 + 12 new a11y keys），无新 locale。
+    D-04 regression: Geometry 8/8 · Lifecycle 4/4 · Navigation 3/3 · Screen 23/23 green。
+    P3-1（FONT9 evidence strength）/ P3-2（zh expectations）/ P3-3（packet breakdown typo）均为
+    CLOSED / 非阻塞，不重开 D-05。
+  - **NEXT:** V17-D-06 recurring verification gate；D-07 final Phase-D independent gate remains
+    required（Phase D 仍 IN PROGRESS，不标记 CLOSED）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

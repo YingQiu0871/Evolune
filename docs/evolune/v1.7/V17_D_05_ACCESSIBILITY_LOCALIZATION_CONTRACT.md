@@ -1,6 +1,8 @@
 # V17-D-05 — Accessibility / Localization Hardening — Contract
 
-> 状态：`CONTRACT — APPROVED / FROZEN`（**D-05 PRODUCTION — NOT STARTED**）；
+> 状态：`CONTRACT — APPROVED / FROZEN`；**PRODUCTION — IMPLEMENTED / APPROVED / CLOSED**；
+> **EVIDENCE — COMPLETE**（final implementation HEAD：
+> `2a79f1d048905113f53d4be470071a94072c2f96`；final closure 记录见 §48）；
 > approved semantic contract HEAD：`b1cdd662fe1bee14beab5cad651aef772f211c68`
 > （Architect **APPROVE V17-D05 CONTRACT — ARCHITECT CLOSURE**；独立复审 **APPROVE V17-D05
 > CONTRACT**（Qwen3.8 Flash，fresh independent read-only session），P0/P1/P2 = none；
@@ -622,13 +624,13 @@ production 不得超出上述范围（扩展需在实现评审中说明理由）
 
 ## 46. Documentation status
 
-- 本契约状态：`CONTRACT — APPROVED / FROZEN`（Architect APPROVED；独立复审 APPROVED，
-  P0/P1/P2 = none；closure 记录见 §47）；
-- **D-05 PRODUCTION — NOT STARTED**；
+- 本契约状态：`CONTRACT — APPROVED / FROZEN`；**PRODUCTION — IMPLEMENTED / APPROVED / CLOSED**；
+  **EVIDENCE — COMPLETE**（Architect APPROVED；独立复审 APPROVED，P0/P1/P2 = none；
+  closure 记录见 §47；final production closure 见 §48）；
+- final implementation HEAD：`2a79f1d048905113f53d4be470071a94072c2f96`；
 - D-06 recurring verification gate；D-07 final Phase-D independent gate；
 - D-01/D-03/D-04 保持 CLOSED / FROZEN；指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` /
-  `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-05 production implementation**
-  （仅可针对 frozen semantic contract @ `b1cdd662fe1bee14beab5cad651aef772f211c68`）。
+  `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；**NEXT: V17-D-06 recurring verification gate**。
 
 ---
 
@@ -674,3 +676,73 @@ production 不得超出上述范围（扩展需在实现评审中说明理由）
   at `b1cdd662fe1bee14beab5cad651aef772f211c68`；
 - 本 closure commit 为 bookkeeping/factual-anchor correction only，不新增语义要求；
 - **NEXT: V17-D-05 production implementation**。
+
+---
+
+## 48. Final production closure（bookkeeping；CLOSED / FROZEN）
+
+- Final implementation HEAD：`2a79f1d048905113f53d4be470071a94072c2f96`
+  （candidate implementation commit，parent `c298bac`；relative to the frozen contract it adds
+  no semantic requirement）；
+- Architect implementation review：**APPROVE V17-D05 IMPLEMENTATION — ARCHITECT CANDIDATE
+  CLOSURE**；
+- Independent implementation review：**APPROVE V17-D05 IMPLEMENTATION**（Qwen3.8 Flash，fresh
+  independent read-only session）；
+- Final blocking findings：P0 = none，P1 = none，P2 = none；
+- Final validation：focused D-05 JVM 69/0/0/0（TimelineViewModelTest 23 / TimelinePresentationTest
+  18 / TimelineUiArchitectureGuardTest 28）；fresh full JVM 1490/0/0/0（app 1229 +
+  experience-core 171 + wear 90）；Android instrumentation 59/0/0/0 on Pixel_7 AVD API 35
+  （TimelineScreenTest 23 / TimelineGeometryTest 8 / TimelineLifecycleTest 4 /
+  TimelineNavigationTest 3 / TimelineVisualEvidenceTest **2** / TimelineAccessibilityTest 13 /
+  TimelineFontScaleTest 6）；
+- Evidence：`docs/evolune/v1.7/evidence/d-05/` — 187 files / 186 manifest-listed data files，
+  coverage 186/186，sha256(MANIFEST.sha256) =
+  `3d2f2da573ba07553b7372029cf485550731014a61ac09a7bf7a86368e774044`，187/187 HEAD-blob
+  verification，0 mismatches，UTF-8 clean（无 UTF-16 残留；implementation.diff 与真实 git diff
+  逐字节一致）；
+- Accessibility tree closure（executed）：day cell merged tree 恰一个 meaningful node +
+  Role.Button + `selected` property + controlled defensive `disabled`；weekday/date children 不
+  构成重复 stop；unmerged geometry tags（weekday/highlight/number/cell）保持可查询。合规结论
+  不得仅凭 `mergeDescendants` / `clearAndSetSemantics` 等 source keyword；
+- Section-header P3-3 duty CLOSED（executed）：absolute-date header 有 heading semantic、单一
+  node、exact spoken phrase（localized date + full weekday）、该 node 无 Text property、visible
+  short-weekday 短语缺席 merged tree ⇒ 无 duplicate short+full 播报；
+- MATCHED closure（executed）：accessibility tree 恰含 1 schedule-side + 1 recorded-side；
+  spoken order 分别为 label→scheduled time→identity→dose 与 label→actual time→identity→dose；
+  distinct test values 证明无字段交叉替换；visible “·” 仅视觉，speech 使用 natural localized
+  punctuation；
+- Font-scale closure（executed）：1.0/1.3/1.5/2.0 measured（number contained & centered both
+  axes、weekday/date/highlight common axis、uniform day-cell width、highlight growth、>=48dp
+  cell、month title centered、nav slots symmetric、body left aligned、viewport centering、
+  first/last edge）；无 font-size cheating；48dp/36dp 为 minimum/baseline，不是不可变 >1.0x 尺寸；
+- Touch-target closure：effective touch target >= 48dp × 48dp（previous/next month、day cells、
+  Retry、Return to current month、History entry card），证据为 actual Compose semantics node
+  的 `touchBoundsInRoot`（非 visual icon bounds、非 developer-computed constants）；
+- Localization closure：Timeline families 34/34（22 existing + 12 new `timeline_a11y_*`）across
+  values/ + values-zh-rCN/；无 values-en / 新 locale；placeholder sequence parity verified；
+  whole-application resource parity remains OUT OF SCOPE（inherited values 540 / zh-rCN 532
+  global fact 不作为 global parity 声明）；
+- D-04 regression closure：TimelineGeometryTest 8/8、TimelineLifecycleTest 4/4、
+  TimelineNavigationTest 3/3、TimelineScreenTest 23/23 全 green；Geometry/Lifecycle source 未改；
+  Screen/Navigation 仅 semantics-assertion mechanics 适配，行为未弱化；
+- Frozen surfaces：zero unauthorized semantic change（TimelineViewModel、TimelineRangeCoordinator、
+  TimelineRangeState、TimelineReadModel、TimelineProjectionBuilder、TimelineSurfaceLifecycle、
+  HistoryRangeSource/HistoryReadService/HistoricalProjectionBuilder、D-01/D-03/D-04 semantics、
+  MainActivity、AppNavigation、Phase C/PK、Room/schema/DAO、Home/Wear/Widget、
+  Gradle/dependencies；Timeline command semantics、row facts/order、seven phases 保持）；
+- **D-05 — CLOSED / FROZEN**；Phase D remains IN PROGRESS；**NEXT: V17-D-06 recurring
+  verification gate**（D-07 final Phase-D independent gate remains required）。
+
+### 48.1 Implementation P3 dispositions（CLOSED / 非阻塞，不重开 D-05）
+
+- **P3-1（FONT9 evidence strength）**：critical-text no-clipping proof 采用 measured layout
+  bounds + non-degenerate side layout + 2.0x captured-device visual evidence 的有界组合，而非
+  per-element TextLayout clipping queries；independent review 判定对 D-05 充分；不重开 D-05，
+  D-06 可在 recurring verification 中加强；
+- **P3-2（zh device-locale expectations）**：TimelineAccessibilityTest 对部分 exact spoken
+  phrases 使用固定 zh expectations；对既定的 zh Pixel_7 API35 D-05 目标有效；未来更广 locale/
+  device matrix 可改用 resource-derived expectations；non-blocking，不重开 D-05；
+- **P3-3（review packet Android breakdown typo）**：implementation review packet 文本曾写
+  TimelineVisualEvidenceTest = 1，最终 source/XML 独立证明为 **2**；packet 的 total 59 正确，
+  仅 breakdown 行为笔误；closure record 采用经 XML 核验的正确 breakdown；无 repository behavior/
+  evidence 缺陷。

@@ -431,6 +431,30 @@ PK output must remain explicitly model-derived.
 > 冻结范围不变：**A11Y1–A11Y21 / FONT1–FONT11 / LOC1–LOC9 / DG1–DG23**；D-04 boundary 原样。
 > **D-05 PRODUCTION — NOT STARTED**；**NEXT: V17-D-05 production implementation**（仅可针对
 > frozen semantic contract @ `b1cdd66...`）；D-06 recurring gate；D-07 final Phase-D gate。
+>
+> **Status note (2026-09-16, D-05 production closure)**: **D-05 CLOSED / FROZEN**。final
+> implementation HEAD `2a79f1d048905113f53d4be470071a94072c2f96`。Architect **APPROVE V17-D05
+> IMPLEMENTATION — ARCHITECT CANDIDATE CLOSURE**；独立复审 **APPROVE V17-D05 IMPLEMENTATION**
+> （Qwen3.8 Flash，fresh independent read-only session），P0/P1/P2 = none。Executed closure：
+> day-cell 单 accessibility node + `Role.Button` + selected/disabled + localized 非 ISO 语法
+> （full weekday；unmerged geometry tags 保留）；month-title/section-header `heading()` +
+> absolute header 单 full-weekday phrase（§39 duty CLOSED，无 duplicate short+full 播报）；
+> entry-card `Role.Button`；MATCHED 恰两 side groups（natural separators，visible “·” 仅视觉）；
+> UNRECORDED/UNMATCHED truthful；no live-region / no programmatic a11y focus；font-scale
+> 1.0/1.3/1.5/2.0 measured（uniform resolved cell width、highlight growth、viewport centering）；
+> touch target ≥48dp（`touchBoundsInRoot`）；Timeline families 34/34 parity（22 + 12 new
+> `timeline_a11y_*`），无 values-en / 新 locale；D-04 date/time authority 原样（无 systemDefault/
+> live clock）。EVIDENCE — COMPLETE（`evidence/d-05/`：187 files / 186 manifest entries，
+> 186/186 coverage，sha256(MANIFEST.sha256) =
+> `3d2f2da573ba07553b7372029cf485550731014a61ac09a7bf7a86368e774044`，187/187 HEAD-blob
+> verify，0 mismatch，UTF-8 clean）。验收：focused JVM 69/0/0/0；fresh full JVM 1490/0/0/0
+> （app 1229 + experience-core 171 + wear 90）；Android instrumentation 59/0/0/0（Pixel_7 AVD
+> API 35；TimelineVisualEvidenceTest = 2）。D-04 regression：Geometry 8/8、Lifecycle 4/4、
+> Navigation 3/3、Screen 23/23 green（Screen/Navigation 仅 semantics-assertion mechanics 适配）。
+> P3-1（FONT9 evidence strength）/ P3-2（zh expectations）/ P3-3（packet breakdown typo）为
+> CLOSED / 非阻塞；不重开 D-05。
+> **NEXT: V17-D-06 recurring verification gate**（D-07 final Phase-D independent gate remains
+> required；Phase D 仍 IN PROGRESS）。
 
 ---
 
