@@ -293,23 +293,39 @@ additive —— 不是 restore，不是 replace，不 merge plans/settings
 field、校验每个 event、校验 event IDs、校验 finite numbers、校验 enum wire values、
 校验 extras 键词汇、校验大小上限（§32）。只有全部结构/语义校验通过后才允许 repository 写入。
 
-**Collision equality（R1 冻结）**：canonical import 的相等性判定覆盖 **11 个 portable
-字段**（id + 其余 10 个），**有意忽略 repository `revision`**：
+**Collision equality（R1 冻结；R2 补充 stored-revision independence）**：canonical import 的
+相等性判定覆盖 **11 个 portable 字段**（id + 其余 10 个），**有意忽略 repository `revision`**：
 
 ```text
-same id + 其余 10 个 portable 字段全部相等 -> IDEMPOTENT（zero write）
+same id + 其余 10 个 portable 字段全部相等 -> IDEMPOTENT（zero write；与 stored revision 无关）
 same id + 任一 portable 字段不同          -> CONFLICT（拒绝、计数；不 overwrite）
-absent id                                 -> 构造 event 且 revision = 1，再经既有
+id is absent from the repository          -> 构造 event 且 revision = 1，再经既有
                                              DoseEventRepository.insert 插入
 ```
+
+（“absent id” 措辞澄清，R2：指 **id is absent from the repository** —— no existing repository
+row for this valid canonical UUID。canonical document 自身仍要求 valid id（§11）；
+missing/malformed canonical id 仍是 whole-document validation failure + zero writes。）
+
+**Stored-revision independence（R2 冻结）**：
+
+- 已存在行 **stored revision > 1** 且其余 10 个 portable 字段相等 -> **IDEMPOTENT**
+  （zero write；**不得**仅因 stored revision 不同而判 Conflict）；
+- 已存在行 **stored revision > 1** 且任一 portable 字段不同 -> **CONFLICT**
+  （zero overwrite/write）——“ignore revision” **不得**变成 “ignore real content changes”；
+- Implementability boundary（冻结）：允许使用既有 public repository seam
+  `DoseEventRepository.getById(id)` 在 insert 分类前检查既有行，或等价 public-repository
+  逻辑。**禁止**：DAO bypass、repository API extension、schema change、temporarily resetting
+  revision、calling update to normalize revision、treating revision difference as portable
+  conflict。
 
 **禁止** DAO bypass；**禁止** repository API extension；**禁止** restore path。
 
 | 场景 | 结果（观察性） |
 |---|---|
-| same id + same authoritative payload（11 portable 字段相等） | **IDEMPOTENT**（不覆盖、不重复；忽略 revision） |
-| same id + different authoritative payload（任一 portable 字段不同） | **CONFLICT**（拒绝该条、计数；不 overwrite） |
-| new id | **INSERTED**（revision = 1） |
+| same id + same authoritative payload（11 portable 字段相等；stored revision 任意，含 >1） | **IDEMPOTENT**（不覆盖、不重复；忽略 revision） |
+| same id + different authoritative payload（任一 portable 字段不同，stored revision 任意） | **CONFLICT**（拒绝该条、计数；不 overwrite） |
+| new id（repository 中不存在） | **INSERTED**（revision = 1） |
 | 语义等价但不同 id | 作为独立新事件插入（**无** semantic-equality dedup） |
 | settings/plans | **不写**（canonical import 不触碰） |
 
@@ -346,7 +362,9 @@ existing lossy field behavior remains
 
 **禁止**把 Mahiro 改造成严格 schema；**禁止**声称 Mahiro 是 schema-strict；**禁止**用
 Mahiro 作为 canonical E2/E7 证明。canonical strict schema/version 边界完全由 §5 的
-Evolune Portable JSON v1 承担（format/UI/action 显式区分，见 §3/§35）。
+Evolune Portable JSON v1 承担（format/UI/action 显式区分，见 §3/§35）。**Cross-format
+no-fallthrough（R2 冻结）**：合法 canonical 文档提交到 legacy Mahiro surface 时不得被静默
+接受、不得产生任何 dose-event 写入或 weight side-write（证据：E2.6）。
 
 ## 21. Legacy Mahiro id behavior（冻结）
 
@@ -728,7 +746,8 @@ Export-vs-backup boundary（Table H）：
   区分（§3/§35），未来任何 canonical Evolune 文档**不会**静默落入 Mahiro parser。
 - **P2-3（import atomicity 冻结）**：§18 全量预校验 + additive per-record writes；§19
   documented partial storage-failure 语义；§18 stable-ID replay safety（canonical；equality
-  覆盖 11 portable 字段、忽略 revision）；§21 legacy id rule documented。
+  覆盖 11 portable 字段、忽略 revision；**stored revision > 1 不产生 Conflict**，证据 E7.6）；
+  §21 legacy id rule documented。
 - **revision 边界（R1 补充）**：exact repository revision/state preservation 属于 application
   recovery 语义，不属于 user-data portability；Phase E **不得**为保留 revision 而复制
   backup/restore machinery（§4/E4 不变）。
@@ -751,6 +770,10 @@ No P2 may remain “implementation choice”。
 
 ## 46. Acceptance matrix（冻结；Table J）
 
+Complete acceptance ID ranges（权威穷举，R2 更新）：
+`E1.1–E1.2` · `E2.1–E2.6` · `E3.1–E3.3` · `E4.1–E4.4` · `E5.1–E5.4` · `E6.1–E6.6` ·
+`E7.1–E7.6` · `E8.1`。任何声称穷举覆盖的表述必须与本文一致。
+
 ### E1 — 导出只读（zero writes）
 
 | # | requirement | 判定 / 证据 |
@@ -767,6 +790,7 @@ No P2 may remain “implementation choice”。
 | E2.3 | import failure matrix：missing/wrong schema、missing/future version、unknown field、duplicate key、malformed JSON、invalid UUID、invalid enum、non-finite number、over-size、over-count -> typed failure + zero writes | JVM 测试矩阵（§47 EG19/EG17） |
 | E2.4 | legacy Mahiro **compatibility-regression**（R1）：无 meta/version 文档 accepted；既有 v1 exported 文档 accepted；unrelated `meta.version` 值**不**成为 canonical Evolune version authority；既有 unknown-field 兼容保持；既有 wire spellings 保持；**无**新增 Mahiro version rejection | JVM legacy regression 补充（§20/§40） |
 | E2.5 | CSV medication mapping 穷举且可测（Table D 每一行） | JVM fixture 覆盖每一条映射规则 |
+| E2.6 | **Cross-format negative（R2）**：合法 Evolune Portable JSON v1 文档提交到 **legacy Mahiro import surface** -> zero dose-event writes + zero weight side-write + **无 format fallthrough**（不得以 “success + inserted canonical records” 呈现）；typed outcome 循既有 legacy result 模型。反向（Mahiro -> canonical）**已由 E2.3 覆盖**（缺 `schema`/`version` 即拒绝），不重复建 ID | JVM cross-format fixture（§3/§20/§35；`§10` 文档形状） |
 
 ### E3 — 序列化确定性
 
@@ -814,6 +838,7 @@ No P2 may remain “implementation choice”。
 | E7.3 | CSV fixture：每类事件 truthful deterministic 表示，无 invented planned/delta/adherence | CSV golden 断言（§25/§26） |
 | E7.4 | legacy Mahiro lossiness 保留为显式文档，不作为 E7 证明 | §40 记录（Table G） |
 | E7.5 | replay：empty->inserted；same file again->idempotent；same ID changed payload->conflict（no overwrite）；storage failure after N writes->typed partial，前 N committed，retry 不重复 | import-service 测试扩展（§18/§19） |
+| E7.6 | **Stored-revision independence（R2）**：既有 repository row = same id + 其余 10 个 portable 字段完全相等 + **stored revision > 1**；canonical artifact 携带同一 11 portable 语义、不含 revision；import -> **IDEMPOTENT** 且 **zero repository write**（`insert` 调用数 = 0、`update` 调用数 = 0、其它写入 = 0）、no overwrite / no duplicate / **不因 stored revision 不同而判 Conflict**（importer 必须独立于 repository revision 分类 portable equality）。**对照（同一 fixture family）**：same id + stored revision > 1 + 至少一个 portable 字段不同 -> **CONFLICT** + zero overwrite/write（确保 “ignore revision” 不变成 “ignore real content changes”） | JVM fixture（§18/§38）；分类允许用 `DoseEventRepository.getById(id)` seam 或等价 public-repository 逻辑 |
 
 ### E8 — 独立复审（process gate）
 
@@ -846,7 +871,7 @@ No P2 may remain “implementation choice”。
 | EG17 | 超限输入继续 parse/write（未在写入前执行 MAX_INPUT_BYTES / MAX_EVENT_COUNT） |
 | EG18 | uncaught exporter/serializer exception 进入 UI；stack trace/path 作为用户文案 |
 | EG19 | canonical import 在完整预校验前开始写入（validation failure 必须 zero writes） |
-| EG20 | canonical strict schema/version 逻辑被委托给 Mahiro；Mahiro 被当作 canonical（或被改造成 strict schema）；Phase-E 实现为满足 canonical E2 versioning 而破坏既有 legacy decoder 兼容（permissive meta 行为、unknown-field 容忍、wire spellings） |
+| EG20 | canonical strict schema/version 逻辑被委托给 Mahiro；Mahiro 被当作 canonical（或被改造成 strict schema）；Phase-E 实现为满足 canonical E2 versioning 而破坏既有 legacy decoder 兼容（permissive meta 行为、unknown-field 容忍、wire spellings）【证据：E2.6】 |
 | EG21 | canonical import 重新生成 event ID（identity 必须保留） |
 | EG22 | 依赖 DAO/返回顺序的序列化排序（必须 §30 排序） |
 | EG23 | main-thread full-history serialization / blocking IO |
@@ -868,6 +893,10 @@ CSV/JSON golden byte fixtures（固定 capturedAt）
 determinism repeat-run（E3）
 zero-write counting（E1）
 round-trip + replay suite（E7.1/E7.5）
+revision>1 portable-equality fixture（E7.6：stored revision>1 相等 -> IDEMPOTENT + insert=0 /
+update=0 / all writes=0；differing portable field -> CONFLICT + zero overwrite）
+cross-format negative fixture（E2.6：canonical document via legacy Mahiro surface ->
+zero dose-event writes、zero weight side-write、no format fallthrough）
 boundary + DST/timezone fixtures（E5）
 large-history bounded fixture（E5.4）
 legacy compatibility-regression fixtures（E2.4：no-meta accepted / unrelated meta.version 非
