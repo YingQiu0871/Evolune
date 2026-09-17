@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
@@ -442,6 +444,13 @@ private fun WeekdayHeader() {
 
 // ---------- calendar ----------
 
+/**
+ * Fixed height of the indicator strip rendered below the day number. The cell reserves the
+ * same amount above the number as a symmetric strut, so the number's layout center coincides
+ * with the selection background's center (v1.7.1 calendar alignment follow-up).
+ */
+private val DAY_INDICATOR_STRIP_HEIGHT = 8.dp
+
 @Composable
 private fun HistoryMonthCalendar(
     model: HistoryMonthUiModel,
@@ -512,12 +521,17 @@ private fun HistoryCalendarCell(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Symmetric strut mirroring the indicator strip below the number: without it the
+        // [number, strip] block centers as a unit and the number sits half a strip too high.
+        Spacer(modifier = Modifier.height(DAY_INDICATOR_STRIP_HEIGHT))
         Text(
             text = date.dayOfMonth.toString(),
             color = contentColor,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (cell.isSelected || cell.isToday) FontWeight.Medium else FontWeight.Normal,
-            modifier = Modifier.clearAndSetSemantics { }
+            modifier = Modifier.clearAndSetSemantics {
+                this[SemanticsProperties.TestTag] = "history-day-number-$date"
+            }
         )
         DayIndicators(cell)
     }
@@ -528,7 +542,7 @@ private fun DayIndicators(cell: HistoryCalendarCellUiModel) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(8.dp),
+            .height(DAY_INDICATOR_STRIP_HEIGHT),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

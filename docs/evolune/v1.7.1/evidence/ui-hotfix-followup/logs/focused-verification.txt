@@ -1,0 +1,24 @@
+v1.7.1 History calendar alignment follow-up - focused verification
+==================================================================
+
+Full app JVM (fresh, --rerun-tasks)
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  result : BUILD SUCCESSFUL; 28 actionable tasks: 28 executed
+           suites=137  tests=1343  failures=0  errors=0  skipped=0
+
+Focused History Android instrumentation (Pixel_7 AVD API 35, emulator-5554)
+  classes: HistoryCalendarGeometryTest (4, new), HistoryScreenTest (13),
+           HistoryNavigationTest (6), HistoryVisualEvidenceTest (7)
+  result : Starting 30 tests -> Finished 30 tests (0 failed); BUILD SUCCESSFUL
+  geometry: number centered in its selection background within 1.5dp on X and Y at
+            fontScale 1.0 and 2.0; no clipping; neighbors row-aligned within 0.5dp;
+            selection visible/clickable; touch target not reduced
+
+Debug build (fresh, --rerun-tasks)
+  command: .\gradlew.bat :app:assembleDebug --rerun-tasks
+  result : BUILD SUCCESSFUL; 38 actionable tasks: 38 executed
+  artifact: app/build/outputs/apk/debug/app-debug.apk
+  size    : 78,577,516 bytes
+  sha256  : 35bd02cc9ad1e05463510512cd4cc6f73f41fdaf388afc0017f561e261a1f111
+  note    : the APK contains the new geometry tag (history-day-number- verified in dex);
+            this exact APK was installed on the Pixel 11 Pro for acceptance

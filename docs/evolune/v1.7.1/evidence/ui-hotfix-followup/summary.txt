@@ -1,0 +1,60 @@
+v1.7.1 History calendar alignment follow-up — summary
+=====================================================
+
+Defect (reported from a physical-device screenshot): the selected day number rendered in the
+upper part of its rounded selection background instead of being vertically centered.
+
+Root cause (verified by measurement, not assumption)
+  HistoryScreen.kt / HistoryCalendarCell was a Column whose content is [day-number Text,
+  DayIndicators (fixed 8dp strip)] centered vertically as ONE block. Because the indicator
+  strip always reserves 8dp below the number, the text's layout center sat exactly 4dp ABOVE
+  the container's center — which is the center of the selection background (clip + background
+  are applied to the same container).
+  Instrumented measurement before the fix (emulator Pixel_7 AVD, selected day 18):
+    fontScale 1.0: number center (262.5, 186.5) vs background center (262.5, 190.5) -> ΔY 4.0dp
+    fontScale 2.0: number center (262.7, 232.4) vs background center (262.5, 236.4) -> ΔY 4.0dp
+  The horizontal axis was already exact (ΔX 0.0-0.2dp); cell size was 52.57 x 28.19dp.
+
+Correction (proper layout geometry, no nudge)
+  The day cell now reserves the SAME 8dp strip ABOVE the number as a symmetric strut
+  (`DAY_INDICATOR_STRIP_HEIGHT`, shared by the strut and DayIndicators), keeping the
+  selection background and the number in one centering container:
+      Column(cell) { Spacer(8dp); Text(number); DayIndicators(8dp) }
+  -> number center == background center on BOTH axes, structurally.
+  No offset()/translationY/negative padding/magic baseline compensation was used; the
+  typography is untouched (no fontSize/lineHeight/platform-font-padding change).
+  The strut/indicator strip is structural, font-scale-safe (fixed 8dp reserve) and applies to
+  every cell uniformly (selected, today, disabled, empty months).
+
+Geometry after the fix (asserted by the new test)
+  - number center == background center within 1.5dp on X and Y at fontScale 1.0 and 2.0;
+  - number bounds stay inside the background bounds (no clipping) at both scales;
+  - neighboring cells (17 / 18 / 19) share the same row top/bottom within 0.5dp;
+  - the selection remains visible and clickable (content description carries 已选择);
+  - the touch target did not shrink: width unchanged (~52.6dp), height 28.19dp -> 36.19dp
+    (+8dp from the symmetric strut; a growth, never a reduction).
+  Note: the calendar row pitch grows uniformly by 8dp; rows stay aligned and the calendar
+  remains scrollable with no clipping (confirmed on the physical device).
+
+Physical-device acceptance (mandatory)
+  Device  : Pixel 11 Pro (grizzly), Android 17, wireless debugging
+  Build   : debug build of this follow-up (app-debug.apk, 78,577,516 bytes,
+            sha256 35bd02cc9ad1e05463510512cd4cc6f73f41fdaf388afc0017f561e261a1f111,
+            built fresh with --rerun-tasks; contains the new geometry tag)
+  Flow    : install -r (existing onboarding/data preserved) -> History -> month calendar
+  Result  : selected 2026-09-18 shows the day number visually centered both horizontally and
+            vertically inside the rounded selected background; neighbors aligned; no clipping;
+            date enable/disable behavior unchanged (19..30 remain 未到日期, unselectable).
+  Capture : screenshots/01-history-calendar-selected-day-centered.png
+
+Superseded context (recorded, nothing deleted)
+  The previously built v1.7.1 packaging candidate 50e6019 and its release APKs
+  (Phone 8d8150c165141c3dcfe1e9eb4be513645d12caa7b946742e3a2c4968ed6eafe6,
+   Wear c4cd78e1a3372d54de02b8dbfe570c836287a7f8642d2c0dee586e79fda832d3) are SUPERSEDED
+  by this defect and must NOT be released. The packaging evidence bundle remains untouched in
+  docs/evolune/v1.7.1/evidence/release-packaging/ as the historical record.
+
+Scope: production change limited to the History month-calendar day-cell presentation
+(HistoryScreen.kt) plus the focused geometry test and this evidence. No data semantics,
+version metadata, signing, Gradle, or other surface changed. Version remains
+1.7.1 / 101070100 / 1101070100.
