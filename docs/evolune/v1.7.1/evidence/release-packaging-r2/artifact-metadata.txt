@@ -1,0 +1,28 @@
+V1.7.1 release packaging R2 — artifact embedded metadata (from the actual NEW APKs)
+====================================================================================
+
+Read independently with aapt2 (build-tools 36.1.0) from the APK bytes.
+
+Release APKs (authoritative for R2):
+  app/build/outputs/apk/release/app-release.apk
+    package     : io.github.yingqiu0871.evolune
+    versionName : 1.7.1
+    versionCode : 101070100
+    targetSdk   : 36
+  wear/build/outputs/apk/release/wear-release.apk
+    package     : io.github.yingqiu0871.evolune
+    versionName : 1.7.1
+    versionCode : 1101070100
+    targetSdk   : 36
+
+Debug APKs:
+  app-debug.apk  : io.github.yingqiu0871.evolune.debug; 1.7.1-debug; 101070100
+  wear-debug.apk : io.github.yingqiu0871.evolune.debug; 1.7.1-debug; 1101070100
+
+Device-side confirmation (dumpsys package after install):
+  Phone debug   (emulator-5554)     : versionName=1.7.1-debug  versionCode=101070100
+  Phone release (emulator-5554)     : versionName=1.7.1        versionCode=101070100
+  Wear release  (emulator-5556)     : versionName=1.7.1        versionCode=1101070100
+  Phone release (Pixel 11 Pro, real): versionName=1.7.1        versionCode=101070100
+
+Stale-metadata check: no older app version exists inside any R2 APK.

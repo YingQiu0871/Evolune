@@ -270,13 +270,20 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   REAL-DEVICE ACCEPTED**（implementation @ `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；
   evidence-only P2 修正 @ `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审 **APPROVE
   V1.7.1 UI HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9 截图）。
-- **v1.7.1 · release packaging / version metadata — CANDIDATE BUILT / REVIEW PENDING**
-  （packaging commit `build: package v1.7.1 release candidate`，parent
-  `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；version metadata `1.7.1 / 101070100 /
-  1101070100` UPDATED / VERIFIED；signed release APK + apksigner v2 + aapt2 内嵌元数据 +
-  install/launch smoke + fresh JVM（1343/171/90 全绿）；**tag NOT CREATED / release NOT
-  PUBLISHED**）。
-  **NEXT:** v1.7.1 release-packaging review（通过后进入正式 release/tag 流程，另行单独授权）。
+- **v1.7.1 · History 日历对齐 follow-up 修复 — APPROVED**（`fix: center History calendar day
+  labels` @ `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；数字在选中背景内两轴结构居中 +
+  geometry test；Pixel 11 Pro 真机截图验收）。
+- **v1.7.1 · release packaging R1（首个候选）— SUPERSEDED / DO NOT RELEASE**（packaging
+  commit @ `50e6019deed6a5a68bac049d384cad172fe2beeb`；因打包后真机发现日历对齐缺陷废弃；
+  旧 APK 哈希不得发布；证据 root `docs/evolune/v1.7.1/evidence/release-packaging/` 历史冻结）。
+- **v1.7.1 · release packaging R2 — CANDIDATE BUILT / REVIEW PENDING**（packaging commit
+  `build: repackage v1.7.1 release candidate`，parent
+  `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；version metadata `1.7.1 / 101070100 /
+  1101070100` VERIFIED（无二次 bump）；signed release APK（R8）+ apksigner v2 + aapt2 内嵌
+  元数据 + install/launch smoke（含 Phone release 窄范围 History 日历冒烟）+ fresh JVM
+  （1343/171/90 全绿）；新 APK：Phone `e34d6749…` / Wear `96ae56bc…`；**tag NOT CREATED /
+  release NOT PUBLISHED**）。
+  **NEXT:** v1.7.1 release-packaging R2 review（通过后进入正式 release/tag 流程，另行单独授权）。
 
 ## Historical and future milestones
 

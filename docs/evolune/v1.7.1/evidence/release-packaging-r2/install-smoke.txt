@@ -1,0 +1,30 @@
+V1.7.1 release packaging R2 — install/launch smoke
+==================================================
+
+Scope note: metadata-level smoke only. The already-approved real-device alignment screenshot
+remains the source acceptance evidence; this smoke verifies that the packaged release still
+carries and launches the accepted source. It is NOT a new full six-feature UI acceptance.
+
+1. Phone debug — emulator-5554 (Pixel_7 AVD, Android 15)
+   install -r app-debug.apk ; am start MainActivity
+   result: Success; launched; device metadata versionName=1.7.1-debug versionCode=101070100
+
+2. Phone signed release — emulator-5554
+   uninstall old, install app-release.apk ; am start MainActivity
+   result: Success; running (pid 10770 at check time); device metadata versionName=1.7.1
+   versionCode=101070100
+   narrow History calendar smoke: onboarding completed on-device, History opened, calendar
+   rendered (cells 2026-09-01..30 present in the accessibility tree). Screenshot:
+   screenshots/01-emulator-release-history-smoke.png
+
+3. Wear signed release — emulator-5556 (Wear OS AVD)
+   uninstall old, install wear-release.apk ; am start .wear.WearAppActivity
+   result: Success; running (pid 7905 at check time); device metadata versionName=1.7.1
+   versionCode=1101070100
+
+4. Phone signed release — physical Pixel 11 Pro (grizzly, Android 17, wireless debugging)
+   install -r app-release.apk over the previous release install
+   result: Success; device metadata versionName=1.7.1 versionCode=101070100
+   narrow History calendar smoke: History opened, selected day 2026-09-18 (今天，已选中)
+   rendered with the day number visually centered in its selection background. Screenshot:
+   screenshots/02-physical-release-history-smoke.png

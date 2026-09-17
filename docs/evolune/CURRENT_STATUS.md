@@ -310,14 +310,23 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     evidence-only P2 编码修正 @ `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审
     **APPROVE V1.7.1 UI HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9
     截图；fresh app JVM 1343/0；evidence `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
-  - v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
-    （packaging commit `build: package v1.7.1 release candidate`，parent
-    `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；version metadata `1.7.1 / 101070100 /
-    1101070100` UPDATED / VERIFIED；signed Phone/Wear release APK + apksigner v2 验签
-    （release 证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke + fresh JVM
-    （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
-    **tag NOT CREATED / release NOT PUBLISHED**）。
-  - **NEXT:** **v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程；tag、
+  - v1.7.1 History 日历对齐 follow-up 修复 — **APPROVED**（`fix: center History calendar day
+    labels` @ `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；根因：指示条使数字中心比选中背景中心高
+    4dp；对称结构修正 + geometry test 两轴居中；Pixel 11 Pro 真机截图验收；evidence
+    `docs/evolune/v1.7.1/evidence/ui-hotfix-followup/`）。
+  - v1.7.1 release packaging R1（首个候选）— **SUPERSEDED / DO NOT RELEASE**（packaging
+    commit @ `50e6019deed6a5a68bac049d384cad172fe2beeb`；因打包后真机发现日历对齐缺陷废弃；旧
+    APK 哈希不得发布；证据 root `docs/evolune/v1.7.1/evidence/release-packaging/` 历史冻结）。
+  - v1.7.1 release packaging R2 — **CANDIDATE BUILT / REVIEW PENDING**（packaging commit
+    `build: repackage v1.7.1 release candidate`，parent
+    `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；version metadata `1.7.1 / 101070100 /
+    1101070100` VERIFIED（无二次 bump）；fresh debug + signed release（R8）+ apksigner v2
+    验签（证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke（含 Phone release
+    窄范围 History 日历冒烟：模拟器 + 物理 Pixel 11 Pro）+ fresh JVM（1343/171/90 全绿）；新
+    APK：Phone `e34d6749…` / Wear `96ae56bc…`；evidence
+    `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；**tag NOT CREATED / release NOT
+    PUBLISHED**）。
+  - **NEXT:** **v1.7.1 release-packaging R2 review**（通过后进入正式 release/tag 流程；tag、
     GitHub Release 与分发发布另行单独授权）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /

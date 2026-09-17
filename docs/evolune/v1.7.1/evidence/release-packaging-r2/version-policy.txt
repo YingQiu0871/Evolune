@@ -1,0 +1,30 @@
+V1.7.1 release packaging R2 — version policy verification (NO BUMP)
+===================================================================
+
+Read from the frozen source tree (root build.gradle.kts at 06eb217); no value was changed by
+this packaging pass.
+
+  versionName            : 1.7.1            (already correct)
+  major / minor / patch  : 1 / 7 / 1
+  revision               : 0
+  ordinal                : 1_070_100        (1*1_000_000 + 7*10_000 + 1*100 + 0)
+  Phone versionCode      : 101_070_100      (100_000_000 + ordinal)
+  Wear versionCode       : 1_101_070_100    (1_100_000_000 + ordinal)
+
+Exact guards in force (unchanged):
+  build.gradle.kts:13  evoluneVersionName by extra("1.7.1")
+  build.gradle.kts:17  evoluneVersionPatch = 1
+  build.gradle.kts:40  check(evoluneVersionName == "1.7.1")
+  build.gradle.kts:47  check(phoneCode == 101_070_100)
+  build.gradle.kts:48  check(wearCode == 1_101_070_100)
+
+Inequalities still hold:
+  101_070_100 > 101_070_000        PASS
+  1_101_070_100 > 1_101_070_000    PASS
+  both <= 2_100_000_000            PASS (Play maximum)
+  Phone band 100_000_000..999_999_999  PASS
+  Wear band 1_100_000_000..1_999_999_999  PASS
+  phone != wear                    PASS
+
+Guard task: .\gradlew.bat validateEvoluneIdentityAndVersioning — BUILD SUCCESSFUL
+(logs/version-guard.log). There is NO second version bump.

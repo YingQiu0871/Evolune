@@ -1,0 +1,15 @@
+V1.7.1 release packaging R2 — artifact hash ledger (authoritative release bytes)
+================================================================================
+
+Computed from the signed release APK files produced by this R2 packaging pass. These are the
+only candidate v1.7.1 release bytes; do not rebuild after independent review unless that
+review requires a new candidate.
+
+  file                                             size (bytes)   sha256
+  -----------------------------------------------  ------------   ------------------------------------------------------------------
+  app/build/outputs/apk/release/app-release.apk        6,294,960   e34d6749ac98f3b7c549b351899490fabe49c00d46788c791e30efe33afb7dfb
+  wear/build/outputs/apk/release/wear-release.apk      2,604,764   96ae56bc50401f919e28cf14f36401fe260ae9bbf116a5597460f6fecb88f41a
+
+Signatures: verified YES (v2, single signer, release certificate b9b6b955...daab08) for both.
+Embedded metadata: Phone 1.7.1 / 101070100; Wear 1.7.1 / 1101070100.
+Provenance: the Phone APK dex carries the approved calendar-fix marker "history-day-number-".

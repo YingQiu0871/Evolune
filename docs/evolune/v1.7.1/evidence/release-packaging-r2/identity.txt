@@ -1,0 +1,32 @@
+V1.7.1 release packaging R2 — identity
+======================================
+
+Branch                      : hotfix/v1.7.1-ui-polish
+Starting HEAD               : 06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9
+                              (fix: center History calendar day labels)
+Starting parent             : 50e6019deed6a5a68bac049d384cad172fe2beeb
+                              (build: package v1.7.1 release candidate — SUPERSEDED)
+Worktree at start           : clean (git status --porcelain empty)
+`git diff --check`          : clean
+Tags before packaging       : v1.7.0 present; v1.7.1 absent
+
+Authoritative state recorded:
+  v1.7.0                                : RELEASED
+  v1.7.1 original six-fix implementation: APPROVED
+  v1.7.1 evidence P2                    : CLOSED
+  History calendar follow-up fix        : APPROVED (source HEAD 06eb217)
+  first packaging candidate 50e6019     : SUPERSEDED / DO NOT RELEASE
+  P0/P1/P2                              : none
+
+Scope of this R2 packaging pass (metadata-only rebuild from the frozen source):
+  - NO version change: versionName 1.7.1 / ordinal 1_070_100 / Phone 101_070_100 /
+    Wear 1_101_070_100 were already correct on the source tree and are verified, not bumped
+  - fresh debug builds (Phone/Wear), fresh signed release builds (Phone/Wear, R8)
+  - apksigner + aapt2 verification, fresh JVM regression (app/experience-core/wear)
+  - install/launch smoke (Phone debug, Phone release + narrow History calendar smoke,
+    Wear release, physical Pixel 11 Pro release + narrow History calendar smoke)
+  - new evidence root docs/evolune/v1.7.1/evidence/release-packaging-r2/ (the old root stays
+    byte-frozen for the superseded candidate)
+  - ONE local commit (parent 06eb217); no tag / no release / no push
+
+ZERO product-behavior change in this task; builds run from the approved 06eb217 tree.

@@ -1,0 +1,26 @@
+V1.7.1 release packaging R2 — frozen-surface audit
+==================================================
+
+Path-scoped verification against source HEAD 06eb217 (executed before the R2 commit):
+
+  git diff 06eb217 --stat -- app/src/main  app/src/test  app/src/androidTest
+      experience-core  wear/src  gradle  settings.gradle.kts  gradle.properties
+      build.gradle.kts                                          => 0 files changed
+  git diff 06eb217 --stat -- docs/evolune/v1.7.1/evidence/ui-hotfix
+      docs/evolune/v1.7.1/evidence/ui-hotfix-followup
+      docs/evolune/v1.7.1/evidence/release-packaging
+      docs/evolune/v1.7/evidence                                  => 0 files changed
+
+Ownership boundaries respected:
+  - ZERO product source/test/resource change in R2; the phone/wear binaries are built from the
+    frozen approved source tree at 06eb217;
+  - version metadata untouched (already 1.7.1 / 101_070_100 / 1_101_070_100);
+  - no Room/schema/DAO, PK, History/Timeline/Insights, export/import, backup, Widget/Wear
+    recording or Health Connect change;
+  - the calendar alignment fix is included as-is from 06eb217 (marker verified in the release
+    dex);
+  - the three historical evidence bundles stay byte-frozen; the superseded release-packaging
+    root remains the record for 50e6019;
+  - no release-safety guard weakened (validateEvoluneIdentityAndVersioning PASS).
+
+No STOP condition was reached.

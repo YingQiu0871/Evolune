@@ -210,15 +210,28 @@
       1343/0；packets `review-packets/v171-ui-hotfix-candidate.txt` +
       `v171-ui-hotfix-evidence-p2-correction.txt`；evidence
       `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
-- [x] v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
-      （packaging commit `build: package v1.7.1 release candidate`，parent
-      `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；versionName `1.7.0 → 1.7.1`、ordinal
-      `1_070_000 → 1_070_100`、Phone versionCode `101_070_100`、Wear versionCode
-      `1_101_070_100`；signed Phone/Wear release APK 构建 + apksigner v2 验签（release
-      证书连续 `b9b6b955…`）+ aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM
-      （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
-      **tag NOT CREATED / release NOT PUBLISHED**）。
-- [ ] NEXT：**v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程——tag、
+- [x] v1.7.1 History 日历对齐 follow-up 修复 — **APPROVED**
+      （`fix: center History calendar day labels` @
+      `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；根因：固定 8dp 指示条使数字布局中心比选中背景中心
+      高 4dp（1.0x/2.0x 实测）；对称结构撑杆修正（无 offset/nudge）；geometry test 两轴居中 ≤1.5dp、
+      邻格对齐、触控不缩水；Pixel 11 Pro 真机截图验收；packet
+      `review-packets/v171-history-calendar-alignment-fix.txt`；evidence
+      `docs/evolune/v1.7.1/evidence/ui-hotfix-followup/`）。
+- [x] v1.7.1 release packaging R1（首个候选）— **SUPERSEDED / DO NOT RELEASE**
+      （packaging commit `build: package v1.7.1 release candidate` @
+      `50e6019deed6a5a68bac049d384cad172fe2beeb`；因打包后真机发现 History 日历对齐缺陷而废弃；
+      旧 APK（Phone `8d8150c1…` / Wear `c4cd78e1…`）不得发布；其证据 root
+      `docs/evolune/v1.7.1/evidence/release-packaging/` 保持历史冻结）。
+- [x] v1.7.1 release packaging R2 — **CANDIDATE BUILT / REVIEW PENDING**
+      （packaging commit `build: repackage v1.7.1 release candidate`，parent
+      `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；version metadata `1.7.1 / 101070100 /
+      1101070100` VERIFIED（无二次 bump）；fresh debug + signed release（R8）+ apksigner v2
+      验签（release 证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke（含
+      Phone release 窄范围 History 日历冒烟：模拟器 + 物理 Pixel 11 Pro）+ fresh JVM
+      （1343/171/90 全绿）；新 APK：Phone `e34d6749…` / Wear `96ae56bc…`；evidence
+      `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；**tag NOT CREATED / release NOT
+      PUBLISHED**）。
+- [ ] NEXT：**v1.7.1 release-packaging R2 review**（通过后进入正式 release/tag 流程——tag、
       GitHub Release 与分发发布另行单独授权；不自行开始）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，

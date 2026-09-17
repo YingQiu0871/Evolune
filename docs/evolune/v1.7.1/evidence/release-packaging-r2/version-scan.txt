@@ -1,0 +1,39 @@
+V1.7.1 release packaging R2 — stale-version and superseded-candidate scan
+=========================================================================
+
+Patterns scanned over the tracked repository after the R2 builds:
+  1.7.0 | 1_070_000 | 101_070_000 | 1_101_070_000 | 50e6019 |
+  8d8150c165141c3dcfe1e9eb4be513645d12caa7b946742e3a2c4968ed6eafe6 |
+  c4cd78e1a3372d54de02b8dbfe570c836287a7f8642d2c0dee586e79fda832d3
+
+CURRENT RELEASE METADATA (unchanged, truthful v1.7.1 — verified, not bumped):
+  build.gradle.kts:13  evoluneVersionName = "1.7.1"
+  build.gradle.kts:40  check(evoluneVersionName == "1.7.1")
+  build.gradle.kts:47  check(phoneCode == 101_070_100)
+  build.gradle.kts:48  check(wearCode == 1_101_070_100)
+
+CLASSIFIED REMAINING HITS:
+
+  historical v1.7.0 release (not rewritten):
+    docs/evolune/v1.7/V17_RELEASE_NOTES.md, V17_PLAN.md, V17_SPEC.md, V17_ACCEPTANCE.md,
+    docs/evolune/v1.7/evidence/** (frozen), status-doc historical entries
+
+  historical v1.7.0 packaging / hotfix evidence:
+    docs/evolune/v1.7.1/evidence/ui-hotfix/**, ui-hotfix-followup/** (frozen)
+
+  superseded first packaging candidate (historical context only):
+    50e6019 reference: docs/evolune/v1.7.1/evidence/ui-hotfix-followup/summary.txt
+      (explicitly framed as SUPERSEDED / DO NOT RELEASE)
+    old APK hashes: docs/evolune/v1.7.1/evidence/release-packaging/** (the superseded
+      candidate's own frozen bundle) and ui-hotfix-followup/summary.txt (same explicit framing)
+
+  third-party coincidence:
+    gradle/libs.versions.toml:6  androidxTestRunner = "1.7.0"
+
+  current packaging candidate:
+    docs/evolune/v1.7.1/evidence/release-packaging-r2/** → NEW APK hashes
+      (Phone e34d6749..., Wear 96ae56bc...); status docs point at the R2 packaging pass
+
+CONCLUSION: no current-release path references the superseded candidate or its APK hashes as
+current; no stale app version exists in build/config or shipped metadata. Zero suspicious
+current metadata.

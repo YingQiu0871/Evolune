@@ -1,0 +1,41 @@
+V1.7.1 release packaging R2 — changed files and product-behavior audit
+=====================================================================
+
+Non-evidence delta (status docs only — NO product/source/build change):
+
+  TODO.MD                        v1.7.1 calendar follow-up APPROVED; R1 packaging SUPERSEDED;
+                                 R2 packaging CANDIDATE BUILT / REVIEW PENDING; NEXT = R2 review
+  docs/evolune/CURRENT_STATUS.md same status sync
+  docs/evolune/ROADMAP.md        same status sync
+
+  build.gradle.kts               UNCHANGED (version already 1.7.1 / 101_070_100 /
+                                 1_101_070_100; no second bump)
+  app/src/**                     UNCHANGED
+  app/src/test/**                UNCHANGED
+  app/src/androidTest/**         UNCHANGED
+  experience-core/**             UNCHANGED
+  wear/**                        UNCHANGED
+  gradle / settings / properties UNCHANGED
+
+  Staged summary (git diff --cached --stat):
+    TODO.MD +31/-9 · docs/evolune/CURRENT_STATUS.md +25/-8 · docs/evolune/ROADMAP.md +21/-7
+    = 3 files changed, 53 insertions(+), 24 deletions(-)
+
+New evidence tree:
+  docs/evolune/v1.7.1/evidence/release-packaging-r2/
+    identity.txt, signing-preflight.txt, version-policy.txt, superseded-candidate.txt,
+    debug-build.txt, release-build.txt, artifact-metadata.txt, signature-verification.txt,
+    artifact-hashes.txt, test-summary.txt, install-smoke.txt, frozen-surface-audit.txt,
+    version-scan.txt, changed-files.txt, implementation.diff,
+    logs/ (8 raw Gradle logs), screenshots/ (2 PNG smoke captures), MANIFEST.sha256
+
+Historical evidence (byte-frozen, NOT touched by R2):
+  docs/evolune/v1.7.1/evidence/release-packaging/**  (superseded 50e6019 candidate record)
+  docs/evolune/v1.7.1/evidence/ui-hotfix/**          (approved six-fix bundle)
+  docs/evolune/v1.7.1/evidence/ui-hotfix-followup/** (calendar alignment fix bundle)
+  docs/evolune/v1.7/evidence/**                      (v1.7.0 program evidence)
+  (verified by path-scoped diff = 0 files; see frozen-surface-audit.txt)
+
+Product-behavior audit: packaging R2 builds FROM the frozen source tree at 06eb217 and
+contains ZERO product behavior delta; only these three status-doc files differ from the
+source commit in the packaging candidate commit.

@@ -1,0 +1,19 @@
+V1.7.1 release packaging R2 — superseded-candidate record
+=========================================================
+
+50e6019deed6a5a68bac049d384cad172fe2beeb : SUPERSEDED.
+
+Reason: a real-device History-calendar selected-day alignment defect (the day number rendered
+above the center of its selection background) was discovered AFTER the first v1.7.1 packaging
+candidate was built. The defect was fixed in 06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9
+(fix: center History calendar day labels), which is the source of this R2 packaging pass.
+
+Release APKs produced by the superseded candidate — DO NOT RELEASE:
+  Phone : 8d8150c165141c3dcfe1e9eb4be513645d12caa7b946742e3a2c4968ed6eafe6
+  Wear  : c4cd78e1a3372d54de02b8dbfe570c836287a7f8642d2c0dee586e79fda832d3
+
+The superseded candidate commit, its evidence bundle
+(docs/evolune/v1.7.1/evidence/release-packaging/) and the old APK hashes remain in history
+as the factual record; nothing was deleted, rewritten or hidden. The old evidence bundle is
+byte-frozen and is NOT the current candidate record — this R2 root supersedes it for release
+purposes.
