@@ -2,8 +2,8 @@ cb2a86f221bb911831ac821dfa0208a6d2e13e2e890bd91b2f93bf011ca4e6d2  docs/evolune/v
 4eb03c5457c496d479ced485d68eaac1ce7cfc9bcbe3d2fd75ab343ff6e337db  docs/evolune/v1.7.1/evidence/ui-hotfix/identity.txt
 83118044c9f546b5fbd046254f32ca18e62986063efb008a8939199b84a42e7a  docs/evolune/v1.7.1/evidence/ui-hotfix/implementation.diff
 ba53797078afd2cd75be79d4a55fdbb0d8166c7583e77e7c8f628cc353889630  docs/evolune/v1.7.1/evidence/ui-hotfix/logs/androidtest-runs.txt
-cbd10f64045e0d6673ffa36bb42d9b748432e3edd33a38cc9c895fcaa494cfe0  docs/evolune/v1.7.1/evidence/ui-hotfix/logs/app-jvm.log
-006f43e48cc9d6dedeced66bb91c2e0fe09c89a5b607fd31dc40632d8836bab2  docs/evolune/v1.7.1/evidence/ui-hotfix/logs/compile-and-build.log
+fb10b74baad4e13188c59c42520f88fe4b84e460352df3987f704b33425754f9  docs/evolune/v1.7.1/evidence/ui-hotfix/logs/app-jvm.log
+34fbd5076eb63c917cd46677dc036e86c5bba25775fb51734b420f2d3c41adbd  docs/evolune/v1.7.1/evidence/ui-hotfix/logs/compile-and-build.log
 b9efb00c1df5b97cfef4cd455c6aec0f050b94cb1d7b27c565d3465c6fca77fa  docs/evolune/v1.7.1/evidence/ui-hotfix/real-device-summary.txt
 ededd32283504d2b4c6cb6338cd95e0fd15a6b9d347a44f30fd5f17f82313847  docs/evolune/v1.7.1/evidence/ui-hotfix/screenshots/01-settings-8-entries.png
 a9c47c03d096aa12690fed9d892be35444bb55c0b17cccb4ce57971881443eae  docs/evolune/v1.7.1/evidence/ui-hotfix/screenshots/02-history-first.png
