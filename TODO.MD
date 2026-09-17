@@ -197,8 +197,29 @@
       101070000 / 1101070000` UPDATED / VERIFIED；signed release APK 构建 + apksigner v2
       验签 + aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM（1333/171/90 全绿）
       全部通过；release notes `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
-- [ ] NEXT：**final v1.7.0 release**（annotated tag `v1.7.0` + GitHub Release，使用已批准的
-      APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
+- [x] v1.7.0 final release — **RELEASED**
+      （annotated tag `v1.7.0` @ `a8e8869b4d91d60e6afd593c1cfdb811b2c40039`；GitHub Release
+      已发布（Phone/Wear APK + SHA256SUMS，资产字节与哈希已核验）；release notes
+      `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+- [x] v1.7.1 UI hotfix（六项真机 UI 修正）— **IMPLEMENTED / INDEPENDENTLY APPROVED /
+      REAL-DEVICE ACCEPTED**（implementation `fix: polish v1.7 medication history UI` @
+      `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；evidence-only P2 修正
+      `docs: normalize v1.7.1 UI hotfix evidence encoding` @
+      `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审最终 **APPROVE V1.7.1 UI
+      HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9 截图；fresh app JVM
+      1343/0；packets `review-packets/v171-ui-hotfix-candidate.txt` +
+      `v171-ui-hotfix-evidence-p2-correction.txt`；evidence
+      `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
+- [x] v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
+      （packaging commit `build: package v1.7.1 release candidate`，parent
+      `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；versionName `1.7.0 → 1.7.1`、ordinal
+      `1_070_000 → 1_070_100`、Phone versionCode `101_070_100`、Wear versionCode
+      `1_101_070_100`；signed Phone/Wear release APK 构建 + apksigner v2 验签（release
+      证书连续 `b9b6b955…`）+ aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM
+      （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
+      **tag NOT CREATED / release NOT PUBLISHED**）。
+- [ ] NEXT：**v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程——tag、
+      GitHub Release 与分发发布另行单独授权；不自行开始）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

@@ -301,8 +301,24 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     release APK + apksigner v2 验签 + 内嵌元数据核验 + install/launch smoke + fresh JVM
     （1333/171/90 全绿）全部通过；release notes
     `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
-  - **NEXT:** **final v1.7.0 release**（annotated tag `v1.7.0` + GitHub Release，使用已批准
-    的 APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
+  - v1.7.0 final release — **RELEASED**（annotated tag `v1.7.0` @
+    `a8e8869b4d91d60e6afd593c1cfdb811b2c40039`；GitHub Release 已发布，资产
+    Phone/Wear APK + SHA256SUMS 字节与哈希已核验；release notes
+    `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+  - v1.7.1 UI hotfix（六项真机 UI 修正）— **IMPLEMENTED / INDEPENDENTLY APPROVED /
+    REAL-DEVICE ACCEPTED**（implementation @ `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；
+    evidence-only P2 编码修正 @ `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审
+    **APPROVE V1.7.1 UI HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9
+    截图；fresh app JVM 1343/0；evidence `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
+  - v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
+    （packaging commit `build: package v1.7.1 release candidate`，parent
+    `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；version metadata `1.7.1 / 101070100 /
+    1101070100` UPDATED / VERIFIED；signed Phone/Wear release APK + apksigner v2 验签
+    （release 证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke + fresh JVM
+    （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
+    **tag NOT CREATED / release NOT PUBLISHED**）。
+  - **NEXT:** **v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程；tag、
+    GitHub Release 与分发发布另行单独授权）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

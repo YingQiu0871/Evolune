@@ -1,0 +1,146 @@
+diff --git a/TODO.MD b/TODO.MD
+index 3b8c7bc..960242d 100644
+--- a/TODO.MD
++++ b/TODO.MD
+@@ -197,8 +197,29 @@
+       101070000 / 1101070000` UPDATED / VERIFIED；signed release APK 构建 + apksigner v2
+       验签 + aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM（1333/171/90 全绿）
+       全部通过；release notes `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+-- [ ] NEXT：**final v1.7.0 release**（annotated tag `v1.7.0` + GitHub Release，使用已批准的
+-      APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
++- [x] v1.7.0 final release — **RELEASED**
++      （annotated tag `v1.7.0` @ `a8e8869b4d91d60e6afd593c1cfdb811b2c40039`；GitHub Release
++      已发布（Phone/Wear APK + SHA256SUMS，资产字节与哈希已核验）；release notes
++      `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
++- [x] v1.7.1 UI hotfix（六项真机 UI 修正）— **IMPLEMENTED / INDEPENDENTLY APPROVED /
++      REAL-DEVICE ACCEPTED**（implementation `fix: polish v1.7 medication history UI` @
++      `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；evidence-only P2 修正
++      `docs: normalize v1.7.1 UI hotfix evidence encoding` @
++      `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审最终 **APPROVE V1.7.1 UI
++      HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9 截图；fresh app JVM
++      1343/0；packets `review-packets/v171-ui-hotfix-candidate.txt` +
++      `v171-ui-hotfix-evidence-p2-correction.txt`；evidence
++      `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
++- [x] v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
++      （packaging commit `build: package v1.7.1 release candidate`，parent
++      `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；versionName `1.7.0 → 1.7.1`、ordinal
++      `1_070_000 → 1_070_100`、Phone versionCode `101_070_100`、Wear versionCode
++      `1_101_070_100`；signed Phone/Wear release APK 构建 + apksigner v2 验签（release
++      证书连续 `b9b6b955…`）+ aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM
++      （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
++      **tag NOT CREATED / release NOT PUBLISHED**）。
++- [ ] NEXT：**v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程——tag、
++      GitHub Release 与分发发布另行单独授权；不自行开始）。
+ - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
+       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
+       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 2ef5cf3..e0d3609 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -10,11 +10,11 @@ plugins {
+ val evoluneApplicationId by extra("io.github.yingqiu0871.evolune")
+ val evoluneWearNamespace by extra("io.github.yingqiu0871.evolune.wear")
+ val evoluneDebugSuffix by extra(".debug")
+-val evoluneVersionName by extra("1.7.0")
++val evoluneVersionName by extra("1.7.1")
+ 
+ val evoluneVersionMajor = 1
+ val evoluneVersionMinor = 7
+-val evoluneVersionPatch = 0
++val evoluneVersionPatch = 1
+ val evoluneVersionRevision = 0
+ val evoluneReleaseOrdinal =
+     evoluneVersionMajor * 1_000_000 +
+@@ -37,14 +37,14 @@ tasks.register("validateEvoluneIdentityAndVersioning") {
+         check(evoluneApplicationId == "io.github.yingqiu0871.evolune")
+         check(evoluneWearNamespace == "io.github.yingqiu0871.evolune.wear")
+         check("$evoluneApplicationId$evoluneDebugSuffix" == "io.github.yingqiu0871.evolune.debug")
+-        check(evoluneVersionName == "1.7.0")
++        check(evoluneVersionName == "1.7.1")
+         check(phoneCode != wearCode)
+         check(phoneCode > 0 && wearCode > 0)
+         check(phoneCode <= maximumPlayVersionCode && wearCode <= maximumPlayVersionCode)
+         check(phoneCode in 100_000_000 until 1_000_000_000)
+         check(wearCode in 1_100_000_000 until 2_000_000_000)
+         check(phoneCode > priorV1VersionCode && wearCode > priorV1VersionCode)
+-        check(phoneCode == 101_070_000)
+-        check(wearCode == 1_101_070_000)
++        check(phoneCode == 101_070_100)
++        check(wearCode == 1_101_070_100)
+     }
+ }
+diff --git a/docs/evolune/CURRENT_STATUS.md b/docs/evolune/CURRENT_STATUS.md
+index a9f6941..c7881f2 100644
+--- a/docs/evolune/CURRENT_STATUS.md
++++ b/docs/evolune/CURRENT_STATUS.md
+@@ -301,8 +301,24 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
+     release APK + apksigner v2 验签 + 内嵌元数据核验 + install/launch smoke + fresh JVM
+     （1333/171/90 全绿）全部通过；release notes
+     `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+-  - **NEXT:** **final v1.7.0 release**（annotated tag `v1.7.0` + GitHub Release，使用已批准
+-    的 APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
++  - v1.7.0 final release — **RELEASED**（annotated tag `v1.7.0` @
++    `a8e8869b4d91d60e6afd593c1cfdb811b2c40039`；GitHub Release 已发布，资产
++    Phone/Wear APK + SHA256SUMS 字节与哈希已核验；release notes
++    `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
++  - v1.7.1 UI hotfix（六项真机 UI 修正）— **IMPLEMENTED / INDEPENDENTLY APPROVED /
++    REAL-DEVICE ACCEPTED**（implementation @ `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；
++    evidence-only P2 编码修正 @ `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审
++    **APPROVE V1.7.1 UI HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9
++    截图；fresh app JVM 1343/0；evidence `docs/evolune/v1.7.1/evidence/ui-hotfix/`）。
++  - v1.7.1 release packaging / version metadata — **CANDIDATE BUILT / REVIEW PENDING**
++    （packaging commit `build: package v1.7.1 release candidate`，parent
++    `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；version metadata `1.7.1 / 101070100 /
++    1101070100` UPDATED / VERIFIED；signed Phone/Wear release APK + apksigner v2 验签
++    （release 证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke + fresh JVM
++    （1343/171/90 全绿）；evidence `docs/evolune/v1.7.1/evidence/release-packaging/`；
++    **tag NOT CREATED / release NOT PUBLISHED**）。
++  - **NEXT:** **v1.7.1 release-packaging review**（通过后进入正式 release/tag 流程；tag、
++    GitHub Release 与分发发布另行单独授权）。
+   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
+     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
+     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
+diff --git a/docs/evolune/ROADMAP.md b/docs/evolune/ROADMAP.md
+index ce0a5d3..bc88d47 100644
+--- a/docs/evolune/ROADMAP.md
++++ b/docs/evolune/ROADMAP.md
+@@ -263,8 +263,20 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过
+   versionName 1.7.0、Phone `101070000`、Wear `1101070000`；signed release APK + apksigner
+   v2 验签 + aapt2 内嵌元数据 + install/launch smoke + fresh JVM（1333/171/90 全绿）全部
+   通过；release notes `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+-  **NEXT:** final v1.7.0 release（annotated tag `v1.7.0` + GitHub Release，使用已批准 APK
+-  字节；release 后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
++- **v1.7.0 · final release — RELEASED**（annotated tag `v1.7.0` @
++  `a8e8869b4d91d60e6afd593c1cfdb811b2c40039`；GitHub Release 已发布，资产 Phone/Wear APK +
++  SHA256SUMS 字节与哈希已核验）。
++- **v1.7.1 · UI hotfix（六项真机 UI 修正）— IMPLEMENTED / INDEPENDENTLY APPROVED /
++  REAL-DEVICE ACCEPTED**（implementation @ `a08bbf40caa51173514e05f29fc7a1e6eae16e6d`；
++  evidence-only P2 修正 @ `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；独立复审 **APPROVE
++  V1.7.1 UI HOTFIX CANDIDATE**，P0/P1/P2 = none；Pixel 11 Pro 真机验收 9 截图）。
++- **v1.7.1 · release packaging / version metadata — CANDIDATE BUILT / REVIEW PENDING**
++  （packaging commit `build: package v1.7.1 release candidate`，parent
++  `8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d`；version metadata `1.7.1 / 101070100 /
++  1101070100` UPDATED / VERIFIED；signed release APK + apksigner v2 + aapt2 内嵌元数据 +
++  install/launch smoke + fresh JVM（1343/171/90 全绿）；**tag NOT CREATED / release NOT
++  PUBLISHED**）。
++  **NEXT:** v1.7.1 release-packaging review（通过后进入正式 release/tag 流程，另行单独授权）。
+ 
+ ## Historical and future milestones
+ 
+diff --git a/readme.md b/readme.md
+index ae1cae7..5989c0e 100644
+--- a/readme.md
++++ b/readme.md
+@@ -48,9 +48,9 @@ Phone Room/domain/repository remains the source of truth for medication data; wi
+ 
+ Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
+ 
+-v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 release candidate 门禁已批准（`APPROVE V1.7.0 RELEASE CANDIDATE`）；v1.7.0 版本元数据已完成打包并验证（versionName 1.7.0 / Phone 101070000 / Wear 1101070000；signed Phone/Wear APK 构建、签名与内嵌元数据核验通过）。**尚未发布**：tag、GitHub Release 与分发均未创建。
++v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 v1.7.0 正式版已发布（annotated tag `v1.7.0` @ `a8e8869b…`；GitHub Release 含 Phone/Wear APK 与 SHA256SUMS）。v1.7.1 真机 UI hotfix（六项）已经独立复审批准并完成 Pixel 11 Pro 真机验收；v1.7.1 release packaging 候选已构建并验证（versionName 1.7.1 / Phone 101070100 / Wear 1101070100；signed Phone/Wear APK、签名与内嵌元数据核验通过）。**v1.7.1 尚未发布**：tag、GitHub Release 与分发均未创建。
+ 
+-The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has passed its release-candidate gate (`APPROVE V1.7.0 RELEASE CANDIDATE`). The v1.7.0 release-packaging candidate has been built and verified (version metadata 1.7.0 with Phone 101070000 / Wear 1101070000; signed Phone/Wear APKs, signature and embedded-metadata verification passed). It is NOT yet released: no tag, GitHub Release, or distribution has been created.
++The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has shipped as v1.7.0 (annotated tag `v1.7.0` @ `a8e8869b…`; GitHub Release with Phone/Wear APKs and SHA256SUMS). The v1.7.1 real-device UI hotfix (six fixes) has been independently approved and accepted on a physical Pixel 11 Pro; the v1.7.1 release-packaging candidate has been built and verified (version metadata 1.7.1 with Phone 101070100 / Wear 1101070100; signed Phone/Wear APKs, signature and embedded-metadata verification passed). v1.7.1 is NOT yet released: no tag, GitHub Release, or distribution has been created.
+ 
+ 完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
+ 

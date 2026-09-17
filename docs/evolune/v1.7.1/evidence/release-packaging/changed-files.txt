@@ -1,0 +1,33 @@
+V1.7.1 release packaging — changed files and product-behavior audit
+===================================================================
+
+Non-evidence delta (the only executable/config change is version metadata/guards):
+
+  build.gradle.kts   L13  evoluneVersionName "1.7.0" -> "1.7.1"
+                     L17  evoluneVersionPatch 0 -> 1
+                     L40  check(evoluneVersionName == "1.7.1")
+                     L47  check(phoneCode == 101_070_100)
+                     L48  check(wearCode == 1_101_070_100)
+                     (no other build.gradle.kts line changed; all other guards preserved)
+
+Release-facing status docs (status sync only, no behavior):
+  TODO.MD                      v1.7.0 final release marked RELEASED; v1.7.1 hotfix +
+                               packaging candidate entries; NEXT = v1.7.1 packaging review
+  docs/evolune/CURRENT_STATUS.md  same status sync
+  docs/evolune/ROADMAP.md         same status sync
+  readme.md                    release status paragraph updated (v1.7.0 released; v1.7.1
+                               candidate, not released)
+
+Packaging evidence (new tree):
+  docs/evolune/v1.7.1/evidence/release-packaging/  (this bundle)
+
+Staged summary (git diff --cached --stat): 5 files changed, 62 insertions(+), 13 deletions(-)
+  TODO.MD | build.gradle.kts | docs/evolune/CURRENT_STATUS.md | docs/evolune/ROADMAP.md |
+  readme.md
+
+Product-behavior audit (path-scoped, vs starting HEAD 8b5ddfe):
+  app/ wear/ experience-core/ gradle/ settings.gradle.kts gradle.properties : 0 changed files
+  Room/schema/DAO, PK math, History/Timeline/Insights semantics, export/import, backup,
+  Widget/Wear recording, Health Connect, the six approved v1.7.1 UI fixes: untouched.
+  docs/evolune/v1.7/evidence/** : 0 changed files (historical evidence frozen)
+  docs/evolune/v1.7.1/evidence/ui-hotfix/** : 0 changed files (hotfix evidence frozen)

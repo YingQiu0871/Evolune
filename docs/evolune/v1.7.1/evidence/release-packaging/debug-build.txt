@@ -1,0 +1,27 @@
+V1.7.1 release packaging — debug regression builds (fresh)
+==========================================================
+
+Both builds executed with --rerun-tasks; logs are raw Gradle output (see logs/).
+
+Phone debug
+  command : .\gradlew.bat :app:assembleDebug --rerun-tasks
+  log     : logs/app-debug-build.log
+  result  : BUILD SUCCESSFUL; 38 actionable tasks: 38 executed (no UP-TO-DATE artifacts
+            presented as fresh)
+  artifact: app/build/outputs/apk/debug/app-debug.apk
+  size    : 78,577,516 bytes
+  sha256  : 596383f08f5a6f8450d758c8d0c2084e52602c8d2e9236fb8e39a168a18d6844
+  aapt2   : package io.github.yingqiu0871.evolune.debug; versionName 1.7.1-debug;
+            versionCode 101070100; compileSdk 36
+
+Wear debug
+  command : .\gradlew.bat :wear:assembleDebug --rerun-tasks
+  log     : logs/wear-debug-build.log
+  result  : BUILD SUCCESSFUL; 35 actionable tasks: 35 executed
+  artifact: wear/build/outputs/apk/debug/wear-debug.apk
+  size    : 18,712,489 bytes
+  sha256  : b30a718bf53a17595a31fa0fae9a61eab497f2c51e3898c2927fadc2a4785ec8
+  aapt2   : package io.github.yingqiu0871.evolune.debug; versionName 1.7.1-debug;
+            versionCode 1101070100; compileSdk 36
+
+Debug APKs are build outputs only and are NOT committed.

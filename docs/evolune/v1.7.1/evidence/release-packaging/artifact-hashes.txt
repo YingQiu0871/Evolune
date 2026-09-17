@@ -1,0 +1,14 @@
+V1.7.1 release packaging — artifact hash ledger (authoritative release bytes)
+=============================================================================
+
+Computed from the signed release APK files produced by this packaging pass. These are the
+authoritative v1.7.1 release bytes; do not rebuild after independent packaging review unless
+that review requires a new candidate.
+
+  file                                             size (bytes)   sha256
+  -----------------------------------------------  ------------   ------------------------------------------------------------------
+  app/build/outputs/apk/release/app-release.apk        6,294,960   8d8150c165141c3dcfe1e9eb4be513645d12caa7b946742e3a2c4968ed6eafe6
+  wear/build/outputs/apk/release/wear-release.apk      2,604,764   c4cd78e1a3372d54de02b8dbfe570c836287a7f8642d2c0dee586e79fda832d3
+
+Signatures: verified YES (v2, single signer, release certificate b9b6b955…daab08) for both.
+Embedded metadata: Phone 1.7.1 / 101070100; Wear 1.7.1 / 1101070100.

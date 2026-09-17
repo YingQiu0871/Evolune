@@ -1,0 +1,24 @@
+V1.7.1 release packaging — signature verification (apksigner)
+=============================================================
+
+Tool: Android SDK build-tools 36.1.0 apksigner, run against the actual signed release APKs.
+
+Phone release APK:
+  Verifies                              : YES
+  Verified using v2 scheme              : true
+  Number of signers                     : 1
+  Signer #1 certificate DN              : CN=Evolune Release, OU=Evolune, O=Evolune,
+                                          L=Evolune, ST=Evolune, C=FR
+  Signer #1 certificate SHA-256 digest  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Wear release APK:
+  Verifies                              : YES
+  Verified using v2 scheme              : true
+  Number of signers                     : 1
+  Signer #1 certificate DN              : CN=Evolune Release, OU=Evolune, O=Evolune,
+                                          L=Evolune, ST=Evolune, C=FR
+  Signer #1 certificate SHA-256 digest  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Signing continuity: the certificate SHA-256 digest matches the v1.7.0 release identity
+exactly (b9b6b955…daab08). No debug certificate is involved. No secret material (passwords,
+alias contents, private key or keystore contents) is recorded in this bundle.

@@ -1,0 +1,16 @@
+V1.7.1 release packaging — signing preflight
+============================================
+
+Checked BEFORE any repository edit. Presence/accessibility only; no secret value is recorded
+anywhere in this bundle.
+
+  EVOLUNE_KEYSTORE_PATH      : PRESENT (path resolved, file exists and is readable)
+  EVOLUNE_KEYSTORE_PASSWORD  : PRESENT
+  EVOLUNE_KEY_ALIAS          : PRESENT
+  EVOLUNE_KEY_PASSWORD       : PRESENT
+  keystore file accessible   : YES (regular file, non-zero size)
+
+The repository release-signing gate (app/build.gradle.kts + wear/build.gradle.kts
+`releaseSigningEnvironment` checks) was satisfied for both release builds; no debug-signing
+fallback was used. Signing continuity with the v1.7.0 release identity is verified in
+signature-verification.txt (same certificate SHA-256 digest).

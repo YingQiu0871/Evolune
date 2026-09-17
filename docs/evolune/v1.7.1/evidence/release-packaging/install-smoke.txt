@@ -1,0 +1,30 @@
+V1.7.1 release packaging — install/launch smoke
+===============================================
+
+Scope note: this is a metadata-level install/launch smoke only. It does NOT reopen, replace
+or extend the v1.7.1 UI acceptance: the six UI fixes were already accepted on the physical
+Pixel 11 Pro in the hotfix phase (see docs/evolune/v1.7.1/evidence/ui-hotfix/).
+
+1. Phone debug — emulator-5554 (Pixel_7 AVD, Android 15)
+   command : adb -s emulator-5554 install -r app-debug.apk; am start MainActivity
+   result  : install Success; activity started; process alive
+   device metadata: versionName=1.7.1-debug  versionCode=101070100
+
+2. Phone signed release — emulator-5554
+   command : adb -s emulator-5554 install app-release.apk; am start MainActivity
+   result  : install Success; activity started; process alive (pid 8917 at check time)
+   device metadata: versionName=1.7.1  versionCode=101070100
+
+3. Wear signed release — emulator-5556 (Wear OS AVD)
+   command : adb -s emulator-5556 install wear-release.apk;
+             am start io.github.yingqiu0871.evolune/.wear.WearAppActivity
+   result  : install Success; activity started; process alive (pid 7224 at check time)
+   device metadata: versionName=1.7.1  versionCode=1101070100
+
+4. Phone signed release — physical Pixel 11 Pro (wireless debugging; optional, added because
+   the device remained connected and the install is safe)
+   command : adb install app-release.apk; am start MainActivity
+   result  : install Success; activity started; process alive (pid 395 at check time)
+   device metadata: versionName=1.7.1  versionCode=101070100
+
+All four installs used the exact artifacts recorded in artifact-hashes.txt (no rebuilds).

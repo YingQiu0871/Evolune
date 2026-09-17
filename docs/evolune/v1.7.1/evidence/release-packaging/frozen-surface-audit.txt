@@ -1,0 +1,27 @@
+V1.7.1 release packaging — frozen-surface audit
+===============================================
+
+Path-scoped verification against the starting HEAD (8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d),
+executed after the version edit and before the packaging commit:
+
+  git diff 8b5ddfe --stat -- app/ wear/ experience-core/ gradle/ settings.gradle.kts
+      gradle.properties                                        => 0 files changed
+  git diff 8b5ddfe --stat -- docs/evolune/v1.7/evidence
+      docs/evolune/v1.7.1/evidence/ui-hotfix                   => 0 files changed
+
+  build.gradle.kts delta = exactly five version-metadata/guard lines (see changed-files.txt).
+
+Ownership boundaries respected:
+  - the only executable/config delta of this packaging pass is the root version metadata and
+    its exact-version guards;
+  - no product source, test, resource, Room, PK, History, Timeline, Insights, export/import,
+    backup, Widget/Wear or Health Connect file changed;
+  - the six approved v1.7.1 UI fixes are untouched (app/src tree byte-identical to the
+    approved implementation);
+  - v1.7.0 historical evidence and the v1.7.1 ui-hotfix evidence are untouched;
+  - no release-safety guard was weakened, deleted or bypassed: applicationId, Wear namespace,
+    debug suffix, phone != wear, positive checks, Play maximum, namespace bands and the
+    prior-version monotonicity anchor all remain in force (validateEvoluneIdentityAndVersioning
+    PASS).
+
+No STOP condition was reached.

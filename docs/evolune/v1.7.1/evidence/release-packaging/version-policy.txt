@@ -1,0 +1,42 @@
+V1.7.1 release packaging — version policy and applied values
+=============================================================
+
+Policy re-derived from the repository file itself (root build.gradle.kts, not assumed):
+
+  ordinal = major * 1_000_000 + minor * 10_000 + patch * 100 + revision
+  Phone   = 100_000_000 + ordinal
+  Wear    = 1_100_000_000 + ordinal
+
+Applied values for 1.7.1:
+
+  major                 1
+  minor                 7            (unchanged)
+  patch                 0 -> 1
+  revision              0
+  versionName           1.7.0        -> 1.7.1
+  ordinal               1_070_000    -> 1_070_100
+  Phone versionCode     101_070_000  -> 101_070_100
+  Wear versionCode      1_101_070_000 -> 1_101_070_100
+
+Inequality / policy checks:
+
+  101_070_100    > 101_070_000     PASS (strictly greater than v1.7.0)
+  1_101_070_100  > 1_101_070_000   PASS (strictly greater than v1.7.0)
+  101_070_100    <= 2_100_000_000  PASS (Play maximum respected)
+  1_101_070_100  <= 2_100_000_000  PASS (Play maximum respected)
+  100_000_000 <= 101_070_100 < 1_000_000_000        PASS (Phone namespace band)
+  1_100_000_000 <= 1_101_070_100 < 2_000_000_000    PASS (Wear namespace band)
+  phone != wear                                     PASS
+
+Exact-version guards updated (root build.gradle.kts):
+
+  L13  evoluneVersionName by extra("1.7.1")
+  L17  evoluneVersionPatch = 1
+  L40  check(evoluneVersionName == "1.7.1")
+  L47  check(phoneCode == 101_070_100)
+  L48  check(wearCode == 1_101_070_100)
+
+All pre-existing release-safety guards are preserved unchanged (not weakened): applicationId,
+Wear namespace, debug suffix, phone != wear, positive checks, Play maximum, namespace bands,
+monotonicity anchor `priorV1VersionCode = 10_060`. Guard task execution: PASS — see
+test-summary.txt / logs/version-guard.log (1 actionable task: 1 executed).

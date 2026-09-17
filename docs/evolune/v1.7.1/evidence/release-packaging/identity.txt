@@ -1,0 +1,33 @@
+V1.7.1 release packaging — identity
+===================================
+
+Branch                      : hotfix/v1.7.1-ui-polish
+Starting HEAD               : 8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d
+                              (docs: normalize v1.7.1 UI hotfix evidence encoding)
+Starting parent             : a08bbf40caa51173514e05f29fc7a1e6eae16e6d
+                              (fix: polish v1.7 medication history UI — approved candidate)
+Worktree at start           : clean (git status --porcelain empty)
+`git diff --check`          : clean
+Tags before packaging       : v1.7.0 present; v1.7.1 absent
+
+Release authority:
+  v1.7.0                         : RELEASED (annotated tag v1.7.0 @
+                                   a8e8869b4d91d60e6afd593c1cfdb811b2c40039; GitHub Release
+                                   published with Phone/Wear APKs + SHA256SUMS)
+  v1.7.1 implementation candidate: a08bbf40caa51173514e05f29fc7a1e6eae16e6d
+  v1.7.1 evidence correction     : 8b5ddfe8fbce8324c9fb3561c7e2d75487eb009d
+  Independent verdict            : APPROVE V1.7.1 UI HOTFIX CANDIDATE (P0/P1/P2 = none;
+                                   six UI fixes approved and real-device accepted)
+
+Scope of this packaging pass (metadata only):
+  - versionName 1.7.0 -> 1.7.1; ordinal 1_070_000 -> 1_070_100;
+    Phone versionCode 101_070_000 -> 101_070_100;
+    Wear versionCode 1_101_070_000 -> 1_101_070_100
+  - exact-version guards updated to truthful v1.7.1 invariants (not weakened/deleted)
+  - fresh debug + signed release builds (R8, signing, apksigner, aapt2)
+  - fresh JVM regression (app / experience-core / wear)
+  - install/launch smoke (Phone debug, Phone release, Wear release; VMs + physical phone)
+  - packaging evidence bundle + status doc sync
+  - ONE local commit (parent 8b5ddfe); no tag / no release / no push
+
+ZERO product-behavior change; the only executable delta is root version metadata/guards.

@@ -1,0 +1,52 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :wear:generateDebugResources
+> Task :wear:packageDebugResources
+> Task :wear:processDebugNavigationResources
+> Task :wear:javaPreCompileDebug
+> Task :wear:parseDebugLocalResources
+> Task :wear:checkDebugAarMetadata
+> Task :wear:compileDebugNavigationResources
+> Task :wear:mapDebugSourceSetPaths
+> Task :wear:generateDebugRFile
+> Task :wear:createDebugCompatibleScreenManifests
+> Task :wear:extractDeepLinksDebug
+> Task :wear:processDebugMainManifest
+> Task :wear:processDebugManifest
+> Task :wear:preDebugUnitTestBuild UP-TO-DATE
+> Task :wear:javaPreCompileDebugUnitTest
+> Task :wear:processDebugManifestForPackage
+> Task :wear:mergeDebugResources
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :wear:processDebugResources
+
+> Task :wear:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:110:34 'fun setResourceId(p0: String): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+
+> Task :wear:compileDebugJavaWithJavac NO-SOURCE
+> Task :wear:processDebugJavaRes
+> Task :wear:bundleDebugClassesToCompileJar
+> Task :wear:bundleDebugClassesToRuntimeJar
+> Task :wear:compileDebugUnitTestKotlin
+> Task :wear:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :wear:processDebugUnitTestJavaRes
+> Task :wear:testDebugUnitTest
+
+BUILD SUCCESSFUL in 6s
+26 actionable tasks: 26 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

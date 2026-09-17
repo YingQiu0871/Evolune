@@ -1,0 +1,33 @@
+V1.7.1 release packaging — signed release builds (fresh)
+========================================================
+
+Both builds executed with --rerun-tasks under the repository release-signing gate
+(EVOLUNE_KEYSTORE_* environment present; no debug-signing fallback). Logs are raw Gradle
+output (logs/).
+
+Phone release
+  command     : .\gradlew.bat :app:assembleRelease --rerun-tasks
+  log         : logs/app-release-build.log
+  result      : BUILD SUCCESSFUL; 52 actionable tasks: 52 executed
+  R8          : Task :app:minifyReleaseWithR8 EXECUTED (release minification); resource
+                shrink included in the executed release graph; no R8 warnings/errors failed
+                the build
+  artifact    : app/build/outputs/apk/release/app-release.apk
+  size        : 6,294,960 bytes
+  sha256      : 8d8150c165141c3dcfe1e9eb4be513645d12caa7b946742e3a2c4968ed6eafe6
+  package     : io.github.yingqiu0871.evolune
+  metadata    : versionName 1.7.1; versionCode 101070100 (aapt2)
+
+Wear release
+  command     : .\gradlew.bat :wear:assembleRelease --rerun-tasks
+  log         : logs/wear-release-build.log
+  result      : BUILD SUCCESSFUL; 45 actionable tasks: 45 executed
+  R8          : Task :wear:minifyReleaseWithR8 EXECUTED
+  artifact    : wear/build/outputs/apk/release/wear-release.apk
+  size        : 2,604,764 bytes
+  sha256      : c4cd78e1a3372d54de02b8dbfe570c836287a7f8642d2c0dee586e79fda832d3
+  package     : io.github.yingqiu0871.evolune
+  metadata    : versionName 1.7.1; versionCode 1101070100 (aapt2)
+
+These signed release APKs are the authoritative v1.7.1 release bytes recorded in
+artifact-hashes.txt; they must not be rebuilt without a reviewed packaging decision.

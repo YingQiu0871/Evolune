@@ -1,0 +1,31 @@
+V1.7.1 release packaging — fresh JVM regression after version bump
+==================================================================
+
+All runs used --rerun-tasks; the raw Gradle logs show no UP-TO-DATE or FROM-CACHE test task
+presented as fresh. Counts parsed from the final JUnit XML of each module.
+
+Version guard (executed before the builds)
+  command: .\gradlew.bat validateEvoluneIdentityAndVersioning
+  log    : logs/version-guard.log
+  result : BUILD SUCCESSFUL; 1 actionable task: 1 executed
+           (v1.7.1 invariants hold; all preserved guards pass)
+
+App JVM
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm.log (28 actionable tasks: 28 executed)
+  result : suites=137  tests=1343  failures=0  errors=0  skipped=0
+           (meets the v1.7.1 baseline of >= 1343)
+
+experience-core JVM
+  command: .\gradlew.bat :experience-core:test --rerun-tasks
+  log    : logs/experience-core-jvm.log (4 actionable tasks: 4 executed)
+  result : suites=20  tests=171  failures=0  errors=0  skipped=0
+
+Wear JVM
+  command: .\gradlew.bat :wear:testDebugUnitTest --rerun-tasks
+  log    : logs/wear-jvm.log (26 actionable tasks: 26 executed)
+  result : suites=11  tests=90  failures=0  errors=0  skipped=0
+
+Not performed (honest scope): no Android instrumentation rerun — the packaging delta is
+version metadata only, and the v1.7.1 UI hotfix instrumentation/acceptance evidence remains
+valid for the unchanged product tree (frozen per review verdict).

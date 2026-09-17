@@ -1,0 +1,36 @@
+V1.7.1 release packaging — stale-version scan (post-edit)
+=========================================================
+
+Patterns scanned over the tracked repository after applying the v1.7.1 metadata:
+  1.7.0 | 1_070_000 | 101_070_000 | 1_101_070_000
+
+CURRENT RELEASE METADATA (updated — now truthful v1.7.1):
+  build.gradle.kts:13  evoluneVersionName = "1.7.1"
+  build.gradle.kts:17  evoluneVersionPatch = 1
+  build.gradle.kts:40  check(evoluneVersionName == "1.7.1")
+  build.gradle.kts:47  check(phoneCode == 101_070_100)
+  build.gradle.kts:48  check(wearCode == 1_101_070_100)
+
+REMAINING REFERENCES, CLASSIFIED:
+
+  historical v1.7.0 release (must NOT be rewritten):
+    docs/evolune/v1.7/V17_RELEASE_NOTES.md          v1.7.0 release notes (released)
+    docs/evolune/v1.7/V17_PLAN.md / V17_SPEC.md / V17_ACCEPTANCE.md
+    docs/evolune/v1.7/evidence/**                   frozen v1.7.0 packaging/phase evidence
+    docs/evolune/v1.7.1/evidence/ui-hotfix/**       hotfix evidence statements about v1.7.0
+    docs/evolune/CURRENT_STATUS.md, ROADMAP.md, TODO.MD, readme.md
+                                                    v1.7.0 release history entries +
+                                                    explicit "1.7.0 -> 1.7.1" transition text
+
+  prior-version anchor:
+    build.gradle.kts:35  priorV1VersionCode = 10_060   (retained monotonicity anchor)
+
+  third-party coincidence (not app metadata):
+    gradle/libs.versions.toml:6  androidxTestRunner = "1.7.0"   (AndroidX Test Runner version)
+
+  current stale metadata:
+    NONE — no v1.7.1 release path points at 1.7.0 / 1_070_000 / 101_070_000 / 1_101_070_000;
+    `1_070_000`, `101_070_000` and `1_101_070_000` appear ONLY inside the historical v1.7.0
+    evidence bundle and the documented transition entries.
+
+Conclusion: ZERO suspicious current v1.7.1 metadata still pointing to v1.7.0.

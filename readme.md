@@ -48,9 +48,9 @@ Phone Room/domain/repository remains the source of truth for medication data; wi
 
 Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
 
-v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 release candidate 门禁已批准（`APPROVE V1.7.0 RELEASE CANDIDATE`）；v1.7.0 版本元数据已完成打包并验证（versionName 1.7.0 / Phone 101070000 / Wear 1101070000；signed Phone/Wear APK 构建、签名与内嵌元数据核验通过）。**尚未发布**：tag、GitHub Release 与分发均未创建。
+v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 v1.7.0 正式版已发布（annotated tag `v1.7.0` @ `a8e8869b…`；GitHub Release 含 Phone/Wear APK 与 SHA256SUMS）。v1.7.1 真机 UI hotfix（六项）已经独立复审批准并完成 Pixel 11 Pro 真机验收；v1.7.1 release packaging 候选已构建并验证（versionName 1.7.1 / Phone 101070100 / Wear 1101070100；signed Phone/Wear APK、签名与内嵌元数据核验通过）。**v1.7.1 尚未发布**：tag、GitHub Release 与分发均未创建。
 
-The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has passed its release-candidate gate (`APPROVE V1.7.0 RELEASE CANDIDATE`). The v1.7.0 release-packaging candidate has been built and verified (version metadata 1.7.0 with Phone 101070000 / Wear 1101070000; signed Phone/Wear APKs, signature and embedded-metadata verification passed). It is NOT yet released: no tag, GitHub Release, or distribution has been created.
+The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has shipped as v1.7.0 (annotated tag `v1.7.0` @ `a8e8869b…`; GitHub Release with Phone/Wear APKs and SHA256SUMS). The v1.7.1 real-device UI hotfix (six fixes) has been independently approved and accepted on a physical Pixel 11 Pro; the v1.7.1 release-packaging candidate has been built and verified (version metadata 1.7.1 with Phone 101070100 / Wear 1101070100; signed Phone/Wear APKs, signature and embedded-metadata verification passed). v1.7.1 is NOT yet released: no tag, GitHub Release, or distribution has been created.
 
 完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
 
