@@ -85,4 +85,91 @@ class RetrospectiveChartDataTest {
         val zero = retrospectiveChartPoints(seriesOf(listOf(0.0, 0.0)))
         assertEquals(1.0, retrospectiveChartYMax(zero), 0.0)
     }
+
+    // ---------- v1.7.1 UI hotfix: view-only decimation, labels, inspection ----------
+
+    @Test
+    fun `decimation keeps the first and last point and stays inside the bound`() {
+        val values = (0 until 7201).map { index -> index % 97 / 97.0 }
+        val points = retrospectiveChartPoints(seriesOf(values))
+
+        val drawn = retrospectiveChartDecimate(points, 720)
+
+        assertTrue("the drawn series must stay bounded", drawn.size <= 720)
+        assertEquals(points.first(), drawn.first())
+        assertEquals(points.last(), drawn.last())
+        assertTrue(
+            "hour offsets must stay strictly ascending",
+            drawn.zipWithNext().all { (first, second) -> second.hourOffset > first.hourOffset }
+        )
+    }
+
+    @Test
+    fun `decimation preserves the raw global extrema bit for bit and is deterministic`() {
+        val values = MutableList(2001) { 1.0 }
+        values[700] = 0.0
+        values[1300] = 512.25
+        val points = retrospectiveChartPoints(seriesOf(values))
+
+        val drawn = retrospectiveChartDecimate(points, 400)
+        val again = retrospectiveChartDecimate(points, 400)
+
+        assertEquals("decimation must be deterministic", drawn, again)
+        val min = drawn.minByOrNull { it.concentrationPGmL }
+        val max = drawn.maxByOrNull { it.concentrationPGmL }
+        assertEquals(points[700].hourOffset, min!!.hourOffset, 1e-9)
+        assertEquals(
+            "the raw minimum must stay bit-identical",
+            points[700].concentrationPGmL.toRawBits(),
+            min.concentrationPGmL.toRawBits()
+        )
+        assertEquals(points[1300].hourOffset, max!!.hourOffset, 1e-9)
+        assertEquals(
+            "the raw maximum must stay bit-identical",
+            points[1300].concentrationPGmL.toRawBits(),
+            max.concentrationPGmL.toRawBits()
+        )
+    }
+
+    @Test
+    fun `a series below the bound is returned unchanged`() {
+        val points = retrospectiveChartPoints(seriesOf(listOf(0.0, 1.0, 2.0)))
+
+        assertEquals(points, retrospectiveChartDecimate(points, 720))
+    }
+
+    @Test
+    fun `x labels stay whole-day, between five and seven, and end at the window end`() {
+        val sevenDay = retrospectiveChartLabelHourOffsets(168.0)
+        assertEquals(listOf(0.0, 48.0, 96.0, 144.0, 168.0), sevenDay)
+
+        val thirtyDay = retrospectiveChartLabelHourOffsets(720.0)
+        assertEquals(6, thirtyDay.size)
+        assertEquals(720.0, thirtyDay.last(), 0.0)
+        assertTrue(thirtyDay.all { it % 24.0 == 0.0 })
+
+        val ninetyDay = retrospectiveChartLabelHourOffsets(2160.0)
+        assertEquals(6, ninetyDay.size)
+        assertEquals(2160.0, ninetyDay.last(), 0.0)
+        assertTrue(ninetyDay.all { it % 24.0 == 0.0 })
+
+        assertTrue(retrospectiveChartLabelHourOffsets(0.0).isEmpty())
+        assertTrue(retrospectiveChartLabelHourOffsets(Double.NaN).isEmpty())
+    }
+
+    @Test
+    fun `nearest point inspection finds the closest drawn sample`() {
+        val points = listOf(
+            RetrospectiveChartPoint(0.0, 1.0),
+            RetrospectiveChartPoint(10.0, 2.0),
+            RetrospectiveChartPoint(20.0, 3.0)
+        )
+
+        assertEquals(0, retrospectiveNearestPointIndex(points, 0.0))
+        assertEquals(0, retrospectiveNearestPointIndex(points, 4.0))
+        assertEquals(1, retrospectiveNearestPointIndex(points, 6.0))
+        assertEquals(2, retrospectiveNearestPointIndex(points, 19.5))
+        assertEquals(2, retrospectiveNearestPointIndex(points, 500.0))
+        assertEquals(-1, retrospectiveNearestPointIndex(emptyList(), 5.0))
+    }
 }

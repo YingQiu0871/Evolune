@@ -1040,6 +1040,9 @@ fun AppNavigation(
                     onOpenGuide = {
                         navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
                     },
+                    onOpenPrivacy = {
+                        navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
+                    },
                     onOpenFeatureTutorial = {
                         navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
                     },

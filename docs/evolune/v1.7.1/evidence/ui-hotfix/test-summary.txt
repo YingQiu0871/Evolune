@@ -1,0 +1,43 @@
+v1.7.1 UI hotfix candidate — test summary
+=========================================
+
+All counts parsed from the final JUnit XML; the app JVM run used `--rerun-tasks` with the raw
+log captured in logs/app-jvm.log (28 actionable tasks: 28 executed — no UP-TO-DATE or
+FROM-CACHE test task is presented as fresh).
+
+App JVM (fresh, --rerun-tasks)
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm.log  (BUILD SUCCESSFUL; 28 actionable tasks: 28 executed)
+  result : suites=137  tests=1343  failures=0  errors=0  skipped=0
+  delta  : +10 tests vs the v1.7.0 full run (1333 -> 1343), all hotfix coverage:
+           - TimelinePresentationTest: extended strip window + monthStepFor routing (+2 net)
+           - RetrospectiveChartDataTest: decimation/labels/nearest-point (+5)
+           - RetrospectivePkViewModelTest: default 7-day window + range switching (+3 net)
+  guards : TimelineUiArchitectureGuardTest (F1-F32 + wording/parity) green in the same run;
+           RetrospectiveStringsParityTest / RetrospectiveWordingGuardTest green.
+
+Compile + debug build
+  command: .\gradlew.bat :app:compileDebugKotlin :app:compileDebugUnitTestKotlin
+           :app:compileDebugAndroidTestKotlin :app:assembleDebug
+  log    : logs/compile-and-build.log (BUILD SUCCESSFUL; the fresh executions ran earlier in
+           the session, this re-run is fully up-to-date — no source changed afterwards)
+
+Affected Android instrumentation suites (Pixel_7 AVD, Android 15 — emulator)
+  Runs and exact console-observed results are recorded in logs/androidtest-runs.txt:
+    run A (8 classes, 114 tests): 113 passed; 1 failed —
+        TimelineFontScaleTest.fontScale10KeepsD04RelationalGeometry
+        (test-order issue: the minimal `performScrollToNode` scroll now lands off-center
+        before the centering assertion; the assertion was moved before the scroll — the
+        centering property itself is still measured, unchanged);
+    run B (5 classes, 20 tests): all passed — includes the fixed TimelineFontScaleTest,
+        TimelineNavigationTest, InsightsNavigationTest, InsightsReleaseGateTest,
+        RetrospectiveNavigationTest;
+    run C (4 classes, 7 tests): all passed — ColorRoleConformanceTest,
+        InsightsZeroWriteDeviceTest, TimelineVisualEvidenceTest, HistoryVisualEvidenceTest.
+  Final instrumentation state: 13 affected classes, all green.
+
+Not performed (honest scope): a full 358-test Android instrumentation rerun of the whole
+suite is NOT claimed. The affected suites above are the ones that exercise the changed
+surfaces, entry navigation, guards and color-role conformance. experience-core / Wear JVM
+suites were NOT rerun because neither module is touched by this hotfix (Wear code and
+experience-core code are byte-identical to v1.7.0).

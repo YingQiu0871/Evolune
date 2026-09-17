@@ -40,8 +40,15 @@ import java.util.UUID
 internal val C04_UTC: ZoneId = ZoneOffset.UTC
 internal val C04_NOW: Instant = LocalDate.of(2026, 9, 16).atTime(12, 0).toInstant(ZoneOffset.UTC)
 
-internal fun c04Window(endingAt: Instant = C04_NOW): RetrospectivePkWindow =
-    RetrospectivePkWindow(startInclusive = endingAt.minus(Duration.ofDays(30)), endInclusive = endingAt)
+/**
+ * The window the surface queries; v1.7.1 UI hotfix default is the 7-day range, and tests may ask
+ * for any other selected length explicitly.
+ */
+internal fun c04Window(
+    endingAt: Instant = C04_NOW,
+    days: Long = RetrospectivePkRange.LAST_7_DAYS.days
+): RetrospectivePkWindow =
+    RetrospectivePkWindow(startInclusive = endingAt.minus(Duration.ofDays(days)), endInclusive = endingAt)
 
 // ---------- recording seams ----------
 

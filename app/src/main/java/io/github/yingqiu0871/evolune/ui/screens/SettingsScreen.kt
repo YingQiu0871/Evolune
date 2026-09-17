@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Sync
@@ -44,6 +45,7 @@ fun SettingsScreen(
     onOpenAbout: () -> Unit,
     showTopBar: Boolean = true,
     onOpenGuide: () -> Unit = {},
+    onOpenPrivacy: () -> Unit = {},
     onOpenFeatureTutorial: () -> Unit = {}
 ) {
     Scaffold(
@@ -115,6 +117,13 @@ fun SettingsScreen(
                 description = stringResource(R.string.settings_guide_desc),
                 icon = Icons.Outlined.Info,
                 onClick = onOpenGuide
+            )
+            SettingsNavigationRow(
+                modifier = Modifier.testTag("settings-privacy-entry"),
+                title = stringResource(R.string.settings_privacy_title),
+                description = stringResource(R.string.settings_privacy_desc),
+                icon = Icons.Outlined.Lock,
+                onClick = onOpenPrivacy
             )
             SettingsNavigationRow(
                 modifier = Modifier.testTag("settings-feature-tutorial-entry"),

@@ -1,0 +1,69 @@
+v1.7.1 UI hotfix candidate — real-device acceptance summary
+============================================================
+
+Device
+  Model      : Pixel 11 Pro (grizzly)
+  Android    : 17
+  Link       : wireless debugging (adb pair, then mDNS auto-connect)
+  App under test: io.github.yingqiu0871.evolune.debug (debug build of branch
+                  hotfix/v1.7.1-ui-polish, versionName 1.7.0)
+  Install    : fresh install; onboarding completed on-device (5 steps + terms + medical/PK
+               acknowledgement); feature tutorial skipped; update prompt cancelled.
+
+Data seeding (test data only, no product behavior involved)
+  20 recorded intakes imported through the shipped import path
+  (Settings -> 同步与备份 -> 数据导入导出 -> 导入 JSON（文件）) from a legacy / Mahiro JSON v1
+  file: 10 days x 2 sublingual E2 2.0 mg doses, weight 55 kg. Import reported
+  "成功导入 20 条记录". No medication plan was created (schedule context counts therefore 0
+  on the PK surface; empty-plan behavior stays truthful).
+
+Screenshot walkthrough (screenshots/ directory, captured on the real device)
+  01-settings-8-entries.png                  All eight Settings entries visible as flat
+                                             top-level rows: 基础数据 / 外观与格式 / 同步
+                                             与备份 / 更新 / 指南 / 隐私与权限 / 功能教程 /
+                                             关于 (fix 6; the new 隐私与权限 entry opens the
+                                             existing disclosures destination).
+  02-history-first.png                       History opens with the factual content first
+                                             (calendar with indicator dots, selected-day
+                                             summary + entry cards).
+  03-history-entry-group-bottom.png          Scrolled to bottom: the three secondary cards
+                                             (用药洞察 / 回顾性 PK / 用药时间线) sit as one
+                                             group BELOW the day's factual cards (fix 1).
+  04-insights-card-separation.png            Insights 记录摄入次数 (20) and 有记录的天数 (10)
+                                             render as two separate cards with a clear gap
+                                             (fix 2).
+  05-pk-7days.png                            Retrospective PK default 近 7 天: compact range
+                                             selector (近 7 天 selected), caption "最近 7
+                                             天——截至 ...", decimated smooth curve, bottom
+                                             intake dots, ~5 whole-day x labels, hint text,
+                                             legend counts outside the plot (fix 3).
+  06-pk-30days.png                           Switching to 近 30 天 reloads the window
+                                             (legend 已记录摄入: 20, 6 x labels 8/18..9/17);
+                                             pre-history segment truthfully flat at zero
+                                             (EARLIEST_AVAILABLE_HISTORY_ZERO_BASELINE).
+  07-timeline-continuous-strip.png           Timeline strip is continuous around today
+                                             (13..17 selected..21) with no gaps; the 今天
+                                             section shows two row cards with the new 12dp
+                                             separation (fixes 4 + 5).
+  08-timeline-month-start-adjacent-dates.png Previous-month navigation (2026年8月): day 1 is
+                                             centered and NOT left-most — 7/28, 7/29, 7/30,
+                                             7/31 remain visible to its left (fix 4).
+  09-pk-inspection-tap.png                   Tap inspection on the real device: crosshair +
+                                             tooltip "9/8 8:04 上午 · 107.0 pg/mL"
+                                             (fix 3 interaction).
+
+Observed results: all six fixes behave as specified on the physical device. No crash, no
+flicker-restart, no data mutation during the walkthrough (navigation / range switching /
+inspection only; zero-write behavior unaffected). The debug build emits a "发现新版本"
+prompt because the store lists the v1.7.0 release — unrelated to this hotfix.
+
+Honest deviations
+  - The hotfix premise said Settings shows collapsed/accordion entries; the shipped v1.7.0
+    tree was already a flat list. The factual gap was the missing separate 隐私与权限 entry
+    (previously merged into the 指南 title). The hotfix adds that entry and keeps the flat
+    presentation; no accordion code existed to remove.
+  - The acceptance device had no prior Evolune data, so 20 test intakes were imported
+    through the shipped import path to make the factual surfaces meaningful. No device data
+    was modified beyond that.
+  - The temporary debug install and seeded test data remain on the device for inspection;
+    /sdcard scratch files used during automation were removed.

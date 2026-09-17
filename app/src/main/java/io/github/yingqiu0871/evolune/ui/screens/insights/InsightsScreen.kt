@@ -264,27 +264,34 @@ private fun InsightsRangeSelection.testTagSuffix(): String = when (this) {
 
 @Composable
 private fun OverviewCards(model: InsightsPresentation.InsightsUiModel) {
-    model.overviewCards.forEach { card ->
-        val label = stringResource(card.labelRes)
-        val description = stringResource(R.string.insights_count_row_description, label, card.value)
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(card.testTag())
-                .clearAndSetSemantics { contentDescription = description },
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = card.value.toString(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("insights-overview-cards"),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        model.overviewCards.forEach { card ->
+            val label = stringResource(card.labelRes)
+            val description = stringResource(R.string.insights_count_row_description, label, card.value)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(card.testTag())
+                    .clearAndSetSemantics { contentDescription = description },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = card.value.toString(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }

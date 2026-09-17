@@ -1,0 +1,1811 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+index cb75925..c9a0c6f 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+@@ -551,6 +551,29 @@ class HistoryScreenTest {
+         )
+     }
+ 
++    // ---------- secondary entry group order (v1.7.1 UI hotfix) ----------
++
++    @Test
++    fun secondaryEntryGroupSitsBelowTheFactualDayContentWithAllThreeCards() {
++        launch { _, end -> listOf(testDay(date = end, entries = listOf(quickRecordEntry()))) }
++        composeRule.waitForIdle()
++
++        // The factual calendar leads the screen.
++        composeRule.onNodeWithTag("history-calendar").assertExists()
++
++        // The secondary entry group is reached below the calendar/day content, as one group.
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(hasTestTag("history-insights-entry"))
++        composeRule.onNodeWithTag("history-insights-entry").assertIsDisplayed()
++        composeRule.onNodeWithTag("history-retrospective-entry").assertExists()
++        composeRule.onNodeWithTag("history-timeline-entry").assertExists()
++
++        // Scrolling back toward the beginning returns to the calendar (the group is not above it).
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(hasTestTag("history-calendar"))
++        composeRule.onNodeWithTag("history-calendar").assertIsDisplayed()
++    }
++
+     // ---------- helpers ----------
+ 
+     private fun scrollToEntryStatus() {
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
+index a8d4f5b..4398178 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
+@@ -121,4 +121,43 @@ class SettingsCategoryScreenTest {
+         composeRule.onNodeWithTag("settings-about-disclaimer").performScrollTo().performClick()
+         composeRule.onAllNodesWithText("免责声明").get(1).assertIsDisplayed()
+     }
++
++    @Test
++    fun settingsHubExposesAllEightDestinationsWithoutExpansion() {
++        var privacyClicks = 0
++        composeRule.setContent {
++            EvoluneTheme {
++                SettingsScreen(
++                    onOpenBasicData = {},
++                    onOpenAppearanceAndFormat = {},
++                    onOpenSyncAndBackup = {},
++                    onOpenUpdate = {},
++                    onOpenAbout = {},
++                    onOpenGuide = {},
++                    onOpenPrivacy = { privacyClicks += 1 },
++                    onOpenFeatureTutorial = {}
++                )
++            }
++        }
++
++        // v1.7.1 UI hotfix: all eight entries are flat top-level rows, directly reachable.
++        listOf(
++            "settings-basic-data-entry",
++            "settings-appearance-format-entry",
++            "settings-sync-backup-entry",
++            "settings-update-entry",
++            "settings-guide-entry",
++            "settings-privacy-entry",
++            "settings-feature-tutorial-entry",
++            "settings-about-entry"
++        ).forEach { tag ->
++            composeRule.onNodeWithTag(tag).assertExists()
++        }
++
++        composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
++        composeRule.runOnIdle {
++            assertEquals(1, privacyClicks)
++        }
++        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
++    }
+ }
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt
+index 6c7414f..a79aab2 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt
+@@ -3,9 +3,11 @@ package io.github.yingqiu0871.evolune.ui.screens.insights
+ import android.content.Context
+ import android.content.Intent
+ import androidx.compose.ui.test.ExperimentalTestApi
++import androidx.compose.ui.test.hasTestTag
+ import androidx.compose.ui.test.junit4.createEmptyComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollToNode
+ import androidx.test.core.app.ActivityScenario
+ import androidx.test.core.app.ApplicationProvider
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+@@ -66,12 +68,21 @@ class InsightsNavigationTest {
+         composeRule.waitForIdle()
+     }
+ 
++    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
++    private fun scrollHistoryToInsightsEntry() {
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(hasTestTag("history-insights-entry"))
++        composeRule.waitForIdle()
++    }
++
+     @Test
+     fun historyOpensInsightsAndBackReturnsToHistory() {
+         selectHistory()
+         composeRule.onNodeWithTag("history-screen").assertExists()
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").assertExists()
+ 
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").performClick()
+         composeRule.waitForIdle()
+ 
+@@ -89,6 +100,7 @@ class InsightsNavigationTest {
+     fun leavingAndReEnteringInsightsKeepsTheSurfaceUsable() {
+         selectHistory()
+ 
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").performClick()
+         composeRule.waitForIdle()
+         composeRule.onNodeWithTag("insights-screen").assertExists()
+@@ -97,6 +109,7 @@ class InsightsNavigationTest {
+         composeRule.onNodeWithTag("history-screen").assertExists()
+ 
+         // re-entry must not crash and must keep rendering the production surface
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").performClick()
+         composeRule.waitForIdle()
+         composeRule.onNodeWithTag("insights-screen").assertExists()
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt
+index 910dea6..9edb510 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt
+@@ -73,10 +73,18 @@ class InsightsReleaseGateTest {
+     }
+ 
+     private fun openInsights() {
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").performClick()
+         composeRule.waitForIdle()
+     }
+ 
++    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
++    private fun scrollHistoryToInsightsEntry() {
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-insights-entry"))
++        composeRule.waitForIdle()
++    }
++
+     private fun pressBack() {
+         scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+         composeRule.waitForIdle()
+@@ -160,17 +168,16 @@ class InsightsReleaseGateTest {
+     fun theHistoryEntryDoesNotBreakTheCalendarOrTheScroll() {
+         selectTab("history")
+ 
+-        composeRule.onNodeWithTag("history-insights-entry").assertExists()
+         composeRule.onNodeWithTag("history-month-title").assertExists()
+         composeRule.onNodeWithTag("history-calendar").assertExists()
+ 
+-        // the list still scrolls and the entry stays above the calendar content
++        // the list still scrolls; the entry group now sits below the factual day content
++        // (v1.7.1 UI hotfix) and stays reachable through the list scroll
+         composeRule.onNodeWithTag("history-content-list")
+             .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-calendar"))
+         composeRule.onNodeWithTag("history-calendar").assertExists()
+ 
+-        composeRule.onNodeWithTag("history-content-list")
+-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-insights-entry"))
++        scrollHistoryToInsightsEntry()
+         composeRule.onNodeWithTag("history-insights-entry").assertExists()
+     }
+ 
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt
+index d749f9b..4b3f450 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt
+@@ -18,6 +18,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onAllNodesWithTag
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.assertCountEquals
++import androidx.compose.ui.test.getUnclippedBoundsInRoot
+ import androidx.compose.ui.test.onAllNodesWithText
+ import androidx.compose.ui.test.onChildren
+ import androidx.compose.ui.test.onNodeWithText
+@@ -51,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.SupervisorJob
+ import kotlinx.coroutines.cancel
+ import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
+ import org.junit.Rule
+ import org.junit.Test
+ import org.junit.runner.RunWith
+@@ -171,6 +173,21 @@ class InsightsScreenTest {
+         composeRule.onNodeWithTag("insights-coverage-disclosure-absence").assertIsDisplayed()
+     }
+ 
++    @Test
++    fun overviewMetricCardsAreVisuallySeparated() {
++        setContent(state())
++
++        val first = composeRule.onNodeWithTag("insights-card-recorded-intakes")
++            .getUnclippedBoundsInRoot()
++        val second = composeRule.onNodeWithTag("insights-card-recorded-days")
++            .getUnclippedBoundsInRoot()
++        val gap = if (first.top <= second.top) second.top - first.bottom else first.top - second.bottom
++        assertTrue(
++            "the two overview metric cards must be separated by at least 12dp (was $gap)",
++            gap.value >= 12f
++        )
++    }
++
+     @Test
+     fun everySourceAndConfidenceRowIsShippedWithItsOwnCount() {
+         setContent(state())
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt
+index bfd1731..2ea526b 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt
+@@ -3,9 +3,11 @@ package io.github.yingqiu0871.evolune.ui.screens.retrospective
+ import android.content.Context
+ import android.content.Intent
+ import androidx.compose.ui.test.ExperimentalTestApi
++import androidx.compose.ui.test.hasTestTag
+ import androidx.compose.ui.test.junit4.createEmptyComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollToNode
+ import androidx.test.core.app.ActivityScenario
+ import androidx.test.core.app.ApplicationProvider
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+@@ -66,12 +68,21 @@ class RetrospectiveNavigationTest {
+         composeRule.waitForIdle()
+     }
+ 
++    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
++    private fun scrollHistoryToRetrospectiveEntry() {
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(hasTestTag("history-retrospective-entry"))
++        composeRule.waitForIdle()
++    }
++
+     @Test
+     fun historyOpensRetrospectivePkAndBackReturnsToHistory() {
+         selectHistory()
+         composeRule.onNodeWithTag("history-screen").assertExists()
++        scrollHistoryToRetrospectiveEntry()
+         composeRule.onNodeWithTag("history-retrospective-entry").assertExists()
+ 
++        scrollHistoryToRetrospectiveEntry()
+         composeRule.onNodeWithTag("history-retrospective-entry").performClick()
+         composeRule.waitForIdle()
+ 
+@@ -86,6 +97,7 @@ class RetrospectiveNavigationTest {
+     @Test
+     fun theRetrospectiveSubRouteDoesNotAddBottomNavigationEntries() {
+         selectHistory()
++        scrollHistoryToRetrospectiveEntry()
+         composeRule.onNodeWithTag("history-retrospective-entry").performClick()
+         composeRule.waitForIdle()
+ 
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt
+index d6d97c7..ce76629 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt
+@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
+ import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.test.assertContentDescriptionEquals
+ import androidx.compose.ui.test.assertIsDisplayed
++import androidx.compose.ui.test.assertIsSelected
+ import androidx.compose.ui.test.assertTextContains
+ import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+@@ -16,6 +17,7 @@ import androidx.test.core.app.ApplicationProvider
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+ import io.github.yingqiu0871.evolune.R
+ import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceId
++import io.github.yingqiu0871.evolune.history.HistoryFormatting
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkInputSummary
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkLimitation
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkModelContext
+@@ -29,6 +31,7 @@ import io.github.yingqiu0871.evolune.history.retrospective.RecordedIntakeMarker
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveLoadFailure
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePhase
++import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkRange
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkUiState
+ import io.github.yingqiu0871.evolune.history.retrospective.ScheduleContextMarker
+ import io.github.yingqiu0871.evolune.history.retrospective.ScheduleMarkerProvenance
+@@ -98,22 +101,32 @@ class RetrospectiveScreenTest {
+         phase: RetrospectivePhase,
+         result: RetrospectivePkResult? = null,
+         markers: List<RetrospectiveMarker> = emptyList(),
+-        failure: RetrospectiveLoadFailure? = null
++        failure: RetrospectiveLoadFailure? = null,
++        selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_30_DAYS
+     ) = RetrospectivePkUiState(
+         windowStart = window.startInclusive,
+         windowEnd = window.endInclusive,
+         displayZone = zone,
++        selectedRange = selectedRange,
+         phase = phase,
+         result = result,
+         markers = markers,
+         failure = failure
+     )
+ 
+-    private fun setContent(state: RetrospectivePkUiState, onRetry: () -> Unit = {}) {
++    private fun setContent(
++        state: RetrospectivePkUiState,
++        onRetry: () -> Unit = {},
++        onSelectRange: (RetrospectivePkRange) -> Unit = {}
++    ) {
+         composeRule.setContent {
+             CompositionLocalProvider(LocalDensity provides Density(2f)) {
+                 EvoluneTheme {
+-                    RetrospectivePkScreenContent(state = state, onRetry = onRetry)
++                    RetrospectivePkScreenContent(
++                        state = state,
++                        onRetry = onRetry,
++                        onSelectRange = onSelectRange
++                    )
+                 }
+             }
+         }
+@@ -168,6 +181,58 @@ class RetrospectiveScreenTest {
+             .assertContentDescriptionEquals(context.getString(R.string.retrospective_disclosure))
+     }
+ 
++    // ---------- v1.7.1 UI hotfix: range selector and range-aware caption ----------
++
++    @Test
++    fun rangeSelectorOffersAllThreeWindowsWithTheSelectedOneMarked() {
++        setContent(
++            state(
++                RetrospectivePhase.CONTENT,
++                result = available(),
++                selectedRange = RetrospectivePkRange.LAST_7_DAYS
++            )
++        )
++
++        composeRule.onNodeWithTag("retrospective-range-selector").assertIsDisplayed()
++        composeRule.onNodeWithTag("retrospective-range-7").assertIsSelected()
++        composeRule.onNodeWithTag("retrospective-range-30").assertExists()
++        composeRule.onNodeWithTag("retrospective-range-90").assertExists()
++        composeRule.onNodeWithText(context.getString(R.string.retrospective_range_7_days)).assertIsDisplayed()
++    }
++
++    @Test
++    fun rangeSelectorInvokesTheSelectionCallback() {
++        val selected = mutableListOf<RetrospectivePkRange>()
++        setContent(
++            state(
++                RetrospectivePhase.CONTENT,
++                result = available(),
++                selectedRange = RetrospectivePkRange.LAST_7_DAYS
++            ),
++            onSelectRange = { selected += it }
++        )
++
++        composeRule.onNodeWithTag("retrospective-range-90").performScrollTo().performClick()
++        composeRule.runOnIdle {
++            assertTrue("the selected range must reach the callback", selected == listOf(RetrospectivePkRange.LAST_90_DAYS))
++        }
++    }
++
++    @Test
++    fun windowCaptionNamesTheSelectedRangeLength() {
++        setContent(
++            state(RetrospectivePhase.LOADING, selectedRange = RetrospectivePkRange.LAST_90_DAYS)
++        )
++
++        val expected = context.getString(
++            R.string.retrospective_window_caption,
++            90,
++            HistoryFormatting.fullDateTimeText(window.endInclusive, zone, true)
++        )
++        composeRule.onNodeWithTag("retrospective-window-caption")
++            .assertTextContains(expected, substring = true)
++    }
++
+     @Test
+     fun limitationCopyIsRenderedWhenTheResultCarriesLimitations() {
+         setContent(
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+index 387ebfb..8a77890 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+@@ -139,12 +139,16 @@ class TimelineFontScaleTest {
+     @Test
+     fun fontScale10KeepsD04RelationalGeometry() {
+         renderWithScale(1.0f)
+-        assertCenteredAxis(today)
+-        assertNumberInsideHighlight(today)
+-        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
++
++        // Measured before any scroll-to-node call (which minimally scrolls the strip and would
++        // disturb the initial centering established by the selection focus).
+         val container = centerOf("timeline-day-strip-container")
+         val selected = centerOf("timeline-day-cell-$today")
+         assertTrue("selected cell rests at the viewport center", abs(container.x - selected.x) <= 2f)
++
++        assertCenteredAxis(today)
++        assertNumberInsideHighlight(today)
++        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
+     }
+ 
+     // FONT2 / FONT3
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
+index 5d169fa..0fa0d58 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
+@@ -214,8 +214,33 @@ class TimelineGeometryTest {
+         )
+     }
+ 
+-    // ---------- UI46 / UI47: strip viewport centering and symmetric geometry ----------
++    @Test
++    fun dateGroupRowCardsKeepAVisualSeparation() {
++        val date = TimelineTestStates.today
++        setContentWithState(
++            initial = TimelineTestStates.state(
++                days = TimelineTestStates.daysFrom(
++                    date to listOf(
++                        TimelineTestStates.unrecordedRow(date, slotId = 701L),
++                        TimelineTestStates.unrecordedRow(date, slotId = 702L)
++                    )
++                )
++            )
++        )
++        val first = composeRule
++            .onNodeWithTag("timeline-row-2026-09-16-0", useUnmergedTree = true)
++            .getUnclippedBoundsInRoot()
++        val second = composeRule
++            .onNodeWithTag("timeline-row-2026-09-16-1", useUnmergedTree = true)
++            .getUnclippedBoundsInRoot()
++        val gap = if (first.top <= second.top) second.top - first.bottom else first.top - second.bottom
++        assertTrue(
++            "date-group row cards must stay separated by at least 12dp (was $gap)",
++            gap.value >= 12f
++        )
++    }
+ 
++    // ---------- UI46 / UI47: strip viewport centering and symmetric geometry ----------
+     @Test
+     fun ui46SelectingAnOffCenterDayCentersItInTheStripViewport() {
+         setContentWithState(
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+index 3850944..5a676fa 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+@@ -80,12 +80,21 @@ class TimelineNavigationTest {
+         composeRule.waitForIdle()
+     }
+ 
++    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
++    private fun scrollHistoryToTimelineEntry() {
++        composeRule.onNodeWithTag("history-content-list")
++            .performScrollToNode(hasTestTag("history-timeline-entry"))
++        composeRule.waitForIdle()
++    }
++
+     @Test
+     fun historyOpensTimelineAndBackReturnsToHistory() {
+         selectHistory()
+         composeRule.onNodeWithTag("history-screen").assertExists()
++        scrollHistoryToTimelineEntry()
+         composeRule.onNodeWithTag("history-timeline-entry").assertExists()
+ 
++        scrollHistoryToTimelineEntry()
+         composeRule.onNodeWithTag("history-timeline-entry").performClick()
+         composeRule.waitForIdle()
+ 
+@@ -101,6 +110,7 @@ class TimelineNavigationTest {
+         selectHistory()
+         composeRule.onNodeWithTag("nav-bar-timeline").assertDoesNotExist()
+ 
++        scrollHistoryToTimelineEntry()
+         composeRule.onNodeWithTag("history-timeline-entry").performClick()
+         composeRule.waitForIdle()
+ 
+@@ -126,6 +136,7 @@ class TimelineNavigationTest {
+     @Test
+     fun timelineContextIsRetainedAcrossHistoryRoundTripWithExactlyOneReentryRefresh() {
+         selectHistory()
++        scrollHistoryToTimelineEntry()
+         composeRule.onNodeWithTag("history-timeline-entry").performClick()
+         composeRule.waitForIdle()
+         composeRule.onNodeWithTag("timeline-screen").assertExists()
+@@ -167,6 +178,7 @@ class TimelineNavigationTest {
+         assertEquals(previousMonth, afterBack.month)
+         assertEquals(selectedDay, afterBack.selectedDate)
+ 
++        scrollHistoryToTimelineEntry()
+         composeRule.onNodeWithTag("history-timeline-entry").performClick()
+         composeRule.waitForIdle()
+         composeRule.onNodeWithTag("timeline-screen").assertExists()
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+index 0cd2c61..c1e6330 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
+ import androidx.compose.ui.test.assertIsEnabled
+ import androidx.compose.ui.test.assertIsNotEnabled
+ import androidx.compose.ui.test.assertIsSelected
++import androidx.compose.ui.test.getUnclippedBoundsInRoot
+ import androidx.compose.ui.test.hasTestTag
+ import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onAllNodesWithContentDescription
+@@ -216,6 +217,41 @@ class TimelineScreenTest {
+             .assertContentDescriptionContains("9月1日", substring = true)
+     }
+ 
++    @Test
++    fun stripShowsAdjacentMonthDatesAroundTheVisibleMonth() {
++        setContent(TimelineTestStates.contentState())
++
++        // the continuous window reaches into the previous month before the first of the month
++        scrollStripTo(LocalDate.of(2026, 9, 1))
++        composeRule.onNodeWithTag("timeline-day-cell-2026-08-31").assertIsDisplayed()
++
++        // and into the next month after the trailing edge; future cells stay non-selectable
++        scrollStripTo(LocalDate.of(2026, 9, 23))
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-23")
++            .assertExists()
++            .assertIsNotEnabled()
++    }
++
++    @Test
++    fun theFirstDayOfTheMonthIsNotTheLeftMostStripItem() {
++        setContent(
++            TimelineTestStates.contentState().copy(selectedDate = LocalDate.of(2026, 9, 1))
++        )
++        composeRule.waitForIdle()
++
++        composeRule.onNodeWithTag("timeline-day-cell-2026-09-01").assertIsDisplayed()
++        val leading = composeRule
++            .onNodeWithTag("timeline-day-cell-2026-08-31", useUnmergedTree = true)
++            .getUnclippedBoundsInRoot()
++        val first = composeRule
++            .onNodeWithTag("timeline-day-cell-2026-09-01", useUnmergedTree = true)
++            .getUnclippedBoundsInRoot()
++        assertTrue(
++            "the preceding adjacent-month date must stay visible to the left of day one",
++            leading.left < first.left
++        )
++    }
++
+     @Test
+     fun selectingADayFocusesItsSectionWhileKeepingTheWholeMonthRendered() {
+         val target = LocalDate.of(2026, 9, 11)
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkRange.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkRange.kt
+new file mode 100644
+index 0000000..c1ecbc6
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkRange.kt
+@@ -0,0 +1,14 @@
++package io.github.yingqiu0871.evolune.history.retrospective
++
++/**
++ * v1.7.1 UI hotfix — the selectable retrospective window length.
++ *
++ * The window stays a plain `[capturedAt − days, capturedAt]` query into the unchanged
++ * retrospective PK authority (C-01 equations, C-04 orchestration); only the queried length is
++ * user-selectable. `LAST_7_DAYS` is the default the surface opens with.
++ */
++enum class RetrospectivePkRange(val days: Long) {
++    LAST_7_DAYS(7),
++    LAST_30_DAYS(30),
++    LAST_90_DAYS(90)
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkUiState.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkUiState.kt
+index a192d6f..87c7708 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkUiState.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkUiState.kt
+@@ -32,6 +32,7 @@ data class RetrospectivePkUiState(
+     val windowStart: Instant,
+     val windowEnd: Instant,
+     val displayZone: ZoneId,
++    val selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_7_DAYS,
+     val phase: RetrospectivePhase = RetrospectivePhase.LOADING,
+     val result: RetrospectivePkResult? = null,
+     /** Filled only on a fully successful load; rendered only in CONTENT. */
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt
+index 3a8aca2..8f8fa11 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt
+@@ -63,6 +63,12 @@ class RetrospectivePkViewModel(
+         historyRangeSource = historyRangeSource
+     )
+ 
++    /**
++     * v1.7.1 UI hotfix: the selected window length; the surface opens on the 7-day default and
++     * every load (initial, refresh, retry, range switch) captures against this value.
++     */
++    private var selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_7_DAYS
++
+     private val initialWindow = captureWindow()
+     private val initialZone = displayZone()
+     private val _uiState = MutableStateFlow(
+@@ -70,6 +76,7 @@ class RetrospectivePkViewModel(
+             windowStart = initialWindow.startInclusive,
+             windowEnd = initialWindow.endInclusive,
+             displayZone = initialZone,
++            selectedRange = selectedRange,
+             phase = RetrospectivePhase.LOADING
+         )
+     )
+@@ -93,6 +100,17 @@ class RetrospectivePkViewModel(
+         refresh()
+     }
+ 
++    /**
++     * v1.7.1 UI hotfix: switches the queried window length and starts exactly one new load with a
++     * fresh capture. Re-selecting the current range performs no load.
++     */
++    fun selectRange(range: RetrospectivePkRange) {
++        if (range == selectedRange) return
++        selectedRange = range
++        _uiState.value = _uiState.value.copy(selectedRange = range)
++        startLoad()
++    }
++
+     /**
+      * The retrospective surface entered composition. The first entry is owned by the initial
+      * load; every later entry refreshes once.
+@@ -235,13 +253,14 @@ class RetrospectivePkViewModel(
+     }
+ 
+     /**
+-     * §D-4 fixed window: `[capturedAt − 30 days, capturedAt]`, with `capturedAt` normalized to
+-     * epoch-millisecond precision. Exactly 720 hours; no calendar-month semantics.
++     * v1.7.1 UI hotfix: `[capturedAt − selectedRange.days, capturedAt]`, with `capturedAt`
++     * normalized to epoch-millisecond precision. The window length is the user-selected
++     * 7/30/90-day range; no calendar-month semantics.
+      */
+     private fun captureWindow(): RetrospectivePkWindow {
+         val capturedAt = Instant.ofEpochMilli(clock.instant().toEpochMilli())
+         return RetrospectivePkWindow(
+-            startInclusive = capturedAt.minus(Duration.ofDays(30)),
++            startInclusive = capturedAt.minus(Duration.ofDays(selectedRange.days)),
+             endInclusive = capturedAt
+         )
+     }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index 2b24127..8bd3687 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -1040,6 +1040,9 @@ fun AppNavigation(
+                     onOpenGuide = {
+                         navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
+                     },
++                    onOpenPrivacy = {
++                        navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
++                    },
+                     onOpenFeatureTutorial = {
+                         navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
+                     },
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+index 710f999..01d5cb6 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+@@ -202,9 +202,6 @@ fun HistoryScreenContent(
+                 .testTag("history-content-list"),
+             contentPadding = PaddingValues(bottom = 24.dp)
+         ) {
+-            item { InsightsEntryCard(onOpenInsights) }
+-            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
+-            item { TimelineEntryCard(onOpenTimeline) }
+             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
+             item { WeekdayHeader() }
+             item { HistoryMonthCalendar(model, onSelectDate) }
+@@ -220,6 +217,9 @@ fun HistoryScreenContent(
+                     }
+                 }
+             }
++            item { InsightsEntryCard(onOpenInsights) }
++            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
++            item { TimelineEntryCard(onOpenTimeline) }
+         }
+     }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+index 75a56f6..cf8a6d4 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.outlined.Info
++import androidx.compose.material.icons.outlined.Lock
+ import androidx.compose.material.icons.outlined.Palette
+ import androidx.compose.material.icons.outlined.PhoneAndroid
+ import androidx.compose.material.icons.outlined.Sync
+@@ -44,6 +45,7 @@ fun SettingsScreen(
+     onOpenAbout: () -> Unit,
+     showTopBar: Boolean = true,
+     onOpenGuide: () -> Unit = {},
++    onOpenPrivacy: () -> Unit = {},
+     onOpenFeatureTutorial: () -> Unit = {}
+ ) {
+     Scaffold(
+@@ -116,6 +118,13 @@ fun SettingsScreen(
+                 icon = Icons.Outlined.Info,
+                 onClick = onOpenGuide
+             )
++            SettingsNavigationRow(
++                modifier = Modifier.testTag("settings-privacy-entry"),
++                title = stringResource(R.string.settings_privacy_title),
++                description = stringResource(R.string.settings_privacy_desc),
++                icon = Icons.Outlined.Lock,
++                onClick = onOpenPrivacy
++            )
+             SettingsNavigationRow(
+                 modifier = Modifier.testTag("settings-feature-tutorial-entry"),
+                 title = stringResource(R.string.settings_feature_tutorial_title),
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreen.kt
+index ba6a5f1..6e9b47e 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreen.kt
+@@ -264,27 +264,34 @@ private fun InsightsRangeSelection.testTagSuffix(): String = when (this) {
+ 
+ @Composable
+ private fun OverviewCards(model: InsightsPresentation.InsightsUiModel) {
+-    model.overviewCards.forEach { card ->
+-        val label = stringResource(card.labelRes)
+-        val description = stringResource(R.string.insights_count_row_description, label, card.value)
+-        Card(
+-            modifier = Modifier
+-                .fillMaxWidth()
+-                .testTag(card.testTag())
+-                .clearAndSetSemantics { contentDescription = description },
+-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+-        ) {
+-            Column(modifier = Modifier.padding(16.dp)) {
+-                Text(
+-                    text = label,
+-                    style = MaterialTheme.typography.labelLarge,
+-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+-                )
+-                Text(
+-                    text = card.value.toString(),
+-                    style = MaterialTheme.typography.headlineMedium,
+-                    fontWeight = FontWeight.SemiBold
+-                )
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("insights-overview-cards"),
++        verticalArrangement = Arrangement.spacedBy(16.dp)
++    ) {
++        model.overviewCards.forEach { card ->
++            val label = stringResource(card.labelRes)
++            val description = stringResource(R.string.insights_count_row_description, label, card.value)
++            Card(
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .testTag(card.testTag())
++                    .clearAndSetSemantics { contentDescription = description },
++                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
++            ) {
++                Column(modifier = Modifier.padding(16.dp)) {
++                    Text(
++                        text = label,
++                        style = MaterialTheme.typography.labelLarge,
++                        color = MaterialTheme.colorScheme.onSurfaceVariant
++                    )
++                    Text(
++                        text = card.value.toString(),
++                        style = MaterialTheme.typography.headlineMedium,
++                        fontWeight = FontWeight.SemiBold
++                    )
++                }
+             }
+         }
+     }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt
+index ac2d6a1..8038a7c 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt
+@@ -1,17 +1,31 @@
+ package io.github.yingqiu0871.evolune.ui.screens.retrospective
+ 
+ import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectHorizontalDragGestures
++import androidx.compose.foundation.gestures.detectTapGestures
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableIntStateOf
+ import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.CornerRadius
+ import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
+ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.Path
+ import androidx.compose.ui.graphics.drawscope.Stroke
++import androidx.compose.ui.input.pointer.pointerInput
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.semantics.contentDescription
+ import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.text.AnnotatedString
++import androidx.compose.ui.text.TextLayoutResult
++import androidx.compose.ui.text.TextStyle
++import androidx.compose.ui.text.drawText
++import androidx.compose.ui.text.rememberTextMeasurer
++import androidx.compose.ui.unit.dp
+ import io.github.yingqiu0871.evolune.R
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkSeries
+ import io.github.yingqiu0871.evolune.history.retrospective.RecordedIntakeMarker
+@@ -19,6 +33,12 @@ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker
+ import io.github.yingqiu0871.evolune.history.retrospective.ScheduleContextMarker
+ import java.time.Duration
+ import java.time.Instant
++import java.time.ZoneId
++import java.time.format.DateTimeFormatter
++import java.util.Locale
++import kotlin.math.abs
++import kotlin.math.ceil
++import kotlin.math.roundToLong
+ 
+ /**
+  * V17-C-04 §5/§D-7 — thin retrospective-only chart.
+@@ -29,12 +49,26 @@ import java.time.Instant
+  *
+  * Value discipline (contract §5): point concentrations are passed to the affine screen mapping
+  * exactly as supplied — no clamp, no normalization, no dropping of small floating-point
+- * cancellation values in `[-1e-9, 0)`. Markers are vertical presentation overlays only and never
+- * alter a curve value.
++ * cancellation values in `[-1e-9, 0)`. Markers are presentation overlays only and never alter a
++ * curve value.
++ *
++ * v1.7.1 UI hotfix (view-only rendering changes, no calculation change):
++ * - the drawn curve uses a deterministic decimation that preserves the first/last point and every
++ *   bucket's extrema, so 720h/2160h series stay readable and bounded without changing any value;
++ * - the y axis still derives from the RAW series extrema (a decimated peak is never clipped);
++ * - markers became small baseline ticks/dots; intake dots stay slightly more prominent than the
++ *   subdued schedule ticks;
++ * - about five to seven whole-day x-axis labels are drawn under the plot; the grid keeps
++ *   horizontal lines only;
++ * - a tap/drag inspection reads the nearest drawn point (view-only, transient, never persisted)
++ *   and shows its timestamp + model-estimate concentration.
+  */
+ 
+ private const val NANOS_PER_HOUR = 3_600_000_000_000.0
+ 
++/** Upper bound of drawn curve points; the raw series is never modified. */
++internal const val RETROSPECTIVE_CHART_MAX_POINTS = 720
++
+ /** One plotted point: hour offset from the series start (the frozen visible window) + raw concentration. */
+ internal data class RetrospectiveChartPoint(
+     val hourOffset: Double,
+@@ -67,6 +101,95 @@ internal fun retrospectiveChartYMax(points: List<RetrospectiveChartPoint>): Doub
+ internal fun markerHourOffset(instant: Instant, series: RetrospectivePkSeries): Double =
+     Duration.between(series.startInclusive, instant).toNanos() / NANOS_PER_HOUR
+ 
++/**
++ * Deterministic view-only decimation: the first and last points are always kept, the interior is
++ * split into equal buckets and each bucket contributes its minimum and maximum (in hour order).
++ * The result never exceeds [maxPoints] and never rewrites a value.
++ */
++internal fun retrospectiveChartDecimate(
++    points: List<RetrospectiveChartPoint>,
++    maxPoints: Int
++): List<RetrospectiveChartPoint> {
++    if (maxPoints < 3) return emptyList()
++    if (points.size <= maxPoints) return points
++    val bucketCount = (maxPoints - 2) / 2
++    if (bucketCount <= 0) return points
++    val interiorSize = points.size - 2
++    val result = ArrayList<RetrospectiveChartPoint>(maxPoints)
++    result += points.first()
++    val baseBucketSize = interiorSize / bucketCount
++    val largerBuckets = interiorSize % bucketCount
++    var index = 1
++    for (bucket in 0 until bucketCount) {
++        val bucketSize = baseBucketSize + if (bucket < largerBuckets) 1 else 0
++        if (bucketSize <= 0) continue
++        val bucketEnd = index + bucketSize
++        var minIndex = index
++        var maxIndex = index
++        var cursor = index
++        while (cursor < bucketEnd) {
++            if (points[cursor].concentrationPGmL < points[minIndex].concentrationPGmL) minIndex = cursor
++            if (points[cursor].concentrationPGmL > points[maxIndex].concentrationPGmL) maxIndex = cursor
++            cursor += 1
++        }
++        when {
++            minIndex == maxIndex -> result += points[minIndex]
++            minIndex < maxIndex -> {
++                result += points[minIndex]
++                result += points[maxIndex]
++            }
++
++            else -> {
++                result += points[maxIndex]
++                result += points[minIndex]
++            }
++        }
++        index = bucketEnd
++    }
++    result += points.last()
++    return result
++}
++
++/**
++ * About five to seven whole-day x-axis label offsets over `0..totalHours`, snapped to day
++ * boundaries; the window end is always included as the final label.
++ */
++internal fun retrospectiveChartLabelHourOffsets(totalHours: Double): List<Double> {
++    if (!totalHours.isFinite() || totalHours <= 0.0) return emptyList()
++    val targetCount = 6
++    val stepDays = ceil(totalHours / 24.0 / (targetCount - 1)).toInt().coerceAtLeast(1)
++    val offsets = mutableListOf<Double>()
++    var day = 0
++    while (offsets.size < targetCount) {
++        val offset = day * 24.0
++        if (offset > totalHours) break
++        offsets += offset
++        day += stepDays
++    }
++    if (offsets.isNotEmpty() && offsets.last() != totalHours && offsets.size < targetCount + 1) {
++        offsets += totalHours
++    }
++    return offsets
++}
++
++/** Index of the drawn point nearest to [hourOffset]; -1 for an empty list. */
++internal fun retrospectiveNearestPointIndex(
++    points: List<RetrospectiveChartPoint>,
++    hourOffset: Double
++): Int {
++    if (points.isEmpty()) return -1
++    var bestIndex = 0
++    var bestDistance = abs(points[0].hourOffset - hourOffset)
++    for (index in points.indices) {
++        val distance = abs(points[index].hourOffset - hourOffset)
++        if (distance < bestDistance) {
++            bestDistance = distance
++            bestIndex = index
++        }
++    }
++    return bestIndex
++}
++
+ @Composable
+ internal fun retrospectiveCurveColor(): Color = MaterialTheme.colorScheme.primary
+ 
+@@ -80,9 +203,14 @@ internal fun retrospectiveIntakeMarkerColor(): Color = MaterialTheme.colorScheme
+ internal fun RetrospectiveConcentrationChart(
+     series: RetrospectivePkSeries,
+     markers: List<RetrospectiveMarker>,
++    displayZone: ZoneId,
++    is24Hour: Boolean,
+     modifier: Modifier = Modifier
+ ) {
+     val points = remember(series) { retrospectiveChartPoints(series) }
++    val drawnPoints = remember(points) {
++        retrospectiveChartDecimate(points, RETROSPECTIVE_CHART_MAX_POINTS)
++    }
+     val totalHours = remember(series) { retrospectiveChartTotalHours(series) }
+     val yMax = remember(points) { retrospectiveChartYMax(points) }
+     val scheduleHours = remember(series, markers) {
+@@ -102,17 +230,67 @@ internal fun RetrospectiveConcentrationChart(
+     val scheduleColor = retrospectiveScheduleMarkerColor()
+     val intakeColor = retrospectiveIntakeMarkerColor()
+     val gridColor = MaterialTheme.colorScheme.outlineVariant
++    val inspectionColor = MaterialTheme.colorScheme.onSurfaceVariant
++    val tooltipBackground = MaterialTheme.colorScheme.surfaceVariant
++    val tooltipTextColor = MaterialTheme.colorScheme.onSurfaceVariant
++    val labelStyle = MaterialTheme.typography.labelSmall.copy(color = tooltipTextColor)
++    val tooltipStyle = MaterialTheme.typography.labelSmall.copy(color = tooltipTextColor)
+     val chartDescription = stringResource(R.string.retrospective_disclosure)
+ 
++    val textMeasurer = rememberTextMeasurer()
++    val labelHours = remember(totalHours) { retrospectiveChartLabelHourOffsets(totalHours) }
++    val labelFormatter = remember(displayZone) {
++        DateTimeFormatter.ofPattern("M/d", Locale.getDefault()).withZone(displayZone)
++    }
++    val tooltipFormatter = remember(displayZone, is24Hour) {
++        val pattern = if (is24Hour) "M/d HH:mm" else "M/d h:mm a"
++        DateTimeFormatter.ofPattern(pattern, Locale.getDefault()).withZone(displayZone)
++    }
++    var inspectedIndex by remember(drawnPoints) { mutableIntStateOf(-1) }
++
+     Canvas(
+-        modifier = modifier.semantics { contentDescription = chartDescription }
++        modifier = modifier
++            .semantics { contentDescription = chartDescription }
++            .pointerInput(drawnPoints, totalHours) {
++                detectTapGestures { position ->
++                    inspectedIndex = if (!totalHours.isFinite() || totalHours <= 0.0) {
++                        -1
++                    } else {
++                        val left = 8f
++                        val right = size.width - 8f
++                        val fraction = ((position.x - left) / (right - left)).coerceIn(0f, 1f)
++                        retrospectiveNearestPointIndex(drawnPoints, fraction * totalHours)
++                    }
++                }
++            }
++            .pointerInput(drawnPoints, totalHours) {
++                detectHorizontalDragGestures(
++                    onDragStart = { position ->
++                        if (totalHours.isFinite() && totalHours > 0.0) {
++                            val left = 8f
++                            val right = size.width - 8f
++                            val fraction = ((position.x - left) / (right - left)).coerceIn(0f, 1f)
++                            inspectedIndex = retrospectiveNearestPointIndex(drawnPoints, fraction * totalHours)
++                        }
++                    },
++                    onHorizontalDrag = { change, _ ->
++                        if (totalHours.isFinite() && totalHours > 0.0) {
++                            val left = 8f
++                            val right = size.width - 8f
++                            val fraction = ((change.position.x - left) / (right - left)).coerceIn(0f, 1f)
++                            inspectedIndex = retrospectiveNearestPointIndex(drawnPoints, fraction * totalHours)
++                        }
++                    }
++                )
++            }
+     ) {
+-        if (!totalHours.isFinite() || totalHours <= 0.0 || points.isEmpty()) return@Canvas
++        if (!totalHours.isFinite() || totalHours <= 0.0 || drawnPoints.isEmpty()) return@Canvas
+ 
++        val labelArea = 16.dp.toPx()
+         val left = 8f
+         val right = size.width - 8f
+         val top = 8f
+-        val bottom = size.height - 8f
++        val bottom = size.height - 8f - labelArea
+         val width = right - left
+         val height = bottom - top
+         if (width <= 0f || height <= 0f) return@Canvas
+@@ -120,18 +298,16 @@ internal fun RetrospectiveConcentrationChart(
+         fun xForHour(hour: Double): Float = left + width * (hour / totalHours).toFloat()
+         fun yForValue(value: Double): Float = bottom - height * (value / yMax).toFloat()
+ 
+-        // Light grid at quarter positions (presentation only; no data meaning).
++        // Horizontal grid only (presentation only; no data meaning).
+         for (index in 0..4) {
+-            val x = left + width * index / 4f
+-            drawLine(gridColor, Offset(x, top), Offset(x, bottom), strokeWidth = 1f)
+             val y = top + height * index / 4f
+             drawLine(gridColor, Offset(left, y), Offset(right, y), strokeWidth = 1f)
+         }
+ 
+-        // The single continuous retrospective model-estimate curve: raw series values only.
++        // The single continuous retrospective model-estimate curve: raw (decimated) values only.
+         val path = Path()
+         var started = false
+-        points.forEach { point ->
++        drawnPoints.forEach { point ->
+             val x = xForHour(point.hourOffset)
+             val y = yForValue(point.concentrationPGmL)
+             if (!x.isFinite() || !y.isFinite()) return@forEach
+@@ -146,14 +322,59 @@ internal fun RetrospectiveConcentrationChart(
+             drawPath(path, curveColor, style = Stroke(width = 2f))
+         }
+ 
+-        // Marker overlays: current-schedule context and recorded intake, presentation only.
++        // Marker overlays: small baseline ticks/dots (presentation only, subordinate to the curve).
+         scheduleHours.forEach { hour ->
+             val x = xForHour(hour)
+-            if (x.isFinite()) drawLine(scheduleColor, Offset(x, top), Offset(x, bottom), strokeWidth = 2f)
++            if (x.isFinite()) {
++                drawLine(scheduleColor, Offset(x, bottom), Offset(x, bottom - 8f), strokeWidth = 2f)
++            }
+         }
+         intakeHours.forEach { hour ->
+             val x = xForHour(hour)
+-            if (x.isFinite()) drawLine(intakeColor, Offset(x, top), Offset(x, bottom), strokeWidth = 2f)
++            if (x.isFinite()) {
++                drawCircle(intakeColor, radius = 3.5f, center = Offset(x, bottom - 6f))
++            }
++        }
++
++        // Adaptive whole-day x-axis labels.
++        labelHours.forEach { hour ->
++            val x = xForHour(hour)
++            if (!x.isFinite()) return@forEach
++            val instant = series.startInclusive.plusSeconds((hour * 3600.0).roundToLong())
++            val layout = textMeasurer.measure(
++                text = AnnotatedString(labelFormatter.format(instant)),
++                style = labelStyle
++            )
++            val xPosition = (x - layout.size.width / 2f)
++                .coerceIn(2f, (size.width - layout.size.width - 2f).coerceAtLeast(2f))
++            drawText(layout, topLeft = Offset(xPosition, bottom + 4f))
++        }
++
++        // Transient tap/drag inspection overlay: nearest drawn point only, never persisted.
++        val point = drawnPoints.getOrNull(inspectedIndex)
++        if (point != null) {
++            val x = xForHour(point.hourOffset)
++            val y = yForValue(point.concentrationPGmL)
++            if (x.isFinite() && y.isFinite()) {
++                drawLine(inspectionColor, Offset(x, top), Offset(x, bottom), strokeWidth = 1.5f)
++                drawCircle(inspectionColor, radius = 4f, center = Offset(x, y))
++                val instant = series.startInclusive.plusSeconds((point.hourOffset * 3600.0).roundToLong())
++                val text = tooltipFormatter.format(instant) + "  ·  " +
++                    String.format(Locale.US, "%.1f", point.concentrationPGmL) + " pg/mL"
++                val layout: TextLayoutResult = textMeasurer.measure(
++                    text = AnnotatedString(text),
++                    style = tooltipStyle
++                )
++                val xPosition = (x - layout.size.width / 2f)
++                    .coerceIn(2f, (size.width - layout.size.width - 2f).coerceAtLeast(2f))
++                drawRoundRect(
++                    color = tooltipBackground,
++                    topLeft = Offset(xPosition - 6f, top - 2f),
++                    size = Size(layout.size.width + 12f, layout.size.height + 8f),
++                    cornerRadius = CornerRadius(6f, 6f)
++                )
++                drawText(layout, topLeft = Offset(xPosition, top + 2f))
++            }
+         }
+     }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt
+index 8efdce8..2bfa13a 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt
+@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
+ import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material3.CircularProgressIndicator
+ import androidx.compose.material3.ExperimentalMaterial3Api
++import androidx.compose.material3.FilterChip
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Scaffold
+ import androidx.compose.material3.Text
+@@ -40,8 +41,10 @@ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkLimitation
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkResult
+ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkUnavailableReason
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePhase
++import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkRange
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkUiState
+ import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModel
++import java.time.ZoneId
+ 
+ /**
+  * V17-C-04 §7/§9/§10 — the production retrospective destination.
+@@ -66,7 +69,8 @@ fun RetrospectiveRoute(
+         modifier = modifier,
+         is24Hour = is24Hour,
+         showTopBar = showTopBar,
+-        onRetry = viewModel::retry
++        onRetry = viewModel::retry,
++        onSelectRange = viewModel::selectRange
+     )
+ }
+ 
+@@ -81,7 +85,8 @@ fun RetrospectivePkScreenContent(
+     modifier: Modifier = Modifier,
+     is24Hour: Boolean = true,
+     showTopBar: Boolean = false,
+-    onRetry: () -> Unit = {}
++    onRetry: () -> Unit = {},
++    onSelectRange: (RetrospectivePkRange) -> Unit = {}
+ ) {
+     Scaffold(
+         modifier = modifier.testTag("retrospective-screen"),
+@@ -122,12 +127,17 @@ fun RetrospectivePkScreenContent(
+             Text(
+                 text = stringResource(
+                     R.string.retrospective_window_caption,
++                    state.selectedRange.days.toInt(),
+                     HistoryFormatting.fullDateTimeText(state.windowEnd, state.displayZone, is24Hour)
+                 ),
+                 style = MaterialTheme.typography.bodySmall,
+                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                 modifier = Modifier.testTag("retrospective-window-caption")
+             )
++            RetrospectiveRangeSelector(
++                selectedRange = state.selectedRange,
++                onSelectRange = onSelectRange
++            )
+ 
+             when (state.phase) {
+                 RetrospectivePhase.LOADING -> LoadingBlock()
+@@ -139,6 +149,8 @@ fun RetrospectivePkScreenContent(
+                         ContentBlock(
+                             available = available,
+                             markers = state.markers,
++                            displayZone = state.displayZone,
++                            is24Hour = is24Hour,
+                             onRetry = onRetry
+                         )
+                     }
+@@ -160,6 +172,43 @@ fun RetrospectivePkScreenContent(
+     }
+ }
+ 
++// ---------- range selector (v1.7.1 UI hotfix) ----------
++
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++private fun RetrospectiveRangeSelector(
++    selectedRange: RetrospectivePkRange,
++    onSelectRange: (RetrospectivePkRange) -> Unit
++) {
++    Row(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("retrospective-range-selector"),
++        horizontalArrangement = Arrangement.spacedBy(8.dp)
++    ) {
++        RetrospectivePkRange.entries.forEach { range ->
++            FilterChip(
++                selected = range == selectedRange,
++                onClick = { onSelectRange(range) },
++                label = { Text(stringResource(rangeLabelRes(range))) },
++                modifier = Modifier.testTag(rangeTestTag(range))
++            )
++        }
++    }
++}
++
++private fun rangeLabelRes(range: RetrospectivePkRange): Int = when (range) {
++    RetrospectivePkRange.LAST_7_DAYS -> R.string.retrospective_range_7_days
++    RetrospectivePkRange.LAST_30_DAYS -> R.string.retrospective_range_30_days
++    RetrospectivePkRange.LAST_90_DAYS -> R.string.retrospective_range_90_days
++}
++
++private fun rangeTestTag(range: RetrospectivePkRange): String = when (range) {
++    RetrospectivePkRange.LAST_7_DAYS -> "retrospective-range-7"
++    RetrospectivePkRange.LAST_30_DAYS -> "retrospective-range-30"
++    RetrospectivePkRange.LAST_90_DAYS -> "retrospective-range-90"
++}
++
+ // ---------- phase blocks ----------
+ 
+ @Composable
+@@ -179,16 +228,26 @@ private fun LoadingBlock() {
+ private fun ContentBlock(
+     available: RetrospectivePkResult.Available,
+     markers: List<io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker>,
++    displayZone: ZoneId,
++    is24Hour: Boolean,
+     onRetry: () -> Unit
+ ) {
+     RetrospectiveConcentrationChart(
+         series = available.series,
+         markers = markers,
++        displayZone = displayZone,
++        is24Hour = is24Hour,
+         modifier = Modifier
+             .fillMaxWidth()
+             .height(220.dp)
+             .testTag("retrospective-chart")
+     )
++    Text(
++        text = stringResource(R.string.retrospective_chart_hint),
++        style = MaterialTheme.typography.bodySmall,
++        color = MaterialTheme.colorScheme.onSurfaceVariant,
++        modifier = Modifier.testTag("retrospective-chart-hint")
++    )
+     MarkerLegend(markers)
+     Text(
+         text = stringResource(R.string.retrospective_marker_legend_disclosure),
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+index fe38e4e..66c857a 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+@@ -35,12 +35,43 @@ import java.util.Locale
+  */
+ object TimelinePresentation {
+ 
+-    /** A day-strip cell: the strip always shows the whole effective range in ascending order. */
++    /**
++     * How many adjacent-month days the strip renders on both sides of the effective range. The
++     * continuous window lets the first day of the visible month sit inside the viewport with the
++     * preceding (adjacent-month) dates still visible to its left (v1.7.1 UI hotfix).
++     */
++    private const val DAY_STRIP_ADJACENT_DAYS = 7L
++
++    /** The month-step a day selection outside the effective range requires (adjacent dates). */
++    enum class MonthStep { NONE, PREVIOUS, NEXT }
++
++    /**
++     * Adjacent-month selection routing (v1.7.1 UI hotfix): a date before the effective start
++     * belongs to the previous month, a date after the effective end to the next month. Dates
++     * inside the range (or while no range is published) perform no month step.
++     */
++    fun monthStepFor(
++        date: LocalDate,
++        effectiveStartDate: LocalDate?,
++        effectiveEndDate: LocalDate?
++    ): MonthStep = when {
++        effectiveStartDate == null || effectiveEndDate == null -> MonthStep.NONE
++        date.isBefore(effectiveStartDate) -> MonthStep.PREVIOUS
++        date.isAfter(effectiveEndDate) -> MonthStep.NEXT
++        else -> MonthStep.NONE
++    }
++
++    /**
++     * A day-strip cell. The strip renders the effective range plus the surrounding
++     * [DAY_STRIP_ADJACENT_DAYS] window in ascending order; cells outside the requested month stay
++     * distinguishable through [isInRequestedMonth] and future cells stay non-selectable.
++     */
+     data class DayCell(
+         val date: LocalDate,
+         val isSelected: Boolean,
+         val isToday: Boolean,
+-        val enabled: Boolean
++        val enabled: Boolean,
++        val isInRequestedMonth: Boolean
+     )
+ 
+     /** Section heading: a relative resource (Today/Yesterday) or an absolute date + weekday. */
+@@ -123,20 +154,26 @@ object TimelinePresentation {
+         )
+     }
+ 
+-    /** The strip never synthesizes dates outside the effective range and never exceeds one month. */
++    /**
++     * The strip renders a continuous window: the effective range extended by
++     * [DAY_STRIP_ADJACENT_DAYS] days on both sides, so adjacent-month dates stay visible (the
++     * first day of the month is never left-most) and the viewport is never given empty gaps.
++     */
+     private fun dayCells(
+         state: TimelineRangeState,
+         start: LocalDate,
+         end: LocalDate
+     ): List<DayCell> {
+         val cells = mutableListOf<DayCell>()
+-        var date = start
+-        while (!date.isAfter(end)) {
++        var date = start.minusDays(DAY_STRIP_ADJACENT_DAYS)
++        val lastDate = end.plusDays(DAY_STRIP_ADJACENT_DAYS)
++        while (!date.isAfter(lastDate)) {
+             cells += DayCell(
+                 date = date,
+                 isSelected = date == state.selectedDate,
+                 isToday = date == state.today,
+-                enabled = !date.isAfter(state.today)
++                enabled = !date.isAfter(state.today),
++                isInRequestedMonth = YearMonth.from(date) == state.requestedMonth
+             )
+             date = date.plusDays(1)
+         }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+index e925395..20bca2a 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+@@ -117,7 +117,21 @@ fun TimelineRoute(
+         showTopBar = showTopBar,
+         onPreviousMonth = viewModel::showPreviousMonth,
+         onNextMonth = viewModel::showNextMonth,
+-        onSelectDate = viewModel::selectDate,
++        onSelectDate = { date ->
++            // Adjacent-month strip dates change the requested month first, then select the date.
++            when (
++                TimelinePresentation.monthStepFor(
++                    date,
++                    state.effectiveStartDate,
++                    state.effectiveEndDate
++                )
++            ) {
++                TimelinePresentation.MonthStep.PREVIOUS -> viewModel.showPreviousMonth()
++                TimelinePresentation.MonthStep.NEXT -> viewModel.showNextMonth()
++                TimelinePresentation.MonthStep.NONE -> Unit
++            }
++            viewModel.selectDate(date)
++        },
+         onRetry = viewModel::retry,
+         onReturnToCurrentMonth = viewModel::returnToCurrentMonth
+     )
+@@ -394,10 +408,12 @@ private fun resolveDayCellMetrics(
+ }
+ 
+ /**
+- * Compact horizontal strip over `effectiveStartDate .. effectiveEndDate` (ascending, at most 31
+- * cells). Symmetric content padding (computed from the RESOLVED uniform cell width — V17-D-05
+- * §27) lets the selected cell rest at the horizontal center of the viewport, including the first
+- * and last selectable days (D-04 §11/§11.1, UI46/UI47).
++ * Compact horizontal strip over the continuous window around `effectiveStartDate ..
++ * effectiveEndDate` (ascending, extended by adjacent-month days on both sides). Symmetric content
++ * padding (computed from the RESOLVED uniform cell width — V17-D-05 §27) lets the selected cell
++ * rest at the horizontal center of the viewport, including the first and last selectable days
++ * (D-04 §11/§11.1, UI46/UI47); the adjacent-month extension keeps the first day of the visible
++ * month from ever being the left-most item (v1.7.1 UI hotfix).
+  */
+ @Composable
+ private fun DayStrip(
+@@ -471,8 +487,14 @@ private fun TimelineDayCell(
+     val contentColor = when {
+         !cell.enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+         cell.isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
++        !cell.isInRequestedMonth -> MaterialTheme.colorScheme.onSurfaceVariant
+         else -> MaterialTheme.colorScheme.onSurface
+     }
++    val weekdayColor = if (cell.isInRequestedMonth || cell.isSelected) {
++        MaterialTheme.colorScheme.onSurfaceVariant
++    } else {
++        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
++    }
+     val phrase = dayCellAccessibilityPhrase(cell)
+ 
+     Column(
+@@ -491,7 +513,7 @@ private fun TimelineDayCell(
+         Text(
+             text = stringResource(TimelinePresentation.weekdayRes(cell.date.dayOfWeek)),
+             style = MaterialTheme.typography.labelSmall,
+-            color = MaterialTheme.colorScheme.onSurfaceVariant,
++            color = weekdayColor,
+             modifier = Modifier.clearAndSetSemantics {
+                 this[SemanticsProperties.TestTag] = "timeline-day-weekday-${cell.date}"
+             }
+@@ -563,7 +585,7 @@ private fun TimelineSection(section: TimelinePresentation.Section) {
+             .fillMaxWidth()
+             .padding(horizontal = 16.dp, vertical = 8.dp)
+             .testTag("timeline-section-${section.date}"),
+-        verticalArrangement = Arrangement.spacedBy(4.dp)
++        verticalArrangement = Arrangement.spacedBy(12.dp)
+     ) {
+         when (val label = section.label) {
+             is TimelinePresentation.SectionLabel.Relative -> Text(
+diff --git a/app/src/main/res/values-zh-rCN/strings.xml b/app/src/main/res/values-zh-rCN/strings.xml
+index 6f22b74..3d67c3a 100644
+--- a/app/src/main/res/values-zh-rCN/strings.xml
++++ b/app/src/main/res/values-zh-rCN/strings.xml
+@@ -11,8 +11,10 @@
+     <string name="settings_update_desc">自动更新、版本检查与当前版本</string>
+     <string name="settings_about_title">关于</string>
+     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
+-    <string name="settings_guide_title">指南、隐私与权限</string>
+-    <string name="settings_guide_desc">重新查看首次引导、数据边界与授权说明</string>
++    <string name="settings_guide_title">指南</string>
++    <string name="settings_guide_desc">重新查看首次引导与数据边界说明</string>
++    <string name="settings_privacy_title">隐私与权限</string>
++    <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
+     <string name="settings_feature_tutorial_title">功能教程</string>
+     <string name="settings_feature_tutorial_desc">用药方案、记录、PK、Widget、Wear 与备份</string>
+     <string name="settings_sync_backup_local_title">本地数据</string>
+@@ -554,9 +556,13 @@
+     <!-- v1.7-C-04 Retrospective PK surface (contract §11.2; wording is frozen) -->
+     <string name="retrospective_title">回顾性 PK</string>
+     <string name="retrospective_entry_title">回顾性 PK</string>
+-    <string name="retrospective_entry_subtitle">由已记录摄入推算的 30 天模型估算</string>
++    <string name="retrospective_entry_subtitle">由已记录摄入推算的模型估算</string>
+     <string name="retrospective_entry_action">打开回顾性 PK</string>
+-    <string name="retrospective_window_caption">最近 30×24 小时——截至 %1$s</string>
++    <string name="retrospective_window_caption">最近 %1$d 天——截至 %2$s</string>
++    <string name="retrospective_range_7_days">近 7 天</string>
++    <string name="retrospective_range_30_days">近 30 天</string>
++    <string name="retrospective_range_90_days">近 90 天</string>
++    <string name="retrospective_chart_hint">点按或拖动图表可查看某一时刻的模型估算浓度</string>
+     <string name="retrospective_disclosure">模型估算——并非实测血药浓度。</string>
+     <string name="retrospective_marker_legend_disclosure">方案标记表示当前方案上下文；摄入标记显示与本次估算关联的当前记录。若记录刚刚被修改，标记内容可能比曲线更新。</string>
+     <string name="retrospective_marker_schedule_context">当前方案上下文</string>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 7809407..a902703 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -11,8 +11,10 @@
+     <string name="settings_update_desc">自动更新、版本检查与当前版本</string>
+     <string name="settings_about_title">关于</string>
+     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
+-    <string name="settings_guide_title">指南、隐私与权限</string>
+-    <string name="settings_guide_desc">重新查看首次引导、数据边界与授权说明</string>
++    <string name="settings_guide_title">指南</string>
++    <string name="settings_guide_desc">重新查看首次引导与数据边界说明</string>
++    <string name="settings_privacy_title">隐私与权限</string>
++    <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
+     <string name="settings_feature_tutorial_title">功能教程</string>
+     <string name="settings_feature_tutorial_desc">用药方案、记录、PK、Widget、Wear 与备份</string>
+     <string name="settings_sync_backup_local_title">本地数据</string>
+@@ -564,9 +566,13 @@
+     <!-- v1.7-C-04 Retrospective PK surface (contract §11.2; wording is frozen) -->
+     <string name="retrospective_title">回顾性 PK</string>
+     <string name="retrospective_entry_title">回顾性 PK</string>
+-    <string name="retrospective_entry_subtitle">由已记录摄入推算的 30 天模型估算</string>
++    <string name="retrospective_entry_subtitle">由已记录摄入推算的模型估算</string>
+     <string name="retrospective_entry_action">打开回顾性 PK</string>
+-    <string name="retrospective_window_caption">最近 30×24 小时——截至 %1$s</string>
++    <string name="retrospective_window_caption">最近 %1$d 天——截至 %2$s</string>
++    <string name="retrospective_range_7_days">近 7 天</string>
++    <string name="retrospective_range_30_days">近 30 天</string>
++    <string name="retrospective_range_90_days">近 90 天</string>
++    <string name="retrospective_chart_hint">点按或拖动图表可查看某一时刻的模型估算浓度</string>
+     <string name="retrospective_disclosure">模型估算——并非实测血药浓度。</string>
+     <string name="retrospective_marker_legend_disclosure">方案标记表示当前方案上下文；摄入标记显示与本次估算关联的当前记录。若记录刚刚被修改，标记内容可能比曲线更新。</string>
+     <string name="retrospective_marker_schedule_context">当前方案上下文</string>
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+index cab9347..80d4900 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+@@ -132,12 +132,12 @@ class RetrospectivePkViewModelTest {
+     }
+ 
+     @Test
+-    fun `the window is exactly 720 hours, millisecond aligned and has no future segment`() {
++    fun `the default window is exactly 168 hours, millisecond aligned and has no future segment`() {
+         val fixture = fixture()
+         try {
+             val request = fixture.pkSource.requests.single()
+             val window = request.visibleWindow
+-            assertEquals(Duration.ofDays(30), window.duration)
++            assertEquals(Duration.ofDays(7), window.duration)
+             assertEquals(window.endInclusive, request.capturedAt)
+             assertEquals(
+                 window.endInclusive,
+@@ -148,6 +148,63 @@ class RetrospectivePkViewModelTest {
+                 Instant.ofEpochMilli(window.startInclusive.toEpochMilli())
+             )
+             assertFalse(window.startInclusive.isAfter(window.endInclusive))
++            assertEquals(RetrospectivePkRange.LAST_7_DAYS, fixture.viewModel.uiState.value.selectedRange)
++        } finally {
++            fixture.close()
++        }
++    }
++
++    @Test
++    fun `selecting another range reloads exactly once with the selected window`() {
++        val fixture = fixture()
++        try {
++            assertEquals(1, fixture.pkSource.requests.size)
++            assertEquals(1, fixture.allSource.calls.size)
++            assertEquals(1, fixture.rangeSource.calls.size)
++
++            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_30_DAYS)
++
++            assertEquals(2, fixture.pkSource.requests.size)
++            assertEquals(2, fixture.allSource.calls.size)
++            assertEquals(2, fixture.rangeSource.calls.size)
++            val window = fixture.pkSource.requests.last().visibleWindow
++            assertEquals(Duration.ofDays(30), window.duration)
++            assertEquals(c04Window(days = 30).startInclusive, window.startInclusive)
++            assertEquals(c04Window(days = 30).endInclusive, window.endInclusive)
++            assertEquals(RetrospectivePkRange.LAST_30_DAYS, fixture.viewModel.uiState.value.selectedRange)
++        } finally {
++            fixture.close()
++        }
++    }
++
++    @Test
++    fun `re-selecting the current range performs no extra load`() {
++        val fixture = fixture()
++        try {
++            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_7_DAYS)
++            assertEquals(1, fixture.pkSource.requests.size)
++            assertEquals(1, fixture.allSource.calls.size)
++            assertEquals(1, fixture.rangeSource.calls.size)
++        } finally {
++            fixture.close()
++        }
++    }
++
++    @Test
++    fun `the selected range survives a retry load`() {
++        val fixture = fixture()
++        try {
++            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_90_DAYS)
++            assertEquals(2, fixture.pkSource.requests.size)
++
++            fixture.viewModel.retry()
++
++            assertEquals(3, fixture.pkSource.requests.size)
++            assertEquals(
++                Duration.ofDays(90),
++                fixture.pkSource.requests.last().visibleWindow.duration
++            )
++            assertEquals(RetrospectivePkRange.LAST_90_DAYS, fixture.viewModel.uiState.value.selectedRange)
+         } finally {
+             fixture.close()
+         }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveStringsParityTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveStringsParityTest.kt
+index 630e20f..942138f 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveStringsParityTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveStringsParityTest.kt
+@@ -36,7 +36,7 @@ class RetrospectiveStringsParityTest {
+         val zh = stringsOf(paths[1])
+         assertTrue("the default resource must contain every retrospective key", default.isNotEmpty())
+         assertEquals(default.keys, zh.keys)
+-        assertEquals(20, default.size)
++        assertEquals(24, default.size)
+     }
+ 
+     @Test
+@@ -69,8 +69,16 @@ class RetrospectiveStringsParityTest {
+     }
+ 
+     @Test
+-    fun `the window caption keeps exactly one timestamp placeholder`() {
++    fun `the window caption carries the selected range and exactly one timestamp placeholder`() {
+         val default = stringsOf(paths[0])
+-        assertEquals(listOf("%1\$s"), placeholders(default.getValue("retrospective_window_caption")))
++        val zh = stringsOf(paths[1])
++        assertEquals(
++            listOf("%1\$d", "%2\$s"),
++            placeholders(default.getValue("retrospective_window_caption"))
++        )
++        assertEquals(
++            listOf("%1\$d", "%2\$s"),
++            placeholders(zh.getValue("retrospective_window_caption"))
++        )
+     }
+ }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+index 387509c..efb1929 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+@@ -40,8 +40,15 @@ import java.util.UUID
+ internal val C04_UTC: ZoneId = ZoneOffset.UTC
+ internal val C04_NOW: Instant = LocalDate.of(2026, 9, 16).atTime(12, 0).toInstant(ZoneOffset.UTC)
+ 
+-internal fun c04Window(endingAt: Instant = C04_NOW): RetrospectivePkWindow =
+-    RetrospectivePkWindow(startInclusive = endingAt.minus(Duration.ofDays(30)), endInclusive = endingAt)
++/**
++ * The window the surface queries; v1.7.1 UI hotfix default is the 7-day range, and tests may ask
++ * for any other selected length explicitly.
++ */
++internal fun c04Window(
++    endingAt: Instant = C04_NOW,
++    days: Long = RetrospectivePkRange.LAST_7_DAYS.days
++): RetrospectivePkWindow =
++    RetrospectivePkWindow(startInclusive = endingAt.minus(Duration.ofDays(days)), endInclusive = endingAt)
+ 
+ // ---------- recording seams ----------
+ 
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveChartDataTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveChartDataTest.kt
+index 4e4c6b6..8e4b889 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveChartDataTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveChartDataTest.kt
+@@ -85,4 +85,91 @@ class RetrospectiveChartDataTest {
+         val zero = retrospectiveChartPoints(seriesOf(listOf(0.0, 0.0)))
+         assertEquals(1.0, retrospectiveChartYMax(zero), 0.0)
+     }
++
++    // ---------- v1.7.1 UI hotfix: view-only decimation, labels, inspection ----------
++
++    @Test
++    fun `decimation keeps the first and last point and stays inside the bound`() {
++        val values = (0 until 7201).map { index -> index % 97 / 97.0 }
++        val points = retrospectiveChartPoints(seriesOf(values))
++
++        val drawn = retrospectiveChartDecimate(points, 720)
++
++        assertTrue("the drawn series must stay bounded", drawn.size <= 720)
++        assertEquals(points.first(), drawn.first())
++        assertEquals(points.last(), drawn.last())
++        assertTrue(
++            "hour offsets must stay strictly ascending",
++            drawn.zipWithNext().all { (first, second) -> second.hourOffset > first.hourOffset }
++        )
++    }
++
++    @Test
++    fun `decimation preserves the raw global extrema bit for bit and is deterministic`() {
++        val values = MutableList(2001) { 1.0 }
++        values[700] = 0.0
++        values[1300] = 512.25
++        val points = retrospectiveChartPoints(seriesOf(values))
++
++        val drawn = retrospectiveChartDecimate(points, 400)
++        val again = retrospectiveChartDecimate(points, 400)
++
++        assertEquals("decimation must be deterministic", drawn, again)
++        val min = drawn.minByOrNull { it.concentrationPGmL }
++        val max = drawn.maxByOrNull { it.concentrationPGmL }
++        assertEquals(points[700].hourOffset, min!!.hourOffset, 1e-9)
++        assertEquals(
++            "the raw minimum must stay bit-identical",
++            points[700].concentrationPGmL.toRawBits(),
++            min.concentrationPGmL.toRawBits()
++        )
++        assertEquals(points[1300].hourOffset, max!!.hourOffset, 1e-9)
++        assertEquals(
++            "the raw maximum must stay bit-identical",
++            points[1300].concentrationPGmL.toRawBits(),
++            max.concentrationPGmL.toRawBits()
++        )
++    }
++
++    @Test
++    fun `a series below the bound is returned unchanged`() {
++        val points = retrospectiveChartPoints(seriesOf(listOf(0.0, 1.0, 2.0)))
++
++        assertEquals(points, retrospectiveChartDecimate(points, 720))
++    }
++
++    @Test
++    fun `x labels stay whole-day, between five and seven, and end at the window end`() {
++        val sevenDay = retrospectiveChartLabelHourOffsets(168.0)
++        assertEquals(listOf(0.0, 48.0, 96.0, 144.0, 168.0), sevenDay)
++
++        val thirtyDay = retrospectiveChartLabelHourOffsets(720.0)
++        assertEquals(6, thirtyDay.size)
++        assertEquals(720.0, thirtyDay.last(), 0.0)
++        assertTrue(thirtyDay.all { it % 24.0 == 0.0 })
++
++        val ninetyDay = retrospectiveChartLabelHourOffsets(2160.0)
++        assertEquals(6, ninetyDay.size)
++        assertEquals(2160.0, ninetyDay.last(), 0.0)
++        assertTrue(ninetyDay.all { it % 24.0 == 0.0 })
++
++        assertTrue(retrospectiveChartLabelHourOffsets(0.0).isEmpty())
++        assertTrue(retrospectiveChartLabelHourOffsets(Double.NaN).isEmpty())
++    }
++
++    @Test
++    fun `nearest point inspection finds the closest drawn sample`() {
++        val points = listOf(
++            RetrospectiveChartPoint(0.0, 1.0),
++            RetrospectiveChartPoint(10.0, 2.0),
++            RetrospectiveChartPoint(20.0, 3.0)
++        )
++
++        assertEquals(0, retrospectiveNearestPointIndex(points, 0.0))
++        assertEquals(0, retrospectiveNearestPointIndex(points, 4.0))
++        assertEquals(1, retrospectiveNearestPointIndex(points, 6.0))
++        assertEquals(2, retrospectiveNearestPointIndex(points, 19.5))
++        assertEquals(2, retrospectiveNearestPointIndex(points, 500.0))
++        assertEquals(-1, retrospectiveNearestPointIndex(emptyList(), 5.0))
++    }
+ }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+index 1f6a999..d56ec07 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+@@ -150,18 +150,75 @@ class TimelinePresentationTest {
+     }
+ 
+     @Test
+-    fun `the strip covers the effective range in ascending order with selection flags`() {
++    fun `the strip renders the continuous window around the effective range in ascending order`() {
+         val model = TimelinePresentation.present(
+             state(selectedDate = LocalDate.of(2026, 9, 10)),
+             is24Hour = true,
+             locale = locale
+         )
+-        assertEquals(16, model.dayCells.size)
+-        assertEquals(LocalDate.of(2026, 9, 1), model.dayCells.first().date)
+-        assertEquals(today, model.dayCells.last().date)
++        assertEquals(LocalDate.of(2026, 8, 25), model.dayCells.first().date)
++        assertEquals(LocalDate.of(2026, 9, 23), model.dayCells.last().date)
++        assertEquals(30, model.dayCells.size)
+         assertEquals(listOf(LocalDate.of(2026, 9, 10)), model.dayCells.filter { it.isSelected }.map { it.date })
+         assertEquals(1, model.dayCells.count { it.isToday })
+-        assertTrue("no cell may be selectable after today", model.dayCells.all { it.enabled })
++        assertTrue(
++            "in-month, non-future cells stay selectable",
++            model.dayCells.filter { it.isInRequestedMonth && !it.date.isAfter(today) }
++                .all { it.enabled }
++        )
++        assertTrue(
++            "future cells stay non-selectable",
++            model.dayCells.filter { it.date.isAfter(today) }.none { it.enabled }
++        )
++        assertTrue(
++            "adjacent-month cells are flagged for subdued styling",
++            model.dayCells.filter { YearMonth.from(it.date) != YearMonth.of(2026, 9) }
++                .all { !it.isInRequestedMonth }
++        )
++    }
++
++    @Test
++    fun `a month switch keeps the first day inside the strip with preceding dates to its left`() {
++        val model = TimelinePresentation.present(
++            state(
++                selectedDate = LocalDate.of(2026, 8, 1),
++                requestedMonth = YearMonth.of(2026, 8),
++                effectiveStart = LocalDate.of(2026, 8, 1),
++                effectiveEnd = LocalDate.of(2026, 8, 31)
++            ),
++            is24Hour = true,
++            locale = locale
++        )
++        assertEquals(LocalDate.of(2026, 7, 25), model.dayCells.first().date)
++        assertEquals(LocalDate.of(2026, 9, 7), model.dayCells.last().date)
++        val firstOfMonthIndex = model.dayCells.indexOfFirst { it.date == LocalDate.of(2026, 8, 1) }
++        assertTrue("the first day of the month must not be the left-most item", firstOfMonthIndex > 0)
++        assertTrue(
++            "adjacent-month selectable dates stay enabled",
++            model.dayCells.filter { it.date.isBefore(LocalDate.of(2026, 8, 1)) }.all { it.enabled }
++        )
++    }
++
++    @Test
++    fun `adjacent-month selection resolves to a month step`() {
++        val start = LocalDate.of(2026, 8, 1)
++        val end = LocalDate.of(2026, 8, 31)
++        assertEquals(
++            TimelinePresentation.MonthStep.PREVIOUS,
++            TimelinePresentation.monthStepFor(LocalDate.of(2026, 7, 30), start, end)
++        )
++        assertEquals(
++            TimelinePresentation.MonthStep.NEXT,
++            TimelinePresentation.monthStepFor(LocalDate.of(2026, 9, 3), start, end)
++        )
++        assertEquals(
++            TimelinePresentation.MonthStep.NONE,
++            TimelinePresentation.monthStepFor(LocalDate.of(2026, 8, 15), start, end)
++        )
++        assertEquals(
++            TimelinePresentation.MonthStep.NONE,
++            TimelinePresentation.monthStepFor(LocalDate.of(2026, 8, 15), null, null)
++        )
+     }
+ 
+     // ---------- row truthfulness (UI13–UI15, UI19) ----------

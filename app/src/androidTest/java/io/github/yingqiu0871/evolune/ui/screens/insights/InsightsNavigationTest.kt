@@ -3,9 +3,11 @@ package io.github.yingqiu0871.evolune.ui.screens.insights
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -66,12 +68,21 @@ class InsightsNavigationTest {
         composeRule.waitForIdle()
     }
 
+    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
+    private fun scrollHistoryToInsightsEntry() {
+        composeRule.onNodeWithTag("history-content-list")
+            .performScrollToNode(hasTestTag("history-insights-entry"))
+        composeRule.waitForIdle()
+    }
+
     @Test
     fun historyOpensInsightsAndBackReturnsToHistory() {
         selectHistory()
         composeRule.onNodeWithTag("history-screen").assertExists()
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").assertExists()
 
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").performClick()
         composeRule.waitForIdle()
 
@@ -89,6 +100,7 @@ class InsightsNavigationTest {
     fun leavingAndReEnteringInsightsKeepsTheSurfaceUsable() {
         selectHistory()
 
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("insights-screen").assertExists()
@@ -97,6 +109,7 @@ class InsightsNavigationTest {
         composeRule.onNodeWithTag("history-screen").assertExists()
 
         // re-entry must not crash and must keep rendering the production surface
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("insights-screen").assertExists()

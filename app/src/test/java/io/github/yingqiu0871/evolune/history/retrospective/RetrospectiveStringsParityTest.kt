@@ -36,7 +36,7 @@ class RetrospectiveStringsParityTest {
         val zh = stringsOf(paths[1])
         assertTrue("the default resource must contain every retrospective key", default.isNotEmpty())
         assertEquals(default.keys, zh.keys)
-        assertEquals(20, default.size)
+        assertEquals(24, default.size)
     }
 
     @Test
@@ -69,8 +69,16 @@ class RetrospectiveStringsParityTest {
     }
 
     @Test
-    fun `the window caption keeps exactly one timestamp placeholder`() {
+    fun `the window caption carries the selected range and exactly one timestamp placeholder`() {
         val default = stringsOf(paths[0])
-        assertEquals(listOf("%1\$s"), placeholders(default.getValue("retrospective_window_caption")))
+        val zh = stringsOf(paths[1])
+        assertEquals(
+            listOf("%1\$d", "%2\$s"),
+            placeholders(default.getValue("retrospective_window_caption"))
+        )
+        assertEquals(
+            listOf("%1\$d", "%2\$s"),
+            placeholders(zh.getValue("retrospective_window_caption"))
+        )
     }
 }

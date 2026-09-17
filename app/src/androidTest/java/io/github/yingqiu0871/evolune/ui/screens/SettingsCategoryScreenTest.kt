@@ -121,4 +121,43 @@ class SettingsCategoryScreenTest {
         composeRule.onNodeWithTag("settings-about-disclaimer").performScrollTo().performClick()
         composeRule.onAllNodesWithText("免责声明").get(1).assertIsDisplayed()
     }
+
+    @Test
+    fun settingsHubExposesAllEightDestinationsWithoutExpansion() {
+        var privacyClicks = 0
+        composeRule.setContent {
+            EvoluneTheme {
+                SettingsScreen(
+                    onOpenBasicData = {},
+                    onOpenAppearanceAndFormat = {},
+                    onOpenSyncAndBackup = {},
+                    onOpenUpdate = {},
+                    onOpenAbout = {},
+                    onOpenGuide = {},
+                    onOpenPrivacy = { privacyClicks += 1 },
+                    onOpenFeatureTutorial = {}
+                )
+            }
+        }
+
+        // v1.7.1 UI hotfix: all eight entries are flat top-level rows, directly reachable.
+        listOf(
+            "settings-basic-data-entry",
+            "settings-appearance-format-entry",
+            "settings-sync-backup-entry",
+            "settings-update-entry",
+            "settings-guide-entry",
+            "settings-privacy-entry",
+            "settings-feature-tutorial-entry",
+            "settings-about-entry"
+        ).forEach { tag ->
+            composeRule.onNodeWithTag(tag).assertExists()
+        }
+
+        composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, privacyClicks)
+        }
+        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
+    }
 }

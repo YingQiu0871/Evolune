@@ -551,6 +551,29 @@ class HistoryScreenTest {
         )
     }
 
+    // ---------- secondary entry group order (v1.7.1 UI hotfix) ----------
+
+    @Test
+    fun secondaryEntryGroupSitsBelowTheFactualDayContentWithAllThreeCards() {
+        launch { _, end -> listOf(testDay(date = end, entries = listOf(quickRecordEntry()))) }
+        composeRule.waitForIdle()
+
+        // The factual calendar leads the screen.
+        composeRule.onNodeWithTag("history-calendar").assertExists()
+
+        // The secondary entry group is reached below the calendar/day content, as one group.
+        composeRule.onNodeWithTag("history-content-list")
+            .performScrollToNode(hasTestTag("history-insights-entry"))
+        composeRule.onNodeWithTag("history-insights-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("history-retrospective-entry").assertExists()
+        composeRule.onNodeWithTag("history-timeline-entry").assertExists()
+
+        // Scrolling back toward the beginning returns to the calendar (the group is not above it).
+        composeRule.onNodeWithTag("history-content-list")
+            .performScrollToNode(hasTestTag("history-calendar"))
+        composeRule.onNodeWithTag("history-calendar").assertIsDisplayed()
+    }
+
     // ---------- helpers ----------
 
     private fun scrollToEntryStatus() {

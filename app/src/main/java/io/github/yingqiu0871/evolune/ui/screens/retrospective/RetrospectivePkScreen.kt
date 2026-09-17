@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,8 +41,10 @@ import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkLimitation
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkResult
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkUnavailableReason
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePhase
+import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkRange
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkUiState
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModel
+import java.time.ZoneId
 
 /**
  * V17-C-04 §7/§9/§10 — the production retrospective destination.
@@ -66,7 +69,8 @@ fun RetrospectiveRoute(
         modifier = modifier,
         is24Hour = is24Hour,
         showTopBar = showTopBar,
-        onRetry = viewModel::retry
+        onRetry = viewModel::retry,
+        onSelectRange = viewModel::selectRange
     )
 }
 
@@ -81,7 +85,8 @@ fun RetrospectivePkScreenContent(
     modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
     showTopBar: Boolean = false,
-    onRetry: () -> Unit = {}
+    onRetry: () -> Unit = {},
+    onSelectRange: (RetrospectivePkRange) -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier.testTag("retrospective-screen"),
@@ -122,11 +127,16 @@ fun RetrospectivePkScreenContent(
             Text(
                 text = stringResource(
                     R.string.retrospective_window_caption,
+                    state.selectedRange.days.toInt(),
                     HistoryFormatting.fullDateTimeText(state.windowEnd, state.displayZone, is24Hour)
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.testTag("retrospective-window-caption")
+            )
+            RetrospectiveRangeSelector(
+                selectedRange = state.selectedRange,
+                onSelectRange = onSelectRange
             )
 
             when (state.phase) {
@@ -139,6 +149,8 @@ fun RetrospectivePkScreenContent(
                         ContentBlock(
                             available = available,
                             markers = state.markers,
+                            displayZone = state.displayZone,
+                            is24Hour = is24Hour,
                             onRetry = onRetry
                         )
                     }
@@ -160,6 +172,43 @@ fun RetrospectivePkScreenContent(
     }
 }
 
+// ---------- range selector (v1.7.1 UI hotfix) ----------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RetrospectiveRangeSelector(
+    selectedRange: RetrospectivePkRange,
+    onSelectRange: (RetrospectivePkRange) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("retrospective-range-selector"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        RetrospectivePkRange.entries.forEach { range ->
+            FilterChip(
+                selected = range == selectedRange,
+                onClick = { onSelectRange(range) },
+                label = { Text(stringResource(rangeLabelRes(range))) },
+                modifier = Modifier.testTag(rangeTestTag(range))
+            )
+        }
+    }
+}
+
+private fun rangeLabelRes(range: RetrospectivePkRange): Int = when (range) {
+    RetrospectivePkRange.LAST_7_DAYS -> R.string.retrospective_range_7_days
+    RetrospectivePkRange.LAST_30_DAYS -> R.string.retrospective_range_30_days
+    RetrospectivePkRange.LAST_90_DAYS -> R.string.retrospective_range_90_days
+}
+
+private fun rangeTestTag(range: RetrospectivePkRange): String = when (range) {
+    RetrospectivePkRange.LAST_7_DAYS -> "retrospective-range-7"
+    RetrospectivePkRange.LAST_30_DAYS -> "retrospective-range-30"
+    RetrospectivePkRange.LAST_90_DAYS -> "retrospective-range-90"
+}
+
 // ---------- phase blocks ----------
 
 @Composable
@@ -179,15 +228,25 @@ private fun LoadingBlock() {
 private fun ContentBlock(
     available: RetrospectivePkResult.Available,
     markers: List<io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker>,
+    displayZone: ZoneId,
+    is24Hour: Boolean,
     onRetry: () -> Unit
 ) {
     RetrospectiveConcentrationChart(
         series = available.series,
         markers = markers,
+        displayZone = displayZone,
+        is24Hour = is24Hour,
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
             .testTag("retrospective-chart")
+    )
+    Text(
+        text = stringResource(R.string.retrospective_chart_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.testTag("retrospective-chart-hint")
     )
     MarkerLegend(markers)
     Text(

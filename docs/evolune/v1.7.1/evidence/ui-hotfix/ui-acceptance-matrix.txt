@@ -1,0 +1,70 @@
+v1.7.1 UI hotfix candidate — UI acceptance matrix
+=================================================
+
+Fix 1 — History ordering (factual content first, secondary entries at the very bottom)
+  requirement: the three entry cards (用药洞察 / 回顾性 PK / 用药时间线) leave the top and
+               form one group below the calendar and the selected-day factual cards;
+               targets, labels and accessibility semantics unchanged
+  code        : HistoryScreen.kt — the three `item {}` entries moved after the phase `when`
+  tests       : HistoryScreenTest.secondaryEntryGroupSitsBelowTheFactualDayContentWithAllThreeCards;
+                all edited navigation tests scroll to the entry before clicking
+  device      : 02-history-first.png, 03-history-entry-group-bottom.png
+
+Fix 2 — Insights metric-card separation
+  requirement: 记录摄入次数 and 有记录的天数 are independent full-width cards with visible
+               vertical separation (>= 12dp; 16dp used)
+  code        : InsightsScreen.kt — OverviewCards now a Column(spacedBy(16.dp))
+  tests       : InsightsScreenTest.overviewMetricCardsAreVisuallySeparated (bounds gap >= 12dp)
+  device      : 04-insights-card-separation.png
+
+Fix 3 — Retrospective PK readability (calculation untouched)
+  requirement: view-only decimation preserving first/last + extrema; markers replaced by
+               small subdued baseline ticks/dots (intake slightly more prominent); adaptive
+               ~5-7 whole-day x labels; compact 近7天/近30天/近90天 selector with 近7天
+               default; legend/counts outside the plot; tap/drag inspection with a
+               model-estimate hint
+  code        : RetrospectiveConcentrationChart.kt (decimation, ticks/dots, labels,
+                inspection), RetrospectivePkScreen.kt (range selector, range caption,
+                chart hint), RetrospectivePkRange.kt (new enum),
+                RetrospectivePkViewModel.kt + RetrospectivePkUiState.kt (selected range,
+                window = [capturedAt - days, capturedAt]), strings in both resource files
+  tests       : RetrospectiveChartDataTest (decimation bounded/preserves first,last and
+                bit-identical extrema/deterministic; label dataset sizes; nearest point);
+                RetrospectivePkViewModelTest (default 168h window, range switch = one load,
+                no-op on same range, range survives retry);
+                RetrospectiveScreenTest (3 chips, selection callback, range-aware caption);
+                RetrospectiveStringsParityTest updated (24 keys, %1$d/%2$s caption)
+  device      : 05-pk-7days.png, 06-pk-30days.png, 09-pk-inspection-tap.png
+  note        : the PK engine/equations and the C-01/C-04 orchestration are byte-identical;
+                only the queried window length became user-selectable (frozen
+                RetrospectivePkWindow API already supports arbitrary windows)
+
+Fix 4 — Timeline continuous day strip
+  requirement: continuous dates incl. adjacent-month days; month switch focuses day 1 but
+               the strip shows preceding adjacent-month dates to its left; adjacent dates
+               subdued; future cells stay disabled; adjacent-month taps navigate months
+  code        : TimelinePresentation.kt (DayCell.isInRequestedMonth, ±7-day window,
+                MonthStep routing helper), TimelineScreen.kt (subdued styling, route glue)
+  tests       : TimelinePresentationTest (extended window bounds/flags, day-1 not left-most,
+                monthStepFor); TimelineScreenTest (adjacent-month cell visible, day-1 not
+                left-most, future cell disabled)
+  device      : 07-timeline-continuous-strip.png, 08-timeline-month-start-adjacent-dates.png
+
+Fix 5 — Timeline date-group card spacing
+  requirement: row cards inside one date group separated by >= ~12dp
+  code        : TimelineScreen.kt — TimelineSection spacedBy(4.dp) -> spacedBy(12.dp)
+  tests       : TimelineGeometryTest.dateGroupRowCardsKeepAVisualSeparation (>= 12dp)
+  device      : 07-timeline-continuous-strip.png (今天 group, two cards)
+
+Fix 6 — Settings eight flat entries
+  requirement: 基础数据 / 外观与格式 / 同步与备份 / 更新 / 指南 / 隐私与权限 / 功能教程 /
+               关于 all directly visible without expanding anything
+  code        : SettingsScreen.kt (new 隐私与权限 row opening the existing disclosures
+                destination), AppNavigation.kt wiring, strings in both files
+                (settings_guide_title split; new settings_privacy_title/desc)
+  tests       : SettingsCategoryScreenTest.settingsHubExposesAllEightDestinationsWithout-
+                Expansion (all eight tags exist; privacy click invokes callback)
+  device      : 01-settings-8-entries.png
+  note        : the tree was already flat (no accordion existed); the actual gap was the
+                missing standalone privacy entry — see deviations in
+                real-device-summary.txt

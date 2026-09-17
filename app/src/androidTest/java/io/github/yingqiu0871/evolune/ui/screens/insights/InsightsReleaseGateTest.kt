@@ -73,7 +73,15 @@ class InsightsReleaseGateTest {
     }
 
     private fun openInsights() {
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").performClick()
+        composeRule.waitForIdle()
+    }
+
+    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
+    private fun scrollHistoryToInsightsEntry() {
+        composeRule.onNodeWithTag("history-content-list")
+            .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-insights-entry"))
         composeRule.waitForIdle()
     }
 
@@ -160,17 +168,16 @@ class InsightsReleaseGateTest {
     fun theHistoryEntryDoesNotBreakTheCalendarOrTheScroll() {
         selectTab("history")
 
-        composeRule.onNodeWithTag("history-insights-entry").assertExists()
         composeRule.onNodeWithTag("history-month-title").assertExists()
         composeRule.onNodeWithTag("history-calendar").assertExists()
 
-        // the list still scrolls and the entry stays above the calendar content
+        // the list still scrolls; the entry group now sits below the factual day content
+        // (v1.7.1 UI hotfix) and stays reachable through the list scroll
         composeRule.onNodeWithTag("history-content-list")
             .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-calendar"))
         composeRule.onNodeWithTag("history-calendar").assertExists()
 
-        composeRule.onNodeWithTag("history-content-list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("history-insights-entry"))
+        scrollHistoryToInsightsEntry()
         composeRule.onNodeWithTag("history-insights-entry").assertExists()
     }
 

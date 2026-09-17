@@ -1,0 +1,68 @@
+v1.7.1 UI hotfix candidate - changed files
+========================================
+
+git status --porcelain:
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt
+ M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkUiState.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreen.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreen.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt
+ M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreen.kt
+ M app/src/main/res/values-zh-rCN/strings.xml
+ M app/src/main/res/values/strings.xml
+ M app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+ M app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveStringsParityTest.kt
+ M app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+ M app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveChartDataTest.kt
+ M app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentationTest.kt
+?? app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkRange.kt
+?? docs/evolune/v1.7.1/
+
+git diff --stat:
+ .../evolune/ui/screens/HistoryScreenTest.kt        |  23 ++
+ .../ui/screens/SettingsCategoryScreenTest.kt       |  39 ++++
+ .../ui/screens/insights/InsightsNavigationTest.kt  |  13 ++
+ .../ui/screens/insights/InsightsReleaseGateTest.kt |  15 +-
+ .../ui/screens/insights/InsightsScreenTest.kt      |  17 ++
+ .../retrospective/RetrospectiveNavigationTest.kt   |  12 +
+ .../retrospective/RetrospectiveScreenTest.kt       |  71 +++++-
+ .../ui/screens/timeline/TimelineFontScaleTest.kt   |  10 +-
+ .../ui/screens/timeline/TimelineGeometryTest.kt    |  27 ++-
+ .../ui/screens/timeline/TimelineNavigationTest.kt  |  12 +
+ .../ui/screens/timeline/TimelineScreenTest.kt      |  36 +++
+ .../retrospective/RetrospectivePkUiState.kt        |   1 +
+ .../retrospective/RetrospectivePkViewModel.kt      |  25 ++-
+ .../evolune/navigation/AppNavigation.kt            |   3 +
+ .../evolune/ui/screens/HistoryScreen.kt            |   6 +-
+ .../evolune/ui/screens/SettingsScreen.kt           |   9 +
+ .../evolune/ui/screens/insights/InsightsScreen.kt  |  49 ++--
+ .../RetrospectiveConcentrationChart.kt             | 247 +++++++++++++++++++--
+ .../screens/retrospective/RetrospectivePkScreen.kt |  63 +++++-
+ .../ui/screens/timeline/TimelinePresentation.kt    |  49 +++-
+ .../evolune/ui/screens/timeline/TimelineScreen.kt  |  36 ++-
+ app/src/main/res/values-zh-rCN/strings.xml         |  14 +-
+ app/src/main/res/values/strings.xml                |  14 +-
+ .../retrospective/RetrospectivePkViewModelTest.kt  |  61 ++++-
+ .../RetrospectiveStringsParityTest.kt              |  14 +-
+ .../retrospective/RetrospectiveTestFixtures.kt     |  11 +-
+ .../retrospective/RetrospectiveChartDataTest.kt    |  87 ++++++++
+ .../screens/timeline/TimelinePresentationTest.kt   |  67 +++++-
+ 28 files changed, 945 insertions(+), 86 deletions(-)
+
+New (untracked) source file:
+  app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkRange.kt

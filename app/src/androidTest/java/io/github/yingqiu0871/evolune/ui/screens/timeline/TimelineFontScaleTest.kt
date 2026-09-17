@@ -139,12 +139,16 @@ class TimelineFontScaleTest {
     @Test
     fun fontScale10KeepsD04RelationalGeometry() {
         renderWithScale(1.0f)
-        assertCenteredAxis(today)
-        assertNumberInsideHighlight(today)
-        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
+
+        // Measured before any scroll-to-node call (which minimally scrolls the strip and would
+        // disturb the initial centering established by the selection focus).
         val container = centerOf("timeline-day-strip-container")
         val selected = centerOf("timeline-day-cell-$today")
         assertTrue("selected cell rests at the viewport center", abs(container.x - selected.x) <= 2f)
+
+        assertCenteredAxis(today)
+        assertNumberInsideHighlight(today)
+        assertUniformCellWidth(LocalDate.of(2026, 9, 8), today)
     }
 
     // FONT2 / FONT3

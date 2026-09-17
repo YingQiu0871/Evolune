@@ -11,8 +11,10 @@
     <string name="settings_update_desc">自动更新、版本检查与当前版本</string>
     <string name="settings_about_title">关于</string>
     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
-    <string name="settings_guide_title">指南、隐私与权限</string>
-    <string name="settings_guide_desc">重新查看首次引导、数据边界与授权说明</string>
+    <string name="settings_guide_title">指南</string>
+    <string name="settings_guide_desc">重新查看首次引导与数据边界说明</string>
+    <string name="settings_privacy_title">隐私与权限</string>
+    <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
     <string name="settings_feature_tutorial_title">功能教程</string>
     <string name="settings_feature_tutorial_desc">用药方案、记录、PK、Widget、Wear 与备份</string>
     <string name="settings_sync_backup_local_title">本地数据</string>
@@ -564,9 +566,13 @@
     <!-- v1.7-C-04 Retrospective PK surface (contract §11.2; wording is frozen) -->
     <string name="retrospective_title">回顾性 PK</string>
     <string name="retrospective_entry_title">回顾性 PK</string>
-    <string name="retrospective_entry_subtitle">由已记录摄入推算的 30 天模型估算</string>
+    <string name="retrospective_entry_subtitle">由已记录摄入推算的模型估算</string>
     <string name="retrospective_entry_action">打开回顾性 PK</string>
-    <string name="retrospective_window_caption">最近 30×24 小时——截至 %1$s</string>
+    <string name="retrospective_window_caption">最近 %1$d 天——截至 %2$s</string>
+    <string name="retrospective_range_7_days">近 7 天</string>
+    <string name="retrospective_range_30_days">近 30 天</string>
+    <string name="retrospective_range_90_days">近 90 天</string>
+    <string name="retrospective_chart_hint">点按或拖动图表可查看某一时刻的模型估算浓度</string>
     <string name="retrospective_disclosure">模型估算——并非实测血药浓度。</string>
     <string name="retrospective_marker_legend_disclosure">方案标记表示当前方案上下文；摄入标记显示与本次估算关联的当前记录。若记录刚刚被修改，标记内容可能比曲线更新。</string>
     <string name="retrospective_marker_schedule_context">当前方案上下文</string>

@@ -18,6 +18,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithText
@@ -51,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -169,6 +171,21 @@ class InsightsScreenTest {
         composeRule.onNodeWithText(context.getString(R.string.insights_coverage_title)).assertIsDisplayed()
         composeRule.onNodeWithTag("insights-coverage-disclosure-schedule").assertIsDisplayed()
         composeRule.onNodeWithTag("insights-coverage-disclosure-absence").assertIsDisplayed()
+    }
+
+    @Test
+    fun overviewMetricCardsAreVisuallySeparated() {
+        setContent(state())
+
+        val first = composeRule.onNodeWithTag("insights-card-recorded-intakes")
+            .getUnclippedBoundsInRoot()
+        val second = composeRule.onNodeWithTag("insights-card-recorded-days")
+            .getUnclippedBoundsInRoot()
+        val gap = if (first.top <= second.top) second.top - first.bottom else first.top - second.bottom
+        assertTrue(
+            "the two overview metric cards must be separated by at least 12dp (was $gap)",
+            gap.value >= 12f
+        )
     }
 
     @Test

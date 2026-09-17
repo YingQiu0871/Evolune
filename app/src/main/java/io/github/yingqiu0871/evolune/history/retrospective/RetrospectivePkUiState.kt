@@ -32,6 +32,7 @@ data class RetrospectivePkUiState(
     val windowStart: Instant,
     val windowEnd: Instant,
     val displayZone: ZoneId,
+    val selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_7_DAYS,
     val phase: RetrospectivePhase = RetrospectivePhase.LOADING,
     val result: RetrospectivePkResult? = null,
     /** Filled only on a fully successful load; rendered only in CONTENT. */

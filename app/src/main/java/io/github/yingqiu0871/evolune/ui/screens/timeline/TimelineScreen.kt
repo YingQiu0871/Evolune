@@ -117,7 +117,21 @@ fun TimelineRoute(
         showTopBar = showTopBar,
         onPreviousMonth = viewModel::showPreviousMonth,
         onNextMonth = viewModel::showNextMonth,
-        onSelectDate = viewModel::selectDate,
+        onSelectDate = { date ->
+            // Adjacent-month strip dates change the requested month first, then select the date.
+            when (
+                TimelinePresentation.monthStepFor(
+                    date,
+                    state.effectiveStartDate,
+                    state.effectiveEndDate
+                )
+            ) {
+                TimelinePresentation.MonthStep.PREVIOUS -> viewModel.showPreviousMonth()
+                TimelinePresentation.MonthStep.NEXT -> viewModel.showNextMonth()
+                TimelinePresentation.MonthStep.NONE -> Unit
+            }
+            viewModel.selectDate(date)
+        },
         onRetry = viewModel::retry,
         onReturnToCurrentMonth = viewModel::returnToCurrentMonth
     )
@@ -394,10 +408,12 @@ private fun resolveDayCellMetrics(
 }
 
 /**
- * Compact horizontal strip over `effectiveStartDate .. effectiveEndDate` (ascending, at most 31
- * cells). Symmetric content padding (computed from the RESOLVED uniform cell width — V17-D-05
- * §27) lets the selected cell rest at the horizontal center of the viewport, including the first
- * and last selectable days (D-04 §11/§11.1, UI46/UI47).
+ * Compact horizontal strip over the continuous window around `effectiveStartDate ..
+ * effectiveEndDate` (ascending, extended by adjacent-month days on both sides). Symmetric content
+ * padding (computed from the RESOLVED uniform cell width — V17-D-05 §27) lets the selected cell
+ * rest at the horizontal center of the viewport, including the first and last selectable days
+ * (D-04 §11/§11.1, UI46/UI47); the adjacent-month extension keeps the first day of the visible
+ * month from ever being the left-most item (v1.7.1 UI hotfix).
  */
 @Composable
 private fun DayStrip(
@@ -471,7 +487,13 @@ private fun TimelineDayCell(
     val contentColor = when {
         !cell.enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
         cell.isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+        !cell.isInRequestedMonth -> MaterialTheme.colorScheme.onSurfaceVariant
         else -> MaterialTheme.colorScheme.onSurface
+    }
+    val weekdayColor = if (cell.isInRequestedMonth || cell.isSelected) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     }
     val phrase = dayCellAccessibilityPhrase(cell)
 
@@ -491,7 +513,7 @@ private fun TimelineDayCell(
         Text(
             text = stringResource(TimelinePresentation.weekdayRes(cell.date.dayOfWeek)),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = weekdayColor,
             modifier = Modifier.clearAndSetSemantics {
                 this[SemanticsProperties.TestTag] = "timeline-day-weekday-${cell.date}"
             }
@@ -563,7 +585,7 @@ private fun TimelineSection(section: TimelinePresentation.Section) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .testTag("timeline-section-${section.date}"),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         when (val label = section.label) {
             is TimelinePresentation.SectionLabel.Relative -> Text(

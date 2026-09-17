@@ -63,6 +63,12 @@ class RetrospectivePkViewModel(
         historyRangeSource = historyRangeSource
     )
 
+    /**
+     * v1.7.1 UI hotfix: the selected window length; the surface opens on the 7-day default and
+     * every load (initial, refresh, retry, range switch) captures against this value.
+     */
+    private var selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_7_DAYS
+
     private val initialWindow = captureWindow()
     private val initialZone = displayZone()
     private val _uiState = MutableStateFlow(
@@ -70,6 +76,7 @@ class RetrospectivePkViewModel(
             windowStart = initialWindow.startInclusive,
             windowEnd = initialWindow.endInclusive,
             displayZone = initialZone,
+            selectedRange = selectedRange,
             phase = RetrospectivePhase.LOADING
         )
     )
@@ -91,6 +98,17 @@ class RetrospectivePkViewModel(
     /** Retries the current surface with a brand-new load/generation and a fresh capture. */
     fun retry() {
         refresh()
+    }
+
+    /**
+     * v1.7.1 UI hotfix: switches the queried window length and starts exactly one new load with a
+     * fresh capture. Re-selecting the current range performs no load.
+     */
+    fun selectRange(range: RetrospectivePkRange) {
+        if (range == selectedRange) return
+        selectedRange = range
+        _uiState.value = _uiState.value.copy(selectedRange = range)
+        startLoad()
     }
 
     /**
@@ -235,13 +253,14 @@ class RetrospectivePkViewModel(
     }
 
     /**
-     * §D-4 fixed window: `[capturedAt − 30 days, capturedAt]`, with `capturedAt` normalized to
-     * epoch-millisecond precision. Exactly 720 hours; no calendar-month semantics.
+     * v1.7.1 UI hotfix: `[capturedAt − selectedRange.days, capturedAt]`, with `capturedAt`
+     * normalized to epoch-millisecond precision. The window length is the user-selected
+     * 7/30/90-day range; no calendar-month semantics.
      */
     private fun captureWindow(): RetrospectivePkWindow {
         val capturedAt = Instant.ofEpochMilli(clock.instant().toEpochMilli())
         return RetrospectivePkWindow(
-            startInclusive = capturedAt.minus(Duration.ofDays(30)),
+            startInclusive = capturedAt.minus(Duration.ofDays(selectedRange.days)),
             endInclusive = capturedAt
         )
     }

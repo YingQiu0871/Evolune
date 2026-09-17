@@ -150,18 +150,75 @@ class TimelinePresentationTest {
     }
 
     @Test
-    fun `the strip covers the effective range in ascending order with selection flags`() {
+    fun `the strip renders the continuous window around the effective range in ascending order`() {
         val model = TimelinePresentation.present(
             state(selectedDate = LocalDate.of(2026, 9, 10)),
             is24Hour = true,
             locale = locale
         )
-        assertEquals(16, model.dayCells.size)
-        assertEquals(LocalDate.of(2026, 9, 1), model.dayCells.first().date)
-        assertEquals(today, model.dayCells.last().date)
+        assertEquals(LocalDate.of(2026, 8, 25), model.dayCells.first().date)
+        assertEquals(LocalDate.of(2026, 9, 23), model.dayCells.last().date)
+        assertEquals(30, model.dayCells.size)
         assertEquals(listOf(LocalDate.of(2026, 9, 10)), model.dayCells.filter { it.isSelected }.map { it.date })
         assertEquals(1, model.dayCells.count { it.isToday })
-        assertTrue("no cell may be selectable after today", model.dayCells.all { it.enabled })
+        assertTrue(
+            "in-month, non-future cells stay selectable",
+            model.dayCells.filter { it.isInRequestedMonth && !it.date.isAfter(today) }
+                .all { it.enabled }
+        )
+        assertTrue(
+            "future cells stay non-selectable",
+            model.dayCells.filter { it.date.isAfter(today) }.none { it.enabled }
+        )
+        assertTrue(
+            "adjacent-month cells are flagged for subdued styling",
+            model.dayCells.filter { YearMonth.from(it.date) != YearMonth.of(2026, 9) }
+                .all { !it.isInRequestedMonth }
+        )
+    }
+
+    @Test
+    fun `a month switch keeps the first day inside the strip with preceding dates to its left`() {
+        val model = TimelinePresentation.present(
+            state(
+                selectedDate = LocalDate.of(2026, 8, 1),
+                requestedMonth = YearMonth.of(2026, 8),
+                effectiveStart = LocalDate.of(2026, 8, 1),
+                effectiveEnd = LocalDate.of(2026, 8, 31)
+            ),
+            is24Hour = true,
+            locale = locale
+        )
+        assertEquals(LocalDate.of(2026, 7, 25), model.dayCells.first().date)
+        assertEquals(LocalDate.of(2026, 9, 7), model.dayCells.last().date)
+        val firstOfMonthIndex = model.dayCells.indexOfFirst { it.date == LocalDate.of(2026, 8, 1) }
+        assertTrue("the first day of the month must not be the left-most item", firstOfMonthIndex > 0)
+        assertTrue(
+            "adjacent-month selectable dates stay enabled",
+            model.dayCells.filter { it.date.isBefore(LocalDate.of(2026, 8, 1)) }.all { it.enabled }
+        )
+    }
+
+    @Test
+    fun `adjacent-month selection resolves to a month step`() {
+        val start = LocalDate.of(2026, 8, 1)
+        val end = LocalDate.of(2026, 8, 31)
+        assertEquals(
+            TimelinePresentation.MonthStep.PREVIOUS,
+            TimelinePresentation.monthStepFor(LocalDate.of(2026, 7, 30), start, end)
+        )
+        assertEquals(
+            TimelinePresentation.MonthStep.NEXT,
+            TimelinePresentation.monthStepFor(LocalDate.of(2026, 9, 3), start, end)
+        )
+        assertEquals(
+            TimelinePresentation.MonthStep.NONE,
+            TimelinePresentation.monthStepFor(LocalDate.of(2026, 8, 15), start, end)
+        )
+        assertEquals(
+            TimelinePresentation.MonthStep.NONE,
+            TimelinePresentation.monthStepFor(LocalDate.of(2026, 8, 15), null, null)
+        )
     }
 
     // ---------- row truthfulness (UI13–UI15, UI19) ----------

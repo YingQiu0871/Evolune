@@ -132,12 +132,12 @@ class RetrospectivePkViewModelTest {
     }
 
     @Test
-    fun `the window is exactly 720 hours, millisecond aligned and has no future segment`() {
+    fun `the default window is exactly 168 hours, millisecond aligned and has no future segment`() {
         val fixture = fixture()
         try {
             val request = fixture.pkSource.requests.single()
             val window = request.visibleWindow
-            assertEquals(Duration.ofDays(30), window.duration)
+            assertEquals(Duration.ofDays(7), window.duration)
             assertEquals(window.endInclusive, request.capturedAt)
             assertEquals(
                 window.endInclusive,
@@ -148,6 +148,63 @@ class RetrospectivePkViewModelTest {
                 Instant.ofEpochMilli(window.startInclusive.toEpochMilli())
             )
             assertFalse(window.startInclusive.isAfter(window.endInclusive))
+            assertEquals(RetrospectivePkRange.LAST_7_DAYS, fixture.viewModel.uiState.value.selectedRange)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `selecting another range reloads exactly once with the selected window`() {
+        val fixture = fixture()
+        try {
+            assertEquals(1, fixture.pkSource.requests.size)
+            assertEquals(1, fixture.allSource.calls.size)
+            assertEquals(1, fixture.rangeSource.calls.size)
+
+            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_30_DAYS)
+
+            assertEquals(2, fixture.pkSource.requests.size)
+            assertEquals(2, fixture.allSource.calls.size)
+            assertEquals(2, fixture.rangeSource.calls.size)
+            val window = fixture.pkSource.requests.last().visibleWindow
+            assertEquals(Duration.ofDays(30), window.duration)
+            assertEquals(c04Window(days = 30).startInclusive, window.startInclusive)
+            assertEquals(c04Window(days = 30).endInclusive, window.endInclusive)
+            assertEquals(RetrospectivePkRange.LAST_30_DAYS, fixture.viewModel.uiState.value.selectedRange)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `re-selecting the current range performs no extra load`() {
+        val fixture = fixture()
+        try {
+            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_7_DAYS)
+            assertEquals(1, fixture.pkSource.requests.size)
+            assertEquals(1, fixture.allSource.calls.size)
+            assertEquals(1, fixture.rangeSource.calls.size)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `the selected range survives a retry load`() {
+        val fixture = fixture()
+        try {
+            fixture.viewModel.selectRange(RetrospectivePkRange.LAST_90_DAYS)
+            assertEquals(2, fixture.pkSource.requests.size)
+
+            fixture.viewModel.retry()
+
+            assertEquals(3, fixture.pkSource.requests.size)
+            assertEquals(
+                Duration.ofDays(90),
+                fixture.pkSource.requests.last().visibleWindow.duration
+            )
+            assertEquals(RetrospectivePkRange.LAST_90_DAYS, fixture.viewModel.uiState.value.selectedRange)
         } finally {
             fixture.close()
         }

@@ -1,0 +1,35 @@
+v1.7.1 UI hotfix candidate — Android instrumentation runs (emulator, Pixel_7 AVD Android 15)
+============================================================================================
+
+Driver: .\gradlew.bat :app:connectedDebugAndroidTest
+        "-Pandroid.testInstrumentationRunnerArguments.class=<comma-separated classes>"
+        with ANDROID_SERIAL=emulator-5554 (phone AVD). Exact console result lines:
+
+Run A — 8 classes (timeline/history/insights/retrospective/settings surfaces)
+  classes: TimelineScreenTest, TimelineGeometryTest, TimelineAccessibilityTest,
+           TimelineFontScaleTest, HistoryScreenTest, InsightsScreenTest,
+           RetrospectiveScreenTest, SettingsCategoryScreenTest
+  result : "Starting 114 tests on Pixel_7(AVD) - 15" ...
+           "Tests on Pixel_7(AVD) - 15 failed: There was 1 failure(s)."
+           failure: TimelineFontScaleTest.fontScale10KeepsD04RelationalGeometry —
+           "selected cell rests at the viewport center" (TimelineFontScaleTest.kt:147)
+  disposition: test-order fix (centering measured before the width-scrolling helper);
+           property assertion unchanged; re-executed green in run B.
+
+Run B — 5 classes (includes the fixed class + all edited navigation tests)
+  classes: TimelineFontScaleTest, TimelineNavigationTest, InsightsNavigationTest,
+           InsightsReleaseGateTest, RetrospectiveNavigationTest
+  result : "Starting 20 tests on Pixel_7(AVD) - 15" ...
+           "Finished 20 tests on Pixel_7(AVD) - 15" (0 failed)
+           BUILD SUCCESSFUL in 52s
+
+Run C — 4 classes (conformance / zero-write / visual evidence)
+  classes: ColorRoleConformanceTest, InsightsZeroWriteDeviceTest,
+           TimelineVisualEvidenceTest, HistoryVisualEvidenceTest
+  result : "Starting 7 tests on Pixel_7(AVD) - 15" ...
+           "Finished 7 tests on Pixel_7(AVD) - 15" (0 failed)
+           BUILD SUCCESSFUL in 25s
+
+Totals: 13 distinct classes, 141 test executions across the three runs, final state all
+green. The instrumented runs exercise the changed UI structure only; the mandated final
+acceptance is the real-device walkthrough documented in real-device-summary.txt.

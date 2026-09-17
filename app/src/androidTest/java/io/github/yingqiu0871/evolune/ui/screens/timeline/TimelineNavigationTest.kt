@@ -80,12 +80,21 @@ class TimelineNavigationTest {
         composeRule.waitForIdle()
     }
 
+    /** The entry cards moved below the factual day content (v1.7.1 UI hotfix); scroll first. */
+    private fun scrollHistoryToTimelineEntry() {
+        composeRule.onNodeWithTag("history-content-list")
+            .performScrollToNode(hasTestTag("history-timeline-entry"))
+        composeRule.waitForIdle()
+    }
+
     @Test
     fun historyOpensTimelineAndBackReturnsToHistory() {
         selectHistory()
         composeRule.onNodeWithTag("history-screen").assertExists()
+        scrollHistoryToTimelineEntry()
         composeRule.onNodeWithTag("history-timeline-entry").assertExists()
 
+        scrollHistoryToTimelineEntry()
         composeRule.onNodeWithTag("history-timeline-entry").performClick()
         composeRule.waitForIdle()
 
@@ -101,6 +110,7 @@ class TimelineNavigationTest {
         selectHistory()
         composeRule.onNodeWithTag("nav-bar-timeline").assertDoesNotExist()
 
+        scrollHistoryToTimelineEntry()
         composeRule.onNodeWithTag("history-timeline-entry").performClick()
         composeRule.waitForIdle()
 
@@ -126,6 +136,7 @@ class TimelineNavigationTest {
     @Test
     fun timelineContextIsRetainedAcrossHistoryRoundTripWithExactlyOneReentryRefresh() {
         selectHistory()
+        scrollHistoryToTimelineEntry()
         composeRule.onNodeWithTag("history-timeline-entry").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("timeline-screen").assertExists()
@@ -167,6 +178,7 @@ class TimelineNavigationTest {
         assertEquals(previousMonth, afterBack.month)
         assertEquals(selectedDay, afterBack.selectedDate)
 
+        scrollHistoryToTimelineEntry()
         composeRule.onNodeWithTag("history-timeline-entry").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("timeline-screen").assertExists()

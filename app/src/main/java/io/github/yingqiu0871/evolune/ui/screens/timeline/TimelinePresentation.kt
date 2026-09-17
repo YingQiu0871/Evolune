@@ -35,12 +35,43 @@ import java.util.Locale
  */
 object TimelinePresentation {
 
-    /** A day-strip cell: the strip always shows the whole effective range in ascending order. */
+    /**
+     * How many adjacent-month days the strip renders on both sides of the effective range. The
+     * continuous window lets the first day of the visible month sit inside the viewport with the
+     * preceding (adjacent-month) dates still visible to its left (v1.7.1 UI hotfix).
+     */
+    private const val DAY_STRIP_ADJACENT_DAYS = 7L
+
+    /** The month-step a day selection outside the effective range requires (adjacent dates). */
+    enum class MonthStep { NONE, PREVIOUS, NEXT }
+
+    /**
+     * Adjacent-month selection routing (v1.7.1 UI hotfix): a date before the effective start
+     * belongs to the previous month, a date after the effective end to the next month. Dates
+     * inside the range (or while no range is published) perform no month step.
+     */
+    fun monthStepFor(
+        date: LocalDate,
+        effectiveStartDate: LocalDate?,
+        effectiveEndDate: LocalDate?
+    ): MonthStep = when {
+        effectiveStartDate == null || effectiveEndDate == null -> MonthStep.NONE
+        date.isBefore(effectiveStartDate) -> MonthStep.PREVIOUS
+        date.isAfter(effectiveEndDate) -> MonthStep.NEXT
+        else -> MonthStep.NONE
+    }
+
+    /**
+     * A day-strip cell. The strip renders the effective range plus the surrounding
+     * [DAY_STRIP_ADJACENT_DAYS] window in ascending order; cells outside the requested month stay
+     * distinguishable through [isInRequestedMonth] and future cells stay non-selectable.
+     */
     data class DayCell(
         val date: LocalDate,
         val isSelected: Boolean,
         val isToday: Boolean,
-        val enabled: Boolean
+        val enabled: Boolean,
+        val isInRequestedMonth: Boolean
     )
 
     /** Section heading: a relative resource (Today/Yesterday) or an absolute date + weekday. */
@@ -123,20 +154,26 @@ object TimelinePresentation {
         )
     }
 
-    /** The strip never synthesizes dates outside the effective range and never exceeds one month. */
+    /**
+     * The strip renders a continuous window: the effective range extended by
+     * [DAY_STRIP_ADJACENT_DAYS] days on both sides, so adjacent-month dates stay visible (the
+     * first day of the month is never left-most) and the viewport is never given empty gaps.
+     */
     private fun dayCells(
         state: TimelineRangeState,
         start: LocalDate,
         end: LocalDate
     ): List<DayCell> {
         val cells = mutableListOf<DayCell>()
-        var date = start
-        while (!date.isAfter(end)) {
+        var date = start.minusDays(DAY_STRIP_ADJACENT_DAYS)
+        val lastDate = end.plusDays(DAY_STRIP_ADJACENT_DAYS)
+        while (!date.isAfter(lastDate)) {
             cells += DayCell(
                 date = date,
                 isSelected = date == state.selectedDate,
                 isToday = date == state.today,
-                enabled = !date.isAfter(state.today)
+                enabled = !date.isAfter(state.today),
+                isInRequestedMonth = YearMonth.from(date) == state.requestedMonth
             )
             date = date.plusDays(1)
         }

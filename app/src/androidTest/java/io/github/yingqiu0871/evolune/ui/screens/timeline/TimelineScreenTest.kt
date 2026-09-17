@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -214,6 +215,41 @@ class TimelineScreenTest {
         composeRule
             .onNodeWithTag("timeline-day-cell-2026-09-01")
             .assertContentDescriptionContains("9月1日", substring = true)
+    }
+
+    @Test
+    fun stripShowsAdjacentMonthDatesAroundTheVisibleMonth() {
+        setContent(TimelineTestStates.contentState())
+
+        // the continuous window reaches into the previous month before the first of the month
+        scrollStripTo(LocalDate.of(2026, 9, 1))
+        composeRule.onNodeWithTag("timeline-day-cell-2026-08-31").assertIsDisplayed()
+
+        // and into the next month after the trailing edge; future cells stay non-selectable
+        scrollStripTo(LocalDate.of(2026, 9, 23))
+        composeRule.onNodeWithTag("timeline-day-cell-2026-09-23")
+            .assertExists()
+            .assertIsNotEnabled()
+    }
+
+    @Test
+    fun theFirstDayOfTheMonthIsNotTheLeftMostStripItem() {
+        setContent(
+            TimelineTestStates.contentState().copy(selectedDate = LocalDate.of(2026, 9, 1))
+        )
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("timeline-day-cell-2026-09-01").assertIsDisplayed()
+        val leading = composeRule
+            .onNodeWithTag("timeline-day-cell-2026-08-31", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        val first = composeRule
+            .onNodeWithTag("timeline-day-cell-2026-09-01", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        assertTrue(
+            "the preceding adjacent-month date must stay visible to the left of day one",
+            leading.left < first.left
+        )
     }
 
     @Test

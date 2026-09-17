@@ -202,9 +202,6 @@ fun HistoryScreenContent(
                 .testTag("history-content-list"),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            item { InsightsEntryCard(onOpenInsights) }
-            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
-            item { TimelineEntryCard(onOpenTimeline) }
             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
             item { WeekdayHeader() }
             item { HistoryMonthCalendar(model, onSelectDate) }
@@ -220,6 +217,9 @@ fun HistoryScreenContent(
                     }
                 }
             }
+            item { InsightsEntryCard(onOpenInsights) }
+            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
+            item { TimelineEntryCard(onOpenTimeline) }
         }
     }
 }

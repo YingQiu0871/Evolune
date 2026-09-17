@@ -1,0 +1,36 @@
+v1.7.1 UI hotfix candidate — identity
+=====================================
+
+Branch                      : hotfix/v1.7.1-ui-polish
+Base HEAD (pre-hotfix)      : a8e8869b4d91d60e6afd593c1cfdb811b2c40039
+                              (docs(v1.7): add release notes and release status — the v1.7.0
+                              release commit)
+Base parent                 : a000751d5bf4941819deb367e0c5038fc14117b4
+                              (approved v1.7.0 release-packaging commit)
+v1.7.0 tag target           : a8e8869b4d91d60e6afd593c1cfdb811b2c40039 (unchanged, never moved)
+Worktree at start           : clean (git status --porcelain empty)
+Worktree now                : 28 modified files + 2 untracked paths (see changed-files.txt)
+Version metadata on branch  : versionName 1.7.0 (debug build); Phone versionCode 101070000;
+                              Wear versionCode 1101070000 — intentionally NOT bumped by this
+                              hotfix (the 1.7.1 version bump belongs to the later packaging
+                              step and was not performed here)
+
+Scope: real-device UI polish hotfix (six fixes), presentation/UI layer only —
+  1. History: the three secondary entry cards moved as one group to the very bottom
+     (below the calendar and the selected-day factual content)
+  2. Insights: the two overview metric cards separated by a real 16dp vertical gap
+  3. Retrospective PK: view-only deterministic decimation (first/last + bucket extrema),
+     baseline tick/dot markers, horizontal-only grid, ~5-7 whole-day x labels, a compact
+     近7天/近30天/近90天 range selector (default 近7天), and tap/drag point inspection
+  4. Timeline: continuous day strip extended by 7 adjacent-month days on both sides,
+     adjacent-month cells subdued, adjacent-month taps routed through month navigation
+  5. Timeline: row-card spacing inside a date group raised 4dp -> 12dp
+  6. Settings: privacy entry added; all eight entries flat and directly reachable
+     (the accordion premise did not match this tree — Settings was already flat)
+
+Explicitly NOT touched: v1.7.0 tag/release/assets, Phase A-F frozen evidence, Room schema,
+DoseEvent fields, import/export and backup formats, matcher/occurrence identity, revision
+semantics, History/Timeline factual semantics, Insights definitions, PK equations/engine,
+Widget/Wear recording, Health Connect.
+
+ONE local commit expected on top of a8e8869; no push / no tag / no release.

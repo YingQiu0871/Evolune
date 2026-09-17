@@ -214,8 +214,33 @@ class TimelineGeometryTest {
         )
     }
 
-    // ---------- UI46 / UI47: strip viewport centering and symmetric geometry ----------
+    @Test
+    fun dateGroupRowCardsKeepAVisualSeparation() {
+        val date = TimelineTestStates.today
+        setContentWithState(
+            initial = TimelineTestStates.state(
+                days = TimelineTestStates.daysFrom(
+                    date to listOf(
+                        TimelineTestStates.unrecordedRow(date, slotId = 701L),
+                        TimelineTestStates.unrecordedRow(date, slotId = 702L)
+                    )
+                )
+            )
+        )
+        val first = composeRule
+            .onNodeWithTag("timeline-row-2026-09-16-0", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        val second = composeRule
+            .onNodeWithTag("timeline-row-2026-09-16-1", useUnmergedTree = true)
+            .getUnclippedBoundsInRoot()
+        val gap = if (first.top <= second.top) second.top - first.bottom else first.top - second.bottom
+        assertTrue(
+            "date-group row cards must stay separated by at least 12dp (was $gap)",
+            gap.value >= 12f
+        )
+    }
 
+    // ---------- UI46 / UI47: strip viewport centering and symmetric geometry ----------
     @Test
     fun ui46SelectingAnOffCenterDayCentersItInTheStripViewport() {
         setContentWithState(

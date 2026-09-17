@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,6 +17,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceId
+import io.github.yingqiu0871.evolune.history.HistoryFormatting
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkInputSummary
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkLimitation
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkModelContext
@@ -29,6 +31,7 @@ import io.github.yingqiu0871.evolune.history.retrospective.RecordedIntakeMarker
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveLoadFailure
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePhase
+import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkRange
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkUiState
 import io.github.yingqiu0871.evolune.history.retrospective.ScheduleContextMarker
 import io.github.yingqiu0871.evolune.history.retrospective.ScheduleMarkerProvenance
@@ -98,22 +101,32 @@ class RetrospectiveScreenTest {
         phase: RetrospectivePhase,
         result: RetrospectivePkResult? = null,
         markers: List<RetrospectiveMarker> = emptyList(),
-        failure: RetrospectiveLoadFailure? = null
+        failure: RetrospectiveLoadFailure? = null,
+        selectedRange: RetrospectivePkRange = RetrospectivePkRange.LAST_30_DAYS
     ) = RetrospectivePkUiState(
         windowStart = window.startInclusive,
         windowEnd = window.endInclusive,
         displayZone = zone,
+        selectedRange = selectedRange,
         phase = phase,
         result = result,
         markers = markers,
         failure = failure
     )
 
-    private fun setContent(state: RetrospectivePkUiState, onRetry: () -> Unit = {}) {
+    private fun setContent(
+        state: RetrospectivePkUiState,
+        onRetry: () -> Unit = {},
+        onSelectRange: (RetrospectivePkRange) -> Unit = {}
+    ) {
         composeRule.setContent {
             CompositionLocalProvider(LocalDensity provides Density(2f)) {
                 EvoluneTheme {
-                    RetrospectivePkScreenContent(state = state, onRetry = onRetry)
+                    RetrospectivePkScreenContent(
+                        state = state,
+                        onRetry = onRetry,
+                        onSelectRange = onSelectRange
+                    )
                 }
             }
         }
@@ -166,6 +179,58 @@ class RetrospectiveScreenTest {
         setContent(state(RetrospectivePhase.CONTENT, result = available()))
         composeRule.onNodeWithTag("retrospective-chart")
             .assertContentDescriptionEquals(context.getString(R.string.retrospective_disclosure))
+    }
+
+    // ---------- v1.7.1 UI hotfix: range selector and range-aware caption ----------
+
+    @Test
+    fun rangeSelectorOffersAllThreeWindowsWithTheSelectedOneMarked() {
+        setContent(
+            state(
+                RetrospectivePhase.CONTENT,
+                result = available(),
+                selectedRange = RetrospectivePkRange.LAST_7_DAYS
+            )
+        )
+
+        composeRule.onNodeWithTag("retrospective-range-selector").assertIsDisplayed()
+        composeRule.onNodeWithTag("retrospective-range-7").assertIsSelected()
+        composeRule.onNodeWithTag("retrospective-range-30").assertExists()
+        composeRule.onNodeWithTag("retrospective-range-90").assertExists()
+        composeRule.onNodeWithText(context.getString(R.string.retrospective_range_7_days)).assertIsDisplayed()
+    }
+
+    @Test
+    fun rangeSelectorInvokesTheSelectionCallback() {
+        val selected = mutableListOf<RetrospectivePkRange>()
+        setContent(
+            state(
+                RetrospectivePhase.CONTENT,
+                result = available(),
+                selectedRange = RetrospectivePkRange.LAST_7_DAYS
+            ),
+            onSelectRange = { selected += it }
+        )
+
+        composeRule.onNodeWithTag("retrospective-range-90").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertTrue("the selected range must reach the callback", selected == listOf(RetrospectivePkRange.LAST_90_DAYS))
+        }
+    }
+
+    @Test
+    fun windowCaptionNamesTheSelectedRangeLength() {
+        setContent(
+            state(RetrospectivePhase.LOADING, selectedRange = RetrospectivePkRange.LAST_90_DAYS)
+        )
+
+        val expected = context.getString(
+            R.string.retrospective_window_caption,
+            90,
+            HistoryFormatting.fullDateTimeText(window.endInclusive, zone, true)
+        )
+        composeRule.onNodeWithTag("retrospective-window-caption")
+            .assertTextContains(expected, substring = true)
     }
 
     @Test
