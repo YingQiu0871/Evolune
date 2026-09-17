@@ -1,0 +1,51 @@
+V17 Phase F — fresh verification record
+=======================================
+Force-rerun mechanism: Gradle `--rerun-tasks` (NOT a recorded `--rerun` string).
+Every cited task shows actual execution in its raw log; no UP-TO-DATE / FROM-CACHE appears
+for any fresh-required task. All runs below were executed on the final candidate tree.
+
+Focused Phase-F JVM
+  .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.phasef.*" --rerun-tasks
+  log: logs/focused-phase-f.log (28/28 tasks executed)
+  XML: junit/phase-f/TEST-...PhaseFConsistencyTest.xml
+  tests=11 failures=0 errors=0 skipped=0
+
+Fresh app JVM (separate invocation)
+  .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log: logs/app-jvm.log (28/28 tasks executed)
+  XML: junit/app/ (all app suites)
+  tests=1333 failures=0 errors=0 skipped=0
+
+Fresh experience-core JVM (separate invocation)
+  .\gradlew.bat :experience-core:test --rerun-tasks
+  log: logs/experience-core-jvm.log (4/4 tasks executed; :experience-core:test executed)
+  XML: junit/experience-core/
+  tests=171 failures=0 errors=0 skipped=0
+
+Fresh Wear JVM (separate invocation)
+  .\gradlew.bat :wear:testDebugUnitTest --rerun-tasks
+  log: logs/wear-jvm.log (26/26 tasks executed; :wear:testDebugUnitTest executed)
+  XML: junit/wear/
+  tests=90 failures=0 errors=0 skipped=0
+
+Fresh full Android instrumentation
+  .\gradlew.bat :app:connectedDebugAndroidTest --rerun-tasks
+  device: Pixel_7(AVD) API 35, serial emulator-5554
+  start 2026-09-17 16:06:35 local / end 16:14:02 local
+  log: logs/android.log (69/69 tasks executed; "Finished 363 tests" runner line)
+  XML: androidtest/TEST-Pixel_7(AVD) - 15-_app-.xml (timestamp 2026-09-17T14:13:59Z)
+  tests=358 failures=0 errors=0 skipped=5 (all assume-gated; see test-inventory.txt)
+
+Fresh app debug build
+  .\gradlew.bat :app:assembleDebug --rerun-tasks
+  log: logs/app-build.log (38/38 tasks executed; BUILD SUCCESSFUL)
+  artifact: app/build/outputs/apk/debug/app-debug.apk — see build-summary.txt
+
+Fresh Wear debug build
+  .\gradlew.bat :wear:assembleDebug --rerun-tasks
+  log: logs/wear-build.log (35/35 tasks executed; BUILD SUCCESSFUL)
+  artifact: wear/build/outputs/apk/debug/wear-debug.apk — see build-summary.txt
+
+Fresh XML timestamps postdate the candidate start; counts were parsed from the final XML,
+not from console text. Test-source/XML reconciliation: test-inventory.txt (declared ==
+executed for every suite).

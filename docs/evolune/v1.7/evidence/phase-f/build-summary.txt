@@ -1,0 +1,24 @@
+V17 Phase F — build summary
+===========================
+
+Fresh app debug build
+  command : .\gradlew.bat :app:assembleDebug --rerun-tasks
+  log     : logs/app-build.log ("BUILD SUCCESSFUL"; 38/38 tasks executed)
+  artifact: app/build/outputs/apk/debug/app-debug.apk
+  size    : 78,525,808 bytes
+  sha256  : 16c95650b9af082bce108f383c7e5413f44d905d4a19c0fcf9916b574a6db088
+  version : 1.6.0-debug metadata (NOT changed in Phase F — see known-limitations.txt)
+
+Fresh Wear debug build
+  command : .\gradlew.bat :wear:assembleDebug --rerun-tasks
+  log     : logs/wear-build.log ("BUILD SUCCESSFUL"; 35/35 tasks executed)
+  artifact: wear/build/outputs/apk/debug/wear-debug.apk
+  size    : 18,712,489 bytes
+  sha256  : 82770a989c0ef20a2edbc1293e49a88197dbca0d58e6f4bc382335a9ec2a22d0
+  version : shared 1.6.0-debug metadata (NOT changed in Phase F)
+
+Notes:
+  - Neither APK is published; they are build evidence only.
+  - No signing/version metadata, Gradle or dependency change was made (G2).
+  - Release (minified, externally-signed) artifacts are explicitly out of Phase F scope;
+    the release-packaging step after the gate performs the 1.7.x metadata bump.

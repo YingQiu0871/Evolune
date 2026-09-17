@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:46.432Z" hostname="人面不知何处去" time="0.023">
+  <properties/>
+  <testcase name="storage and infrastructure failure retain DataItem" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.003"/>
+  <testcase name="cancellation is rethrown and never deletes" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.002"/>
+  <testcase name="accepted replay uses stored event without plan lookup" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.002"/>
+  <testcase name="insert conflict reread accepts only matching Wear occurrence" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.004"/>
+  <testcase name="deletion failure keeps event and restart replay retries acknowledgement" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.002"/>
+  <testcase name="repository idempotency remains distinct and permits deletion" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.001"/>
+  <testcase name="source or occurrence conflict performs no plan lookup or deletion" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.001"/>
+  <testcase name="invalid missing and disabled actions do not write or delete" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.004"/>
+  <testcase name="first action inserts complete event then deletes exact URI" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.002"/>
+  <testcase name="accepted side effect failure defers deletion without reinserting" classname="io.github.yingqiu0871.evolune.application.WearDoseActionHandlerTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

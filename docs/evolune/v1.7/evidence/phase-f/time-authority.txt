@@ -1,0 +1,37 @@
+V17 Phase F — time authority audit
+===================================
+Raw scan: audits/time-authority-scan.txt (112 hits, patterns: Instant.now / Clock.system* /
+LocalDate.now / LocalDateTime.now / ZoneId.systemDefault / System.currentTimeMillis).
+
+Classification of the release-relevant findings:
+
+AUTH (authorized boundary capture — allowed): record instants for new writes, snapshot
+  generatedAt, reminder scheduling, backup/journal timestamps, filename dates, UI display
+  formatting, Wear command createdAt/undo bookkeeping, Android receiver edge fallbacks.
+
+INJECTED (clock/time passed at the composition root; defaults are constructor seams):
+  HistoryViewModel / TimelineViewModel / InsightsViewModel / RetrospectivePkViewModel clock
+  defaults; DoseEventEditSessionFactory; WidgetWork loader/quick-action; Wear handlers;
+  PortableExportService (explicit Clock at MainActivity); backup/Drive providers;
+  HealthConnectWeightSyncCoordinator.
+
+DIRECT EDGE CAPTURES (documented, not seam-injected): MainActivity Wear snapshot publish
+  (Instant.now/ZoneId.systemDefault), ReminderManager scheduling, WearAppDataLayer skip
+  validation — all at boundaries; none inside historical derivation.
+
+P3 KNOWN (carried from the pre-gate audit; non-authoritative, non-blocking):
+  - utils/MedicationPlanPredictor hidden clock/device zone in the virtual current-state PK
+    derivation (never persisted; file untouched since the v1.6 baseline).
+  - widget/EvoluneWidgetReceiver render-time re-projection of a snapshot instant via
+    ZoneId.systemDefault (display-only).
+  - data/SettingsDataStore Health-Connect adoptedAt stamped with wall clock on manual weight
+    edit/restore (weight settings only; looks intentional).
+
+BLOCKER: none. Historical-derivation hot spots are clean:
+  experience-core main sources   : 0 hits
+  export package                 : 0 hits
+  history/ package               : 12 hits — all INJECTED `Clock.systemUTC()` constructor
+                                   defaults on ViewModel factories (created at the composition
+                                   root; derivation itself receives `now`/`displayZone` as
+                                   parameters), plus documented read parameters.
+  Phase-F convergence tests drive every reader with explicit fixed clocks/zones.

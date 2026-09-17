@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:46.546Z" hostname="人面不知何处去" time="2.132">
+  <properties/>
+  <testcase name="wrong passphrase never reaches B2" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.28"/>
+  <testcase name="B2 failure does not invoke post restore effects" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.215"/>
+  <testcase name="concurrent backups serialize cloud critical section" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.205"/>
+  <testcase name="restore decrypts and previews before B2 mutation" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.195"/>
+  <testcase name="post restore failure is success with refresh warning" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.198"/>
+  <testcase name="creating the view model does not perform cloud work" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.011"/>
+  <testcase name="cancel interactive operation clears authorization and pending restore state" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.206"/>
+  <testcase name="passphrase mismatch does not snapshot or upload" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.002"/>
+  <testcase name="view model ignores a second backup submission while busy" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.099"/>
+  <testcase name="snapshot preserves dangling event slot and all backup settings" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.001"/>
+  <testcase name="corrupt download never reaches preview or B2" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.001"/>
+  <testcase name="cancelling restore preview leaves B2 untouched" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.199"/>
+  <testcase name="backup uses authoritative snapshot real B1 codec and verified B3 result" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.115"/>
+  <testcase name="disconnect failure preserves connected state and never deletes cloud backups" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.003"/>
+  <testcase name="disconnect never deletes cloud backups" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.001"/>
+  <testcase name="successful disconnect clears connected state without deleting cloud backups" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.001"/>
+  <testcase name="representative large history completes backup and restore preview" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.395"/>
+  <testcase name="invalid local data stops before upload" classname="io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

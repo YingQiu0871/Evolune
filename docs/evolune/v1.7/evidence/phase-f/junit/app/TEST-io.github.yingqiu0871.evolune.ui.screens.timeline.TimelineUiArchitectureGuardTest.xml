@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" tests="28" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:52.782Z" hostname="人面不知何处去" time="0.048">
+  <properties/>
+  <testcase name="D05 placeholder parity holds for every timeline formatted key" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.003"/>
+  <testcase name="F14 no global or internally created coroutine scope exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F21 the Timeline body is not globally centered" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.0"/>
+  <testcase name="F25 F29 F30 command targeting never uses the last published state" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F11 no polling timer or live subscription exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.004"/>
+  <testcase name="F31 every generation-producing command advances requestToday from the same capture" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="the lifecycle bridge keeps the approved first-entry and stop-start discipline" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.0"/>
+  <testcase name="F12 no persisted Timeline state store exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F18 canonical D-01 row order is never re-sorted" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F15 F16 the Timeline is a sub-route with no bottom tab and no date argument" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F20 the next-month slot is structurally reserved, never conditionally removed" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.0"/>
+  <testcase name="F6 no future Timeline rows are reachable" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F5 no timing delta or adherence semantics exists in code" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.006"/>
+  <testcase name="F17 the selection never filters the model into a single day" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F13 user-visible copy never appears as a literal in the UI code" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F19 no manual nudge or asymmetric centering exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.0"/>
+  <testcase name="F32 the logical requestToday is never rendered as the snapshot today" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F1 the closed D-01 and D-03 types are consumed but never redeclared" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F2 no direct repository DAO or Room access exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F10 F26 the VM logical intent is not a second state machine" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="functional timeline strings never contain forbidden semantics and stay in parity" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="D05 timeline accessibility keys exist with full weekdays in both files" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F22 F27 F28 the renderer never observes a clock or a system zone" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F4 no Phase-C or PK coupling exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="F9 internal comparator and identity fields are never rendered" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F7 F8 no planName identity and no antiandrogen guessing exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.002"/>
+  <testcase name="F3 no matcher generator or second truth store exists" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.001"/>
+  <testcase name="D05 no programmatic focus or live-region APIs exist in the hardened sources" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

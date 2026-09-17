@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.979Z" hostname="人面不知何处去" time="0.004">
+  <properties/>
+  <testcase name="full document preserves protocol fields and ignores unrelated top-level fields" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.001"/>
+  <testcase name="wrong id type is an entry representation diagnostic" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="unknown and non-numeric extras preserve current ignore boundary" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="malformed JSON returns document syntax failure" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="minimal document accepts missing weight and events" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.001"/>
+  <testcase name="fixed clock export matches complete golden JSON" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="malformed entries are diagnosed by input index while valid entries continue" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.001"/>
+  <testcase name="non-object document returns representation failure" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="encode decode preserves event and extras order" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.001"/>
+  <testcase name="non-number primitive weight remains absent-compatible null" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="missing id and extras remain representable without codec UUID semantics" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <testcase name="non-array events returns representation failure" classname="io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1CodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

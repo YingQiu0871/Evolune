@@ -1,0 +1,107 @@
+V17 Phase F — scenario matrix (V17_ACCEPTANCE §7.2 / V17_SPEC §8)
+===============================================================
+All cited tests executed fresh in this candidate's full fresh runs
+(app JVM 1333 / experience-core 171 / wear 90 / Android 358) unless marked new.
+
+1. cross-midnight
+   Authority : SPEC §8 (no incorrect day reassignment / false completion; Decision F)
+   Fresh     : NEW PhaseFConsistencyTest "cross-midnight legacy inferred match stays convergent
+               and provenance-bearing" (plan slot 00:00, legacy 23:00 previous day ->
+               NULL_SLOT_TIME_WINDOW + crossesLocalDateBoundary, previous day not orphaned, PK
+               sees the event); supporting: HistoricalProjectionProvenanceTest,
+               HistoricalReadModelTest, HistoryReadServiceTest, HistoryCrossDatePresentationTest,
+               HistoryPresentationTest (neutral wording), notification concurrency cross-date.
+   Result    : PASS
+   Limitation: literal 23:30/00:20 reminder-style vector is covered by
+               HistoryCrossDatePresentationTest (planned 23:00 x confirmed D+1 00:30) — documented.
+
+2. DST forward (Europe/Paris 2026-03-29 02:30 nonexistent)
+   Authority : SPEC §9 / ACCEPTANCE T3 (mandatory DST coverage)
+   Fresh     : HistoricalProjectionFutureOccurrenceTest (2026-03-29 resolved 01:30Z),
+               HistoricalProjectionIntakeTest, RetrospectivePkServiceTest D1 (GapAdjusted).
+   Result    : PASS
+
+3. DST backward (Europe/Paris 2026-10-25 02:30 repeated, Decision E)
+   Authority : ACCEPTANCE T4/T6 (no duplicate occurrence; +1h limitation public)
+   Fresh     : HistoricalProjectionIntakeTest (one occurrence, earlier offset, second-pass
+               intake binds, documented +1h delta), HistoricalProjectionFutureOccurrenceTest,
+               RetrospectivePkServiceTest D2 (two distinct instants / explicit offset).
+   Result    : PASS
+
+4. timezone change (Decision G three-way attribution)
+   Authority : SPEC §9 / ACCEPTANCE T1/T7
+   Fresh     : HistoricalProjectionIntakeTest (INTENDED_LOCAL_DATE / PERSISTED_RECORDING_DATE /
+               CURRENT_DISPLAY_TIMEZONE_DERIVED; absolute instant invariant), HistoricalReadModelTest,
+               HistoryReadServiceTest, HistoryReadServicePersistedDateTest,
+               HistoryReadServiceExtremeZoneTest, HistoryPresentationTest (derived-date note).
+   Result    : PASS (deterministic parameterized displayZone vectors; no OS zone mutation needed)
+
+5. duplicate / retry
+   Authority : SPEC §8 (undo/duplicate), §12 Invariant 6; §7.2
+   Fresh     : HRTViewModelTest (idempotent create, CAS revisions), WidgetWorkTest (same
+               occurrence across minutes/process; replay after window), WearAppConfirmationHandlerTest
+               (journal replay/conflict), PortableImportServiceTest (stable ids, revision>1
+               idempotency), NotificationOccurrenceConcurrencyTest, WearAppSnapshotRevisionStoreTest.
+   Result    : PASS (layered fresh tests; no artificial mega-test)
+
+6. manual intake
+   Authority : Decision B / A4 / SPEC §8
+   Fresh     : NEW PhaseFConsistencyTest F1 (production quick record: source MANUAL, slot null,
+               matched, PK contribution, export truth); HistoricalProjectionIntakeTest
+               ("only manual source may be presented as a manual intake"); HistoryPresentationTest;
+               RetrospectivePkExtractorTest E1/E3; export codecs.
+   Result    : PASS
+
+7. same medication multiple times / day
+   Authority : SPEC §8 (deterministic occurrence identity / no nearest-event misattribution)
+   Fresh     : MedicationOccurrenceIdentityTest, MedicationOccurrenceGeneratorTest,
+               MedicationOccurrencePresentationTest (ambiguity/no merge), WidgetWorkTest
+               (three same-day occurrences), NotificationOccurrenceConcurrencyTest,
+               CrossEntryOccurrenceConcurrencyTest.
+   Result    : PASS
+
+8. schedule edit after intake
+   Authority : Decision A (current schedule context only; historical facts unchanged)
+   Fresh     : NEW PhaseFConsistencyTest "schedule dose edit keeps recorded history truth while
+               refreshing schedule context" (slot-bound recorded row stays EXACT matched with its
+               original dose/occurredAt; schedule context shows the edited dose;
+               CURRENT_SCHEDULE_CONTEXT) + "slot identity replacement leaves the recorded event
+               truthful and unmatched" (row bytes unchanged; no fake exact match);
+               HistoricalProjectionIntakeTest ("edited slot time is current schedule context").
+   Result    : PASS (pre-gate P3 strengthenings A/B now executable)
+
+9. schedule deletion after intake
+   Authority : SPEC §8 (past facts must not silently disappear)
+   Fresh     : NEW PhaseFConsistencyTest "schedule deletion keeps the recorded event and stops
+               future occurrence generation" (unmatched intake survives with its date;
+               no occurrence generated on a future day; PK still consumes the recorded event);
+               HistoricalProjectionIntakeTest, HistoricalReadModelTest, HistoryReadServiceTest,
+               RetrospectivePkServiceTest S20.
+   Result    : PASS (pre-gate P3 future-generation strengthening now executable)
+
+10. legacy migration
+    Authority : SPEC §8 (legacy upgraded data — no silent history corruption)
+    Fresh     : AppDatabaseMigrationTest (v2->v3 nulls + LEGACY/RECORDED/revision=1 + v5 slot
+                vector), AppDatabaseMigrationMatrixTest (2000 events/100 plans fixed seed; real
+                v1->v3 chain), MigrationPersistenceContractTest, Batch8CPreservedUpgradeTest,
+                V15InPlaceUpgradeDeviceTest (phase-gated; skipped in a plain run — known policy).
+    Result    : PASS (schema-faithful synthetic fixtures; no literal "HRT Tracker" fixture required)
+
+11. orphan event
+    Authority : Decision B / A4 (orphans displayed with the REAL source)
+    Fresh     : NEW PhaseFConsistencyTest F5 (legacy orphan, real source, no fake manual);
+                "schedule deletion" and "slot identity replacement" vectors (orphan after
+                structural change, source preserved); HistoryPresentationTest; Android
+                HistoryScreenTest labels.
+    Result    : PASS
+
+12. ambiguous / unattributed
+    Authority : Invariant 4 (ambiguity stays ambiguous; Decision F)
+    Fresh     : HistoricalProjectionProvenanceTest (ambiguous candidates stay unmatched;
+                inferred never reported as exact; inclusive boundary), MedicationOccurrencePresentationTest
+                (simultaneous occurrences not merged; determinism independent of input order),
+                HistoryPresentationTest (unmatched claims no plan ownership).
+    Result    : PASS
+
+Gate state: every authority-required behavior PASS. P3 strengthenings delivered as executable
+tests where cheap; remaining documented limitations are in known-limitations.txt.

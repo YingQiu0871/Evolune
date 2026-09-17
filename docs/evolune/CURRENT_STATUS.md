@@ -275,16 +275,24 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     API 35 12/12；final closure packet `review-packets/v17-phase-e-final-closure.txt`；
     **Phase E CLOSED / FROZEN**，未经重开评审不得改 Phase-E 语义）。
   - Phase-F pre-gate narrow fix — **W-DH-2 widget rejection feedback — IMPLEMENTED /
-    REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
+    ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`
+    @ `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
     `cb242b55b49a5cd9c4271072297d51872d04ad8b`；rejection policy：Invalid / PlanNotFound /
     PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
     write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
-    evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`；**Phase F 仍 IN PROGRESS /
-    NOT GATED**；Phase-F final consistency candidate **NOT STARTED**）。
-  - **NEXT:** **W-DH-2 narrow-fix implementation review**（通过后进入 **Phase F — Final
-    Consistency Gate**（`V17_PLAN.md` §9）：Phone/Widget/Wear/Undo/Legacy → History/
-    Timeline/Insights/PK 收敛矩阵 + fresh JVM + fresh Android + affected Wear 证据；release
-    gate `APPROVE V1.7.0 RELEASE CANDIDATE`；两者均不在本次修复内开始）。
+    evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`）。
+  - Phase-F final consistency candidate — **FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
+    REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
+    cross-midnight / schedule edit / schedule deletion 强化，组合生产 writer/handler 与生产
+    reader/builder；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
+    Android 358/0/5 assume-gated skip、`assembleDebug`（app + wear）BUILD SUCCESSFUL；
+    README v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release
+    evidence — complete；`release gate — NOT YET APPROVED`；evidence
+    `docs/evolune/v1.7/evidence/phase-f/`；**Phase F 仍 IN PROGRESS、未 CLOSED**）。
+  - **NEXT:** **Phase-F final consistency candidate review**（Architect + fresh independent
+    final review → P0–P3；通过后方可达成 release gate `APPROVE V1.7.0 RELEASE
+    CANDIDATE`；版本元数据 1.6.0 → 1.7.x bump 属其后显式 release-packaging 步骤；不自行
+    开始）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

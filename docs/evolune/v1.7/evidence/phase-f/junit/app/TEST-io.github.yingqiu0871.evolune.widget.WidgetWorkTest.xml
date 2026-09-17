@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" tests="20" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:53.363Z" hostname="人面不知何处去" time="0.041">
+  <properties/>
+  <testcase name="accepted widget action remains idempotent after its availability window closes" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.003"/>
+  <testcase name="action time rechecks availability and rejects upcoming or expired occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="non PK snapshot does not compute chart or concentration" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.004"/>
+  <testcase name="same occurrence is idempotent across minutes Widget instances and process work" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="update renders the same truthful failure to every Widget" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.004"/>
+  <testcase name="three same-day occurrences of one plan have separate action identities" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <testcase name="empty event selection has no concentration" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <testcase name="action-time availability keeps legacy null-slot event on earlier sibling" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <testcase name="rejection side effects are best effort and never change the rejection outcome" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="PK chart uses fixed 48 hour window with 25 points and shares current scalar" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <testcase name="invalid missing and disabled Widget actions perform no write" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="Widget collision rejection refreshes without overwriting while storage failure stays effectless" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.003"/>
+  <testcase name="stale date forged identity and foreign slot perform no write" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="snapshot repository failure does not create a fake state" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <testcase name="update loads once and renders one complete snapshot to every Widget" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.003"/>
+  <testcase name="refresh failure keeps the accepted row and does not retry insert" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="rejection feedback policy maps exactly the authoritative validation rejections" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="Decision H rejections never attempt a medication write and always refresh with feedback" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.003"/>
+  <testcase name="quick action persists complete Widget metadata before refresh and toast" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.001"/>
+  <testcase name="snapshot uses enabled Domain plans and preserves PK concentration" classname="io.github.yingqiu0871.evolune.widget.WidgetWorkTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

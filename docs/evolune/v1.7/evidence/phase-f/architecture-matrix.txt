@@ -1,0 +1,48 @@
+V17 Phase F — architecture audit (final candidate @ 9097b4a + Phase-F delta)
+===========================================================================
+(HEAD 9097b4a0fe12aee5659bc1b9542ed478da4ec321)
+
+One medication-event truth store
+  PASS — Room `dose_events` behind core.dataapi.DoseEventRepository
+  (RoomDoseEventRepository); no second truth store; no derived-fact cache.
+  Write/read scan: 0 direct DAO/entity/concrete-repository hits outside the
+  data/ persistence layer (audits/write-read-authority.txt).
+
+One repository contract
+  PASS — core/dataapi/DoseEventRepository + MedicationPlanRepository; all writers and
+  readers consume the interfaces; Phase-E import uses getById/insert only.
+
+One occurrence generator authority
+  PASS — MedicationOccurrenceGenerator (with the 3660-day window cap) is the single
+  recurrence implementation; History chunking splits windows but never reimplements.
+
+One matcher authority
+  PASS — MedicationOccurrenceMatcher.assign (four ordered phases) reached only through
+  MedicationOccurrencePresentation.deriveWithMatches; History/Timeline/Insights/PK consume
+  its decisions; architecture guards forbid a second matcher.
+
+Derived surfaces
+  PASS — History (HistoryReadService), Timeline (HistoryRangeSource -> HistoricalRange ->
+  TimelineProjectionBuilder), Insights (same range -> ReadOnlyMedicationInsightsAggregator),
+  Retrospective PK (AllAvailableHistorySource + range seam; frozen C-01/C-04 paths).
+
+Separate backup / separate portability
+  PASS — B2/.evbackup restore path untouched by Phase F; Phase-E canonical formats untouched
+  (export read-only seam, no clipboard, no backup coupling).
+
+Mutation entry points at final candidate (all through the core seam)
+  Phone create/update/delete   HRTViewModel -> insert/update/delete
+  Widget quick action          ContractWidgetQuickActionWork -> LocalActionRecorder -> insert
+  Reminder confirm             ContractNotificationActionWork -> LocalActionRecorder -> insert
+  Wear App confirm             WearAppConfirmationHandler -> WearActionRecorder -> insert
+  Legacy Wear tile             WearDoseActionHandler -> WearActionRecorder -> insert
+  Mahiro import                MahiroJsonV1ImportService -> insert (additive per row)
+  Canonical import             PortableImportService -> getById/insert (prevalidated)
+  Wear undo                    WearAppUndoHandler -> deleteLatestRecordedIfRevisionMatches
+  Restore (separate by design) B2 journaled full replacement via data/ gateway
+  Newly introduced DAO bypass  NONE (0 hits)
+
+Phase-F delta architecture impact
+  NONE — the candidate adds test-only code (phasef suite + Phase-F delta tests), README/status
+  docs and evidence. No production source file is modified by this candidate commit
+  (implementation.diff contains tests/docs only; verified by changed-file classification).

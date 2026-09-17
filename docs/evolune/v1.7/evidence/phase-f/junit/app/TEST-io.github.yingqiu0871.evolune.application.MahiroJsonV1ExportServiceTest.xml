@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.MahiroJsonV1ExportServiceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:46.138Z" hostname="人面不知何处去" time="0.066">
+  <properties/>
+  <testcase name="formal export rejects an Instant outside the v1 time range" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ExportServiceTest" time="0.012"/>
+  <testcase name="formal export preserves legacy v1 fields order and metadata projection" classname="io.github.yingqiu0871.evolune.application.MahiroJsonV1ExportServiceTest" time="0.054"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

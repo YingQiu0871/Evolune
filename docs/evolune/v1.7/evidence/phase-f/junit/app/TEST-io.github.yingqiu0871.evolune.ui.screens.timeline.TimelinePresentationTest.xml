@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" tests="18" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:52.771Z" hostname="人面不知何处去" time="0.009">
+  <properties/>
+  <testcase name="UI9 sections are rendered newest date first" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.004"/>
+  <testcase name="UI15 UNMATCHED renders the recorded side only" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI52 a new published state today moves the relative labels" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI13 and UI19 MATCHED exposes two sides with per-side dose provenance" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.001"/>
+  <testcase name="absolute section labels carry the localized date and the existing weekday vocabulary" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="the strip covers the effective range in ascending order with selection flags" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI51 an unchanged snapshot keeps Today and Yesterday stable" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI14 UNRECORDED renders the schedule side only" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.001"/>
+  <testcase name="UI16 KNOWN identity uses the canonical ester resource on both sides" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="D05 full weekday accessibility vocabulary maps every day deterministically" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI18 UNAVAILABLE identity is neutral and never mapped to an ester" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI10 rows inside a section keep canonical ascending order" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI44 and UI45 visible timestamps use the published display zone independent of the 12-24h mode" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.003"/>
+  <testcase name="UI22 to UI26 every phase passes through without inventing content" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI12 EMPTY_DAY keeps every non-empty month section visible" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI53 month-control enablement derives from the published state today only" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI29 and UI30 the 12-24h preference changes notation only" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <testcase name="UI17 PARTIAL identity is neutral and never guessed" classname="io.github.yingqiu0871.evolune.ui.screens.timeline.TimelinePresentationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

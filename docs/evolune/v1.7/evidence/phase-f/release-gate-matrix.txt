@@ -1,0 +1,43 @@
+V17 Phase F — release-gate matrix (V17_ACCEPTANCE §7)
+=====================================================
+
+§7.1 mandatory consistency matrix -> PASS
+  Phone record  -> History / Timeline / Insights / PK   PASS  (F1 fresh convergence test)
+  Widget record -> same result                          PASS  (F2 fresh convergence test)
+  Wear (App)    -> same result                          PASS  (F3 fresh convergence test)
+  Undo (Phone delete / Wear latest-dose)                PASS  (F4 fresh convergence tests)
+  Legacy event  -> deterministic preserved result       PASS  (F5 fresh convergence test)
+  Each row additionally cross-checked against the Phase-E export service where useful.
+
+§7.2 additional mandatory cases -> PASS
+  cross-midnight            PASS (new Phase-F vector + existing provenance/presentation suites)
+  DST forward               PASS (existing 2026-03-29 suites, fresh-executed)
+  DST backward              PASS (existing 2026-10-25 suites, fresh-executed)
+  timezone change           PASS (Decision-G provenance suites, fresh-executed)
+  duplicate/retry           PASS (layered fresh suites per entry path)
+  manual intake             PASS (F1 + projection/presentation/PK/export suites)
+  same medication multiple/day PASS (identity/presentation/widget suites)
+  schedule edit             PASS (new dose-edit + slot-replacement vectors)
+  schedule deletion         PASS (new survival + future-generation vector)
+  legacy migration          PASS (migration matrix suites, fresh Android run)
+  orphan events             PASS (F5 + structural-change orphans)
+  ambiguous/unattributed    PASS (provenance suites; ambiguity never upgraded)
+
+§7.3 evidence package -> PASS
+  fresh full JVM            logs/app-jvm.log + junit/app/            (1333/0/0/0)
+  experience-core JVM       logs/experience-core-jvm.log + junit/    (171/0/0/0)
+  wear JVM                  logs/wear-jvm.log + junit/wear/          (90/0/0/0)
+  fresh Android (.apk build + instrumentation)
+                            logs/app-build.log + logs/android.log + androidtest/ (358/0/0/5)
+  affected Wear verification wear-disposition.txt (wear/ unchanged; phone-side boundary fresh)
+  BUILD SUCCESSFUL raw text logs/app-build.log + logs/wear-build.log
+  candidate SHA             identity/git-identity.txt (base 9097b4a; candidate commit in packet)
+  changed files             changed-file classification in the review packet
+  raw log paths             listed above
+  known limitations         known-limitations.txt
+  git status --porcelain    clean (recorded in the review packet)
+
+§7.4 independent review -> PENDING (final Architect + fresh independent review; P0–P3).
+  This candidate does NOT self-approve the release gate.
+
+Release gate target: `APPROVE V1.7.0 RELEASE CANDIDATE` — NOT YET APPROVED.

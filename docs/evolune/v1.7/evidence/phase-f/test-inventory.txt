@@ -1,0 +1,40 @@
+V17 Phase F — test inventory and source/XML reconciliation
+===========================================================
+Reconciliation method: independently enumerate current `@Test` declarations per source set,
+then compare with the fresh JUnit XML produced by the runs in fresh-verification.txt.
+
+Suite                     declared  executed  failures  errors  skipped  result
+------------------------  --------  --------  --------  ------  -------  ------
+focused Phase-F JVM            11        11         0       0        0  PASS
+app JVM (all)                1333      1333         0       0        0  PASS
+experience-core JVM           171       171         0       0        0  PASS
+wear JVM                       90        90         0       0        0  PASS
+Android instrumentation       358       358         0       0        5  PASS
+
+Unexpected missing tests: none (declared == executed in every suite).
+
+Android skipped tests (5) — all intentional assume-gated suite policy, unchanged:
+  1. io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest#prepareV14State
+     (two-phase package upgrade orchestration; skipped without the `v15UpgradePhase` arg)
+  2. io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest#verifyV15State
+     (same phase-gated orchestration)
+  3. io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest#
+     expandedRailAndSharedTopBarKeepStableGeometry
+     (assumeTrue: navigation rail requires a non-compact window; Pixel_7 is compact)
+  4. io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest#
+     topLevelTitleRemainsCenteredThroughoutPageTransition
+     (same non-compact window gate)
+  5. io.github.yingqiu0871.evolune.data.migration.contract.RepairToolOutputMigrationTest#
+     repairedV2CopyMigratesAndProductionRepositoriesReadIt
+     (assumeNotNull external repair-tool output fixture not present in a plain run)
+
+Phase-F focused suite composition (11 tests):
+  F1 phone, F2 widget, F3 wear, F4 phone delete, F4 wear undo, F5 legacy,
+  W-DH-2 gate regression, cross-midnight, schedule dose edit, slot identity replacement,
+  schedule deletion.
+W-DH-2 focused tests remain inside the fresh app JVM + Android runs (see w-dh-2/ subtree).
+
+Baseline context (ACCEPTANCE §8 anchors): v1.6 baseline JVM 863 (app 689 / ec 84 / wear 90)
+and instrumentation 208 executed / 0 fail / 5 skip. Current fresh totals exceed the JVM
+baseline by construction (v1.7 phases added suites); Android executed 358 with the same
+5-skip policy class, 0 failures/errors.

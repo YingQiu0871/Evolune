@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:53.303Z" hostname="人面不知何处去" time="0.019">
+  <properties/>
+  <testcase name="manifest exposes four functions while appearance screen has no function selector" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.004"/>
+  <testcase name="configuration activity reference retains the source activity class for both variants" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.0"/>
+  <testcase name="appearance hero preview centers both panels" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.001"/>
+  <testcase name="trend preview and runtime bars rise from the bottom x axis" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.003"/>
+  <testcase name="record action uses the checkmark and has no production add icon reference" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.001"/>
+  <testcase name="today plan keeps the v15 row structure and a scrollable collection" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.002"/>
+  <testcase name="four independent providers require the shared appearance surface" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.002"/>
+  <testcase name="chart axis uses three evenly weighted labels in every host surface" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.003"/>
+  <testcase name="next dose preview gives the medicine and time centered balanced type" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.0"/>
+  <testcase name="all Phone picker entries use Evolune-prefixed names" classname="io.github.yingqiu0871.evolune.widget.WidgetHostContractTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

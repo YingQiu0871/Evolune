@@ -1,0 +1,117 @@
+V17 Phase F — time authority scan (final candidate @ 9097b4a + Phase-F delta)
+Patterns: Instant.now | Clock.system | LocalDate.now | LocalDateTime.now | ZoneId.systemDefault | System.currentTimeMillis
+
+app\src\main\java\io\github\yingqiu0871\evolune\MainActivity.kt:266: clock = java.time.Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\MainActivity.kt:322: generatedAt = java.time.Instant.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\MainActivity.kt:323: zoneId = java.time.ZoneId.systemDefault(),
+app\src\main\java\io\github\yingqiu0871\evolune\application\DoseEventEditor.kt:33: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\application\MahiroJsonV1ExportService.kt:12: clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\application\MedicationPlanEditor.kt:30: private val clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\application\WearAppConfirmationHandler.kt:38: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\application\WearAppUndoHandler.kt:27: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\backup\B2RestoreTransaction.kt:16: private val now: () -> Instant = { Instant.now() },
+app\src\main\java\io\github\yingqiu0871\evolune\backup\BackupRestoreCoordinator.kt:111: private val clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\backup\cloud\google\GoogleDriveBackupProvider.kt:40: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\data\MedicationPlan.kt:39: val createdAt: Long = System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\data\SettingsDataStore.kt:95: private val clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\external\mahiro\v1\MahiroV1Codec.kt:19: private val clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\healthconnect\HealthConnectWeightProvider.kt:65: now: Instant = Instant.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\healthconnect\HealthConnectWeightSyncCoordinator.kt:53: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\HistoryViewModel.kt:43: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\HistoryViewModel.kt:130: val today = LocalDate.now(clock.withZone(zone))
+app\src\main\java\io\github\yingqiu0871\evolune\history\HistoryViewModel.kt:176: val today = LocalDate.now(clock.withZone(zone))
+app\src\main\java\io\github\yingqiu0871\evolune\history\HistoryViewModel.kt:244: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\insights\InsightsViewModel.kt:55: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\insights\InsightsViewModel.kt:367: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\retrospective\RetrospectivePkViewModel.kt:54: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\retrospective\RetrospectivePkViewModel.kt:264: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\timeline\TimelineRangeState.kt:12: * zone and a freshly captured [capturedAt]. The coordinator never reads `Instant.now()`,
+app\src\main\java\io\github\yingqiu0871\evolune\history\timeline\TimelineRangeState.kt:13: * `Clock.system*` or `ZoneId.systemDefault()`.
+app\src\main\java\io\github\yingqiu0871\evolune\history\timeline\TimelineViewModel.kt:41: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\history\timeline\TimelineViewModel.kt:266: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\MedicationNotificationActionReceiver.kt:55: System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\MedicationReminderReceiver.kt:43: System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderManager.kt:50: reminderOccurrences(plan, LocalDateTime.now()).forEach { occurrence ->
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderManager.kt:51: val scheduledAt = occurrence.dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderManager.kt:133: dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderManager.kt:139: if (triggerTime < System.currentTimeMillis()) {
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderReceiverWork.kt:119: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\reminder\ReminderSkipStore.kt:30: private fun expiryFloor(): Long = System.currentTimeMillis() - RETENTION_MILLIS
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\BackupRestoreSection.kt:322: .atZone(ZoneId.systemDefault())
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\ConcentrationChart.kt:153: System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordBottomSheet.kt:1317: Text(SimpleDateFormat("yyyy-MM-dd", LocalLocale.current.platformLocale).format(Date(System.currentTimeMillis() - 7 * 24 * 3600000)))
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:228: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:245: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:262: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:278: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:294: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:310: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:326: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:344: timeH = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:362: val currentTime = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\components\MedicationRecordItem.kt:410: val currentTime = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\HealthConnectSyncScreen.kt:40: .withZone(ZoneId.systemDefault())
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\HomeScreen.kt:621: val currentTimeH = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\HomeScreen.kt:636: val currentTimeH = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\HomeScreen.kt:651: val currentTimeH = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\HomeScreen.kt:682: .atZone(ZoneId.systemDefault())
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\MedicationRecordsScreen.kt:343: val currentTime = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\MedicationRecordsScreen.kt:420: val currentTime = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\ui\screens\MedicationRecordsScreen.kt:460: val currentTime = System.currentTimeMillis() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MahiroJsonFormat.kt:153: put("exportedAt", Instant.now().toString())
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MedicationPlanPredictor.kt:30: fromDateTime: LocalDateTime = LocalDateTime.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MedicationPlanPredictor.kt:50: fromDateTime: LocalDateTime = LocalDateTime.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MedicationPlanPredictor.kt:121: timeH = dateTime.atZone(ZoneId.systemDefault())
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MedicationPlanPredictor.kt:133: fromDateTime: LocalDateTime = LocalDateTime.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\utils\MedicationPlanPredictor.kt:142: fromDateTime: LocalDateTime = LocalDateTime.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\viewmodel\HRTViewModel.kt:125: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\viewmodel\HRTViewModel.kt:373: zoneId = ZoneId.systemDefault()
+app\src\main\java\io\github\yingqiu0871\evolune\viewmodel\PKState.kt:12: val currentTimeH: Double = System.currentTimeMillis() / 3600000.0,
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:61: clock: Clock = Clock.systemUTC()
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:85: val zoneId = ZoneId.systemDefault()
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:198: val zoneId = ZoneId.systemDefault()
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:209: now = Instant.now(),
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppProducerIdentityStore.kt:28: nowMillis: Long = System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\wear\WearDataLayer.kt:84: val updatedAt = System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\EvoluneWidgetReceiver.kt:405: computedAt.atZone(java.time.ZoneId.systemDefault()).toLocalDateTime(),
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:67: dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 3600000.0
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:81: val now = LocalDateTime.now()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:82: val nowMillis = System.currentTimeMillis()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:199: val today = LocalDate.now()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:250: val today = LocalDate.now()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetUtils.kt:262: dateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetWork.kt:78: private val clock: Clock = Clock.systemUTC(),
+app\src\main\java\io\github\yingqiu0871\evolune\widget\WidgetWork.kt:235: private val clock: Clock = Clock.systemUTC(),
+experience-core\src\test\kotlin\io\github\yingqiu0871\evolune\experience\insights\InsightsBoundaryGuardTest.kt:83: "ZoneId.systemDefault",
+experience-core\src\test\kotlin\io\github\yingqiu0871\evolune\experience\insights\InsightsBoundaryGuardTest.kt:86: "Instant.now",
+experience-core\src\test\kotlin\io\github\yingqiu0871\evolune\experience\insights\InsightsBoundaryGuardTest.kt:87: "LocalDate.now",
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\DoseTileService.kt:66: val nowMillis = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\DoseTileService.kt:191: val nowMillis = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\DoseTileService.kt:227: dataMap.putLong("recorded_at", System.currentTimeMillis())
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppActivity.kt:153: val nowMillis = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppActivity.kt:168: val nowMillis = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppActivity.kt:178: ?: ZoneId.systemDefault()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:71: createdAt = Instant.now(),
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:111: createdAt = Instant.now(),
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:245: fun requestSnapshot(context: Context, nowMillis: Long = System.currentTimeMillis()) {
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:273: System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppDataLayer.kt:281: WearAppStore.markFailure(appContext, System.currentTimeMillis())
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppSnapshotListenerService.kt:30: receivedAt = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppStore.kt:145: if (getPresentation(context, System.currentTimeMillis()).state !=
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearAppStore.kt:164: if (getPresentation(context, System.currentTimeMillis()).state !=
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearComplicationDataSource.kt:141: val now = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearComplicationDataSource.kt:185: val zoneId = snapshot.zoneId.let { runCatching { ZoneId.of(it) }.getOrDefault(ZoneId.systemDefault()) }
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearGalleryTileService.kt:91: val now = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearGalleryTileService.kt:103: ?: ZoneId.systemDefault()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearGalleryTileService.kt:361: val time = if (scheduled.toLocalDate() == java.time.Instant.now().atZone(zoneId).toLocalDate()) {
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearGalleryTileService.kt:383: snapshot.zoneId.let { runCatching { ZoneId.of(it) }.getOrDefault(ZoneId.systemDefault()) }
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearGalleryTileService.kt:413: internal fun concentrationLabel(snapshot: WearAppSnapshot?, nowMillis: Long = System.currentTimeMillis()): String {
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearPlanListenerService.kt:29: val receivedAt = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:42: val requestAt = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:96: System.currentTimeMillis(),
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:104: val pendingSince = System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:124: System.currentTimeMillis()
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:136: System.currentTimeMillis(),
+wear\src\main\java\io\github\yingqiu0871\evolune\wear\WearSyncManager.kt:152: System.currentTimeMillis()
+
+TOTAL raw hits: 112 (classification in time-authority.txt)

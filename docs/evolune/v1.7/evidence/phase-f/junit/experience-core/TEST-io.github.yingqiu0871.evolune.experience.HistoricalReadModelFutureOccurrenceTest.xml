@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:05:07.098Z" hostname="人面不知何处去" time="0.005">
+  <properties/>
+  <testcase name="history never invents an entry or a day for a future date" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest" time="0.003"/>
+  <testcase name="previous dates keep every unmatched occurrence as unrecorded" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest" time="0.001"/>
+  <testcase name="range totals never count an upcoming occurrence as unrecorded" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest" time="0.0"/>
+  <testcase name="a day of history ignores the occurrences that have not arrived" classname="io.github.yingqiu0871.evolune.experience.HistoricalReadModelFutureOccurrenceTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

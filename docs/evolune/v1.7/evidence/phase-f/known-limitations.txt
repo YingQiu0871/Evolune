@@ -1,0 +1,46 @@
+V17 Phase F — known limitations / carried P3s
+=============================================
+
+Non-blocking items carried at the final candidate (no P3 churn before the release gate):
+
+1. VERSION METADATA (release-process item, NOT a Phase-F failure)
+   versionName/versionCode still reflect the existing 1.6.0 release metadata
+   (`check(evoluneVersionName == "1.6.0")` in build.gradle.kts). Phase F does not change it
+   under G2. REQUIRED LATER: POST-GATE RELEASE-PACKAGING — an explicit authorized
+   release-packaging/version-bump step (precedent: v1.6 version set in its ship commit
+   58ab66f) before any v1.7.0 artifact is published. The APK hashes in build-summary.txt are
+   therefore 1.6.0-debug debug artifacts.
+
+2. Legacy Wear tile re-tap semantics (pre-existing v1.6 behavior; wear/ + handler untouched)
+   A brand-new tap generates a new actionId, so a second tap after an accepted-but-unacked
+   action can create a second row. Retry of the SAME DataItem remains identity-stable.
+   Documented as legacy behavior; not a v1.7 change and not a Phase-F blocker.
+
+3. utils/MedicationPlanPredictor hidden clock/device-zone defaults (virtual current-state PK
+   only; never persisted; file untouched since the v1.6 baseline) — time-authority P3.
+
+4. widget/EvoluneWidgetReceiver render-time ZoneId.systemDefault re-projection of a snapshot
+   instant (display-only P3).
+
+5. data/SettingsDataStore Health-Connect adoptedAt stamping on manual weight edit/restore
+   (weight settings only; appears intentional; owner confirmation suggested) — P3.
+
+6. Dead legacy facades: utils/MahiroJsonFormat, data/DoseEventRepository,
+   data/MedicationPlanRepository, widget/WidgetUtils (no production callers; static guards ban
+   re-linking) — hygiene P3.
+
+7. Accepted-path widget Toast text remains a pre-existing hardcoded string (only the new
+   W-DH-2 rejection string is resource-based) — hygiene P3.
+
+8. StorageFailure / UnexpectedFailure widget outcomes remain effectless system-failure paths
+   (Decision-H validation-rejection boundary is what W-DH-2 covers) — future UX decision, P3.
+
+9. Literal 23:30/00:20 reminder-style cross-midnight vector: covered by the authoritative
+   planned-23:00 x D+1 00:30 vector in HistoryCrossDatePresentationTest; the Phase-F gate adds
+   the legacy-inference cross-midnight row. No semantic gap; wording/documentation only.
+
+10. M3 residue (schedule edit "change slot identity"/"change dose") was strengthened in the
+    Phase-F gate (both vectors now executable); the historical component proof remains valid.
+
+None of the above contradicts the release acceptance conditions; all are recorded for the
+final independent review.

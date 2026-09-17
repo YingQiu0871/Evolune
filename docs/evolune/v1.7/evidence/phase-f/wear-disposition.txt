@@ -1,0 +1,26 @@
+V17 Phase F — Wear disposition
+==============================
+
+Repository fact (git proof): the watch module is byte-unchanged across the whole v1.7 program:
+  $ git diff --stat 72a468c..HEAD -- wear/   => empty
+(72a468c is the v1.6 product baseline carried by the v1.7 docs.)
+
+Authority: "fresh Wear/device suite where affected" (PLAN §9) / "受影响面的 Wear 验证"
+(ACCEPTANCE §7.3). Because wear/ executable sources are unchanged, the affected Wear surface
+is the PHONE-side boundary:
+  - Wear App confirmation/undo handlers (application/WearApp*.kt) -> covered by fresh app JVM
+    (WearAppConfirmationHandlerTest, WearAppUndoHandlerTest, WearDoseActionHandlerTest, ...)
+    AND by the new Phase-F convergence suite F3/F4-wear rows.
+  - Phone-side Wear snapshot builder -> fresh app JVM (WearAppSnapshotBuilderTest etc.).
+  - Android reachability/wiring -> fresh full instrumentation run (WearAppListenerReachabilityTest,
+    WearProductionCutoverTest inside the 358-test run).
+
+Freshly executed in this candidate:
+  - :wear:testDebugUnitTest --rerun-tasks  => 90/90 executed (logs/wear-jvm.log)
+  - :app:testDebugUnitTest --rerun-tasks   => includes all Phone-side Wear boundary tests
+  - :app:connectedDebugAndroidTest --rerun-tasks => 358 tests (includes Wear boundary device tests)
+
+Wear-module device instrumentation (Wear_OS_Large_Round AVD):
+  NOT REQUIRED — wear/ executable surface unchanged (git proof above); no v1.7 delta exists on
+  the watch side for a device-level Wear suite to cover beyond its unchanged JVM tests.
+  (Per instruction, no new Wear instrumentation category was invented to satisfy the phrase.)

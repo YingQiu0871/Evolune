@@ -1,0 +1,19 @@
+V17 Phase F — write/read authority audit (final candidate)
+
+Scan: direct DAO / entity / concrete Room repository usage in production sources outside data/repository+data/ persistence layer.
+
+
+Non-persistence DAO/entity hits: 0 (expected 0; restore gateway RoomRestorePersistence lives inside data/ and is separate by design)
+
+Mutation entry points (production) -> core.dataapi.DoseEventRepository seam:
+  Phone create/update/delete     HRTViewModel -> repository.insert/update/delete
+  Widget quick action           ContractWidgetQuickActionWork -> LocalActionRecorder -> insert
+  Reminder confirm              ContractNotificationActionWork -> LocalActionRecorder -> insert
+  Wear App confirm              WearAppConfirmationHandler -> WearActionRecorder -> insert
+  Legacy Wear tile              WearDoseActionHandler -> WearActionRecorder -> insert
+  Mahiro import                 MahiroJsonV1ImportService -> insert (additive per row)
+  Canonical import              PortableImportService -> getById/insert (prevalidated)
+  Wear undo                     WearAppUndoHandler -> deleteLatestRecordedIfRevisionMatches
+  Restore (separate)            B2/RoomRestorePersistence (data/ gateway; journaled full replacement by design)
+
+Read authority: History (HistoryReadService), Timeline (HistoryRangeSource seam), Insights (HistoryRangeSource seam), Retrospective PK (AllAvailableHistorySource + range seam), Widget/Wear snapshots (repository + shared presentation), Export (repository read-only seam). No second truth store; guards enforce seams (Timeline/Insights/Retrospective/Export architecture tests).

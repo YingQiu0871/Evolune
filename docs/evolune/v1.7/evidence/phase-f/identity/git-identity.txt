@@ -1,0 +1,20 @@
+V17 Phase F — final consistency candidate identity
+==================================================
+
+Branch                      : v1.7-development
+Candidate base HEAD          : 9097b4a0fe12aee5659bc1b9542ed478da4ec321
+                               (fix: close v1.7 W-DH-2 widget rejection feedback)
+Base parent                  : cb242b55b49a5cd9c4271072297d51872d04ad8b
+Worktree at start            : clean (git status --porcelain empty)
+Preflight `git diff --check` : clean
+Target release gate          : APPROVE V1.7.0 RELEASE CANDIDATE (NOT claimed by this candidate)
+
+Candidate scope: Phase-F final consistency gate —
+  - new cross-surface convergence suite `phasef/PhaseFConsistencyTest` (F1–F5 rows,
+    W-DH-2 gate regression, cross-midnight / schedule edit / schedule deletion strengthenings)
+  - genuinely fresh release validation (all modules + Android + debug builds)
+  - Phase-F evidence bundle (this directory)
+  - README stale v1.7 wording corrected; status pointers updated
+  - ZERO planned production behavior change (implementation.diff contains tests/docs only)
+
+Governance: exactly ONE local commit; no amend / push / merge / tag / release.

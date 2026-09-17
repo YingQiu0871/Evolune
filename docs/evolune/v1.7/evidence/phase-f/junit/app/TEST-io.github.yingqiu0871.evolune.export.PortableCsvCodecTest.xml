@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.694Z" hostname="人面不知何处去" time="0.003">
+  <properties/>
+  <testcase name="extras_json is compact, lexically ordered and RFC4180 quoted" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.001"/>
+  <testcase name="medication mapping never guesses partial or unavailable identity" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="a plain row keeps the frozen column order and constant columns" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.001"/>
+  <testcase name="the header is the frozen 16 column order" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="an empty export is the header plus exactly one final LF" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="medication mapping follows Table D for every non antiandrogen route" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="rfc4180 quoting doubles embedded quotes and quotes separators" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="rows keep the caller provided deterministic order" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <testcase name="medication mapping follows Table D for antiandrogen ordinals" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.001"/>
+  <testcase name="null date and null zone project to empty columns" classname="io.github.yingqiu0871.evolune.export.PortableCsvCodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

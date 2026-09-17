@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:53.325Z" hostname="人面不知何处去" time="0.012">
+  <properties/>
+  <testcase name="recorded event uses E1 matching and next boundary is the due window close" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.006"/>
+  <testcase name="one plan keeps three same-day slot occurrences and exact sibling recording" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.001"/>
+  <testcase name="late manual null-slot event completes the unique same-day schedule" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.0"/>
+  <testcase name="simultaneous enabled occurrences remain current and disabled plans are excluded" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.0"/>
+  <testcase name="window competitors do not complete the later widget occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.001"/>
+  <testcase name="logical occurrence identity survives timezone reconstruction and day rollover" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.0"/>
+  <testcase name="late Widget event preserves actual time and completes today's slot by local date" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.0"/>
+  <testcase name="no enabled plans is distinct from an enabled plan without an occurrence" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.001"/>
+  <testcase name="coordinator retains accepted update reasons" classname="io.github.yingqiu0871.evolune.widget.WidgetPresentationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

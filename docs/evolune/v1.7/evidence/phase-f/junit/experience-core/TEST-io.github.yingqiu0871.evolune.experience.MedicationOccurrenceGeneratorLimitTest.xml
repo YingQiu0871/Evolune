@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorLimitTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:05:07.120Z" hostname="人面不知何处去" time="0.19">
+  <properties/>
+  <testcase name="exactly one hundred thousand occurrences remain accepted" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorLimitTest" time="0.124"/>
+  <testcase name="the next occurrence beyond the guard fails with the dedicated exception" classname="io.github.yingqiu0871.evolune.experience.MedicationOccurrenceGeneratorLimitTest" time="0.066"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

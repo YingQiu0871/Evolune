@@ -1,0 +1,41 @@
+V17 Phase F — document consistency audit (after README correction)
+==================================================================
+
+README (root readme.md)
+  FIXED — the obsolete "next candidate milestone is v1.7 — Optional CPA PK Curve" claim is
+  replaced with the repository-authoritative status: v1.7 (History & Insights) is in final
+  consistency / release-candidate validation; the release gate is not yet approved; version
+  metadata remains 1.6.0 until the authorized release-packaging step.
+  No statement that v1.7 is released. No v1.8 scope invented. Bilingual and concise.
+
+TODO.MD
+  Phase A–E CLOSED/FROZEN; W-DH-2 IMPLEMENTED / ARCHITECT-REVIEW APPROVED; Phase-F final
+  consistency candidate IMPLEMENTED / REVIEW PENDING; matrix candidate PASS; release gate
+  NOT YET APPROVED; NEXT = Phase-F final consistency candidate review.
+
+docs/evolune/CURRENT_STATUS.md
+  Same status lines; evidence path evidence/phase-f/; version-packaging note referenced.
+
+docs/evolune/ROADMAP.md
+  Phase F candidate block updated; Phase A–E closure identities unchanged; release gap
+  identity unchanged; NEXT = Phase-F final consistency candidate review.
+
+docs/evolune/v1.7/V17_PLAN.md
+  §8 status note updated: contract/closure identities unchanged; candidate + fresh results
+  recorded; NEXT pointer updated.
+
+Authority docs unchanged
+  V17_SPEC.md / V17_ACCEPTANCE.md / V17_DATA_SEMANTICS.md untouched (read-only inputs).
+  Phase A–E contracts and evidence bundles untouched.
+
+Cross-document checks
+  - v1.7 scope: History / Timeline / Insights / retrospective PK / data portability — consistent
+    in README, CURRENT_STATUS, ROADMAP, V17_PLAN.
+  - Phase A–E closure: identical identities everywhere (A CLOSED; B CLOSED; C 19652baa…;
+    D 4c3be35; E e119869a + closure cb242b55…).
+  - Phase F status: candidate IMPLEMENTED / REVIEW PENDING (no CLOSED claim).
+  - Release gate: APPROVE V1.7.0 RELEASE CANDIDATE — never marked approved.
+  - Backup vs export: backup is 备份/恢复 (.evbackup); canonical export is 导出 Evolune JSON /
+    导出 CSV; legacy Mahiro is 导出 JSON under the legacy section — no contradiction.
+  - Version-packaging status: 1.6.0 metadata documented as a post-gate release-packaging item
+    (README, known-limitations.txt, build-summary.txt).

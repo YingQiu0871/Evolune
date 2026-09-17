@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.904Z" hostname="人面不知何处去" time="0.016">
+  <properties/>
+  <testcase name="the golden JSON round trips into an empty repository without semantic loss" classname="io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest" time="0.011"/>
+  <testcase name="the canonical JSON byte fixture is reproduced exactly" classname="io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest" time="0.002"/>
+  <testcase name="the canonical CSV byte fixture is reproduced exactly" classname="io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

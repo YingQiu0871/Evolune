@@ -1,0 +1,74 @@
+V17 Phase F — consistency matrix (V17_ACCEPTANCE §7.1)
+======================================================
+Every row drives the REAL production writer/handler against the ONE shared repository double,
+then reads the SAME stored collection through the REAL production readers:
+
+  History    = HistoryReadService.readRange (dual-channel + HistoricalProjectionBuilder)
+  Timeline   = TimelineProjectionBuilder.build (over the same HistoricalRange)
+  Insights   = ReadOnlyMedicationInsightsAggregator.aggregate (same range)
+  PK         = RetrospectivePkService.estimate (AllAvailableHistorySource = same service)
+  Export     = Phase-E PortableExportService (same repository seam)
+
+Fresh test class: `io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest` (11 tests, 0 fail).
+All reads assert zero additional writes (write counters unchanged across read phases).
+
+F1 — Phone record (real `DoseEventEditSessionFactory.createQuickEvent`, source MANUAL,
+     inserted through the same repository call the production persist path performs)
+  History  PASS  matched entry, eventId/occurredAt/routeKey/medicationKey/dose/source/
+                 slot=null/localDate + NULL_SLOT_TIME_WINDOW provenance
+  Timeline PASS  MATCHED row with recordedIntake.eventId/occurredAt
+  Insights PASS  recordedIntakeCount 1, matchedOccurrenceCount 1, sourceCounts[MANUAL] 1
+  PK       PASS  engine input == concentration-producing == [phone event]
+  Export   PASS  canonical JSON contains the event id, source MANUAL, explicit null slot
+  Identity PASS  phone event id preserved from the writer session through every surface
+  Result   PASS  (fresh test: "F1 phone record converges across History Timeline Insights PK and export")
+
+F2 — Widget record (real `ContractWidgetQuickActionWork` ACCEPTED action)
+  History  PASS  EXACT_SLOT_AND_LOCAL_DATE matched entry, source WIDGET, slot preserved
+  Timeline PASS  MATCHED row with the deterministic widget event id
+  Insights PASS  sourceCounts[WIDGET] 1
+  PK       PASS  exactly one eligible dose = the widget event
+  Export   PASS  id + source WIDGET + slot_id present
+  Identity PASS  deterministic `widgetOccurrenceActionEventId(occurrenceId)`; 1 insert, 1 row
+  Result   PASS  (fresh test: "F2 widget record converges through its deterministic identity")
+
+F3 — Wear record (real `WearAppConfirmationHandler` via WearActionRecorder)
+  History  PASS  EXACT_SLOT_AND_LOCAL_DATE matched entry, source WEAR, slot/localDate preserved
+  Timeline PASS  MATCHED row with the operation-derived wear event id
+  Insights PASS  sourceCounts[WEAR] 1
+  PK       PASS  exactly one eligible dose = the wear event
+  Export   PASS  id + source WEAR
+  Identity PASS  `wearAppConfirmationEventId(operationId)`; 1 insert, 1 row
+  Result   PASS  (fresh test: "F3 wear app confirmation converges through the real handler")
+
+F4 — Undo (Phone delete + authoritative Wear latest-dose undo)
+  Phone delete (production `repository.delete`, the mutation HRTViewModel.deleteEvent performs):
+    event absent from History/Timeline; exactly the unrelated event remains exactly once;
+    Insights recordedIntakeCount 1; PK producing == [unrelated id]; row removed from storage.
+  Wear latest-dose undo (real `WearAppUndoHandler`):
+    UNDONE; event absent from History/Timeline; Insights recordedIntakeCount 0 for the day;
+    PK producing == [earlier unrelated id]; revision protection, source/occurredAt
+    revalidation and journal idempotency stay inside the real handler; the earlier day's
+    surfaces still converge on the unrelated event (no unrelated removal).
+  Result  PASS  (fresh tests: "F4 phone delete ...", "F4 wear latest-dose undo ...")
+
+F5 — Legacy event (schema-faithful: source LEGACY, zoneId/localDate/slotId null)
+  History  PASS  unmatched intake, isManualIntake=false, source LEGACY,
+                 displayDate provenance CURRENT_DISPLAY_TIMEZONE_DERIVED,
+                 isOriginalLocalDate=false, no fake persisted date/zone/slot
+  Timeline PASS  UNMATCHED_INTAKE row with the legacy event id, no scheduleContext
+  Insights PASS  unmatchedActualIntakeCount 1, sourceCounts[LEGACY] 1,
+                 sourceCounts[MANUAL] 0 (legacy never merged into manual),
+                 containsCurrentTimezoneDerivedDates true
+  PK       PASS  eligible ORAL/E2 dose contributes (id in engine input + producing)
+  Export   PASS  explicit nulls for zone_id/local_date/slot_id + source LEGACY
+  Result   PASS  (fresh test: "F5 legacy orphan keeps its null provenance across surfaces and export")
+
+W-DH-2 gate regression (representative release-gate check, full suite covered in w-dh-2/)
+  rejected widget action -> Invalid, authoritative refresh + rejection feedback in order,
+  zero write (write-failing repository), empty rows.
+  Result  PASS  (fresh test: "W-DH-2 gate regression rejected widget action stays zero-write ...")
+
+No PARTIAL cells at final candidate submission. Where a surface is not contractually
+responsible for a raw field (e.g., Insights exposes counts, not event ids), the matrix
+asserts only that surface's contractual facts (§13 matrix assertion discipline).

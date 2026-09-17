@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.642Z" hostname="人面不知何处去" time="0.035">
+  <properties/>
+  <testcase name="no backup, restore or drive coupling exists in the export package" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.01"/>
+  <testcase name="the import service validates the byte and event bounds before any repository call" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.001"/>
+  <testcase name="no timeline, history, retrospective, matcher or occurrence source exists in the export package" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.006"/>
+  <testcase name="the serialization path performs no repository writes" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.003"/>
+  <testcase name="the export package carries the expected production files" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.0"/>
+  <testcase name="canonical import never regenerates identities" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.002"/>
+  <testcase name="the canonical import path inserts through the public seam and never updates, deletes or restores" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.001"/>
+  <testcase name="no hidden clock or system time exists in the export package" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.004"/>
+  <testcase name="canonical serialization order is explicit and independent of read order" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.001"/>
+  <testcase name="no android, compose, clipboard or resource dependency exists in the export package" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.002"/>
+  <testcase name="canonical bytes are written only to the SAF destination and never to the clipboard" classname="io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

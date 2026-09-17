@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableRangesTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.960Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="range resolution ignores calendar month lengths and DST transitions" classname="io.github.yingqiu0871.evolune.export.PortableRangesTest" time="0.0"/>
+  <testcase name="file names use frozen range tokens and UTC date" classname="io.github.yingqiu0871.evolune.export.PortableRangesTest" time="0.0"/>
+  <testcase name="30 day range starts exactly 720 hours before capturedAt" classname="io.github.yingqiu0871.evolune.export.PortableRangesTest" time="0.0"/>
+  <testcase name="90 day range starts exactly 2160 hours before capturedAt" classname="io.github.yingqiu0871.evolune.export.PortableRangesTest" time="0.0"/>
+  <testcase name="all range has no lower bound and capturedAt inclusive upper bound" classname="io.github.yingqiu0871.evolune.export.PortableRangesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

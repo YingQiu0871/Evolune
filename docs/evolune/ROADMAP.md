@@ -242,13 +242,18 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `evidence/phase-e/` 196 files / MANIFEST 195/195 / blob 196/196；focused 88/88、full
   JVM 1578/0、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED / FROZEN**）。
 - **Phase F · pre-gate narrow fix — W-DH-2 widget rejection feedback — IMPLEMENTED /
-  REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
+  ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget rejection feedback` @
+  `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
   `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection → authoritative refresh +
-  localized feedback，zero write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35
-  Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。**Phase F — IN PROGRESS /
-  NOT GATED**；Phase-F final consistency candidate — **NOT STARTED**。
-  **NEXT:** W-DH-2 narrow-fix implementation review（随后 Phase F — Final Consistency
-  Gate；`V17_PLAN.md` §9；release gate `APPROVE V1.7.0 RELEASE CANDIDATE`）。
+  localized feedback，zero write；evidence `evidence/phase-f/w-dh-2/`）。
+- **Phase F · final consistency candidate — FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
+  REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
+  scenario 强化；fresh：app JVM 1333/0、experience-core 171/0、wear 90/0、全量 Android
+  358/0/5 assume-gated skip、assembleDebug（app + wear）BUILD SUCCESSFUL；README v1.7 表述
+  修正；**Phase-F matrix — candidate PASS**；release gate — **NOT YET APPROVED**；evidence
+  `evidence/phase-f/`；Phase F 未 CLOSED）。
+  **NEXT:** Phase-F final consistency candidate review（release gate `APPROVE V1.7.0
+  RELEASE CANDIDATE`；版本 bump 属其后 release-packaging 步骤）。
 
 ## Historical and future milestones
 

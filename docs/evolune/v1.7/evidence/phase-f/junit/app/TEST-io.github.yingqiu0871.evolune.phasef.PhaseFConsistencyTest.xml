@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:52.513Z" hostname="人面不知何处去" time="0.05">
+  <properties/>
+  <testcase name="slot identity replacement leaves the recorded event truthful and unmatched" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.011"/>
+  <testcase name="schedule dose edit keeps recorded history truth while refreshing schedule context" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.004"/>
+  <testcase name="W-DH-2 gate regression rejected widget action stays zero-write with refresh and feedback" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.002"/>
+  <testcase name="F1 phone record converges across History Timeline Insights PK and export" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.004"/>
+  <testcase name="F3 wear app confirmation converges through the real handler" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.005"/>
+  <testcase name="cross-midnight legacy inferred match stays convergent and provenance-bearing" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.006"/>
+  <testcase name="F2 widget record converges through its deterministic identity" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.004"/>
+  <testcase name="F5 legacy orphan keeps its null provenance across surfaces and export" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.003"/>
+  <testcase name="F4 phone delete removes the fact from every applicable surface" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.003"/>
+  <testcase name="schedule deletion keeps the recorded event and stops future occurrence generation" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.003"/>
+  <testcase name="F4 wear latest-dose undo removes the fact from every applicable surface" classname="io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

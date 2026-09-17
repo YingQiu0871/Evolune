@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-17T14:04:50.698Z" hostname="人面不知何处去" time="0.205">
+  <properties/>
+  <testcase name="every format and range performs zero repository writes and preserves the snapshot" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.007"/>
+  <testcase name="the large history fixture exports deterministically" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.173"/>
+  <testcase name="non representable values fail as typed invalid data" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.004"/>
+  <testcase name="repository read failure maps to typed unexpected failure" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.002"/>
+  <testcase name="serialization order is actual_time ascending then event id lexical, never read order" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.003"/>
+  <testcase name="all range keeps every past event without lower bound and drops future events" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.001"/>
+  <testcase name="range membership depends on absolute instants only, not on per-event zones or dates" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.002"/>
+  <testcase name="serialization runs on the injected off-main dispatcher" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.003"/>
+  <testcase name="30 day boundaries are inclusive at both ends and exclude one millisecond outside" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.002"/>
+  <testcase name="capturedAt is normalized to epoch milliseconds once per action" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.002"/>
+  <testcase name="90 day boundaries are inclusive at both ends and exclude one millisecond outside" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.002"/>
+  <testcase name="repeat export with the same request and snapshot is byte identical" classname="io.github.yingqiu0871.evolune.export.PortableExportServiceTest" time="0.004"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

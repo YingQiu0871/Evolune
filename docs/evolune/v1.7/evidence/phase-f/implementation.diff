@@ -1,0 +1,1197 @@
+diff --git a/TODO.MD b/TODO.MD
+index 8bf94d1..c18c05e 100644
+--- a/TODO.MD
++++ b/TODO.MD
+@@ -172,16 +172,25 @@
+       API 35 12/12；final closure packet `review-packets/v17-phase-e-final-closure.txt`；
+       **Phase E CLOSED / FROZEN**，未经重开评审不得改 Phase-E 语义）。
+ - [x] Phase-F pre-gate narrow fix — **W-DH-2 widget rejection feedback — IMPLEMENTED /
+-      REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
++      ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`
++      @ `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
+       `cb242b55b49a5cd9c4271072297d51872d04ad8b`；rejection policy：Invalid / PlanNotFound /
+       PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
+       write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
+-      evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`；**Phase F 仍 IN PROGRESS /
+-      NOT GATED**；Phase-F final consistency candidate **NOT STARTED**）。
+-- [ ] NEXT：**W-DH-2 narrow-fix implementation review**（通过后进入 **Phase F — Final
+-      Consistency Gate**（`V17_PLAN.md` §9）：Phone/Widget/Wear/Undo/Legacy → History/
+-      Timeline/Insights/PK 收敛矩阵 + fresh JVM + fresh Android + affected Wear 证据；release
+-      gate `APPROVE V1.7.0 RELEASE CANDIDATE`；两者均不在本次修复内开始）。
++      evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`）。
++- [x] Phase-F final consistency candidate — **FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
++      REVIEW PENDING**（单一 candidate：新增 `phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵
++      + W-DH-2 gate 回归 + cross-midnight/schedule edit/delete 强化，全部组合生产 writer 与
++      生产 reader；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
++      Android 358/0/5 assume-gated skip、`assembleDebug` app + wear BUILD SUCCESSFUL；
++      README v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release
++      evidence — complete；`release gate — NOT YET APPROVED`；evidence
++      `docs/evolune/v1.7/evidence/phase-f/`（含 w-dh-2/ 子树 + MANIFEST）；**Phase F 仍
++      IN PROGRESS、未 CLOSED**）。
++- [ ] NEXT：**Phase-F final consistency candidate review**（Architect + fresh independent
++      final review → P0–P3；通过后方可达成 release gate `APPROVE V1.7.0 RELEASE
++      CANDIDATE`；版本元数据 1.6.0 → 1.7.x bump 属其后显式 release-packaging 步骤，见
++      known-limitations；不自行开始）。
+ - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
+       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
+       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFConsistencyTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFConsistencyTest.kt
+new file mode 100644
+index 0000000..0a3fbce
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFConsistencyTest.kt
+@@ -0,0 +1,771 @@
++package io.github.yingqiu0871.evolune.phasef
++
++import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
++import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
++import io.github.yingqiu0871.evolune.application.WearAppConfirmationHandler
++import io.github.yingqiu0871.evolune.application.WearAppUndoHandler
++import io.github.yingqiu0871.evolune.application.wearAppConfirmationEventId
++import io.github.yingqiu0871.evolune.application.widgetOccurrenceActionEventId
++import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
++import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
++import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
++import io.github.yingqiu0871.evolune.core.model.DoseEvent
++import io.github.yingqiu0871.evolune.core.model.DoseEventSource
++import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
++import io.github.yingqiu0871.evolune.core.model.MedicationPlan
++import io.github.yingqiu0871.evolune.core.model.ScheduleType
++import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
++import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotId
++import io.github.yingqiu0871.evolune.core.model.SlotIdResult
++import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
++import io.github.yingqiu0871.evolune.experience.HistoricalRange
++import io.github.yingqiu0871.evolune.experience.HistoricalScheduleTimeContext
++import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
++import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource
++import io.github.yingqiu0871.evolune.experience.MedicationMatchProvenance
++import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceIdentity
++import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePolicy
++import io.github.yingqiu0871.evolune.experience.UnmatchedHistoricalIntake
++import io.github.yingqiu0871.evolune.experience.insights.MedicationInsightsSummary
++import io.github.yingqiu0871.evolune.experience.insights.ReadOnlyMedicationInsightsAggregator
++import io.github.yingqiu0871.evolune.experience.wear.WearAppCommandType
++import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmCommand
++import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
++import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResultType
++import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
++import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotIdentity
++import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommand
++import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoCommandType
++import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResultType
++import io.github.yingqiu0871.evolune.export.PortableExportFormat
++import io.github.yingqiu0871.evolune.export.PortableExportRange
++import io.github.yingqiu0871.evolune.export.PortableExportResult
++import io.github.yingqiu0871.evolune.export.PortableExportService
++import io.github.yingqiu0871.evolune.history.HistoryReadService
++import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkRequest
++import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkResult
++import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
++import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkWindow
++import io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilder
++import io.github.yingqiu0871.evolune.history.timeline.TimelineReadModel
++import io.github.yingqiu0871.evolune.history.timeline.TimelineRowKind
++import io.github.yingqiu0871.evolune.pk.Ester
++import io.github.yingqiu0871.evolune.pk.Route
++import io.github.yingqiu0871.evolune.widget.ContractWidgetQuickActionWork
++import io.github.yingqiu0871.evolune.widget.WidgetQuickActionCommand
++import io.github.yingqiu0871.evolune.widget.WidgetQuickActionOutcome
++import io.github.yingqiu0871.evolune.widget.WidgetQuickActionSideEffects
++import kotlinx.coroutines.runBlocking
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.time.Clock
++import java.time.Instant
++import java.time.LocalDate
++import java.time.LocalTime
++import java.time.ZoneId
++import java.util.UUID
++
++/**
++ * V17 Phase F — final consistency gate: cross-surface convergence suite (V17_ACCEPTANCE §7.1).
++ *
++ * F1 Phone / F2 Widget / F3 Wear / F4 Undo / F5 Legacy rows drive the REAL production writers
++ * and handlers, then read the SAME shared repository state through the REAL downstream
++ * production readers/builders: HistoryReadService, TimelineProjectionBuilder,
++ * ReadOnlyMedicationInsightsAggregator, RetrospectivePkService and the Phase-E export service.
++ *
++ * The matrix asserts one authoritative medication fact -> truthful convergence on every
++ * applicable derived surface (no re-implemented matcher/generator/projection/codec logic).
++ */
++class PhaseFConsistencyTest {
++
++    private val zone: ZoneId = ZoneId.of("UTC")
++    private val day: LocalDate = LocalDate.of(2026, 8, 30)
++    private val slotTime: LocalTime = LocalTime.of(8, 30)
++    private val slotInstant: Instant = day.atTime(slotTime).atZone(zone).toInstant()
++    private val afterSlot: Instant = slotInstant.plusSeconds(600)
++    private val planId: UUID = UUID(0L, 900L)
++    private val phoneEventId: UUID = UUID(0L, 9001L)
++    private val wearOperationId: UUID = UUID(0L, 9002L)
++    private val producer: WearAppProducerIdentity = WearAppProducerIdentity(UUID(0L, 777L), 3L)
++    private val plan: MedicationPlan = planWithSlots()
++
++    // ------------------------------------------------------------------ F1 Phone
++
++    @Test
++    fun `F1 phone record converges across History Timeline Insights PK and export`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(listOf(plan))
++        val events = PhaseFRepository()
++        val quick = DoseEventEditSessionFactory(
++            idSupplier = { phoneEventId },
++            clock = Clock.fixed(slotInstant, zone),
++            zoneIdSupplier = { zone }
++        ).createQuickEvent(plan)
++        assertEquals(DoseEventSource.MANUAL, quick.source)
++        assertNull(quick.slotId)
++        assertEquals(InsertResult.Inserted, events.insert(quick))
++        val writesBefore = events.writeCalls
++
++        val surfaces = readSurfaces(plans, events)
++
++        val entry = surfaces.range.days.single().entries
++            .filterIsInstance<MatchedHistoricalOccurrence>()
++            .single()
++        assertEquals(phoneEventId, entry.event.eventId)
++        assertEquals(slotInstant, entry.event.occurredAt)
++        assertEquals(planId, entry.occurrence.planId)
++        assertEquals(2.0, entry.event.matchKey.doseAmount, 0.0)
++        assertEquals("ORAL", entry.event.matchKey.routeKey)
++        assertEquals("E2", entry.event.matchKey.medicationKey)
++        assertEquals(MedicationIntakeSource.MANUAL, entry.event.source)
++        assertNull(entry.event.slotId)
++        assertEquals(day, entry.event.localDate)
++        assertEquals(day, entry.displayDate)
++        assertEquals(MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW, entry.matchProvenance)
++
++        val row = surfaces.timeline.days.single().rows.single()
++        assertEquals(TimelineRowKind.MATCHED, row.rowKind)
++        assertEquals(phoneEventId, row.recordedIntake?.eventId)
++        assertEquals(slotInstant, row.recordedIntake?.occurredAt)
++
++        assertEquals(1, surfaces.insights.recordedIntakeCount)
++        assertEquals(1, surfaces.insights.matchedOccurrenceCount)
++        assertEquals(1, surfaces.insights.sourceCounts[MedicationIntakeSource.MANUAL])
++
++        val pk = surfaces.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(phoneEventId), pk.summary.engineInputEventIds)
++        assertEquals(listOf(phoneEventId), pk.summary.concentrationProducingEventIds)
++
++        val json = exportJson(events)
++        assertTrue(json.contains(phoneEventId.toString()))
++        assertTrue(json.contains("\"source\": \"MANUAL\""))
++        assertTrue(json.contains("\"slot_id\": null"))
++
++        assertEquals(writesBefore, events.writeCalls)
++    }
++
++    // ------------------------------------------------------------------ F2 Widget
++
++    @Test
++    fun `F2 widget record converges through its deterministic identity`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(listOf(plan))
++        val events = PhaseFRepository()
++        val occurrenceId = MedicationOccurrenceIdentity.derive(planId, slotId(), day).value
++        val effects = WidgetEffectsRecorder()
++        val work = ContractWidgetQuickActionWork(
++            medicationPlans = plans,
++            doseEvents = events,
++            sideEffects = effects,
++            clock = Clock.fixed(slotInstant.plusSeconds(30), zone),
++            zoneId = { zone }
++        )
++
++        val outcome = work.handle(
++            WidgetQuickActionCommand(
++                planId.toString(),
++                slotId().toString(),
++                day.toString(),
++                occurrenceId.toString()
++            )
++        )
++
++        assertEquals(WidgetQuickActionOutcome.Accepted(false), outcome)
++        assertEquals(listOf("refresh", "recorded:Phase-F plan"), effects.order)
++        val eventId = widgetOccurrenceActionEventId(occurrenceId)
++        assertEquals(1, events.rows.size)
++        assertEquals(1, events.insertCalls)
++        val stored = events.rows.getValue(eventId)
++        assertEquals(DoseEventSource.WIDGET, stored.source)
++        assertEquals(slotId(), stored.slotId)
++        assertEquals(day, stored.localDate)
++        val writesBefore = events.writeCalls
++
++        val surfaces = readSurfaces(plans, events)
++
++        val entry = surfaces.range.days.single().entries
++            .filterIsInstance<MatchedHistoricalOccurrence>()
++            .single()
++        assertEquals(eventId, entry.event.eventId)
++        assertEquals(MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE, entry.matchProvenance)
++        assertEquals(MedicationIntakeSource.WIDGET, entry.event.source)
++        assertEquals(slotId(), entry.event.slotId)
++        assertEquals(slotInstant.plusSeconds(30), entry.event.occurredAt)
++
++        val row = surfaces.timeline.days.single().rows.single()
++        assertEquals(TimelineRowKind.MATCHED, row.rowKind)
++        assertEquals(eventId, row.recordedIntake?.eventId)
++        assertEquals(1, surfaces.insights.sourceCounts[MedicationIntakeSource.WIDGET])
++
++        val pk = surfaces.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(eventId), pk.summary.concentrationProducingEventIds)
++
++        val json = exportJson(events)
++        assertTrue(json.contains(eventId.toString()))
++        assertTrue(json.contains("\"source\": \"WIDGET\""))
++        assertTrue(json.contains(slotId().toString()))
++
++        assertEquals(writesBefore, events.writeCalls)
++    }
++
++    // ------------------------------------------------------------------ F3 Wear
++
++    @Test
++    fun `F3 wear app confirmation converges through the real handler`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(listOf(plan))
++        val events = PhaseFRepository()
++
++        val result = confirmWearEvent(plans, events)
++
++        assertEquals(WearAppConfirmResultType.CONFIRMED, result.resultType)
++        assertEquals(wearEventId(), result.eventId)
++        assertEquals(1, events.rows.size)
++        assertEquals(1, events.insertCalls)
++        val stored = events.rows.getValue(wearEventId())
++        assertEquals(DoseEventSource.WEAR, stored.source)
++        assertEquals(slotId(), stored.slotId)
++        assertEquals(day, stored.localDate)
++        assertEquals(wearOccurredAt(), stored.occurredAt)
++        val writesBefore = events.writeCalls
++
++        val surfaces = readSurfaces(plans, events)
++
++        val entry = surfaces.range.days.single().entries
++            .filterIsInstance<MatchedHistoricalOccurrence>()
++            .single()
++        assertEquals(wearEventId(), entry.event.eventId)
++        assertEquals(MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE, entry.matchProvenance)
++        assertEquals(MedicationIntakeSource.WEAR, entry.event.source)
++        assertEquals(wearOccurredAt(), entry.event.occurredAt)
++        assertEquals(slotId(), entry.event.slotId)
++
++        val row = surfaces.timeline.days.single().rows.single()
++        assertEquals(wearEventId(), row.recordedIntake?.eventId)
++        assertEquals(1, surfaces.insights.sourceCounts[MedicationIntakeSource.WEAR])
++
++        val pk = surfaces.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(wearEventId()), pk.summary.concentrationProducingEventIds)
++
++        val json = exportJson(events)
++        assertTrue(json.contains(wearEventId().toString()))
++        assertTrue(json.contains("\"source\": \"WEAR\""))
++
++        assertEquals(writesBefore, events.writeCalls)
++    }
++
++    // ------------------------------------------------------------------ F4 Undo
++
++    @Test
++    fun `F4 phone delete removes the fact from every applicable surface`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(listOf(plan))
++        val events = PhaseFRepository()
++        val otherId = UUID(0L, 9003L)
++        assertEquals(InsertResult.Inserted, events.insert(quickEvent(phoneEventId, slotInstant)))
++        assertEquals(
++            InsertResult.Inserted,
++            events.insert(quickEvent(otherId, slotInstant.plusSeconds(7_200L)))
++        )
++
++        val before = readSurfaces(plans, events)
++        assertEquals(
++            setOf(phoneEventId, otherId),
++            before.range.days.flatMap { it.entries }.mapNotNull { entry ->
++                when (entry) {
++                    is MatchedHistoricalOccurrence -> entry.event.eventId
++                    is UnmatchedHistoricalIntake -> entry.event.eventId
++                    else -> null
++                }
++            }.toSet()
++        )
++
++        // Production Phone delete mutation (the same call HRTViewModel.deleteEvent performs).
++        assertEquals(
++            io.github.yingqiu0871.evolune.core.dataapi.DeleteResult.Deleted,
++            events.delete(phoneEventId)
++        )
++
++        val after = readSurfaces(plans, events)
++        val remainingIds = after.range.days.flatMap { it.entries }.mapNotNull { entry ->
++            when (entry) {
++                is MatchedHistoricalOccurrence -> entry.event.eventId
++                is UnmatchedHistoricalIntake -> entry.event.eventId
++                else -> null
++            }
++        }
++        assertEquals(listOf(otherId), remainingIds)
++        assertTrue(
++            after.range.days.flatMap { it.entries }.none { entry ->
++                when (entry) {
++                    is MatchedHistoricalOccurrence -> entry.event.eventId == phoneEventId
++                    is UnmatchedHistoricalIntake -> entry.event.eventId == phoneEventId
++                    else -> false
++                }
++            }
++        )
++        assertTrue(
++            after.timeline.days.flatMap { it.rows }.none { it.recordedIntake?.eventId == phoneEventId }
++        )
++        assertEquals(1, after.insights.recordedIntakeCount)
++        val pk = after.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(otherId), pk.summary.concentrationProducingEventIds)
++        assertNull(events.rows[phoneEventId])
++    }
++
++    @Test
++    fun `F4 wear latest-dose undo removes the fact from every applicable surface`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(listOf(plan))
++        val events = PhaseFRepository()
++        val earlierId = UUID(0L, 9004L)
++        val earlierDay = day.minusDays(2)
++        assertEquals(
++            InsertResult.Inserted,
++            events.insert(quickEvent(earlierId, earlierDay.atTime(slotTime).atZone(zone).toInstant()))
++        )
++        val confirmed = confirmWearEvent(plans, events)
++        assertEquals(WearAppConfirmResultType.CONFIRMED, confirmed.resultType)
++
++        val beforeDay = readSurfaces(plans, events)
++        val beforePk = beforeDay.pk as RetrospectivePkResult.Available
++        assertEquals(
++            listOf(earlierId, wearEventId()),
++            beforePk.summary.concentrationProducingEventIds
++        )
++
++        val undoResult = WearAppUndoHandler(
++            context = null,
++            doseEvents = events,
++            clock = Clock.fixed(afterSlot, zone),
++            producerIdentity = { producer },
++            latestSnapshotRevision = { SNAPSHOT_REVISION },
++            operationJournal = PhaseFUndoJournal()
++        ).handle(
++            WearAppUndoCommand(
++                protocolVersion = 1,
++                commandType = WearAppUndoCommandType.UNDO_RECENT_DOSE,
++                operationId = UUID(0L, 9005L),
++                createdAt = afterSlot.minusSeconds(60L),
++                sourceSnapshot = WearAppSnapshotIdentity(
++                    producer.producerInstanceId,
++                    producer.producerGeneration,
++                    SNAPSHOT_REVISION
++                ),
++                eventId = wearEventId(),
++                expectedEventRevision = 1L,
++                expectedOccurredAt = wearOccurredAt(),
++                expectedSource = DoseEventSource.WEAR.name
++            )
++        )
++
++        assertEquals(WearAppUndoResultType.UNDONE, undoResult.resultType)
++        assertNull(events.rows[wearEventId()])
++
++        val afterDay = readSurfaces(plans, events)
++        assertTrue(
++            afterDay.range.days.flatMap { it.entries }.none { it is MatchedHistoricalOccurrence }
++        )
++        assertTrue(
++            afterDay.timeline.days.flatMap { it.rows }
++                .none { it.recordedIntake?.eventId == wearEventId() }
++        )
++        assertEquals(0, afterDay.insights.recordedIntakeCount)
++        val afterPk = afterDay.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(earlierId), afterPk.summary.concentrationProducingEventIds)
++
++        // No unrelated event was removed: the earlier day's surface still converges.
++        val earlierSurfaces = readSurfaces(plans, events, readDay = earlierDay)
++        val earlierEntry = earlierSurfaces.range.days.single().entries
++            .filterIsInstance<MatchedHistoricalOccurrence>()
++            .single()
++        assertEquals(earlierId, earlierEntry.event.eventId)
++        val earlierPk = earlierSurfaces.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(earlierId), earlierPk.summary.concentrationProducingEventIds)
++    }
++
++    // ------------------------------------------------------------------ F5 Legacy
++
++    @Test
++    fun `F5 legacy orphan keeps its null provenance across surfaces and export`() = runBlocking {
++        val plans = FakeMedicationPlanRepository(emptyList())
++        val events = PhaseFRepository()
++        val legacyId = UUID(0L, 9006L)
++        assertEquals(
++            InsertResult.Inserted,
++            events.insert(
++                legacyEvent(legacyId, day.atTime(8, 0).atZone(zone).toInstant())
++            )
++        )
++        val writesBefore = events.writeCalls
++
++        val surfaces = readSurfaces(plans, events)
++
++        val entry = surfaces.range.days.single().entries
++            .filterIsInstance<UnmatchedHistoricalIntake>()
++            .single()
++        assertEquals(legacyId, entry.event.eventId)
++        assertFalse(entry.isManualIntake)
++        assertEquals(MedicationIntakeSource.LEGACY, entry.source)
++        assertNull(entry.event.localDate)
++        assertNull(entry.event.zoneId)
++        assertNull(entry.event.slotId)
++        assertEquals(day, entry.displayDate)
++        assertEquals(
++            HistoricalDisplayDateProvenance.CURRENT_DISPLAY_TIMEZONE_DERIVED,
++            entry.displayDateProvenance
++        )
++        assertFalse(entry.isOriginalLocalDate)
++
++        val row = surfaces.timeline.days.single().rows.single()
++        assertEquals(TimelineRowKind.UNMATCHED_INTAKE, row.rowKind)
++        assertEquals(legacyId, row.recordedIntake?.eventId)
++        assertNull(row.scheduleContext)
++
++        assertEquals(1, surfaces.insights.unmatchedActualIntakeCount)
++        assertEquals(1, surfaces.insights.sourceCounts[MedicationIntakeSource.LEGACY])
++        assertEquals(0, surfaces.insights.sourceCounts[MedicationIntakeSource.MANUAL] ?: 0)
++        assertTrue(surfaces.insights.containsCurrentTimezoneDerivedDates)
++
++        val pk = surfaces.pk as RetrospectivePkResult.Available
++        assertEquals(listOf(legacyId), pk.summary.concentrationProducingEventIds)
++
++        val json = exportJson(events)
++        assertTrue(json.contains(legacyId.toString()))
++        assertTrue(json.contains("\"source\": \"LEGACY\""))
++        assertTrue(json.contains("\"zone_id\": null"))
++        assertTrue(json.contains("\"local_date\": null"))
++        assertTrue(json.contains("\"slot_id\": null"))
++
++        assertEquals(writesBefore, events.writeCalls)
++    }
++
++    // ------------------------------------------------------------------ W-DH-2 gate regression
++
++    @Test
++    fun `W-DH-2 gate regression rejected widget action stays zero-write with refresh and feedback`() =
++        runBlocking {
++            val plans = FakeMedicationPlanRepository(listOf(plan))
++            val events = PhaseFRepository().apply {
++                writeFailure = IllegalStateException("Decision-H rejection must never write")
++            }
++            val effects = WidgetEffectsRecorder()
++            val work = ContractWidgetQuickActionWork(
++                medicationPlans = plans,
++                doseEvents = events,
++                sideEffects = effects,
++                clock = Clock.fixed(slotInstant.plusSeconds(30), zone),
++                zoneId = { zone }
++            )
++
++            val stale = WidgetQuickActionCommand(
++                planId.toString(),
++                slotId().toString(),
++                day.minusDays(1).toString(),
++                UUID(9L, 1L).toString()
++            )
++
++            assertEquals(WidgetQuickActionOutcome.Invalid, work.handle(stale))
++            assertEquals(listOf("refresh", "reject"), effects.order)
++            assertEquals(0, events.writeCalls)
++            assertTrue(events.rows.isEmpty())
++        }
++
++    // ------------------------------------------------------------------ Scenario strengthening
++
++    @Test
++    fun `cross-midnight legacy inferred match stays convergent and provenance-bearing`() =
++        runBlocking {
++            val midnightPlan = planWithSlots(times = listOf(LocalTime.MIDNIGHT))
++            val plans = FakeMedicationPlanRepository(listOf(midnightPlan))
++            val events = PhaseFRepository()
++            val legacyId = UUID(0L, 9007L)
++            assertEquals(
++                InsertResult.Inserted,
++                events.insert(
++                    legacyEvent(
++                        legacyId,
++                        day.minusDays(1).atTime(23, 0).atZone(zone).toInstant()
++                    )
++                )
++            )
++
++            val surfaces = readSurfaces(plans, events)
++
++            val entry = surfaces.range.days.single().entries
++                .filterIsInstance<MatchedHistoricalOccurrence>()
++                .single()
++            assertEquals(legacyId, entry.event.eventId)
++            assertEquals(MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW, entry.matchProvenance)
++            assertTrue(entry.crossesLocalDateBoundary)
++            assertEquals(day, entry.displayDate)
++            assertEquals(MedicationIntakeSource.LEGACY, entry.event.source)
++
++            val row = surfaces.timeline.days.single().rows.single()
++            assertEquals(legacyId, row.recordedIntake?.eventId)
++
++            val pk = surfaces.pk as RetrospectivePkResult.Available
++            assertEquals(listOf(legacyId), pk.summary.concentrationProducingEventIds)
++
++            // The previous day must not treat the consumed event as an orphan of its own.
++            val previous = HistoryReadService(plans, events).readRange(
++                day.minusDays(1),
++                day.minusDays(1),
++                zone,
++                afterSlot
++            )
++            assertEquals(0, previous.unmatchedActualCount)
++            assertEquals(0, previous.recordedCount)
++        }
++
++    @Test
++    fun `schedule dose edit keeps recorded history truth while refreshing schedule context`() =
++        runBlocking {
++            val plans = FakeMedicationPlanRepository(listOf(plan))
++            val events = PhaseFRepository()
++            assertEquals(WearAppConfirmResultType.CONFIRMED, confirmWearEvent(plans, events).resultType)
++            val storedBefore = events.rows.getValue(wearEventId())
++
++            plans.plans[planId] = plan.copy(doseMG = 5.0)
++
++            val surfaces = readSurfaces(plans, events)
++
++            val entry = surfaces.range.days.single().entries
++                .filterIsInstance<MatchedHistoricalOccurrence>()
++                .single()
++            assertEquals(wearEventId(), entry.event.eventId)
++            assertEquals(MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE, entry.matchProvenance)
++            // Recorded truth is untouched; only the current schedule context reflects the edit.
++            assertEquals(2.0, entry.event.matchKey.doseAmount, 0.0)
++            assertEquals(5.0, entry.occurrence.presentation.matchKey.doseAmount, 0.0)
++            assertEquals(
++                HistoricalScheduleTimeContext.CURRENT_SCHEDULE_CONTEXT,
++                entry.scheduleTimeContext
++            )
++            assertEquals(wearOccurredAt(), entry.event.occurredAt)
++            assertEquals(storedBefore, events.rows.getValue(wearEventId()))
++        }
++
++    @Test
++    fun `slot identity replacement leaves the recorded event truthful and unmatched`() =
++        runBlocking {
++            val plans = FakeMedicationPlanRepository(listOf(plan))
++            val events = PhaseFRepository()
++            assertEquals(WearAppConfirmResultType.CONFIRMED, confirmWearEvent(plans, events).resultType)
++            val originalSlotId = slotId()
++            val storedBefore = events.rows.getValue(wearEventId())
++
++            plans.plans[planId] = plan.copy(
++                slots = listOf(plan.slots.single().copy(id = UUID(0L, 950L)))
++            )
++
++            val surfaces = readSurfaces(plans, events)
++
++            val unmatched = surfaces.range.days.single().entries
++                .filterIsInstance<UnmatchedHistoricalIntake>()
++                .single()
++            assertEquals(wearEventId(), unmatched.event.eventId)
++            assertEquals(MedicationIntakeSource.WEAR, unmatched.source)
++            assertEquals(originalSlotId, unmatched.event.slotId)
++            assertEquals(day, unmatched.displayDate)
++            assertTrue(
++                surfaces.range.days.flatMap { it.entries }
++                    .none { it is MatchedHistoricalOccurrence }
++            )
++            assertEquals(storedBefore, events.rows.getValue(wearEventId()))
++
++            val row = surfaces.timeline.days.single().rows
++                .single { it.rowKind == TimelineRowKind.UNMATCHED_INTAKE }
++            assertEquals(wearEventId(), row.recordedIntake?.eventId)
++
++            assertEquals(1, surfaces.insights.unmatchedActualIntakeCount)
++            assertEquals(1, surfaces.insights.unrecordedOccurrenceCount)
++
++            val pk = surfaces.pk as RetrospectivePkResult.Available
++            assertEquals(listOf(wearEventId()), pk.summary.concentrationProducingEventIds)
++        }
++
++    @Test
++    fun `schedule deletion keeps the recorded event and stops future occurrence generation`() =
++        runBlocking {
++            val plans = FakeMedicationPlanRepository(listOf(plan))
++            val events = PhaseFRepository()
++            assertEquals(InsertResult.Inserted, events.insert(quickEvent(phoneEventId, slotInstant)))
++
++            plans.plans.remove(planId)
++
++            val today = readSurfaces(plans, events)
++            val unmatched = today.range.days.single().entries
++                .filterIsInstance<UnmatchedHistoricalIntake>()
++                .single()
++            assertEquals(phoneEventId, unmatched.event.eventId)
++            assertEquals(day, unmatched.displayDate)
++            val row = today.timeline.days.single().rows
++                .single { it.rowKind == TimelineRowKind.UNMATCHED_INTAKE }
++            assertEquals(phoneEventId, row.recordedIntake?.eventId)
++            val pk = today.pk as RetrospectivePkResult.Available
++            assertEquals(listOf(phoneEventId), pk.summary.concentrationProducingEventIds)
++
++            // No future occurrence is generated for the deleted schedule.
++            val futureDay = day.plusDays(7)
++            val future = HistoryReadService(plans, events).readRange(
++                futureDay,
++                futureDay,
++                zone,
++                futureDay.atTime(9, 0).atZone(zone).toInstant()
++            )
++            assertTrue(future.days.isEmpty())
++        }
++
++    // ------------------------------------------------------------------ helpers
++
++    private data class Surfaces(
++        val range: HistoricalRange,
++        val timeline: TimelineReadModel,
++        val insights: MedicationInsightsSummary,
++        val pk: RetrospectivePkResult
++    )
++
++    private suspend fun readSurfaces(
++        plans: MedicationPlanRepository,
++        events: DoseEventRepository,
++        readDay: LocalDate = day,
++        now: Instant = afterSlot
++    ): Surfaces {
++        val history = HistoryReadService(plans, events)
++        val range = history.readRange(readDay, readDay, zone, now)
++        return Surfaces(
++            range = range,
++            timeline = TimelineProjectionBuilder.build(range),
++            insights = ReadOnlyMedicationInsightsAggregator.aggregate(range),
++            pk = RetrospectivePkService(history).estimate(
++                RetrospectivePkRequest(
++                    visibleWindow = RetrospectivePkWindow.fromLocalDates(readDay, readDay, zone),
++                    cursor = null,
++                    displayZone = zone,
++                    bodyWeightKG = BODY_WEIGHT_KG,
++                    capturedAt = now
++                )
++            )
++        )
++    }
++
++    private suspend fun confirmWearEvent(
++        plans: MedicationPlanRepository,
++        events: DoseEventRepository
++    ): WearAppConfirmResult = WearAppConfirmationHandler(
++        context = null,
++        medicationPlans = plans,
++        doseEvents = events,
++        clock = Clock.fixed(wearOccurredAt(), zone),
++        zoneId = { zone },
++        producerIdentity = { producer },
++        latestSnapshotRevision = { SNAPSHOT_REVISION },
++        operationJournal = PhaseFConfirmationJournal()
++    ).handle(wearConfirmCommand())
++
++    private suspend fun exportJson(
++        events: DoseEventRepository,
++        capturedAt: Instant = afterSlot
++    ): String {
++        val result = PortableExportService(events, Clock.fixed(capturedAt, zone)).export(
++            PortableExportRange.ALL,
++            PortableExportFormat.JSON
++        )
++        val success = result as PortableExportResult.Success
++        return String(success.bytes, Charsets.UTF_8)
++    }
++
++    private fun quickEvent(id: UUID, occurredAt: Instant): DoseEvent =
++        DoseEventEditSessionFactory(
++            idSupplier = { id },
++            clock = Clock.fixed(occurredAt, zone),
++            zoneIdSupplier = { zone }
++        ).createQuickEvent(plan)
++
++    private fun legacyEvent(id: UUID, occurredAt: Instant): DoseEvent = DoseEvent(
++        id = id,
++        route = Route.ORAL,
++        occurredAt = occurredAt,
++        zoneId = null,
++        localDate = null,
++        doseMG = 2.0,
++        ester = Ester.E2,
++        extras = emptyMap(),
++        slotId = null,
++        source = DoseEventSource.LEGACY,
++        status = DoseEventStatus.RECORDED,
++        revision = 1L
++    )
++
++    private fun wearOccurredAt(): Instant = slotInstant.plusSeconds(30)
++
++    private fun slotId(): UUID = plan.slots.single().id
++
++    private fun wearEventId(): UUID = wearAppConfirmationEventId(wearOperationId)
++
++    private fun wearConfirmCommand() = WearAppConfirmCommand(
++        protocolVersion = 1,
++        commandType = WearAppCommandType.CONFIRM_OCCURRENCE,
++        operationId = wearOperationId,
++        createdAt = slotInstant.minusSeconds(60L),
++        sourceSnapshot = WearAppSnapshotIdentity(
++            producer.producerInstanceId,
++            producer.producerGeneration,
++            SNAPSHOT_REVISION
++        ),
++        occurrenceId = MedicationOccurrenceIdentity.derive(planId, slotId(), day).value,
++        planId = planId,
++        slotId = slotId(),
++        localDate = day,
++        scheduledAt = slotInstant
++    )
++
++    private fun planWithSlots(
++        id: UUID = planId,
++        doseMG: Double = 2.0,
++        times: List<LocalTime> = listOf(slotTime)
++    ): MedicationPlan = MedicationPlan(
++        id = id,
++        name = "Phase-F plan",
++        route = Route.ORAL,
++        ester = Ester.E2,
++        doseMG = doseMG,
++        scheduleType = ScheduleType.DAILY,
++        slots = times.mapIndexed { position, time ->
++            ScheduledDoseSlot(
++                id = deterministicSlotId(id, position, time),
++                planId = id,
++                localTime = time,
++                position = position
++            )
++        },
++        daysOfWeek = emptySet(),
++        intervalDays = 1,
++        isEnabled = true,
++        extras = emptyMap(),
++        createdAt = Instant.parse("2026-01-01T00:00:00Z")
++    )
++
++    private companion object {
++        const val BODY_WEIGHT_KG = 60.0
++        const val SNAPSHOT_REVISION = 11L
++
++        fun deterministicSlotId(planId: UUID, position: Int, time: LocalTime): UUID =
++            (ScheduledDoseSlotId.generate(planId.toString(), position, time) as SlotIdResult.Success).id
++    }
++}
++
++private class WidgetEffectsRecorder : WidgetQuickActionSideEffects {
++    val order = mutableListOf<String>()
++
++    override suspend fun refreshWidgets() {
++        order += "refresh"
++    }
++
++    override suspend fun showRecorded(planName: String) {
++        order += "recorded:$planName"
++    }
++
++    override suspend fun showRejected() {
++        order += "reject"
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+new file mode 100644
+index 0000000..6e6aa1c
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+@@ -0,0 +1,262 @@
++package io.github.yingqiu0871.evolune.phasef
++
++import io.github.yingqiu0871.evolune.application.WearAppConfirmationOperationJournal
++import io.github.yingqiu0871.evolune.application.WearAppStoredConfirmation
++import io.github.yingqiu0871.evolune.application.WearAppStoredUndo
++import io.github.yingqiu0871.evolune.application.WearAppUndoOperationJournal
++import io.github.yingqiu0871.evolune.application.WearAppUndoOperationStatus
++import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
++import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
++import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
++import io.github.yingqiu0871.evolune.core.model.DoseEvent
++import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
++import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
++import io.github.yingqiu0871.evolune.pk.Route
++import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
++import kotlinx.coroutines.flow.Flow
++import kotlinx.coroutines.flow.flowOf
++import java.time.Instant
++import java.time.temporal.ChronoUnit
++import java.util.UUID
++
++/**
++ * V17 Phase F consistency suite — the single shared repository double.
++ *
++ * One stored event collection feeds every writer and every downstream reader; the range,
++ * all-history and PK reads faithfully model the public `DoseEventRepository` contract
++ * (mirroring `RoomDoseEventRepository` / `DoseEventDao` semantics) so the convergence
++ * assertions observe real storage behavior instead of per-surface fixtures.
++ */
++internal class PhaseFRepository(
++    initialEvents: List<DoseEvent> = emptyList()
++) : DoseEventRepository {
++
++    val rows = LinkedHashMap<UUID, DoseEvent>()
++
++    init {
++        initialEvents.forEach { rows[it.id] = it }
++    }
++
++    var writeFailure: Throwable? = null
++
++    var insertCalls = 0
++    var updateCalls = 0
++    var deleteCalls = 0
++    var conditionalDeleteCalls = 0
++    var latestDoseDeleteCalls = 0
++    var deleteAllCalls = 0
++    var rangeReadCalls = 0
++    var allHistoryReadCalls = 0
++    var getByIdCalls = 0
++    var pkReadCalls = 0
++
++    val writeCalls: Int
++        get() = insertCalls + updateCalls + deleteCalls + conditionalDeleteCalls +
++            latestDoseDeleteCalls + deleteAllCalls
++
++    private fun guardWrite() {
++        writeFailure?.let { throw it }
++    }
++
++    override fun observeAll(): Flow<List<DoseEvent>> = flowOf(
++        rows.values.sortedWith(compareByDescending<DoseEvent> { it.occurredAt }.thenBy { it.id.toString() })
++    )
++
++    override suspend fun getById(id: UUID): DoseEvent? {
++        getByIdCalls += 1
++        return rows[id]
++    }
++
++    override suspend fun findOccurredBetween(
++        startInclusive: Instant,
++        endExclusive: Instant
++    ): List<DoseEvent> {
++        rangeReadCalls += 1
++        return rows.values
++            .filter { !it.occurredAt.isBefore(startInclusive) && it.occurredAt.isBefore(endExclusive) }
++            .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
++    }
++
++    override suspend fun findRecordedLocalDateBetween(
++        startInclusive: java.time.LocalDate,
++        endInclusive: java.time.LocalDate
++    ): List<DoseEvent> = rows.values
++        .filter { event ->
++            val date = event.localDate ?: return@filter false
++            !date.isBefore(startInclusive) && !date.isAfter(endInclusive)
++        }
++        .sortedWith(compareBy({ it.localDate }, { it.occurredAt }, { it.id.toString() }))
++
++    override suspend fun findAllOccurredUpTo(endInclusive: Instant): List<DoseEvent> {
++        allHistoryReadCalls += 1
++        return rows.values
++            .filter { !it.occurredAt.isAfter(endInclusive) }
++            .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
++    }
++
++    override suspend fun getEventsForPk(asOf: Instant): List<DoseEvent> {
++        pkReadCalls += 1
++        val windowStart = asOf.minus(30, ChronoUnit.DAYS)
++        val recentEvents = rows.values
++            .filter { !it.occurredAt.isBefore(windowStart) }
++            .sortedWith(compareBy({ it.occurredAt }, { it.id.toString() }))
++        val doseEventCount = recentEvents.count { it.route != Route.PATCH_REMOVE }
++        return if (doseEventCount < PK_MINIMUM_DOSE_EVENTS) {
++            rows.values
++                .sortedWith(compareByDescending<DoseEvent> { it.occurredAt }.thenBy { it.id.toString() })
++                .take(PK_MINIMUM_DOSE_EVENTS)
++        } else {
++            recentEvents
++        }
++    }
++
++    override suspend fun insert(event: DoseEvent): InsertResult {
++        guardWrite()
++        insertCalls += 1
++        if (event.revision != INITIAL_REVISION) return InsertResult.Invalid
++        val existing = rows[event.id]
++        return when {
++            existing == null -> {
++                rows[event.id] = event
++                InsertResult.Inserted
++            }
++
++            existing == event -> InsertResult.Idempotent
++            else -> InsertResult.Conflict
++        }
++    }
++
++    override suspend fun update(event: DoseEvent, expectedRevision: Long): UpdateResult {
++        guardWrite()
++        updateCalls += 1
++        if (expectedRevision < INITIAL_REVISION) return UpdateResult.Invalid
++        val existing = rows[event.id] ?: return UpdateResult.NotFound
++        if (existing.revision != expectedRevision) return UpdateResult.RevisionConflict
++        val next = event.copy(revision = expectedRevision + 1)
++        if (existing.copy(revision = INITIAL_REVISION) == next.copy(revision = INITIAL_REVISION)) {
++            return UpdateResult.NoChange
++        }
++        rows[event.id] = next
++        return UpdateResult.Updated
++    }
++
++    override suspend fun delete(id: UUID): DeleteResult {
++        guardWrite()
++        deleteCalls += 1
++        return if (rows.remove(id) != null) DeleteResult.Deleted else DeleteResult.NotFound
++    }
++
++    override suspend fun deleteIfRevisionMatches(
++        id: UUID,
++        expectedRevision: Long
++    ): ConditionalDeleteResult {
++        guardWrite()
++        conditionalDeleteCalls += 1
++        if (expectedRevision < INITIAL_REVISION) return ConditionalDeleteResult.Invalid
++        val existing = rows[id] ?: return ConditionalDeleteResult.NotFound
++        if (existing.revision != expectedRevision) {
++            return ConditionalDeleteResult.RevisionConflict
++        }
++        rows.remove(id)
++        return ConditionalDeleteResult.Deleted
++    }
++
++    override suspend fun deleteLatestRecordedIfRevisionMatches(
++        eventId: UUID,
++        eventRevision: Long
++    ): LatestDoseDeleteResult {
++        guardWrite()
++        latestDoseDeleteCalls += 1
++        if (eventRevision < INITIAL_REVISION) return LatestDoseDeleteResult.Invalid
++        val events = rows.values.toList()
++        val target = events.firstOrNull { it.id == eventId }
++            ?: return LatestDoseDeleteResult.EventNotFound
++        if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
++        val recent = WearAppRecentDoseSelector.select(events)
++        if (recent?.id != eventId || recent.revision != eventRevision) {
++            return LatestDoseDeleteResult.NotLatest
++        }
++        rows.remove(eventId)
++        return LatestDoseDeleteResult.Deleted
++    }
++
++    override suspend fun deleteAll(): DeleteResult {
++        guardWrite()
++        deleteAllCalls += 1
++        val hadRows = rows.isNotEmpty()
++        rows.clear()
++        return if (hadRows) DeleteResult.Deleted else DeleteResult.NotFound
++    }
++
++    private companion object {
++        const val INITIAL_REVISION = 1L
++        const val PK_MINIMUM_DOSE_EVENTS = 20
++    }
++}
++
++/** Shared in-memory journals for the real Wear handlers (test infrastructure only). */
++internal class PhaseFConfirmationJournal : WearAppConfirmationOperationJournal {
++    private val records = linkedMapOf<UUID, WearAppStoredConfirmation>()
++
++    override fun read(operationId: UUID): WearAppStoredConfirmation? = records[operationId]
++
++    override fun begin(operationId: UUID, fingerprint: String): Boolean {
++        val existing = records[operationId]
++        if (existing != null) return existing.fingerprint == fingerprint
++        records[operationId] = WearAppStoredConfirmation(fingerprint, null)
++        return true
++    }
++
++    override fun saveResult(
++        operationId: UUID,
++        fingerprint: String,
++        result: WearAppConfirmResult
++    ): Boolean {
++        val existing = records[operationId]
++        if (existing != null && existing.fingerprint != fingerprint) return false
++        records[operationId] = WearAppStoredConfirmation(fingerprint, result)
++        return true
++    }
++}
++
++internal class PhaseFUndoJournal : WearAppUndoOperationJournal {
++    private val records = linkedMapOf<UUID, WearAppStoredUndo>()
++
++    override fun read(operationId: UUID): WearAppStoredUndo? = records[operationId]
++
++    override fun begin(operationId: UUID, fingerprint: String): Boolean {
++        val existing = records[operationId]
++        if (existing != null) return existing.fingerprint == fingerprint
++        records[operationId] = WearAppStoredUndo(
++            fingerprint = fingerprint,
++            status = WearAppUndoOperationStatus.PREPARED,
++            result = null
++        )
++        return true
++    }
++
++    override fun markDeleteInProgress(operationId: UUID, fingerprint: String): Boolean {
++        val existing = records[operationId] ?: return false
++        if (existing.fingerprint != fingerprint) return false
++        records[operationId] = existing.copy(status = WearAppUndoOperationStatus.DELETE_IN_PROGRESS)
++        return true
++    }
++
++    override fun saveResult(
++        operationId: UUID,
++        fingerprint: String,
++        result: WearAppUndoResult
++    ): Boolean {
++        val existing = records[operationId]
++        if (existing != null && existing.fingerprint != fingerprint) return false
++        records[operationId] = WearAppStoredUndo(
++            fingerprint = fingerprint,
++            status = WearAppUndoOperationStatus.DELETE_IN_PROGRESS,
++            result = result
++        )
++        return true
++    }
++}
+diff --git a/docs/evolune/CURRENT_STATUS.md b/docs/evolune/CURRENT_STATUS.md
+index dcc3591..4fbc76a 100644
+--- a/docs/evolune/CURRENT_STATUS.md
++++ b/docs/evolune/CURRENT_STATUS.md
+@@ -275,16 +275,24 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
+     API 35 12/12；final closure packet `review-packets/v17-phase-e-final-closure.txt`；
+     **Phase E CLOSED / FROZEN**，未经重开评审不得改 Phase-E 语义）。
+   - Phase-F pre-gate narrow fix — **W-DH-2 widget rejection feedback — IMPLEMENTED /
+-    REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
++    ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`
++    @ `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
+     `cb242b55b49a5cd9c4271072297d51872d04ad8b`；rejection policy：Invalid / PlanNotFound /
+     PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
+     write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
+-    evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`；**Phase F 仍 IN PROGRESS /
+-    NOT GATED**；Phase-F final consistency candidate **NOT STARTED**）。
+-  - **NEXT:** **W-DH-2 narrow-fix implementation review**（通过后进入 **Phase F — Final
+-    Consistency Gate**（`V17_PLAN.md` §9）：Phone/Widget/Wear/Undo/Legacy → History/
+-    Timeline/Insights/PK 收敛矩阵 + fresh JVM + fresh Android + affected Wear 证据；release
+-    gate `APPROVE V1.7.0 RELEASE CANDIDATE`；两者均不在本次修复内开始）。
++    evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`）。
++  - Phase-F final consistency candidate — **FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
++    REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
++    cross-midnight / schedule edit / schedule deletion 强化，组合生产 writer/handler 与生产
++    reader/builder；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
++    Android 358/0/5 assume-gated skip、`assembleDebug`（app + wear）BUILD SUCCESSFUL；
++    README v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release
++    evidence — complete；`release gate — NOT YET APPROVED`；evidence
++    `docs/evolune/v1.7/evidence/phase-f/`；**Phase F 仍 IN PROGRESS、未 CLOSED**）。
++  - **NEXT:** **Phase-F final consistency candidate review**（Architect + fresh independent
++    final review → P0–P3；通过后方可达成 release gate `APPROVE V1.7.0 RELEASE
++    CANDIDATE`；版本元数据 1.6.0 → 1.7.x bump 属其后显式 release-packaging 步骤；不自行
++    开始）。
+   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
+     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
+     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
+diff --git a/docs/evolune/ROADMAP.md b/docs/evolune/ROADMAP.md
+index 9f59473..04adfd8 100644
+--- a/docs/evolune/ROADMAP.md
++++ b/docs/evolune/ROADMAP.md
+@@ -242,13 +242,18 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过
+   `evidence/phase-e/` 196 files / MANIFEST 195/195 / blob 196/196；focused 88/88、full
+   JVM 1578/0、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED / FROZEN**）。
+ - **Phase F · pre-gate narrow fix — W-DH-2 widget rejection feedback — IMPLEMENTED /
+-  REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
++  ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget rejection feedback` @
++  `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
+   `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection → authoritative refresh +
+-  localized feedback，zero write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35
+-  Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。**Phase F — IN PROGRESS /
+-  NOT GATED**；Phase-F final consistency candidate — **NOT STARTED**。
+-  **NEXT:** W-DH-2 narrow-fix implementation review（随后 Phase F — Final Consistency
+-  Gate；`V17_PLAN.md` §9；release gate `APPROVE V1.7.0 RELEASE CANDIDATE`）。
++  localized feedback，zero write；evidence `evidence/phase-f/w-dh-2/`）。
++- **Phase F · final consistency candidate — FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
++  REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
++  scenario 强化；fresh：app JVM 1333/0、experience-core 171/0、wear 90/0、全量 Android
++  358/0/5 assume-gated skip、assembleDebug（app + wear）BUILD SUCCESSFUL；README v1.7 表述
++  修正；**Phase-F matrix — candidate PASS**；release gate — **NOT YET APPROVED**；evidence
++  `evidence/phase-f/`；Phase F 未 CLOSED）。
++  **NEXT:** Phase-F final consistency candidate review（release gate `APPROVE V1.7.0
++  RELEASE CANDIDATE`；版本 bump 属其后 release-packaging 步骤）。
+ 
+ ## Historical and future milestones
+ 
+diff --git a/docs/evolune/v1.7/V17_PLAN.md b/docs/evolune/v1.7/V17_PLAN.md
+index 51b1e0c..36a7827 100644
+--- a/docs/evolune/v1.7/V17_PLAN.md
++++ b/docs/evolune/v1.7/V17_PLAN.md
+@@ -539,14 +539,21 @@ PK output must remain explicitly model-derived.
+ > 88/88、full JVM 1578/0（app 1317 fresh executed；experience-core 171 / wear 90 tasks
+ > UP-TO-DATE、源未变结果有效）、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED /
+ > FROZEN**）。**Phase-F pre-gate narrow fix — W-DH-2 widget rejection feedback —
+-> IMPLEMENTED / REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection
+-> feedback`，parent `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection →
+-> authoritative refresh + localized feedback，zero write；focused JVM 56/0、full app JVM
+-> 1322/0、Pixel_7 API 35 Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。
+-> **Phase F — IN PROGRESS / NOT GATED**；Phase-F final consistency candidate — **NOT
+-> STARTED**。**NEXT: W-DH-2 narrow-fix implementation review**（随后 Phase F — Final
+-> Consistency Gate（本文件 §9）：收敛矩阵 + fresh JVM/Android/Wear 证据；release gate
+-> `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本次修复内开始）。
++> IMPLEMENTED / ARCHITECT-REVIEW APPROVED**（commit `fix: close v1.7 W-DH-2 widget
++> rejection feedback` @ `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
++> `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection → authoritative refresh
++> + localized feedback，zero write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35
++> Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。
++> **Phase-F final consistency candidate — FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
++> REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
++> cross-midnight / schedule edit / schedule deletion 强化，全部组合生产 writer/handler 与
++> 生产 reader/builder；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
++> Android 358/0/5 assume-gated skip、`assembleDebug`（app + wear）BUILD SUCCESSFUL；README
++> v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release evidence —
++> complete；`release gate — NOT YET APPROVED`；evidence `evidence/phase-f/`；**Phase F 仍
++> IN PROGRESS、未 CLOSED**）。**NEXT: Phase-F final consistency candidate review**
++> （Architect + fresh independent final review → P0–P3；通过后方可达成 release gate
++> `APPROVE V1.7.0 RELEASE CANDIDATE`；版本 bump 属其后 release-packaging 步骤）。
+ 
+ ---
+ 
+diff --git a/readme.md b/readme.md
+index 2b60858..f8d2613 100644
+--- a/readme.md
++++ b/readme.md
+@@ -48,9 +48,9 @@ Phone Room/domain/repository remains the source of truth for medication data; wi
+ 
+ Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
+ 
+-下一候选里程碑是 **v1.7 — 可选 CPA PK 曲线**；拟默认关闭，并须先完成独立科学与来源审查。
++v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）处于最终一致性验证与 release candidate 评审阶段；发布门禁尚未批准，版本元数据在授权发布打包步骤之前仍为 1.6.0。
+ 
+-The next candidate milestone is **v1.7 — Optional CPA PK Curve**. It is planned to be disabled by default and requires independent scientific and provenance review before implementation.
++The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) is in final consistency and release-candidate validation. The release gate is not yet approved, and version metadata still reflects 1.6.0 until the authorized release-packaging step.
+ 
+ 完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
+ 

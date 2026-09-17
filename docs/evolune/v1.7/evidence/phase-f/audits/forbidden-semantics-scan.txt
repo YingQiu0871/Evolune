@@ -1,0 +1,14 @@
+V17 Phase F — forbidden semantics scan (release-facing UI copy + new gate tests)
+Patterns: missed | skipped | late | on-time | overdue | adherence | compliance | 漏服 | 迟服 | 按时 | 依从 | 合规
+Negation-form disclosures approved by frozen Phase A/B copy are listed separately and are not violations (§47: do not flag historical/approved vocabulary).
+
+
+Affirmative violations: 0
+
+Approved negation-form disclosures (frozen Phase A/B copy; explicitly denies the graded meaning):
+  app\src\main\res\values\strings.xml:502 [APPROVED NEGATION COPY] <string name="history_note_not_necessarily_missed">这不一定意味着漏服。</string>
+  app\src\main\res\values\strings.xml:545 [APPROVED NEGATION COPY] <string name="insights_confidence_explanation">置信度表示记录与计划时点的关联程度，不代表用药可靠性或依从性。</string>
+  app\src\main\res\values-zh-rCN\strings.xml:492 [APPROVED NEGATION COPY] <string name="history_note_not_necessarily_missed">这不一定意味着漏服。</string>
+  app\src\main\res\values-zh-rCN\strings.xml:535 [APPROVED NEGATION COPY] <string name="insights_confidence_explanation">置信度表示记录与计划时点的关联程度，不代表用药可靠性或依从性。</string>
+
+RESULT: 0 violations — release-facing v1.7 copy stays factual/neutral.
