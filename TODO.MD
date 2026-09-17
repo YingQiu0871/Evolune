@@ -190,18 +190,15 @@
       SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
       `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，
       未经重开评审不得改 Phase-F 语义）。
-- [x] v1.7.0 release packaging / version metadata — **RELEASE PACKAGING — CANDIDATE BUILT /
-      REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
-      `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；versionName `1.6.0 → 1.7.0`、ordinal
-      `1_060_000 → 1_070_000`、Phone versionCode `101_070_000`、Wear versionCode
-      `1_101_070_000`；护栏更新为 v1.7.0 真实不变式（未删除）；signed release APK 构建通过
-      （app `fa6b3ace…` / wear `b8e8d8f3…`），apksigner v2 验签通过 + aapt2 内嵌元数据核验
-      `1.7.0 / 101070000 / 1101070000`；fresh JVM app 1333/0、experience-core 171/0、wear
-      90/0；Phone debug + Phone/Wear signed release install/launch smoke 通过；evidence
-      `docs/evolune/v1.7/evidence/release-packaging/`（含 MANIFEST）；**tag NOT CREATED /
-      release NOT PUBLISHED**）。
-- [ ] NEXT：**v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程——
-      tag、GitHub Release 与分发发布另行单独授权；不自行开始）。
+- [x] v1.7.0 release packaging / version metadata — **RELEASE PACKAGING — APPROVED / READY
+      FOR RELEASE**（packaging commit `build: package v1.7.0 release candidate` @
+      `a000751d5bf4941819deb367e0c5038fc14117b4`；final independent review **APPROVE
+      V1.7.0 RELEASE PACKAGING CANDIDATE**，P0/P1/P2 = none；version metadata `1.7.0 /
+      101070000 / 1101070000` UPDATED / VERIFIED；signed release APK 构建 + apksigner v2
+      验签 + aapt2 内嵌元数据核验 + install/launch smoke + fresh JVM（1333/171/90 全绿）
+      全部通过；release notes `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。
+- [ ] NEXT：**final v1.7.0 release**（annotated tag `v1.7.0` + GitHub Release，使用已批准的
+      APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

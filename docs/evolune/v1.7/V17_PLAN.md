@@ -554,18 +554,16 @@ PK output must remain explicitly model-derived.
 > 保持；fresh：focused 11/11、app JVM 1333/0、experience-core 171/0、wear 90/0、Android
 > 358/0/5 assume-gated skip、debug builds SUCCESSFUL；evidence 212 files / MANIFEST
 > 211/211 / blob 212/212；**Phase A–F 全部 CLOSED/FROZEN**，未经重开评审不得改 Phase-F
-> 语义）。**v1.7.0 release packaging / version metadata — RELEASE PACKAGING — CANDIDATE
-> BUILT / REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
-> `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata **UPDATED / VERIFIED**：
-> versionName `1.7.0`、Phone versionCode `101070000`、Wear versionCode `1101070000`
-> （ordinal `1_070_000`）；护栏更新为 v1.7.0 真实不变式（未删除）；signed Phone/Wear
-> release APK 构建 + apksigner v2 验签 + aapt2 内嵌元数据核验（1.7.0 / 101070000 /
-> 1101070000）通过；R8 minification 通过（mapping 输出已记录）；fresh JVM app 1333/0、
-> experience-core 171/0、wear 90/0（全部 --rerun-tasks 实际执行）；Phone debug + Phone/
-> Wear signed release install/launch smoke 通过；evidence
-> `evidence/release-packaging/`；**tag NOT CREATED；release NOT PUBLISHED**）。**NEXT:
-> v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程，另行单独授权；
-> 不自行开始）。
+> 语义）。**v1.7.0 release packaging / version metadata — RELEASE PACKAGING — APPROVED /
+> READY FOR RELEASE**（packaging commit `build: package v1.7.0 release candidate` @
+> `a000751d5bf4941819deb367e0c5038fc14117b4`；final independent review **APPROVE V1.7.0
+> RELEASE PACKAGING CANDIDATE**，P0/P1/P2 = none；version metadata **UPDATED /
+> VERIFIED**：versionName `1.7.0`、Phone versionCode `101070000`、Wear versionCode
+> `1101070000`；signed release APK + apksigner v2 验签 + aapt2 内嵌元数据 + R8 + fresh
+> JVM（1333/171/90 全绿）+ install/launch smoke 全部通过；release notes
+> `docs/evolune/v1.7/V17_RELEASE_NOTES.md`）。**NEXT: final v1.7.0 release**（annotated
+> tag `v1.7.0` + GitHub Release，使用已批准 APK 字节；release 后的“已发布”状态同步按
+> 仓库惯例在后续 docs pass 进行；不自行开始）。
 
 ---
 
