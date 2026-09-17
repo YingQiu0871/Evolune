@@ -1,6 +1,10 @@
 # V17 Phase E — Export & Data Portability — Contract
 
-> 状态：`PHASE-E CONTRACT — REVIEW PENDING`（**PHASE-E PRODUCTION — NOT STARTED**）；
+> 状态：`PHASE-E CONTRACT — APPROVED / FROZEN`（**PHASE-E PRODUCTION — NOT STARTED**）；
+> approved contract HEAD：`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`
+> （Architect **APPROVE V17 PHASE-E CONTRACT R2 — ARCHITECT CLOSURE**；独立复审
+> **APPROVE V17 PHASE-E CONTRACT R2**（Qwen3.8 Flash，fresh strict read-only session），
+> P0/P1/P2 = none；final freeze 记录见 §51）；**未经重开评审不得改 Phase-E 契约语义**。
 > docs-only contract；批准后未经重开评审不得改 Phase-E 语义。
 > Slice：**V17-E — Export & Data Portability（E-01 export contract / E-02 CSV schema /
 > E-03 JSON schema；E-04–E-07 生产在批准前未授权）**
@@ -927,8 +931,85 @@ Phase-E closure。**不**为 E-04/E-05/E-06/E-07 额外制造 contract 循环（
 
 ## 50. Documentation status
 
-- 本契约状态：`PHASE-E CONTRACT — REVIEW PENDING`；
+- 本契约状态：`PHASE-E CONTRACT — APPROVED / FROZEN`（Architect APPROVE；独立复审 APPROVE，
+  P0/P1/P2 = none；approval record 与 final freeze bookkeeping 见 §51）；
 - **PHASE-E PRODUCTION — NOT STARTED**；
 - Phase A/B/C/D 保持 CLOSED / FROZEN（含最新 Phase-D closure @ `4c3be35`）；
 - 指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；
-  **NEXT: Phase-E contract review**。
+  **NEXT: Phase-E candidate implementation**（单一 coherent candidate，覆盖 E-04/E-05/E-06/E-07；
+  仅可针对 frozen contract @ `ab9a796...`）。
+
+---
+
+## 51. Final contract freeze（bookkeeping；APPROVED / FROZEN）
+
+- Approved contract HEAD：`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`（R2 HEAD，final semantic
+  authority for E-01/E-02/E-03）；
+- Architect verdict：**APPROVE V17 PHASE-E CONTRACT R2 — ARCHITECT CLOSURE**；
+- Independent verdict：**APPROVE V17 PHASE-E CONTRACT R2**（independent reviewer：Qwen3.8 Flash，
+  fresh strict read-only session）；
+- Final blockers：P0 = none，P1 = none，P2 = none；
+- 本契约进入 `PHASE-E CONTRACT — APPROVED / FROZEN`；**未经重开评审不得改 Phase-E 契约语义**；
+- 本 freeze 为 bookkeeping/status：**不新增、不改变任何 Phase-E 语义要求**；R1/R2 修正已并入
+  且全部保持。
+
+### 51.1 Frozen canonical truth（要点）
+
+- Canonical **Evolune Portable JSON v1**：11 portable medication-event fields —
+  `id, actual_time, local_date, zone_id, route, ester, dose_mg, extras, slot_id, source, status`；
+- `revision` 不是 portable truth（repository-local optimistic-concurrency metadata）；新
+  canonical imported row 由既有 repository insert contract 以 `revision = 1` 创建；
+  **No schema/DAO/repository reopening**；
+- CSV v1 = **EXPORT ONLY**，16 列：`schema_version, event_id, date, medication, dose, route,
+  planned_time, actual_time, timing_delta, event_type, status, ester, zone_id, slot_id, source,
+  extras_json`；`planned_time` 与 `timing_delta` **恒为 empty**；无 revision 列；
+- Format boundary：canonical（strict schema/version，import+export，11-field semantic
+  portability）vs Mahiro JSON v1（legacy compatibility only，permissive existing decoder
+  semantics，lossy by design，not canonical，not E7 full-fidelity proof）vs Backup（separate
+  application-recovery contract，not Phase-E portability）；
+- E2.6（mandatory frozen acceptance）：valid canonical document via legacy Mahiro surface ->
+  zero dose-event writes + zero weight side-write + no semantic format fallthrough；Mahiro
+  parser stays permissive；reverse Mahiro->canonical rejection covered by E2.3；
+- E7.6（mandatory frozen acceptance）：existing row（same id + same other 10 portable fields +
+  stored revision > 1）+ canonical import（same 11 portable semantics）-> IDEMPOTENT，
+  `insert` calls = 0、`update` calls = 0、all writes = 0、no overwrite/duplicate、no Conflict
+  solely due to revision；对照：same id + stored revision > 1 + portable field differs ->
+  CONFLICT + zero overwrite/write；
+- Ranges：LAST_30_DAYS / LAST_90_DAYS / ALL，absolute-Instant semantics，inclusive frozen
+  boundaries；determinism = same format + same range + same normalized capturedAt + same
+  authoritative snapshot -> byte-identical output；无 hidden clock；
+- Import：canonical full prevalidation before first write；additive（not restore / not
+  replace）；stable-ID replay safety；32 MiB input bound；100000 event bound；typed results；
+- Privacy/execution：off-main serialization/file IO；canonical SAF only；legacy clipboard export
+  confirmation；no silent upload；no credential/passphrase/path/payload leakage；
+- Backup separation（E4）保持：不复用 EvoluneBackupV1 / BackupRestoreCoordinator / B2 / Drive
+  appDataFolder / `.evbackup`；无 application-state replacement；无第二 restore path；
+- Acceptance ranges（权威、未重编号）：`E1.1–E1.2` · `E2.1–E2.6` · `E3.1–E3.3` ·
+  `E4.1–E4.4` · `E5.1–E5.4` · `E6.1–E6.6` · `E7.1–E7.6` · `E8.1`；Guards：`EG1–EG25`。
+
+### 51.2 Review findings disposition（final）
+
+- 原 audit P2 ×3：① export uncaught exception / main-thread serialization — **CLOSED**；
+  ② canonical/legacy version ambiguity — **CLOSED**（strict canonical + explicit permissive
+  legacy separation）；③ partial-import / duplicate semantics — **CLOSED**（prevalidation +
+  additive per-record + typed partial + stable-ID replay）；
+- 独立复审 P2 ×2：④ revision>1 idempotency evidence gap — **CLOSED by E7.6**；
+  ⑤ canonical->Mahiro negative evidence gap — **CLOSED by E2.6**；
+- 非阻塞 P3（carried）：`findAllOccurredUpTo` KDoc/history-layer tension — **NON-BLOCKING AT
+  CONTRACT FREEZE**；frozen handling：若实现判定满足 Phase E 需违反/修改既有 repository
+  KDoc/interface 限制 -> **STOP**、请求 explicit Architect reopening；**禁止**静默改动
+  repository seam。
+
+### 51.3 Frozen surfaces 与 production authorization state
+
+- 本契约**不授权**改动：Room schema、DAO/migrations、Phase-C PK、Phase-D Timeline、History
+  projection as export truth、matcher/generator、MedicationOccurrencePolicy、Home、Wear、
+  Widget、Health Connect、Drive backup、backup envelope/B2、Gradle/dependencies；任何实际需要
+  均须 **STOP + explicit reopening**；
+- 本 freeze commit 后：Phase-E contract = `APPROVED / FROZEN`；Phase-E production =
+  **NOT STARTED**；
+- **NEXT: Phase-E candidate implementation** —— 单一 coherent candidate 覆盖 E-04
+  deterministic serialization + E-05 sharing/storage UX + E-06 privacy validation + E-07
+  round-trip/fixture tests；随后 Architect implementation review → fresh independent
+  implementation review → final Phase-E closure；除非真实 blocker 强制，**不**拆分 E-04/E-05/
+  E-06/E-07 为多余 contract 循环。

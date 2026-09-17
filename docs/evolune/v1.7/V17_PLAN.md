@@ -512,6 +512,26 @@ PK output must remain explicitly model-derived.
 > + off-main + typed results（P2-1/2/3 全部在契约内闭环）。验收矩阵 E1.*–E7.* + guards
 > EG1–EG25 + evidence gate 已冻结。**NEXT: Phase-E contract review**（批准前不启动实现；
 > Phase A–D 全部 CLOSED / FROZEN 不变）。
+>
+> **Status note (2026-09-16, Phase-E contract final freeze)**: **PHASE-E CONTRACT —
+> APPROVED / FROZEN**（approved contract HEAD `ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；
+> Architect **APPROVE V17 PHASE-E CONTRACT R2 — ARCHITECT CLOSURE**；独立复审 **APPROVE
+> V17 PHASE-E CONTRACT R2**（Qwen3.8 Flash，fresh strict read-only session）；P0/P1/P2 = none）。
+> R1 修正：`revision` 分类为 repository-local optimistic-concurrency metadata（不在 portable
+> truth 内；canonical = **11 字段**；CSV = **16 列**；新导入行 `revision = 1`；equality 忽略
+> revision；不重开 schema/DAO/repository）；Mahiro 保持 **permissive legacy compatibility**
+> （无新 version gate；不作为 canonical/E7 证明）。R2 修正：新增强制验收 **E7.6**（stored
+> revision>1 + 11 portable 语义相等 -> IDEMPOTENT + insert=0/update=0/all writes=0；portable
+> 字段不同 -> CONFLICT + zero overwrite）与 **E2.6**（canonical 文档经 legacy Mahiro surface ->
+> zero dose-event writes + zero weight side-write + no format fallthrough；反向由 E2.3 覆盖）；
+> §18 “absent id” 措辞澄清；EG20 保持并引用 E2.6。最终验收范围：`E1.1–E1.2 / E2.1–E2.6 /
+> E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 / E7.1–E7.6 / E8.1`；guards `EG1–EG25`
+> （未重编号）。原 audit P2 ×3 与独立复审 P2 ×2 全部 CLOSED；carried KDoc P3 非阻塞（实现如
+> 需改 repository seam 须 STOP + explicit reopening）。**未经重开评审不得改 Phase-E 契约
+> 语义**；**PHASE-E PRODUCTION — NOT STARTED**。**NEXT: Phase-E candidate implementation**
+> （单一 coherent candidate：E-04 deterministic serialization + E-05 sharing/storage UX +
+> E-06 privacy validation + E-07 round-trip/fixture tests；随后 Architect review → fresh
+> independent review → final Phase-E closure；不拆分冗余 contract 循环）。
 
 ---
 

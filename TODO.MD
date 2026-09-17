@@ -142,17 +142,25 @@
       （d-01/d-03/d-04/d-05）未被改写；ACCEPTANCE D1–D5 与 G1–G7 满足；packet
       `review-packets/v17-d07-final-phase-d-independent-review.txt`。**Phase D — CLOSED / FROZEN**
       （未经重开评审不得改 Phase-D 语义；本收口 docs-only）。
-- [ ] Phase E contract — **PHASE-E CONTRACT — REVIEW PENDING**
-      （`V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`）：E-01 export contract / E-02 CSV v1 schema /
-      E-03 Evolune Portable JSON v1 schema 三合一冻结。要点：portable truth = dose_events only
-      （12 字段 full-fidelity；无 weight/plans/settings/derived）；canonical JSON `schema=
-      "evolune-portable"`/`version=1` strict（unknown field/duplicate key/version fail-closed；
-      import 全量预校验 + additive per-record + stable-ID replay-safe）；Mahiro v1 保持 legacy
-      兼容并加 `meta.version==1` gate；CSV export-only 17 列（planned_time/timing_delta 恒 empty；
-      medication 穷举映射表）；ranges 30/90/all（绝对 Instant）；E1 zero-write、E3 逐字节确定性、
-      E4 backup 分离（EG3–EG6）、E6 隐私/clipboard 确认；P2-1/2/3 全部在契约内闭环。
-      **PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。
-- [ ] NEXT：**Phase-E contract review**（契约批准前不得启动 Phase-E 生产；不自行发明范围）。
+- [x] Phase E contract — **PHASE-E CONTRACT — APPROVED / FROZEN**
+      （`V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md`；approved contract HEAD
+      `ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；Architect **APPROVE V17 PHASE-E CONTRACT R2 —
+      ARCHITECT CLOSURE** + 独立复审 **APPROVE**（Qwen3.8 Flash，fresh strict read-only
+      session），P0/P1/P2 = none；R1/R2 修正已并入）：E-01 export contract / E-02 CSV v1 schema /
+      E-03 Evolune Portable JSON v1 schema。冻结要点：portable truth = dose_events only，**
+      11 portable 字段**（`revision` 为 repository-local concurrency metadata，不在格式内；新导入
+      行 `revision = 1`；不重开 schema/DAO/repository）；canonical `schema="evolune-portable"` /
+      `version=1` strict（unknown field/duplicate key/version fail-closed；全量预校验 + additive
+      per-record + stable-ID replay-safe，equality 含 stored revision>1 的 E7.6）；Mahiro v1 =
+      permissive legacy compatibility（无 version gate、不作为 canonical/E7 证明；E2.6 覆盖
+      canonical→Mahiro zero-write 负向证据）；CSV export-only **16 列**（planned_time/
+      timing_delta 恒 empty；medication 穷举映射表）；ranges 30/90/all（绝对 Instant、边界
+      inclusive）；E1 zero-write、E3 逐字节确定性、E4 backup 分离（EG3–EG6）、E6 隐私/clipboard
+      确认；验收范围 `E1.1–E1.2 / E2.1–E2.6 / E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 /
+      E7.1–E7.6 / E8.1`；guards `EG1–EG25`。**PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。
+- [ ] NEXT：**Phase-E candidate implementation**（单一 coherent candidate：E-04 deterministic
+      serialization + E-05 sharing/storage UX + E-06 privacy validation + E-07 round-trip/
+      fixture tests；仅可针对 frozen contract @ `ab9a796...`；不自行发明范围）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
