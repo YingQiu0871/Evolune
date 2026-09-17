@@ -233,11 +233,16 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   zero-write / E3 byte-determinism / E4 backup 分离 / E6 隐私 / E7 round-trip + replay（含
   E7.6）；验收 `E1.1–E1.2 / E2.1–E2.6 / E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 /
   E7.1–E7.6 / E8.1`；guards `EG1–EG25`；全部 P2 CLOSED。
-  **PHASE-E PRODUCTION — CANDIDATE IMPLEMENTED / REVIEW PENDING**（candidate commit
-  `feat: implement v1.7 Phase E export portability`，parent
-  `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；evidence `evidence/phase-e/`：focused 88/88、
-  fresh full JVM 1578/0、Pixel_7 API 35 12/12；E1–E7 candidate evidence complete；E8.1
-  PENDING）。**NEXT:** Phase-E candidate implementation review。
+  **PHASE-E PRODUCTION — APPROVED / CLOSED / FROZEN**（implementation HEAD
+  `e119869a080b6780e4138c75606dd393fd8431ee` `feat: implement v1.7 Phase E export
+  portability`，parent / frozen-contract base
+  `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；Architect **APPROVE V17 PHASE-E CANDIDATE
+  IMPLEMENTATION — ARCHITECT FINAL GATE** + fresh independent **APPROVE**（Qwen3.8 Flash），
+  P0/P1/P2 = none；E1–E7 VERIFIED / PASS、E8.1 PASS、EG1–EG25 PASS；evidence
+  `evidence/phase-e/` 196 files / MANIFEST 195/195 / blob 196/196；focused 88/88、full
+  JVM 1578/0、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED / FROZEN**）。
+  **NEXT:** Phase F — Final Consistency Gate（`V17_PLAN.md` §9；release gate
+  `APPROVE V1.7.0 RELEASE CANDIDATE`）。
 
 ## Historical and future milestones
 
@@ -257,15 +262,17 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
 [`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
-**NEXT:** Phase-E candidate implementation review（D-04 CLOSED / FROZEN @
+**NEXT:** Phase F — Final Consistency Gate（`V17_PLAN.md` §9；release gate
+`APPROVE V1.7.0 RELEASE CANDIDATE`）（D-04 CLOSED / FROZEN @
 `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract
 `b1cdd662fe1bee14beab5cad651aef772f211c68` + final implementation HEAD
 `2a79f1d048905113f53d4be470071a94072c2f96`；D-06 recurring verification gate **PASS** @ verified
 executable source HEAD `13aeaf6ab60cbe58236290de063122e42a4296de`；D-07 final Phase-D independent
 gate **PASS** @ verified gate HEAD `2560afcf4f28557a92667db973a5ce3cac280723` ⇒
 **Phase D — CLOSED / FROZEN**；Phase-E contract **APPROVED / FROZEN** @
-`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；Phase-E production **CANDIDATE IMPLEMENTED /
-REVIEW PENDING**（E8.1 pending；Phase E 未 CLOSED））。
+`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；Phase-E production **APPROVED / CLOSED /
+FROZEN** @ `e119869a080b6780e4138c75606dd393fd8431ee`；**Phase E — APPROVED / CLOSED /
+FROZEN**）。
 下文 §"v1.7 — Optional CPA Pharmacokinetic Curve" 是 v1.7 的**早期草案**，其范围已不再代表 v1.7 程序；
 该 CPA 曲线保持 *optional / not started*，如需推进必须单独立项。
 

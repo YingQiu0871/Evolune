@@ -1,6 +1,7 @@
 # V17 Phase E — Export & Data Portability — Contract
 
-> 状态：`PHASE-E CONTRACT — APPROVED / FROZEN`（**PHASE-E PRODUCTION — NOT STARTED**）；
+> 状态：`PHASE-E CONTRACT — APPROVED / FROZEN`；**PHASE-E PRODUCTION — APPROVED / CLOSED /
+> FROZEN**（final production closure 记录见 §52）；
 > approved contract HEAD：`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`
 > （Architect **APPROVE V17 PHASE-E CONTRACT R2 — ARCHITECT CLOSURE**；独立复审
 > **APPROVE V17 PHASE-E CONTRACT R2**（Qwen3.8 Flash，fresh strict read-only session），
@@ -933,11 +934,15 @@ Phase-E closure。**不**为 E-04/E-05/E-06/E-07 额外制造 contract 循环（
 
 - 本契约状态：`PHASE-E CONTRACT — APPROVED / FROZEN`（Architect APPROVE；独立复审 APPROVE，
   P0/P1/P2 = none；approval record 与 final freeze bookkeeping 见 §51）；
-- **PHASE-E PRODUCTION — NOT STARTED**；
-- Phase A/B/C/D 保持 CLOSED / FROZEN（含最新 Phase-D closure @ `4c3be35`）；
+- **PHASE-E PRODUCTION — APPROVED / CLOSED / FROZEN** @
+  `e119869a080b6780e4138c75606dd393fd8431ee`（Architect **APPROVE V17 PHASE-E CANDIDATE
+  IMPLEMENTATION — ARCHITECT FINAL GATE**；独立复审 **APPROVE V17 PHASE-E CANDIDATE
+  IMPLEMENTATION**（Qwen3.8 Flash，fresh strict read-only session）；P0/P1/P2 = none；
+  final production closure 见 §52）；
+- Phase A/B/C/D/E 保持 CLOSED / FROZEN（含本次 Phase-E final closure）；
 - 指针更新仅限 `TODO.MD` / `CURRENT_STATUS.md` / `ROADMAP.md` / `V17_PLAN.md` 的最小状态行；
-  **NEXT: Phase-E candidate implementation**（单一 coherent candidate，覆盖 E-04/E-05/E-06/E-07；
-  仅可针对 frozen contract @ `ab9a796...`）。
+  **NEXT: Phase F — Final Consistency Gate**（`V17_PLAN.md` §9；release gate
+  `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本收口内开始）。
 
 ---
 
@@ -1006,10 +1011,49 @@ Phase-E closure。**不**为 E-04/E-05/E-06/E-07 额外制造 contract 循环（
   projection as export truth、matcher/generator、MedicationOccurrencePolicy、Home、Wear、
   Widget、Health Connect、Drive backup、backup envelope/B2、Gradle/dependencies；任何实际需要
   均须 **STOP + explicit reopening**；
-- 本 freeze commit 后：Phase-E contract = `APPROVED / FROZEN`；Phase-E production =
-  **NOT STARTED**；
-- **NEXT: Phase-E candidate implementation** —— 单一 coherent candidate 覆盖 E-04
-  deterministic serialization + E-05 sharing/storage UX + E-06 privacy validation + E-07
-  round-trip/fixture tests；随后 Architect implementation review → fresh independent
-  implementation review → final Phase-E closure；除非真实 blocker 强制，**不**拆分 E-04/E-05/
-  E-06/E-07 为多余 contract 循环。
+- 本 freeze commit 时：Phase-E contract = `APPROVED / FROZEN`；Phase-E production =
+  **NOT STARTED**；此后 production 已完成并经 final closure（现为 **APPROVED / CLOSED /
+  FROZEN**，见 §52）；
+- **NEXT: Phase F — Final Consistency Gate**（`V17_PLAN.md` §9；release gate
+  `APPROVE V1.7.0 RELEASE CANDIDATE`；见 §52）。
+
+---
+
+## 52. Final production closure（bookkeeping；APPROVED / CLOSED / FROZEN）
+
+- Implementation HEAD：`e119869a080b6780e4138c75606dd393fd8431ee`
+  （`feat: implement v1.7 Phase E export portability`）；
+- Parent / frozen-contract base：`53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；
+- Approved semantic contract HEAD：`ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；
+- Architect implementation verdict：**APPROVE V17 PHASE-E CANDIDATE IMPLEMENTATION —
+  ARCHITECT FINAL GATE**；
+- Independent implementation verdict：**APPROVE V17 PHASE-E CANDIDATE IMPLEMENTATION**
+  （独立复审：Qwen3.8 Flash，fresh strict read-only session）；
+- Final blockers：P0 = none，P1 = none，P2 = none；
+- Acceptance：`E1.1–E1.2 / E2.1–E2.6 / E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 /
+  E7.1–E7.6` — **VERIFIED / PASS**；`E8.1` — **INDEPENDENT IMPLEMENTATION REVIEW —
+  PASS**；guards `EG1–EG25` — **PASS**（未重编号；无 frozen-surface reopening）；
+- Evidence：`docs/evolune/v1.7/evidence/phase-e/` 196 files；MANIFEST 195/195；post-commit
+  HEAD-blob 196/196、0 mismatch；`sha256(MANIFEST.sha256)` =
+  `daa1d41483007b9b634dbfce8adc0e9b3d98444c5085d42b6acecdc95f7f6e07`；
+  `implementation.diff` byte-identical to candidate `app/src` git diff（33 files，200063
+  bytes）；
+- Test evidence：focused Phase-E JVM 88/88（10 executed classes）；full JVM 1578/0
+  （app 1317 fresh executed；experience-core 171 / wear 90 tasks **UP-TO-DATE**，源字节未变、
+  现有结果有效——不声称三模块均被强制重跑）；Pixel_7 AVD API 35 Android 12/12；
+- 本收口为 bookkeeping/status：**不新增、不改变任何 Phase-E 语义要求**；
+- **PHASE-E PRODUCTION — APPROVED / CLOSED / FROZEN**；**Phase E — APPROVED / CLOSED /
+  FROZEN**；未经重开评审不得改 Phase-E 语义或生产实现；
+- Implementation-review P3 dispositions（非阻塞，仅记录；**不修改历史证据/packet**）：
+  - **P3-a packet accounting**：candidate packet §5 记 "11 new production files"，实际
+    `export/` 下生产文件为 **10**；"11 Phase-E JVM test files" 指 10 个 executable test
+    classes + 1 个零 `@Test` 的 fixture/helper（`PortableTestFixtures.kt`）。无实现/覆盖缺失；
+    历史 packet 不回写。
+  - **P3-b stale KDoc**：`findAllOccurredUpTo` 的 "History layer only" KDoc 与 Phase-E
+    approved read-only consumer 存在**文档张力**；无 guard 强制、无接口/行为/schema 变更；
+    非阻塞、不重开；可在未来自然文档触碰时顺手修正（本收口不改 repository 源码）。
+  - **P3-c command wording**：evidence `logs/commands.txt` 记 `--rerun`，final
+    `full-jvm.log` 显示 app 任务 fresh executed、experience-core/wear **UP-TO-DATE**；
+    措辞/报告问题，无测试失败、无生产影响；不改历史证据。
+- **NEXT: Phase F — Final Consistency Gate**（`V17_PLAN.md` §9；release gate
+  `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本收口内开始）。

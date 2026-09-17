@@ -158,18 +158,25 @@
       inclusive）；E1 zero-write、E3 逐字节确定性、E4 backup 分离（EG3–EG6）、E6 隐私/clipboard
       确认；验收范围 `E1.1–E1.2 / E2.1–E2.6 / E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 /
       E7.1–E7.6 / E8.1`；guards `EG1–EG25`。**PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。
-- [x] Phase-E candidate implementation — **PHASE-E PRODUCTION — CANDIDATE IMPLEMENTED /
-      REVIEW PENDING**（单一 coherent candidate：E-04 deterministic serialization + E-05
-      sharing/storage UX + E-06 privacy validation + E-07 round-trip/fixture tests；仅针对
-      frozen contract @ `ab9a796...`；candidate commit `feat: implement v1.7 Phase E export
-      portability`，parent `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；evidence
-      `docs/evolune/v1.7/evidence/phase-e/`：focused Phase-E JVM 88/88、fresh full JVM
-      1578/0（app 1317 / experience-core 171 / wear 90）、Pixel_7 API 35 12/12；E1–E7
-      candidate evidence complete、**E8.1 PENDING**；**Phase E 未 CLOSED**，未经重开评审不得改
-      Phase-E 语义）。
-- [ ] NEXT：**Phase-E candidate implementation review**（Architect implementation review →
-      fresh independent implementation review → final Phase-E closure；E8.1 属后续 process
-      gate，不在本 candidate 内声明；不自行发明范围）。
+- [x] Phase-E implementation + final closure — **PHASE-E PRODUCTION — APPROVED / CLOSED /
+      FROZEN**（candidate implementation HEAD `e119869a080b6780e4138c75606dd393fd8431ee`
+      `feat: implement v1.7 Phase E export portability`，parent / frozen-contract base
+      `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`，approved semantic contract HEAD
+      `ab9a79625e5a1f7ef1626fd36b473c00f287cf64`；Architect **APPROVE V17 PHASE-E CANDIDATE
+      IMPLEMENTATION — ARCHITECT FINAL GATE** + fresh independent **APPROVE**（Qwen3.8 Flash，
+      strict read-only session），P0/P1/P2 = none；E1–E7 VERIFIED / PASS、**E8.1 —
+      INDEPENDENT IMPLEMENTATION REVIEW — PASS**、EG1–EG25 PASS；evidence
+      `docs/evolune/v1.7/evidence/phase-e/` 196 files / MANIFEST 195/195 / HEAD-blob
+      196/196 0 mismatch；focused Phase-E JVM 88/88、full JVM 1578/0（app 1317 fresh
+      executed；experience-core 171 / wear 90 tasks UP-TO-DATE、源未变结果有效）、Pixel_7
+      API 35 12/12；final closure packet `review-packets/v17-phase-e-final-closure.txt`；
+      **Phase E CLOSED / FROZEN**，未经重开评审不得改 Phase-E 语义）。
+- [ ] NEXT：**Phase F — Final Consistency Gate**（`V17_PLAN.md` §9；架构敏感 release phase：
+      Phone/Widget/Wear/Undo/Legacy 记录 → History/Timeline/Insights/PK 一致性矩阵 +
+      cross-midnight / DST 双向 / timezone change / duplicate-retry / manual intake /
+      same-medication-multiple-times-a-day / schedule edit / schedule deletion / legacy
+      migration 用例；fresh JVM + fresh Android + affected Wear 证据；release gate
+      `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本收口内开始）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
