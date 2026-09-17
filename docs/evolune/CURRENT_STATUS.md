@@ -327,8 +327,18 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `e34d6749…`（6,294,960 B）/ Wear `96ae56bc…`（2,604,764 B）；evidence
     `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；release notes
     `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`）。
-  - **NEXT:** **final v1.7.1 release**（annotated tag `v1.7.1` + GitHub Release，使用已批准
-    的 R2 APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass 进行）。
+  - v1.7.1 final release — **RELEASED**（annotated tag `v1.7.1` @
+    `746fc0a970bf0dfb3735c9225ce662e9511514ae`；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.1 已发布（stable；Phone/Wear APK +
+    SHA256SUMS；下载资产与已批准 R2 字节一致）；release notes
+    `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`；release packet
+    `review-packets/v171-final-release.txt`）。
+  - v1.7.2 Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— **CONTRACT DRAFTED /
+    IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
+    read-only 审计 + 契约 `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
+    `V172_IMPLEMENTATION_PLAN.md`；packet `review-packets/v172-contract-candidate.txt`；
+    版本仍 `1.7.1 / 101070100 / 1101070100`；未改任何产品代码）。
+  - **NEXT:** **v1.7.2 contract review**（通过后方可开始 Slices A–F 实现）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

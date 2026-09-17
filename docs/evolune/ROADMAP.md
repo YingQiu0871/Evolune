@@ -285,8 +285,15 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   元数据 + install/launch smoke + fresh JVM（1343/171/90 全绿）；authoritative APK：Phone
   `e34d6749…` / Wear `96ae56bc…`；release notes
   `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`）。
-  **NEXT:** final v1.7.1 release（annotated tag `v1.7.1` + GitHub Release，使用已批准 R2 APK
-  字节）。
+- **v1.7.1 · final release — RELEASED**（annotated tag `v1.7.1` @
+  `746fc0a970bf0dfb3735c9225ce662e9511514ae`；GitHub Release
+  https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.1（stable；Phone/Wear APK +
+  SHA256SUMS；下载资产与已批准 R2 字节一致））。
+- **v1.7.2 · Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— CONTRACT DRAFTED /
+  IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
+  read-only 审计 + 契约 `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
+  `V172_IMPLEMENTATION_PLAN.md`；未改产品代码；版本仍 1.7.1）。
+  **NEXT:** v1.7.2 contract review（通过后方可开始 Slices A–F 实现）。
 
 ## Historical and future milestones
 

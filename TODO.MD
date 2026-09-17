@@ -234,9 +234,18 @@
       `96ae56bc…`（2,604,764 B）；evidence
       `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；release notes
       `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`）。
-- [ ] NEXT：**final v1.7.1 release**（annotated tag `v1.7.1` @ 本 docs 提交 + GitHub Release，
-      使用已批准的 R2 APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass
-      进行）。
+- [x] v1.7.1 final release — **RELEASED**
+      （annotated tag `v1.7.1` @ `746fc0a970bf0dfb3735c9225ce662e9511514ae`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.1 已发布（stable；Phone/Wear
+      APK + SHA256SUMS；下载资产与已批准 R2 字节一致）；release notes
+      `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`；release packet
+      `review-packets/v171-final-release.txt`，状态 **RELEASED**）。
+- [x] v1.7.2 Phase 0（Settings 扁平化 / 预设配色 / History 文案移除）— **CONTRACT DRAFTED /
+      IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
+      read-only 审计 + 契约：`docs/evolune/v1.7.2/V172_INVENTORY.md`、`V172_CONTRACT.md`、
+      `V172_IMPLEMENTATION_PLAN.md`；packet `review-packets/v172-contract-candidate.txt`；
+      版本仍 1.7.1/101070100/1101070100；未改任何产品代码）。
+- [ ] NEXT：**v1.7.2 contract review**（通过后方可开始 Slices A–F 实现）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
