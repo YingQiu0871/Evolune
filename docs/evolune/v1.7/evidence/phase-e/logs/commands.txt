@@ -1,0 +1,18 @@
+V17 Phase E — evidence command log index
+========================================
+
+Focused Phase-E JVM
+  .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.export.*"
+  log : logs/focused-jvm.log
+  xml : junit/app/TEST-io.github.yingqiu0871.evolune.export.*.xml (10 suites)
+
+Fresh full JVM
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:test --rerun
+  log : logs/full-jvm.log
+  xml : junit/app/, junit/experience-core/, junit/wear/
+
+Affected Android instrumentation (device: Pixel_7(AVD) API 35, serial emulator-5554)
+  .\gradlew.bat :app:connectedDebugAndroidTest
+      -Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest,io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest,io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest
+  log : logs/android.log
+  xml : androidtest/TEST-Pixel_7(AVD) - 15-_app-.xml

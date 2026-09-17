@@ -7,19 +7,35 @@ import io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DecodeResult
 import io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DocumentError
 import io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1DoseEventAdapter
 import io.github.yingqiu0871.evolune.external.mahiro.v1.MahiroV1ImportMappingResult
+import io.github.yingqiu0871.evolune.export.PortableImportBounds
 import kotlinx.coroutines.CancellationException
 
 class MahiroJsonV1ImportService(
     private val repository: DoseEventRepository,
     private val codec: MahiroV1Codec = MahiroV1Codec(),
-    private val adapter: MahiroV1DoseEventAdapter = MahiroV1DoseEventAdapter()
+    private val adapter: MahiroV1DoseEventAdapter = MahiroV1DoseEventAdapter(),
+    private val maxInputBytes: Int = PortableImportBounds.MAX_INPUT_BYTES,
+    private val maxEventCount: Int = PortableImportBounds.MAX_EVENT_COUNT
 ) {
     suspend fun import(jsonContent: String): MahiroJsonV1ImportResult {
+        // Phase E §32 bounds: enforced before unbounded parse/write; legacy wire semantics untouched.
+        if (jsonContent.toByteArray(Charsets.UTF_8).size > maxInputBytes) {
+            return MahiroJsonV1ImportResult.Failure(
+                summary = MahiroJsonV1ImportSummary.empty(),
+                error = MahiroJsonV1ImportError.TooLarge
+            )
+        }
         val decoded = when (val result = codec.decode(jsonContent)) {
             is MahiroV1DecodeResult.Success -> result
             is MahiroV1DecodeResult.Failure -> return MahiroJsonV1ImportResult.Failure(
                 summary = MahiroJsonV1ImportSummary.empty(),
                 error = MahiroJsonV1ImportError.Document(result.error)
+            )
+        }
+        if (decoded.document.events.size + decoded.diagnostics.size > maxEventCount) {
+            return MahiroJsonV1ImportResult.Failure(
+                summary = MahiroJsonV1ImportSummary.empty(),
+                error = MahiroJsonV1ImportError.TooLarge
             )
         }
         var insertedCount = 0
@@ -116,4 +132,5 @@ sealed interface MahiroJsonV1ImportResult {
 sealed interface MahiroJsonV1ImportError {
     data class Document(val error: MahiroV1DocumentError) : MahiroJsonV1ImportError
     data class Storage(val sourceIndex: Int) : MahiroJsonV1ImportError
+    data object TooLarge : MahiroJsonV1ImportError
 }

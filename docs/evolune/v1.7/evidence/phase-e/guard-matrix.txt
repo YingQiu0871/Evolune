@@ -1,0 +1,81 @@
+V17 Phase E — guard matrix disposition (frozen contract §47: EG1–EG25)
+====================================================================
+
+EG1  No Phase-A/B/C/D semantics changed.
+     PASS — frozen-surface-audit.txt: git diff scope contains no history/, pk/, core/ semantics
+     changes; only new export/ package + Phase-E integration points + tests + resources + docs.
+EG2  No Room schema / DAO / migration change.
+     PASS — diff scope contains no data/ (schema/DAO/migration) files; no AppDatabase change.
+EG3  No backup schema / `.evbackup` filename-space reuse.
+     PASS — PortableArchitectureGuardTest (no `evbackup`/EvoluneBackup/backup-package refs in
+     the export package); file names use `evolune-export-<range>-<yyyyMMdd>`.
+EG4  Portable code does not depend on backup codec / B2 / Drive / credentials.
+     PASS — PortableArchitectureGuardTest forbidden-term scan over all export package files.
+EG5  Backup code does not consume the portable schema.
+     PASS — no backup/ file was modified (frozen-surface-audit.txt); portable schema is confined
+     to the export package.
+EG6  Import is additive; never restore/full replacement; no settings/plans/schedule writes.
+     PASS — PortableImportService writes only via `repository.getById` + `repository.insert`;
+     PortableImportServiceTest replay/partial semantics; architecture guard.
+EG7  Canonical schema/import never carries or writes body weight.
+     PASS — no `weight` field in the canonical JSON (golden fixture); strict decoder rejects
+     unknown top-level fields (E2.3 test).
+EG8  No planName / UI label / display name identity in canonical output.
+     PASS — PortableJsonCodecTest unknown-field tests reject `planName`; architecture guard
+     (no planName in export package); CSV medication column is a closed vocabulary.
+EG9  No Timeline/History/Insights/PK derived data as export source.
+     PASS — PortableArchitectureGuardTest (no Timeline/HistoryRangeSource/HistoryReadService/
+     Retrospective/MedicationOccurrence refs); PortableExportService reads only
+     findOccurredBetween / findAllOccurredUpTo.
+EG10 No fabricated historical planned time or computed timing delta.
+     PASS — CSV `planned_time`/`timing_delta` are constants (always empty) in the codec; golden
+     CSV shows empty columns; no delta computation exists.
+EG11 No adherence/grading vocabulary (missed/late/on-time/overdue/… or Chinese equivalents).
+     PASS — PortableStringsParityTest forbidden-vocabulary scan over the new `portable_*` +
+     `settings_data_legacy_title` family; audits/forbidden-semantics.txt source scan.
+EG12 No locale-sensitive formatting; no BOM; LF only; final newline present.
+     PASS — PortableJsonCodecTest (no BOM, LF, single final LF), PortableCsvCodecTest (final LF),
+     numbers via `Double.toString` (locale-independent), instants via UTC formatter.
+EG13 No hidden clock in serializer/range computation.
+     PASS — PortableArchitectureGuardTest (no `Instant.now`/`Clock.system`/`LocalDate.now`/
+     `ZoneId.systemDefault` in the export package); services receive `Clock` from the
+     composition root; ranges derive from the captured instant.
+EG14 Canonical JSON/CSV never use the clipboard.
+     PASS — PortableArchitectureGuardTest (only the legacy clipboard function calls
+     `setPrimaryClip`; the portable writer uses SAF output streams; the screen has no
+     ClipboardManager reference).
+EG15 No silent upload / background export / Drive write / automatic sharing.
+     PASS — no network or Drive imports in the export package (guard); export runs only from
+     explicit user actions (privacy-audit.txt).
+EG16 No credential / token / passphrase / local path / payload body in payload or logs.
+     PASS — payload contains only the 11 portable fields; no logging statements in Phase-E
+     production paths (privacy-audit.txt).
+EG17 No parse/write past the bounds before enforcement.
+     PASS — PortableImportService checks MAX_INPUT_BYTES before decoding and the decoder checks
+     MAX_EVENT_COUNT before any repository call (architecture guard asserts ordering);
+     bounded file reads via `readBoundedBytes`; legacy Mahiro import enforces both bounds in
+     `MahiroJsonV1ImportService` (byte bound before parse; count bound after decode, before
+     writes) with typed `TooLarge`.
+EG18 No uncaught exporter/serializer exception into UI; no stack trace/path as user copy.
+     PASS — typed export results (`PortableExportResult`) + typed legacy outcome
+     (`LegacyMahiroExportOutcome`) + typed import outcomes; localized dialog strings only.
+EG19 Canonical import performs full prevalidation before the first write.
+     PASS — PortableImportService structure (decode/validate -> classify -> write); tests assert
+     zero repository calls on invalid/unsupported/oversized inputs.
+EG20 Canonical strictness not delegated to Mahiro; Mahiro not strictified.
+     PASS — canonical schema/version logic lives in PortableJsonCodec; Mahiro decoder semantics
+     unchanged (only §32 bounds added); E2.4 regression tests confirm permissive legacy behavior.
+EG21 Canonical import never regenerates event IDs.
+     PASS — architecture guard (`no randomUUID`) + tests (identity preserved; malformed id ->
+     whole-document failure with zero writes).
+EG22 Serialization order independent of DAO/return order.
+     PASS — PortableExportService sorts explicitly; test with insertion-order reads.
+EG23 No main-thread full-history serialization / blocking IO.
+     PASS — export serialization runs in `withContext(ioDispatcher)` (test proves injected
+     worker thread); canonical import runs off-main; legacy export orchestrated via
+     `withContext(Dispatchers.Default)` in HRTViewModel; file reads/writes use Dispatchers.IO.
+EG24 No new library/dependency.
+     PASS — no build.gradle / libs.versions.toml change in the diff scope.
+EG25 No new locale / `values-en`; both authorities carry every new key; key-family parity.
+     PASS — PortableStringsParityTest (28-key family present in both files, placeholder parity);
+     no values-en directory added.

@@ -23,6 +23,8 @@ import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
+import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
+import io.github.yingqiu0871.evolune.export.LegacyMahiroExportRunner
 import io.github.yingqiu0871.evolune.pk.Route
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -66,7 +68,8 @@ sealed class ImportResult {
         val existingCount: Int = 0,
         val conflictCount: Int = 0,
         val invalidCount: Int = 0,
-        val failedIndex: Int? = null
+        val failedIndex: Int? = null,
+        val tooLarge: Boolean = false
     ) : ImportResult()
 }
 
@@ -124,6 +127,8 @@ class HRTViewModel internal constructor(
         MahiroJsonV1ImportService(repository),
     private val jsonExportService: MahiroJsonV1ExportService =
         MahiroJsonV1ExportService(clock = clock),
+    private val legacyExportRunner: LegacyMahiroExportRunner =
+        LegacyMahiroExportRunner(jsonExportService),
     private val simulationDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
     operationScope: CoroutineScope? = null,
@@ -312,7 +317,8 @@ class HRTViewModel internal constructor(
                             conflictCount = summary.conflictCount,
                             invalidCount = summary.invalidCount,
                             failedIndex = (result.error as? MahiroJsonV1ImportError.Storage)
-                                ?.sourceIndex
+                                ?.sourceIndex,
+                            tooLarge = result.error is MahiroJsonV1ImportError.TooLarge
                         )
                         fail(DoseEventOperation.IMPORT, DoseEventOperationError.StorageFailure)
                     }
@@ -337,8 +343,18 @@ class HRTViewModel internal constructor(
         _importResult.value = ImportResult.Error(message)
     }
 
-    fun exportToMahiroJson(weight: Double): String =
-        jsonExportService.export(weight, events.value)
+    fun reportImportTooLarge() {
+        _importResult.value = ImportResult.Error(message = "Import failed", tooLarge = true)
+    }
+
+    /**
+     * Legacy Mahiro v1 export orchestration (Phase E §32/§33/§44 P2-1): runs off main and maps
+     * every failure into a typed outcome — no uncaught serializer/domain exception can reach UI.
+     */
+    suspend fun exportToMahiroJson(weight: Double): LegacyMahiroExportOutcome =
+        withContext(Dispatchers.Default) {
+            legacyExportRunner.export(weight, events.value)
+        }
 
     fun runSimulation() {
         simulationRefresh.update { it + 1L }

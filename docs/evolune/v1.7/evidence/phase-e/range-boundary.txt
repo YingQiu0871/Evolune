@@ -1,0 +1,35 @@
+V17 Phase E — range boundary evidence (E5.1–E5.4)
+=================================================
+
+Range model (contract §8): absolute Instant only; LAST_30_DAYS = capturedAt - 720h,
+LAST_90_DAYS = capturedAt - 2160h, both ends inclusive; ALL = occurredAt <= capturedAt
+with no lower bound; no DST/calendar/device-zone semantics.
+
+Fixtures use capturedAt = 2026-09-16T08:05:00.000Z.
+
+E5.1  30-day window (start 2026-08-17T08:05:00.000Z):
+      - start-1ms excluded, exact start included, capturedAt-1ms included,
+        capturedAt included, capturedAt+1ms excluded
+      PortableExportServiceTest "30 day boundaries are inclusive at both ends and exclude one
+      millisecond outside".
+      90-day window (start 2026-06-18T08:05:00.000Z):
+      - start-1ms excluded, exact start included, capturedAt included, capturedAt+1ms excluded
+      PortableExportServiceTest "90 day boundaries are inclusive at both ends ...".
+      Exact-window arithmetic (720h / 2160h): PortableRangesTest.
+E5.2  ALL: 2019 event retained (no lower bound), capturedAt included, capturedAt+1ms dropped;
+      the ALL path uses findAllOccurredUpTo (findAllUpToCalls == 1, findBetweenCalls == 0).
+      PortableExportServiceTest "all range keeps every past event without lower bound and drops
+      future events".
+E5.3  DST/device-zone independence:
+      - 30-day window across a European DST transition is exactly 720h of absolute time
+        (PortableRangesTest "range resolution ignores calendar month lengths and DST
+        transitions").
+      - events at the same instant with Europe/Paris, Asia/Shanghai and America/New_York zones
+        and identical stored local dates get identical membership decisions
+        (PortableExportServiceTest "range membership depends on absolute instants only, not on
+        per-event zones or dates").
+E5.4  Large-history fixture: 20,000 synthetic events export deterministically (JSON ~MBs, CSV
+      20,001 lines) and serialization executes on the injected off-main worker dispatcher.
+      PortableExportServiceTest "the large history fixture exports deterministically" +
+      "serialization runs on the injected off-main dispatcher".
+      This is a bounded sanity fixture (not a performance SLA, not an export cap).

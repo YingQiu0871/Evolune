@@ -1,0 +1,21 @@
+V17 Phase E — backup separation (E4.1–E4.4)
+===========================================
+
+E4.1  Portable code does not depend on backup codec / B2 / Drive / credentials.
+      PortableArchitectureGuardTest "no backup, restore or drive coupling exists in the export
+      package" scans every file of the new export package for: backup package refs,
+      EvoluneBackup, BackupRestore, `evbackup`, appDataFolder, GoogleDrive, cloud.google.
+E4.2  Backup code untouched; it does not consume the portable schema.
+      frozen-surface-audit.txt: the candidate diff scope contains no file under backup/;
+      the portable schema types are confined to the export package.
+E4.3  Disjoint naming spaces.
+      Canonical: `evolune-export-<30d|90d|all>-<yyyyMMdd>.json|.csv` (PortableRangesTest
+      "file names use frozen range tokens and UTC date").
+      Backup: `.evbackup` naming and drive paths untouched.
+      Legacy Mahiro file name (`evolune_export.json`, translatable=false) untouched.
+E4.4  Phase-E import never calls restore / full-state replacement.
+      PortableArchitectureGuardTest "the canonical import path inserts through the public seam
+      and never updates, deletes or restores" and "the serialization path performs no repository
+      writes". Behavioral evidence: PortableImportServiceTest replay/conflict/partial tests
+      (additive per-record semantics only).
+      No B2 machinery is referenced by any Phase-E file.

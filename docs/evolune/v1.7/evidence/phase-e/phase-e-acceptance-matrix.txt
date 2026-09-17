@@ -1,0 +1,153 @@
+V17 Phase E — candidate acceptance matrix (frozen contract §46: E1.1–E8.1)
+========================================================================
+
+Status legend: CANDIDATE-PASS = implemented + evidenced in this candidate;
+E8.1 is a process gate and stays PENDING (no implementation can assert it).
+
+E1 — Export read-only (zero writes)
+  E1.1 CANDIDATE-PASS  Export (JSON+CSV) × all 3 ranges performs zero repository write calls.
+                       Evidence: PortableExportServiceTest
+                       "every format and range performs zero repository writes and preserves
+                       the snapshot" (counting double + write-failure double: any write would
+                       throw; writeCalls == 0; insert/update/delete == 0).
+  E1.2 CANDIDATE-PASS  Source data unchanged (snapshot before/after equality, revisions intact).
+                       Evidence: same test (`before == repository.snapshot()`).
+
+E2 — Schema frozen and documented
+  E2.1 CANDIDATE-PASS  Canonical JSON v1 schema: schema/version identifiers, five ordered
+                       top-level fields, 11 ordered event fields, explicit-null policy, wire
+                       vocabulary. Evidence: PortableJsonCodecTest (top-level order, event field
+                       order, null emission, extras lexical order, numbers, instants) +
+                       fixtures/golden-canonical.json bound byte-for-byte by
+                       PortableGoldenFixtureTest.
+  E2.2 CANDIDATE-PASS  CSV v1 schema: exact 16-column header, header-only empty export,
+                       schema_version=1. Evidence: PortableCsvCodecTest (header constant,
+                       empty export = header + final LF) + fixtures/golden-canonical.csv.
+  E2.3 CANDIDATE-PASS  Import failure matrix (missing/wrong schema; missing/non-integer/other/
+                       future version; unknown fields top-level + event + extras; duplicate keys
+                       at top-level/event/extras levels incl. escaped-key collisions; malformed
+                       JSON; invalid UUID; invalid enums; non-finite numbers; NaN/Infinity
+                       literals; invalid local_date/zone_id/actual_time; wrong types; over-size;
+                       over-count) -> typed failure + zero writes.
+                       Evidence: PortableJsonStrictDecoderTest (15 tests covering ~30 cases);
+                       PortableImportServiceTest ("invalid documents and unsupported versions are
+                       typed failures with zero writes", byte/count bound tests assert
+                       getByIdCalls == 0 and writeCalls == 0).
+  E2.4 CANDIDATE-PASS  Legacy Mahiro compatibility-regression: no-meta documents accepted;
+                       unrelated meta.version tolerated and NOT a canonical gate; unknown fields
+                       tolerated; wire spellings and valid-id preservation unchanged; no new
+                       Mahiro version rejection. Evidence: PortableCrossFormatTest ("legacy
+                       documents without meta remain accepted", "unrelated meta versions and
+                       unknown fields stay tolerated and are never a canonical gate").
+  E2.5 CANDIDATE-PASS  CSV medication mapping exhaustive per Table D (6 non-AA routes × 5 esters;
+                       ANTIANDROGEN ordinals 0–3; unknown/non-integral/out-of-range/missing ->
+                       empty). Evidence: PortableCsvCodecTest (3 mapping tests).
+  E2.6 CANDIDATE-PASS  Cross-format negative: a valid canonical document submitted to the legacy
+                       Mahiro import surface writes nothing (0 dose-event inserts, 0 rows) and
+                       carries no weight side-write (summary.weight == null, so the legacy
+                       weight callback cannot fire); typed legacy outcome only.
+                       Evidence: PortableCrossFormatTest "a valid canonical document via the
+                       legacy Mahiro surface writes nothing".
+
+E3 — Serialization determinism
+  E3.1 CANDIDATE-PASS  Same request + snapshot -> byte-identical JSON. Evidence:
+                       PortableExportServiceTest "repeat export ... is byte identical" +
+                       PortableJsonCodecTest "encoding the same request and events twice is
+                       byte identical" + PortableGoldenFixtureTest.
+  E3.2 CANDIDATE-PASS  Same request + snapshot -> byte-identical CSV. Evidence: same tests
+                       (CSV arm) + PortableGoldenFixtureTest CSV byte fixture.
+  E3.3 CANDIDATE-PASS  Determinism components verified: sort (PortableExportServiceTest
+                       "serialization order is actual_time ascending then event id lexical, never
+                       read order"), capturedAt propagation + ms normalization
+                       ("capturedAt is normalized to epoch milliseconds once per action"),
+                       number format, UTF-8, no BOM, LF, one final LF
+                       ("the document is UTF-8 without BOM and ends with exactly one LF"),
+                       CSV quoting (PortableCsvCodecTest), JSON field order
+                       (PortableJsonCodecTest top-level + event order tests).
+
+E4 — Backup separation
+  E4.1 CANDIDATE-PASS  Portable code does not depend on backup codec / B2 / Drive.
+                       Evidence: PortableArchitectureGuardTest (forbidden-term scan over all
+                       export package files).
+  E4.2 CANDIDATE-PASS  Backup code untouched and does not consume the portable schema.
+                       Evidence: frozen-surface-audit.txt (git diff scope: no backup/ files
+                       modified) + architecture guard (export package contains no backup refs).
+  E4.3 CANDIDATE-PASS  Disjoint naming spaces: `evolune-export-<range>-<yyyyMMdd>.json/.csv`
+                       (PortableRangesTest filenames), `.evbackup` untouched, legacy Mahiro
+                       filename (`evolune_export.json`) untouched.
+  E4.4 CANDIDATE-PASS  Import never calls restore / full-state replacement. Evidence:
+                       PortableArchitectureGuardTest (import service contains only
+                       `repository.getById`/`repository.insert`; no restore/replace/update/delete)
+                       + PortableImportServiceTest replay/conflict/partial semantics.
+
+E5 — Ranges
+  E5.1 CANDIDATE-PASS  30/90 boundaries: exact startInclusive included; 1 ms before start
+                       excluded; exact capturedAt included; 1 ms after excluded.
+                       Evidence: PortableExportServiceTest (30-day and 90-day boundary tests)
+                       + PortableRangesTest (exact 720h/2160h windows).
+  E5.2 CANDIDATE-PASS  ALL: every authoritative event `occurredAt <= capturedAt`, no lower
+                       bound, future events dropped, uses findAllOccurredUpTo.
+                       Evidence: PortableExportServiceTest "all range keeps every past event ...".
+  E5.3 CANDIDATE-PASS  DST / device-zone changes do not alter membership (absolute-Instant
+                       semantics). Evidence: PortableRangesTest DST test +
+                       PortableExportServiceTest "range membership depends on absolute instants
+                       only ..." (Paris/Shanghai/New_York fixture).
+  E5.4 CANDIDATE-PASS  Large-history sanity fixture (~20,000 events) produces deterministic
+                       output; serialization runs on the injected off-main dispatcher (worker
+                       thread named in test). Evidence: PortableExportServiceTest
+                       "the large history fixture exports deterministically" +
+                       "serialization runs on the injected off-main dispatcher".
+                       Not a performance SLA; not a product cap.
+
+E6 — Privacy
+  E6.1 CANDIDATE-PASS  All export/import are explicit user-triggered; SAF destination chosen by
+                       user. Evidence: DataImportExportScreenTest (explicit actions/range) +
+                       AppNavigation SAF launchers (OpenDocument/CreateDocument) +
+                       privacy-audit.txt (no background/automatic trigger).
+  E6.2 CANDIDATE-PASS  No network/upload path: export bytes flow only to the SAF output stream.
+                       Evidence: architecture guard (no Drive/cloud refs), privacy-audit.txt.
+  E6.3 CANDIDATE-PASS  No credential/path leakage in payload or logs. Evidence: payload contains
+                       only the 11 portable fields (schema + goldens); no logging statements in
+                       production Phase-E paths (privacy-audit.txt).
+  E6.4 CANDIDATE-PASS  No payload logging. Evidence: privacy-audit.txt scan (no Log/println in
+                       export package, navigation portable paths).
+  E6.5 CANDIDATE-PASS  Legacy clipboard export requires localized privacy warning + explicit
+                       confirmation; canonical JSON/CSV have no clipboard path.
+                       Evidence: DataImportExportScreenTest
+                       "legacy clipboard export requires explicit privacy confirmation" +
+                       SyncAndBackupScreenTest (adapted) + architecture guard EG14.
+  E6.6 CANDIDATE-PASS  UI gate: canonical JSON/CSV export, range 30/90/all, canonical import,
+                       typed export error dialog, unsupported version error (typed dialog),
+                       busy blocks repeat, legacy labeling, clipboard confirmation, back stable.
+                       Evidence: android-summary.txt (12/12 device tests).
+
+E7 — Round-trip / fixtures
+  E7.1 CANDIDATE-PASS  Export -> import into an empty repository preserves all 11 portable fields
+                       exactly; imported revision starts at 1 (not semantic data loss).
+                       Evidence: PortableImportServiceTest round-trip test +
+                       PortableGoldenFixtureTest golden JSON round-trip.
+  E7.2 CANDIDATE-PASS  Nine-class fixture (§39) represented losslessly, including null/partial/
+                       ambiguous cases. Evidence: nineClassFixture in the export test fixtures,
+                       covered by round-trip test + both golden byte fixtures.
+  E7.3 CANDIDATE-PASS  CSV fixture truthful/deterministic per class; no invented planned/delta/
+                       adherence. Evidence: PortableCsvCodecTest + fixtures/golden-canonical.csv
+                       (planned_time/timing_delta empty; event_type=recorded_intake; empty
+                       medication for partial/unavailable identity).
+  E7.4 CANDIDATE-PASS  Legacy Mahiro lossiness documented and not used as E7 proof.
+                       Evidence: e2-6-cross-format.txt (Table G restated; legacy used only for
+                       compatibility-regression evidence).
+  E7.5 CANDIDATE-PASS  Replay: empty -> inserted; same file again -> idempotent; same id changed
+                       payload -> conflict (no overwrite); storage failure after N writes ->
+                       typed partial with first N committed and retry not duplicating.
+                       Evidence: PortableImportServiceTest (replay, conflict, partial + retry).
+  E7.6 CANDIDATE-PASS  Stored-revision independence: stored revision > 1 + same 11 portable
+                       fields -> IDEMPOTENT with insert calls = 0, update calls = 0, all writes
+                       = 0, no overwrite/duplicate/Conflict; control: stored revision > 1 +
+                       differing portable field -> CONFLICT with zero write.
+                       Evidence: e7-6-revision-idempotency.txt +
+                       PortableImportServiceTest (both tests).
+
+E8 — Independent review (process gate)
+  E8.1 PENDING         Candidate implementation must be followed by Architect implementation
+                       review + fresh independent implementation review + final Phase-E
+                       closure. This candidate does NOT assert E8.1.

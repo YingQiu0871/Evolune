@@ -261,8 +261,17 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     E8.1`；guards `EG1–EG25`；原 audit P2 ×3 与独立复审 P2 ×2 全部 CLOSED；carried KDoc P3
     非阻塞（实现如需改 repository seam 须 STOP + reopening）。**PHASE-E PRODUCTION —
     NOT STARTED**（E-04…E-07 未授权）。
-  - **NEXT:** Phase-E candidate implementation（单一 coherent candidate：E-04 + E-05 + E-06 +
-    E-07；仅可针对 frozen contract @ `ab9a796...`；不自行发明范围）。
+  - Phase-E candidate implementation — **PHASE-E PRODUCTION — CANDIDATE IMPLEMENTED /
+    REVIEW PENDING**（candidate commit `feat: implement v1.7 Phase E export portability`，
+    parent `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；单一 coherent candidate 覆盖 E-04
+    deterministic serialization + E-05 sharing/storage UX + E-06 privacy validation + E-07
+    round-trip/fixture tests；canonical `export/` 包 + SAF UX + typed results + §32 bounds；
+    evidence `docs/evolune/v1.7/evidence/phase-e/`：focused Phase-E JVM 88/88、fresh full
+    JVM 1578/0、Pixel_7 API 35 12/12；E1–E7 candidate evidence complete、**E8.1 PENDING**；
+    **Phase E 未 CLOSED**）。
+  - **NEXT:** Phase-E candidate implementation review（Architect implementation review →
+    fresh independent implementation review → final Phase-E closure；E8.1 属后续 process
+    gate，不在本 candidate 内声明）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

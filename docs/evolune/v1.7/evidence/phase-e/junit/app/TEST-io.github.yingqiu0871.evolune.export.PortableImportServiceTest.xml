@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:40.115Z" hostname="人面不知何处去" time="0.029">
+  <properties/>
+  <testcase name="same id with a changed portable payload is a conflict and is never overwritten" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <testcase name="replaying the same file is idempotent and never duplicates rows" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.003"/>
+  <testcase name="round trip into an empty repository preserves the 11 portable fields with revision one" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <testcase name="repository invalid insert results are counted as conflicts without overwriting" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <testcase name="invalid documents and unsupported versions are typed failures with zero writes" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.005"/>
+  <testcase name="stored revision above one with a differing portable field is a conflict with zero writes" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.001"/>
+  <testcase name="event count bound rejects oversized documents before any repository call" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <testcase name="stored revision above one with equal portable fields is idempotent with zero writes" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <testcase name="byte bound rejects oversized input before any repository call" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.001"/>
+  <testcase name="storage failure on the first write reports a typed storage failure" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.003"/>
+  <testcase name="failed classification never fabricates identities or writes" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.001"/>
+  <testcase name="storage failure after N writes reports a typed partial failure and keeps committed rows" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.003"/>
+  <testcase name="read failure during classification aborts as a storage failure" classname="io.github.yingqiu0871.evolune.export.PortableImportServiceTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

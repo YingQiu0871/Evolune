@@ -18,6 +18,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
+import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import kotlinx.coroutines.CancellationException
@@ -606,8 +607,10 @@ class HRTViewModelTest {
             withTimeout(5_000L) {
                 fixture.viewModel.events.filter { it.size == 2 }.first()
             }
+            val exportOutcome = fixture.viewModel.exportToMahiroJson(55.0)
+            assertTrue(exportOutcome is LegacyMahiroExportOutcome.Success)
             val root = Json.parseToJsonElement(
-                fixture.viewModel.exportToMahiroJson(55.0)
+                (exportOutcome as LegacyMahiroExportOutcome.Success).json
             ).jsonObject
 
             assertEquals(

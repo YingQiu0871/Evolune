@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.pk.EsterTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:41.713Z" hostname="人面不知何处去" time="0.001">
+  <properties/>
+  <testcase name="testToE2Factor" classname="io.github.yingqiu0871.evolune.pk.EsterTest" time="0.001"/>
+  <testcase name="testFullNames" classname="io.github.yingqiu0871.evolune.pk.EsterTest" time="0.0"/>
+  <testcase name="testAllEstersPresent" classname="io.github.yingqiu0871.evolune.pk.EsterTest" time="0.0"/>
+  <testcase name="testE2MolecularWeight" classname="io.github.yingqiu0871.evolune.pk.EsterTest" time="0.0"/>
+  <testcase name="testMolecularWeights" classname="io.github.yingqiu0871.evolune.pk.EsterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

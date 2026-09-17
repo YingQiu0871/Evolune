@@ -1,0 +1,9 @@
+V17 Phase E forbidden-semantics / leakage source scan
+Date: 2026-09-17 ; base HEAD 5353085 (candidate worktree)
+Pattern: missed|late|on-time|overdue|adherence|compliance|skipped|漏服|迟服|按时|依从|合规|未服 (case-insensitive)
+
+RESULT: 0 hits across the export package + DataImportExportScreen.kt
+
+RESULT: 0 logging statements across the export package + DataImportExportScreen.kt
+
+RESULT: 0 forbidden-vocabulary hits in the new string family (values/)

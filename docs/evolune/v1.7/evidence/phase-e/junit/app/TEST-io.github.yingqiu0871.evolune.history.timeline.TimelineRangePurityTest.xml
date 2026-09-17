@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:41.687Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="TR23 no delta timing or adherence fields exist in the D-03 model" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest" time="0.001"/>
+  <testcase name="TR22 no future rows exist in the published model" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest" time="0.0"/>
+  <testcase name="TR24 identical request and identical source result produce identical state" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest" time="0.001"/>
+  <testcase name="TR19 a successful range is projected exactly once through the closed D-01 builder" classname="io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

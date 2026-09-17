@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
 import android.text.format.DateFormat
@@ -84,6 +85,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,6 +98,16 @@ import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.application.MedicationPlanDraft
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
 import io.github.yingqiu0871.evolune.data.TimeFormat
+import io.github.yingqiu0871.evolune.export.BoundedReadResult
+import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
+import io.github.yingqiu0871.evolune.export.PortableExportFormat
+import io.github.yingqiu0871.evolune.export.PortableExportRange
+import io.github.yingqiu0871.evolune.export.PortableExportResult
+import io.github.yingqiu0871.evolune.export.PortableExportService
+import io.github.yingqiu0871.evolune.export.PortableImportBounds
+import io.github.yingqiu0871.evolune.export.PortableImportOutcome
+import io.github.yingqiu0871.evolune.export.PortableImportService
+import io.github.yingqiu0871.evolune.export.readBoundedBytes
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
 import io.github.yingqiu0871.evolune.pk.SublingualTier
 import io.github.yingqiu0871.evolune.ui.components.EditorTransitionHost
@@ -111,6 +123,7 @@ import io.github.yingqiu0871.evolune.ui.screens.AppearanceAndFormatScreen
 import io.github.yingqiu0871.evolune.ui.screens.BasicDataScreen
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
 import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
+import io.github.yingqiu0871.evolune.ui.screens.PortableDialogMessage
 import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
 import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
 import io.github.yingqiu0871.evolune.ui.screens.HistoryScreen
@@ -195,6 +208,8 @@ fun AppNavigation(
     insightsViewModelFactory: ViewModelProvider.Factory,
     retrospectiveViewModelFactory: ViewModelProvider.Factory,
     timelineViewModelFactory: ViewModelProvider.Factory,
+    portableExportService: PortableExportService,
+    portableImportService: PortableImportService,
     settingsViewModel: SettingsViewModel,
     medicationPlanViewModel: MedicationPlanViewModel,
     backupRestoreViewModel: BackupRestoreViewModel,
@@ -349,28 +364,55 @@ fun AppNavigation(
     // 剪贴板导出结果消息（用于触发 Snackbar）
     var clipboardExportMessage by remember { mutableStateOf<String?>(null) }
 
+    // Phase E canonical export/import state (V17-E §35): busy gate + typed dialogs.
+    var portableBusy by remember { mutableStateOf(false) }
+    var portableDialog by remember { mutableStateOf<PortableDialogMessage?>(null) }
+    var pendingPortableBytes by remember { mutableStateOf<ByteArray?>(null) }
+
     // 预先获取剪贴板操作所需的字符串资源（避免在非 @Composable 上下文中调用 context.getString）
     val strClipboardEmpty = stringResource(R.string.import_clipboard_empty)
     val strCopiedToClipboard = stringResource(R.string.export_copied_to_clipboard)
     val strExportFilename = stringResource(R.string.export_filename)
+    val strPortableExportTitle = stringResource(R.string.portable_export_failed_title)
+    val strPortableExportFailed = stringResource(R.string.portable_export_failed)
+    val strPortableExportInvalid = stringResource(R.string.portable_export_invalid_data)
+    val strPortableWriteFailed = stringResource(R.string.portable_export_write_failed)
+    val strPortableImportTitle = stringResource(R.string.portable_import_title)
+    val strPortableImportInvalid = stringResource(R.string.portable_import_invalid)
+    val strPortableImportVersion = stringResource(R.string.portable_import_unsupported_version)
+    val strPortableImportTooLarge = stringResource(R.string.portable_import_too_large)
+    val strPortableImportStorage = stringResource(R.string.portable_import_storage_failure)
+    val strPortableImportReadFailed = stringResource(R.string.portable_import_read_failed)
 
-    // 导入文件选择器
+    fun showPortableDialog(title: String, body: String) {
+        portableDialog = PortableDialogMessage(title = title, body = body)
+    }
+
+    // 导入文件选择器（legacy Mahiro，字节数受限读取；V17-E §32）
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            scope.launch(Dispatchers.IO) {
-                val content = context.contentResolver.openInputStream(uri)
-                    ?.use { it.bufferedReader().readText() }
-                    ?: return@launch
-                hrtViewModel.importFromMahiroJson(content) { weight ->
-                    settingsViewModel.updateBodyWeight(weight)
+            scope.launch {
+                val read = withContext(Dispatchers.IO) {
+                    readLegacyImportBytes(context, uri)
+                }
+                when (read) {
+                    is BoundedReadResult.Success -> hrtViewModel.importFromMahiroJson(
+                        String(read.bytes, Charsets.UTF_8)
+                    ) { weight ->
+                        settingsViewModel.updateBodyWeight(weight)
+                    }
+
+                    BoundedReadResult.TooLarge -> hrtViewModel.reportImportTooLarge()
+                    BoundedReadResult.Failure ->
+                        hrtViewModel.reportClipboardImportError(strPortableImportReadFailed)
                 }
             }
         }
     }
 
-    // 导出文件选择器
+    // 导出文件选择器（legacy Mahiro，仅写入已序列化好的内容）
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -387,7 +429,7 @@ fun AppNavigation(
         }
     }
 
-    // 从剪贴板导入
+    // 从剪贴板导入（legacy Mahiro；byte 数可确定时先执行上限检查）
     fun importFromClipboard() {
         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         val text = clipboardManager?.primaryClip?.getItemAt(0)?.text?.toString()
@@ -395,19 +437,234 @@ fun AppNavigation(
             hrtViewModel.reportClipboardImportError(strClipboardEmpty)
             return
         }
+        if (text.toByteArray(Charsets.UTF_8).size > PortableImportBounds.MAX_INPUT_BYTES) {
+            hrtViewModel.reportImportTooLarge()
+            return
+        }
         hrtViewModel.importFromMahiroJson(text) { weight ->
             settingsViewModel.updateBodyWeight(weight)
         }
     }
 
-    // 导出到剪贴板
-    fun exportToClipboard() {
-        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            ?: return
-        val json = hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
-        val clip = ClipData.newPlainText("Evolune Export", json)
-        clipboardManager.setPrimaryClip(clip)
-        clipboardExportMessage = strCopiedToClipboard
+    // 导出到剪贴板（legacy Mahiro；off-main 序列化 + typed 结果，V17-E §32/§33）
+    fun exportLegacyToClipboard() {
+        if (portableBusy) return
+        portableBusy = true
+        scope.launch {
+            val outcome = try {
+                hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
+            } catch (error: CancellationException) {
+                portableBusy = false
+                throw error
+            } catch (_: RuntimeException) {
+                LegacyMahiroExportOutcome.UnexpectedFailure
+            }
+            portableBusy = false
+            when (outcome) {
+                is LegacyMahiroExportOutcome.Success -> {
+                    val clipboardManager =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                    if (clipboardManager == null) {
+                        showPortableDialog(strPortableExportTitle, strPortableExportFailed)
+                    } else {
+                        val clip = ClipData.newPlainText("Evolune Export", outcome.json)
+                        clipboardManager.setPrimaryClip(clip)
+                        clipboardExportMessage = strCopiedToClipboard
+                    }
+                }
+
+                LegacyMahiroExportOutcome.InvalidData ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportInvalid)
+
+                LegacyMahiroExportOutcome.UnexpectedFailure ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportFailed)
+            }
+        }
+    }
+
+    // 导出到文件（legacy Mahiro；off-main 序列化 + typed 结果，V17-E §32/§33）
+    fun exportLegacyToFile() {
+        if (portableBusy) return
+        portableBusy = true
+        scope.launch {
+            val outcome = try {
+                hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
+            } catch (error: CancellationException) {
+                portableBusy = false
+                throw error
+            } catch (_: RuntimeException) {
+                LegacyMahiroExportOutcome.UnexpectedFailure
+            }
+            portableBusy = false
+            when (outcome) {
+                is LegacyMahiroExportOutcome.Success -> {
+                    pendingExportJson = outcome.json
+                    exportLauncher.launch(strExportFilename)
+                }
+
+                LegacyMahiroExportOutcome.InvalidData ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportInvalid)
+
+                LegacyMahiroExportOutcome.UnexpectedFailure ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportFailed)
+            }
+        }
+    }
+
+    fun writePendingPortableExport(uri: Uri?) {
+        val bytes = pendingPortableBytes ?: return
+        pendingPortableBytes = null
+        if (uri == null) return
+        scope.launch {
+            portableBusy = true
+            val written = withContext(Dispatchers.IO) {
+                try {
+                    context.contentResolver.openOutputStream(uri)?.use { stream ->
+                        stream.write(bytes)
+                        stream.flush()
+                        true
+                    } ?: false
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (_: Exception) {
+                    false
+                }
+            }
+            portableBusy = false
+            if (!written) showPortableDialog(strPortableExportTitle, strPortableWriteFailed)
+        }
+    }
+
+    val portableJsonExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        writePendingPortableExport(uri)
+    }
+
+    val portableCsvExportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        writePendingPortableExport(uri)
+    }
+
+    fun startPortableExport(format: PortableExportFormat, range: PortableExportRange) {
+        if (portableBusy) return
+        portableBusy = true
+        scope.launch {
+            val result = try {
+                portableExportService.export(range, format)
+            } catch (error: CancellationException) {
+                portableBusy = false
+                throw error
+            } catch (_: RuntimeException) {
+                PortableExportResult.UnexpectedFailure
+            }
+            portableBusy = false
+            when (result) {
+                is PortableExportResult.Success -> {
+                    pendingPortableBytes = result.bytes
+                    when (format) {
+                        PortableExportFormat.JSON -> portableJsonExportLauncher.launch(result.fileName)
+                        PortableExportFormat.CSV -> portableCsvExportLauncher.launch(result.fileName)
+                    }
+                }
+
+                PortableExportResult.InvalidData ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportInvalid)
+
+                PortableExportResult.IoFailure,
+                PortableExportResult.UnexpectedFailure ->
+                    showPortableDialog(strPortableExportTitle, strPortableExportFailed)
+            }
+        }
+    }
+
+    suspend fun runPortableImport(bytes: ByteArray) {
+        val outcome = try {
+            portableImportService.import(bytes)
+        } catch (error: CancellationException) {
+            portableBusy = false
+            throw error
+        } catch (_: RuntimeException) {
+            null
+        }
+        portableBusy = false
+        when (outcome) {
+            null -> showPortableDialog(strPortableImportTitle, strPortableImportStorage)
+
+            is PortableImportOutcome.Completed -> {
+                val message = if (outcome.hasConflicts) {
+                    context.getString(
+                        R.string.portable_import_conflicts,
+                        outcome.insertedCount,
+                        outcome.idempotentCount,
+                        outcome.conflictCount
+                    )
+                } else {
+                    context.getString(
+                        R.string.portable_import_success,
+                        outcome.insertedCount,
+                        outcome.idempotentCount
+                    )
+                }
+                showPortableDialog(strPortableImportTitle, message)
+            }
+
+            is PortableImportOutcome.PartialFailure -> showPortableDialog(
+                strPortableImportTitle,
+                context.getString(
+                    R.string.portable_import_partial,
+                    outcome.processedCount,
+                    outcome.totalCount,
+                    outcome.insertedCount
+                )
+            )
+
+            is PortableImportOutcome.StorageFailure ->
+                showPortableDialog(strPortableImportTitle, strPortableImportStorage)
+
+            PortableImportOutcome.InvalidDocument ->
+                showPortableDialog(strPortableImportTitle, strPortableImportInvalid)
+
+            PortableImportOutcome.UnsupportedVersion ->
+                showPortableDialog(strPortableImportTitle, strPortableImportVersion)
+
+            PortableImportOutcome.TooLarge ->
+                showPortableDialog(strPortableImportTitle, strPortableImportTooLarge)
+        }
+    }
+
+    val portableImportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null && !portableBusy) {
+            portableBusy = true
+            scope.launch {
+                val read = withContext(Dispatchers.IO) {
+                    try {
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
+                            readBoundedBytes(stream)
+                        } ?: BoundedReadResult.Failure
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (_: Exception) {
+                        BoundedReadResult.Failure
+                    }
+                }
+                when (read) {
+                    is BoundedReadResult.Success -> runPortableImport(read.bytes)
+                    BoundedReadResult.TooLarge -> {
+                        portableBusy = false
+                        showPortableDialog(strPortableImportTitle, strPortableImportTooLarge)
+                    }
+
+                    BoundedReadResult.Failure -> {
+                        portableBusy = false
+                        showPortableDialog(strPortableImportTitle, strPortableImportReadFailed)
+                    }
+                }
+            }
+        }
     }
 
     // 应用启动时自动检查更新
@@ -888,11 +1145,20 @@ fun AppNavigation(
                         importLauncher.launch(arrayOf("application/json", "*/*"))
                     },
                     onImportFromClipboard = { importFromClipboard() },
-                    onExportClick = {
-                        pendingExportJson = hrtViewModel.exportToMahiroJson(userSettings.bodyWeight)
-                        exportLauncher.launch(strExportFilename)
+                    onExportClick = { exportLegacyToFile() },
+                    onExportToClipboard = { exportLegacyToClipboard() },
+                    portableBusy = portableBusy,
+                    onExportPortableJson = { range ->
+                        startPortableExport(PortableExportFormat.JSON, range)
                     },
-                    onExportToClipboard = { exportToClipboard() }
+                    onExportPortableCsv = { range ->
+                        startPortableExport(PortableExportFormat.CSV, range)
+                    },
+                    onImportPortableJson = {
+                        portableImportLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
+                    portableDialog = portableDialog,
+                    onDismissPortableDialog = { portableDialog = null }
                 )
             }
             composable(HEALTH_CONNECT_SYNC_ROUTE) {
@@ -1312,6 +1578,17 @@ private data class BottomNavItem(
     val unselectedIcon: ImageVector,
     val label: String
 )
+
+/** Bounded legacy Mahiro import read (V17-E §32): refuses to buffer past the 32 MiB bound. */
+private fun readLegacyImportBytes(context: Context, uri: Uri): BoundedReadResult = try {
+    context.contentResolver.openInputStream(uri)?.use { stream ->
+        readBoundedBytes(stream)
+    } ?: BoundedReadResult.Failure
+} catch (error: CancellationException) {
+    throw error
+} catch (_: Exception) {
+    BoundedReadResult.Failure
+}
 
 private fun screenIndex(route: String?): Int {
     return Screen.entries.indexOfFirst { it.route == route }

@@ -70,6 +70,9 @@ class SyncAndBackupScreenTest {
         composeRule.onNodeWithTag("settings-import-clipboard").performClick()
         composeRule.onNodeWithTag("settings-export-json").performClick()
         composeRule.onNodeWithTag("settings-export-clipboard").performClick()
+        // Phase E: the legacy clipboard export now requires an explicit privacy confirmation.
+        composeRule.onNodeWithTag("legacy-clipboard-warning").assertIsDisplayed()
+        composeRule.onNodeWithTag("legacy-clipboard-confirm").performClick()
 
         assertEquals(
             listOf("import-file", "import-clipboard", "export-file", "export-clipboard"),

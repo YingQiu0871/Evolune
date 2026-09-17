@@ -1,0 +1,27 @@
+V17 Phase E — serialization determinism (E3.1/E3.2/E3.3)
+=======================================================
+
+Definition (contract §31): same format + same range enum + same normalized capturedAt
+(epoch-ms) + same authoritative snapshot => identical bytes.
+
+Evidence
+  E3.1 JSON: PortableExportServiceTest "repeat export with the same request and snapshot is
+       byte identical" (service-level, ALL range) and PortableJsonCodecTest "encoding the same
+       request and events twice is byte identical" (codec-level).
+  E3.2 CSV: same service test (30-day CSV arm); byte-bound golden CSV fixture.
+  E3.3 Components:
+       - sort: actual_time ascending, then event id lexical ascending, independent of read
+         order (PortableExportServiceTest "serialization order is actual_time ascending then
+         event id lexical, never read order" with insertion-order reads).
+       - capturedAt propagated to range boundary + `captured_at` + filename + identity:
+         PortableExportServiceTest "capturedAt is normalized to epoch milliseconds once per
+         action" (sub-ms clock input normalized to .123Z).
+       - numbers: canonical locale-independent Double.toString text (0.15 / 2.0 / 1.0E7;
+         PortableJsonCodecTest).
+       - instants: UTC RFC3339, exactly 3 fractional digits, terminal Z; sub-ms rejected as
+         invalid data (PortableJsonCodecTest + PortableExportServiceTest).
+       - UTF-8, no BOM, LF only, exactly one final LF (PortableJsonCodecTest; CSV empty case).
+       - CSV RFC4180 quoting incl. doubled quotes (PortableCsvCodecTest).
+       - JSON field order (PortableJsonCodecTest top-level and event order tests).
+  Byte-level golden: fixtures/golden-canonical.json and fixtures/golden-canonical.csv are
+  reproduced exactly from the fixed request (PortableGoldenFixtureTest).

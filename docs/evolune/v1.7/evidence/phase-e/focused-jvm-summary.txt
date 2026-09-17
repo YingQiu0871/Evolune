@@ -1,0 +1,21 @@
+V17 Phase E — focused Phase-E JVM evidence (contract §48)
+========================================================
+
+Command : .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.export.*"
+Log     : logs/focused-jvm.log
+XML     : junit/app/TEST-io.github.yingqiu0871.evolune.export.*.xml (10 suites, final bytes)
+
+  PortableArchitectureGuardTest  tests=11 failures=0 errors=0
+  PortableCrossFormatTest        tests=5  failures=0 errors=0
+  PortableCsvCodecTest           tests=10 failures=0 errors=0
+  PortableExportServiceTest      tests=12 failures=0 errors=0
+  PortableGoldenFixtureTest      tests=3  failures=0 errors=0
+  PortableImportServiceTest      tests=13 failures=0 errors=0
+  PortableJsonCodecTest          tests=10 failures=0 errors=0
+  PortableJsonStrictDecoderTest  tests=15 failures=0 errors=0
+  PortableRangesTest             tests=5  failures=0 errors=0
+  PortableStringsParityTest      tests=4  failures=0 errors=0
+  ------------------------------------------------------------
+  TOTAL                          tests=88 failures=0 errors=0 skipped=0
+
+Counts are taken from the final JUnit XML, not from console text.

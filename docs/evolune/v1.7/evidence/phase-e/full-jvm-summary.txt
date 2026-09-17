@@ -1,0 +1,18 @@
+V17 Phase E — fresh full JVM gate (contract §48)
+================================================
+
+Command : .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:test --rerun
+Log     : logs/full-jvm.log
+XML     : junit/app/, junit/experience-core/, junit/wear/
+
+  app             tests=1317 failures=0 errors=0 skipped=0
+  experience-core tests=171  failures=0 errors=0 skipped=0
+  wear            tests=90   failures=0 errors=0 skipped=0
+  ------------------------------------------------------------
+  TOTAL           tests=1578 failures=0 errors=0 skipped=0
+
+Baseline context: the D-06 fresh full-JVM baseline was 1490 total
+(app 1229 / experience-core 171 / wear 90). The +88 delta is exactly the new
+Phase-E focused suite (10 new test classes). Counts above come from the fresh
+final JUnit XML of this candidate (no carried-over numbers); zero skips occurred,
+so no accepted-skip exception was needed.

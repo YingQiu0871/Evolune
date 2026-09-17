@@ -1,0 +1,29 @@
+V17 Phase E — schema verification (E2.1/E2.2)
+=============================================
+
+Canonical JSON v1 (Table A/B, contract §6/§10)
+  - top-level order verified: schema, version, captured_at, range, events
+    (PortableJsonCodecTest "empty export keeps the frozen top level field order")
+  - event field order verified (11 fields, fixed order, explicit nulls):
+    PortableJsonCodecTest "event objects keep the frozen 11 field order with explicit nulls"
+  - extras keys lexical ascending with compact canonical numbers:
+    PortableJsonCodecTest "extras keys are emitted in lexical order"
+  - `revision` absent from both schema and fixtures; imported rows start at revision 1
+    (round-trip evidence).
+  - byte-bound golden: fixtures/golden-canonical.json (fixed capturedAt
+    2026-09-16T08:05:00.000Z, range ALL, all nine event classes) reproduced exactly by
+    PortableGoldenFixtureTest "the canonical JSON byte fixture is reproduced exactly".
+
+CSV v1 (Table C, contract §24)
+  - header equality to the frozen 16-column list:
+    PortableCsvCodecTest "the header is the frozen 16 column order"
+  - header-only empty export (header + one final LF):
+    PortableCsvCodecTest "an empty export is the header plus exactly one final LF"
+  - column constants: schema_version=1, planned_time empty, timing_delta empty,
+    event_type=recorded_intake, status/ester/source wire values:
+    PortableCsvCodecTest "a plain row keeps the frozen column order and constant columns"
+  - byte-bound golden: fixtures/golden-canonical.csv reproduced exactly by
+    PortableGoldenFixtureTest "the canonical CSV byte fixture is reproduced exactly".
+
+Both goldens are the single source consumed by the tests and by this evidence copy
+(same bytes committed in app/src/test/resources/phase-e/ and fixtures/).

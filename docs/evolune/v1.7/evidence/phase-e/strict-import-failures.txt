@@ -1,0 +1,46 @@
+V17 Phase E — strict canonical import failure matrix (E2.3)
+===========================================================
+
+All cases are rejected before any repository write (decode precedes classification; the service
+tests assert getByIdCalls == 0 / writeCalls == 0 for representative classes).
+Evidence: PortableJsonStrictDecoderTest (15 tests, ~30 individual cases) +
+PortableImportServiceTest (typed failures + bounds with zero writes).
+
+Structural
+  - missing schema identifier                     -> INVALID_SCHEMA
+  - wrong schema value                            -> INVALID_SCHEMA
+  - non-string schema                             -> INVALID_SCHEMA
+  - missing version                               -> MISSING_FIELD
+  - version as string / non-integer               -> INVALID_FIELD_TYPE
+  - version 2 / version 0                         -> UNSUPPORTED_VERSION
+  - unknown top-level field                       -> UNKNOWN_FIELD
+  - unknown event field                           -> UNKNOWN_FIELD
+  - unknown extras key                            -> UNKNOWN_FIELD
+  - duplicate key top-level                       -> DUPLICATE_KEY
+  - duplicate key event level                     -> DUPLICATE_KEY
+  - duplicate key extras level                    -> DUPLICATE_KEY
+  - duplicate keys differing only by escapes      -> DUPLICATE_KEY (scanner decodes escapes)
+  - malformed JSON / truncated document           -> MALFORMED
+  - NaN / Infinity literals                       -> rejected (MALFORMED at parse)
+
+Field level
+  - missing required event field                  -> MISSING_FIELD
+  - invalid UUID                                  -> INVALID_FIELD
+  - actual_time without milliseconds / offset      -> INVALID_FIELD
+  - invalid calendar instant (month 13, Feb 30)    -> INVALID_FIELD
+  - invalid local_date                            -> INVALID_FIELD
+  - invalid zone_id                               -> INVALID_FIELD
+  - invalid route / ester / source / status        -> INVALID_FIELD
+  - invalid slot_id                                -> INVALID_FIELD
+  - null for a non-nullable field                  -> INVALID_FIELD_TYPE
+  - wrong JSON type for any field                  -> INVALID_FIELD_TYPE
+  - non-finite numeric value (1e999)               -> INVALID_FIELD_TYPE
+  - extras value not a number                      -> INVALID_FIELD_TYPE
+
+Bounds
+  - bytes > MAX_INPUT_BYTES (32 MiB)               -> TooLarge, zero repository calls
+  - events > MAX_EVENT_COUNT (100000)              -> TooLarge, zero repository calls
+
+Identity safety
+  - tampered id                                    -> InvalidDocument, zero writes, no fabricated row
+  - import never regenerates ids (architecture guard + tests)

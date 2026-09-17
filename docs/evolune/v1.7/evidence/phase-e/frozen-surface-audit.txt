@@ -1,0 +1,39 @@
+V17 Phase E — frozen-surface audit (EG1/EG2/EG4/EG24 + diff boundary)
+======================================================================
+
+Authority: frozen Phase-E contract @ ab9a796; base HEAD 5353085.
+Raw scope evidence: audits/git-diff-scope.txt
+
+Contract immutability
+  docs/evolune/v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md
+    workspace sha256 = HEAD blob sha256
+    = 3cc759909db3806b3e9e361e6343e3d1c94de505276eddcbc9b210c07b7694ca
+  => CONTRACT-UNMODIFIED (no Phase-E semantic change; §51 freeze intact).
+
+Modified files (tracked, vs base 5353085) — 9 files, +600/-38
+  app/src/main/java/.../MainActivity.kt                 (composition root: services)
+  app/src/main/java/.../navigation/AppNavigation.kt     (portable flows + typed legacy export)
+  app/src/main/java/.../ui/screens/DataImportExportScreen.kt (canonical section + dialogs)
+  app/src/main/java/.../viewmodel/HRTViewModel.kt       (typed legacy export + too-large state)
+  app/src/main/java/.../application/MahiroJsonV1ImportService.kt (contract §32 import bounds)
+  app/src/main/res/values/strings.xml                   (+29 Phase-E keys)
+  app/src/main/res/values-zh-rCN/strings.xml            (+29 Phase-E keys)
+  app/src/test/java/.../viewmodel/HRTViewModelTest.kt   (adapted to typed export API)
+  app/src/androidTest/java/.../ui/screens/SyncAndBackupScreenTest.kt (clipboard confirmation)
+
+New production package (untracked -> committed by this candidate)
+  app/src/main/java/io/github/yingqiu0871/evolune/export/*.kt (11 files)
+
+Frozen surfaces untouched (no diff entries, no untracked entries)
+  - Room schema / DAO / migrations / AppDatabase / data/*
+  - backup/ envelope, BackupRestoreCoordinator, B2 journal, Drive cloud/*
+  - Phase-C PK / Phase-D Timeline / History projection / matcher/generator /
+    MedicationOccurrencePolicy
+  - Gradle build files and dependency catalogs (EG24: no new library/dependency)
+  - Phase-A/B/C/D semantics (no history/ or pk/ source change)
+
+Contract §43 Table H respect
+  - export truth is the stored dose-event repository seam only (EG9 guard);
+  - the new legacy-import bound is the only legacy-path change and is explicitly required by
+    §32; legacy wire shape, permissive decoder semantics and weight behavior are unchanged
+    (E2.4 regression evidence).

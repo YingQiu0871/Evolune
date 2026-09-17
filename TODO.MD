@@ -158,9 +158,18 @@
       inclusive）；E1 zero-write、E3 逐字节确定性、E4 backup 分离（EG3–EG6）、E6 隐私/clipboard
       确认；验收范围 `E1.1–E1.2 / E2.1–E2.6 / E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 /
       E7.1–E7.6 / E8.1`；guards `EG1–EG25`。**PHASE-E PRODUCTION — NOT STARTED**（E-04…E-07 未授权）。
-- [ ] NEXT：**Phase-E candidate implementation**（单一 coherent candidate：E-04 deterministic
-      serialization + E-05 sharing/storage UX + E-06 privacy validation + E-07 round-trip/
-      fixture tests；仅可针对 frozen contract @ `ab9a796...`；不自行发明范围）。
+- [x] Phase-E candidate implementation — **PHASE-E PRODUCTION — CANDIDATE IMPLEMENTED /
+      REVIEW PENDING**（单一 coherent candidate：E-04 deterministic serialization + E-05
+      sharing/storage UX + E-06 privacy validation + E-07 round-trip/fixture tests；仅针对
+      frozen contract @ `ab9a796...`；candidate commit `feat: implement v1.7 Phase E export
+      portability`，parent `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；evidence
+      `docs/evolune/v1.7/evidence/phase-e/`：focused Phase-E JVM 88/88、fresh full JVM
+      1578/0（app 1317 / experience-core 171 / wear 90）、Pixel_7 API 35 12/12；E1–E7
+      candidate evidence complete、**E8.1 PENDING**；**Phase E 未 CLOSED**，未经重开评审不得改
+      Phase-E 语义）。
+- [ ] NEXT：**Phase-E candidate implementation review**（Architect implementation review →
+      fresh independent implementation review → final Phase-E closure；E8.1 属后续 process
+      gate，不在本 candidate 内声明；不自行发明范围）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:40.149Z" hostname="人面不知何处去" time="0.008">
+  <properties/>
+  <testcase name="missing or wrong schema identifiers fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.003"/>
+  <testcase name="malformed json fails closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.001"/>
+  <testcase name="duplicate keys at any level fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="unknown top level and event fields fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="special floating point literals never decode" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.001"/>
+  <testcase name="a valid single event document decodes with all 11 fields" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="wrong json types fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.001"/>
+  <testcase name="captured_at and range are validated" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="non finite numbers and unknown extras keys fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="nullable fields may be explicit null and extras remain empty" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="an empty events array is a valid empty export" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="missing required event fields fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="event count bound is enforced during decoding" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <testcase name="invalid event values fail closed" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.001"/>
+  <testcase name="version is required, integral and exactly one" classname="io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

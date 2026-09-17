@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:35.774Z" hostname="人面不知何处去" time="0.03">
+  <properties/>
+  <testcase name="RepositoryStrict classifies storage exception and cancellation without fallback" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.003"/>
+  <testcase name="Local policy rejects another source and never overwrites the stored event" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="RepositoryStrict maps repository outcomes without pre-read or conflict reinterpretation" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.0"/>
+  <testcase name="Reminder facade derives trusted ID and preserves delayed first accepted event" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="Wear conflict race rereads once with source and occurrence policy" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="Wear replay rejects occurrence or source mismatch without plan lookup" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Local policy distinguishes repository idempotency from first accepted replay" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Concurrent same Wear ID with different occurrence preserves first row and conflicts" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.005"/>
+  <testcase name="RepositoryStrict rejects invalid identity and policy mismatch before insert" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Local insert race rereads once and applies expected source" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="Widget facade folds repeated delivery by occurrence identity across minutes" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Wear storage unexpected and cancellation failures never become replay" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="Wear replay accepts exact source and occurrence without plan or materializer" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Wear first materialization rejects missing disabled and invalid candidates" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Wear first materialization inserts once and maps repository idempotency directly" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <testcase name="Local storage and unexpected failures are never accepted as replay" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.001"/>
+  <testcase name="Concurrent same Wear action produces one row and two accepted outcomes" classname="io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

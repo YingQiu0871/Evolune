@@ -1,0 +1,55 @@
+V17 Phase E — candidate implementation summary
+==============================================
+
+Base authority : 53530858c8f0f9a071fc3eae93eec6d17d5f45b0 (Phase-E contract freeze)
+Commit         : feat: implement v1.7 Phase E export portability (single local commit)
+Scope          : E-04 deterministic serialization + E-05 sharing/storage UX +
+                 E-06 privacy validation + E-07 round-trip/fixture tests
+
+Deliverables
+  Canonical package app/src/main/java/io/github/yingqiu0871/evolune/export/
+    PortableModels.kt                 — ranges, request, 11-field event, document, typed results
+    PortableJsonText.kt               — canonical numbers/instants/strings/extras rendering
+    PortableRangeMapping.kt           — range resolution, filenames, canonical event keys
+    PortableJsonCodec.kt              — Evolune Portable JSON v1 writer + strict decoder
+    PortableJsonDuplicateKeyScanner.kt— duplicate keys at any nesting level (escape-aware)
+    PortableCsvCodec.kt               — CSV v1 writer (Table D medication mapping, RFC4180)
+    PortableExportService.kt          — read-only export orchestration (off-main)
+    PortableImportService.kt          — additive canonical import (prevalidated, typed)
+    PortableImportBounds.kt           — 32 MiB / 100000 bounds + bounded reader
+    LegacyMahiroExportRunner.kt       — typed legacy export outcome (P2-1 containment)
+
+  Integration
+    MainActivity.kt                   — composition root constructs both services (clock explicit)
+    AppNavigation.kt                  — SAF flows, range dialog wiring, typed dialogs, busy gate,
+                                        clipboard confirmation, bounded legacy import reads
+    DataImportExportScreen.kt         — canonical section + range dialog + privacy warning +
+                                        portable dialog + legacy label
+    HRTViewModel.kt                   — suspend typed legacy export (off-main), too-large state
+    MahiroJsonV1ImportService.kt      — §32 byte/event bounds -> typed TooLarge (wire unchanged)
+    strings.xml x2                    — 28 new Phase-E keys in both authorities
+
+Frozen semantics honored
+  - canonical import: full prevalidation before first write; additive; 11-field equality
+    ignores repository revision (E7.6); stable-id replay; typed partial/storage failures
+  - canonical export: zero writes; absolute-Instant ranges (30/90/all); deterministic byte
+    output from (format, range, normalized capturedAt, snapshot); no hidden clock
+  - cross-format: canonical documents cannot fall through the legacy Mahiro surface (E2.6);
+    Mahiro stays permissive (E2.4)
+  - privacy: SAF only for canonical; legacy clipboard export requires explicit confirmation;
+    no upload/logging/path/credential leakage
+
+Verification (fresh, final bytes)
+  Focused Phase-E JVM  : 88/88 green (10 classes; logs/focused-jvm.log + junit/app)
+  Fresh full JVM       : app 1317 + experience-core 171 + wear 90 = 1578, 0 failures
+                         (logs/full-jvm.log; +88 vs the D-06 baseline of 1490)
+  Android (Pixel_7 API 35): 12/12 green — DataImportExportScreenTest 6,
+                         SyncAndBackupScreenTest 4, SyncAndBackupNavigationTest 2
+                         (logs/android.log + androidtest/)
+  Acceptance           : E1.1–E7.6 CANDIDATE-PASS; E8.1 PENDING (process gate)
+  Guards               : EG1–EG25 dispositions in guard-matrix.txt
+
+Known limitations / non-claims
+  - E8.1 is not asserted; independent review is the next process step.
+  - No performance SLA is claimed from the 20k-event bounded fixture.
+  - Plaintext artifacts by design; destination chosen by the user via SAF.

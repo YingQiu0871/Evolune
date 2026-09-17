@@ -528,10 +528,13 @@ PK output must remain explicitly model-derived.
 > E3.1–E3.3 / E4.1–E4.4 / E5.1–E5.4 / E6.1–E6.6 / E7.1–E7.6 / E8.1`；guards `EG1–EG25`
 > （未重编号）。原 audit P2 ×3 与独立复审 P2 ×2 全部 CLOSED；carried KDoc P3 非阻塞（实现如
 > 需改 repository seam 须 STOP + explicit reopening）。**未经重开评审不得改 Phase-E 契约
-> 语义**；**PHASE-E PRODUCTION — NOT STARTED**。**NEXT: Phase-E candidate implementation**
-> （单一 coherent candidate：E-04 deterministic serialization + E-05 sharing/storage UX +
-> E-06 privacy validation + E-07 round-trip/fixture tests；随后 Architect review → fresh
-> independent review → final Phase-E closure；不拆分冗余 contract 循环）。
+> 语义**；**PHASE-E PRODUCTION — CANDIDATE IMPLEMENTED / REVIEW PENDING**（candidate commit
+> `feat: implement v1.7 Phase E export portability`，parent
+> `53530858c8f0f9a071fc3eae93eec6d17d5f45b0`；单一 coherent candidate 覆盖 E-04 + E-05 +
+> E-06 + E-07；evidence `evidence/phase-e/`：focused Phase-E JVM 88/88、fresh full JVM
+> 1578/0、Pixel_7 API 35 12/12；E1–E7 candidate evidence complete；**E8.1 PENDING**；Phase E
+> 未 CLOSED）。**NEXT: Phase-E candidate implementation review**（Architect implementation
+> review → fresh independent review → final Phase-E closure；不拆分冗余 contract 循环）。
 
 ---
 

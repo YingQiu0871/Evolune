@@ -1,0 +1,31 @@
+V17 Phase E — resource parity (EG25/E6.5)
+==========================================
+
+Authorities: app/src/main/res/values/strings.xml and values-zh-rCN/strings.xml
+(no values-en directory exists; none was added).
+
+New Phase-E key family: prefix `portable_*` plus `settings_data_legacy_title`
+  Total new keys: 28 (27 `portable_*` + 1 legacy section label)
+  Present identically in both authorities (key sets equal):
+    portable_section_title, portable_export_json, portable_export_json_desc,
+    portable_export_csv, portable_export_csv_desc, portable_import_json,
+    portable_import_json_desc, portable_range_dialog_title, portable_range_30_days,
+    portable_range_90_days, portable_range_all, portable_busy,
+    portable_export_failed_title, portable_export_failed, portable_export_invalid_data,
+    portable_export_write_failed, portable_import_title, portable_import_success,
+    portable_import_conflicts, portable_import_partial, portable_import_invalid,
+    portable_import_unsupported_version, portable_import_too_large,
+    portable_import_storage_failure, portable_import_read_failed,
+    portable_clipboard_warning_title, portable_clipboard_warning_message,
+    settings_data_legacy_title
+
+Placeholder parity (both files identical):
+  portable_import_success         -> %1$d, %2$d
+  portable_import_conflicts       -> %1$d, %2$d, %3$d
+  portable_import_partial         -> %1$d, %2$d, %3$d
+  all other keys                  -> no placeholders
+
+Frozen label: `settings_data_legacy_title` = `Legacy / Mahiro JSON v1 兼容` in both files,
+visibly distinguishing the legacy compatibility surface from the canonical format.
+
+Evidence: PortableStringsParityTest (4 tests, all green).

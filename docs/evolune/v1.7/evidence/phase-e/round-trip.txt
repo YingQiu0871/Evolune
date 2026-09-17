@@ -1,0 +1,38 @@
+V17 Phase E — round-trip / fixture evidence (E7.1/E7.2/E7.3/E7.4/E7.5)
+=====================================================================
+
+Nine event classes (contract §39) in the shared fixture (`nineClassFixture`):
+  1. normal app-recorded event (INJECTION/EV, slot, zone, localDate, extras)
+  2. manual event (ORAL/E2 with sublingual tier)
+  3. legacy imported event (source LEGACY, null zone/localDate)
+  4. event with null slotId
+  5. event with null zoneId
+  6. event with null localDate
+  7. partial/unavailable medication identity (ANTIANDROGEN without the type extra ->
+     CSV medication column empty)
+  8. event with fully populated extras (all six keys)
+  9. ambiguous/orphan provenance (stored 09-09 localDate with 09-08T18:40Z instant,
+     REMINDER source, slot without a plan)
+
+E7.1  PortableImportServiceTest "round trip into an empty repository preserves the 11 portable
+      fields with revision one": every event signature (id, actual_time, local_date, zone_id,
+      route, ester, dose_mg, extras, slot_id, source, status) is preserved; imported revision is
+      1; update/delete calls are 0. PortableGoldenFixtureTest "the golden JSON round trips into
+      an empty repository without semantic loss" re-imports the committed golden bytes.
+E7.2  Lossless representation of all nine classes: round-trip test above + both golden byte
+      fixtures encode the full nine-class snapshot.
+E7.3  CSV truthfulness: fixtures/golden-canonical.csv shows per-class truthful rows;
+      planned_time/timing_delta are always empty; event_type=recorded_intake; the partial
+      antiandrogen row has an empty medication column; extras_json is compact and lexical.
+      PortableCsvCodecTest covers the mapping and quoting rules.
+E7.4  Legacy Mahiro remains a lossy compatibility format (zoneId/localDate/slotId/source not
+      carried; see e2-6-cross-format.txt Table G restatement). It is NOT used as round-trip
+      proof; the canonical format carries the full 11 fields.
+E7.5  Replay semantics (PortableImportServiceTest):
+      - first import -> 9 inserted; second import of the same bytes -> 0 inserted, 9 idempotent,
+        0 conflicts, insert-call count unchanged, 9 rows total.
+      - same id with a changed portable payload -> conflict, stored row untouched, no insert call.
+      - storage failure after 2 writes -> PartialFailure(processed=2/9, inserted=2), the two
+        committed rows stay; retry of the same file inserts the remaining 1 and reports the
+        other 2 as idempotent (no duplicates).
+      - storage failure on the first write -> StorageFailure(9) with zero rows.

@@ -1,0 +1,32 @@
+V17 Phase E — affected Android instrumentation gate (contract §48/§49 E6.6)
+===========================================================================
+
+Device  : Pixel_7(AVD) API 35 (serial emulator-5554)
+Command : .\gradlew.bat :app:connectedDebugAndroidTest
+            -Pandroid.testInstrumentationRunnerArguments.class=
+             io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest,
+             io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest,
+             io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest
+Log     : logs/android.log
+XML     : androidtest/TEST-Pixel_7(AVD) - 15-_app-.xml
+
+  DataImportExportScreenTest       tests=6 failures=0 errors=0
+  SyncAndBackupScreenTest          tests=4 failures=0 errors=0
+  SyncAndBackupNavigationTest      tests=2 failures=0 errors=0
+  ------------------------------------------------------------
+  TOTAL                            tests=12 failures=0 errors=0 skipped=0
+
+Coverage (E6.6 UI gate):
+  - canonical JSON export action opens the explicit 30/90/all range dialog
+  - canonical CSV export action with range selection
+  - canonical import action
+  - range dialog cancel performs no export
+  - busy state blocks repeated canonical triggers (and clears to allow them)
+  - typed canonical outcome dialog shows and dismisses
+  - legacy oversized-import message is localized (PORTABLE import too-large path)
+  - legacy label `Legacy / Mahiro JSON v1 兼容` is visible and distinct
+  - legacy clipboard export shows the privacy warning; cancel exports nothing;
+    confirm performs the clipboard export
+  - back-stable navigation into/out of the data page (SyncAndBackupNavigationTest)
+  - existing import/export page rows preserved (SyncAndBackupScreenTest, adapted:
+    legacy clipboard export now requires the frozen privacy confirmation).

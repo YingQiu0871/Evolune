@@ -1,0 +1,36 @@
+V17 Phase E — cross-format negative + legacy compatibility (E2.6/E2.4)
+=======================================================================
+
+E2.6 — canonical document via the legacy Mahiro surface
+  Fixture: the full nine-class canonical document (same bytes as fixtures/golden-canonical.json)
+  submitted to `MahiroJsonV1ImportService`.
+  Observed (PortableCrossFormatTest "a valid canonical document via the legacy Mahiro surface
+  writes nothing"):
+    - result is a typed legacy Success with acceptedCount = 0, insertedCount = 0,
+      idempotentCount = 0
+    - summary.weight == null, therefore the navigation weight callback cannot fire
+      (zero weight side-write)
+    - repository.insertCalls == 0 and every write counter == 0
+    - repository rows == 0 (no semantic format fallthrough, no silent acceptance)
+  Reverse direction (Mahiro -> canonical) is covered by E2.3: a legacy document lacks
+  `schema`/`version`, so the canonical decoder rejects it as InvalidDocument with zero writes.
+
+E2.4 — legacy permissive compatibility regression
+  PortableCrossFormatTest:
+    - "legacy documents without meta remain accepted" (no-meta document -> 1 insert)
+    - "unrelated meta versions and unknown fields stay tolerated and are never a canonical
+       gate" (`meta.version = 999`, unknown top-level field, lowercase legacy wire spellings
+       accepted; valid UUID id preserved)
+  Implementation boundary: Mahiro wire shape, unknown-field tolerance, ID behavior and weight
+  behavior are unchanged. The only Phase-E addition to the legacy path is the §32 import bound
+  (MAX_INPUT_BYTES before parse; MAX_EVENT_COUNT before writes) returning the existing typed
+  Failure model with a new `TooLarge` discriminator — no new version gate and no strictification.
+
+Table G restatement (legacy lossiness — documented, not used as E7 proof)
+  legacy carries: id (when valid), route, ester, timeH, doseMG, extras, historical weight
+  legacy omits  : zoneId, localDate, slotId, source, revision; plans/settings (beyond weight)
+
+Legacy export failure containment (P2-1)
+  PortableCrossFormatTest "legacy export failures are typed and never escape as
+  IllegalArgumentException": an unrepresentable instant maps to
+  LegacyMahiroExportOutcome.InvalidData; success path unchanged.

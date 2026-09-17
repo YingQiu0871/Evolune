@@ -1,0 +1,23 @@
+V17 Phase E — forbidden semantics scan (EG11)
+=============================================
+
+Scope scanned:
+  - all Phase-E production files (export package, DataImportExportScreen.kt)
+  - the new `portable_*` + `settings_data_legacy_title` string family in both authorities
+
+Vocabulary: missed / late / on-time / overdue / adherence / compliance / skipped and the
+Chinese equivalents 漏服 / 迟服 / 按时 / 依从 / 合规 / 未服.
+
+Result: 0 hits.
+  - audits/forbidden-semantics-scan.txt (raw scan output, BOM-free UTF-8)
+  - PortableStringsParityTest "no adherence or grading vocabulary appears in the Phase-E string
+    family" (values/ + values-zh-rCN/)
+  - PortableJsonStrictDecoderTest rejects `status: "SKIPPED"` and route/source grading-style
+    values as invalid canonical content.
+
+Related semantic guards:
+  - CSV `planned_time` / `timing_delta` are constant empty columns; no delta computation exists
+    (EG10) — PortableCsvCodecTest + fixtures/golden-canonical.csv.
+  - `event_type` is the constant `recorded_intake`; provenance is expressed only by the
+    `source` column (EG10/EG11) — PortableCsvCodecTest.
+  - no payload or path logging exists in the Phase-E paths (EG16) — same raw scan output.

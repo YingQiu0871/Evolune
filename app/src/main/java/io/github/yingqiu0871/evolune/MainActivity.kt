@@ -36,6 +36,8 @@ import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveR
 import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yingqiu0871.evolune.export.PortableExportService
+import io.github.yingqiu0871.evolune.export.PortableImportService
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
@@ -255,6 +257,18 @@ class MainActivity : ComponentActivity() {
                     rangeSource = historyRangeSource
                 )
 
+                // Phase E composition root (V17-E §9/§32): canonical export/import services are
+                // constructed once here against the approved dose-event repository seam; the
+                // export service receives the clock explicitly (no hidden clock inside the
+                // export package) and runs serialization off main.
+                val portableExportService = PortableExportService(
+                    repository = productionRepositoryProvider.doseEvents,
+                    clock = java.time.Clock.systemUTC()
+                )
+                val portableImportService = PortableImportService(
+                    repository = productionRepositoryProvider.doseEvents
+                )
+
                 // 创建 MedicationPlanViewModel
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
                     factory = MedicationPlanViewModelFactory(
@@ -335,6 +349,8 @@ class MainActivity : ComponentActivity() {
                         insightsViewModelFactory = insightsViewModelFactory,
                         retrospectiveViewModelFactory = retrospectiveViewModelFactory,
                         timelineViewModelFactory = timelineViewModelFactory,
+                        portableExportService = portableExportService,
+                        portableImportService = portableImportService,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,

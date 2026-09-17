@@ -1,0 +1,37 @@
+V17 Phase E — privacy audit (E6.1–E6.6)
+=======================================
+
+Scope: the Phase-E production files
+  app/src/main/java/io/github/yingqiu0871/evolune/export/*.kt
+  navigation/AppNavigation.kt (portable launchers + legacy clipboard path)
+  ui/screens/DataImportExportScreen.kt
+  MainActivity.kt (composition root)
+  application/MahiroJsonV1ImportService.kt (bounds only)
+  viewmodel/HRTViewModel.kt (typed legacy export + too-large state)
+
+E6.1 explicit user-triggered only
+  - canonical export requires an explicit action + explicit range choice (screen test);
+  - canonical import requires an explicit SAF OpenDocument action;
+  - no background/automatic/periodic export path exists; no WorkManager/Alarm any evidence.
+E6.2 no network / upload
+  - export bytes are written only to the SAF output stream
+    (PortableArchitectureGuardTest "canonical bytes are written only to the SAF destination and
+    never to the clipboard" asserts the write body; no okhttp/URL/Drive import exists in the
+    export package).
+E6.3 no credential/path leakage
+  - payload content is exactly the 11 portable fields (schema verified; goldens contain no
+    path, token or passphrase);
+  - user-facing failure copy is fixed localized string resources; no I/O exception text,
+    file path or stack trace is surfaced (typed result models).
+E6.4 no payload logging
+  - no Log./println/Timber statement exists in any export package file or in the portable
+    navigation paths (source scan; see audits/forbidden-semantics.txt).
+E6.5 legacy clipboard export confirmation / canonical no clipboard
+  - legacy clipboard EXPORT opens a localized privacy warning dialog; cancel performs nothing;
+    confirm performs the export (DataImportExportScreenTest, SyncAndBackupScreenTest);
+  - canonical JSON/CSV have no clipboard path (guard EG14).
+E6.6 UI gate on device
+  - 12/12 instrumentation tests on Pixel_7 API 35 (android-summary.txt).
+
+Explicit non-claims (contract §37/§49): no security assertions beyond the measured checks
+above; Phase-E artifacts are plaintext by design and their destination is user-chosen via SAF.

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:40.234Z" hostname="人面不知何处去" time="0.075">
+  <properties/>
+  <testcase name="no data and invalid observations do not change local authority or watermark" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.006"/>
+  <testcase name="enabling with granted permission persists enabled and adopts immediately" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.002"/>
+  <testcase name="permission grant callback enables sync and performs first read" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.042"/>
+  <testcase name="cancellation propagates from availability permission and read" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.003"/>
+  <testcase name="first enable with missing permission does not persist or read" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.001"/>
+  <testcase name="foreground sync adopts a newer observation without a preview step" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.001"/>
+  <testcase name="newer same-value observation advances metadata without body write" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.0"/>
+  <testcase name="disabled sync does not probe Health Connect" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.001"/>
+  <testcase name="foreground sync calls are serialized by one mutex" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.003"/>
+  <testcase name="observation at the current barrier is rejected" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.001"/>
+  <testcase name="watermark prevents stale observation from overwriting manual local weight" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.001"/>
+  <testcase name="revoked permission is silent until the user requests reauthorization" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.006"/>
+  <testcase name="recreated coordinator reads persisted enabled preference and watermark" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.002"/>
+  <testcase name="permission request is one shot and denial leaves sync disabled" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.003"/>
+  <testcase name="manual local barrier rejects intermediate HC record and later newer HC still adopts" classname="io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinatorTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

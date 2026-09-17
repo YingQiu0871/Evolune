@@ -1,0 +1,28 @@
+V17 Phase E — stored-revision independence (E7.6)
+=================================================
+
+Mandatory fixture family (contract §18/§38; frozen acceptance §46 E7.6).
+
+Case A — stored revision > 1 + identical portable fields -> IDEMPOTENT, zero writes
+  Repository seeded with the canonical event but revision = 5.
+  Canonical artifact carries the same 11 portable semantics and no revision.
+  Observed (PortableImportServiceTest "stored revision above one with equal portable fields is
+  idempotent with zero writes"):
+    - outcome Completed(inserted=0, idempotent=1, conflict=0)
+    - repository.insertCalls == 0
+    - repository.updateCalls == 0
+    - repository.writeCalls == 0 (all write APIs)
+    - stored row unchanged (revision still 5; no overwrite, no duplicate, no Conflict)
+
+Case B — stored revision > 1 + one differing portable field -> CONFLICT, zero writes
+  Repository seeded with the same id but doseMG 6.0 and revision = 7.
+  Observed (PortableImportServiceTest "stored revision above one with a differing portable
+  field is a conflict with zero writes"):
+    - outcome Completed(inserted=0, idempotent=0, conflict=1)
+    - repository.writeCalls == 0
+    - stored row unchanged (no overwrite)
+
+Implementation boundary: classification uses the public `DoseEventRepository.getById(id)` seam
+plus canonical-key comparison over the 11 portable fields; the repository revision never takes
+part in portable equality and is never rebuilt, reset or normalized. No DAO bypass, no
+repository API extension, no write path for idempotent/conflict rows.

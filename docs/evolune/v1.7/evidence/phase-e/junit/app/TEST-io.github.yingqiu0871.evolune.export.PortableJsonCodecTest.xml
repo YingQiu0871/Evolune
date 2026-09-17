@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-17T09:44:40.146Z" hostname="人面不知何处去" time="0.002">
+  <properties/>
+  <testcase name="encoding the same request and events twice is byte identical" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="canonical instant rendering rejects sub millisecond precision" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="numbers use canonical locale independent double text" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.001"/>
+  <testcase name="event objects keep the frozen 11 field order with explicit nulls" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="instants are UTC RFC3339 with exactly three fractional digits and terminal Z" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="the document is UTF-8 without BOM and ends with exactly one LF" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="extras keys are emitted in lexical order" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="canonical instant parsing is strict about shape and calendar validity" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.001"/>
+  <testcase name="empty export keeps the frozen top level field order" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <testcase name="string literals escape control characters and quotes" classname="io.github.yingqiu0871.evolune.export.PortableJsonCodecTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" tests="12" failures="0" errors="0" skipped="0" time="20.274" timestamp="2026-09-17T09:42:59" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="legacyClipboardExportRequiresExplicitPrivacyConfirmation" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="3.137" />
+  <testcase name="rangeDialogCanBeCancelledWithoutAnyExport" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="1.27" />
+  <testcase name="busyStateBlocksRepeatedTriggers" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="1.559" />
+  <testcase name="typedDialogShowsAndDismissesOutcome" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="1.024" />
+  <testcase name="canonicalActionsAreExposedWithExplicitRangeSelection" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="1.561" />
+  <testcase name="oversizedLegacyImportShowsLocalizedTooLargeMessage" classname="io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest" time="0.95" />
+  <testcase name="googleDrivePageKeepsExistingBackupRestoreActions" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="0.923" />
+  <testcase name="backupPickerUsesNumberedRowsWithReadableTimesAndPreservesSelection" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.079" />
+  <testcase name="syncAndBackupPageExposesOnlyNavigationRowsAndPassiveSummaries" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.028" />
+  <testcase name="importExportPageKeepsExistingMahiroActions" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest" time="1.202" />
+  <testcase name="settingsCategoryPagesNavigateBackToSettings" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest" time="3.533" />
+  <testcase name="settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable" classname="io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest" time="1.978" />
+</testsuite>
