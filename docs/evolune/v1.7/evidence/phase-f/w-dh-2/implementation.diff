@@ -1,0 +1,524 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt
+index d0ababa..e83c5b8 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt
+@@ -366,6 +366,33 @@ class ReceiverWidgetProductionCutoverTest {
+         assertSingleDisposableDatabase()
+     }
+ 
++    @Test
++    fun rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting() = runBlocking {
++        val opened = openDatabase()
++        val provider = ProductionRepositoryProvider(opened)
++        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
++        val widgetEffects = WidgetEffects()
++        val staleCommand = widgetCommand(SECOND_SLOT_TIME).copy(
++            scheduledLocalDate = OCCURRENCE_DATE.minusDays(1).toString()
++        )
++
++        val result = ContractWidgetQuickActionWork(
++            medicationPlans = provider.medicationPlans,
++            doseEvents = provider.doseEvents,
++            sideEffects = widgetEffects,
++            clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
++            zoneId = { TEST_ZONE }
++        ).handle(staleCommand)
++
++        assertEquals(WidgetQuickActionOutcome.Invalid, result)
++        assertEquals(0, rawEventCount())
++        assertEquals(1, widgetEffects.refreshes)
++        assertEquals(1, widgetEffects.rejections)
++        assertEquals(0, widgetEffects.toasts)
++        assertEquals(3, opened.openHelper.readableDatabase.version)
++        assertSingleDisposableDatabase()
++    }
++
+     @Test
+     fun wearRecorderUsesStoredEventBeforePlanAndPreservesRepositoryEquality() = runBlocking {
+         val opened = openDatabase()
+@@ -669,6 +696,7 @@ private class NotificationEffects : NotificationActionSideEffects {
+ private class WidgetEffects : WidgetQuickActionSideEffects {
+     var refreshes = 0
+     var toasts = 0
++    var rejections = 0
+ 
+     override suspend fun refreshWidgets() {
+         refreshes += 1
+@@ -677,4 +705,8 @@ private class WidgetEffects : WidgetQuickActionSideEffects {
+     override suspend fun showRecorded(planName: String) {
+         toasts += 1
+     }
++
++    override suspend fun showRejected() {
++        rejections += 1
++    }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt b/app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt
+index 0b2b8dc..09a78fc 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt
+@@ -172,6 +172,16 @@ open class EvoluneWidgetReceiver : AppWidgetProvider {
+                         Toast.makeText(context, "已记录：$planName", Toast.LENGTH_SHORT).show()
+                     }
+                 }
++
++                override suspend fun showRejected() {
++                    withContext(Dispatchers.Main) {
++                        Toast.makeText(
++                            context,
++                            context.getString(R.string.widget_dose_rejected),
++                            Toast.LENGTH_SHORT
++                        ).show()
++                    }
++                }
+             }
+         )
+     }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt b/app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt
+index dc781de..95ce5ed 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt
+@@ -201,9 +201,27 @@ internal sealed interface WidgetQuickActionOutcome {
+     data object UnexpectedFailure : WidgetQuickActionOutcome
+ }
+ 
++/**
++ * W-DH-2 / Decision H (frozen): outcomes where the user's Widget action was authoritatively
++ * rejected and no completion was accepted. Each one requires the authoritative Widget refresh
++ * and an explicit user-visible rejection feedback; no medication write may occur.
++ */
++internal fun WidgetQuickActionOutcome.requiresRejectionFeedback(): Boolean = when (this) {
++    WidgetQuickActionOutcome.Invalid,
++    WidgetQuickActionOutcome.PlanNotFound,
++    WidgetQuickActionOutcome.PlanDisabled,
++    WidgetQuickActionOutcome.Conflict -> true
++
++    is WidgetQuickActionOutcome.Accepted,
++    WidgetQuickActionOutcome.AcceptedWithSideEffectFailure,
++    WidgetQuickActionOutcome.StorageFailure,
++    WidgetQuickActionOutcome.UnexpectedFailure -> false
++}
++
+ internal interface WidgetQuickActionSideEffects {
+     suspend fun refreshWidgets()
+     suspend fun showRecorded(planName: String)
++    suspend fun showRejected()
+ }
+ 
+ internal fun interface WidgetQuickActionWork {
+@@ -220,6 +238,30 @@ internal class ContractWidgetQuickActionWork(
+     private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
+ 
+     override suspend fun handle(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
++        val outcome = handleCommand(command)
++        if (!outcome.requiresRejectionFeedback()) {
++            return outcome
++        }
++        // W-DH-2 / Decision H: refresh the authoritative Widget state, then report the
++        // rejection. Both effects are best-effort and never change the rejection outcome.
++        try {
++            sideEffects.refreshWidgets()
++        } catch (error: CancellationException) {
++            throw error
++        } catch (_: Throwable) {
++            // best effort; the authoritative Widget lifecycle retries the refresh
++        }
++        try {
++            sideEffects.showRejected()
++        } catch (error: CancellationException) {
++            throw error
++        } catch (_: Throwable) {
++            // best effort; feedback failure must not change the rejection outcome
++        }
++        return outcome
++    }
++
++    private suspend fun handleCommand(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
+         val parsed = command.parsed()
+             ?: return WidgetQuickActionOutcome.Invalid
+         return try {
+diff --git a/app/src/main/res/values-zh-rCN/strings.xml b/app/src/main/res/values-zh-rCN/strings.xml
+index 7e0ec1b..6f22b74 100644
+--- a/app/src/main/res/values-zh-rCN/strings.xml
++++ b/app/src/main/res/values-zh-rCN/strings.xml
+@@ -427,6 +427,7 @@
+     <string name="widget_pk_chart_axis_start">−24h</string>
+     <string name="widget_pk_chart_axis_now">现在</string>
+     <string name="widget_pk_chart_axis_end">+24h</string>
++    <string name="widget_dose_rejected">未能记录本次用药，微件已刷新。</string>
+ 
+     <string name="widget_config_title">微件外观</string>
+     <string name="widget_config_apply">应用</string>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 35b6bc8..7809407 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -437,6 +437,7 @@
+     <string name="widget_pk_chart_axis_start">−24h</string>
+     <string name="widget_pk_chart_axis_now">现在</string>
+     <string name="widget_pk_chart_axis_end">+24h</string>
++    <string name="widget_dose_rejected">未能记录本次用药，微件已刷新。</string>
+ 
+     <string name="widget_config_title">微件外观</string>
+     <string name="widget_config_apply">应用</string>
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt
+index d7148b4..ba89a67 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt
+@@ -215,6 +215,7 @@ class CrossEntryOccurrenceConcurrencyTest {
+ private object NoOpWidgetSideEffects : WidgetQuickActionSideEffects {
+     override suspend fun refreshWidgets() = Unit
+     override suspend fun showRecorded(planName: String) = Unit
++    override suspend fun showRejected() = Unit
+ }
+ 
+ private class GatedDoseEventRepository(
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt
+index 1ede5a1..7f17730 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt
+@@ -587,6 +587,8 @@ private object NotificationNoOpWidgetSideEffects : WidgetQuickActionSideEffects
+     override suspend fun refreshWidgets() = Unit
+ 
+     override suspend fun showRecorded(planName: String) = Unit
++
++    override suspend fun showRejected() = Unit
+ }
+ 
+ private class NotificationTestConfirmationJournal : WearAppConfirmationOperationJournal {
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetStringsParityTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetStringsParityTest.kt
+new file mode 100644
+index 0000000..013af15
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetStringsParityTest.kt
+@@ -0,0 +1,62 @@
++package io.github.yingqiu0871.evolune.widget
++
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.nio.file.Files
++import java.nio.file.Path
++
++/**
++ * W-DH-2 (Decision H): the Widget rejection feedback string must exist in both shipped
++ * resource authorities with identical content and neutral (non-grading) wording.
++ */
++class WidgetStringsParityTest {
++
++    private val paths = listOf(
++        "src/main/res/values/strings.xml",
++        "src/main/res/values-zh-rCN/strings.xml"
++    )
++
++    private val key = "widget_dose_rejected"
++
++    private fun valueOf(path: String): String? {
++        val text = Files.readString(Path.of(path))
++        return Regex("<string name=\"$key\">([^<]*)</string>")
++            .find(text)
++            ?.groupValues
++            ?.get(1)
++    }
++
++    @Test
++    fun `the rejection feedback string exists in both authorities with identical text`() {
++        val values = paths.map { valueOf(it) }
++        values.forEachIndexed { index, value ->
++            assertTrue("${paths[index]} must carry $key", value != null)
++        }
++        assertEquals(values[0], values[1])
++        assertTrue("the rejection message must not use placeholders", !values[0]!!.contains("%"))
++    }
++
++    @Test
++    fun `the rejection feedback wording stays neutral and factually scoped`() {
++        val forbidden = listOf(
++            "missed",
++            "late",
++            "on-time",
++            "overdue",
++            "adherence",
++            "compliance",
++            "漏服",
++            "迟服",
++            "按时",
++            "依从",
++            "合规"
++        )
++        paths.forEach { path ->
++            val value = valueOf(path)!!.lowercase()
++            forbidden.forEach { term ->
++                assertTrue("$path must not contain '$term'", !value.contains(term.lowercase()))
++            }
++        }
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt
+index 2876b5a..e9eb00e 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt
+@@ -4,6 +4,12 @@ import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
+ import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
+ import io.github.yingqiu0871.evolune.application.syntheticPlan
+ import io.github.yingqiu0871.evolune.application.widgetOccurrenceActionEventId
++import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
++import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
++import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
+ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.core.model.DoseEventSource
+ import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
+@@ -15,6 +21,7 @@ import io.github.yingqiu0871.evolune.pk.Route
+ import io.github.yingqiu0871.evolune.pk.SimulationEngine
+ import kotlinx.coroutines.runBlocking
+ import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
+ import org.junit.Assert.assertNull
+ import org.junit.Assert.assertSame
+ import org.junit.Assert.assertThrows
+@@ -183,7 +190,8 @@ class WidgetWorkTest {
+     }
+ 
+     @Test
+-    fun `Widget collision and storage failure never refresh or overwrite`() = runBlocking {
++    fun `Widget collision rejection refreshes without overwriting while storage failure stays effectless`() =
++        runBlocking {
+         val id = widgetOccurrenceActionEventId(occurrenceId())
+         val collision = event(id, now, Route.ORAL).copy(source = DoseEventSource.MANUAL)
+         val conflictEvents = FakeDoseEventRepository(listOf(collision))
+@@ -193,7 +201,7 @@ class WidgetWorkTest {
+             quickWork(conflictEvents, conflictEffects).handle(command())
+         )
+         assertEquals(collision, conflictEvents.events[id])
+-        assertTrue(conflictEffects.order.isEmpty())
++        assertEquals(listOf("refresh", "reject"), conflictEffects.order)
+ 
+         val failedEvents = FakeDoseEventRepository().apply {
+             getFailure = RepositoryPersistenceException("synthetic Widget read")
+@@ -251,7 +259,10 @@ class WidgetWorkTest {
+             ).handle(command())
+         )
+         assertEquals(0, events.insertCalls)
+-        assertTrue(effects.order.isEmpty())
++        assertEquals(
++            listOf("refresh", "reject", "refresh", "reject", "refresh", "reject"),
++            effects.order
++        )
+     }
+ 
+     @Test
+@@ -281,7 +292,10 @@ class WidgetWorkTest {
+             quickWork(events, effects).handle(foreign)
+         )
+         assertEquals(0, events.insertCalls)
+-        assertTrue(effects.order.isEmpty())
++        assertEquals(
++            listOf("refresh", "reject", "refresh", "reject", "refresh", "reject"),
++            effects.order
++        )
+     }
+ 
+     @Test
+@@ -301,7 +315,10 @@ class WidgetWorkTest {
+         )
+ 
+         assertEquals(0, events.insertCalls)
+-        assertTrue(effects.order.isEmpty())
++        assertEquals(
++            listOf("refresh", "reject", "refresh", "reject"),
++            effects.order
++        )
+     }
+ 
+     @Test
+@@ -323,6 +340,120 @@ class WidgetWorkTest {
+         assertEquals(listOf("refresh", "toast:Synthetic plan"), replayEffects.order)
+     }
+ 
++    @Test
++    fun `rejection feedback policy maps exactly the authoritative validation rejections`() {
++        listOf(
++            WidgetQuickActionOutcome.Invalid,
++            WidgetQuickActionOutcome.PlanNotFound,
++            WidgetQuickActionOutcome.PlanDisabled,
++            WidgetQuickActionOutcome.Conflict
++        ).forEach { outcome ->
++            assertTrue(
++                "$outcome must request rejection feedback",
++                outcome.requiresRejectionFeedback()
++            )
++        }
++        listOf(
++            WidgetQuickActionOutcome.Accepted(false),
++            WidgetQuickActionOutcome.Accepted(true),
++            WidgetQuickActionOutcome.AcceptedWithSideEffectFailure,
++            WidgetQuickActionOutcome.StorageFailure,
++            WidgetQuickActionOutcome.UnexpectedFailure
++        ).forEach { outcome ->
++            assertFalse(
++                "$outcome must not request rejection feedback",
++                outcome.requiresRejectionFeedback()
++            )
++        }
++    }
++
++    @Test
++    fun `Decision H rejections never attempt a medication write and always refresh with feedback`() =
++        runBlocking {
++            val events = WriteGuardedDoseEventRepository()
++            val effects = WidgetEffectsSpy()
++            val today = now.atZone(zoneId).toLocalDate()
++            val valid = command()
++            val foreignSlot = UUID(9L, 91L)
++            val foreignOccurrence = MedicationOccurrenceIdentity.derive(
++                plan.id,
++                foreignSlot,
++                today
++            ).value
++
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects).handle(
++                    valid.copy(scheduledLocalDate = today.minusDays(1).toString())
++                )
++            )
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects).handle(
++                    valid.copy(occurrenceId = UUID(9L, 90L).toString())
++                )
++            )
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects).handle(
++                    valid.copy(
++                        slotId = foreignSlot.toString(),
++                        occurrenceId = foreignOccurrence.toString()
++                    )
++                )
++            )
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects, now.minusSeconds(3_601L)).handle(valid)
++            )
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects, now.plusSeconds(3_601L)).handle(valid)
++            )
++            assertSame(
++                WidgetQuickActionOutcome.PlanNotFound,
++                ContractWidgetQuickActionWork(
++                    FakeMedicationPlanRepository(),
++                    events,
++                    effects,
++                    Clock.fixed(now, ZoneOffset.UTC),
++                    { zoneId }
++                ).handle(valid)
++            )
++            assertSame(
++                WidgetQuickActionOutcome.PlanDisabled,
++                ContractWidgetQuickActionWork(
++                    FakeMedicationPlanRepository(listOf(plan.copy(isEnabled = false))),
++                    events,
++                    effects,
++                    Clock.fixed(now, ZoneOffset.UTC),
++                    { zoneId }
++                ).handle(valid)
++            )
++
++            assertEquals(0, events.insertAttempts)
++            assertEquals(0, events.updateAttempts)
++            assertEquals(0, events.deleteAttempts)
++            assertEquals(List(7) { listOf("refresh", "reject") }.flatten(), effects.order)
++        }
++
++    @Test
++    fun `rejection side effects are best effort and never change the rejection outcome`() =
++        runBlocking {
++            val events = FakeDoseEventRepository()
++            val effects = WidgetEffectsSpy(failRefresh = true, failReject = true)
++            val today = now.atZone(zoneId).toLocalDate()
++
++            assertSame(
++                WidgetQuickActionOutcome.Invalid,
++                quickWork(events, effects).handle(
++                    command().copy(scheduledLocalDate = today.minusDays(1).toString())
++                )
++            )
++            assertEquals(listOf("refresh", "reject"), effects.order)
++            assertEquals(0, events.insertCalls)
++        }
++
+     @Test
+     fun `three same-day occurrences of one plan have separate action identities`() =
+         runBlocking {
+@@ -450,7 +581,7 @@ class WidgetWorkTest {
+     }
+ 
+     private fun quickWork(
+-        events: FakeDoseEventRepository,
++        events: DoseEventRepository,
+         effects: WidgetEffectsSpy,
+         actionTime: Instant = now,
+         actionPlan: io.github.yingqiu0871.evolune.core.model.MedicationPlan = plan,
+@@ -505,7 +636,8 @@ class WidgetWorkTest {
+ }
+ 
+ private class WidgetEffectsSpy(
+-    private val failRefresh: Boolean = false
++    private val failRefresh: Boolean = false,
++    private val failReject: Boolean = false
+ ) : WidgetQuickActionSideEffects {
+     val order = mutableListOf<String>()
+ 
+@@ -517,4 +649,47 @@ private class WidgetEffectsSpy(
+     override suspend fun showRecorded(planName: String) {
+         order += "toast:$planName"
+     }
++
++    override suspend fun showRejected() {
++        order += "reject"
++        if (failReject) throw IllegalStateException("synthetic Widget rejection feedback")
++    }
++}
++
++private class WriteGuardedDoseEventRepository(
++    initialEvents: List<DoseEvent> = emptyList()
++) : DoseEventRepository by FakeDoseEventRepository(initialEvents) {
++    var insertAttempts = 0
++    var updateAttempts = 0
++    var deleteAttempts = 0
++
++    override suspend fun insert(event: DoseEvent): InsertResult {
++        insertAttempts += 1
++        error("Decision-H rejection must never insert")
++    }
++
++    override suspend fun update(event: DoseEvent, expectedRevision: Long): UpdateResult {
++        updateAttempts += 1
++        error("Decision-H rejection must never update")
++    }
++
++    override suspend fun delete(id: UUID): DeleteResult {
++        deleteAttempts += 1
++        error("Decision-H rejection must never delete")
++    }
++
++    override suspend fun deleteIfRevisionMatches(
++        id: UUID,
++        expectedRevision: Long
++    ): ConditionalDeleteResult =
++        error("Decision-H rejection must never conditionally delete")
++
++    override suspend fun deleteLatestRecordedIfRevisionMatches(
++        eventId: UUID,
++        eventRevision: Long
++    ): LatestDoseDeleteResult =
++        error("Decision-H rejection must never delete the latest dose")
++
++    override suspend fun deleteAll(): DeleteResult =
++        error("Decision-H rejection must never delete all")
+ }

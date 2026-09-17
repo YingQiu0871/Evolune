@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" tests="28" failures="0" errors="0" skipped="0" time="2.286" timestamp="2026-09-17T13:45:39" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_7(AVD) - 15" />
+    <property name="flavor" value="" />
+    <property name="project" value=":app" />
+  </properties>
+  <testcase name="concurrentWearActionsKeepOneAuthoritativeRow" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.233" />
+  <testcase name="conflictAndStorageFailureLeaveRowsUnchangedAndRunNoSuccessSideEffects" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.128" />
+  <testcase name="wearRecorderUsesStoredEventBeforePlanAndPreservesRepositoryEquality" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.083" />
+  <testcase name="notificationThenWidgetForTheSameOccurrenceReturnsWidgetReplay" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.059" />
+  <testcase name="invalidNotificationScheduledAtDoesNotWriteOrRunSuccessSideEffects" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.065" />
+  <testcase name="notificationAndWidgetActionsPersistReplayAndReopenThroughProviderContracts" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.132" />
+  <testcase name="delayedNotificationCompletesTheEarlySlotWithoutCompletingTheLaterSlot" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.08" />
+  <testcase name="slotDeletionDisablesAndDeletionOfPlanRejectStaleNotificationConservatively" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.107" />
+  <testcase name="rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting" classname="io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest" time="0.032" />
+  <testcase name="synchronousRejectionsDoNotStartAsyncWork" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.032" />
+  <testcase name="notificationReceiverFinishesEveryTypedOutcomeExactlyOnce" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.031" />
+  <testcase name="malformedNewSlotIdentityDoesNotUseLegacyDeliveryPath" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.003" />
+  <testcase name="reminderRescheduleAndWidgetReceiversFinishTheirAsyncDeliveries" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.01" />
+  <testcase name="cancellationAndUnexpectedExceptionStillFinishOnce" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.004" />
+  <testcase name="receiverReturnsBeforeSuspendedWorkAndFinishesAfterResume" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.002" />
+  <testcase name="skippedOccurrenceDoesNotStartReminderDelivery" classname="io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest" time="0.006" />
+  <testcase name="configurationIntentTargetsTheExactWidgetInstance" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.031" />
+  <testcase name="openAppReceiverLaunchesMainActivityWithoutStartingQuickActionWork" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.003" />
+  <testcase name="oneTwoThreeRowDensityInflatesAtBoundedPhysicalSizes" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.183" />
+  <testcase name="responsiveLayoutsAndDynamicChildrenInflateWithExpectedStructure" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.059" />
+  <testcase name="actionableOccurrenceCarriesExactIdentityAndBuildsCheckPendingIntent" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.031" />
+  <testcase name="desktopRowsUseEachWidgetsResolvedOpaqueRailRoles" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.031" />
+  <testcase name="openAppFillInCarriesReadOnlyWidgetOccurrenceIdentity" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.005" />
+  <testcase name="allProvidersRequireTheOfficialConfigurationActivityAndSupportReconfiguration" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.031" />
+  <testcase name="perWidgetAppearancePersistsIndependentlyAndDeletionIsScoped" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.006" />
+  <testcase name="pickerPreviewsInflateWithRemoteViewsAllowedViews" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.031" />
+  <testcase name="actionableAndCompletedChecksKeepStableCircularGeometry" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.004" />
+  <testcase name="samePlanSlotsHaveDistinctAndStableOccurrencePendingIntents" classname="io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest" time="0.004" />
+</testsuite>

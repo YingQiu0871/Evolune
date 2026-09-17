@@ -1,0 +1,47 @@
+V17 W-DH-2 narrow fix — refresh + feedback mechanism
+====================================================
+
+Authoritative refresh (W-DH-2.2)
+  - Mechanism: the existing sanctioned `WidgetQuickActionSideEffects.refreshWidgets()` seam,
+    the same one accepted actions use. Production implementation (EvoluneWidgetReceiver
+    productionQuickActionWork) calls `requestEvoluneWidgetUpdate(...)`, which loads the
+    authoritative snapshot through the repository contracts and renders it; no RemoteViews
+    are mutated into a fake state, no DAO access, no second Widget truth store.
+  - The refresh `WidgetUpdateReason` label is reused; in the current refresh seam the reason
+    parameter is nominal (ContractWidgetUpdateCoordinator's lambda ignores it and
+    ContractWidgetUpdateWork re-renders from the loader), so rendering behavior is
+    identical to the accepted-path refresh.
+  - Exactly one refresh per rejection (asserted as one "refresh" token per rejection).
+  - Rejection refresh failure is best-effort: the rejection outcome is preserved, and the
+    normal Widget update lifecycle (date change, app refresh, later actions) retries.
+
+User-visible rejection feedback (W-DH-2.3)
+  - Mechanism: `WidgetQuickActionSideEffects.showRejected()` dispatched on the main thread
+    as a transient Toast in the production receiver — the same transient-feedback channel
+    already used for accepted actions ("已记录：<方案名>").
+  - Message resource: `R.string.widget_dose_rejected` =
+    "未能记录本次用药，微件已刷新。"
+    Neutral, factual: states the action was not recorded and the Widget was refreshed.
+    No internal reasons exposed (no UUIDs, plan/slot ids, repository internals, stack
+    traces); no graded adherence vocabulary.
+  - Exactly one rejection feedback per rejection (asserted); accepted control asserts the
+    rejection feedback never fires on accepted actions.
+  - Feedback failure is best-effort and never changes the rejection outcome.
+
+Effect ordering (frozen for the rejection path)
+  1. authoritative refresh request
+  2. rejection feedback
+  Tests assert the exact ordered sequence `["refresh", "reject"]` per rejection; zero event
+  write occurs before, between and after both effects (see zero-write.txt).
+
+Layering
+  - validation/work layer: returns the typed rejection; applies the two effects through the
+    `WidgetQuickActionSideEffects` abstraction only.
+  - receiver layer: supplies the implementations (authoritative update request + localized
+    Toast); it never interprets outcomes, so it cannot silently skip the effects.
+  - No Android Toast/UI API was added to core/domain/repository code.
+
+Best-effort semantics (tested)
+  - WidgetWorkTest "rejection side effects are best effort and never change the rejection
+    outcome": both effects throwing still returns the original rejection with both effects
+    attempted in order.

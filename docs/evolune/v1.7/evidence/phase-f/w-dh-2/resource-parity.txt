@@ -1,0 +1,24 @@
+V17 W-DH-2 narrow fix — resource parity
+=======================================
+
+New key: `widget_dose_rejected`
+  values/strings.xml          : 未能记录本次用药，微件已刷新。
+  values-zh-rCN/strings.xml   : 未能记录本次用药，微件已刷新。
+  Placeholder signature       : none in either authority.
+  Terminology                 : "微件" matches the existing project Widget terminology
+                                (widget_config_title 微件外观, widget_combined_label
+                                Evolune 用药微件); the task-suggested semantic meaning is
+                                preserved without changing project tone.
+
+No values-en directory exists and none was added.
+
+Deterministic proof: WidgetStringsParityTest (app JVM, 2 tests, green)
+  - "the rejection feedback string exists in both authorities with identical text"
+    (existence in both files, identical value, no placeholders)
+  - "the rejection feedback wording stays neutral and factually scoped"
+    (scan for missed / late / on-time / overdue / adherence / compliance and the Chinese
+     equivalents 漏服 / 迟服 / 按时 / 依从 / 合规)
+
+Accepted-path feedback is unchanged: the pre-existing accepted Toast text is untouched by
+this narrow fix (only the new rejection string is added), so no resource churn beyond the
+single new key in each authority.

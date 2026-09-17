@@ -1,0 +1,64 @@
+V17 W-DH-2 narrow fix — verification matrix (W-DH-2.1 … W-DH-2.6)
+================================================================
+Local verification labels only; no authoritative V17_ACCEPTANCE IDs are renumbered.
+
+W-DH-2.1  rejected action -> zero event write
+  JVM: WidgetWorkTest "Decision H rejections never attempt a medication write and always
+       refresh with feedback" — a write-guarded DoseEventRepository double whose
+       insert/update/delete/deleteIfRevisionMatches/deleteLatestRecordedIfRevisionMatches/
+       deleteAll throw on any attempt; 7 rejection families executed; insertAttempts = 0,
+       updateAttempts = 0, deleteAttempts = 0; every outcome matched its rejection type.
+  JVM: existing rejection tests keep `insertCalls == 0` and unchanged rows
+       ("invalid missing and disabled...", "stale date forged identity and foreign slot...",
+       "action time rechecks availability...", "Widget collision rejection ...").
+  Android: ReceiverWidgetProductionCutoverTest
+       "rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting" — real Room
+       database, stale action -> Invalid, rawEventCount() == 0.
+  Full detail: zero-write.txt.
+
+W-DH-2.2  rejected action -> authoritative Widget refresh
+  Policy: refresh invoked exactly once per rejection via the existing sanctioned
+  `sideEffects.refreshWidgets()` seam (the same seam accepted actions use; production
+  implementation = `requestEvoluneWidgetUpdate`, an authoritative re-render, no RemoteViews
+  mutation, no DAO access).
+  JVM: ordered effects `["refresh", "reject"]` per rejection (exact sequence assertions).
+  Android: widgetEffects.refreshes == 1 for the rejected stale action.
+  Full detail: refresh-feedback.txt.
+
+W-DH-2.3  rejected action -> explicit localized user-visible feedback
+  Policy: `sideEffects.showRejected()` invoked exactly once per rejection, after refresh.
+  Production implementation: main-thread Toast with `R.string.widget_dose_rejected`.
+  JVM: ordered effects assert "reject" exactly once per rejection; accepted control asserts
+  no "reject" token.
+  Android: widgetEffects.rejections == 1; widgetEffects.toasts == 0 for the rejection.
+  Full detail: refresh-feedback.txt; localization: resource-parity.txt.
+
+W-DH-2.4  rejected action -> no false completed state
+  Rejection paths return before any write and never mark/keep a completed state; the
+  rejection refresh re-renders from the authoritative snapshot (pre-existing W-DH-1
+  integrity preserved). No synthetic completion, no replacement event, no caching of a
+  completion. Evidence: zero-write assertions + unchanged outcome taxonomy + existing
+  WidgetPresentationTest authoritative-render coverage (referenced, not duplicated).
+
+W-DH-2.5  accepted path semantics unchanged
+  Control fixture: WidgetWorkTest "quick action persists complete Widget metadata before
+  refresh and toast" asserts outcome Accepted(false), deterministic id, source WIDGET,
+  revision 1, ordered effects exactly ["refresh", "toast:Synthetic plan"] (no rejection
+  feedback); replay test asserts Accepted(true) with the same ordered effects.
+  Android: ReceiverWidgetProductionCutoverTest accepted/replay counters unchanged
+  (refreshes == 2, toasts == 2); StorageFailure arm keeps refreshes == 0 / toasts == 0.
+
+W-DH-2.6  dual-authority string parity
+  Key `widget_dose_rejected` present in values/strings.xml and values-zh-rCN/strings.xml
+  with identical text and no placeholders; neutral wording scan passes.
+  Evidence: WidgetStringsParityTest (2 tests green); resource-parity.txt.
+
+Complete outcome -> effect mapping (frozen by this fix):
+  Accepted(replayed)              -> refresh + accepted feedback (existing behavior)
+  AcceptedWithSideEffectFailure   -> accepted outcome (existing behavior)
+  Invalid                         -> refresh + rejection feedback
+  PlanNotFound                    -> refresh + rejection feedback
+  PlanDisabled                    -> refresh + rejection feedback
+  Conflict                        -> refresh + rejection feedback
+  StorageFailure                  -> unchanged (pre-existing effectless system-failure path)
+  UnexpectedFailure               -> unchanged (pre-existing effectless system-failure path)

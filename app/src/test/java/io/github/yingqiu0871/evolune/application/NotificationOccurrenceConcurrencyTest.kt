@@ -587,6 +587,8 @@ private object NotificationNoOpWidgetSideEffects : WidgetQuickActionSideEffects 
     override suspend fun refreshWidgets() = Unit
 
     override suspend fun showRecorded(planName: String) = Unit
+
+    override suspend fun showRejected() = Unit
 }
 
 private class NotificationTestConfirmationJournal : WearAppConfirmationOperationJournal {

@@ -538,8 +538,15 @@ PK output must remain explicitly model-derived.
 > PASS；evidence 196 files / MANIFEST 195/195 / HEAD-blob 196/196；focused Phase-E JVM
 > 88/88、full JVM 1578/0（app 1317 fresh executed；experience-core 171 / wear 90 tasks
 > UP-TO-DATE、源未变结果有效）、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED /
-> FROZEN**）。**NEXT: Phase F — Final Consistency Gate**（本文件 §9；release gate
-> `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本次收口内开始）。
+> FROZEN**）。**Phase-F pre-gate narrow fix — W-DH-2 widget rejection feedback —
+> IMPLEMENTED / REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection
+> feedback`，parent `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection →
+> authoritative refresh + localized feedback，zero write；focused JVM 56/0、full app JVM
+> 1322/0、Pixel_7 API 35 Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。
+> **Phase F — IN PROGRESS / NOT GATED**；Phase-F final consistency candidate — **NOT
+> STARTED**。**NEXT: W-DH-2 narrow-fix implementation review**（随后 Phase F — Final
+> Consistency Gate（本文件 §9）：收敛矩阵 + fresh JVM/Android/Wear 证据；release gate
+> `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本次修复内开始）。
 
 ---
 

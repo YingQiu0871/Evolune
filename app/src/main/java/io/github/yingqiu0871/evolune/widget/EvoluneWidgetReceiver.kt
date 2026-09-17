@@ -172,6 +172,16 @@ open class EvoluneWidgetReceiver : AppWidgetProvider {
                         Toast.makeText(context, "已记录：$planName", Toast.LENGTH_SHORT).show()
                     }
                 }
+
+                override suspend fun showRejected() {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.widget_dose_rejected),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         )
     }

@@ -1,0 +1,60 @@
+V17 Phase F pre-gate narrow fix — W-DH-2 / Decision H
+Widget rejection feedback + authoritative refresh
+=================================================
+
+Base: cb242b55b49a5cd9c4271072297d51872d04ad8b (docs-only Phase-E closure)
+Parent chain: cb242b55 -> e119869a (Phase-E candidate implementation)
+Branch: v1.7-development; worktree clean at start; `git diff --check` clean.
+
+Authoritative requirement (quotes):
+  V17_SPEC.md Decision H (v1.7-A gate decisions):
+    "跨午夜 / stale occurrence / invalid occurrence 等 Widget action 被 authoritative
+     validation 拒绝时：* 不写入错误 completion * refresh authoritative widget state *
+     不得显示/保持 completed 假象 * 后续必须提供明确 user-visible rejection feedback"
+  V17_ACCEPTANCE.md §2.1 W-DH-2:
+    "必须提供明确 user-visible rejection feedback（Toast / notification / 瞬时 widget
+     反馈任选其一，机制由后续阶段决定）"
+  V17_DATA_SEMANTICS.md §13 status:
+    "#6（跨午夜 Widget 点击被拒后用户应看到什么）关闭 by Decision H", all six moved to
+    "需在 v1.7 落实 + 测试" state.
+  V17_A_02_HISTORY_READ_MODEL.md §13:
+    "Decision H（Widget 拒绝反馈机制）仍为实现待办".
+
+Pre-fix behavior (confirmed in source before editing):
+  - accepted actions: refreshWidgets() + showRecorded(planName) -> Toast (accepted only).
+  - rejected actions (Invalid / PlanNotFound / PlanDisabled / Conflict): returned with zero
+    write, ZERO authoritative refresh, ZERO rejection feedback.
+  - The only Toast in the app was the accepted-path Toast.
+
+Exact production delta:
+  1. WidgetWork.kt
+     - new internal policy fn `WidgetQuickActionOutcome.requiresRejectionFeedback()`:
+         true  -> Invalid, PlanNotFound, PlanDisabled, Conflict
+         false -> Accepted, AcceptedWithSideEffectFailure, StorageFailure, UnexpectedFailure
+     - `WidgetQuickActionSideEffects` + `suspend fun showRejected()`.
+     - `ContractWidgetQuickActionWork.handle` now applies the rejection policy to every
+       outcome produced by the work (including the malformed-command Invalid and every
+       validation return): best-effort `refreshWidgets()` then `showRejected()`, exact order
+       preserved, rejection outcome never changed by feedback failures.
+     - Existing evaluation body moved verbatim into private `handleCommand(command)`;
+       accepted-path semantics untouched.
+  2. EvoluneWidgetReceiver.kt
+     - production side effects implement `showRejected()` as a main-thread Toast using the
+       new localized resource `R.string.widget_dose_rejected`.
+  3. strings.xml + values-zh-rCN/strings.xml
+     - `widget_dose_rejected` = "未能记录本次用药，微件已刷新。" (both authorities, identical,
+       no placeholders, project terminology "微件").
+  4. Tests
+     - WidgetWorkTest: spy extended (`showRejected`, failReject); 4 existing rejection tests
+       now assert the exact ordered rejection effects; 3 new tests (policy mapping,
+       write-guarded rejection families, best-effort semantics); `quickWork` accepts the
+       repository interface so a write-guard double can be used.
+     - NEW WidgetStringsParityTest: dual-authority parity + neutral wording scan.
+     - CrossEntryOccurrenceConcurrencyTest / NotificationOccurrenceConcurrencyTest: NoOp
+       side-effect objects implement `showRejected() = Unit`.
+     - ReceiverWidgetProductionCutoverTest (androidTest): `WidgetEffects.showRejected`
+       counter + one production-Room stale-action rejection test.
+
+Out of scope (unchanged by design): StorageFailure / UnexpectedFailure feedback,
+  legacy Wear tile semantics, README, version metadata, Phase-F convergence matrix,
+  DST/M3 vectors, all frozen surfaces.

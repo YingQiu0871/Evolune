@@ -274,12 +274,17 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     executed；experience-core 171 / wear 90 tasks UP-TO-DATE、源未变结果有效）、Pixel_7
     API 35 12/12；final closure packet `review-packets/v17-phase-e-final-closure.txt`；
     **Phase E CLOSED / FROZEN**，未经重开评审不得改 Phase-E 语义）。
-  - **NEXT:** **Phase F — Final Consistency Gate**（`V17_PLAN.md` §9；架构敏感 release
-    phase：Phone/Widget/Wear/Undo/Legacy 记录 → History/Timeline/Insights/PK 一致性矩阵 +
-    cross-midnight / DST 双向 / timezone change / duplicate-retry / manual intake /
-    same-medication-multiple-times-a-day / schedule edit / schedule deletion / legacy
-    migration 用例；fresh JVM + fresh Android + affected Wear 证据；release gate
-    `APPROVE V1.7.0 RELEASE CANDIDATE`；不在本收口内开始）。
+  - Phase-F pre-gate narrow fix — **W-DH-2 widget rejection feedback — IMPLEMENTED /
+    REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
+    `cb242b55b49a5cd9c4271072297d51872d04ad8b`；rejection policy：Invalid / PlanNotFound /
+    PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
+    write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
+    evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`；**Phase F 仍 IN PROGRESS /
+    NOT GATED**；Phase-F final consistency candidate **NOT STARTED**）。
+  - **NEXT:** **W-DH-2 narrow-fix implementation review**（通过后进入 **Phase F — Final
+    Consistency Gate**（`V17_PLAN.md` §9）：Phone/Widget/Wear/Undo/Legacy → History/
+    Timeline/Insights/PK 收敛矩阵 + fresh JVM + fresh Android + affected Wear 证据；release
+    gate `APPROVE V1.7.0 RELEASE CANDIDATE`；两者均不在本次修复内开始）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

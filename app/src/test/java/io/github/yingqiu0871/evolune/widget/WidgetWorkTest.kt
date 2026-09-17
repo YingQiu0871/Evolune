@@ -4,6 +4,12 @@ import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
 import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
 import io.github.yingqiu0871.evolune.application.syntheticPlan
 import io.github.yingqiu0871.evolune.application.widgetOccurrenceActionEventId
+import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
+import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
@@ -15,6 +21,7 @@ import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.pk.SimulationEngine
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
@@ -183,7 +190,8 @@ class WidgetWorkTest {
     }
 
     @Test
-    fun `Widget collision and storage failure never refresh or overwrite`() = runBlocking {
+    fun `Widget collision rejection refreshes without overwriting while storage failure stays effectless`() =
+        runBlocking {
         val id = widgetOccurrenceActionEventId(occurrenceId())
         val collision = event(id, now, Route.ORAL).copy(source = DoseEventSource.MANUAL)
         val conflictEvents = FakeDoseEventRepository(listOf(collision))
@@ -193,7 +201,7 @@ class WidgetWorkTest {
             quickWork(conflictEvents, conflictEffects).handle(command())
         )
         assertEquals(collision, conflictEvents.events[id])
-        assertTrue(conflictEffects.order.isEmpty())
+        assertEquals(listOf("refresh", "reject"), conflictEffects.order)
 
         val failedEvents = FakeDoseEventRepository().apply {
             getFailure = RepositoryPersistenceException("synthetic Widget read")
@@ -251,7 +259,10 @@ class WidgetWorkTest {
             ).handle(command())
         )
         assertEquals(0, events.insertCalls)
-        assertTrue(effects.order.isEmpty())
+        assertEquals(
+            listOf("refresh", "reject", "refresh", "reject", "refresh", "reject"),
+            effects.order
+        )
     }
 
     @Test
@@ -281,7 +292,10 @@ class WidgetWorkTest {
             quickWork(events, effects).handle(foreign)
         )
         assertEquals(0, events.insertCalls)
-        assertTrue(effects.order.isEmpty())
+        assertEquals(
+            listOf("refresh", "reject", "refresh", "reject", "refresh", "reject"),
+            effects.order
+        )
     }
 
     @Test
@@ -301,7 +315,10 @@ class WidgetWorkTest {
         )
 
         assertEquals(0, events.insertCalls)
-        assertTrue(effects.order.isEmpty())
+        assertEquals(
+            listOf("refresh", "reject", "refresh", "reject"),
+            effects.order
+        )
     }
 
     @Test
@@ -322,6 +339,120 @@ class WidgetWorkTest {
         assertEquals(1, events.insertCalls)
         assertEquals(listOf("refresh", "toast:Synthetic plan"), replayEffects.order)
     }
+
+    @Test
+    fun `rejection feedback policy maps exactly the authoritative validation rejections`() {
+        listOf(
+            WidgetQuickActionOutcome.Invalid,
+            WidgetQuickActionOutcome.PlanNotFound,
+            WidgetQuickActionOutcome.PlanDisabled,
+            WidgetQuickActionOutcome.Conflict
+        ).forEach { outcome ->
+            assertTrue(
+                "$outcome must request rejection feedback",
+                outcome.requiresRejectionFeedback()
+            )
+        }
+        listOf(
+            WidgetQuickActionOutcome.Accepted(false),
+            WidgetQuickActionOutcome.Accepted(true),
+            WidgetQuickActionOutcome.AcceptedWithSideEffectFailure,
+            WidgetQuickActionOutcome.StorageFailure,
+            WidgetQuickActionOutcome.UnexpectedFailure
+        ).forEach { outcome ->
+            assertFalse(
+                "$outcome must not request rejection feedback",
+                outcome.requiresRejectionFeedback()
+            )
+        }
+    }
+
+    @Test
+    fun `Decision H rejections never attempt a medication write and always refresh with feedback`() =
+        runBlocking {
+            val events = WriteGuardedDoseEventRepository()
+            val effects = WidgetEffectsSpy()
+            val today = now.atZone(zoneId).toLocalDate()
+            val valid = command()
+            val foreignSlot = UUID(9L, 91L)
+            val foreignOccurrence = MedicationOccurrenceIdentity.derive(
+                plan.id,
+                foreignSlot,
+                today
+            ).value
+
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects).handle(
+                    valid.copy(scheduledLocalDate = today.minusDays(1).toString())
+                )
+            )
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects).handle(
+                    valid.copy(occurrenceId = UUID(9L, 90L).toString())
+                )
+            )
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects).handle(
+                    valid.copy(
+                        slotId = foreignSlot.toString(),
+                        occurrenceId = foreignOccurrence.toString()
+                    )
+                )
+            )
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects, now.minusSeconds(3_601L)).handle(valid)
+            )
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects, now.plusSeconds(3_601L)).handle(valid)
+            )
+            assertSame(
+                WidgetQuickActionOutcome.PlanNotFound,
+                ContractWidgetQuickActionWork(
+                    FakeMedicationPlanRepository(),
+                    events,
+                    effects,
+                    Clock.fixed(now, ZoneOffset.UTC),
+                    { zoneId }
+                ).handle(valid)
+            )
+            assertSame(
+                WidgetQuickActionOutcome.PlanDisabled,
+                ContractWidgetQuickActionWork(
+                    FakeMedicationPlanRepository(listOf(plan.copy(isEnabled = false))),
+                    events,
+                    effects,
+                    Clock.fixed(now, ZoneOffset.UTC),
+                    { zoneId }
+                ).handle(valid)
+            )
+
+            assertEquals(0, events.insertAttempts)
+            assertEquals(0, events.updateAttempts)
+            assertEquals(0, events.deleteAttempts)
+            assertEquals(List(7) { listOf("refresh", "reject") }.flatten(), effects.order)
+        }
+
+    @Test
+    fun `rejection side effects are best effort and never change the rejection outcome`() =
+        runBlocking {
+            val events = FakeDoseEventRepository()
+            val effects = WidgetEffectsSpy(failRefresh = true, failReject = true)
+            val today = now.atZone(zoneId).toLocalDate()
+
+            assertSame(
+                WidgetQuickActionOutcome.Invalid,
+                quickWork(events, effects).handle(
+                    command().copy(scheduledLocalDate = today.minusDays(1).toString())
+                )
+            )
+            assertEquals(listOf("refresh", "reject"), effects.order)
+            assertEquals(0, events.insertCalls)
+        }
 
     @Test
     fun `three same-day occurrences of one plan have separate action identities`() =
@@ -450,7 +581,7 @@ class WidgetWorkTest {
     }
 
     private fun quickWork(
-        events: FakeDoseEventRepository,
+        events: DoseEventRepository,
         effects: WidgetEffectsSpy,
         actionTime: Instant = now,
         actionPlan: io.github.yingqiu0871.evolune.core.model.MedicationPlan = plan,
@@ -505,7 +636,8 @@ class WidgetWorkTest {
 }
 
 private class WidgetEffectsSpy(
-    private val failRefresh: Boolean = false
+    private val failRefresh: Boolean = false,
+    private val failReject: Boolean = false
 ) : WidgetQuickActionSideEffects {
     val order = mutableListOf<String>()
 
@@ -517,4 +649,47 @@ private class WidgetEffectsSpy(
     override suspend fun showRecorded(planName: String) {
         order += "toast:$planName"
     }
+
+    override suspend fun showRejected() {
+        order += "reject"
+        if (failReject) throw IllegalStateException("synthetic Widget rejection feedback")
+    }
+}
+
+private class WriteGuardedDoseEventRepository(
+    initialEvents: List<DoseEvent> = emptyList()
+) : DoseEventRepository by FakeDoseEventRepository(initialEvents) {
+    var insertAttempts = 0
+    var updateAttempts = 0
+    var deleteAttempts = 0
+
+    override suspend fun insert(event: DoseEvent): InsertResult {
+        insertAttempts += 1
+        error("Decision-H rejection must never insert")
+    }
+
+    override suspend fun update(event: DoseEvent, expectedRevision: Long): UpdateResult {
+        updateAttempts += 1
+        error("Decision-H rejection must never update")
+    }
+
+    override suspend fun delete(id: UUID): DeleteResult {
+        deleteAttempts += 1
+        error("Decision-H rejection must never delete")
+    }
+
+    override suspend fun deleteIfRevisionMatches(
+        id: UUID,
+        expectedRevision: Long
+    ): ConditionalDeleteResult =
+        error("Decision-H rejection must never conditionally delete")
+
+    override suspend fun deleteLatestRecordedIfRevisionMatches(
+        eventId: UUID,
+        eventRevision: Long
+    ): LatestDoseDeleteResult =
+        error("Decision-H rejection must never delete the latest dose")
+
+    override suspend fun deleteAll(): DeleteResult =
+        error("Decision-H rejection must never delete all")
 }

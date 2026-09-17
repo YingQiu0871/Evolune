@@ -215,6 +215,7 @@ class CrossEntryOccurrenceConcurrencyTest {
 private object NoOpWidgetSideEffects : WidgetQuickActionSideEffects {
     override suspend fun refreshWidgets() = Unit
     override suspend fun showRecorded(planName: String) = Unit
+    override suspend fun showRejected() = Unit
 }
 
 private class GatedDoseEventRepository(

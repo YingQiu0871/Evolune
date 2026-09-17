@@ -1,0 +1,37 @@
+V17 W-DH-2 narrow fix — zero-write evidence
+===========================================
+
+Requirement: for every Decision-H rejection the medication-event write count must remain 0
+(insert / update / delete / conditional deletes / delete-all). W-DH-1 data integrity stays
+frozen: no conversion into accepted/idempotent/synthetic/fallback/new/legacy completion.
+
+JVM (fail-if-attempted double, not a row-count check):
+  WidgetWorkTest "Decision H rejections never attempt a medication write and always refresh
+  with feedback" uses `WriteGuardedDoseEventRepository` (Kotlin interface delegation over the
+  standard fake) overriding every mutation to count and throw:
+    insert / update / delete / deleteIfRevisionMatches /
+    deleteLatestRecordedIfRevisionMatches / deleteAll
+  7 rejection families executed through it:
+    A stale/cross-date, B forged identity, B foreign slot (exact-occurrence failure),
+    D availability (before due / after window), C plan missing, C plan disabled.
+  Assertions: every outcome matched its rejection type; insertAttempts == 0;
+  updateAttempts == 0; deleteAttempts == 0 (any attempt would have thrown and flipped the
+  outcome to UnexpectedFailure, failing the test twice over).
+
+JVM (existing rejection suites, counters preserved):
+  - "invalid missing and disabled Widget actions perform no write": insertCalls == 0.
+  - "stale date forged identity and foreign slot perform no write": insertCalls == 0.
+  - "action time rechecks availability ...": insertCalls == 0.
+  - "Widget collision rejection refreshes without overwriting ...": the colliding row is
+    byte-unchanged after the Conflict rejection.
+  - "rejection side effects are best effort ...": insertCalls == 0.
+
+Android (real Room production path):
+  ReceiverWidgetProductionCutoverTest
+  "rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting":
+  rawEventCount() == 0 after the rejected stale action (row count from the real database,
+  complementing the JVM fail-if-attempted coverage).
+
+Implementation guarantee: every rejection returns from the evaluation phase before any
+repository write; the new feedback code performs no repository access at all (it only calls
+the two side-effect functions).

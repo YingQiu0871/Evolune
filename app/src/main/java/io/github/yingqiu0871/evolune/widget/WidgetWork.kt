@@ -201,9 +201,27 @@ internal sealed interface WidgetQuickActionOutcome {
     data object UnexpectedFailure : WidgetQuickActionOutcome
 }
 
+/**
+ * W-DH-2 / Decision H (frozen): outcomes where the user's Widget action was authoritatively
+ * rejected and no completion was accepted. Each one requires the authoritative Widget refresh
+ * and an explicit user-visible rejection feedback; no medication write may occur.
+ */
+internal fun WidgetQuickActionOutcome.requiresRejectionFeedback(): Boolean = when (this) {
+    WidgetQuickActionOutcome.Invalid,
+    WidgetQuickActionOutcome.PlanNotFound,
+    WidgetQuickActionOutcome.PlanDisabled,
+    WidgetQuickActionOutcome.Conflict -> true
+
+    is WidgetQuickActionOutcome.Accepted,
+    WidgetQuickActionOutcome.AcceptedWithSideEffectFailure,
+    WidgetQuickActionOutcome.StorageFailure,
+    WidgetQuickActionOutcome.UnexpectedFailure -> false
+}
+
 internal interface WidgetQuickActionSideEffects {
     suspend fun refreshWidgets()
     suspend fun showRecorded(planName: String)
+    suspend fun showRejected()
 }
 
 internal fun interface WidgetQuickActionWork {
@@ -220,6 +238,30 @@ internal class ContractWidgetQuickActionWork(
     private val recordAction = LocalActionRecorder(medicationPlans, doseEvents)
 
     override suspend fun handle(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
+        val outcome = handleCommand(command)
+        if (!outcome.requiresRejectionFeedback()) {
+            return outcome
+        }
+        // W-DH-2 / Decision H: refresh the authoritative Widget state, then report the
+        // rejection. Both effects are best-effort and never change the rejection outcome.
+        try {
+            sideEffects.refreshWidgets()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            // best effort; the authoritative Widget lifecycle retries the refresh
+        }
+        try {
+            sideEffects.showRejected()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            // best effort; feedback failure must not change the rejection outcome
+        }
+        return outcome
+    }
+
+    private suspend fun handleCommand(command: WidgetQuickActionCommand): WidgetQuickActionOutcome {
         val parsed = command.parsed()
             ?: return WidgetQuickActionOutcome.Invalid
         return try {

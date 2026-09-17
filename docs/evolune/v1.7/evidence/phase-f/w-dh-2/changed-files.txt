@@ -1,0 +1,27 @@
+V17 W-DH-2 narrow fix — changed files (9)
+=========================================
+
+Base: cb242b55b49a5cd9c4271072297d51872d04ad8b
+
+M app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt
+M app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt
+M app/src/main/res/values/strings.xml
+M app/src/main/res/values-zh-rCN/strings.xml
+M app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt
+A app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetStringsParityTest.kt
+M app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt
+M app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt
+M app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt
+
+diff --stat (working tree vs cb242b55, app scope):
+  .../ReceiverWidgetProductionCutoverTest.kt |  32 ++++
+  .../evolune/widget/EvoluneWidgetReceiver.kt |  10 ++
+  .../evolune/widget/WidgetWork.kt            |  42 +++++
+  app/src/main/res/values-zh-rCN/strings.xml  |   1 +
+  app/src/main/res/values/strings.xml         |   1 +
+  .../CrossEntryOccurrenceConcurrencyTest.kt  |   1 +
+  .../NotificationOccurrenceConcurrencyTest.kt|   2 +
+  .../evolune/widget/WidgetWorkTest.kt        | 189 ++++++++++++++++++++-
+  8 files changed, 271 insertions(+), 7 deletions(-) (+ 1 new test file)
+
+Byte-true diff: implementation.diff (git-native, app/src scope).

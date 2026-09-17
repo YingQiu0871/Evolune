@@ -1,0 +1,36 @@
+V17 W-DH-2 narrow fix — frozen-surface audit
+============================================
+
+Diff scope (working tree vs cb242b55) contains exactly:
+  app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetWork.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt
+  app/src/main/res/values/strings.xml
+  app/src/main/res/values-zh-rCN/strings.xml
+  app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetWorkTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetStringsParityTest.kt (new)
+  app/src/test/java/io/github/yingqiu0871/evolune/application/CrossEntryOccurrenceConcurrencyTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/application/NotificationOccurrenceConcurrencyTest.kt
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/data/repository/ReceiverWidgetProductionCutoverTest.kt
+
+Frozen surfaces verified untouched (no diff entries):
+  Room schema / DAO / migrations / AppDatabase                 — untouched
+  core dataapi DoseEventRepository contract                    — untouched
+  experience-core matcher / generator / identity               — untouched
+  History / Timeline / Insights / PK semantics                 — untouched
+  Phase-E portability (export package, screens, contracts)     — untouched
+  backup / B2 / Drive / RoomRestorePersistence                 — untouched
+  Wear module (wear/) and Wear protocol semantics              — untouched
+  Gradle files / dependency catalogs                           — untouched
+  versionName / versionCode / build metadata                   — untouched
+  Phase A-E frozen contracts and evidence bundles              — untouched
+
+Interface note: the added `showRejected()` member belongs to the Widget-layer
+`WidgetQuickActionSideEffects` interface (not a frozen surface); all four implementations
+were updated in the same commit (production receiver + JVM spy + 2 JVM NoOp objects +
+androidTest spy).
+
+Write semantics unchanged: rejection paths perform zero repository writes (see
+zero-write.txt); no new write API, no DAO access, no schema or repository change.
+
+No STOP condition occurred: the fix required no frozen-surface reopening
+("V17 W-DH-2 FIX BLOCKED — FROZEN SURFACE REOPENING REQUIRED" was not triggered).

@@ -1,0 +1,31 @@
+V17 W-DH-2 narrow fix — focused JVM evidence
+=============================================
+Command: .\gradlew.bat :app:testDebugUnitTest
+           --tests "io.github.yingqiu0871.evolune.widget.*"
+           --tests "io.github.yingqiu0871.evolune.application.CrossEntryOccurrenceConcurrencyTest"
+           --tests "io.github.yingqiu0871.evolune.application.NotificationOccurrenceConcurrencyTest"
+           --tests "io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest"
+           --rerun
+Log: logs/focused-jvm.log ; XML: junit/ (raw per-class results)
+
+  WidgetWorkTest                         tests=20 failures=0 errors=0 skipped=0
+  WidgetStringsParityTest                tests=2  failures=0 errors=0 skipped=0
+  CrossEntryOccurrenceConcurrencyTest    tests=3  failures=0 errors=0 skipped=0
+  NotificationOccurrenceConcurrencyTest  tests=14 failures=0 errors=0 skipped=0
+  RecordDoseEventActionTest              tests=17 failures=0 errors=0 skipped=0
+  ------------------------------------------------------------------------
+  TOTAL                                  tests=56 failures=0 errors=0 skipped=0
+
+WidgetWorkTest grew from 17 to 20 with the new W-DH-2 tests:
+  - rejection feedback policy maps exactly the authoritative validation rejections
+  - Decision H rejections never attempt a medication write and always refresh with feedback
+  - rejection side effects are best effort and never change the rejection outcome
+
+Full app JVM regression (accidental Widget regression control):
+Command: .\gradlew.bat :app:testDebugUnitTest --rerun
+Log: logs/app-jvm-regression.log
+  app tests=1322 failures=0 errors=0 skipped=0
+  (baseline before this fix: 1317 app tests; +5 = 3 WidgetWorkTest + 2 WidgetStringsParityTest)
+
+Counts are taken from the final JUnit XML, not from console text. The fix was fully
+completed and re-run fresh before evidence capture.

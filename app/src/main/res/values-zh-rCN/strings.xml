@@ -427,6 +427,7 @@
     <string name="widget_pk_chart_axis_start">−24h</string>
     <string name="widget_pk_chart_axis_now">现在</string>
     <string name="widget_pk_chart_axis_end">+24h</string>
+    <string name="widget_dose_rejected">未能记录本次用药，微件已刷新。</string>
 
     <string name="widget_config_title">微件外观</string>
     <string name="widget_config_apply">应用</string>

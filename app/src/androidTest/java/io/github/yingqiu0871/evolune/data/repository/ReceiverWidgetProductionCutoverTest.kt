@@ -367,6 +367,33 @@ class ReceiverWidgetProductionCutoverTest {
     }
 
     @Test
+    fun rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting() = runBlocking {
+        val opened = openDatabase()
+        val provider = ProductionRepositoryProvider(opened)
+        assertEquals(PlanSaveResult.Created, provider.medicationPlans.save(plan()))
+        val widgetEffects = WidgetEffects()
+        val staleCommand = widgetCommand(SECOND_SLOT_TIME).copy(
+            scheduledLocalDate = OCCURRENCE_DATE.minusDays(1).toString()
+        )
+
+        val result = ContractWidgetQuickActionWork(
+            medicationPlans = provider.medicationPlans,
+            doseEvents = provider.doseEvents,
+            sideEffects = widgetEffects,
+            clock = Clock.fixed(WIDGET_OCCURRED_AT, ZoneOffset.UTC),
+            zoneId = { TEST_ZONE }
+        ).handle(staleCommand)
+
+        assertEquals(WidgetQuickActionOutcome.Invalid, result)
+        assertEquals(0, rawEventCount())
+        assertEquals(1, widgetEffects.refreshes)
+        assertEquals(1, widgetEffects.rejections)
+        assertEquals(0, widgetEffects.toasts)
+        assertEquals(3, opened.openHelper.readableDatabase.version)
+        assertSingleDisposableDatabase()
+    }
+
+    @Test
     fun wearRecorderUsesStoredEventBeforePlanAndPreservesRepositoryEquality() = runBlocking {
         val opened = openDatabase()
         val provider = ProductionRepositoryProvider(opened)
@@ -669,6 +696,7 @@ private class NotificationEffects : NotificationActionSideEffects {
 private class WidgetEffects : WidgetQuickActionSideEffects {
     var refreshes = 0
     var toasts = 0
+    var rejections = 0
 
     override suspend fun refreshWidgets() {
         refreshes += 1
@@ -676,5 +704,9 @@ private class WidgetEffects : WidgetQuickActionSideEffects {
 
     override suspend fun showRecorded(planName: String) {
         toasts += 1
+    }
+
+    override suspend fun showRejected() {
+        rejections += 1
     }
 }

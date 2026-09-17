@@ -241,8 +241,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   P0/P1/P2 = none；E1–E7 VERIFIED / PASS、E8.1 PASS、EG1–EG25 PASS；evidence
   `evidence/phase-e/` 196 files / MANIFEST 195/195 / blob 196/196；focused 88/88、full
   JVM 1578/0、Pixel_7 API 35 12/12；**Phase E — APPROVED / CLOSED / FROZEN**）。
-  **NEXT:** Phase F — Final Consistency Gate（`V17_PLAN.md` §9；release gate
-  `APPROVE V1.7.0 RELEASE CANDIDATE`）。
+- **Phase F · pre-gate narrow fix — W-DH-2 widget rejection feedback — IMPLEMENTED /
+  REVIEW PENDING**（commit `fix: close v1.7 W-DH-2 widget rejection feedback`，parent
+  `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection → authoritative refresh +
+  localized feedback，zero write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35
+  Widget/receiver 28/0；evidence `evidence/phase-f/w-dh-2/`）。**Phase F — IN PROGRESS /
+  NOT GATED**；Phase-F final consistency candidate — **NOT STARTED**。
+  **NEXT:** W-DH-2 narrow-fix implementation review（随后 Phase F — Final Consistency
+  Gate；`V17_PLAN.md` §9；release gate `APPROVE V1.7.0 RELEASE CANDIDATE`）。
 
 ## Historical and future milestones
 

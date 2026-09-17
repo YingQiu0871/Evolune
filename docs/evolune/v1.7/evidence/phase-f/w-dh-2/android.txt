@@ -1,0 +1,33 @@
+V17 W-DH-2 narrow fix — affected Android instrumentation
+=======================================================
+
+Device: Pixel_7(AVD) API 35 (serial emulator-5554)
+Command: .\gradlew.bat :app:connectedDebugAndroidTest
+           -Pandroid.testInstrumentationRunnerArguments.class=
+            io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest,
+            io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest,
+            io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest
+Log: logs/android.log ; XML: androidtest/TEST-Pixel_7(AVD) - 15-_app-.xml
+
+  ReceiverWidgetProductionCutoverTest   tests=9  failures=0 errors=0 skipped=0
+  ReceiverLifecycleInstrumentationTest  tests=7  failures=0 errors=0 skipped=0
+  WidgetRemoteViewsTest                 tests=12 failures=0 errors=0 skipped=0
+  ----------------------------------------------------------------------------
+  TOTAL                                 tests=28 failures=0 errors=0 skipped=0
+
+New production-path assertion (real Room database + production work):
+  ReceiverWidgetProductionCutoverTest
+    "rejectedStaleWidgetActionRefreshesAndReportsRejectionWithoutWriting"
+      - stale scheduled date -> WidgetQuickActionOutcome.Invalid
+      - rawEventCount() == 0 (no medication write through the real database)
+      - widgetEffects.refreshes == 1 (authoritative refresh requested)
+      - widgetEffects.rejections == 1 (rejection feedback dispatched)
+      - widgetEffects.toasts == 0 (no accepted-path feedback)
+
+Coverage boundary (stated honestly): the Toast dispatch itself is not asserted by an
+instrumentation API; deterministic coverage is the rejection-effect contract inside
+ContractWidgetQuickActionWork (the class the production receiver instantiates), which the
+receiver cannot bypass because `handleRecordOccurrence` never interprets the outcome — the
+work executes the side effects itself. The receiver supplies the side-effect implementations
+(showRejected -> main-thread Toast with R.string.widget_dose_rejected), verified by code
+review in this evidence bundle.
