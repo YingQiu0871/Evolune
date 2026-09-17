@@ -1,0 +1,25 @@
+V1.7.0 release packaging — signature verification (safe facts only)
+===================================================================
+
+Tooling: Android SDK build-tools 36.1.0 `apksigner verify --verbose --print-certs`.
+
+app-release.apk
+  verified                    : YES
+  signature schemes           : v2 (APK Signature Scheme v2) = true
+                                (v1/v3/v3.1/v4 = false; v2 satisfies minSdk 31 devices)
+  signers                     : 1
+  signer DN                   : CN=Evolune Release, OU=Evolune, O=Evolune, L=Evolune,
+                                ST=Evolune, C=FR
+  certificate SHA-256 digest  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+                                (public certificate fingerprint — safe metadata)
+
+wear-release.apk
+  verified                    : YES
+  signature schemes           : v2 = true (v1/v3/v3.1/v4 = false)
+  signers                     : 1
+  signer DN                   : same release identity as Phone
+  certificate SHA-256 digest  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+                                (identical — one release signing family)
+
+No private key, password, alias value or keystore content is recorded.
+No debug-signing artifact was produced or presented.

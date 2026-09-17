@@ -1,0 +1,75 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:preReleaseBuild UP-TO-DATE
+> Task :wear:mergeReleaseJniLibFolders
+> Task :wear:generateReleaseResources
+> Task :wear:checkReleaseDuplicateClasses
+> Task :wear:packageReleaseResources
+> Task :wear:processReleaseNavigationResources
+> Task :wear:javaPreCompileRelease
+> Task :wear:parseReleaseLocalResources
+> Task :wear:mergeReleaseArtProfile
+> Task :wear:generateReleaseRFile
+> Task :wear:checkReleaseAarMetadata
+> Task :wear:compileReleaseNavigationResources
+> Task :wear:mapReleaseSourceSetPaths
+> Task :wear:createReleaseCompatibleScreenManifests
+> Task :wear:extractDeepLinksRelease
+> Task :wear:processReleaseMainManifest
+> Task :wear:processReleaseManifest
+> Task :wear:extractProguardFiles
+> Task :wear:mergeReleaseStartupProfile
+> Task :wear:generateReleaseAssets UP-TO-DATE
+> Task :wear:mergeReleaseAssets
+> Task :wear:compressReleaseAssets
+> Task :wear:extractReleaseVersionControlInfo
+> Task :wear:collectReleaseDependencies
+> Task :wear:sdkReleaseDependencyData
+> Task :wear:validateSigningRelease
+> Task :wear:writeReleaseAppMetadata
+> Task :wear:writeReleaseSigningConfigVersions
+> Task :wear:processReleaseManifestForPackage
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :wear:mergeReleaseNativeLibs NO-SOURCE
+> Task :wear:stripReleaseDebugSymbols NO-SOURCE
+> Task :wear:extractReleaseNativeSymbolTables NO-SOURCE
+> Task :wear:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :wear:mergeReleaseResources
+> Task :wear:processReleaseResources
+> Task :wear:optimizeReleaseResources
+
+> Task :wear:compileReleaseKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:110:34 'fun setResourceId(p0: String): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+
+> Task :wear:compileReleaseJavaWithJavac NO-SOURCE
+> Task :wear:mergeReleaseGeneratedProguardFiles
+> Task :wear:processReleaseJavaRes
+> Task :wear:generateReleaseLintVitalReportModel
+> Task :wear:expandReleaseArtProfileWildcards
+> Task :wear:mergeReleaseJavaResource
+> Task :wear:lintVitalAnalyzeRelease
+> Task :wear:lintVitalReportRelease
+> Task :wear:lintVitalRelease
+> Task :wear:minifyReleaseWithR8
+> Task :wear:compileReleaseArtProfile
+> Task :wear:packageRelease
+> Task :wear:createReleaseApkListingFileRedirect
+> Task :wear:assembleRelease
+
+BUILD SUCCESSFUL in 20s
+45 actionable tasks: 45 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

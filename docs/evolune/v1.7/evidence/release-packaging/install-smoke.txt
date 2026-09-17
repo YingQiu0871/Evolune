@@ -1,0 +1,34 @@
+V1.7.0 release packaging — install / smoke (exact scope)
+========================================================
+
+Phone debug (new versioned debug build) — PASS
+  device  : Pixel_7 AVD, API 35 (sdk_gphone64_x86_64), serial emulator-5554
+  install : adb install -r app-debug.apk -> "Success" (streamed)
+  launch  : am start -W io.github.yingqiu0871.evolune.debug/...MainActivity
+            Status: ok; TotalTime: 2311 ms
+            topResumedActivity = io.github.yingqiu0871.evolune.debug/.MainActivity
+            process pid = 3873
+
+Phone signed release APK — PASS
+  device  : Pixel_7 AVD, API 35 (serial emulator-5554)
+  install : adb install -r app-release.apk -> "Success" (streamed, fresh package)
+  launch  : am start -W io.github.yingqiu0871.evolune/.MainActivity
+            Status: ok; TotalTime: 365 ms
+            topResumedActivity = io.github.yingqiu0871.evolune/.MainActivity
+            process pid = 3992
+  device confirm: dumpsys package -> versionCode=101070000 minSdk=31 targetSdk=36;
+            versionName=1.7.0
+
+Wear signed release APK — PASS
+  device  : Wear_OS_Large_Round AVD, API 37 (sdk_gwear_x86_64), serial emulator-5556
+  install : adb install -r wear-release.apk -> "Success" (streamed)
+  launch  : am start -W io.github.yingqiu0871.evolune/.wear.WearAppActivity
+            Status: ok; TotalTime: 181 ms
+            topResumedActivity = io.github.yingqiu0871.evolune/.wear.WearAppActivity
+            process pid = 2557
+  device confirm: dumpsys package -> versionCode=1101070000 minSdk=30 targetSdk=36;
+            versionName=1.7.0
+
+Not performed (honest scope): full Phase-F 358-test instrumentation rerun; wear DEBUG APK
+install smoke (wear RELEASE install smoke was performed instead). No behavior claim beyond
+the launches above.

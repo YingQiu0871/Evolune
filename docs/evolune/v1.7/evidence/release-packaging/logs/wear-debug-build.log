@@ -1,0 +1,64 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :wear:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :wear:generateDebugResources
+> Task :wear:packageDebugResources
+> Task :wear:processDebugNavigationResources
+> Task :wear:generateDebugAssets UP-TO-DATE
+> Task :wear:javaPreCompileDebug
+> Task :wear:parseDebugLocalResources
+> Task :wear:mergeDebugAssets
+> Task :wear:compressDebugAssets
+> Task :wear:generateDebugRFile
+> Task :wear:desugarDebugFileDependencies
+> Task :wear:checkDebugDuplicateClasses
+> Task :wear:checkDebugAarMetadata
+> Task :wear:compileDebugNavigationResources
+> Task :wear:mapDebugSourceSetPaths
+> Task :wear:createDebugCompatibleScreenManifests
+> Task :wear:extractDeepLinksDebug
+> Task :wear:mergeDebugResources
+> Task :wear:processDebugMainManifest
+> Task :wear:processDebugManifest
+> Task :wear:mergeDebugJniLibFolders
+> Task :wear:validateSigningDebug
+> Task :wear:writeDebugAppMetadata
+> Task :wear:writeDebugSigningConfigVersions
+> Task :wear:processDebugManifestForPackage
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :wear:mergeExtDexDebug
+> Task :wear:mergeDebugNativeLibs NO-SOURCE
+> Task :wear:stripDebugDebugSymbols NO-SOURCE
+> Task :wear:mergeLibDexDebug
+> Task :wear:processDebugResources
+
+> Task :wear:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:110:34 'fun setResourceId(p0: String): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.7/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+
+> Task :wear:compileDebugJavaWithJavac NO-SOURCE
+> Task :wear:processDebugJavaRes
+> Task :wear:dexBuilderDebug
+> Task :wear:mergeProjectDexDebug
+> Task :wear:mergeDebugJavaResource
+> Task :wear:packageDebug
+> Task :wear:createDebugApkListingFileRedirect
+> Task :wear:assembleDebug
+
+BUILD SUCCESSFUL in 9s
+35 actionable tasks: 35 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

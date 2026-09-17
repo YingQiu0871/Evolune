@@ -1,0 +1,24 @@
+V1.7.0 release packaging — identity
+====================================
+
+Branch                      : v1.7-development
+Base HEAD (pre-packaging)   : bb78944ca914ec333ad2f9a9ca67a744503a67eb
+                              (docs: close v1.7 Phase F final consistency gate)
+Base parent                 : aaa0c801e334e0e5c684dd104de3dcfd555e0d5f
+                              (approved Phase-F candidate)
+Worktree at start           : clean (git status --porcelain empty)
+Preflight `git diff --check` : clean
+Signing preflight (resume)  : EVOLUNE_KEYSTORE_PATH PRESENT / EVOLUNE_KEYSTORE_PASSWORD
+                              PRESENT / EVOLUNE_KEY_ALIAS PRESENT / EVOLUNE_KEY_PASSWORD
+                              PRESENT; keystore ACCESSIBLE (no values recorded anywhere).
+
+Scope: post-gate v1.7.0 release packaging —
+  - version metadata: versionName 1.6.0 -> 1.7.0; ordinal 1_060_000 -> 1_070_000;
+    Phone versionCode 101_060_000 -> 101_070_000; Wear versionCode 1_101_060_000 -> 1_101_070_000
+  - version guards updated to truthful v1.7.0 invariants (not deleted)
+  - fresh debug builds, signed release builds, signature + embedded-metadata verification
+  - fresh JVM regression, install/launch smoke (Phone debug + Phone/Wear signed release)
+  - release-packaging evidence + status docs
+  - ONE local commit (parent bb78944); no tag / no push / no release
+
+ZERO product-behavior change; executable delta is version metadata only.

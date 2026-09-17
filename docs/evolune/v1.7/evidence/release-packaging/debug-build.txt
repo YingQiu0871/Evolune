@@ -1,0 +1,22 @@
+V1.7.0 release packaging — debug regression builds (fresh)
+==========================================================
+
+App debug
+  command : .\gradlew.bat :app:assembleDebug --rerun-tasks
+  log     : logs/app-debug-build.log ("BUILD SUCCESSFUL"; 38 actionable tasks: 38 executed)
+  artifact: app/build/outputs/apk/debug/app-debug.apk
+  size    : 78,525,808 bytes
+  sha256  : 9fe5c2be1e998229516474b1a5f5118b27f9bf3d97749b0ea1c4c2923641fcac
+  metadata: package io.github.yingqiu0871.evolune.debug; versionName 1.7.0-debug;
+            versionCode 101070000; targetSdk 36
+
+Wear debug
+  command : .\gradlew.bat :wear:assembleDebug --rerun-tasks
+  log     : logs/wear-debug-build.log ("BUILD SUCCESSFUL"; 35 actionable tasks: 35 executed)
+  artifact: wear/build/outputs/apk/debug/wear-debug.apk
+  size    : 18,712,489 bytes
+  sha256  : a23a686db66880b3cd7c2a52a51957a19d9d10e6fc633c4a9d6d52fcfa78e871
+  metadata: package io.github.yingqiu0871.evolune.debug; versionName 1.7.0-debug;
+            versionCode 1101070000; targetSdk 36
+
+These are regression artifacts only; they are NOT release artifacts and are not committed.

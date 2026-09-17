@@ -1,0 +1,34 @@
+V1.7.0 release packaging — stale-version scan (post-edit)
+=========================================================
+Patterns: 1.6.0 | 1_060_000 | 101_060_000 | 1_101_060_000 | 1.7.0 | 101_070_000 | 1_101_070_000
+
+CURRENT RELEASE METADATA (updated — now truthful v1.7.0):
+  build.gradle.kts:13  evoluneVersionName = "1.7.0"
+  build.gradle.kts:40  check(evoluneVersionName == "1.7.0")
+  build.gradle.kts:47  check(phoneCode == 101_070_000)
+  build.gradle.kts:48  check(wearCode == 1_101_070_000)
+  -> no stale 1.6.0 release metadata remains in the build configuration.
+
+HISTORICAL POLICY ANCHOR (must remain, unchanged):
+  build.gradle.kts:35  priorV1VersionCode = 10_060  (monotonicity anchor)
+
+DOCUMENTATION HISTORY (must remain, unchanged):
+  readme.md:16-28            v1.6.0 released-stable description + download link
+  docs/evolune/CURRENT_STATUS.md:12-28  v1.6.0 release identity table + stable version
+  docs/evolune/ROADMAP.md:67-80         v1.6.0 release history entry
+  docs/evolune/v1.6/**                  release notes / gate / overlay docs
+  IMPLEMENTATION_SUMMARY.md, PK_IMPLEMENTATION.md, QUICK_START*, ARCHITECTURE.md,
+  SETTINGS_FEATURE.md, UI_COMPONENTS.md (v1.6-tagged historical docs)
+  scripts/build_v16_release_candidate.ps1 (historical RC script)
+  (readme/TODO/CURRENT_STATUS/ROADMAP/V17_PLAN status paragraphs were updated to the new
+   packaging status in the docs delta — see changed-files.txt.)
+
+UNRELATED LIBRARY VERSIONS (must remain):
+  gradle/libs.versions.toml:6   androidxTestRunner = "1.7.0"   (coincidental third-party)
+  gradle/libs.versions.toml:25  playServicesAuth = "21.6.0"    (third-party)
+
+TEST FIXTURES (must remain; historical upgrade/version metadata):
+  V15InPlaceUpgradeDeviceTest (v1.5.0 metadata), migration matrix fixtures, etc.
+
+SUSPICIOUS: none. No current-release reference outside root build.gradle.kts required
+changing; no mass replacement was performed.

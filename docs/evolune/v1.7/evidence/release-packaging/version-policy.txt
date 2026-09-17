@@ -1,0 +1,34 @@
+V1.7.0 release packaging — version policy and applied values
+============================================================
+
+Policy (repository authority: root build.gradle.kts; v1.6 ship precedent 58ab66f):
+  ordinal = major * 1_000_000 + minor * 10_000 + patch * 100 + revision
+  Phone versionCode   = 100_000_000 + ordinal   (range [100_000_000, 1_000_000_000))
+  Wear  versionCode   = 1_100_000_000 + ordinal (range [1_100_000_000, 2_000_000_000))
+  Play hard limit     : <= 2_100_000_000
+  Monotonicity anchor : both codes > prior V1 code 10_060
+  Identity guards     : applicationId / wear namespace / debug suffix unchanged
+
+Applied values:
+  versionName           1.6.0          -> 1.7.0
+  major/minor/patch/rev 1/6/0/0        -> 1/7/0/0
+  ordinal               1_060_000      -> 1_070_000
+  Phone versionCode     101_060_000    -> 101_070_000
+  Wear versionCode      1_101_060_000  -> 1_101_070_000
+
+Monotonicity / limits verification:
+  101_070_000    > 101_060_000    PASS
+  1_101_070_000  > 1_101_060_000  PASS
+  101_070_000    <= 2_100_000_000 PASS
+  1_101_070_000  <= 2_100_000_000 PASS
+  namespace ranges: phone in [100M, 1B) PASS; wear in [1.1B, 2B) PASS
+
+Guard disposition (updated, never deleted):
+  check(evoluneVersionName == "1.7.0")
+  check(phoneCode == 101_070_000)
+  check(wearCode == 1_101_070_000)
+  preserved: applicationId guards, wear namespace guard, debug suffix guard,
+             phone != wear, positive checks, Play limit, namespace ranges,
+             monotonicity vs priorV1VersionCode 10_060.
+  Task evidence: `validateEvoluneIdentityAndVersioning` executed green
+  (logs/version-guard.log; "1 actionable task: 1 executed").

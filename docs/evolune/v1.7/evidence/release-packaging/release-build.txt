@@ -1,0 +1,27 @@
+V1.7.0 release packaging — signed release builds (fresh)
+========================================================
+
+Artifact-type resolution (repository-authority based, v1.6 precedent):
+  The repository ships Phone + Wear APKs; no bundle/AAB tasks exist or are configured
+  (`app/build/outputs/bundle`, `wear/build/outputs/bundle`: NO BUNDLE OUTPUT).
+  Release variants are minified (R8) and signed only via the external release keystore.
+
+App release
+  command : .\gradlew.bat :app:assembleRelease --rerun-tasks
+  log     : logs/app-release-build.log ("BUILD SUCCESSFUL"; 52 actionable tasks: 52 executed)
+  artifact: app/build/outputs/apk/release/app-release.apk
+  size    : 6,276,012 bytes
+  sha256  : fa6b3ace07d3d4cdfc7f014967878c21c55c23a7c3ae0b6bc8ad2c1d44c24b14
+  signing : resolved from EVOLUNE_* credentials (no guard failure, no debug fallback)
+
+Wear release
+  command : .\gradlew.bat :wear:assembleRelease --rerun-tasks
+  log     : logs/wear-release-build.log ("BUILD SUCCESSFUL"; 45 actionable tasks: 45 executed)
+  artifact: wear/build/outputs/apk/release/wear-release.apk
+  size    : 2,604,764 bytes
+  sha256  : b8e8d8f38c07ea5a4406c9d6007ab5f69de33a76ca5233e05d80ad654a24bf39
+  signing : resolved from EVOLUNE_* credentials (no guard failure, no debug fallback)
+
+R8 / minification: enabled by the existing release buildTypes; both release builds passed
+through R8 successfully (no keep-rule changes were needed or made). Mapping outputs exist
+for both modules — see artifact-hashes.txt (mapping ledger).

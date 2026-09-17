@@ -255,9 +255,16 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   F1–F5 收敛矩阵 + 12 场景矩阵 PASS；fresh：focused 11/11、app JVM 1333/0、
   experience-core 171/0、wear 90/0、Android 358/0/5 assume-gated skip、debug builds
   SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；**Phase A–F 全部
-  CLOSED/FROZEN**）。**NEXT:** explicit v1.7.0 release-packaging / version-metadata 步骤
-  （单独授权后执行；release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准，但 v1.7.0
-  尚未 release：版本 bump / signing / 产物 / tag / distribution 均未执行）。
+- **v1.7.0 · release packaging / version metadata — RELEASE PACKAGING — CANDIDATE BUILT /
+  REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
+  `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata **UPDATED / VERIFIED**：
+  versionName 1.7.0、Phone `101070000`、Wear `1101070000`（ordinal 1_070_000），护栏更新为
+  v1.7.0 真实不变式；signed Phone/Wear release APK 构建 + apksigner v2 验签 + aapt2 内嵌
+  元数据核验通过；fresh JVM app 1333/0、experience-core 171/0、wear 90/0；Phone debug +
+  Phone/Wear signed release install/launch smoke 通过；evidence
+  `docs/evolune/v1.7/evidence/release-packaging/`；**tag NOT CREATED；release NOT
+  PUBLISHED**）。**NEXT:** v1.7.0 release-packaging review（通过后进入正式 release/tag
+  流程，另行单独授权）。
 
 ## Historical and future milestones
 

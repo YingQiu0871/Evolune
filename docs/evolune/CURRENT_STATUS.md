@@ -293,11 +293,17 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
     `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，未经
     重开评审不得改 Phase-F 语义）。
-  - **NEXT:** **explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后执行：
-    versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release signing
-    验证；release artifacts；正式 release/tag 流程。版本元数据当前保持 1.6.0 是 Phase F 的
-    正确状态）。release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准；**v1.7.0 尚未
-    release**（版本 bump / signing / 产物 / tag / distribution 均未执行）；不自行开始。
+  - v1.7.0 release packaging / version metadata — **RELEASE PACKAGING — CANDIDATE BUILT /
+    REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
+    `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata `UPDATED / VERIFIED`：
+    versionName 1.7.0、Phone versionCode 101070000、Wear versionCode 1101070000；护栏更新为
+    v1.7.0 真实不变式；signed Phone/Wear release APK 构建 + apksigner v2 验签 + 内嵌元数据
+    核验通过；fresh JVM app 1333/0、experience-core 171/0、wear 90/0；install/launch smoke
+    （Phone debug + Phone/Wear signed release）通过；evidence
+    `docs/evolune/v1.7/evidence/release-packaging/`；**tag NOT CREATED；release NOT
+    PUBLISHED**）。
+  - **NEXT:** **v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程——tag、
+    GitHub Release 与分发发布另行单独授权；不自行开始）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

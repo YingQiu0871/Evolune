@@ -1,0 +1,157 @@
+diff --git a/TODO.MD b/TODO.MD
+index 4fc3876..b345f7f 100644
+--- a/TODO.MD
++++ b/TODO.MD
+@@ -190,11 +190,18 @@
+       SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
+       `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，
+       未经重开评审不得改 Phase-F 语义）。
+-- [ ] NEXT：**explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后执行：
+-      versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release signing
+-      验证；release artifacts；正式 release/tag 流程。版本元数据当前保持 1.6.0 是 Phase F
+-      的正确状态）。release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准；**v1.7.0 尚未
+-      release**（版本 bump / signing / 产物 / tag / GitHub release 均未执行）；不自行开始。
++- [x] v1.7.0 release packaging / version metadata — **RELEASE PACKAGING — CANDIDATE BUILT /
++      REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
++      `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；versionName `1.6.0 → 1.7.0`、ordinal
++      `1_060_000 → 1_070_000`、Phone versionCode `101_070_000`、Wear versionCode
++      `1_101_070_000`；护栏更新为 v1.7.0 真实不变式（未删除）；signed release APK 构建通过
++      （app `fa6b3ace…` / wear `b8e8d8f3…`），apksigner v2 验签通过 + aapt2 内嵌元数据核验
++      `1.7.0 / 101070000 / 1101070000`；fresh JVM app 1333/0、experience-core 171/0、wear
++      90/0；Phone debug + Phone/Wear signed release install/launch smoke 通过；evidence
++      `docs/evolune/v1.7/evidence/release-packaging/`（含 MANIFEST）；**tag NOT CREATED /
++      release NOT PUBLISHED**）。
++- [ ] NEXT：**v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程——
++      tag、GitHub Release 与分发发布另行单独授权；不自行开始）。
+ - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
+       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
+       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 32779f9..2ef5cf3 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -10,10 +10,10 @@ plugins {
+ val evoluneApplicationId by extra("io.github.yingqiu0871.evolune")
+ val evoluneWearNamespace by extra("io.github.yingqiu0871.evolune.wear")
+ val evoluneDebugSuffix by extra(".debug")
+-val evoluneVersionName by extra("1.6.0")
++val evoluneVersionName by extra("1.7.0")
+ 
+ val evoluneVersionMajor = 1
+-val evoluneVersionMinor = 6
++val evoluneVersionMinor = 7
+ val evoluneVersionPatch = 0
+ val evoluneVersionRevision = 0
+ val evoluneReleaseOrdinal =
+@@ -37,14 +37,14 @@ tasks.register("validateEvoluneIdentityAndVersioning") {
+         check(evoluneApplicationId == "io.github.yingqiu0871.evolune")
+         check(evoluneWearNamespace == "io.github.yingqiu0871.evolune.wear")
+         check("$evoluneApplicationId$evoluneDebugSuffix" == "io.github.yingqiu0871.evolune.debug")
+-        check(evoluneVersionName == "1.6.0")
++        check(evoluneVersionName == "1.7.0")
+         check(phoneCode != wearCode)
+         check(phoneCode > 0 && wearCode > 0)
+         check(phoneCode <= maximumPlayVersionCode && wearCode <= maximumPlayVersionCode)
+         check(phoneCode in 100_000_000 until 1_000_000_000)
+         check(wearCode in 1_100_000_000 until 2_000_000_000)
+         check(phoneCode > priorV1VersionCode && wearCode > priorV1VersionCode)
+-        check(phoneCode == 101_060_000)
+-        check(wearCode == 1_101_060_000)
++        check(phoneCode == 101_070_000)
++        check(wearCode == 1_101_070_000)
+     }
+ }
+diff --git a/docs/evolune/CURRENT_STATUS.md b/docs/evolune/CURRENT_STATUS.md
+index 4a282e8..ca044ca 100644
+--- a/docs/evolune/CURRENT_STATUS.md
++++ b/docs/evolune/CURRENT_STATUS.md
+@@ -293,11 +293,17 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
+     SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
+     `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，未经
+     重开评审不得改 Phase-F 语义）。
+-  - **NEXT:** **explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后执行：
+-    versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release signing
+-    验证；release artifacts；正式 release/tag 流程。版本元数据当前保持 1.6.0 是 Phase F 的
+-    正确状态）。release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准；**v1.7.0 尚未
+-    release**（版本 bump / signing / 产物 / tag / distribution 均未执行）；不自行开始。
++  - v1.7.0 release packaging / version metadata — **RELEASE PACKAGING — CANDIDATE BUILT /
++    REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
++    `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata `UPDATED / VERIFIED`：
++    versionName 1.7.0、Phone versionCode 101070000、Wear versionCode 1101070000；护栏更新为
++    v1.7.0 真实不变式；signed Phone/Wear release APK 构建 + apksigner v2 验签 + 内嵌元数据
++    核验通过；fresh JVM app 1333/0、experience-core 171/0、wear 90/0；install/launch smoke
++    （Phone debug + Phone/Wear signed release）通过；evidence
++    `docs/evolune/v1.7/evidence/release-packaging/`；**tag NOT CREATED；release NOT
++    PUBLISHED**）。
++  - **NEXT:** **v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程——tag、
++    GitHub Release 与分发发布另行单独授权；不自行开始）。
+   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
+     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
+     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
+diff --git a/docs/evolune/ROADMAP.md b/docs/evolune/ROADMAP.md
+index 24f1d39..058ed30 100644
+--- a/docs/evolune/ROADMAP.md
++++ b/docs/evolune/ROADMAP.md
+@@ -255,9 +255,16 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过
+   F1–F5 收敛矩阵 + 12 场景矩阵 PASS；fresh：focused 11/11、app JVM 1333/0、
+   experience-core 171/0、wear 90/0、Android 358/0/5 assume-gated skip、debug builds
+   SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；**Phase A–F 全部
+-  CLOSED/FROZEN**）。**NEXT:** explicit v1.7.0 release-packaging / version-metadata 步骤
+-  （单独授权后执行；release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准，但 v1.7.0
+-  尚未 release：版本 bump / signing / 产物 / tag / distribution 均未执行）。
++- **v1.7.0 · release packaging / version metadata — RELEASE PACKAGING — CANDIDATE BUILT /
++  REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
++  `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata **UPDATED / VERIFIED**：
++  versionName 1.7.0、Phone `101070000`、Wear `1101070000`（ordinal 1_070_000），护栏更新为
++  v1.7.0 真实不变式；signed Phone/Wear release APK 构建 + apksigner v2 验签 + aapt2 内嵌
++  元数据核验通过；fresh JVM app 1333/0、experience-core 171/0、wear 90/0；Phone debug +
++  Phone/Wear signed release install/launch smoke 通过；evidence
++  `docs/evolune/v1.7/evidence/release-packaging/`；**tag NOT CREATED；release NOT
++  PUBLISHED**）。**NEXT:** v1.7.0 release-packaging review（通过后进入正式 release/tag
++  流程，另行单独授权）。
+ 
+ ## Historical and future milestones
+ 
+diff --git a/docs/evolune/v1.7/V17_PLAN.md b/docs/evolune/v1.7/V17_PLAN.md
+index c4a0472..8ba5b5a 100644
+--- a/docs/evolune/v1.7/V17_PLAN.md
++++ b/docs/evolune/v1.7/V17_PLAN.md
+@@ -554,10 +554,18 @@ PK output must remain explicitly model-derived.
+ > 保持；fresh：focused 11/11、app JVM 1333/0、experience-core 171/0、wear 90/0、Android
+ > 358/0/5 assume-gated skip、debug builds SUCCESSFUL；evidence 212 files / MANIFEST
+ > 211/211 / blob 212/212；**Phase A–F 全部 CLOSED/FROZEN**，未经重开评审不得改 Phase-F
+-> 语义）。**NEXT: explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后
+-> 执行：versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release
+-> signing 验证；release artifacts；正式 release/tag 流程。release gate 已批准，但 v1.7.0
+-> 尚未 release；不自行开始）。
++> 语义）。**v1.7.0 release packaging / version metadata — RELEASE PACKAGING — CANDIDATE
++> BUILT / REVIEW PENDING**（commit `build: package v1.7.0 release candidate`，parent
++> `bb78944ca914ec333ad2f9a9ca67a744503a67eb`；version metadata **UPDATED / VERIFIED**：
++> versionName `1.7.0`、Phone versionCode `101070000`、Wear versionCode `1101070000`
++> （ordinal `1_070_000`）；护栏更新为 v1.7.0 真实不变式（未删除）；signed Phone/Wear
++> release APK 构建 + apksigner v2 验签 + aapt2 内嵌元数据核验（1.7.0 / 101070000 /
++> 1101070000）通过；R8 minification 通过（mapping 输出已记录）；fresh JVM app 1333/0、
++> experience-core 171/0、wear 90/0（全部 --rerun-tasks 实际执行）；Phone debug + Phone/
++> Wear signed release install/launch smoke 通过；evidence
++> `evidence/release-packaging/`；**tag NOT CREATED；release NOT PUBLISHED**）。**NEXT:
++> v1.7.0 release-packaging review**（通过后进入正式 release/tag 流程，另行单独授权；
++> 不自行开始）。
+ 
+ ---
+ 
+diff --git a/readme.md b/readme.md
+index 27be742..ae1cae7 100644
+--- a/readme.md
++++ b/readme.md
+@@ -48,9 +48,9 @@ Phone Room/domain/repository remains the source of truth for medication data; wi
+ 
+ Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
+ 
+-v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 release candidate 门禁已批准（`APPROVE V1.7.0 RELEASE CANDIDATE`）；版本打包（版本号、签名与正式发布产物）尚未执行，版本元数据在授权发布打包步骤之前仍为 1.6.0。
++v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 release candidate 门禁已批准（`APPROVE V1.7.0 RELEASE CANDIDATE`）；v1.7.0 版本元数据已完成打包并验证（versionName 1.7.0 / Phone 101070000 / Wear 1101070000；signed Phone/Wear APK 构建、签名与内嵌元数据核验通过）。**尚未发布**：tag、GitHub Release 与分发均未创建。
+ 
+-The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has passed its release-candidate gate (`APPROVE V1.7.0 RELEASE CANDIDATE`). Release packaging (version metadata, signing, and distribution artifacts) has not been executed; version metadata still reflects 1.6.0 until the authorized release-packaging step.
++The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has passed its release-candidate gate (`APPROVE V1.7.0 RELEASE CANDIDATE`). The v1.7.0 release-packaging candidate has been built and verified (version metadata 1.7.0 with Phone 101070000 / Wear 1101070000; signed Phone/Wear APKs, signature and embedded-metadata verification passed). It is NOT yet released: no tag, GitHub Release, or distribution has been created.
+ 
+ 完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
+ 

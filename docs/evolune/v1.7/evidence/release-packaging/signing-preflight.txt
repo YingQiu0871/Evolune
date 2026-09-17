@@ -1,0 +1,21 @@
+V1.7.0 release packaging — signing preflight (safe facts only)
+==============================================================
+
+Required variable family (app + wear modules share it):
+  EVOLUNE_KEYSTORE_PATH      = PRESENT
+  EVOLUNE_KEYSTORE_PASSWORD  = PRESENT
+  EVOLUNE_KEY_ALIAS          = PRESENT
+  EVOLUNE_KEY_PASSWORD       = PRESENT
+
+Keystore resolution:
+  EVOLUNE_KEYSTORE_PATH target file = ACCESSIBLE (exists)
+  Gradle release signing config       = RESOLVED
+  Daemon note: the Gradle daemon was restarted (`--stop`) after credential injection so
+  the daemon process inherited the signing environment; release builds then resolved the
+  signing config without any guard failure.
+
+Guard behavior confirmed: both modules refuse release tasks without credentials
+("Release never uses debug signing"); no debug-signing fallback exists or was used.
+
+Secrets policy honored: no passwords, alias values, keystore bytes, private keys or full
+environment dumps are recorded anywhere in this evidence bundle or the review packet.

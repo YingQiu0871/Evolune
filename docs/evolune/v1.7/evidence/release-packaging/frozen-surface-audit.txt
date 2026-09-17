@@ -1,0 +1,23 @@
+V1.7.0 release packaging — frozen-surface audit
+================================================
+
+Frozen historical evidence (byte-frozen; verified untouched by path-scoped git diff):
+  docs/evolune/v1.7/evidence/phase-a* … phase-f/**   — NOT modified
+  docs/evolune/v1.7/evidence/{a-01…a-04, b-00…b-04, c-01, c-04, d-01…d-06, phase-e}/**
+  All prior Phase A–F contracts and closure records remain unchanged.
+
+Executable delta audit:
+  - Only root build.gradle.kts changed among executable/config files
+    (version metadata + its guards; see changed-files.txt).
+  - No file under app/src/main, wear/src/main, experience-core/src changed.
+  - No Room schema/DAO/migration, repository, History/Timeline/Insights/PK, Widget,
+    matcher/generator, reminder, Health Connect, backup or export/import source changed.
+  - Gradle dependency catalogs unchanged; no dependency added/removed.
+  - Version metadata is the ONLY runtime-visible delta, and it is release metadata:
+    no product behavior change.
+
+Packaging evidence root is separate: docs/evolune/v1.7/evidence/release-packaging/** —
+release packaging never mutates the frozen phase bundles.
+
+No secrets in evidence: no passwords, alias values, keystore bytes, private keys or
+environment dumps anywhere in this root.

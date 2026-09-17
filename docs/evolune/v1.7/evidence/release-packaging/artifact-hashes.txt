@@ -1,0 +1,25 @@
+V1.7.0 release packaging — artifact hash ledger
+===============================================
+
+Debug regression artifacts (not release artifacts; not committed):
+  app-debug.apk   variant=debug   size=78,525,808  sha256=9fe5c2be1e998229516474b1a5f5118b27f9bf3d97749b0ea1c4c2923641fcac
+  wear-debug.apk  variant=debug   size=18,712,489  sha256=a23a686db66880b3cd7c2a52a51957a19d9d10e6fc633c4a9d6d52fcfa78e871
+
+Signed release artifacts (not committed):
+  app-release.apk  variant=release  size=6,276,012  sha256=fa6b3ace07d3d4cdfc7f014967878c21c55c23a7c3ae0b6bc8ad2c1d44c24b14
+    versionName=1.7.0  versionCode=101070000  signature verified=YES (v2, cert b9b6b955…)
+  wear-release.apk variant=release  size=2,604,764  sha256=b8e8d8f38c07ea5a4406c9d6007ab5f69de33a76ca5233e05d80ad654a24bf39
+    versionName=1.7.0  versionCode=1101070000 signature verified=YES (v2, cert b9b6b955…)
+
+R8 mapping ledger (existence + hash; large files stay in build outputs, not committed):
+  app/mapping.txt        size=66,657,681  sha256=a2ed483cfd87b83715461499f63bf33e9a06cea9989266a46b69c78130f6094c
+  app/configuration.txt  size=74,226      sha256=ce7984831a1cc02da66c4681490efdbdffa5f541a11f61ca3be5009bb7e2720a
+  app/seeds.txt          size=162,030     sha256=49e8c3ff460afb3a082920911a0c9f568e83d97636a900914543afd4bc2eb139
+  app/usage.txt          size=6,852,505   sha256=25e658c3841e13931a53b453382b49ed735f6807726c3d82e926bce3e69241a7
+  wear/mapping.txt       size=12,686,155  sha256=7e6d31ec3f2736ee721606425262bc3fca3fa31f80bd6f6d2900d167e8ee90a0
+  wear/mapping.prt       size=1,646,347   sha256=f2b4fe9d5d83d0a736ba3e4b8e299607565d27b4abced786388b488eeffcfa5e
+  wear/configuration.txt size=43,740      sha256=5272fb049e15a09563ab549569ee23a4bd3b85f1f36e87b73d84e8bcfc11756f
+  wear/seeds.txt         size=306,257     sha256=e9655f9417c393178997fddb3e4998bcec7994d47d498f1e9638d11022cd1fd5
+  wear/usage.txt         size=3,423,069   sha256=658d788ecec77feca55225f22ce6da9d3328b33690ed252ed87d86ddf97e5935
+
+No APK/AAB binaries are committed (repository policy: build outputs stay out of Git).

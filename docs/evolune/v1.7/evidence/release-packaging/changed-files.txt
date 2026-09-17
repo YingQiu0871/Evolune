@@ -1,0 +1,29 @@
+V1.7.0 release packaging — changed files and product-behavior audit
+===================================================================
+
+Executable/config delta (the ONLY non-evidence, non-doc change):
+  M build.gradle.kts
+    L13  evoluneVersionName "1.6.0" -> "1.7.0"
+    L16  evoluneVersionMinor 6 -> 7
+    L40  check(evoluneVersionName == "1.7.0")
+    L47  check(phoneCode == 101_070_000)
+    L48  check(wearCode == 1_101_070_000)
+
+Release-facing docs (status only):
+  M readme.md
+  M TODO.MD
+  M docs/evolune/CURRENT_STATUS.md
+  M docs/evolune/ROADMAP.md
+  M docs/evolune/v1.7/V17_PLAN.md
+
+Evidence (new):
+  docs/evolune/v1.7/evidence/release-packaging/**
+
+ZERO product-behavior delta:
+  - No file under app/src/main, wear/src/main, experience-core/src changed.
+  - The only executable delta is the shared version metadata in root build.gradle.kts.
+  - app/build.gradle.kts and wear/build.gradle.kts consume the root extras unchanged;
+    no version literals existed there to update.
+  - Room schema / DAO / repository / History / Timeline / Insights / PK / Widget /
+    matcher / generator / reminder / Health Connect / backup / export semantics: untouched.
+  - Frozen Phase A–F evidence trees: byte-frozen (untouched).

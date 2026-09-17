@@ -1,0 +1,33 @@
+V1.7.0 release packaging — artifact embedded metadata (verified from built artifacts)
+=====================================================================================
+
+Tooling: Android SDK build-tools 36.1.0 `aapt2 dump badging` (+ device `dumpsys package`
+for the installed smokes). Metadata inspected from the ARTIFACTS, not from Gradle source.
+
+app-release.apk
+  package        : io.github.yingqiu0871.evolune
+  versionName    : 1.7.0
+  versionCode    : 101070000            (expected 101_070_000) PASS
+  targetSdk      : 36
+  launchable     : io.github.yingqiu0871.evolune.MainActivity
+  device confirm : versionCode=101070000 minSdk=31 targetSdk=36; versionName=1.7.0
+
+wear-release.apk
+  package        : io.github.yingqiu0871.evolune   (shared application identity policy:
+                   wear/build.gradle.kts sets applicationId = evoluneApplicationId;
+                   namespace remains io.github.yingqiu0871.evolune.wear)
+  versionName    : 1.7.0
+  versionCode    : 1101070000           (expected 1_101_070_000) PASS
+  targetSdk      : 36
+  launchable     : io.github.yingqiu0871.evolune.wear.WearAppActivity
+  device confirm : versionCode=1101070000 minSdk=30 targetSdk=36; versionName=1.7.0
+
+app-debug.apk
+  package io.github.yingqiu0871.evolune.debug; versionName 1.7.0-debug; versionCode 101070000
+
+wear-debug.apk
+  package io.github.yingqiu0871.evolune.debug; versionName 1.7.0-debug; versionCode 1101070000
+
+No shipped artifact retains 1.6.0 metadata. Phone and Wear belong to the same v1.7.0
+release family (1.7.0 name; 101070000 / 1101070000 namespace-separated codes; identical
+release signer).
