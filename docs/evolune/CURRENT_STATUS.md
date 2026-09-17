@@ -281,18 +281,23 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
     write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
     evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`）。
-  - Phase-F final consistency candidate — **FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
-    REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
-    cross-midnight / schedule edit / schedule deletion 强化，组合生产 writer/handler 与生产
-    reader/builder；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
-    Android 358/0/5 assume-gated skip、`assembleDebug`（app + wear）BUILD SUCCESSFUL；
-    README v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release
-    evidence — complete；`release gate — NOT YET APPROVED`；evidence
-    `docs/evolune/v1.7/evidence/phase-f/`；**Phase F 仍 IN PROGRESS、未 CLOSED**）。
-  - **NEXT:** **Phase-F final consistency candidate review**（Architect + fresh independent
-    final review → P0–P3；通过后方可达成 release gate `APPROVE V1.7.0 RELEASE
-    CANDIDATE`；版本元数据 1.6.0 → 1.7.x bump 属其后显式 release-packaging 步骤；不自行
-    开始）。
+  - Phase-F final consistency gate + final closure — **PHASE F — APPROVED / CLOSED /
+    FROZEN**（approved candidate HEAD `aaa0c801e334e0e5c684dd104de3dcfd555e0d5f`
+    `test: execute v1.7 Phase F final consistency gate`，parent
+    `9097b4a0fe12aee5659bc1b9542ed478da4ec321`；Architect **APPROVE V1.7.0 RELEASE
+    CANDIDATE — ARCHITECT FINAL RELEASE GATE** + fresh independent **APPROVE V1.7.0
+    RELEASE CANDIDATE**（Qwen3.8 Flash，strict read-only session），P0/P1/P2 = none；
+    §7.1/§7.2/§7.3 PASS、**§7.4 — FINAL INDEPENDENT REVIEW — PASS**；F1–F5 收敛矩阵与 12
+    场景矩阵全部 PASS、W-DH-2 gate 回归保持；fresh：focused 11/11、app JVM 1333/0、
+    experience-core 171/0、wear 90/0、Android 358/0/5 assume-gated skip、debug builds
+    SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
+    `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，未经
+    重开评审不得改 Phase-F 语义）。
+  - **NEXT:** **explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后执行：
+    versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release signing
+    验证；release artifacts；正式 release/tag 流程。版本元数据当前保持 1.6.0 是 Phase F 的
+    正确状态）。release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准；**v1.7.0 尚未
+    release**（版本 bump / signing / 产物 / tag / distribution 均未执行）；不自行开始。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

@@ -48,9 +48,9 @@ Phone Room/domain/repository remains the source of truth for medication data; wi
 
 Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
 
-v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）处于最终一致性验证与 release candidate 评审阶段；发布门禁尚未批准，版本元数据在授权发布打包步骤之前仍为 1.6.0。
+v1.7（History & Insights：History / Timeline / Insights / 回顾性 PK / 数据可携）的 release candidate 门禁已批准（`APPROVE V1.7.0 RELEASE CANDIDATE`）；版本打包（版本号、签名与正式发布产物）尚未执行，版本元数据在授权发布打包步骤之前仍为 1.6.0。
 
-The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) is in final consistency and release-candidate validation. The release gate is not yet approved, and version metadata still reflects 1.6.0 until the authorized release-packaging step.
+The v1.7 milestone (History & Insights: History, Timeline, Insights, retrospective PK, and data portability) has passed its release-candidate gate (`APPROVE V1.7.0 RELEASE CANDIDATE`). Release packaging (version metadata, signing, and distribution artifacts) has not been executed; version metadata still reflects 1.6.0 until the authorized release-packaging step.
 
 完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
 

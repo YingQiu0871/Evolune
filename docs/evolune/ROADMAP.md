@@ -246,14 +246,18 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `9097b4a0fe12aee5659bc1b9542ed478da4ec321`，parent
   `cb242b55b49a5cd9c4271072297d51872d04ad8b`；Decision H rejection → authoritative refresh +
   localized feedback，zero write；evidence `evidence/phase-f/w-dh-2/`）。
-- **Phase F · final consistency candidate — FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
-  REVIEW PENDING**（`phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵 + W-DH-2 gate 回归 +
-  scenario 强化；fresh：app JVM 1333/0、experience-core 171/0、wear 90/0、全量 Android
-  358/0/5 assume-gated skip、assembleDebug（app + wear）BUILD SUCCESSFUL；README v1.7 表述
-  修正；**Phase-F matrix — candidate PASS**；release gate — **NOT YET APPROVED**；evidence
-  `evidence/phase-f/`；Phase F 未 CLOSED）。
-  **NEXT:** Phase-F final consistency candidate review（release gate `APPROVE V1.7.0
-  RELEASE CANDIDATE`；版本 bump 属其后 release-packaging 步骤）。
+- **Phase F · final consistency gate + final closure — PHASE F — APPROVED / CLOSED /
+  FROZEN**（approved candidate HEAD `aaa0c801e334e0e5c684dd104de3dcfd555e0d5f`
+  `test: execute v1.7 Phase F final consistency gate`，parent
+  `9097b4a0fe12aee5659bc1b9542ed478da4ec321`；Architect **APPROVE V1.7.0 RELEASE
+  CANDIDATE — ARCHITECT FINAL RELEASE GATE** + fresh independent **APPROVE V1.7.0 RELEASE
+  CANDIDATE**（Qwen3.8 Flash），P0/P1/P2 = none；§7.1/§7.2/§7.3 PASS、**§7.4 PASS**；
+  F1–F5 收敛矩阵 + 12 场景矩阵 PASS；fresh：focused 11/11、app JVM 1333/0、
+  experience-core 171/0、wear 90/0、Android 358/0/5 assume-gated skip、debug builds
+  SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；**Phase A–F 全部
+  CLOSED/FROZEN**）。**NEXT:** explicit v1.7.0 release-packaging / version-metadata 步骤
+  （单独授权后执行；release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准，但 v1.7.0
+  尚未 release：版本 bump / signing / 产物 / tag / distribution 均未执行）。
 
 ## Historical and future milestones
 

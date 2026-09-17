@@ -178,19 +178,23 @@
       PlanDisabled / Conflict → authoritative refresh + localized rejection feedback，zero
       write；focused JVM 56/0、full app JVM 1322/0、Pixel_7 API 35 Widget/receiver 28/0；
       evidence `docs/evolune/v1.7/evidence/phase-f/w-dh-2/`）。
-- [x] Phase-F final consistency candidate — **FINAL CONSISTENCY CANDIDATE IMPLEMENTED /
-      REVIEW PENDING**（单一 candidate：新增 `phasef/PhaseFConsistencyTest` F1–F5 收敛矩阵
-      + W-DH-2 gate 回归 + cross-midnight/schedule edit/delete 强化，全部组合生产 writer 与
-      生产 reader；fresh 执行：app JVM 1333/0、experience-core 171/0、wear 90/0、全量
-      Android 358/0/5 assume-gated skip、`assembleDebug` app + wear BUILD SUCCESSFUL；
-      README v1.7 陈旧表述已修正；**Phase-F matrix — candidate PASS**；fresh release
-      evidence — complete；`release gate — NOT YET APPROVED`；evidence
-      `docs/evolune/v1.7/evidence/phase-f/`（含 w-dh-2/ 子树 + MANIFEST）；**Phase F 仍
-      IN PROGRESS、未 CLOSED**）。
-- [ ] NEXT：**Phase-F final consistency candidate review**（Architect + fresh independent
-      final review → P0–P3；通过后方可达成 release gate `APPROVE V1.7.0 RELEASE
-      CANDIDATE`；版本元数据 1.6.0 → 1.7.x bump 属其后显式 release-packaging 步骤，见
-      known-limitations；不自行开始）。
+- [x] Phase-F final consistency gate + final closure — **PHASE F — APPROVED / CLOSED /
+      FROZEN**（approved candidate HEAD `aaa0c801e334e0e5c684dd104de3dcfd555e0d5f`
+      `test: execute v1.7 Phase F final consistency gate`，parent
+      `9097b4a0fe12aee5659bc1b9542ed478da4ec321`；Architect **APPROVE V1.7.0 RELEASE
+      CANDIDATE — ARCHITECT FINAL RELEASE GATE** + fresh independent **APPROVE V1.7.0
+      RELEASE CANDIDATE**（Qwen3.8 Flash，strict read-only session），P0/P1/P2 = none；
+      §7.1/§7.2/§7.3 PASS、**§7.4 — FINAL INDEPENDENT REVIEW — PASS**；F1–F5 收敛矩阵与
+      12 场景矩阵全部 PASS、W-DH-2 gate 回归保持；fresh：focused 11/11、app JVM 1333/0、
+      experience-core 171/0、wear 90/0、Android 358/0/5 assume-gated skip、debug builds
+      SUCCESSFUL；evidence 212 files / MANIFEST 211/211 / blob 212/212；closure packet
+      `review-packets/v17-phase-f-final-closure.txt`；**Phase A–F 全部 CLOSED/FROZEN**，
+      未经重开评审不得改 Phase-F 语义）。
+- [ ] NEXT：**explicit v1.7.0 release-packaging / version-metadata 步骤**（单独授权后执行：
+      versionName/versionCode → v1.7.0 兼容值并更新/移除临时 1.6.0 校验；release signing
+      验证；release artifacts；正式 release/tag 流程。版本元数据当前保持 1.6.0 是 Phase F
+      的正确状态）。release gate `APPROVE V1.7.0 RELEASE CANDIDATE` 已批准；**v1.7.0 尚未
+      release**（版本 bump / signing / 产物 / tag / GitHub release 均未执行）；不自行开始。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
