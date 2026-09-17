@@ -222,17 +222,21 @@
       `50e6019deed6a5a68bac049d384cad172fe2beeb`；因打包后真机发现 History 日历对齐缺陷而废弃；
       旧 APK（Phone `8d8150c1…` / Wear `c4cd78e1…`）不得发布；其证据 root
       `docs/evolune/v1.7.1/evidence/release-packaging/` 保持历史冻结）。
-- [x] v1.7.1 release packaging R2 — **CANDIDATE BUILT / REVIEW PENDING**
-      （packaging commit `build: repackage v1.7.1 release candidate`，parent
-      `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；version metadata `1.7.1 / 101070100 /
+- [x] v1.7.1 release packaging R2 — **RELEASE PACKAGING R2 — APPROVED / READY FOR
+      RELEASE**（packaging commit `build: repackage v1.7.1 release candidate` @
+      `d51d72929a95ec39cbde07d6f99d6a41056a5853`，parent
+      `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；independent R2 review **APPROVE
+      V1.7.1 RELEASE PACKAGING R2**，P0/P1/P2 = none；version metadata `1.7.1 / 101070100 /
       1101070100` VERIFIED（无二次 bump）；fresh debug + signed release（R8）+ apksigner v2
       验签（release 证书连续 `b9b6b955…`）+ aapt2 内嵌元数据 + install/launch smoke（含
       Phone release 窄范围 History 日历冒烟：模拟器 + 物理 Pixel 11 Pro）+ fresh JVM
-      （1343/171/90 全绿）；新 APK：Phone `e34d6749…` / Wear `96ae56bc…`；evidence
-      `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；**tag NOT CREATED / release NOT
-      PUBLISHED**）。
-- [ ] NEXT：**v1.7.1 release-packaging R2 review**（通过后进入正式 release/tag 流程——tag、
-      GitHub Release 与分发发布另行单独授权；不自行开始）。
+      （1343/171/90 全绿）；authoritative APK：Phone `e34d6749…`（6,294,960 B）/ Wear
+      `96ae56bc…`（2,604,764 B）；evidence
+      `docs/evolune/v1.7.1/evidence/release-packaging-r2/`；release notes
+      `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`）。
+- [ ] NEXT：**final v1.7.1 release**（annotated tag `v1.7.1` @ 本 docs 提交 + GitHub Release，
+      使用已批准的 R2 APK 字节；release 完成后的“已发布”状态同步按仓库惯例在后续 docs pass
+      进行）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

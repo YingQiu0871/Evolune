@@ -276,14 +276,17 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.1 · release packaging R1（首个候选）— SUPERSEDED / DO NOT RELEASE**（packaging
   commit @ `50e6019deed6a5a68bac049d384cad172fe2beeb`；因打包后真机发现日历对齐缺陷废弃；
   旧 APK 哈希不得发布；证据 root `docs/evolune/v1.7.1/evidence/release-packaging/` 历史冻结）。
-- **v1.7.1 · release packaging R2 — CANDIDATE BUILT / REVIEW PENDING**（packaging commit
-  `build: repackage v1.7.1 release candidate`，parent
-  `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；version metadata `1.7.1 / 101070100 /
+- **v1.7.1 · release packaging R2 — RELEASE PACKAGING R2 — APPROVED / READY FOR RELEASE**
+  （packaging commit `build: repackage v1.7.1 release candidate` @
+  `d51d72929a95ec39cbde07d6f99d6a41056a5853`，parent
+  `06eb217e65612e3ceb0f116ed0265fa1a8bbfcd9`；independent R2 review **APPROVE V1.7.1
+  RELEASE PACKAGING R2**，P0/P1/P2 = none；version metadata `1.7.1 / 101070100 /
   1101070100` VERIFIED（无二次 bump）；signed release APK（R8）+ apksigner v2 + aapt2 内嵌
-  元数据 + install/launch smoke（含 Phone release 窄范围 History 日历冒烟）+ fresh JVM
-  （1343/171/90 全绿）；新 APK：Phone `e34d6749…` / Wear `96ae56bc…`；**tag NOT CREATED /
-  release NOT PUBLISHED**）。
-  **NEXT:** v1.7.1 release-packaging R2 review（通过后进入正式 release/tag 流程，另行单独授权）。
+  元数据 + install/launch smoke + fresh JVM（1343/171/90 全绿）；authoritative APK：Phone
+  `e34d6749…` / Wear `96ae56bc…`；release notes
+  `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`）。
+  **NEXT:** final v1.7.1 release（annotated tag `v1.7.1` + GitHub Release，使用已批准 R2 APK
+  字节）。
 
 ## Historical and future milestones
 
