@@ -1,0 +1,12 @@
+v1.7.2 Slice F — signing certificate continuity
+===============================================
+
+Released v1.7.1 certificate SHA-256 (reference):
+  b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+v1.7.2 candidates (apksigner --print-certs):
+  Phone Evolune-Phone-v1.7.2.apk : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+  Wear  Evolune-Wear-v1.7.2.apk  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Result: EXACT same release certificate for both artifacts; no resigning, no
+debug fallback. Release signing continuity gate PASSES.

@@ -1,0 +1,18 @@
+v1.7.2 Slice F — version sanity
+===============================
+
+Monotonicity (hard release gate):
+  Phone 1.7.1 = 101070100 -> 1.7.2 = 101070200   (increased)
+  Wear  1.7.1 = 1101070100 -> 1.7.2 = 1101070200 (increased)
+No downgrade in either artifact.
+
+Package identity continuity vs released v1.7.1:
+  Phone : io.github.yingqiu0871.evolune (unchanged)
+  Wear  : io.github.yingqiu0871.evolune (unchanged; wear namespace unchanged)
+
+Signing continuity: exact v1.7.1 release certificate for both artifacts
+(signing-continuity.txt).
+
+validateEvoluneIdentityAndVersioning: BUILD SUCCESSFUL with the derived v1.7.2
+expectations (name 1.7.2; phone 101_070_200; wear 1_101_070_200; ranges and
+monotonicity checks intact).

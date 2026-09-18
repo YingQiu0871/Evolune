@@ -276,13 +276,18 @@
       restore expectations with canonical theme state` @ `678b840`；evidence correction @
       `61cd190`；全量 AVD 仪器 71 类/386/0（5 个既有条件跳过已如实披露）；evidence
       `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
-- [x] v1.7.2 Slice E（全量回归 + 真实设备验收）— **ACCEPTANCE COMPLETE / REVIEW PENDING**
-      （物理 Pixel 11 Pro：v1.7.1→候选 DYNAMIC 与 LEGACY_BUILTIN 两个就地升级案例通过
-      （兼容行/迁移/状态保留）；Settings 走查、8 预设、ThemeMode 矩阵、History（含推断项）、
-      备份恢复沙盒、导航、进程重建均通过；物理定向仪器 55/55/0；logcat 无 app FATAL/ANR；
-      版本保持 1.7.1；本回合产品 delta 为零；evidence
-      `docs/evolune/v1.7.2/evidence/slice-e/`）。
-- [ ] NEXT：**v1.7.2 Slice E final review**（通过后进入 Slice F：文档/状态 + 打包准备）。
+- [x] v1.7.2 Slice E（全量回归 + 真实设备验收）— **CLOSED / FROZEN**（物理 Pixel 11 Pro：
+      v1.7.1→候选 DYNAMIC 与 LEGACY_BUILTIN 两个就地升级案例通过；Settings 走查、8 预设、
+      ThemeMode 矩阵、History（含推断项）、备份恢复沙盒、导航、进程重建均通过；物理定向仪器
+      55/55/0；logcat 无 app FATAL/ANR；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
+- [x] v1.7.2 Slice F（版本 bump + 发布打包候选）— **PACKAGING CANDIDATE / REVIEW PENDING**
+      （`chore(release): prepare v1.7.2 packaging`；版本公式证明：1.7.2 / Phone 101070200 /
+      Wear 1101070200；clean release 构建 Phone+Wear 成功；证书与 v1.7.1 完全一致
+      `b9b6b955…`；APK 资产在 `D:\Evolune-Workspace\release-candidates\v1.7.2\` +
+      SHA256SUMS（2/2 校验）；Phone AVD smoke + Wear AVD smoke 均通过；打包 sanity JVM
+      147/1387/0；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+- [ ] NEXT：**v1.7.2 Slice F packaging review**（通过后方可另行授权 tag/publish；当前
+      **NOT TAGGED / NOT PUBLISHED**）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

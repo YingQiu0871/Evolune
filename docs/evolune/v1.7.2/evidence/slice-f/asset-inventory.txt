@@ -1,0 +1,7 @@
+v1.7.2 Slice F — release-candidate directory inventory
+Path: D:\Evolune-Workspace\release-candidates\v1.7.2\
+
+Evolune-Phone-v1.7.2.apk  6313112 bytes  sha256=dcccbeeee2a6971bf35c0afecdc3c02b701fd2adf71345b2181eb184756b2549
+Evolune-Wear-v1.7.2.apk  2604764 bytes  sha256=5ea4c5a747ce6e1177cadc618822e7bfb956d6d1d971f646fcda85d38ca42d67
+RELEASE_BODY-v1.7.2.md  1145 bytes  sha256=16518b8ffdd49b7f3bd306b50d099d1677fa2d78f5d782a997243b5b89dd3871
+SHA256SUMS.txt  181 bytes  sha256=6fcd07061e77ee5b6cddd3164a1ed6e2893c623f7bb751f684512955ba4fb9b6

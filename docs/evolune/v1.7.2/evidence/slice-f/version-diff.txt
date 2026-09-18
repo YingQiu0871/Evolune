@@ -1,0 +1,21 @@
+v1.7.2 Slice F — version diff
+=============================
+
+File: build.gradle.kts (the only substantive change in this slice)
+
+  -val evoluneVersionName by extra("1.7.1")
+  +val evoluneVersionName by extra("1.7.2")
+
+  -val evoluneVersionPatch = 1
+  +val evoluneVersionPatch = 2
+
+  -        check(evoluneVersionName == "1.7.1")
+  +        check(evoluneVersionName == "1.7.2")
+
+  -        check(phoneCode == 101_070_100)
+  -        check(wearCode == 1_101_070_100)
+  +        check(phoneCode == 101_070_200)
+  +        check(wearCode == 1_101_070_200)
+
+Phone/Wear codes are DERIVED by the existing formula (no duplicated constants).
+No dependency, SDK, applicationId, signing or other Gradle setting changed.

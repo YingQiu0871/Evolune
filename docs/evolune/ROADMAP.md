@@ -305,11 +305,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `50b20e8…`；evidence `docs/evolune/v1.7.2/evidence/slice-d/`）。
 - **v1.7.2 · Slice E-R1（过期测试期望修正）— CLOSED / FROZEN**（`678b840` + `61cd190`；
   全量 AVD 仪器 386/0/0/5；evidence `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
-- **v1.7.2 · Slice E（全量回归 + 真实设备验收）— ACCEPTANCE COMPLETE / REVIEW PENDING**
-  （物理 Pixel 11 Pro：两个就地升级案例通过；Settings/8 预设/ThemeMode 矩阵/History/备份
-  沙盒/导航/重建通过；物理定向仪器 55/55/0；logcat 干净；版本保持 1.7.1；产品 delta 为零；
-  evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
-  **NEXT:** v1.7.2 Slice E final review（通过后进入 Slice F）。
+- **v1.7.2 · Slice E（全量回归 + 真实设备验收）— CLOSED / FROZEN**（物理 Pixel 11 Pro：
+  两个就地升级案例 + Settings/8 预设/矩阵/History/备份沙盒/导航/重建通过；物理定向仪器
+  55/55/0；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
+- **v1.7.2 · Slice F（版本 bump + 发布打包候选）— PACKAGING CANDIDATE / REVIEW PENDING**
+  （版本 1.7.2 / Phone 101070200 / Wear 1101070200；clean release 构建成功；证书与 v1.7.1
+  一致 `b9b6b955…`；release-candidates 资产 + SHA256SUMS 2/2；Phone/Wear AVD smoke 通过；
+  evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** Slice F packaging review。
 
 ## Historical and future milestones
 

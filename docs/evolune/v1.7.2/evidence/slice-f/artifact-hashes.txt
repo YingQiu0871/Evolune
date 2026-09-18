@@ -1,0 +1,23 @@
+v1.7.2 Slice F — artifact hashes (release-candidate directory)
+==============================================================
+
+Directory (outside the repository):
+  D:\Evolune-Workspace\release-candidates\v1.7.2\
+
+Assets:
+  Evolune-Phone-v1.7.2.apk
+    size    : 6,313,112 bytes
+    SHA-256 : dcccbeeee2a6971bf35c0afecdc3c02b701fd2adf71345b2181eb184756b2549
+  Evolune-Wear-v1.7.2.apk
+    size    : 2,604,764 bytes
+    SHA-256 : 5ea4c5a747ce6e1177cadc618822e7bfb956d6d1d971f646fcda85d38ca42d67
+  SHA256SUMS.txt
+    SHA-256 : 6fcd07061e77ee5b6cddd3164a1ed6e2893c623f7bb751f684512955ba4fb9b6
+
+Source binding: both APKs were produced by the clean release build from the
+version-bump working tree that is committed as the packaging HEAD (worktree
+clean afterwards; all build inputs byte-equivalent). The copies in the
+release-candidate directory were verified equal to the build outputs by SHA-256
+and were not rebuilt or replaced afterwards.
+
+APKs are NOT committed into git.

@@ -1,0 +1,9 @@
+v1.7.2 Slice F — identity
+=========================
+
+Repository: D:\Evolune-Workspace\worktrees\Evolune-v1.7
+Branch: feature/v1.7.2-settings-theme-history
+Baseline/approved acceptance HEAD: 3c06beef22810db9807c279bdfa46aee0ede88fd
+Packaging commit subject: chore(release): prepare v1.7.2 packaging
+Predecessor release: v1.7.1 @ 746fc0a970bf0dfb3735c9225ce662e9511514ae
+No v1.7.2 tag or GitHub release exists; this round does not create one.

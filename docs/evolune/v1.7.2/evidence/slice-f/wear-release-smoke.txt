@@ -1,0 +1,18 @@
+v1.7.2 Slice F — Wear release smoke
+===================================
+
+Environment: Wear_OS_Large_Round AVD (emulator-5556, Android 17), started
+headless for this smoke and shut down afterwards.
+
+Steps and results:
+  1. adb install -r Evolune-Wear-v1.7.2.apk -> Success
+  2. dumpsys package io.github.yingqiu0871.evolune
+       versionName=1.7.2  versionCode=1101070200  minSdk=30 targetSdk=36
+  3. launch io.github.yingqiu0871.evolune.wear.WearAppActivity -> focused
+  4. screenshot shows the real Wear surface ("Evolune / 未连接手机，显示上次数据 /
+     估算浓度暂不可用 / 等待手机端数据") — no crash
+  5. logcat: no app-correlated FATAL EXCEPTION / ANR
+
+screenshots/wear-release-launch.png
+No Wear physical hardware limitation applies to this round: a Wear emulator was
+readily available and the signed release APK was smoke-launched successfully.

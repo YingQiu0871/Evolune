@@ -1,0 +1,23 @@
+v1.7.2 Slice F — Phone release smoke
+====================================
+
+Environment: Pixel_7 AVD API 35 (emulator-5554) — disposable test environment.
+The user's real release installation on the Pixel 11 Pro was NOT touched
+(the physical functional acceptance is frozen; the release candidate was never
+installed there).
+
+Steps and results:
+  1. adb install -r Evolune-Phone-v1.7.2.apk -> Success
+  2. dumpsys package io.github.yingqiu0871.evolune
+       versionName=1.7.2  versionCode=101070200  minSdk=31 targetSdk=36
+  3. launch MainActivity -> focused (no crash)
+  4. release onboarding completed through the real UI (2 steps)
+  5. Home reached; Settings opened -> flattened page renders
+  6. scrolled to 配色 -> source rows + exactly 8 preset tiles visible
+     (screenshots/phone-release-settings.png, phone-release-palette.png,
+      phone-release-settings-scroll.png)
+  7. History opened (22 nodes) -> screenshots/phone-release-history.png
+  8. back navigation works; logcat: no app-correlated FATAL EXCEPTION / ANR
+
+Artifact identity: parses, signed with the release certificate (signing
+continuity verified), package/version metadata correct.

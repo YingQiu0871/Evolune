@@ -355,11 +355,15 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `docs/evolune/v1.7.2/evidence/slice-d/`）。
   - v1.7.2 Slice E-R1（过期测试期望修正）— **CLOSED / FROZEN**（`678b840` + 证据更正
     `61cd190`；全量 AVD 仪器 386/0/0/5；evidence `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
-  - v1.7.2 Slice E（全量回归 + 真实设备验收）— **ACCEPTANCE COMPLETE / REVIEW PENDING**
-    （物理 Pixel 11 Pro：两个就地升级案例（DYNAMIC / LEGACY_BUILTIN）通过；Settings/8 预设/
-    ThemeMode 矩阵/History/备份沙盒/导航/重建通过；物理定向仪器 55/55/0；logcat 干净；版本
-    保持 1.7.1；产品 delta 为零；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
-  - **NEXT:** **v1.7.2 Slice E final review**（通过后进入 Slice F）。
+  - v1.7.2 Slice E（全量回归 + 真实设备验收）— **CLOSED / FROZEN**（物理 Pixel 11 Pro：
+    两个就地升级案例 + Settings/8 预设/矩阵/History/备份沙盒/导航/重建通过；物理定向仪器
+    55/55/0；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
+  - v1.7.2 Slice F（版本 bump + 发布打包候选）— **PACKAGING CANDIDATE / REVIEW PENDING**
+    （版本 1.7.2 / Phone 101070200 / Wear 1101070200；clean release 构建成功；证书与 v1.7.1
+    一致 `b9b6b955…`；release-candidates 资产 + SHA256SUMS 2/2；Phone/Wear AVD smoke 通过；
+    打包 sanity JVM 147/1387/0；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+  - **Release: NOT TAGGED / NOT PUBLISHED.**
+  - **NEXT:** **v1.7.2 Slice F packaging review**（通过后方可另行授权 tag/publish）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

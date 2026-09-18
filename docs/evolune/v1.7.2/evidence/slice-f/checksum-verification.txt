@@ -1,0 +1,14 @@
+v1.7.2 Slice F — checksum verification
+======================================
+
+SHA256SUMS.txt content (two spaces between hash and filename, lowercase hex):
+
+dcccbeeee2a6971bf35c0afecdc3c02b701fd2adf71345b2181eb184756b2549  Evolune-Phone-v1.7.2.apk
+5ea4c5a747ce6e1177cadc618822e7bfb956d6d1d971f646fcda85d38ca42d67  Evolune-Wear-v1.7.2.apk
+
+Independent verification (recompute each file hash and compare to the listing):
+  Evolune-Phone-v1.7.2.apk : match
+  Evolune-Wear-v1.7.2.apk  : match
+  verified = 2/2
+
+SHA256SUMS.txt is not listed inside itself (by design).

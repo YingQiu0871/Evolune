@@ -1,0 +1,23 @@
+v1.7.2 Slice F — test summary
+=============================
+
+Packaging-relevant fresh gates (no full acceptance rerun, per scope):
+
+  Release builds
+    .\gradlew.bat :app:clean :wear:clean :app:assembleRelease :wear:assembleRelease
+    -> BUILD SUCCESSFUL in 1m 39s (97 tasks); logs/release-build.log
+    (Phone + Wear release APKs produced from the version-bump tree)
+
+  Version/identity policy
+    .\gradlew.bat validateEvoluneIdentityAndVersioning -> BUILD SUCCESSFUL
+
+  Packaging sanity JVM
+    .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+    -> suites=147 tests=1387 failures=0 errors=0 skipped=0
+    logs/jvm-packaging-sanity.log (no version-dependent test breakage)
+
+  Signed-artifact verification
+    aapt2/apkanalyzer metadata + apksigner certificate checks (see metadata and
+    signing-continuity evidence) + file SHA-256 checksums (2/2)
+
+Frozen Slice-E acceptance evidence was NOT rewritten or re-run.

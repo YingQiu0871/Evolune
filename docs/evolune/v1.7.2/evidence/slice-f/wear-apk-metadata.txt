@@ -1,0 +1,23 @@
+v1.7.2 Slice F — Wear release APK metadata
+==========================================
+
+Artifact: wear/build/outputs/apk/release/wear-release.apk
+(read independently with aapt2 build-tools 36.1.0)
+
+  package      : io.github.yingqiu0871.evolune
+  versionName  : 1.7.2
+  versionCode  : 1101070200
+  minSdk       : 30
+  targetSdk    : 36
+  compileSdk   : 36
+  file size    : 2,604,764 bytes
+  SHA-256      : 5ea4c5a747ce6e1177cadc618822e7bfb956d6d1d971f646fcda85d38ca42d67
+
+Signing (apksigner verify --print-certs):
+  Signer #1 DN: CN=Evolune Release, OU=Evolune, O=Evolune, L=Evolune, ST=Evolune, C=FR
+  Signer #1 certificate SHA-256:
+    b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Package id continuity: released v1.7.1 Wear release also used
+io.github.yingqiu0871.evolune (repository design: shared applicationId with the
+wear namespace io.github.yingqiu0871.evolune.wear).

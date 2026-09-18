@@ -1,0 +1,32 @@
+v1.7.2 Slice F — version formula proof
+======================================
+
+Authoritative declarations: root build.gradle.kts
+
+  val evoluneVersionName by extra("1.7.1")        (pre-bump)
+  val evoluneVersionMajor = 1
+  val evoluneVersionMinor = 7
+  val evoluneVersionPatch = 1
+  val evoluneVersionRevision = 0
+  ordinal = major * 1_000_000 + minor * 10_000 + patch * 100 + revision
+  Phone   = 100_000_000 + ordinal
+  Wear    = 1_100_000_000 + ordinal
+
+v1.7.1 (frozen, matches the released artifact):
+  ordinal = 1*1_000_000 + 7*10_000 + 1*100 + 0 = 1_070_100
+  Phone   = 100_000_000 + 1_070_100 = 101_070_100   (released 101070100)
+  Wear    = 1_100_000_000 + 1_070_100 = 1_101_070_100 (released 1101070100)
+
+v1.7.2 (derived mechanically):
+  patch = 2 -> ordinal = 1*1_000_000 + 7*10_000 + 2*100 + 0 = 1_070_200
+  Phone   = 100_000_000 + 1_070_200 = 101_070_200
+  Wear    = 1_100_000_000 + 1_070_200 = 1_101_070_200
+
+The validateEvoluneIdentityAndVersioning task encodes the same policy checks
+(version name, phone/wear ranges, monotonicity, exact expected codes); it was
+updated to the derived v1.7.2 values and passes:
+
+  .\gradlew.bat validateEvoluneIdentityAndVersioning -> BUILD SUCCESSFUL
+
+The expected numbers in the task prompt were accepted ONLY because this
+repository formula derives them independently.

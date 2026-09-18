@@ -1,0 +1,21 @@
+v1.7.2 Slice F — build environment
+==================================
+
+Git HEAD (pre-commit packaging tree): 3c06beef22810db9807c279bdfa46aee0ede88fd
+Branch: feature/v1.7.2-settings-theme-history
+JDK: Temurin OpenJDK 17.0.19+10
+Gradle: 9.2.1 (wrapper)
+Android Gradle Plugin: 9.0.1 (gradle/libs.versions.toml)
+compileSdk / targetSdk: 36 (Android 16); minSdk: Phone 31, Wear 30
+Build tools used for verification: 36.1.0 (aapt2, apksigner)
+OS: Windows (win32, PowerShell 5.1)
+Build invocation:
+  .\gradlew.bat :app:clean :wear:clean :app:assembleRelease :wear:assembleRelease
+Build result: BUILD SUCCESSFUL in 1m 39s (97 tasks: 91 executed, 6 up-to-date)
+Log: logs/release-build.log
+
+Release signing procedure: the repository's existing environment-variable
+procedure (EVOLUNE_KEYSTORE_PATH / EVOLUNE_KEYSTORE_PASSWORD / EVOLUNE_KEY_ALIAS /
+EVOLUNE_KEY_PASSWORD). Secret values and key bytes are not recorded; only
+certificate fingerprints are reported (signing-continuity.txt).
+No toolchain upgrade was performed.

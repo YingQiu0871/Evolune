@@ -1,0 +1,18 @@
+v1.7.2 Slice F — frozen product audit
+=====================================
+
+git diff 3c06beef22810db9807c279bdfa46aee0ede88fd (working tree, pre-commit):
+
+  app/src/main          : zero
+  app/src/test          : zero
+  app/src/androidTest   : zero
+  app/src/main/res      : zero
+  experience-core       : zero
+  wear/src              : zero
+  app/schemas           : zero
+  gradle/libs.versions.toml / gradle.properties : zero
+
+The only substantive delta is the authoritative version declaration file
+build.gradle.kts (version name + patch + the validate task's expected codes).
+No behavior, resource, test, schema, backup, theme, History, Widget, PK,
+Health Connect, Drive or navigation change.

@@ -1,0 +1,27 @@
+v1.7.2 Slice F — release notes draft
+====================================
+
+Evolune v1.7.2
+
+What's changed
+- Settings 扁平化：常用设置（基础数据、外观与格式、同步与备份、更新）直接在主设置页内联，
+  指南 / 隐私与权限 / 功能教程 / 关于 仍为独立入口。
+- App 配色：跟随壁纸（Dynamic）之外新增 8 个内置预设配色（蓝 / 紫罗兰 / 樱花 / 薄荷 /
+  青绿 / 琥珀 / 中性 / 薰衣草），选择即时生效。
+- 兼容性：曾使用旧版内置主题的用户升级后外观保持不变（通过 LEGACY_BUILTIN 兼容状态），
+  首次主动选择任一预设后才迁移。
+- 备份：主题状态纳入严格 v2 备份 schema，并保持 v1 备份恢复兼容。
+- History：移除推断匹配的解释性句子，匹配行为不变。
+
+Compatibility
+- v1.7.1 用户可直接升级，无需重置设置；旧的动态/内置主题选择会被正确保留。
+- 本版本没有 Room 数据库 schema 迁移。
+- 本版本没有新的 Wear 功能、PK 功能或医学/科学行为变化。
+
+Artifacts
+- Evolune-Phone-v1.7.2.apk
+- Evolune-Wear-v1.7.2.apk
+- SHA256SUMS.txt
+
+(NOT PUBLISHED — draft only. GitHub release body kept outside the repository at
+D:\Evolune-Workspace\release-candidates\v1.7.2\RELEASE_BODY-v1.7.2.md)
