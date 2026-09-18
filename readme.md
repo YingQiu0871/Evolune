@@ -1,99 +1,212 @@
 # Evolune（月序）
 
-Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药代动力学趋势工具。
-
-Evolune is a local-first medication logging, reminder, and pharmacokinetic trend app for Android and Wear OS.
-
-> Evolune 仅用于学习、研究和个人记录，不构成诊断、处方或治疗建议。
->
-> Evolune is intended only for learning, research, and personal record-keeping. It does not provide diagnoses, prescriptions, or treatment advice.
-
 [![Build Debug APK](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml/badge.svg?branch=main)](https://github.com/YingQiu0871/Evolune/actions/workflows/apkdebug.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 发布与开发基线 / Release and Development Baseline
+## 中文
 
-当前公开稳定版本是 **v1.6.0**，发布于 2026-09-10；`v1.5.0` 是上一版已封存的稳定发布。
+### 项目简介
 
-The current public stable release is **v1.6.0**, published on September 10, 2026. `v1.5.0` is the previous finalized stable release.
+Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药代动力学（PK）趋势工具。Phone 端保存用药事实数据，Widget 与 Wear 端使用派生状态或缓存；应用同时提供历史记录、提醒、备份、健康数据读取和多端同步等能力。
 
-[下载 Evolune v1.6.0 / Download Evolune v1.6.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
+> **医疗免责声明：** Evolune 仅用于学习、研究和个人记录，不构成诊断、处方、剂量调整或治疗建议。PK 数值为模型估算结果，不应替代医生、药师或其他专业医疗人员的判断。
 
-Release 提供经过签名的 Phone APK 与 Wear APK。GitHub Actions 中的 Debug APK 仅供开发和测试，不是正式版本的主要下载渠道；Debug 与 Release 的应用 ID、签名和本地数据相互独立。
+### 当前版本
 
-The release includes signed Phone and Wear APKs. Debug APKs from GitHub Actions are intended for development and testing, rather than stable distribution. Debug and Release builds use separate application IDs, signatures, and local data.
+当前公开稳定版本为 **v1.7.2**。
 
-当前 `main` 对应已发布的 **v1.6.0**。v1.6 Widget Gallery 已完成独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收。具体证据范围与局限见[最终发布门禁](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md)。
+- [下载 Evolune v1.7.2](https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.2)
+- [v1.7.2 发布说明](docs/evolune/v1.7.2/V172_RELEASE_NOTES.md)
+- Phone：**1.7.2 / versionCode 101070200**
+- Wear：**1.7.2 / versionCode 1101070200**
 
-The current `main` reflects the released **v1.6.0**. The v1.6 Widget Gallery completed independent review, in-place installation on physical Phone/Wear devices, and the project owner's acceptance on a real watch. See the [final release gate](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) for the evidence scope and limitations.
+正式 Release 提供经过发布证书签名的 Phone APK 与 Wear APK，并附带 `SHA256SUMS.txt`。GitHub Actions 生成的 Debug APK 仅用于开发和测试；Debug 与 Release 使用不同的应用 ID、签名和本地数据空间，不能相互替代。
 
-## 已发布能力 / Shipped Features
+### v1.7.2 主要更新
 
-| 中文 | English |
-| --- | --- |
-| 用药方案、用药记录、历史、提醒与通知签到 | Medication plans, dose records, history, reminders, and dose confirmation from notifications |
-| JSON 导入导出与 PK 浓度趋势展示 | JSON import/export and PK concentration trends |
-| 可选的 Health Connect 前台体重读取，以及用户主动授权的 Google Drive 加密备份/恢复（v1.2 起） | Optional foreground weight reads from Health Connect and explicitly authorized encrypted backup/restore through Google Drive, available since v1.2 |
-| Room v3、稳定计划槽位及 Repository 数据边界 | Room v3, stable schedule slots, and Repository data boundaries |
-| 四个独立 Phone Widget：今日计划、下一次服药、当前 E2、E2 趋势；支持响应式尺寸、滚动计划、Material You 与预制配色 | Four separate Phone widgets: Today's Plan, Next Dose, Current E2, and E2 Trend; responsive sizing, a scrollable plan list, Material You, and preset palettes |
-| Wear App、下一次服药/今日计划/当前 E2 三个新 Tile、兼容 E2 曲线 Tile 及三个 Complication | A Wear App, three new Tiles for Next Dose / Today's Plan / Current E2, the compatible legacy E2 curve Tile, and three Complications |
-| Phone/Wear Data Layer 同步、幂等确认、精确撤销及 occurrence 级“跳过本次”提醒抑制 | Phone/Wear Data Layer synchronization, idempotent confirmation, precise undo, and “Skip this dose” reminder suppression for a specific scheduled occurrence |
-| 自动更新检查 | Automatic update checks |
+- **设置页扁平化**：基础数据、外观与格式、同步与备份、更新四大常用区块直接显示在设置主页。
+- **应用配色**：支持跟随壁纸/系统的 Dynamic 配色，以及蓝、紫罗兰、樱花、薄荷、青绿、琥珀、中性、薰衣草 8 个预设配色。
+- **旧版主题兼容**：v1.7.1 的旧“内置配色”会在升级后保持原有外观，直到用户主动选择新的预设配色。
+- **备份主题状态**：主题状态纳入严格的备份 schema v2，同时保留对旧 v1 备份的恢复兼容。
+- **历史记录展示优化**：移除“根据记录上下文推断匹配”的解释性文案，但匹配判定与用药记录逻辑不变。
 
-当前 Phone Room/domain/repository 仍是用药事实来源；Widget 和 Wear 只使用派生状态或缓存。Health Connect 仅在前台按授权读取体重，不写入用药数据；Google Drive 提供手动加密备份/恢复，不提供后台或实时云同步。Android Auto Backup/设备迁移的私有数据排除规则与应用内主动备份是不同机制。
+### 已发布功能
 
-Phone Room/domain/repository remains the source of truth for medication data; widgets and Wear use only derived state or caches. Health Connect reads authorized weight data in the foreground and does not write medication data. Google Drive provides manual encrypted backup/restore, without background or real-time cloud synchronization. Excluding private data from Android Auto Backup/device transfer is separate from user-initiated in-app backups.
+- 用药方案、用药记录、历史记录、提醒与通知签到。
+- 雌二醇 PK 浓度与趋势展示。
+- JSON 导入导出。
+- 可选的 Health Connect 前台体重读取。
+- 用户主动授权的 Google Drive 加密备份与恢复。
+- Room v3、稳定计划槽位和 Repository 数据边界。
+- 4 个独立 Phone Widget：
+  - 今日计划
+  - 下一次服药
+  - 当前 E2
+  - E2 趋势
+- Phone Widget 支持响应式尺寸、滚动计划、Material You 和预设配色。
+- Wear OS App。
+- Wear Tile：
+  - 下一次服药
+  - 今日计划
+  - 当前 E2
+  - 兼容的 E2 曲线 Tile
+- 3 个 Wear Complication。
+- Phone/Wear Data Layer 同步。
+- 幂等服药确认、精确撤销，以及 occurrence 级“跳过本次”提醒抑制。
+- 自动更新检查。
+- 深色、浅色、跟随系统与 AMOLED 显示模式。
 
-已安装 v1.0 Wear APK 的用户需要按 [Wear v1.1 身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md) 卸载旧 Wear 包并安装 v1.1+ 主线身份；Phone 应用及其 Room 数据不受影响。
+### 数据与隐私边界
 
-Users with the v1.0 Wear APK need to follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
+Phone 端 Room/domain/repository 是用药事实数据的主要来源；Widget 与 Wear 仅消费派生状态或缓存。
 
-下一候选里程碑是 **v1.7 — 可选 CPA PK 曲线**；拟默认关闭，并须先完成独立科学与来源审查。
+Health Connect 仅在用户授权后于前台读取体重，不写入用药数据。Google Drive 提供用户主动触发的加密备份/恢复，不提供后台实时云同步。
 
-The next candidate milestone is **v1.7 — Optional CPA PK Curve**. It is planned to be disabled by default and requires independent scientific and provenance review before implementation.
+Android Auto Backup / 设备迁移中的私有数据排除规则，与应用内主动备份属于不同机制。
 
-完整的产品说明、构建步骤、隐私边界和致谢见[项目详细说明](docs/evolune/README.md)。当前发布与实现事实以[当前状态](docs/evolune/CURRENT_STATUS.md)为准。
+### Wear v1.0 身份迁移
 
-See the [detailed project README](docs/evolune/README.md) for the product description, build instructions, privacy boundaries, and acknowledgments. [Current Status](docs/evolune/CURRENT_STATUS.md) is the canonical reference for the current release and implementation.
+曾安装 v1.0 Wear APK 的用户，需要按照 [Wear v1.1 身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md) 卸载旧 Wear 包，并安装 v1.1 及之后使用统一应用身份的 Wear 版本。Phone 应用及其 Room 数据不受影响。
 
-## 文档 / Documentation
+### 文档
 
-### 现行文档 / Current Documentation
+#### 现行文档
 
-- [当前状态 / Current Status](docs/evolune/CURRENT_STATUS.md)
-- [截至 v1.6 的版本回顾与文档盘点 / Version Review and Documentation Audit through v1.6](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)
-- [完整文档索引 / Complete Documentation Index](docs/evolune/DOCUMENTATION_INDEX.md)
-- [快速开始 / Quick Start](QUICK_START_GUIDE.md)
-- [项目详细说明 / Detailed Project README](docs/evolune/README.md)
-- [产品概览 / Product Overview](docs/evolune/PRODUCT_OVERVIEW.md)
-- [架构 / Architecture](docs/evolune/ARCHITECTURE.md)
-- [功能矩阵 / Feature Matrix](docs/evolune/FEATURE_MATRIX.md)
-- [路线图 / Roadmap](docs/evolune/ROADMAP.md)
-- [架构决策记录 / Architecture Decision Records](docs/evolune/DECISIONS.md)
+- [当前状态](docs/evolune/CURRENT_STATUS.md)
+- [完整文档索引](docs/evolune/DOCUMENTATION_INDEX.md)
+- [快速开始](QUICK_START_GUIDE.md)
+- [项目详细说明](docs/evolune/README.md)
+- [产品概览](docs/evolune/PRODUCT_OVERVIEW.md)
+- [架构](docs/evolune/ARCHITECTURE.md)
+- [功能矩阵](docs/evolune/FEATURE_MATRIX.md)
+- [路线图](docs/evolune/ROADMAP.md)
+- [架构决策记录](docs/evolune/DECISIONS.md)
+- [截至 v1.6 的版本回顾与文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)
 
-### 来源与许可记录 / Provenance and Licensing Records
+#### 来源与许可记录
 
-- [来源追踪记录 / Source Provenance](docs/SOURCE_PROVENANCE.md)
-- [版权与归属通知 / NOTICE](NOTICE)
-- [第三方许可证与通知 / Third-Party Licenses and Notices](THIRD_PARTY_NOTICES.md)
+- [来源追踪记录](docs/SOURCE_PROVENANCE.md)
+- [版权与归属通知](NOTICE)
+- [第三方许可证与通知](THIRD_PARTY_NOTICES.md)
 
-### 历史设计与证据 / Historical Design and Evidence
+#### 历史设计与证据
 
-- [v1 之前的迁移计划 / Pre-v1 Migration Plan](docs/evolune/MIGRATION_PLAN.md)
-- [第 0 阶段报告 / Phase 0 Report](docs/PHASE_0_REPORT.md)
-- [第 1 阶段报告 / Phase 1 Reports](docs/phase-reports/)
-- [外部审阅记录 / External Review Records](reviews/)
+- [v1 之前的迁移计划](docs/evolune/MIGRATION_PLAN.md)
+- [第 0 阶段报告](docs/PHASE_0_REPORT.md)
+- [第 1 阶段报告](docs/phase-reports/)
+- [外部审阅记录](reviews/)
 
-## 来源与许可证 / Provenance and License
+### 来源与许可证
 
 Evolune 是 [NaiveTomcat/HRTTracker](https://github.com/NaiveTomcat/HRTTracker) 的独立延续与大规模重构；直接上游的 MIT 许可和版权声明保留在 [LICENSE](LICENSE) 中。
 
-Evolune is an independent continuation and extensive refactoring of [NaiveTomcat/HRTTracker](https://github.com/NaiveTomcat/HRTTracker). The direct upstream's MIT license and copyright notice are preserved in [LICENSE](LICENSE).
+**PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 发布的 [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)。2026-08-14，原作者明确授权 Evolune 使用、复制、修改、移植、二次开发、分发修改后的源代码和编译后的应用，并将相应衍生代码按 MIT License 开源发布；授权仅覆盖作者本人拥有相关权利或有权授权的内容。
 
-**PK 实现来源：** 当前雌二醇药代动力学实现实质上派生自 LaoZhong-Mihari 发布的 [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test)。2026-08-14，原作者明确授权 Evolune 使用、复制、修改、移植、二次开发、分发修改后的源代码和编译后的应用，并将相应衍生代码按 MIT License 开源发布；授权仅覆盖作者本人拥有相关权利或有权授权的内容。项目继续保留来源及相关贡献者的归属、版权和许可说明。该授权不表示整个上游仓库自动变为 MIT，不表示作者代表第三方贡献者授予权利，也不表示上游仓库已经新增正式 `LICENSE` 文件。
-
-**PK implementation provenance:** The current estradiol pharmacokinetic implementation is substantially derived from [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test), published by LaoZhong-Mihari. On August 14, 2026, the original author explicitly authorized Evolune to use, copy, modify, port, further develop, and distribute the modified source code and compiled applications, and to release the corresponding derived code as open source under the MIT License. This authorization covers only content for which the author owns the relevant rights or is entitled to grant permission. The project continues to preserve provenance, contributor attribution, copyright, and licensing notices. This permission does not automatically place the entire upstream repository under MIT, grant rights on behalf of third-party contributors, or imply that a formal `LICENSE` file has been added upstream.
+项目继续保留来源及相关贡献者的归属、版权和许可说明。该授权不表示整个上游仓库自动变为 MIT，不表示作者代表第三方贡献者授予权利，也不表示上游仓库已经新增正式 `LICENSE` 文件。
 
 根 [MIT License](LICENSE) 适用于 Evolune 自有工作、按兼容条款继承的内容，以及上述明确授权范围内按 MIT 发布的相应衍生代码；它不将整个上游仓库或第三方贡献自动重新许可为 MIT。
+
+---
+
+## English
+
+### Overview
+
+Evolune is a local-first medication logging, reminder, and pharmacokinetic (PK) trend app for Android and Wear OS. The Phone app stores medication source-of-truth data, while widgets and Wear consume derived state or caches. Evolune also provides history, reminders, backup, authorized health-data reads, and cross-device synchronization.
+
+> **Medical disclaimer:** Evolune is intended only for learning, research, and personal record-keeping. It does not provide diagnoses, prescriptions, dose-adjustment advice, or treatment recommendations. PK values are model estimates and should not replace the judgment of a physician, pharmacist, or other qualified healthcare professional.
+
+### Current Release
+
+The current public stable release is **v1.7.2**.
+
+- [Download Evolune v1.7.2](https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.2)
+- [v1.7.2 Release Notes](docs/evolune/v1.7.2/V172_RELEASE_NOTES.md)
+- Phone: **1.7.2 / versionCode 101070200**
+- Wear: **1.7.2 / versionCode 1101070200**
+
+Official releases include signed Phone and Wear APKs together with `SHA256SUMS.txt`. Debug APKs generated by GitHub Actions are for development and testing only. Debug and Release builds use different application IDs, signatures, and local data spaces, and are not interchangeable.
+
+### What's New in v1.7.2
+
+- **Flattened Settings:** Basic data, Appearance & format, Sync & backup, and Updates are now shown directly on the main Settings page.
+- **App palettes:** Dynamic wallpaper/system colors plus eight presets: Blue, Violet, Sakura, Mint, Teal, Amber, Neutral, and Lavender.
+- **Legacy theme compatibility:** users upgrading from the old v1.7.1 built-in theme keep the same appearance until they explicitly select a new preset.
+- **Theme state in backups:** theme state is included in strict backup schema v2 while retaining restore compatibility with legacy v1 backups.
+- **Cleaner History presentation:** the explanatory inferred-match sentence was removed while match classification and medication-record behavior remain unchanged.
+
+### Shipped Features
+
+- Medication plans, dose records, history, reminders, and dose confirmation from notifications.
+- Estradiol PK concentration and trend views.
+- JSON import/export.
+- Optional foreground weight reads from Health Connect.
+- User-authorized encrypted backup and restore through Google Drive.
+- Room v3, stable schedule slots, and repository data boundaries.
+- Four standalone Phone widgets:
+  - Today's Plan
+  - Next Dose
+  - Current E2
+  - E2 Trend
+- Responsive Phone widgets with scrollable plans, Material You, and preset palettes.
+- Wear OS app.
+- Wear Tiles:
+  - Next Dose
+  - Today's Plan
+  - Current E2
+  - compatible legacy E2 curve Tile
+- Three Wear complications.
+- Phone/Wear Data Layer synchronization.
+- Idempotent dose confirmation, precise undo, and occurrence-level “Skip this dose” reminder suppression.
+- Automatic update checks.
+- System, Light, Dark, and AMOLED display modes.
+
+### Data and Privacy Boundaries
+
+The Phone Room/domain/repository layer is the primary source of truth for medication data. Widgets and Wear consume only derived state or caches.
+
+Health Connect reads authorized weight data only in the foreground and does not write medication data. Google Drive provides user-initiated encrypted backup and restore; it does not provide background or real-time cloud synchronization.
+
+Private-data exclusion rules for Android Auto Backup/device transfer are separate from user-initiated in-app backups.
+
+### Wear v1.0 Identity Migration
+
+Users who installed the v1.0 Wear APK should follow the [Wear v1.1 identity migration guide](docs/evolune/WEAR_V11_MIGRATION.md), uninstall the old Wear package, and install the shared application identity used by v1.1 and later. The Phone app and its Room data are unaffected.
+
+### Documentation
+
+#### Current Documentation
+
+- [Current Status](docs/evolune/CURRENT_STATUS.md)
+- [Complete Documentation Index](docs/evolune/DOCUMENTATION_INDEX.md)
+- [Quick Start](QUICK_START_GUIDE.md)
+- [Detailed Project README](docs/evolune/README.md)
+- [Product Overview](docs/evolune/PRODUCT_OVERVIEW.md)
+- [Architecture](docs/evolune/ARCHITECTURE.md)
+- [Feature Matrix](docs/evolune/FEATURE_MATRIX.md)
+- [Roadmap](docs/evolune/ROADMAP.md)
+- [Architecture Decision Records](docs/evolune/DECISIONS.md)
+- [Version Review and Documentation Audit through v1.6](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)
+
+#### Provenance and Licensing Records
+
+- [Source Provenance](docs/SOURCE_PROVENANCE.md)
+- [NOTICE](NOTICE)
+- [Third-Party Licenses and Notices](THIRD_PARTY_NOTICES.md)
+
+#### Historical Design and Evidence
+
+- [Pre-v1 Migration Plan](docs/evolune/MIGRATION_PLAN.md)
+- [Phase 0 Report](docs/PHASE_0_REPORT.md)
+- [Phase 1 Reports](docs/phase-reports/)
+- [External Review Records](reviews/)
+
+### Provenance and License
+
+Evolune is an independent continuation and extensive refactoring of [NaiveTomcat/HRTTracker](https://github.com/NaiveTomcat/HRTTracker). The direct upstream MIT license and copyright notice are preserved in [LICENSE](LICENSE).
+
+**PK implementation provenance:** the current estradiol pharmacokinetic implementation is substantially derived from [HRT-Recorder-PKcomponent-Test](https://github.com/LaoZhong-Mihari/HRT-Recorder-PKcomponent-Test), published by LaoZhong-Mihari. On August 14, 2026, the original author explicitly authorized Evolune to use, copy, modify, port, further develop, and distribute the modified source code and compiled applications, and to release the corresponding derived code as open source under the MIT License. This authorization covers only content for which the author owns the relevant rights or is entitled to grant permission.
+
+The project continues to preserve provenance, contributor attribution, copyright, and licensing notices. This permission does not automatically place the entire upstream repository under MIT, grant rights on behalf of third-party contributors, or imply that a formal `LICENSE` file has been added upstream.
 
 The root [MIT License](LICENSE) applies to Evolune's own work, content inherited under compatible terms, and the corresponding derived code released under MIT within the explicit authorization described above. It does not automatically relicense the entire upstream repository or third-party contributions under MIT.
