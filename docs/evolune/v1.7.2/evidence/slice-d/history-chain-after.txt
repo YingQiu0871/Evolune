@@ -1,0 +1,21 @@
+v1.7.2 Slice D — History chain AFTER
+====================================
+
+  history/HistoryPresentation.kt (matched entry)
+      // v1.7.2 Slice D: the inferred-match explanatory sentence is no longer displayed.
+      // The classification itself is unchanged and remains available through
+      // `isInferredMatch` (derived from the same provenance below).
+      noteRes = null,
+      ...
+      isInferredMatch = entry.matchProvenance != MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE
+
+  history/HistoryUiModels.kt — unchanged (generic noteRes slot retained)
+  ui/screens/HistoryScreen.kt — unchanged (still renders noteRes when non-null)
+
+  res/values/strings.xml + res/values-zh-rCN/strings.xml
+      history_note_inferred_match removed (zero live references; wording guard now
+      asserts absence by key).
+
+Exact production change: one branch -> null; no other logic, no other field, no other
+screen/state file touched. HistoryScreen keeps the generic note rendering for the other
+note kinds.

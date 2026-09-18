@@ -1,0 +1,284 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+index c9a0c6f..b042f4a 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+@@ -11,6 +11,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
+ import androidx.compose.ui.test.onAllNodesWithText
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.onNodeWithText
++import androidx.compose.ui.test.onRoot
++import androidx.compose.ui.test.captureToImage
++import androidx.compose.ui.graphics.asAndroidBitmap
+ import androidx.compose.ui.test.performClick
+ import androidx.compose.ui.test.performScrollToNode
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+@@ -73,6 +76,26 @@ class HistoryScreenTest {
+ 
+     private fun text(id: Int, vararg args: Any): String = context.getString(id, *args)
+ 
++    /** v1.7.2 Slice D: the removed inferred-match sentence must never appear again. */
++    private val removedInferredNoteText = "根据记录上下文推断匹配"
++
++    /** Captures the real rendered History surface (real ViewModel pipeline) for the evidence. */
++    private fun captureScreenshot(name: String) {
++        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
++        val values = android.content.ContentValues().apply {
++            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "$name.png")
++            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
++            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/slice-d")
++        }
++        val uri = context.contentResolver.insert(
++            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
++            values
++        ) ?: return
++        context.contentResolver.openOutputStream(uri)?.use { out ->
++            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
++        }
++    }
++
+     @Test
+     fun currentMonthRendersWithTitleWeekdaysAndTodaySelected() {
+         launch()
+@@ -210,14 +233,14 @@ class HistoryScreenTest {
+         composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 08:00").assertExists()
+         assertTrue(
+             composeRule
+-                .onAllNodesWithText(text(R.string.history_note_inferred_match))
++                .onAllNodesWithText(removedInferredNoteText)
+                 .fetchSemanticsNodes()
+                 .isEmpty()
+         )
+     }
+ 
+     @Test
+-    fun inferredMatchedCardCarriesAProvenanceNeutralAnnotation() {
++    fun inferredMatchedCardShowsTheRecordWithoutTheRemovedNote() {
+         launch { _, end ->
+             listOf(
+                 testDay(
+@@ -231,16 +254,21 @@ class HistoryScreenTest {
+         composeRule.waitForIdle()
+         scrollToEntryStatus()
+ 
++        // Slice D: the record itself is unchanged and still visible ...
+         composeRule.onNodeWithText(text(R.string.history_status_recorded)).assertExists()
+-        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
+-        // The wording must not claim a legacy origin.
++        composeRule.onNodeWithText(text(R.string.history_label_actual_time) + " 08:05").assertExists()
++        // ... while the inferred-match sentence is gone.
++        assertTrue(
++            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
++        )
+         assertTrue(
+             composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
+         )
++        captureScreenshot("01-inferred-entry-without-note")
+     }
+ 
+     @Test
+-    fun aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation() {
++    fun aModernQuickRecordMatchedByTheTimeWindowAlsoShowsNoAnnotation() {
+         // Production shape (A-04 §1.3): the entry comes from the real quick-record writer plus
+         // the real matcher/projection, not from a hand-set provenance.
+         val entry = quickRecordEntry()
+@@ -253,7 +281,12 @@ class HistoryScreenTest {
+         composeRule.waitForIdle()
+         scrollToEntryStatus()
+ 
+-        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
++        // Slice D: classification preserved (asserted above through the real pipeline), the
++        // explanatory sentence is absent.
++        composeRule.onNodeWithText(text(R.string.history_status_recorded)).assertExists()
++        assertTrue(
++            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
++        )
+         assertTrue(
+             composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
+         )
+@@ -333,7 +366,7 @@ class HistoryScreenTest {
+         composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 23:00")
+             .assertExists()
+         assertTrue(
+-            composeRule.onAllNodesWithText(text(R.string.history_note_inferred_match)).fetchSemanticsNodes().isEmpty()
++            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
+         )
+     }
+ 
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+index 7f3e2ea..8946f1f 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+@@ -121,13 +121,10 @@ object HistoryPresentation {
+                 zone = displayZone,
+                 needsFullDate = entry.occurrence.scheduledLocalDateTime.toLocalDate() != entry.displayDate
+             ),
+-            // Provenance-neutral wording: an inferred match is not necessarily legacy — a just
+-            // recorded quick entry (null slot) may also land in the time-window fallbacks.
+-            noteRes = if (entry.matchProvenance == MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE) {
+-                null
+-            } else {
+-                R.string.history_note_inferred_match
+-            },
++            // v1.7.2 Slice D: the inferred-match explanatory sentence is no longer displayed.
++            // The classification itself is unchanged and remains available through
++            // `isInferredMatch` (derived from the same provenance below).
++            noteRes = null,
+             secondaryNoteRes = dateNote(entry.displayDateProvenance),
+             sourceLabelRes = null,
+             isManualSource = false,
+diff --git a/app/src/main/res/values-zh-rCN/strings.xml b/app/src/main/res/values-zh-rCN/strings.xml
+index 866dd59..2044939 100644
+--- a/app/src/main/res/values-zh-rCN/strings.xml
++++ b/app/src/main/res/values-zh-rCN/strings.xml
+@@ -498,7 +498,6 @@
+     <string name="history_status_recorded_intake">已记录用药</string>
+     <string name="history_note_no_recorded_intake">在现有可用数据中未找到匹配的用药记录。</string>
+     <string name="history_note_not_necessarily_missed">这不一定意味着漏服。</string>
+-    <string name="history_note_inferred_match">根据记录上下文推断匹配</string>
+     <string name="history_note_current_zone_date">日期按当前时区显示</string>
+     <string name="history_note_plan_unavailable">方案信息不可用</string>
+     <string name="history_source_manual">手动</string>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 5337c60..15de32f 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -508,7 +508,6 @@
+     <string name="history_status_recorded_intake">已记录用药</string>
+     <string name="history_note_no_recorded_intake">在现有可用数据中未找到匹配的用药记录。</string>
+     <string name="history_note_not_necessarily_missed">这不一定意味着漏服。</string>
+-    <string name="history_note_inferred_match">根据记录上下文推断匹配</string>
+     <string name="history_note_current_zone_date">日期按当前时区显示</string>
+     <string name="history_note_plan_unavailable">方案信息不可用</string>
+     <string name="history_source_manual">手动</string>
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+index 3268028..d177daf 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+@@ -47,20 +47,21 @@ class HistoryPresentationTest {
+     }
+ 
+     @Test
+-    fun `inferred matched entry is visibly annotated`() {
++    fun `inferred matched entry keeps its classification but carries no note`() {
+         val entry = matchedEntry(provenance = MedicationMatchProvenance.SLOT_WINDOW_WITHOUT_LOCAL_DATE)
+ 
+         val model = HistoryPresentation.entry(entry, utc)
+ 
+         assertTrue(model.isInferredMatch)
+-        assertEquals(R.string.history_note_inferred_match, model.noteRes)
+-        // exact and inferred must not be presented identically
++        assertNull(model.noteRes)
++        // Slice D: the classification distinction remains even though the note is gone.
+         val exact = HistoryPresentation.entry(matchedEntry(), utc)
+-        assertTrue(exact.noteRes != model.noteRes)
++        assertFalse(exact.isInferredMatch)
++        assertNull(exact.noteRes)
+     }
+ 
+     @Test
+-    fun `legacy and modern inferred matches share the same neutral wording`() {
++    fun `legacy and modern inferred matches keep the same classification without a note`() {
+         val legacy = HistoryPresentation.entry(
+             matchedEntry(
+                 event = testEvent(id = 60L, source = MedicationIntakeSource.LEGACY),
+@@ -76,10 +77,9 @@ class HistoryPresentationTest {
+             utc
+         )
+ 
+-        // A just recorded quick entry must not be described as a legacy record, so both shapes
+-        // carry the identical provenance-neutral note.
+-        assertEquals(R.string.history_note_inferred_match, legacy.noteRes)
+-        assertEquals(legacy.noteRes, modernQuickRecord.noteRes)
++        // Slice D: neither shape displays an explanatory note, and neither is misclassified.
++        assertNull(legacy.noteRes)
++        assertNull(modernQuickRecord.noteRes)
+         assertTrue(legacy.isInferredMatch)
+         assertTrue(modernQuickRecord.isInferredMatch)
+     }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+index c4c161f..70ff783 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+@@ -83,13 +83,15 @@ class HistoryPresentationWordingTest {
+     }
+ 
+     @Test
+-    fun `the inferred match note never claims a legacy origin`() {
++    fun `the inferred match note no longer exists in any locale authority`() {
+         val notes = historyStrings()
+-        val note = notes.getValue("history_note_inferred_match")
+ 
+-        listOf("旧版", "老版本", "legacy", "Legacy", "exact", "精确匹配").forEach { token ->
+-            assertFalse("the inferred note must stay provenance neutral: $note", note.contains(token))
+-        }
++        // Slice D: the explanatory sentence was removed from production AND from both locale
++        // authorities; re-introducing it requires a deliberate new decision.
++        assertFalse(
++            "history_note_inferred_match must not exist after Slice D",
++            notes.containsKey("history_note_inferred_match")
++        )
+         notes.filterKeys { it.startsWith("history_note_") }.forEach { (name, text) ->
+             listOf("旧版", "老版本", "legacy", "Legacy").forEach { token ->
+                 assertFalse("$name must not claim a legacy origin: $text", text.contains(token))
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt
+index 235467f..c69660f 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt
+@@ -1,6 +1,5 @@
+ package io.github.yingqiu0871.evolune.history
+ 
+-import io.github.yingqiu0871.evolune.R
+ import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
+ import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
+ import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
+@@ -46,7 +45,7 @@ class HistoryQuickRecordInferredTest {
+     )
+ 
+     @Test
+-    fun `a production quick record matched by the time window gets the neutral inferred wording`() {
++    fun `a production quick record matched by the time window stays inferred without a note`() {
+         val quickEvent = quickRecordFactory(day.atTime(23, 5).atZone(paris).toInstant())
+             .createQuickEvent(plan)
+ 
+@@ -67,12 +66,9 @@ class HistoryQuickRecordInferredTest {
+         assertEquals(MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW, entry.matchProvenance)
+ 
+         val model = HistoryPresentation.entry(entry, paris)
++        // Slice D: classification preserved, explanatory sentence removed.
+         assertTrue(model.isInferredMatch)
+-        assertEquals(
+-            "a quick record must carry the provenance-neutral inferred note",
+-            R.string.history_note_inferred_match,
+-            model.noteRes
+-        )
++        assertNull(model.noteRes)
+         // Same local day: the actual time stays a short time.
+         assertFalse(model.actualTime!!.needsFullDate)
+         assertEquals(
+@@ -87,22 +83,15 @@ class HistoryQuickRecordInferredTest {
+     }
+ 
+     @Test
+-    fun `a quick record on the same day is never described as a legacy record`() {
++    fun `a quick record on the same day is inferred and never described as a legacy record`() {
+         val quickEvent = quickRecordFactory(day.atTime(23, 5).atZone(paris).toInstant())
+             .createQuickEvent(plan)
+ 
+         val model = HistoryPresentation.entry(matchedEntryFor(quickEvent), paris)
+ 
+-        // The wording guard proves the neutral text itself; here we pin that the presentation
+-        // picks the neutral key for a modern quick record instead of any legacy-specific label.
+-        assertEquals(R.string.history_note_inferred_match, model.noteRes)
+-        val strings = java.nio.file.Files.readString(
+-            java.nio.file.Path.of("src/main/res/values/strings.xml")
+-        )
+-        val note = Regex("<string name=\"history_note_inferred_match\">([^<]*)</string>")
+-            .find(strings)!!
+-            .groupValues[1]
+-        assertFalse("the neutral note must not claim a legacy origin: $note", note.contains("旧版"))
++        // Slice D: there is no note left to claim any origin, and the classification is intact.
++        assertTrue(model.isInferredMatch)
++        assertNull(model.noteRes)
+     }
+ 
+     private fun matchedEntryFor(event: io.github.yingqiu0871.evolune.core.model.DoseEvent): MatchedHistoricalOccurrence =

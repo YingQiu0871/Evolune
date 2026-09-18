@@ -1,0 +1,22 @@
+v1.7.2 Slice D — classification preservation
+============================================
+
+An event that was inferred before Slice D is still inferred after Slice D; only the visible
+explanatory sentence is gone.
+
+JVM (HistoryPresentationTest, HistoryQuickRecordInferredTest):
+- inferred (SLOT_WINDOW_WITHOUT_LOCAL_DATE): isInferredMatch == true, noteRes == null
+- exact (EXACT_SLOT_AND_LOCAL_DATE): isInferredMatch == false, noteRes == null
+- production quick-record shape through the real writer + real read service:
+  matchProvenance == NULL_SLOT_TIME_WINDOW (asserted), isInferredMatch == true,
+  displayDate/actualTime/dose fields unchanged, noteRes == null
+- legacy + modern inferred shapes: both classified inferred, no note
+
+Device (HistoryScreenTest, real ViewModel pipeline):
+- inferred entry renders the record (已记录, medication, 实际时间 08:05, 当前方案时间 08:00)
+  and the removed sentence is absent (literal-text assertion)
+- modern quick record matched by the time window: provenance asserted NULL_SLOT_TIME_WINDOW,
+  record present, sentence absent
+- exact matched card: still unannotated
+
+No matcher/projection/occurrence code touched (frozen-surface-audit.txt).

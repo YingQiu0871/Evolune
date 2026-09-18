@@ -47,20 +47,21 @@ class HistoryPresentationTest {
     }
 
     @Test
-    fun `inferred matched entry is visibly annotated`() {
+    fun `inferred matched entry keeps its classification but carries no note`() {
         val entry = matchedEntry(provenance = MedicationMatchProvenance.SLOT_WINDOW_WITHOUT_LOCAL_DATE)
 
         val model = HistoryPresentation.entry(entry, utc)
 
         assertTrue(model.isInferredMatch)
-        assertEquals(R.string.history_note_inferred_match, model.noteRes)
-        // exact and inferred must not be presented identically
+        assertNull(model.noteRes)
+        // Slice D: the classification distinction remains even though the note is gone.
         val exact = HistoryPresentation.entry(matchedEntry(), utc)
-        assertTrue(exact.noteRes != model.noteRes)
+        assertFalse(exact.isInferredMatch)
+        assertNull(exact.noteRes)
     }
 
     @Test
-    fun `legacy and modern inferred matches share the same neutral wording`() {
+    fun `legacy and modern inferred matches keep the same classification without a note`() {
         val legacy = HistoryPresentation.entry(
             matchedEntry(
                 event = testEvent(id = 60L, source = MedicationIntakeSource.LEGACY),
@@ -76,10 +77,9 @@ class HistoryPresentationTest {
             utc
         )
 
-        // A just recorded quick entry must not be described as a legacy record, so both shapes
-        // carry the identical provenance-neutral note.
-        assertEquals(R.string.history_note_inferred_match, legacy.noteRes)
-        assertEquals(legacy.noteRes, modernQuickRecord.noteRes)
+        // Slice D: neither shape displays an explanatory note, and neither is misclassified.
+        assertNull(legacy.noteRes)
+        assertNull(modernQuickRecord.noteRes)
         assertTrue(legacy.isInferredMatch)
         assertTrue(modernQuickRecord.isInferredMatch)
     }

@@ -508,7 +508,6 @@
     <string name="history_status_recorded_intake">已记录用药</string>
     <string name="history_note_no_recorded_intake">在现有可用数据中未找到匹配的用药记录。</string>
     <string name="history_note_not_necessarily_missed">这不一定意味着漏服。</string>
-    <string name="history_note_inferred_match">根据记录上下文推断匹配</string>
     <string name="history_note_current_zone_date">日期按当前时区显示</string>
     <string name="history_note_plan_unavailable">方案信息不可用</string>
     <string name="history_source_manual">手动</string>

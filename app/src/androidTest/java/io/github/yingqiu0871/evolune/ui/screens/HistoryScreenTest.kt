@@ -11,6 +11,9 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -72,6 +75,26 @@ class HistoryScreenTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     private fun text(id: Int, vararg args: Any): String = context.getString(id, *args)
+
+    /** v1.7.2 Slice D: the removed inferred-match sentence must never appear again. */
+    private val removedInferredNoteText = "根据记录上下文推断匹配"
+
+    /** Captures the real rendered History surface (real ViewModel pipeline) for the evidence. */
+    private fun captureScreenshot(name: String) {
+        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "$name.png")
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/slice-d")
+        }
+        val uri = context.contentResolver.insert(
+            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            values
+        ) ?: return
+        context.contentResolver.openOutputStream(uri)?.use { out ->
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+        }
+    }
 
     @Test
     fun currentMonthRendersWithTitleWeekdaysAndTodaySelected() {
@@ -210,14 +233,14 @@ class HistoryScreenTest {
         composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 08:00").assertExists()
         assertTrue(
             composeRule
-                .onAllNodesWithText(text(R.string.history_note_inferred_match))
+                .onAllNodesWithText(removedInferredNoteText)
                 .fetchSemanticsNodes()
                 .isEmpty()
         )
     }
 
     @Test
-    fun inferredMatchedCardCarriesAProvenanceNeutralAnnotation() {
+    fun inferredMatchedCardShowsTheRecordWithoutTheRemovedNote() {
         launch { _, end ->
             listOf(
                 testDay(
@@ -231,16 +254,21 @@ class HistoryScreenTest {
         composeRule.waitForIdle()
         scrollToEntryStatus()
 
+        // Slice D: the record itself is unchanged and still visible ...
         composeRule.onNodeWithText(text(R.string.history_status_recorded)).assertExists()
-        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
-        // The wording must not claim a legacy origin.
+        composeRule.onNodeWithText(text(R.string.history_label_actual_time) + " 08:05").assertExists()
+        // ... while the inferred-match sentence is gone.
+        assertTrue(
+            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
+        )
         assertTrue(
             composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
         )
+        captureScreenshot("01-inferred-entry-without-note")
     }
 
     @Test
-    fun aModernQuickRecordMatchedByTheTimeWindowAlsoGetsTheNeutralAnnotation() {
+    fun aModernQuickRecordMatchedByTheTimeWindowAlsoShowsNoAnnotation() {
         // Production shape (A-04 §1.3): the entry comes from the real quick-record writer plus
         // the real matcher/projection, not from a hand-set provenance.
         val entry = quickRecordEntry()
@@ -253,7 +281,12 @@ class HistoryScreenTest {
         composeRule.waitForIdle()
         scrollToEntryStatus()
 
-        composeRule.onNodeWithText(text(R.string.history_note_inferred_match)).assertExists()
+        // Slice D: classification preserved (asserted above through the real pipeline), the
+        // explanatory sentence is absent.
+        composeRule.onNodeWithText(text(R.string.history_status_recorded)).assertExists()
+        assertTrue(
+            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
+        )
         assertTrue(
             composeRule.onAllNodesWithText("旧版", substring = true).fetchSemanticsNodes().isEmpty()
         )
@@ -333,7 +366,7 @@ class HistoryScreenTest {
         composeRule.onNodeWithText(text(R.string.history_label_current_schedule_context) + " 23:00")
             .assertExists()
         assertTrue(
-            composeRule.onAllNodesWithText(text(R.string.history_note_inferred_match)).fetchSemanticsNodes().isEmpty()
+            composeRule.onAllNodesWithText(removedInferredNoteText).fetchSemanticsNodes().isEmpty()
         )
     }
 

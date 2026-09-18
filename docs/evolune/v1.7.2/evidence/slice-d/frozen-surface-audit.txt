@@ -1,0 +1,19 @@
+v1.7.2 Slice D — frozen-surface audit
+=====================================
+
+Zero delta (git diff vs 69f859d) under:
+- Settings / theme / theme/palette / SettingsDataStore / SettingsViewModel        zero
+- backup (codec, schema, coordinator)                                             zero
+- Room / schema / migrations / DAOs                                               zero
+- DoseEvent / dose recording / quick record writer                                zero
+- matching: MedicationOccurrenceMatcher / policy / thresholds / legacy null-slot  zero
+- HistoricalProjectionBuilder / occurrence association                            zero
+- Timeline / Insights / PK                                                        zero
+- Widget / Wear / Health Connect / Drive                                          zero
+- version metadata (*.gradle.kts, gradle.properties)                              zero
+- evidence slice-a / slice-b / slice-c                                            zero
+
+Production delta confined to:
+  history/HistoryPresentation.kt (one noteRes branch -> null)
+  res/values/strings.xml + res/values-zh-rCN/strings.xml (resource removal)
+Test delta: the four History test files listed in changed-files.txt.

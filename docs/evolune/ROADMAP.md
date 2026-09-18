@@ -299,12 +299,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.2 · Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— CLOSED / FROZEN**
   （implementation @ `e01a55e…`；独立复审 **APPROVE V1.7.2 SLICE B**；evidence
   `docs/evolune/v1.7.2/evidence/slice-b/`）。
-- **v1.7.2 · Slice C（Settings 扁平化 + 配色选择 UI）— IMPLEMENTED / REVIEW PENDING**（单一
-  可滚动 Settings 页内联四区 + 保留四行；六条二级路由/旧屏删除；新配色 UI 消费 Slice-B 规范
-  状态（跟随壁纸 / 预设配色 + 8 预设磁贴 + LEGACY_BUILTIN 兼容行）；ThemeMode 双向独立；
-  Google Drive 安全路由保留；full app JVM 147 suites/1387/0；设备 39/39；AVD smoke 1/1 +
-  6 截图；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
-  **NEXT:** v1.7.2 Slice C review（通过后开始 Slice D）。
+- **v1.7.2 · Slice C（Settings 扁平化 + 配色选择 UI）— CLOSED / FROZEN**（implementation @
+  `69f859d…`；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
+- **v1.7.2 · Slice D（History 推断匹配文案移除）— IMPLEMENTED / REVIEW PENDING**（matched
+  分支 `noteRes = null`、`isInferredMatch` 分类不变；`history_note_inferred_match` 于两个
+  locale 权威删除；其他 note 机制保留；History 聚焦 JVM 37 suites/449/0；full app JVM 147
+  suites/1387/0；设备 HistoryScreenTest 21/21 + 真实管线截图；evidence
+  `docs/evolune/v1.7.2/evidence/slice-d/`）。
+  **NEXT:** v1.7.2 Slice D review（通过后开始 Slice E）。
 
 ## Historical and future milestones
 

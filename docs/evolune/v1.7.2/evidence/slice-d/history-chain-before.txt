@@ -1,0 +1,28 @@
+v1.7.2 Slice D — History chain BEFORE
+=====================================
+
+Re-verified at parent 69f859d (line numbers re-checked, not taken from old docs):
+
+  app/src/main/res/values/strings.xml:511
+  app/src/main/res/values-zh-rCN/strings.xml:501
+      <string name="history_note_inferred_match">根据记录上下文推断匹配</string>
+
+  history/HistoryPresentation.kt:126-130 (matched entry)
+      noteRes = if (entry.matchProvenance == MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE) {
+          null
+      } else {
+          R.string.history_note_inferred_match
+      }
+  history/HistoryPresentation.kt:134
+      isInferredMatch = entry.matchProvenance != MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE
+
+  history/HistoryUiModels.kt — HistoryEntryUiModel.noteRes (generic Int? note slot shared by
+  all note kinds)
+
+  ui/screens/HistoryScreen.kt — renders noteRes when non-null (generic mechanism)
+
+Other note kinds on the same mechanism (must remain):
+  history_note_no_recorded_intake (unrecorded primary note)
+  history_note_not_necessarily_missed (unrecorded secondary note)
+  history_note_current_zone_date (secondary date note for matched + unmatched)
+  history_note_plan_unavailable (unmatched primary note)

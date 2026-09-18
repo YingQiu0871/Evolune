@@ -1,0 +1,38 @@
+v1.7.2 Slice D — changed files
+==============================
+
+Production
+  M app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryPresentation.kt
+      matched-entry mapping: noteRes = null (the inferred-match sentence is no longer
+      emitted). isInferredMatch / matchProvenance usage unchanged.
+  M app/src/main/res/values/strings.xml
+  M app/src/main/res/values-zh-rCN/strings.xml
+      history_note_inferred_match removed from both locale authorities (zero live
+      references remained after the production change and the test updates).
+
+Tests
+  M app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt
+      inferred classification kept, note expected null; exact entry still unannotated;
+      legacy/modern inferred both classified without a note.
+  M app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt
+      production quick-record shape: provenance/displayDate/actualTime preserved,
+      noteRes == null (no resource-XML wording read anymore).
+  M app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+      guard inverted: the inferred note must NOT exist in any locale authority; other
+      note-wording guards unchanged.
+  M app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt
+      inferred card test now asserts the record is present and the removed sentence is
+      absent (literal text); quick-record device test likewise; one real-pipeline
+      screenshot capture added.
+
+Docs (status, non-evidence)
+  TODO.MD · docs/evolune/CURRENT_STATUS.md · docs/evolune/ROADMAP.md ·
+  docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md
+
+Evidence (this bundle)
+  docs/evolune/v1.7.2/evidence/slice-d/ — 10 data files + implementation.diff +
+  logs (4 logs + 3 summaries) + 1 screenshot + MANIFEST.sha256
+
+Out of scope (zero delta): Settings/theme, theme/palette, SettingsDataStore/ViewModel,
+backup, Room/schema, DoseEvent, matching/matcher/projection, occurrence policy, Timeline,
+Insights, PK, Widget, Wear, Health Connect, Drive, version metadata.

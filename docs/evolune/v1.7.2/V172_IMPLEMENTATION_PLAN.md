@@ -2,7 +2,8 @@
 
 Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A CLOSED / FROZEN (incl. the evidence
 encoding correction 5acddc2); Slice B CLOSED / FROZEN (independent review APPROVE V1.7.2
-SLICE B @ e01a55e); Slice C IMPLEMENTED / REVIEW PENDING; Slice D NOT STARTED.
+SLICE B @ e01a55e); Slice C CLOSED / FROZEN @ 69f859d; Slice D IMPLEMENTED / REVIEW
+PENDING; Slice E NOT STARTED.
 Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
 `V172_INVENTORY.md`. One commit per slice; each slice is independently reviewable and
 revertable. No version bump in the implementation phase.
@@ -133,20 +134,22 @@ Actual implementation (`feat(settings): flatten settings and add palette selecto
 - Verification: full app JVM 147 suites/1387/0; focused device 39/39; AVD smoke 1/1 + 6
   screenshots; evidence `docs/evolune/v1.7.2/evidence/slice-c/`.
 
-## Slice D — History copy removal
+## Slice D — History copy removal — IMPLEMENTED / REVIEW PENDING
 
 Goal: remove only `根据记录上下文推断匹配` from the medication-record card.
 
-- `HistoryPresentation.matched(...)`: inferred case emits `noteRes = null`; classification
-  fields untouched.
-- Update tests: `HistoryPresentationTest` (56/81), `HistoryQuickRecordInferredTest`
-  (73/98/102), `HistoryScreenTest` (213/235/256 display asserts → absence), wording test if
-  the resource is deleted.
-- Delete `history_note_inferred_match` from both locale files only if a repository-wide grep
-  shows zero remaining references after the update; otherwise keep and report.
-- Guard: inferred-match classification tests must still pass; path-scoped diff shows only the
-  presentation note emission + tests (+ optional resource deletion).
-- Acceptance: sentence absent on device; inferred matching behavior identical.
+Actual implementation (`fix(history): remove inferred-match display note`):
+- `HistoryPresentation.matched(...)`: `noteRes = null` unconditionally; `isInferredMatch` /
+  `matchProvenance` usage unchanged (classification preserved and still asserted).
+- `history_note_inferred_match` deleted from both locale authorities after the repository
+  scan showed zero live references; the wording guard now asserts the key does not exist.
+- Tests updated: HistoryPresentationTest (classification kept, note null), 
+  HistoryQuickRecordInferredTest (production quick-record shape, note null), 
+  HistoryScreenTest (record present + removed sentence absent, real pipeline screenshot),
+  HistoryPresentationWordingTest (absence guard).
+- Verification: History-focused JVM 37 suites/449/0; full app JVM 147 suites/1387/0;
+  device HistoryScreenTest 21/21; debug build 38/38; evidence
+  `docs/evolune/v1.7.2/evidence/slice-d/`.
 
 ## Slice E — Regression + real-device acceptance
 

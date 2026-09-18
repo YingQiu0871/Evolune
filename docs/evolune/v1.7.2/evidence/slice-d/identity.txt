@@ -1,0 +1,12 @@
+v1.7.2 Slice D — identity
+=========================
+
+Repository: D:\Evolune-Workspace\worktrees\Evolune-v1.7
+Branch: feature/v1.7.2-settings-theme-history
+Baseline/parent HEAD: 69f859d3c32a4fbc668fa8da3ea57c139fd56ea9
+Baseline subject: feat(settings): flatten settings and add palette selector (Slice C)
+Implementation commit subject: fix(history): remove inferred-match display note
+Frozen predecessors: Phase 0 @ 5dc0ea3; Slice A @ 31447ca (+5acddc2); Slice B @ e01a55e
+(APPROVE V1.7.2 SLICE B); Slice C @ 69f859d (review pending).
+Version metadata: unchanged 1.7.1 / 101070100 / 1101070100.
+No tag, no push, no release.

@@ -261,15 +261,18 @@
       `e01a55e559a3faa4fd3d66a9f86427e4a61d018a`；独立复审 `v172-qwen-slice-b-review.txt`
       **APPROVE V1.7.2 SLICE B**（P0/P1/P2 = none）；full app JVM 147 suites/1387/0；设备
       14/14；evidence `docs/evolune/v1.7.2/evidence/slice-b/`）。
-- [x] v1.7.2 Slice C（Settings 扁平化 + 配色选择 UI）— **IMPLEMENTED / REVIEW PENDING**
-      （`feat(settings): flatten settings and add palette selector`；单一可滚动 Settings 页
-      内联 基础数据 / 外观与格式 / 同步与备份 / 更新 四区，保留 指南 / 隐私与权限 / 功能教程 /
-      关于 四行；六条二级路由与六个旧屏删除（迁移内容进 `ui/screens/settings/` 分区组件）；
-      新配色 UI 消费 Slice-B 规范状态（跟随壁纸 / 预设配色 + 8 个预设磁贴 + LEGACY_BUILTIN
-      兼容行，绝不显示为第九个预设）；ThemeMode 双向独立；Google Drive 安全多步路由保留；
-      full app JVM 147 suites/1387/0；设备 39/39（10 类）；AVD smoke 1/1 + 6 张截图；evidence
-      `docs/evolune/v1.7.2/evidence/slice-c/`；packet `v172-slice-c-candidate.txt`）。
-- [ ] NEXT：**v1.7.2 Slice C review**（通过后方可开始 Slice D：History 文案移除）。
+- [x] v1.7.2 Slice C（Settings 扁平化 + 配色选择 UI）— **CLOSED / FROZEN**
+      （`feat(settings): flatten settings and add palette selector` @
+      `69f859d3c32a4fbc668fa8da3ea57c139fd56ea9`；单一可滚动 Settings 页内联四区 + 保留四行；
+      六条二级路由/旧屏删除；配色 UI 消费 Slice-B 规范状态；full app JVM 147 suites/1387/0；
+      设备 39/39；AVD smoke 1/1 + 6 截图；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
+- [x] v1.7.2 Slice D（History 推断匹配文案移除）— **IMPLEMENTED / REVIEW PENDING**
+      （`fix(history): remove inferred-match display note`；HistoryPresentation matched 分支
+      `noteRes = null`，`isInferredMatch` 分类保持不变；`history_note_inferred_match` 在两个
+      locale 权威中删除（零 live 引用）；其他 note 机制与文案保留；History 聚焦 JVM 37
+      suites/449/0；full app JVM 147 suites/1387/0；设备 HistoryScreenTest 21/21 + 真实管线
+      截图；evidence `docs/evolune/v1.7.2/evidence/slice-d/`）。
+- [ ] NEXT：**v1.7.2 Slice D review**（通过后方可开始 Slice E：回归 + 真实设备验收）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

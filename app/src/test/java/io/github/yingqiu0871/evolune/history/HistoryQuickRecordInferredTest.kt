@@ -1,6 +1,5 @@
 package io.github.yingqiu0871.evolune.history
 
-import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.application.DoseEventEditSessionFactory
 import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
 import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
@@ -46,7 +45,7 @@ class HistoryQuickRecordInferredTest {
     )
 
     @Test
-    fun `a production quick record matched by the time window gets the neutral inferred wording`() {
+    fun `a production quick record matched by the time window stays inferred without a note`() {
         val quickEvent = quickRecordFactory(day.atTime(23, 5).atZone(paris).toInstant())
             .createQuickEvent(plan)
 
@@ -67,12 +66,9 @@ class HistoryQuickRecordInferredTest {
         assertEquals(MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW, entry.matchProvenance)
 
         val model = HistoryPresentation.entry(entry, paris)
+        // Slice D: classification preserved, explanatory sentence removed.
         assertTrue(model.isInferredMatch)
-        assertEquals(
-            "a quick record must carry the provenance-neutral inferred note",
-            R.string.history_note_inferred_match,
-            model.noteRes
-        )
+        assertNull(model.noteRes)
         // Same local day: the actual time stays a short time.
         assertFalse(model.actualTime!!.needsFullDate)
         assertEquals(
@@ -87,22 +83,15 @@ class HistoryQuickRecordInferredTest {
     }
 
     @Test
-    fun `a quick record on the same day is never described as a legacy record`() {
+    fun `a quick record on the same day is inferred and never described as a legacy record`() {
         val quickEvent = quickRecordFactory(day.atTime(23, 5).atZone(paris).toInstant())
             .createQuickEvent(plan)
 
         val model = HistoryPresentation.entry(matchedEntryFor(quickEvent), paris)
 
-        // The wording guard proves the neutral text itself; here we pin that the presentation
-        // picks the neutral key for a modern quick record instead of any legacy-specific label.
-        assertEquals(R.string.history_note_inferred_match, model.noteRes)
-        val strings = java.nio.file.Files.readString(
-            java.nio.file.Path.of("src/main/res/values/strings.xml")
-        )
-        val note = Regex("<string name=\"history_note_inferred_match\">([^<]*)</string>")
-            .find(strings)!!
-            .groupValues[1]
-        assertFalse("the neutral note must not claim a legacy origin: $note", note.contains("旧版"))
+        // Slice D: there is no note left to claim any origin, and the classification is intact.
+        assertTrue(model.isInferredMatch)
+        assertNull(model.noteRes)
     }
 
     private fun matchedEntryFor(event: io.github.yingqiu0871.evolune.core.model.DoseEvent): MatchedHistoricalOccurrence =

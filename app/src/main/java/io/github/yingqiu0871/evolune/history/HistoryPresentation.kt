@@ -121,13 +121,10 @@ object HistoryPresentation {
                 zone = displayZone,
                 needsFullDate = entry.occurrence.scheduledLocalDateTime.toLocalDate() != entry.displayDate
             ),
-            // Provenance-neutral wording: an inferred match is not necessarily legacy — a just
-            // recorded quick entry (null slot) may also land in the time-window fallbacks.
-            noteRes = if (entry.matchProvenance == MedicationMatchProvenance.EXACT_SLOT_AND_LOCAL_DATE) {
-                null
-            } else {
-                R.string.history_note_inferred_match
-            },
+            // v1.7.2 Slice D: the inferred-match explanatory sentence is no longer displayed.
+            // The classification itself is unchanged and remains available through
+            // `isInferredMatch` (derived from the same provenance below).
+            noteRes = null,
             secondaryNoteRes = dateNote(entry.displayDateProvenance),
             sourceLabelRes = null,
             isManualSource = false,

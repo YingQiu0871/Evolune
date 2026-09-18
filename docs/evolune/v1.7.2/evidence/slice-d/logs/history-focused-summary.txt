@@ -1,0 +1,42 @@
+v1.7.2 Slice D focused History JVM suite summary (from JUnit XML)
+Command: :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.history.*" --rerun-tasks
+
+io.github.yingqiu0871.evolune.history.HistoryCrossDatePresentationTest  tests=8 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryFutureOccurrenceContractTest  tests=4 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryPresentationTest  tests=21 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest  tests=7 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryQuickRecordInferredTest  tests=2 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadServiceAllAvailableTest  tests=12 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadServiceExtremeZoneTest  tests=7 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadServiceOccurrenceChunkingTest  tests=3 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadServicePersistedDateTest  tests=8 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadServiceTest  tests=11 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteTest  tests=4 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryRefreshTest  tests=9 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryUndoProjectionTest  tests=5 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.HistoryViewModelTest  tests=19 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.insights.InsightsOrchestrationGuardTest  tests=5 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.insights.InsightsRangeResolverTest  tests=12 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.insights.InsightsRangeSelectionInitTest  tests=1 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.insights.InsightsViewModelIntegrationTest  tests=2 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.insights.InsightsViewModelTest  tests=50 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkExtractorTest  tests=20 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest  tests=3 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkPatchPreprocessorTest  tests=15 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest  tests=42 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkZeroWriteTest  tests=1 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest  tests=7 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarkerDerivationTest  tests=23 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest  tests=26 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePolicyInvariantTest  tests=2 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveStringsParityTest  tests=4 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest  tests=5 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest  tests=6 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineOrderingGeneratorParityTest  tests=2 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineProjectionBuilderTest  tests=24 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest  tests=10 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineRangeCoordinatorTest  tests=42 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineRangePurityTest  tests=4 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelTest  tests=23 failures=0 errors=0 skipped=0
+
+TOTAL suites=37 tests=449 failures=0 errors=0 skipped=0

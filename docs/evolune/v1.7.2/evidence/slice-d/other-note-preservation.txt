@@ -1,0 +1,17 @@
+v1.7.2 Slice D — other-note preservation
+========================================
+
+The generic note mechanism (HistoryEntryUiModel.noteRes + HistoryScreen rendering) is
+unchanged and still serves every other note kind:
+
+- unrecorded entry: noteRes = history_note_no_recorded_intake,
+  secondaryNoteRes = history_note_not_necessarily_missed
+  (HistoryPresentationTest `unrecorded entry keeps the non-blaming wording`)
+- unmatched entry: noteRes = history_note_plan_unavailable
+- matched/unmatched with a derived display date: secondaryNoteRes =
+  history_note_current_zone_date
+- wording guards unchanged: no remaining history_note_* may claim a legacy origin; the
+  neutral caveat keeps its disclaimer phrasing (HistoryPresentationWordingTest)
+
+No global note suppression was introduced; only the single inferred-match branch changed.
+Device: HistoryScreenTest still exercises all three entry kinds with their notes.

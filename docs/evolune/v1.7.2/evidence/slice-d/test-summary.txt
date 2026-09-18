@@ -1,0 +1,28 @@
+v1.7.2 Slice D — test summary
+=============================
+
+Focused History JVM (directly relevant suites)
+  command: :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.history.*"
+  log    : logs/history-focused.log    summary: logs/history-focused-summary.txt
+  result : suites=37  tests=449  failures=0  errors=0  skipped=0
+  (includes HistoryPresentationTest 21, HistoryPresentationWordingTest 7,
+   HistoryQuickRecordInferredTest 2, HistoryReadService*, HistoryViewModel, Timeline,
+   Insights, Retrospective, PK suites)
+
+Full app JVM (fresh)
+  command: :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm-full.log       summary: logs/junit-summary.txt
+  result : suites=147  tests=1387  failures=0  errors=0  skipped=0
+
+Focused device (History rendering, real ViewModel pipeline)
+  command: :app:connectedDebugAndroidTest class=HistoryScreenTest
+  log    : logs/device-history.log     summary: logs/device-history-summary.txt
+  result : tests=21  failures=0  (includes the reworked inferred-card tests + screenshot
+           capture)
+
+Debug build (fresh)
+  command: :app:assembleDebug --rerun-tasks (38/38 executed; BUILD SUCCESSFUL)
+  log    : logs/app-debug-build.log
+
+Classification guard: inferred classification is asserted independently from the note
+suppression in both JVM and device tests (see classification-preservation.txt).

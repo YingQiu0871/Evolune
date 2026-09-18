@@ -83,13 +83,15 @@ class HistoryPresentationWordingTest {
     }
 
     @Test
-    fun `the inferred match note never claims a legacy origin`() {
+    fun `the inferred match note no longer exists in any locale authority`() {
         val notes = historyStrings()
-        val note = notes.getValue("history_note_inferred_match")
 
-        listOf("旧版", "老版本", "legacy", "Legacy", "exact", "精确匹配").forEach { token ->
-            assertFalse("the inferred note must stay provenance neutral: $note", note.contains(token))
-        }
+        // Slice D: the explanatory sentence was removed from production AND from both locale
+        // authorities; re-introducing it requires a deliberate new decision.
+        assertFalse(
+            "history_note_inferred_match must not exist after Slice D",
+            notes.containsKey("history_note_inferred_match")
+        )
         notes.filterKeys { it.startsWith("history_note_") }.forEach { (name, text) ->
             listOf("旧版", "老版本", "legacy", "Legacy").forEach { token ->
                 assertFalse("$name must not claim a legacy origin: $text", text.contains(token))

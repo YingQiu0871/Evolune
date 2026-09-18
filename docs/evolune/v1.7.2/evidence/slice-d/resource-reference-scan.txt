@@ -1,0 +1,17 @@
+v1.7.2 Slice D — resource reference scan
+========================================
+
+After the production change and the test updates, repository scan for the resource:
+
+  git grep -n "history_note_inferred_match" -- app/src
+    app/src/test/.../HistoryPresentationWordingTest.kt:92-93
+      (string-literal guard asserting the key must NOT exist — not a resource reference)
+
+Zero live resource references remained (no R.string usage, no locale definition):
+  -> history_note_inferred_match removed from
+       app/src/main/res/values/strings.xml
+       app/src/main/res/values-zh-rCN/strings.xml
+     consistently.
+
+Historical docs/evidence mentioning the removed sentence are records of past decisions and
+were not rewritten (not live references).

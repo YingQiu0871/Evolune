@@ -1,0 +1,16 @@
+v1.7.2 Slice D — AVD smoke / screenshot
+=======================================
+
+Device: Pixel_7 AVD API 35 (emulator-5554). Physical-device acceptance remains Slice E.
+
+The inferred state was reached through the REAL presentation pipeline (HistoryViewModel +
+HistoryScreen with the real read service and a synthetic inferred entry), not through a
+manufactured screenshot state. The capture was taken inside the modified device test
+`inferredMatchedCardShowsTheRecordWithoutTheRemovedNote` after its assertions.
+
+Screenshot: screenshots/01-inferred-entry-without-note.png
+  shows 2025年1月 → 1月5日: 已记录 1 次; card 已记录 / 雌二醇 · 2.0 mg / Synthetic plan ·
+  口服 / 实际时间 08:05 / 当前方案时间 08:00 — and NO 根据记录上下文推断匹配 sentence.
+
+The same test asserts (and passed): the record is present, the removed sentence is absent,
+no 旧版 wording appears. Device run: HistoryScreenTest 21/21.

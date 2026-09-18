@@ -1,0 +1,5 @@
+v1.7.2 Slice D focused device instrumentation summary (from connectedDebugAndroidTest XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Class: io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest
+
+TOTAL tests=21 failures=0
