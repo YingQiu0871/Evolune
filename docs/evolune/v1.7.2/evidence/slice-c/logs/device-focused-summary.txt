@@ -1,0 +1,16 @@
+v1.7.2 Slice C focused device instrumentation summary (from connectedDebugAndroidTest XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Command: :app:connectedDebugAndroidTest with the 10 affected classes
+
+io.github.yingqiu0871.evolune.data.SettingsThemeIndependenceTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.AuthorizationGuidanceTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest  tests=6
+io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest  tests=5
+io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest  tests=8
+io.github.yingqiu0871.evolune.ui.screens.SettingsPaletteSelectorTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest  tests=4
+
+TOTAL tests=39 failures=0

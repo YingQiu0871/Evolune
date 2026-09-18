@@ -1,0 +1,14 @@
+v1.7.2 Slice C — device summary
+===============================
+
+Device: Pixel_7 AVD API 35 (emulator-5554); physical-device acceptance remains Slice E.
+
+Focused run (logs/device-focused.log + device-focused-summary.txt):
+  tests=39 failures=0 across the 10 affected classes (distribution in test-summary.txt).
+
+AVD acceptance smoke (logs/device-smoke.log + device-smoke-summary.txt):
+  SliceCSettingsSmokeTest tests=1 failures=0 — real MainActivity, real settings DataStore
+  seeded with canonical PRESET+LEGACY_BUILTIN before launch, real navigation.
+
+Not run in this slice: full instrumentation suite rerun (only affected Settings/UI classes
+were executed); Wear/experience-core suites (untouched modules).

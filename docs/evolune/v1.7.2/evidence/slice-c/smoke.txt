@@ -1,0 +1,20 @@
+v1.7.2 Slice C — AVD acceptance smoke
+=====================================
+
+Device: Pixel_7 AVD API 35 (emulator-5554), debug build 1.7.1-debug / 101070100.
+Route: real MainActivity; onboarding pre-completed; settings DataStore seeded with the exact
+canonical compatibility state PRESET + LEGACY_BUILTIN through SettingsDataStore.replaceSettings
+before launch; startup update dialog dismissed; all interactions through the real UI.
+
+Steps and results (SliceCSettingsSmokeTest, 1/1 passed):
+1. open Settings -> flattened sections render (no crash)            -> 01-settings-top.png
+2. 配色 section shows 预设配色 selected + 当前主题：内置主题（兼容保留）,
+   zero normal tiles selected                                       -> 02-legacy-builtin-state.png
+3. tap 蓝 tile -> live apply (whole app switches to the blue M3 palette, tile selected with
+   border + check)                                                  -> 03-monet-blue-selected.png
+4. tap 深色 -> live dark theme                                     -> 04-dark-theme-mode.png
+5. scroll to bottom: update section + retained rows reachable       -> 05-lower-sections.png
+6. tap 琥珀 -> live apply second preset                             -> 06-monet-amber-selected.png
+
+Screenshots pulled from /sdcard/Pictures/slice-c (MediaStore) into screenshots/.
+This is AVD acceptance only; physical final acceptance remains Slice E.

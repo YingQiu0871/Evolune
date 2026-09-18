@@ -1,0 +1,27 @@
+v1.7.2 Slice C — route removal result
+=====================================
+
+Result: ALL SIX removable routes REMOVED (proof in route-reachability.txt), together with
+their now-dead screen composables whose content moved into the settings sections:
+
+  removed route                        removed screen / moved to
+  settings_basic_data                  BasicDataScreen.kt        -> SettingsBasicDataSection
+  settings_appearance_format           AppearanceAndFormatScreen -> SettingsAppearanceSection
+  settings_update                      UpdateScreen.kt           -> SettingsUpdateSection
+  sync_and_backup                      SyncAndBackupScreen.kt    -> SettingsSyncBackupSection
+  data_import_export                   DataImportExportScreen.kt -> SettingsImportExportBlock
+  health_connect_sync                  HealthConnectSyncScreen.kt-> SettingsHealthConnectSection
+
+Consistency updates in AppNavigation.kt: route constants, composable() blocks, top-bar title
+overrides and the isSettingsSubroute list now contain only the kept settings children
+(ABOUT / GOOGLE_DRIVE / ONBOARDING / DISCLOSURES / FEATURE_TUTORIAL + frozen
+Insights/Retrospective/Timeline).
+
+Post-removal verification (Kotlin sources only):
+  git grep "settings_basic_data|settings_appearance_format|sync_and_backup|settings_update|
+            data_import_export|health_connect_sync|<*_ROUTE constants>" -> 0 hits
+  git grep "BasicDataScreen|AppearanceAndFormatScreen|UpdateScreen|SyncAndBackupScreen|
+            DataImportExportScreen|HealthConnectSyncScreen" (production)   -> 0 hits
+
+No DEPRECATED routes remain for these six; no broken destination: every navigation call site
+resolves to a declared route (device navigation tests + full build).

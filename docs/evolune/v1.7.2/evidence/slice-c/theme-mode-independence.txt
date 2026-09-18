@@ -1,0 +1,13 @@
+v1.7.2 Slice C — ThemeMode independence
+=======================================
+
+ThemeMode (LIGHT/DARK/AMOLED/SYSTEM) remains a separate preference owner and is fully
+independent from the canonical color identity:
+
+- SettingsAppearanceSection wires onThemeModeChange to updateThemeMode only; source/preset
+  callbacks go to updateThemeColorSource/updateThemePreset only.
+- Device proof on the real settings DataStore (SettingsThemeIndependenceTest, 3 tests):
+  * changing theme mode never rewrites theme_color_source/theme_preset_id/color_theme
+  * changing source or preset never rewrites theme_mode
+  * SYSTEM+Dynamic and AMOLED+normal-preset combinations persist independently
+- No Slice-B regression: EvoluneTheme color-selection logic untouched (zero delta).

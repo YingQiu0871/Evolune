@@ -1,14 +1,11 @@
-package io.github.yingqiu0871.evolune.ui.screens
+package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
@@ -28,8 +25,12 @@ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+/**
+ * v1.7.2 Slice C — Health Connect controls inline in Sync & backup. Presentation only:
+ * permission handling, consent flows and the existing SettingsDataStore owner are unchanged.
+ */
 @Composable
-fun HealthConnectSyncScreen(
+internal fun SettingsHealthConnectSection(
     settings: UserSettings,
     state: HealthConnectWeightSyncState,
     onWeightSyncEnabledChange: (Boolean) -> Unit,
@@ -41,41 +42,35 @@ fun HealthConnectSyncScreen(
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .fillMaxWidth()
+            .testTag("settings-health-connect-section"),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.settings_health_connect_sync_title),
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.testTag("health-connect-sync-title")
-        )
-        Text(
-            text = stringResource(R.string.settings_health_connect_sync_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Text(
-            text = stringResource(R.string.settings_health_connect_sync_connection),
-            style = MaterialTheme.typography.titleMedium
+            text = stringResource(R.string.settings_sync_backup_health_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Text(
             text = connectionStatusText(state.status),
             style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.testTag("health-connect-sync-connection-status")
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .testTag("health-connect-sync-connection-status")
         )
         Text(
             text = connectionDescriptionText(state.status),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
 
         HorizontalDivider()
         Text(
             text = stringResource(R.string.settings_health_connect_sync_items),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         ListItem(
             modifier = Modifier.testTag("health-connect-weight-sync-row"),
@@ -101,13 +96,17 @@ fun HealthConnectSyncScreen(
                     dateFormatter.format(state.lastAdoptedAt)
                 ),
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.testTag("health-connect-sync-last")
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .testTag("health-connect-sync-last")
             )
         }
         if (state.status == HealthConnectWeightSyncStatus.NO_DATA) {
             Text(
                 text = stringResource(R.string.settings_health_connect_sync_no_data),
-                modifier = Modifier.testTag("health-connect-sync-no-data")
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .testTag("health-connect-sync-no-data")
             )
         }
 
@@ -132,15 +131,19 @@ fun HealthConnectSyncScreen(
         HorizontalDivider()
         Text(
             text = stringResource(R.string.settings_health_connect_sync_permissions),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Text(
             text = permissionStatusText(state.status),
-            modifier = Modifier.testTag("health-connect-weight-permission-status")
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .testTag("health-connect-weight-permission-status")
         )
         Button(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .testTag("health-connect-manage-permissions"),
             onClick = onManagePermissions
         ) {
@@ -153,6 +156,7 @@ fun HealthConnectSyncScreen(
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
                     .testTag("health-connect-reauthorize"),
                 onClick = onReauthorize
             ) {
@@ -163,7 +167,8 @@ fun HealthConnectSyncScreen(
         Text(
             text = stringResource(R.string.settings_health_connect_sync_deferred_note),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
     }
 }

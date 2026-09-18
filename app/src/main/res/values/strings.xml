@@ -124,6 +124,12 @@
     <string name="settings_color_theme_dynamic_desc">跟随系统动态着色 (Android 12+)</string>
     <string name="settings_color_theme_builtin_desc">使用应用内置配色方案</string>
 
+    <string name="settings_color_scheme_title">配色</string>
+    <string name="settings_color_source_dynamic">跟随壁纸</string>
+    <string name="settings_color_source_preset">预设配色</string>
+    <string name="settings_color_source_preset_desc">从 8 种内置调色板中选择</string>
+    <string name="settings_color_legacy_builtin_current">当前主题：内置主题（兼容保留）</string>
+
     <string name="settings_time_format_title">时间制式</string>
     <string name="settings_time_format_system">跟随系统</string>
     <string name="settings_time_format_12h">12小时制</string>

@@ -85,9 +85,8 @@ class ColorRoleConformanceTest {
         } else {
             composeRule.onNodeWithTag("nav-bar-settings").performClick()
         }
-        composeRule.onNodeWithTag("settings-appearance-format-entry")
+        composeRule.onNodeWithTag("theme-mode-system")
             .performScrollTo()
-            .performClick()
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("theme-mode-system").fetchSemanticsNodes().isNotEmpty()
         }

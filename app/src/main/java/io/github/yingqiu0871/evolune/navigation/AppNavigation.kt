@@ -97,7 +97,10 @@ import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.application.MedicationPlanDraft
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.TimeFormat
+import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
 import io.github.yingqiu0871.evolune.export.BoundedReadResult
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.export.PortableExportFormat
@@ -119,13 +122,9 @@ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
-import io.github.yingqiu0871.evolune.ui.screens.AppearanceAndFormatScreen
-import io.github.yingqiu0871.evolune.ui.screens.BasicDataScreen
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
-import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
-import io.github.yingqiu0871.evolune.ui.screens.PortableDialogMessage
+import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
 import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
-import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
 import io.github.yingqiu0871.evolune.ui.screens.HistoryScreen
 import io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreen
 import io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreen
@@ -133,8 +132,6 @@ import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreen
 import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
-import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
-import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
@@ -160,13 +157,7 @@ import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
-private const val BASIC_DATA_ROUTE = "settings_basic_data"
-private const val APPEARANCE_FORMAT_ROUTE = "settings_appearance_format"
-private const val SYNC_AND_BACKUP_ROUTE = "sync_and_backup"
-private const val UPDATE_ROUTE = "settings_update"
 private const val ABOUT_ROUTE = "settings_about"
-private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
-private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
 private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
 private const val ONBOARDING_ROUTE = "onboarding"
 private const val DISCLOSURES_ROUTE = "disclosures"
@@ -802,13 +793,7 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isSettingsSubroute = currentRoute == BASIC_DATA_ROUTE ||
-        currentRoute == APPEARANCE_FORMAT_ROUTE ||
-        currentRoute == SYNC_AND_BACKUP_ROUTE ||
-        currentRoute == UPDATE_ROUTE ||
-        currentRoute == ABOUT_ROUTE ||
-        currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
-        currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
+    val isSettingsSubroute = currentRoute == ABOUT_ROUTE ||
         currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
         currentRoute == ONBOARDING_ROUTE ||
         currentRoute == DISCLOSURES_ROUTE ||
@@ -837,14 +822,7 @@ fun AppNavigation(
                     alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
                     onRefresh = hrtViewModel::runSimulation,
                     titleOverride = when (currentRoute) {
-                        BASIC_DATA_ROUTE -> stringResource(R.string.settings_basic_data_title)
-                        APPEARANCE_FORMAT_ROUTE ->
-                            stringResource(R.string.settings_appearance_format_title)
-                        SYNC_AND_BACKUP_ROUTE -> stringResource(R.string.settings_sync_backup_title)
-                        UPDATE_ROUTE -> stringResource(R.string.settings_update_title)
                         ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
-                        DATA_IMPORT_EXPORT_ROUTE -> stringResource(R.string.settings_data_import_export_title)
-                        HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
                         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
                             stringResource(R.string.settings_google_drive_backup_restore_title)
                         ONBOARDING_ROUTE -> stringResource(R.string.onboarding_title)
@@ -1020,22 +998,65 @@ fun AppNavigation(
             }
             composable(Screen.SETTINGS.route) {
                 SettingsScreen(
-                    onOpenBasicData = {
-                        navController.navigate(BASIC_DATA_ROUTE) { launchSingleTop = true }
+                    userSettings = userSettings,
+                    healthConnectWeightSyncState = healthConnectWeightSyncState,
+                    backupRestoreConnected = backupRestoreConnected,
+                    updateCheckResult = updateCheckResult,
+                    onBodyWeightChange = settingsViewModel::updateBodyWeight,
+                    onThemeModeChange = settingsViewModel::updateThemeMode,
+                    onSelectDynamicSource = {
+                        settingsViewModel.updateThemeColorSource(ThemeColorSource.DYNAMIC)
                     },
-                    onOpenAppearanceAndFormat = {
-                        navController.navigate(APPEARANCE_FORMAT_ROUTE) { launchSingleTop = true }
+                    onSelectPresetSource = {
+                        settingsViewModel.updateThemePreset(
+                            ThemePresetSelection.Preset(PresetPalette.MONET_TEAL)
+                        )
                     },
-                    onOpenSyncAndBackup = {
-                        navController.navigate(SYNC_AND_BACKUP_ROUTE) {
-                            launchSingleTop = true
+                    onPresetPaletteChange = { palette ->
+                        settingsViewModel.updateThemePreset(ThemePresetSelection.Preset(palette))
+                    },
+                    onTimeFormatChange = settingsViewModel::updateTimeFormat,
+                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
+                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
+                    onHealthConnectWeightSyncEnabledChange = { enabled ->
+                        if (enabled) {
+                            pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_ENABLE
+                        } else {
+                            settingsViewModel.setHealthConnectWeightSyncEnabled(false)
                         }
                     },
-                    onOpenUpdate = {
-                        navController.navigate(UPDATE_ROUTE) { launchSingleTop = true }
+                    onHealthConnectReauthorize = {
+                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE
                     },
-                    onOpenAbout = {
-                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                    onHealthConnectManagePermissions = {
+                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_MANAGE
+                    },
+                    importResult = importResult,
+                    onDismissImportResult = hrtViewModel::dismissImportResult,
+                    clipboardExportMessage = clipboardExportMessage,
+                    onClipboardExportMessageShown = { clipboardExportMessage = null },
+                    onImportClick = {
+                        importLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
+                    onImportFromClipboard = { importFromClipboard() },
+                    onExportClick = { exportLegacyToFile() },
+                    onExportToClipboard = { exportLegacyToClipboard() },
+                    portableBusy = portableBusy,
+                    onExportPortableJson = { range ->
+                        startPortableExport(PortableExportFormat.JSON, range)
+                    },
+                    onExportPortableCsv = { range ->
+                        startPortableExport(PortableExportFormat.CSV, range)
+                    },
+                    onImportPortableJson = {
+                        portableImportLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
+                    portableDialog = portableDialog,
+                    onDismissPortableDialog = { portableDialog = null },
+                    onOpenGoogleDrive = {
+                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                            launchSingleTop = true
+                        }
                     },
                     onOpenGuide = {
                         navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
@@ -1046,51 +1067,10 @@ fun AppNavigation(
                     onOpenFeatureTutorial = {
                         navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
                     },
+                    onOpenAbout = {
+                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                    },
                     showTopBar = false
-                )
-            }
-            composable(BASIC_DATA_ROUTE) {
-                BasicDataScreen(
-                    bodyWeight = userSettings.bodyWeight,
-                    onBodyWeightChange = settingsViewModel::updateBodyWeight
-                )
-            }
-            composable(APPEARANCE_FORMAT_ROUTE) {
-                AppearanceAndFormatScreen(
-                    settings = userSettings,
-                    onThemeModeChange = settingsViewModel::updateThemeMode,
-                    onColorThemeChange = settingsViewModel::updateColorTheme,
-                    onTimeFormatChange = settingsViewModel::updateTimeFormat
-                )
-            }
-            composable(SYNC_AND_BACKUP_ROUTE) {
-                SyncAndBackupScreen(
-                    settings = userSettings,
-                    healthConnectWeightSyncState = healthConnectWeightSyncState,
-                    backupRestoreConnected = backupRestoreConnected,
-                    onOpenData = {
-                        navController.navigate(DATA_IMPORT_EXPORT_ROUTE) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onOpenHealthConnect = {
-                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE) {
-                            launchSingleTop = true
-                        }
-                    },
-                    onOpenGoogleDrive = {
-                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-            composable(UPDATE_ROUTE) {
-                UpdateScreen(
-                    autoCheckUpdates = userSettings.autoCheckUpdates,
-                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
-                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
-                    updateCheckResult = updateCheckResult
                 )
             }
             composable(ABOUT_ROUTE) {
@@ -1137,51 +1117,6 @@ fun AppNavigation(
             }
             composable(DISCLOSURES_ROUTE) {
                 DisclosuresScreen()
-            }
-            composable(DATA_IMPORT_EXPORT_ROUTE) {
-                DataImportExportScreen(
-                    importResult = importResult,
-                    onDismissImportResult = hrtViewModel::dismissImportResult,
-                    clipboardExportMessage = clipboardExportMessage,
-                    onClipboardExportMessageShown = { clipboardExportMessage = null },
-                    onImportClick = {
-                        importLauncher.launch(arrayOf("application/json", "*/*"))
-                    },
-                    onImportFromClipboard = { importFromClipboard() },
-                    onExportClick = { exportLegacyToFile() },
-                    onExportToClipboard = { exportLegacyToClipboard() },
-                    portableBusy = portableBusy,
-                    onExportPortableJson = { range ->
-                        startPortableExport(PortableExportFormat.JSON, range)
-                    },
-                    onExportPortableCsv = { range ->
-                        startPortableExport(PortableExportFormat.CSV, range)
-                    },
-                    onImportPortableJson = {
-                        portableImportLauncher.launch(arrayOf("application/json", "*/*"))
-                    },
-                    portableDialog = portableDialog,
-                    onDismissPortableDialog = { portableDialog = null }
-                )
-            }
-            composable(HEALTH_CONNECT_SYNC_ROUTE) {
-                HealthConnectSyncScreen(
-                    settings = userSettings,
-                    state = healthConnectWeightSyncState,
-                    onWeightSyncEnabledChange = { enabled ->
-                        if (enabled) {
-                            pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_ENABLE
-                        } else {
-                            settingsViewModel.setHealthConnectWeightSyncEnabled(false)
-                        }
-                    },
-                    onReauthorize = {
-                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE
-                    },
-                    onManagePermissions = {
-                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_MANAGE
-                    }
-                )
             }
             composable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
                 GoogleDriveBackupRestoreScreen(

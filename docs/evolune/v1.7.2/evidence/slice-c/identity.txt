@@ -1,0 +1,12 @@
+v1.7.2 Slice C — identity
+=========================
+
+Repository: D:\Evolune-Workspace\worktrees\Evolune-v1.7
+Branch: feature/v1.7.2-settings-theme-history
+Baseline HEAD (parent of this slice): e01a55e559a3faa4fd3d66a9f86427e4a61d018a
+Baseline subject: feat(theme): add preset theme state and backup v2
+Implementation commit subject: feat(settings): flatten settings and add palette selector
+Frozen predecessors: Phase 0 contract @ 5dc0ea3; Slice A @ 31447ca (+ 5acddc2 evidence
+correction); Slice B @ e01a55e (independent review APPROVE V1.7.2 SLICE B).
+Version metadata: unchanged 1.7.1 / 101070100 / 1101070100 (no gradle/properties delta).
+No tag, no push, no release in this slice.

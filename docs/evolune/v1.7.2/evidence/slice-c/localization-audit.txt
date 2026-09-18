@@ -1,0 +1,24 @@
+v1.7.2 Slice C — localization audit
+===================================
+
+New UI copy is fully resource-based (no hard-coded strings in Kotlin); added identically to
+both current locale authorities:
+  app/src/main/res/values/strings.xml
+  app/src/main/res/values-zh-rCN/strings.xml
+
+New keys:
+  settings_color_scheme_title              配色
+  settings_color_source_dynamic            跟随壁纸
+  settings_color_source_preset             预设配色
+  settings_color_source_preset_desc        从 8 种内置调色板中选择
+  settings_color_legacy_builtin_current    当前主题：内置主题（兼容保留）
+
+Reused (not duplicated):
+  settings_color_theme_dynamic_desc        dynamic source supporting text
+  widget_config_palette_* (8)              preset tile labels
+  all moved controls keep their existing keys (settings_basic_data_*, settings_theme_mode_*,
+  settings_time_format_*, settings_health_connect_sync_*, portable_*, settings_import_*,
+  settings_export_*, settings_update_*, settings_current_version, ...)
+
+No unrelated string was modified; the previous settings_color_theme_* keys remain present
+(unused by the new UI, harmless, not removed to avoid touching unrelated resources).

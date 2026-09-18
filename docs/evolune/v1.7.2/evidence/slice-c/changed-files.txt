@@ -1,0 +1,61 @@
+v1.7.2 Slice C — changed files
+==============================
+
+Production
+  M app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+      six Settings child routes removed; SettingsScreen call now passes hoisted state +
+      callbacks; retained routes (Google Drive / Guide / Privacy / Tutorial / About) unchanged;
+      top-bar title branches and isSettingsSubroute updated consistently.
+  M app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+      rewritten: one scrollable screen with inline sections + retained navigation rows;
+      shared SnackbarHostState; no section collects flows or owns persisted state.
+  NEW app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/
+      SettingsSectionHeader.kt        shared section title
+      SettingsBasicDataSection.kt     body-weight control (same owner/validation)
+      SettingsAppearanceSection.kt    theme mode + 配色 + time format
+      SettingsColorSchemeSection.kt   source rows + 8 preset tiles + LEGACY compat row
+      SettingsImportExportBlock.kt    portable + legacy import/export actions and dialogs
+      SettingsHealthConnectSection.kt HC switch/status/manage/reauthorize (presentation only)
+      SettingsSyncBackupSection.kt    local data + HC + Google Drive entry
+      SettingsUpdateSection.kt        auto-check / check-now / current version
+      SettingsNavigationRowsSection.kt retained 指南/隐私与权限/功能教程/关于 rows
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/BasicDataScreen.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/AppearanceAndFormatScreen.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/UpdateScreen.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreen.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreen.kt
+      content moved into the section composables above (route-removal proof in
+      route-removal-result.txt).
+  M app/src/main/res/values/strings.xml
+  M app/src/main/res/values-zh-rCN/strings.xml
+      new 配色 strings (5 keys) in both locale authorities; no unrelated string changed.
+
+Tests
+  M app/src/androidTest/.../ui/screens/SettingsCategoryScreenTest.kt        (8 tests)
+  M app/src/androidTest/.../ui/screens/SyncAndBackupNavigationTest.kt       (2 tests)
+  M app/src/androidTest/.../ui/screens/SyncAndBackupScreenTest.kt           (4 tests)
+  M app/src/androidTest/.../ui/screens/HealthConnectSyncScreenTest.kt       (5 tests)
+  M app/src/androidTest/.../ui/screens/DataImportExportScreenTest.kt        (6 tests, harness)
+  M app/src/androidTest/.../ui/screens/AuthorizationGuidanceTest.kt         (section host)
+  M app/src/androidTest/.../ui/screens/FeatureTutorialNavigationTest.kt     (tag update)
+  M app/src/androidTest/.../ui/screens/ColorRoleConformanceTest.kt          (inline appearance)
+  NEW app/src/androidTest/.../ui/screens/SettingsPaletteSelectorTest.kt     (4 tests)
+  NEW app/src/androidTest/.../ui/screens/SettingsSectionTestHarness.kt      (test hosts)
+  NEW app/src/androidTest/.../ui/screens/SliceCSettingsSmokeTest.kt         (AVD acceptance)
+  NEW app/src/androidTest/.../data/SettingsThemeIndependenceTest.kt         (3 tests)
+  M app/src/test/.../export/PortableArchitectureGuardTest.kt
+      guard path updated to the moved import/export block (no assertion change).
+
+Docs (status, non-evidence)
+  TODO.MD · docs/evolune/CURRENT_STATUS.md · docs/evolune/ROADMAP.md ·
+  docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md
+
+Evidence (this bundle)
+  docs/evolune/v1.7.2/evidence/slice-c/ — 20 data files + logs (7) + screenshots (6) +
+  implementation.diff + MANIFEST.sha256
+
+Out of scope (zero delta, verified): backup codec/schema, Room/schema, History, Timeline,
+Insights, PK, widget, Wear, Health Connect domain, Drive domain, theme.palette tokens,
+PresetColorSchemes semantics, LegacyBuiltinTheme semantics, version metadata, Slice-A/B
+evidence.

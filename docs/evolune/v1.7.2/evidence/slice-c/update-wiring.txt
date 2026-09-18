@@ -1,0 +1,14 @@
+v1.7.2 Slice C — Update wiring
+==============================
+
+SettingsUpdateSection reuses the previous UpdateScreen behavior with the same owner:
+- auto-check switch -> SettingsViewModel.updateAutoCheckUpdates (settings DataStore key
+  auto_check_updates, unchanged)
+- check-now -> SettingsViewModel.checkForUpdates(versionName); updateCheckResult drives the
+  idle/checking/up-to-date/available/error status text unchanged
+- current version row reads PackageManager versionName and copies it to the clipboard with
+  the existing snackbar confirmation (shared Settings scaffold SnackbarHostState)
+- startup auto-check + update-available/DebugBuild dialogs remain in AppNavigation.
+
+No new update repository/client; no semantics change.
+Device proof: SettingsCategoryScreenTest updateInlineKeepsToggleCheckAndVersionActions.

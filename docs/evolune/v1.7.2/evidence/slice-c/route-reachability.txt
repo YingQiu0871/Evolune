@@ -1,0 +1,23 @@
+v1.7.2 Slice C — route reachability audit (per contract §6)
+===========================================================
+
+Method: repository-wide reference audit (main + unit + androidTest Kotlin) before removal.
+
+BASIC_DATA_ROUTE ("settings_basic_data")            callers before: SettingsScreen hub only
+APPEARANCE_FORMAT_ROUTE ("settings_appearance_format") callers before: SettingsScreen hub only
+UPDATE_ROUTE ("settings_update")                    callers before: SettingsScreen hub only
+SYNC_AND_BACKUP_ROUTE ("sync_and_backup")           callers before: SettingsScreen hub only
+DATA_IMPORT_EXPORT_ROUTE ("data_import_export")     callers before: Sync hub row only
+HEALTH_CONNECT_SYNC_ROUTE ("health_connect_sync")   callers before: Sync hub row only
+
+Checks applied to each: no deep link (manifest/intents), no first-run/auto route, no tutorial
+reference (FeatureTutorial only links GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE), no saved-state
+restoration dependency (navigation state is route-name based and the route disappears with
+its screen), no test requirement that cannot be re-homed on the flattened screen.
+
+Retained routes re-verified: GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE (Settings entry row +
+FeatureTutorial step 5), ONBOARDING_ROUTE, DISCLOSURES_ROUTE (deep link), FEATURE_TUTORIAL_ROUTE
+(auto-start), ABOUT_ROUTE.
+
+After removal: `git grep` for every removed route constant/string and for the six deleted
+composable names in Kotlin sources = 0 hits (see route-removal-result.txt).

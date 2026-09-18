@@ -1,0 +1,15 @@
+v1.7.2 Slice C — LEGACY_BUILTIN UI
+==================================
+
+When canonical state is PRESET + LegacyBuiltin:
+- the 预设配色 source row is selected (truthful: the source IS PRESET);
+- the compatibility row shows 当前主题：内置主题（兼容保留） (tag color-legacy-builtin-current);
+- NONE of the eight normal tiles is selected; MONET_TEAL is never shown as selected;
+- LEGACY_BUILTIN is not offered as a ninth choice anywhere in the UI;
+- tapping any normal tile performs the monotonic migration LEGACY_BUILTIN -> that preset via
+  updateThemePreset (the compatibility row disappears afterwards);
+- there is intentionally no UI path to recreate LEGACY_BUILTIN (matches contract §11).
+
+Verified on the AVD with the real DataStore: screenshot 02-legacy-builtin-state.png
+(compat row visible, no tile selected) and SettingsPaletteSelectorTest
+legacyBuiltinStateShowsCompatibilityRowAndNoNormalTileSelected.

@@ -1,0 +1,21 @@
+v1.7.2 Slice C — architecture audit
+===================================
+
+Static scans (Kotlin sources):
+- SettingsScreen.kt + ui/screens/settings/** contain:
+  * preferencesDataStore / getSharedPreferences / dataStore.edit / SettingsDataStore(  -> 0
+  * widget / Wear references                                                           -> 0
+  * viewModel( / collectAsState (no section collects flows or creates VMs)             -> 0
+  * backup / History / Room imports                                                    -> 0
+- Palette UI derives identities from PresetPalette.entries and colors from
+  PaletteCatalog.seed; no second enum/table and no copied MONET RGB literals
+  (seed-literal scan outside theme/palette unchanged: only the 3 dead Color.kt values).
+- Single canonical theme state owner: SettingsDataStore -> SettingsViewModel -> hoisted
+  UserSettings passed into sections; EvoluneTheme consumes the same canonical values
+  (MainActivity unchanged in this slice).
+- Backup codec/model/coordinator: zero delta. History: zero delta. Wear: zero delta.
+- theme/palette tokens (PresetPalette/PaletteCatalog/LegacyBuiltinTheme): zero delta.
+- Removed routes/screens: zero remaining references (route-removal-result.txt).
+
+Structural rule kept: sections are parameter-driven composables; SettingsScreen is the only
+collection point; no monolithic composable.

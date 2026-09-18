@@ -1,0 +1,39 @@
+v1.7.2 Slice C — test summary
+=============================
+
+All runs on the final Slice-C working tree; counts from the run's JUnit XML; per-suite
+summaries under logs/.
+
+Full app JVM
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm-full.log       summary: logs/junit-summary.txt
+  result : suites=147  tests=1387  failures=0  errors=0  skipped=0
+           (same total as the approved Slice-B baseline; one guard path updated)
+
+Focused Slice-C device run (10 affected classes, one run)
+  command: .\gradlew.bat :app:connectedDebugAndroidTest -P...class=<10 classes>
+  log    : logs/device-focused.log     summary: logs/device-focused-summary.txt
+  result : tests=39  failures=0
+    SettingsCategoryScreenTest    8
+    SettingsPaletteSelectorTest   4
+    SyncAndBackupScreenTest       4
+    SyncAndBackupNavigationTest   2
+    HealthConnectSyncScreenTest   5
+    DataImportExportScreenTest    6
+    AuthorizationGuidanceTest     2
+    FeatureTutorialNavigationTest 2
+    ColorRoleConformanceTest      3
+    SettingsThemeIndependenceTest 3
+
+AVD acceptance smoke
+  command: :app:connectedDebugAndroidTest class=SliceCSettingsSmokeTest
+  log    : logs/device-smoke.log       summary: logs/device-smoke-summary.txt
+  result : tests=1  failures=0  (6 screenshots pulled, see smoke.txt)
+
+Debug build (fresh)
+  command: .\gradlew.bat :app:assembleDebug --rerun-tasks (38/38 executed; BUILD SUCCESSFUL)
+  log    : logs/app-debug-build.log
+
+New Slice-C coverage: flattened structure + inline sections (8), palette selector semantics
+(4), ThemeMode independence on the real DataStore (3), large-font reachability, route
+removal/kept-route navigation.

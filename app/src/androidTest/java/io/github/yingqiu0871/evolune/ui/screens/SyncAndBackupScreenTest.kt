@@ -1,15 +1,19 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupId
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsSyncBackupSection
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
 import org.junit.Assert.assertEquals
@@ -21,31 +25,50 @@ class SyncAndBackupScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun syncAndBackupPageExposesOnlyNavigationRowsAndPassiveSummaries() {
+    fun syncAndBackupInlineSectionExposesLocalHealthAndDriveControls() {
         val opened = mutableListOf<String>()
         composeRule.setContent {
             EvoluneTheme {
-                SyncAndBackupScreen(
-                    settings = UserSettings(),
-                    healthConnectWeightSyncState = HealthConnectWeightSyncState(),
-                    backupRestoreConnected = true,
-                    onOpenData = { opened += "data" },
-                    onOpenHealthConnect = { opened += "health" },
-                    onOpenGoogleDrive = { opened += "drive" }
-                )
+                val snackbarHostState = remember { SnackbarHostState() }
+                TestScrollHost {
+                    SettingsSyncBackupSection(
+                        settings = UserSettings(),
+                        healthConnectWeightSyncState = HealthConnectWeightSyncState(),
+                        backupRestoreConnected = true,
+                        importResult = ImportResult.Idle,
+                        onDismissImportResult = {},
+                        clipboardExportMessage = null,
+                        onClipboardExportMessageShown = {},
+                        onImportClick = {},
+                        onImportFromClipboard = {},
+                        onExportClick = {},
+                        onExportToClipboard = {},
+                        portableBusy = false,
+                        onExportPortableJson = {},
+                        onExportPortableCsv = {},
+                        onImportPortableJson = {},
+                        portableDialog = null,
+                        onDismissPortableDialog = {},
+                        onWeightSyncEnabledChange = { opened += "health" },
+                        onReauthorize = {},
+                        onManagePermissions = {},
+                        onOpenGoogleDrive = { opened += "drive" },
+                        snackbarHostState = snackbarHostState
+                    )
+                }
             }
         }
 
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-export-block").assertIsDisplayed()
+        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
+        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
+            .performScrollTo()
+            .assertIsDisplayed()
         composeRule.onNodeWithText("已连接（当前会话）").assertIsDisplayed()
 
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").performClick()
-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").performClick()
         composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").performClick()
 
-        assertEquals(listOf("data", "health", "drive"), opened)
+        assertEquals(listOf("drive"), opened)
     }
 
     @Test
@@ -53,7 +76,7 @@ class SyncAndBackupScreenTest {
         val opened = mutableListOf<String>()
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,

@@ -1,9 +1,10 @@
-package io.github.yingqiu0871.evolune.ui.screens
+package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -12,8 +13,9 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,13 +35,6 @@ import io.github.yingqiu0871.evolune.export.PortableExportRange
 import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
 import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 
 /** Typed, already-localized canonical dialog payload (V17-E §34). */
 data class PortableDialogMessage(
@@ -47,9 +42,14 @@ data class PortableDialogMessage(
     val body: String
 )
 
+/**
+ * v1.7.2 Slice C — local import/export inline block. Same actions, same dialog protections
+ * and the same owner callbacks as the former DataImportExport page; the snackbar host is
+ * hoisted to the shared Settings scaffold.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun DataImportExportScreen(
+internal fun SettingsImportExportBlock(
     importResult: ImportResult,
     onDismissImportResult: () -> Unit,
     clipboardExportMessage: String?,
@@ -58,14 +58,14 @@ fun DataImportExportScreen(
     onImportFromClipboard: () -> Unit,
     onExportClick: () -> Unit,
     onExportToClipboard: () -> Unit,
-    portableBusy: Boolean = false,
-    onExportPortableJson: (PortableExportRange) -> Unit = {},
-    onExportPortableCsv: (PortableExportRange) -> Unit = {},
-    onImportPortableJson: () -> Unit = {},
-    portableDialog: PortableDialogMessage? = null,
-    onDismissPortableDialog: () -> Unit = {}
+    portableBusy: Boolean,
+    onExportPortableJson: (PortableExportRange) -> Unit,
+    onExportPortableCsv: (PortableExportRange) -> Unit,
+    onImportPortableJson: () -> Unit,
+    portableDialog: PortableDialogMessage?,
+    onDismissPortableDialog: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     var rangeDialogFormat by remember { mutableStateOf<PortableExportFormat?>(null) }
     var showClipboardWarning by remember { mutableStateOf(false) }
 
@@ -76,111 +76,104 @@ fun DataImportExportScreen(
         }
     }
 
-    Scaffold(
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            PortableSection(
-                busy = portableBusy,
-                onExportJsonClick = { rangeDialogFormat = PortableExportFormat.JSON },
-                onExportCsvClick = { rangeDialogFormat = PortableExportFormat.CSV },
-                onImportJsonClick = onImportPortableJson
-            )
-            if (portableBusy) {
-                Text(
-                    text = stringResource(R.string.portable_busy),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .testTag("portable-busy")
-                )
-            }
-            LegacySection(
-                busy = portableBusy,
-                onImportClick = onImportClick,
-                onImportFromClipboard = onImportFromClipboard,
-                onExportClick = onExportClick,
-                onExportToClipboard = { showClipboardWarning = true }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        rangeDialogFormat?.let { format ->
-            ExportRangeDialog(
-                onChoose = { range ->
-                    rangeDialogFormat = null
-                    when (format) {
-                        PortableExportFormat.JSON -> onExportPortableJson(range)
-                        PortableExportFormat.CSV -> onExportPortableCsv(range)
-                    }
-                },
-                onDismiss = { rangeDialogFormat = null }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-import-export-block"),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        PortableSection(
+            busy = portableBusy,
+            onExportJsonClick = { rangeDialogFormat = PortableExportFormat.JSON },
+            onExportCsvClick = { rangeDialogFormat = PortableExportFormat.CSV },
+            onImportJsonClick = onImportPortableJson
+        )
+        if (portableBusy) {
+            Text(
+                text = stringResource(R.string.portable_busy),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .testTag("portable-busy")
             )
         }
+        LegacySection(
+            busy = portableBusy,
+            onImportClick = onImportClick,
+            onImportFromClipboard = onImportFromClipboard,
+            onExportClick = onExportClick,
+            onExportToClipboard = { showClipboardWarning = true }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+    }
 
-        if (showClipboardWarning) {
-            AlertDialog(
-                modifier = Modifier.testTag("legacy-clipboard-warning"),
-                onDismissRequest = { showClipboardWarning = false },
-                title = { Text(stringResource(R.string.portable_clipboard_warning_title)) },
-                text = { Text(stringResource(R.string.portable_clipboard_warning_message)) },
-                confirmButton = {
-                    TextButton(
-                        modifier = Modifier.testTag("legacy-clipboard-confirm"),
-                        onClick = {
-                            showClipboardWarning = false
-                            onExportToClipboard()
-                        }
-                    ) {
-                        Text(stringResource(R.string.common_confirm))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        modifier = Modifier.testTag("legacy-clipboard-cancel"),
-                        onClick = { showClipboardWarning = false }
-                    ) {
-                        Text(stringResource(R.string.common_cancel))
-                    }
+    rangeDialogFormat?.let { format ->
+        ExportRangeDialog(
+            onChoose = { range ->
+                rangeDialogFormat = null
+                when (format) {
+                    PortableExportFormat.JSON -> onExportPortableJson(range)
+                    PortableExportFormat.CSV -> onExportPortableCsv(range)
                 }
-            )
-        }
+            },
+            onDismiss = { rangeDialogFormat = null }
+        )
+    }
 
-        portableDialog?.let { dialog ->
-            ImportResultDialog(
-                title = dialog.title,
-                message = dialog.body,
-                onDismiss = onDismissPortableDialog
-            )
-        }
+    if (showClipboardWarning) {
+        AlertDialog(
+            modifier = Modifier.testTag("legacy-clipboard-warning"),
+            onDismissRequest = { showClipboardWarning = false },
+            title = { Text(stringResource(R.string.portable_clipboard_warning_title)) },
+            text = { Text(stringResource(R.string.portable_clipboard_warning_message)) },
+            confirmButton = {
+                TextButton(
+                    modifier = Modifier.testTag("legacy-clipboard-confirm"),
+                    onClick = {
+                        showClipboardWarning = false
+                        onExportToClipboard()
+                    }
+                ) {
+                    Text(stringResource(R.string.common_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    modifier = Modifier.testTag("legacy-clipboard-cancel"),
+                    onClick = { showClipboardWarning = false }
+                ) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
 
-        when (val result = importResult) {
-            is ImportResult.Success -> ImportResultDialog(
-                title = stringResource(R.string.settings_import_json),
-                message = stringResource(R.string.import_success, result.importedCount),
-                onDismiss = onDismissImportResult
-            )
-            is ImportResult.Error -> ImportResultDialog(
-                title = stringResource(R.string.settings_import_json),
-                message = if (result.tooLarge) {
-                    stringResource(R.string.portable_import_too_large)
-                } else {
-                    stringResource(R.string.import_error, result.message)
-                },
-                onDismiss = onDismissImportResult
-            )
-            ImportResult.Idle,
-            ImportResult.Importing -> Unit
-        }
+    portableDialog?.let { dialog ->
+        ImportResultDialog(
+            title = dialog.title,
+            message = dialog.body,
+            onDismiss = onDismissPortableDialog
+        )
+    }
+
+    when (val result = importResult) {
+        is ImportResult.Success -> ImportResultDialog(
+            title = stringResource(R.string.settings_import_json),
+            message = stringResource(R.string.import_success, result.importedCount),
+            onDismiss = onDismissImportResult
+        )
+        is ImportResult.Error -> ImportResultDialog(
+            title = stringResource(R.string.settings_import_json),
+            message = if (result.tooLarge) {
+                stringResource(R.string.portable_import_too_large)
+            } else {
+                stringResource(R.string.import_error, result.message)
+            },
+            onDismiss = onDismissImportResult
+        )
+        ImportResult.Idle,
+        ImportResult.Importing -> Unit
     }
 }
 

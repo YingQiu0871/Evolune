@@ -1,40 +1,29 @@
-package io.github.yingqiu0871.evolune.ui.screens
+package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SystemUpdate
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -49,41 +38,10 @@ import kotlinx.coroutines.launch
 
 private const val CLIPBOARD_LABEL_VERSION = "version"
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun UpdateScreen(
-    autoCheckUpdates: Boolean,
-    onAutoCheckUpdatesChange: (Boolean) -> Unit,
-    onCheckForUpdates: () -> Unit,
-    updateCheckResult: UpdateCheckResult
-) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Horizontal + WindowInsetsSides.Top
-        ),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        UpdateSection(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("settings-update-screen")
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            autoCheckUpdates = autoCheckUpdates,
-            onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
-            onCheckForUpdates = onCheckForUpdates,
-            updateCheckResult = updateCheckResult,
-            snackbarHostState = snackbarHostState
-        )
-    }
-}
-
+/** v1.7.2 Slice C — Updates inline section (same owner, same actions as the old page). */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun UpdateSection(
-    modifier: Modifier,
+internal fun SettingsUpdateSection(
     autoCheckUpdates: Boolean,
     onAutoCheckUpdatesChange: (Boolean) -> Unit,
     onCheckForUpdates: () -> Unit,
@@ -114,13 +72,13 @@ private fun UpdateSection(
     }
     val versionCopiedText = stringResource(R.string.version_copied)
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.settings_update_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-update-section"),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SettingsSectionHeader(title = stringResource(R.string.settings_update_title))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)

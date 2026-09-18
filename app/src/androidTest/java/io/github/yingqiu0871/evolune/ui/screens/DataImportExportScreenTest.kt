@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.github.yingqiu0871.evolune.export.PortableExportFormat
+import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
 import io.github.yingqiu0871.evolune.export.PortableExportRange
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
@@ -33,7 +34,7 @@ class DataImportExportScreenTest {
         var imports = 0
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,
@@ -87,7 +88,7 @@ class DataImportExportScreenTest {
         var exportRequests = 0
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,
@@ -116,7 +117,7 @@ class DataImportExportScreenTest {
         var imports = 0
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,
@@ -153,7 +154,7 @@ class DataImportExportScreenTest {
         var dismissals = 0
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,
@@ -180,7 +181,7 @@ class DataImportExportScreenTest {
     fun oversizedLegacyImportShowsLocalizedTooLargeMessage() {
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Error(message = "Import failed", tooLarge = true),
                     onDismissImportResult = {},
                     clipboardExportMessage = null,
@@ -201,7 +202,7 @@ class DataImportExportScreenTest {
         var clipboardExports = 0
         composeRule.setContent {
             EvoluneTheme {
-                DataImportExportScreen(
+                TestDataImportExportHost(
                     importResult = ImportResult.Idle,
                     onDismissImportResult = {},
                     clipboardExportMessage = null,

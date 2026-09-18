@@ -14,6 +14,7 @@ import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
 import io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialog
+import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsHealthConnectSection
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertFalse
@@ -31,15 +32,17 @@ class AuthorizationGuidanceTest {
         var providerInvoked by mutableStateOf(false)
         composeRule.setContent {
             EvoluneTheme {
-                HealthConnectSyncScreen(
-                    settings = UserSettings(),
-                    state = HealthConnectWeightSyncState(),
-                    onWeightSyncEnabledChange = { enabled ->
-                        if (enabled) guidanceVisible = true
-                    },
-                    onReauthorize = {},
-                    onManagePermissions = {}
-                )
+                TestScrollHost {
+                    SettingsHealthConnectSection(
+                        settings = UserSettings(),
+                        state = HealthConnectWeightSyncState(),
+                        onWeightSyncEnabledChange = { enabled ->
+                            if (enabled) guidanceVisible = true
+                        },
+                        onReauthorize = {},
+                        onManagePermissions = {}
+                    )
+                }
                 ContextualAuthorizationDialog(
                     visible = guidanceVisible,
                     title = stringResource(R.string.contextual_health_connect_title),

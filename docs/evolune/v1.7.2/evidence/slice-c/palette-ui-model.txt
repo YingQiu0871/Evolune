@@ -1,0 +1,25 @@
+v1.7.2 Slice C — palette UI model
+=================================
+
+Consumes the frozen Slice-B canonical state only:
+
+- source rows (tag color-source-dynamic / color-source-preset):
+  * 跟随壁纸 selected iff themeColorSource == DYNAMIC; tap -> updateThemeColorSource(DYNAMIC)
+    (atomic; clears the stored preset id in the same DataStore edit).
+  * 预设配色 selected iff themeColorSource == PRESET; tap while DYNAMIC -> atomic
+    updateThemePreset(Preset(MONET_TEAL)). MONET_TEAL is the contract §11 terminal identity
+    of the deterministic preset ladder, so the UI consumes the approved rule instead of
+    inventing a new default. Tap while already PRESET is a no-op (guard) so an existing
+    selection can never be overwritten by re-tapping the source row.
+- preset tiles: exactly the 8 PresetPalette.entries; tap -> updateThemePreset(Preset(id))
+  atomically (never constructs PRESET+null, never writes two separate edits).
+- LEGACY_BUILTIN: never a tile; shown as a truthful compatibility row
+  (color-legacy-builtin-current) when canonical state is PRESET+LegacyBuiltin; no tile is
+  selected; tapping any tile migrates to that normal preset.
+- selection derives from userSettings.themeColorSource/themePreset passed down by
+  SettingsScreen; no local remembered selection, no second theme state owner.
+
+Swatch preview: three dots from PaletteCatalog.seed(preset) (lightPrimary / lightSecondary /
+lightTertiary) - the shared authority, no copied RGB literals in the Settings UI.
+
+Tests: SettingsPaletteSelectorTest (4) + SettingsCategoryScreenTest appearance/palette cases.

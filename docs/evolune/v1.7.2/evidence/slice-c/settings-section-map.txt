@@ -1,0 +1,28 @@
+v1.7.2 Slice C — section decomposition
+======================================
+
+SettingsScreen(userSettings, healthConnectWeightSyncState, backupRestoreConnected,
+               updateCheckResult, on* callbacks, showTopBar)
+  ├─ SettingsBasicDataSection(bodyWeight, onBodyWeightChange)
+  │    tags: settings-basic-data-section, settings-weight-input
+  ├─ SettingsAppearanceSection(settings, onThemeModeChange, onSelectDynamicSource,
+  │                            onSelectPresetSource, onPresetPaletteChange, onTimeFormatChange)
+  │    tags: settings-appearance-section, theme-mode-*, settings-color-scheme-section,
+  │          color-source-dynamic/preset, color-legacy-builtin-current,
+  │          settings-palette-grid, palette-tile-<preset>, time-format-*
+  ├─ SettingsSyncBackupSection(settings, hcState, connected, import/export params,
+  │                            HC callbacks, onOpenGoogleDrive, snackbarHostState)
+  │    tags: settings-sync-backup-section, settings-import-export-block, portable-*,
+  │          settings-import/export-*, settings-health-connect-section,
+  │          health-connect-*, settings-sync-backup-google-drive-entry
+  ├─ SettingsUpdateSection(autoCheckUpdates, onAutoCheckUpdatesChange, onCheckForUpdates,
+  │                        updateCheckResult, snackbarHostState)
+  │    tags: settings-update-section, settings-auto-check-updates,
+  │          settings-check-updates-now, settings-current-version
+  └─ SettingsNavigationRowsSection(onOpenGuide, onOpenPrivacy, onOpenFeatureTutorial,
+                                   onOpenAbout)
+       tags: settings-navigation-rows, settings-guide-entry, settings-privacy-entry,
+             settings-feature-tutorial-entry, settings-about-entry
+
+Every section receives state + callbacks as parameters. No section creates a ViewModel,
+collects a Flow, reads DataStore or holds persisted state (verified in architecture-audit).

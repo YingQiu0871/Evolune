@@ -1,0 +1,20 @@
+v1.7.2 Slice C — palette inventory
+==================================
+
+Exactly eight selectable tiles, in frozen PresetPalette order, labels reused from the
+existing widget palette resources (no duplicated translations):
+
+  MONET_BLUE      palette-tile-monet_blue      widget_config_palette_blue      蓝
+  MONET_VIOLET    palette-tile-monet_violet    widget_config_palette_violet    紫罗兰
+  MONET_SAKURA    palette-tile-monet_sakura    widget_config_palette_sakura    樱花
+  MONET_MINT      palette-tile-monet_mint      widget_config_palette_mint      薄荷
+  MONET_TEAL      palette-tile-monet_teal      widget_config_palette_teal      青绿
+  MONET_AMBER     palette-tile-monet_amber     widget_config_palette_amber     琥珀
+  MONET_NEUTRAL   palette-tile-monet_neutral   widget_config_palette_neutral   中性
+  MONET_LAVENDER  palette-tile-monet_lavender  widget_config_palette_lavender  薰衣草
+
+Absent by construction and asserted by tests:
+- MATERIAL_YOU_AUTO (it is the DYNAMIC source, not a preset)
+- LEGACY_BUILTIN (compatibility identity only; shown as a current-state row)
+- no ninth tile, no duplicate enum/table (labels resolved by a single UI metadata mapping
+  from PresetPalette to existing string resources).

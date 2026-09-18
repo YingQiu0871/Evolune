@@ -1,7 +1,8 @@
 # Evolune v1.7.2 — Implementation Plan
 
 Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A CLOSED / FROZEN (incl. the evidence
-encoding correction 5acddc2); Slice B IMPLEMENTED / REVIEW PENDING; Slice C NOT STARTED.
+encoding correction 5acddc2); Slice B CLOSED / FROZEN (independent review APPROVE V1.7.2
+SLICE B @ e01a55e); Slice C IMPLEMENTED / REVIEW PENDING; Slice D NOT STARTED.
 Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
 `V172_INVENTORY.md`. One commit per slice; each slice is independently reviewable and
 revertable. No version bump in the implementation phase.
@@ -39,7 +40,7 @@ Actual implementation (commit `refactor(theme): centralize palette definitions`)
   `ui/theme/Color.kt` remain until Slice B connects `LEGACY_BUILTIN` to the theme wiring; this
   is the only allowed duplication and it is not a MONET authority.
 
-## Slice B — App Material theme preset support — IMPLEMENTED / REVIEW PENDING
+## Slice B — App Material theme preset support — CLOSED / FROZEN
 
 Goal: `ThemeColorSource {DYNAMIC, PRESET}` + `PresetPalette` selection driving the App theme,
 with exact legacy preservation and full backup round-trip.
@@ -102,35 +103,35 @@ Actual implementation (commit `feat(theme): add preset theme state and backup v2
   user sees zero color change; backup files round-trip the exact preset identity; widget
   tests untouched.
 
-## Slice C — Settings flattening + Goal B settings UI
+## Slice C — Settings flattening + Goal B settings UI — IMPLEMENTED / REVIEW PENDING
 
 Goal: one flat Settings screen per contract §5/§6, plus the 配色 selector UI.
 
-- NEW section composables (settings package): `SettingsBasicDataSection`,
-  `SettingsAppearanceSection`, `SettingsSyncBackupSection`, `SettingsUpdateSection`;
-  navigation rows for 指南/隐私与权限/功能教程/关于 stay in `SettingsScreen`.
-- Reuse existing row/control composables and dialog state; hoist all state as parameters;
-  reuse existing callbacks (SettingsViewModel/HRTViewModel/BackupRestoreViewModel);
-  Health Connect consent/permission flows unchanged; import/export dialogs unchanged.
-- 配色 UI (appearance section): source selector (跟随壁纸 / 预设配色) + preset palette
-  selector using the 8 presets, names from `widget_config_palette_*`, widget-style swatch
-  tiles, selected-state border/check + semantics, disabled (non-interactive, dimmed) while
-  DYNAMIC, live apply, persists.
-- Migrated legacy UX (P2-1): when the effective state is `LEGACY_BUILTIN`, the section shows a
-  truthful compatibility/current theme row (e.g. "当前主题：内置主题（兼容保留）") and NONE of
-  the 8 tiles is marked selected; the first active tile selection migrates to normal PRESET
-  persistence. MONET_TEAL is never shown as selected unless it actually is selected.
-- Route cleanup (pending reachability proof): remove BASIC_DATA / APPEARANCE_FORMAT / UPDATE /
-  SYNC_AND_BACKUP / DATA_IMPORT_EXPORT / HEALTH_CONNECT_SYNC destinations + route constants +
-  top-bar title overrides; keep GOOGLE_DRIVE / ONBOARDING / DISCLOSURES / FEATURE_TUTORIAL /
-  ABOUT; update `isSettingsSubroute`; delete now-unreachable screen files only after
-  repository-wide reference proof (otherwise DEPRECATE + report).
-- Tests: flattened sections visible; controls mutate the SAME preference owners; protections
-  preserved; font-scale/scroll; kept-route back behavior; selector interaction + persistence +
-  disabled semantics; updated navigation tests (SyncAndBackupNavigationTest,
-  HealthConnectSyncScreenTest, SettingsCategoryScreenTest, FeatureTutorialNavigationTest).
-- Acceptance: no workflow requires a removed screen; physical-device walkthrough of every
-  section.
+Actual implementation (`feat(settings): flatten settings and add palette selector`):
+- `ui/screens/settings/` sections: SettingsSectionHeader, SettingsBasicDataSection,
+  SettingsAppearanceSection, SettingsColorSchemeSection, SettingsImportExportBlock,
+  SettingsHealthConnectSection, SettingsSyncBackupSection, SettingsUpdateSection,
+  SettingsNavigationRowsSection; SettingsScreen is the only state collection point.
+- 配色 UI: source rows 跟随壁纸/预设配色 + exactly the 8 PresetPalette tiles (labels from
+  `widget_config_palette_*`), swatch preview from PaletteCatalog seeds, selected state via
+  selectable semantics + border + Check (never hue-only). Tiles are directly tappable while
+  DYNAMIC (frozen contract §10); tapping the PRESET source row while DYNAMIC enters PRESET
+  atomically with MONET_TEAL (the contract §11 terminal ladder identity); tapping it while
+  already PRESET is a no-op guard (never re-defaults an existing selection). Never writes
+  PRESET+null.
+- LEGACY_BUILTIN: truthful compatibility row 当前主题：内置主题（兼容保留）, no tile selected,
+  first tile tap migrates monotonically.
+- Route cleanup: all six removable routes + their six now-dead screens removed after the
+  repository-wide reachability proof (zero callers, no deep links/auto routes/tutorial refs);
+  top-bar overrides + isSettingsSubroute updated; GOOGLE_DRIVE / ONBOARDING / DISCLOSURES /
+  FEATURE_TUTORIAL / ABOUT kept.
+- Tests: SettingsCategoryScreenTest 8 (structure/owners/large font), SettingsPaletteSelectorTest
+  4 (state matrix + inventory), SettingsThemeIndependenceTest 3 (real DataStore), updated
+  SyncAndBackupNavigationTest / SyncAndBackupScreenTest / HealthConnectSyncScreenTest /
+  DataImportExportScreenTest / AuthorizationGuidanceTest / FeatureTutorialNavigationTest /
+  ColorRoleConformanceTest; SliceCSettingsSmokeTest for AVD acceptance.
+- Verification: full app JVM 147 suites/1387/0; focused device 39/39; AVD smoke 1/1 + 6
+  screenshots; evidence `docs/evolune/v1.7.2/evidence/slice-c/`.
 
 ## Slice D — History copy removal
 

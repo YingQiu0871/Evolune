@@ -256,17 +256,20 @@
       MONET_TEAL 等价性 **DISPROVED**；evidence
       `docs/evolune/v1.7.2/evidence/slice-a/`；packets
       `v172-slice-a-candidate.txt` + `v172-slice-a-evidence-correction.txt`）。
-- [x] v1.7.2 Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— **IMPLEMENTED /
-      REVIEW PENDING**（`feat(theme): add preset theme state and backup v2`；新增
-      `ThemeColorSource` / `ThemePresetSelection`（data/ThemeState.kt）+ 规范 DataStore 键
-      `theme_color_source` / `theme_preset_id`（legacy `color_theme` 仅作兼容投影、原子同步）；
-      EvoluneTheme 消费规范状态：DYNAMIC 不变、8 个 MONET 预设由共享目录构建 Material 明暗方案、
-      LEGACY_BUILTIN 精确复刻 v1.7.1 内置方案（删除旧 inline scheme + Color.kt 标准常量，删除前
-      已做逐角色对照）；backup schema v2 严格精确字段集 + 双向版本门 + v1 冻结兼容 + 无效 payload
-      `INVALID_PAYLOAD` 零变更；legacy BUILTIN → LEGACY_BUILTIN（不映射 MONET_TEAL）；full app
-      JVM 147 suites/1387/0（+27）；设备测试 14/14；evidence
-      `docs/evolune/v1.7.2/evidence/slice-b/`；packet `v172-slice-b-candidate.txt`）。
-- [ ] NEXT：**v1.7.2 Slice B review**（通过后方可开始 Slice C：Settings 扁平化 + 配色选择 UI）。
+- [x] v1.7.2 Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— **CLOSED / FROZEN**
+      （`feat(theme): add preset theme state and backup v2` @
+      `e01a55e559a3faa4fd3d66a9f86427e4a61d018a`；独立复审 `v172-qwen-slice-b-review.txt`
+      **APPROVE V1.7.2 SLICE B**（P0/P1/P2 = none）；full app JVM 147 suites/1387/0；设备
+      14/14；evidence `docs/evolune/v1.7.2/evidence/slice-b/`）。
+- [x] v1.7.2 Slice C（Settings 扁平化 + 配色选择 UI）— **IMPLEMENTED / REVIEW PENDING**
+      （`feat(settings): flatten settings and add palette selector`；单一可滚动 Settings 页
+      内联 基础数据 / 外观与格式 / 同步与备份 / 更新 四区，保留 指南 / 隐私与权限 / 功能教程 /
+      关于 四行；六条二级路由与六个旧屏删除（迁移内容进 `ui/screens/settings/` 分区组件）；
+      新配色 UI 消费 Slice-B 规范状态（跟随壁纸 / 预设配色 + 8 个预设磁贴 + LEGACY_BUILTIN
+      兼容行，绝不显示为第九个预设）；ThemeMode 双向独立；Google Drive 安全多步路由保留；
+      full app JVM 147 suites/1387/0；设备 39/39（10 类）；AVD smoke 1/1 + 6 张截图；evidence
+      `docs/evolune/v1.7.2/evidence/slice-c/`；packet `v172-slice-c-candidate.txt`）。
+- [ ] NEXT：**v1.7.2 Slice C review**（通过后方可开始 Slice D：History 文案移除）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

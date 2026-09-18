@@ -1,13 +1,10 @@
-package io.github.yingqiu0871.evolune.ui.screens
+package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,39 +21,29 @@ import androidx.compose.ui.unit.dp
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.isValidBodyWeight
 
+/**
+ * v1.7.2 Slice C — Basic data inline section. The persisted authority remains
+ * SettingsViewModel/SettingsDataStore; only the text-field interaction state is local.
+ */
 @Composable
-fun BasicDataScreen(
-    bodyWeight: Double,
-    onBodyWeightChange: (Double) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("settings-basic-data-screen")
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        BodyWeightSection(
-            bodyWeight = bodyWeight,
-            onBodyWeightChange = onBodyWeightChange
-        )
-    }
-}
-
-@Composable
-private fun BodyWeightSection(
+internal fun SettingsBasicDataSection(
     bodyWeight: Double,
     onBodyWeightChange: (Double) -> Unit
 ) {
     var weightText by remember(bodyWeight) { mutableStateOf(bodyWeight.toString()) }
     var isError by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("settings-basic-data-section"),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SettingsSectionHeader(title = stringResource(R.string.settings_basic_data_title))
         Text(
             text = stringResource(R.string.settings_weight_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Text(

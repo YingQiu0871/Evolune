@@ -1,0 +1,20 @@
+v1.7.2 Slice C — frozen-surface audit
+=====================================
+
+Zero delta (git diff vs e01a55e) under:
+- app/src/main/.../backup/** (codec, schema, coordinator, protocol)          zero
+- app/src/main/.../history/** (History, matcher, retrospective, insights,
+  timeline)                                                                   zero
+- app/src/main/.../wear/**                                                    zero
+- app/src/main/.../widget/**                                                  zero
+- app/src/main/.../theme/palette/** (Slice-A/B authorities)                   zero
+- app/src/main/.../ui/theme/** (Theme.kt/Color.kt/PresetColorSchemes)         zero
+- Room/schema/DAO/migrations                                                  zero
+- Health Connect domain (healthconnect/**)                                    zero
+- Drive workflow (backup/cloud, GoogleDriveBackupRestoreScreen)               zero
+- version metadata (*.gradle.kts, gradle.properties)                          zero
+- docs/evolune/v1.7.2/evidence/slice-a/** and slice-b/**                      zero
+
+In-scope UI relocation/wiring only: AppNavigation settings wiring, SettingsScreen + new
+settings section package, strings (values + values-zh-rCN), affected Settings/UI tests,
+one architecture-guard path update.

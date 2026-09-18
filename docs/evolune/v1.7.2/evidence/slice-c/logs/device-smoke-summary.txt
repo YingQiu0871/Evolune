@@ -1,0 +1,5 @@
+v1.7.2 Slice C AVD acceptance smoke summary (from connectedDebugAndroidTest XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Class: io.github.yingqiu0871.evolune.ui.screens.SliceCSettingsSmokeTest
+
+TOTAL tests=1 failures=0

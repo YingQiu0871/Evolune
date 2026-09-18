@@ -1,0 +1,26 @@
+v1.7.2 Slice C — state-owner audit
+==================================
+
+Every moved control still mutates the SAME canonical owner (verified by wiring + tests):
+
+  body weight        SettingsViewModel.updateBodyWeight -> SettingsDataStore (settings)
+  ThemeMode          SettingsViewModel.updateThemeMode -> SettingsDataStore
+  time format        SettingsViewModel.updateTimeFormat -> SettingsDataStore
+  auto-check updates SettingsViewModel.updateAutoCheckUpdates -> SettingsDataStore
+  theme source       SettingsViewModel.updateThemeColorSource -> canonical Slice-B keys
+  theme preset       SettingsViewModel.updateThemePreset -> canonical Slice-B keys
+  Health Connect     SettingsViewModel.setHealthConnectWeightSyncEnabled /
+                     pendingAuthorization launchers (unchanged flow)
+  import/export      HRTViewModel.importResult + existing launchers/handlers in AppNavigation
+  updates check      SettingsViewModel.checkForUpdates/updateCheckResult (unchanged)
+  Google Drive       BackupRestoreViewModel via the kept route (unchanged)
+
+Static evidence:
+- no `viewModel(` or `collectAsState` in SettingsScreen.kt or ui/screens/settings/**  (0 hits)
+- no preferencesDataStore / getSharedPreferences / SettingsDataStore( in the same scope  (0)
+- no widget SharedPreferences access in the same scope  (0)
+- no new preference keys; no shadow Compose persistence; only transient dialog/input state.
+
+Device proofs: SettingsCategoryScreenTest (callback wiring per control),
+SettingsThemeIndependenceTest (real DataStore), SettingsPaletteSelectorTest (canonical
+selection semantics).

@@ -16,9 +16,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
-import io.github.yingqiu0871.evolune.onboarding.CURRENT_MEDICAL_PK_DISCLOSURE_VERSION
-import io.github.yingqiu0871.evolune.onboarding.CURRENT_ONBOARDING_VERSION
-import io.github.yingqiu0871.evolune.onboarding.CURRENT_TERMS_VERSION
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -55,67 +52,43 @@ class SyncAndBackupNavigationTest {
     }
 
     @Test
-    fun settingsCategoryPagesNavigateBackToSettings() {
+    fun flattenedSettingsKeepInlineControlsAndRetainedRoutesStable() {
         composeRule.waitForIdle()
         openSettings()
 
-        openCategory("settings-basic-data-entry", "settings-basic-data-screen")
-        pressBackToSettings()
+        composeRule.onNodeWithTag("settings-basic-data-section").performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-appearance-section").performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-import-export-block").performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
+            .assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-update-section").performScrollTo()
+            .assertIsDisplayed()
 
-        openCategory("settings-appearance-format-entry", "settings-appearance-format-screen")
-        pressBackToSettings()
-
-        openCategory("settings-sync-backup-entry", "settings-sync-backup-data-entry")
-        pressBackToSettings()
-
-        openCategory("settings-update-entry", "settings-update-screen")
-        pressBackToSettings()
-
-        openCategory("settings-about-entry", "settings-about-screen")
-        pressBackToSettings()
-    }
-
-    @Test
-    fun settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable() {
-        composeRule.waitForIdle()
-        openSettings()
-
-        composeRule.onNodeWithTag("settings-sync-backup-entry")
+        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
             .performScrollTo()
             .performClick()
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-sync-backup-data-entry")
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").performClick()
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("health-connect-sync-title")
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-        pressBack()
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
-
-        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").performClick()
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("google-drive-backup-now")
                 .fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithTag("google-drive-backup-now").assertIsDisplayed()
-        composeRule.onNodeWithTag("google-drive-restore-from-backup").assertIsDisplayed()
         pressBack()
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").assertIsDisplayed()
+    }
 
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").performClick()
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-import-json")
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-        composeRule.onNodeWithTag("settings-import-json").assertIsDisplayed()
-        pressBack()
-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
+    @Test
+    fun retainedContentRowsOpenAndReturnToTheFlattenedScreen() {
+        composeRule.waitForIdle()
+        openSettings()
 
-        pressBack()
+        openRowAndReturn("settings-privacy-entry", assertTitle = R.string.disclosures_title)
+        openRowAndReturn("settings-about-entry", assertTag = "settings-about-screen")
+        openRowAndReturn("settings-feature-tutorial-entry", assertTag = "feature-tutorial-step-title")
+        openRowAndReturn("settings-guide-entry", assertTitle = R.string.onboarding_title)
+
         composeRule.onNodeWithTag("app-top-title").assertTextEquals(
             context.getString(R.string.settings_title)
         )
@@ -129,25 +102,36 @@ class SyncAndBackupNavigationTest {
             composeRule.onNodeWithTag("nav-bar-settings").performClick()
         }
         composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-basic-data-entry")
+            composeRule.onAllNodesWithTag("settings-basic-data-section")
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    private fun openCategory(entryTag: String, destinationTag: String) {
-        composeRule.onNodeWithTag(entryTag)
-            .performScrollTo()
-            .performClick()
-        composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag(destinationTag)
-                .fetchSemanticsNodes().isNotEmpty()
+    private fun openRowAndReturn(
+        entryTag: String,
+        assertTag: String? = null,
+        assertTitle: Int? = null
+    ) {
+        composeRule.onNodeWithTag(entryTag).performScrollTo().performClick()
+        if (assertTag != null) {
+            composeRule.waitUntil(5_000L) {
+                composeRule.onAllNodesWithTag(assertTag).fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag(assertTag).assertIsDisplayed()
         }
-        composeRule.onNodeWithTag(destinationTag).assertIsDisplayed()
-    }
-
-    private fun pressBackToSettings() {
+        if (assertTitle != null) {
+            composeRule.waitUntil(5_000L) {
+                composeRule.onAllNodesWithTag("app-top-title").fetchSemanticsNodes().isNotEmpty()
+            }
+            composeRule.onNodeWithTag("app-top-title").assertTextEquals(
+                context.getString(assertTitle)
+            )
+        }
         pressBack()
-        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("settings-basic-data-section")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun pressBack() {

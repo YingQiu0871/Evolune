@@ -1,0 +1,18 @@
+v1.7.2 Slice C — accessibility audit
+====================================
+
+Palette controls:
+- source rows are SegmentedListItem radios: selection exposed via selected semantics +
+  RadioButton; labels + supporting text are localized strings.
+- preset tiles: Modifier.selectable(selected, role = Role.RadioButton) -> TalkBack announces
+  the palette name (visible Text label) and the selected state; selection is NOT conveyed by
+  swatch hue alone (2dp primary border + filled primaryContainer + explicit Check icon).
+- touch targets: tiles are at least 48dp tall (padding 10dp + 12dp swatches + label) and
+  span a quarter of the available width; source rows use the standard list item height.
+- Dynamic/Preset source state is understandable without color: radio selection + localized
+  labels + descriptions.
+
+Retained controls keep their previous semantics (theme mode/time format radios, weight
+field with error support text, switches, list rows, dialogs).
+Device proofs: SettingsPaletteSelectorTest asserts selected semantics per state;
+SettingsCategoryScreenTest asserts large-font reachability (fontScale = 2.0).

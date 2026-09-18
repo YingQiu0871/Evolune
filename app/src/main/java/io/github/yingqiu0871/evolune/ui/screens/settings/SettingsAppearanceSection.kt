@@ -1,18 +1,13 @@
-package io.github.yingqiu0871.evolune.ui.screens
+package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
-import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -27,32 +22,46 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.yingqiu0871.evolune.R
-import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
+import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
 import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
 import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
 
+/**
+ * v1.7.2 Slice C — Appearance & format inline section: ThemeMode, the canonical 配色 control
+ * and time format. Each control keeps its existing state owner.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AppearanceAndFormatScreen(
+internal fun SettingsAppearanceSection(
     settings: UserSettings,
     onThemeModeChange: (ThemeMode) -> Unit,
-    onColorThemeChange: (ColorTheme) -> Unit,
+    onSelectDynamicSource: () -> Unit,
+    onSelectPresetSource: () -> Unit,
+    onPresetPaletteChange: (PresetPalette) -> Unit,
     onTimeFormatChange: (TimeFormat) -> Unit
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .testTag("settings-appearance-format-screen")
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .fillMaxWidth()
+            .testTag("settings-appearance-section"),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        ThemeModeSection(settings.themeMode, onThemeModeChange)
-        ColorThemeSection(settings.colorTheme, onColorThemeChange)
-        TimeFormatSection(settings.timeFormat, onTimeFormatChange)
+        SettingsSectionHeader(title = stringResource(R.string.settings_appearance_format_title))
+        ThemeModeSection(currentMode = settings.themeMode, onModeChange = onThemeModeChange)
+        SettingsColorSchemeSection(
+            source = settings.themeColorSource,
+            preset = settings.themePreset,
+            onSelectDynamicSource = onSelectDynamicSource,
+            onSelectPresetSource = onSelectPresetSource,
+            onPresetPaletteChange = onPresetPaletteChange
+        )
+        TimeFormatSection(
+            currentFormat = settings.timeFormat,
+            onFormatChange = onTimeFormatChange
+        )
     }
 }
 
@@ -65,8 +74,8 @@ private fun ThemeModeSection(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.settings_theme_mode_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Column(
@@ -117,53 +126,6 @@ private fun ThemeModeSection(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ColorThemeSection(
-    currentTheme: ColorTheme,
-    onThemeChange: (ColorTheme) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.settings_color_theme_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            ColorTheme.entries.forEachIndexed { index, theme ->
-                val label = when (theme) {
-                    ColorTheme.DYNAMIC -> stringResource(R.string.settings_color_theme_dynamic)
-                    ColorTheme.BUILTIN -> stringResource(R.string.settings_color_theme_builtin)
-                }
-                val description = when (theme) {
-                    ColorTheme.DYNAMIC -> stringResource(R.string.settings_color_theme_dynamic_desc)
-                    ColorTheme.BUILTIN -> stringResource(R.string.settings_color_theme_builtin_desc)
-                }
-                val icon = when (theme) {
-                    ColorTheme.DYNAMIC -> Icons.Outlined.ColorLens
-                    ColorTheme.BUILTIN -> Icons.Outlined.Palette
-                }
-                SegmentedListItem(
-                    modifier = Modifier.testTag("color-theme-${theme.name.lowercase()}"),
-                    selected = currentTheme == theme,
-                    onClick = { onThemeChange(theme) },
-                    shapes = stableSegmentedShapes(index, ColorTheme.entries.size),
-                    colors = settingsListItemColors(),
-                    leadingContent = { Icon(imageVector = icon, contentDescription = null) },
-                    trailingContent = {
-                        RadioButton(selected = currentTheme == theme, onClick = null)
-                    },
-                    supportingContent = { Text(description) }
-                ) { Text(label) }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
 private fun TimeFormatSection(
     currentFormat: TimeFormat,
     onFormatChange: (TimeFormat) -> Unit
@@ -171,8 +133,8 @@ private fun TimeFormatSection(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.settings_time_format_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Column(

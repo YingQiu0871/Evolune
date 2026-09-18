@@ -1,0 +1,20 @@
+v1.7.2 Slice C — Sync & backup wiring
+=====================================
+
+Inline (main Settings screen):
+- import/export: SettingsImportExportBlock reuses the exact action rows, tags, typed dialogs
+  and safety steps: portable range dialog, portable busy blocking, import result dialogs,
+  legacy clipboard privacy warning (legacy-clipboard-warning/confirm/cancel) before any
+  clipboard write. Callbacks route to the existing HRTViewModel/AppNavigation handlers
+  (importResult, dismissImportResult, clipboardExportMessage, launchers, portable services).
+- Health Connect: SettingsHealthConnectSection renders the same controls (weight switch,
+  medication placeholder, permission status, manage permissions, reauthorize) and forwards
+  to the existing pendingAuthorization flows and setHealthConnectWeightSyncEnabled; domain
+  behavior and the SettingsDataStore owner are unchanged.
+- Google Drive: retained dedicated route GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE; the flattened
+  screen exposes only the entry row (settings-sync-backup-google-drive-entry) with the
+  existing connected/authorization summary.
+
+No backup/import semantics changed; backup codec untouched (zero delta).
+Device proofs: SyncAndBackupScreenTest, SyncAndBackupNavigationTest (entry -> Drive route ->
+back), DataImportExportScreenTest (6 dialogs/safety cases), AuthorizationGuidanceTest.

@@ -15,7 +15,7 @@ class PortableArchitectureGuardTest {
 
     private val exportDir = Path.of("src/main/java/io/github/yingqiu0871/evolune/export")
     private val navigationFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt")
-    private val screenFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt")
+    private val screenFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsImportExportBlock.kt")
 
     private val exportFiles: List<Path> = Files.list(exportDir).use { stream ->
         stream.filter { it.fileName.toString().endsWith(".kt") }.toList()

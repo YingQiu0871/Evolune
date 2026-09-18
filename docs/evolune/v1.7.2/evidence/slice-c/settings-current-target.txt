@@ -1,0 +1,20 @@
+v1.7.2 Slice C — Settings current → target
+==========================================
+
+Before (v1.7.1): an 8-row navigation hub; 基础数据 / 外观与格式 / 同步与备份 / 更新 opened
+second-level pages; 同步与备份 was itself a hub for import-export / Health Connect / Drive.
+
+After (v1.7.2 Slice C): ONE vertically scrollable Settings screen:
+
+  基础数据        inline — body-weight field (same SettingsViewModel/DataStore owner)
+  外观与格式      inline — ThemeMode, 配色 (source + 8 presets + LEGACY compat row), time format
+  同步与备份      inline — import/export actions (all dialogs), HC controls, Drive entry row
+  更新            inline — auto-check switch, check-now + status, current version row
+  指南            navigation row (unchanged route/content)
+  隐私与权限      navigation row (unchanged route/deep link)
+  功能教程        navigation row (unchanged route/auto-start)
+  关于            navigation row (unchanged route/content)
+
+Ordinary controls no longer require entering any second-level page. Google Drive keeps its
+dedicated secure multi-step route (entry row only). No new ViewModel, no second preference
+owner, no DataStore access from UI code.

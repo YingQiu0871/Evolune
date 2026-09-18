@@ -99,11 +99,11 @@ class FeatureTutorialNavigationTest {
 
         scenario.recreate()
         composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-basic-data-entry")
+            composeRule.onAllNodesWithTag("settings-basic-data-section")
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
-        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-basic-data-section").assertIsDisplayed()
     }
 
     private fun next() {

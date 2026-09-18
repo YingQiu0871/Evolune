@@ -1,0 +1,3404 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsThemeIndependenceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsThemeIndependenceTest.kt
+new file mode 100644
+index 0000000..3f92c0f
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsThemeIndependenceTest.kt
+@@ -0,0 +1,90 @@
++package io.github.yingqiu0871.evolune.data
++
++import android.content.Context
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.runBlocking
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Before
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.time.Clock
++
++/**
++ * v1.7.2 Slice C — ThemeMode and the canonical color identity are independent in BOTH
++ * directions on the real settings DataStore.
++ */
++@RunWith(AndroidJUnit4::class)
++class SettingsThemeIndependenceTest {
++
++    private val context = ApplicationProvider.getApplicationContext<Context>()
++    private val store = SettingsDataStore(context, Clock.systemUTC())
++
++    @Before
++    fun reset() {
++        runBlocking { store.replaceSettings(UserSettings()) }
++    }
++
++    @After
++    fun restore() {
++        runBlocking { store.replaceSettings(UserSettings()) }
++    }
++
++    @Test
++    fun changingThemeModeNeverRewritesTheColorIdentity() = runBlocking {
++        store.updateThemeMode(ThemeMode.AMOLED)
++        val afterMode = store.userSettings.first()
++        assertEquals(ThemeMode.AMOLED, afterMode.themeMode)
++        assertEquals(ThemeColorSource.DYNAMIC, afterMode.themeColorSource)
++        assertNull(afterMode.themePreset)
++        assertEquals(ColorTheme.DYNAMIC, afterMode.colorTheme)
++
++        store.updateThemePreset(ThemePresetSelection.Preset(PresetPalette.MONET_AMBER))
++        store.updateThemeMode(ThemeMode.SYSTEM)
++        val afterSecondMode = store.userSettings.first()
++        assertEquals(ThemeMode.SYSTEM, afterSecondMode.themeMode)
++        assertEquals(ThemeColorSource.PRESET, afterSecondMode.themeColorSource)
++        assertEquals(
++            ThemePresetSelection.Preset(PresetPalette.MONET_AMBER),
++            afterSecondMode.themePreset
++        )
++        assertEquals(ColorTheme.BUILTIN, afterSecondMode.colorTheme)
++    }
++
++    @Test
++    fun changingColorIdentityNeverRewritesThemeMode() = runBlocking {
++        store.updateThemeMode(ThemeMode.AMOLED)
++        store.updateThemePreset(ThemePresetSelection.Preset(PresetPalette.MONET_BLUE))
++        assertEquals(ThemeMode.AMOLED, store.userSettings.first().themeMode)
++
++        store.updateThemeColorSource(ThemeColorSource.DYNAMIC)
++        val afterDynamic = store.userSettings.first()
++        assertEquals(ThemeMode.AMOLED, afterDynamic.themeMode)
++        assertEquals(ThemeColorSource.DYNAMIC, afterDynamic.themeColorSource)
++        assertNull(afterDynamic.themePreset)
++
++        store.updateThemePreset(ThemePresetSelection.LegacyBuiltin)
++        val afterLegacy = store.userSettings.first()
++        assertEquals(ThemeMode.AMOLED, afterLegacy.themeMode)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, afterLegacy.themePreset)
++    }
++
++    @Test
++    fun systemDynamicAndAmoledPresetCombinationsStayIndependent() = runBlocking {
++        store.updateThemeMode(ThemeMode.SYSTEM)
++        store.updateThemeColorSource(ThemeColorSource.DYNAMIC)
++        val systemDynamic = store.userSettings.first()
++        assertEquals(ThemeMode.SYSTEM, systemDynamic.themeMode)
++        assertEquals(ThemeColorSource.DYNAMIC, systemDynamic.themeColorSource)
++
++        store.updateThemeMode(ThemeMode.AMOLED)
++        store.updateThemePreset(ThemePresetSelection.Preset(PresetPalette.MONET_MINT))
++        val amoledPreset = store.userSettings.first()
++        assertEquals(ThemeMode.AMOLED, amoledPreset.themeMode)
++        assertEquals(ThemePresetSelection.Preset(PresetPalette.MONET_MINT), amoledPreset.themePreset)
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/AuthorizationGuidanceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/AuthorizationGuidanceTest.kt
+index be3dcd9..3dd996f 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/AuthorizationGuidanceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/AuthorizationGuidanceTest.kt
+@@ -14,6 +14,7 @@ import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+ import io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialog
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsHealthConnectSection
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import androidx.test.platform.app.InstrumentationRegistry
+ import org.junit.Assert.assertFalse
+@@ -31,15 +32,17 @@ class AuthorizationGuidanceTest {
+         var providerInvoked by mutableStateOf(false)
+         composeRule.setContent {
+             EvoluneTheme {
+-                HealthConnectSyncScreen(
+-                    settings = UserSettings(),
+-                    state = HealthConnectWeightSyncState(),
+-                    onWeightSyncEnabledChange = { enabled ->
+-                        if (enabled) guidanceVisible = true
+-                    },
+-                    onReauthorize = {},
+-                    onManagePermissions = {}
+-                )
++                TestScrollHost {
++                    SettingsHealthConnectSection(
++                        settings = UserSettings(),
++                        state = HealthConnectWeightSyncState(),
++                        onWeightSyncEnabledChange = { enabled ->
++                            if (enabled) guidanceVisible = true
++                        },
++                        onReauthorize = {},
++                        onManagePermissions = {}
++                    )
++                }
+                 ContextualAuthorizationDialog(
+                     visible = guidanceVisible,
+                     title = stringResource(R.string.contextual_health_connect_title),
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/ColorRoleConformanceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/ColorRoleConformanceTest.kt
+index 8a4b1da..4c55813 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/ColorRoleConformanceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/ColorRoleConformanceTest.kt
+@@ -85,9 +85,8 @@ class ColorRoleConformanceTest {
+         } else {
+             composeRule.onNodeWithTag("nav-bar-settings").performClick()
+         }
+-        composeRule.onNodeWithTag("settings-appearance-format-entry")
++        composeRule.onNodeWithTag("theme-mode-system")
+             .performScrollTo()
+-            .performClick()
+         composeRule.waitUntil(5_000L) {
+             composeRule.onAllNodesWithTag("theme-mode-system").fetchSemanticsNodes().isNotEmpty()
+         }
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreenTest.kt
+index b0cc792..d95acce 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreenTest.kt
+@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.onNodeWithText
+ import androidx.compose.ui.test.performClick
+ import io.github.yingqiu0871.evolune.export.PortableExportFormat
++import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
+ import io.github.yingqiu0871.evolune.export.PortableExportRange
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import io.github.yingqiu0871.evolune.viewmodel.ImportResult
+@@ -33,7 +34,7 @@ class DataImportExportScreenTest {
+         var imports = 0
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+@@ -87,7 +88,7 @@ class DataImportExportScreenTest {
+         var exportRequests = 0
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+@@ -116,7 +117,7 @@ class DataImportExportScreenTest {
+         var imports = 0
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+@@ -153,7 +154,7 @@ class DataImportExportScreenTest {
+         var dismissals = 0
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+@@ -180,7 +181,7 @@ class DataImportExportScreenTest {
+     fun oversizedLegacyImportShowsLocalizedTooLargeMessage() {
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Error(message = "Import failed", tooLarge = true),
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+@@ -201,7 +202,7 @@ class DataImportExportScreenTest {
+         var clipboardExports = 0
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialNavigationTest.kt
+index e9bf93f..eaed0e6 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialNavigationTest.kt
+@@ -99,11 +99,11 @@ class FeatureTutorialNavigationTest {
+ 
+         scenario.recreate()
+         composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag("settings-basic-data-entry")
++            composeRule.onAllNodesWithTag("settings-basic-data-section")
+                 .fetchSemanticsNodes()
+                 .isNotEmpty()
+         }
+-        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-basic-data-section").assertIsDisplayed()
+     }
+ 
+     private fun next() {
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreenTest.kt
+index 05da0fe..9edcf88 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreenTest.kt
+@@ -1,13 +1,11 @@
+ package io.github.yingqiu0871.evolune.ui.screens
+ 
++import androidx.compose.ui.test.assert
+ import androidx.compose.ui.test.assertIsDisplayed
+ import androidx.compose.ui.test.assertIsOff
+ import androidx.compose.ui.test.assertIsOn
+-import androidx.compose.ui.test.assert
+-import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.hasNoClickAction
+-import androidx.compose.ui.test.onAllNodesWithTag
+-import androidx.compose.ui.test.onAllNodesWithText
++import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.onNodeWithText
+ import androidx.compose.ui.test.performClick
+@@ -15,21 +13,21 @@ import androidx.compose.ui.test.performScrollTo
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsHealthConnectSection
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import java.time.Instant
+ import org.junit.Rule
+ import org.junit.Test
+-import org.junit.Assert.assertTrue
+ 
+ class HealthConnectSyncScreenTest {
+     @get:Rule
+     val composeRule = createComposeRule()
+ 
+     @Test
+-    fun pageShowsWeightToggleMedicationPlaceholderAndPermissionEntry() {
++    fun sectionShowsWeightToggleMedicationPlaceholderAndPermissionEntry() {
+         setScreen()
+ 
+-        composeRule.onNodeWithTag("health-connect-sync-title").assertIsDisplayed()
++        composeRule.onNodeWithTag("health-connect-sync-connection-status").assertIsDisplayed()
+         composeRule.onNodeWithTag("health-connect-weight-sync-switch").assertIsOff()
+         composeRule.onNodeWithTag("health-connect-medication-sync-row").performScrollTo()
+         composeRule.onNodeWithTag(
+@@ -41,98 +39,6 @@ class HealthConnectSyncScreenTest {
+         composeRule.onNodeWithTag("health-connect-manage-permissions").assertIsDisplayed()
+     }
+ 
+-    @Test
+-    fun settingsExposesFeatureTutorialSeparatelyFromDisclosureGuide() {
+-        var featureTutorialOpened = false
+-        composeRule.setContent {
+-            EvoluneTheme {
+-                SettingsScreen(
+-                    onOpenBasicData = {},
+-                    onOpenAppearanceAndFormat = {},
+-                    onOpenSyncAndBackup = {},
+-                    onOpenUpdate = {},
+-                    onOpenAbout = {},
+-                    onOpenGuide = {},
+-                    onOpenFeatureTutorial = { featureTutorialOpened = true },
+-                    showTopBar = false
+-                )
+-            }
+-        }
+-
+-        composeRule.onNodeWithTag("settings-guide-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
+-            .performScrollTo()
+-            .performClick()
+-        composeRule.runOnIdle { assertTrue(featureTutorialOpened) }
+-    }
+-
+-    @Test
+-    fun settingsHomeRoutesSyncAndBackupWithoutDirectFeatureControls() {
+-        var opened = false
+-        composeRule.setContent {
+-            EvoluneTheme {
+-                SettingsScreen(
+-                    onOpenBasicData = {},
+-                    onOpenAppearanceAndFormat = {},
+-                    onOpenSyncAndBackup = { opened = true },
+-                    onOpenUpdate = {},
+-                    onOpenAbout = {},
+-                    showTopBar = false
+-                )
+-            }
+-        }
+-        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-appearance-format-entry").performScrollTo()
+-        composeRule.onNodeWithTag("settings-appearance-format-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-sync-backup-entry").performScrollTo()
+-        composeRule.onNodeWithTag("settings-sync-backup-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-update-entry").performScrollTo()
+-        composeRule.onNodeWithTag("settings-update-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-about-entry").performScrollTo()
+-        composeRule.onNodeWithTag("settings-about-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-feature-tutorial-entry").performScrollTo()
+-        composeRule.onNodeWithTag("settings-feature-tutorial-entry").assertIsDisplayed()
+-        assertTrue(
+-            composeRule.onAllNodesWithTag("settings-basic-data-entry")
+-                .fetchSemanticsNodes().size == 1
+-        )
+-        assertTrue(
+-            composeRule.onAllNodesWithTag("settings-health-connect-sync-entry")
+-                .fetchSemanticsNodes().isEmpty()
+-        )
+-        assertTrue(
+-            composeRule.onAllNodesWithText("立即备份").fetchSemanticsNodes().isEmpty()
+-        )
+-        assertTrue(
+-            composeRule.onAllNodesWithText("从备份恢复").fetchSemanticsNodes().isEmpty()
+-        )
+-        assertTrue(
+-            composeRule.onAllNodesWithTag("settings-weight-input")
+-                .fetchSemanticsNodes().isEmpty()
+-        )
+-        assertTrue(
+-            composeRule.onAllNodesWithTag("settings-auto-check-updates")
+-                .fetchSemanticsNodes().isEmpty()
+-        )
+-        listOf(
+-            "体重 (kg)",
+-            "自动检查更新",
+-            "检查更新",
+-            "版权信息",
+-            "免责声明",
+-            "浅色",
+-            "动态着色",
+-            "12小时制"
+-        ).forEach { text ->
+-            assertTrue(
+-                "Direct Settings control leaked onto the navigation hub: $text",
+-                composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty()
+-            )
+-        }
+-        composeRule.onNodeWithTag("settings-sync-backup-entry").performClick()
+-        composeRule.runOnIdle { check(opened) }
+-    }
+-
+     @Test
+     fun permissionRequiredEnabledStateOffersReauthorization() {
+         setScreen(
+@@ -188,13 +94,15 @@ class HealthConnectSyncScreenTest {
+     ) {
+         composeRule.setContent {
+             EvoluneTheme {
+-                HealthConnectSyncScreen(
+-                    settings = settings,
+-                    state = state,
+-                    onWeightSyncEnabledChange = {},
+-                    onReauthorize = {},
+-                    onManagePermissions = {}
+-                )
++                TestScrollHost {
++                    SettingsHealthConnectSection(
++                        settings = settings,
++                        state = state,
++                        onWeightSyncEnabledChange = {},
++                        onReauthorize = {},
++                        onManagePermissions = {}
++                    )
++                }
+             }
+         }
+         composeRule.waitForIdle()
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
+index 4398178..eeaaaf5 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt
+@@ -1,7 +1,10 @@
+ package io.github.yingqiu0871.evolune.ui.screens
+ 
++import androidx.compose.runtime.CompositionLocalProvider
++import androidx.compose.ui.platform.LocalDensity
+ import androidx.compose.ui.test.assertIsDisplayed
+ import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithTag
+ import androidx.compose.ui.test.onAllNodesWithText
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.onNodeWithText
+@@ -9,13 +12,16 @@ import androidx.compose.ui.test.performClick
+ import androidx.compose.ui.test.performScrollTo
+ import androidx.compose.ui.test.performTextClearance
+ import androidx.compose.ui.test.performTextInput
+-import io.github.yingqiu0871.evolune.data.ColorTheme
++import androidx.compose.ui.unit.Density
+ import io.github.yingqiu0871.evolune.data.ThemeMode
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
+ import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
+ import org.junit.Rule
+ import org.junit.Test
+ 
+@@ -24,18 +30,45 @@ class SettingsCategoryScreenTest {
+     val composeRule = createComposeRule()
+ 
+     @Test
+-    fun basicDataKeepsBodyWeightInputAndValidationCallback() {
+-        val weights = mutableListOf<Double>()
+-        composeRule.setContent {
+-            EvoluneTheme {
+-                BasicDataScreen(
+-                    bodyWeight = 55.0,
+-                    onBodyWeightChange = { weights += it }
+-                )
+-            }
++    fun flattenedSettingsExposeAllInlineSectionsAndRetainedRows() {
++        setSettingsContent()
++
++        listOf(
++            "settings-basic-data-section",
++            "settings-appearance-section",
++            "settings-color-scheme-section",
++            "settings-import-export-block",
++            "settings-health-connect-section",
++            "settings-update-section",
++            "settings-navigation-rows"
++        ).forEach { tag ->
++            composeRule.onNodeWithTag(tag).assertExists()
+         }
++        listOf(
++            "settings-basic-data-entry",
++            "settings-appearance-format-entry",
++            "settings-sync-backup-entry",
++            "settings-update-entry"
++        ).forEach { oldTag ->
++            assertTrue(
++                "Former hub entry must not exist: $oldTag",
++                composeRule.onAllNodesWithTag(oldTag).fetchSemanticsNodes().isEmpty()
++            )
++        }
++
++        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
++            .performScrollTo().assertIsDisplayed()
++    }
+ 
+-        composeRule.onNodeWithTag("settings-basic-data-screen").assertIsDisplayed()
++    @Test
++    fun basicDataInlineKeepsBodyWeightInputAndValidationCallback() {
++        val weights = mutableListOf<Double>()
++        setSettingsContent(onBodyWeightChange = { weights += it })
++
++        composeRule.onNodeWithTag("settings-basic-data-section").assertIsDisplayed()
+         composeRule.onNodeWithTag("settings-weight-input").performTextClearance()
+         composeRule.onNodeWithTag("settings-weight-input").performTextInput("72.5")
+         composeRule.runOnIdle {
+@@ -44,57 +77,116 @@ class SettingsCategoryScreenTest {
+     }
+ 
+     @Test
+-    fun appearanceAndFormatKeepsThemeColorAndTimeSelectors() {
++    fun appearanceInlineKeepsThemeModeTimeAndCanonicalColorCallbacks() {
+         val selectedModes = mutableListOf<ThemeMode>()
+-        val selectedColors = mutableListOf<ColorTheme>()
+         val selectedFormats = mutableListOf<TimeFormat>()
+-        composeRule.setContent {
+-            EvoluneTheme {
+-                AppearanceAndFormatScreen(
+-                    settings = UserSettings(),
+-                    onThemeModeChange = { selectedModes += it },
+-                    onColorThemeChange = { selectedColors += it },
+-                    onTimeFormatChange = { selectedFormats += it }
+-                )
+-            }
+-        }
++        val dynamicSelections = mutableListOf<Unit>()
++        val presetEntries = mutableListOf<Unit>()
++        val paletteSelections = mutableListOf<PresetPalette>()
++        setSettingsContent(
++            onThemeModeChange = { selectedModes += it },
++            onSelectDynamicSource = { dynamicSelections += Unit },
++            onSelectPresetSource = { presetEntries += Unit },
++            onPresetPaletteChange = { paletteSelections += it },
++            onTimeFormatChange = { selectedFormats += it }
++        )
+ 
+-        composeRule.onNodeWithTag("settings-appearance-format-screen").assertIsDisplayed()
+-        composeRule.onNodeWithTag("theme-mode-dark").performClick()
+-        composeRule.onNodeWithTag("color-theme-builtin").performClick()
++        composeRule.onNodeWithTag("theme-mode-dark").performScrollTo().performClick()
+         composeRule.onNodeWithTag("time-format-hour_24").performScrollTo().performClick()
++        composeRule.onNodeWithTag("color-source-preset").performScrollTo().performClick()
++        composeRule.onNodeWithTag("color-source-dynamic").performScrollTo().performClick()
++        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
+         composeRule.runOnIdle {
+             assertEquals(listOf(ThemeMode.DARK), selectedModes)
+-            assertEquals(listOf(ColorTheme.BUILTIN), selectedColors)
+             assertEquals(listOf(TimeFormat.HOUR_24), selectedFormats)
++            assertEquals(1, presetEntries.size)
++            assertEquals(1, dynamicSelections.size)
++            assertEquals(listOf(PresetPalette.MONET_BLUE), paletteSelections)
+         }
+     }
+ 
+     @Test
+-    fun updatePageKeepsToggleCheckAndVersionActions() {
++    fun updateInlineKeepsToggleCheckAndVersionActions() {
+         val autoCheckValues = mutableListOf<Boolean>()
+         var checkCount = 0
+-        composeRule.setContent {
+-            EvoluneTheme {
+-                UpdateScreen(
+-                    autoCheckUpdates = false,
+-                    onAutoCheckUpdatesChange = { autoCheckValues += it },
+-                    onCheckForUpdates = { checkCount += 1 },
+-                    updateCheckResult = UpdateCheckResult.Idle
+-                )
+-            }
+-        }
++        setSettingsContent(
++            userSettings = UserSettings(autoCheckUpdates = false),
++            onAutoCheckUpdatesChange = { autoCheckValues += it },
++            onCheckForUpdates = { checkCount += 1 }
++        )
+ 
+-        composeRule.onNodeWithTag("settings-update-screen").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-auto-check-updates").performClick()
+-        composeRule.onNodeWithTag("settings-check-updates-now").performClick()
+-        composeRule.onNodeWithTag("settings-current-version").assertIsDisplayed().performClick()
++        composeRule.onNodeWithTag("settings-update-section").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-auto-check-updates").performScrollTo().performClick()
++        composeRule.onNodeWithTag("settings-check-updates-now").performScrollTo().performClick()
++        composeRule.onNodeWithTag("settings-current-version").performScrollTo()
++            .assertIsDisplayed().performClick()
+         composeRule.runOnIdle {
+             assertEquals(listOf(true), autoCheckValues)
+             assertEquals(1, checkCount)
+         }
+     }
+ 
++    @Test
++    fun syncBackupInlineKeepsHealthConnectAndDriveWiring() {
++        val weightToggles = mutableListOf<Boolean>()
++        var driveOpened = 0
++        setSettingsContent(
++            onHealthConnectWeightSyncEnabledChange = { weightToggles += it },
++            onOpenGoogleDrive = { driveOpened += 1 }
++        )
++
++        composeRule.onNodeWithTag("settings-import-export-block").performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
++            .performClick()
++        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
++            .performScrollTo()
++            .performClick()
++        composeRule.runOnIdle {
++            assertEquals(listOf(true), weightToggles)
++            assertEquals(1, driveOpened)
++        }
++    }
++
++    @Test
++    fun retainedNavigationRowsOpenTheirDestinations() {
++        val opened = mutableListOf<String>()
++        setSettingsContent(
++            onOpenGuide = { opened += "guide" },
++            onOpenPrivacy = { opened += "privacy" },
++            onOpenFeatureTutorial = { opened += "tutorial" },
++            onOpenAbout = { opened += "about" }
++        )
++
++        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().performClick()
++        composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
++        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
++            .performScrollTo().performClick()
++        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().performClick()
++        composeRule.runOnIdle {
++            assertEquals(listOf("guide", "privacy", "tutorial", "about"), opened)
++        }
++    }
++
++    @Test
++    fun largeFontScaleKeepsCoreControlsReachable() {
++        composeRule.setContent {
++            val baseDensity = LocalDensity.current
++            CompositionLocalProvider(
++                LocalDensity provides Density(baseDensity.density, fontScale = 2f)
++            ) {
++                EvoluneTheme {
++                    SettingsScreenTestHost()
++                }
++            }
++        }
++        composeRule.waitForIdle()
++
++        composeRule.onNodeWithTag("settings-palette-grid").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-weight-input").performScrollTo().assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
++    }
++
+     @Test
+     fun aboutPageKeepsContactLinksCopyrightAndDisclaimerDialogs() {
+         var websiteOpenCount = 0
+@@ -122,42 +214,106 @@ class SettingsCategoryScreenTest {
+         composeRule.onAllNodesWithText("免责声明").get(1).assertIsDisplayed()
+     }
+ 
+-    @Test
+-    fun settingsHubExposesAllEightDestinationsWithoutExpansion() {
+-        var privacyClicks = 0
++    private fun setSettingsContent(
++        userSettings: UserSettings = UserSettings(),
++        onBodyWeightChange: (Double) -> Unit = {},
++        onThemeModeChange: (ThemeMode) -> Unit = {},
++        onSelectDynamicSource: () -> Unit = {},
++        onSelectPresetSource: () -> Unit = {},
++        onPresetPaletteChange: (PresetPalette) -> Unit = {},
++        onTimeFormatChange: (TimeFormat) -> Unit = {},
++        onAutoCheckUpdatesChange: (Boolean) -> Unit = {},
++        onCheckForUpdates: () -> Unit = {},
++        onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit = {},
++        onOpenGoogleDrive: () -> Unit = {},
++        onOpenGuide: () -> Unit = {},
++        onOpenPrivacy: () -> Unit = {},
++        onOpenFeatureTutorial: () -> Unit = {},
++        onOpenAbout: () -> Unit = {}
++    ) {
+         composeRule.setContent {
+             EvoluneTheme {
+                 SettingsScreen(
+-                    onOpenBasicData = {},
+-                    onOpenAppearanceAndFormat = {},
+-                    onOpenSyncAndBackup = {},
+-                    onOpenUpdate = {},
+-                    onOpenAbout = {},
+-                    onOpenGuide = {},
+-                    onOpenPrivacy = { privacyClicks += 1 },
+-                    onOpenFeatureTutorial = {}
++                    userSettings = userSettings,
++                    healthConnectWeightSyncState = HealthConnectWeightSyncState(),
++                    backupRestoreConnected = true,
++                    updateCheckResult = UpdateCheckResult.Idle,
++                    onBodyWeightChange = onBodyWeightChange,
++                    onThemeModeChange = onThemeModeChange,
++                    onSelectDynamicSource = onSelectDynamicSource,
++                    onSelectPresetSource = onSelectPresetSource,
++                    onPresetPaletteChange = onPresetPaletteChange,
++                    onTimeFormatChange = onTimeFormatChange,
++                    onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
++                    onCheckForUpdates = onCheckForUpdates,
++                    onHealthConnectWeightSyncEnabledChange =
++                        onHealthConnectWeightSyncEnabledChange,
++                    onHealthConnectReauthorize = {},
++                    onHealthConnectManagePermissions = {},
++                    importResult = io.github.yingqiu0871.evolune.viewmodel.ImportResult.Idle,
++                    onDismissImportResult = {},
++                    clipboardExportMessage = null,
++                    onClipboardExportMessageShown = {},
++                    onImportClick = {},
++                    onImportFromClipboard = {},
++                    onExportClick = {},
++                    onExportToClipboard = {},
++                    portableBusy = false,
++                    onExportPortableJson = {},
++                    onExportPortableCsv = {},
++                    onImportPortableJson = {},
++                    portableDialog = null,
++                    onDismissPortableDialog = {},
++                    onOpenGoogleDrive = onOpenGoogleDrive,
++                    onOpenGuide = onOpenGuide,
++                    onOpenPrivacy = onOpenPrivacy,
++                    onOpenFeatureTutorial = onOpenFeatureTutorial,
++                    onOpenAbout = onOpenAbout,
++                    showTopBar = false
+                 )
+             }
+         }
+-
+-        // v1.7.1 UI hotfix: all eight entries are flat top-level rows, directly reachable.
+-        listOf(
+-            "settings-basic-data-entry",
+-            "settings-appearance-format-entry",
+-            "settings-sync-backup-entry",
+-            "settings-update-entry",
+-            "settings-guide-entry",
+-            "settings-privacy-entry",
+-            "settings-feature-tutorial-entry",
+-            "settings-about-entry"
+-        ).forEach { tag ->
+-            composeRule.onNodeWithTag(tag).assertExists()
+-        }
+-
+-        composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
+-        composeRule.runOnIdle {
+-            assertEquals(1, privacyClicks)
+-        }
+-        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
++        composeRule.waitForIdle()
+     }
+ }
++
++@androidx.compose.runtime.Composable
++private fun SettingsScreenTestHost() {
++    SettingsScreen(
++        userSettings = UserSettings(),
++        healthConnectWeightSyncState = HealthConnectWeightSyncState(),
++        backupRestoreConnected = false,
++        updateCheckResult = UpdateCheckResult.Idle,
++        onBodyWeightChange = {},
++        onThemeModeChange = {},
++        onSelectDynamicSource = {},
++        onSelectPresetSource = {},
++        onPresetPaletteChange = {},
++        onTimeFormatChange = {},
++        onAutoCheckUpdatesChange = {},
++        onCheckForUpdates = {},
++        onHealthConnectWeightSyncEnabledChange = {},
++        onHealthConnectReauthorize = {},
++        onHealthConnectManagePermissions = {},
++        importResult = io.github.yingqiu0871.evolune.viewmodel.ImportResult.Idle,
++        onDismissImportResult = {},
++        clipboardExportMessage = null,
++        onClipboardExportMessageShown = {},
++        onImportClick = {},
++        onImportFromClipboard = {},
++        onExportClick = {},
++        onExportToClipboard = {},
++        portableBusy = false,
++        onExportPortableJson = {},
++        onExportPortableCsv = {},
++        onImportPortableJson = {},
++        portableDialog = null,
++        onDismissPortableDialog = {},
++        onOpenGoogleDrive = {},
++        onOpenGuide = {},
++        onOpenPrivacy = {},
++        onOpenFeatureTutorial = {},
++        onOpenAbout = {},
++        showTopBar = false
++    )
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsPaletteSelectorTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsPaletteSelectorTest.kt
+new file mode 100644
+index 0000000..9a9ec5b
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsPaletteSelectorTest.kt
+@@ -0,0 +1,176 @@
++package io.github.yingqiu0871.evolune.ui.screens
++
++import androidx.compose.ui.test.assertIsDisplayed
++import androidx.compose.ui.test.assertIsNotSelected
++import androidx.compose.ui.test.assertIsSelected
++import androidx.compose.ui.test.junit4.createComposeRule
++import androidx.compose.ui.test.onAllNodesWithTag
++import androidx.compose.ui.test.onNodeWithTag
++import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollTo
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
++import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
++import io.github.yingqiu0871.evolune.viewmodel.ImportResult
++import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Rule
++import org.junit.Test
++
++/** v1.7.2 Slice C — canonical 配色 selector behavior (source rows + eight preset tiles). */
++class SettingsPaletteSelectorTest {
++    @get:Rule
++    val composeRule = createComposeRule()
++
++    @Test
++    fun dynamicStateShowsDynamicSelectedAndNoPresetTileSelected() {
++        var presetEntries = 0
++        setSettingsContent(
++            UserSettings(),
++            onSelectPresetSource = { presetEntries += 1 }
++        )
++
++        composeRule.onNodeWithTag("color-source-dynamic").performScrollTo().assertIsSelected()
++        composeRule.onNodeWithTag("color-source-preset").assertIsNotSelected()
++        PresetPalette.entries.forEach { palette ->
++            composeRule.onNodeWithTag("palette-tile-${palette.name.lowercase()}")
++                .assertIsNotSelected()
++        }
++        assertTrue(
++            composeRule.onAllNodesWithTag("color-legacy-builtin-current")
++                .fetchSemanticsNodes().isEmpty()
++        )
++
++        composeRule.onNodeWithTag("color-source-preset").performScrollTo().performClick()
++        composeRule.runOnIdle {
++            assertEquals("dynamic -> preset entry must be requested once", 1, presetEntries)
++        }
++    }
++
++    @Test
++    fun presetStateMarksExactlyTheCanonicalTile() {
++        var presetEntries = 0
++        setSettingsContent(
++            UserSettings(
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = ThemePresetSelection.Preset(PresetPalette.MONET_SAKURA)
++            ),
++            onSelectPresetSource = { presetEntries += 1 }
++        )
++
++        composeRule.onNodeWithTag("color-source-preset").performScrollTo().assertIsSelected()
++        composeRule.onNodeWithTag("palette-tile-monet_sakura").performScrollTo().assertIsSelected()
++        PresetPalette.entries.filter { it != PresetPalette.MONET_SAKURA }.forEach { palette ->
++            composeRule.onNodeWithTag("palette-tile-${palette.name.lowercase()}")
++                .assertIsNotSelected()
++        }
++        assertTrue(
++            composeRule.onAllNodesWithTag("color-legacy-builtin-current")
++                .fetchSemanticsNodes().isEmpty()
++        )
++
++        composeRule.onNodeWithTag("color-source-preset").performClick()
++        composeRule.runOnIdle {
++            assertEquals("an already-active PRESET source must not re-default", 0, presetEntries)
++        }
++    }
++
++    @Test
++    fun legacyBuiltinStateShowsCompatibilityRowAndNoNormalTileSelected() {
++        var selected: PresetPalette? = null
++        setSettingsContent(
++            UserSettings(
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = ThemePresetSelection.LegacyBuiltin
++            ),
++            onPresetPaletteChange = { selected = it }
++        )
++
++        composeRule.onNodeWithTag("color-legacy-builtin-current")
++            .performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("color-source-preset").assertIsSelected()
++        PresetPalette.entries.forEach { palette ->
++            composeRule.onNodeWithTag("palette-tile-${palette.name.lowercase()}")
++                .assertIsNotSelected()
++        }
++
++        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
++        composeRule.runOnIdle {
++            assertEquals(PresetPalette.MONET_BLUE, selected)
++        }
++    }
++
++    @Test
++    fun paletteInventoryIsExactlyTheEightApprovedPresets() {
++        setSettingsContent(UserSettings())
++
++        assertEquals(8, PresetPalette.entries.size)
++        PresetPalette.entries.forEach { palette ->
++            composeRule.onNodeWithTag("palette-tile-${palette.name.lowercase()}").assertExists()
++        }
++        listOf(
++            "palette-tile-material_you_auto",
++            "palette-tile-legacy_builtin",
++            "palette-tile-auto"
++        ).forEach { forbidden ->
++            assertTrue(
++                "Forbidden tile must not exist: $forbidden",
++                composeRule.onAllNodesWithTag(forbidden).fetchSemanticsNodes().isEmpty()
++            )
++        }
++    }
++
++    private fun setSettingsContent(
++        userSettings: UserSettings,
++        onPresetPaletteChange: (PresetPalette) -> Unit = {},
++        onSelectPresetSource: () -> Unit = {}
++    ) {
++        composeRule.setContent {
++            EvoluneTheme {
++                SettingsScreen(
++                    userSettings = userSettings,
++                    healthConnectWeightSyncState = HealthConnectWeightSyncState(),
++                    backupRestoreConnected = false,
++                    updateCheckResult = UpdateCheckResult.Idle,
++                    onBodyWeightChange = {},
++                    onThemeModeChange = {},
++                    onSelectDynamicSource = {},
++                    onSelectPresetSource = onSelectPresetSource,
++                    onPresetPaletteChange = onPresetPaletteChange,
++                    onTimeFormatChange = {},
++                    onAutoCheckUpdatesChange = {},
++                    onCheckForUpdates = {},
++                    onHealthConnectWeightSyncEnabledChange = {},
++                    onHealthConnectReauthorize = {},
++                    onHealthConnectManagePermissions = {},
++                    importResult = ImportResult.Idle,
++                    onDismissImportResult = {},
++                    clipboardExportMessage = null,
++                    onClipboardExportMessageShown = {},
++                    onImportClick = {},
++                    onImportFromClipboard = {},
++                    onExportClick = {},
++                    onExportToClipboard = {},
++                    portableBusy = false,
++                    onExportPortableJson = {},
++                    onExportPortableCsv = {},
++                    onImportPortableJson = {},
++                    portableDialog = null,
++                    onDismissPortableDialog = {},
++                    onOpenGoogleDrive = {},
++                    onOpenGuide = {},
++                    onOpenPrivacy = {},
++                    onOpenFeatureTutorial = {},
++                    onOpenAbout = {},
++                    showTopBar = false
++                )
++            }
++        }
++        composeRule.waitForIdle()
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsSectionTestHarness.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsSectionTestHarness.kt
+new file mode 100644
+index 0000000..7c4dc33
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsSectionTestHarness.kt
+@@ -0,0 +1,79 @@
++package io.github.yingqiu0871.evolune.ui.screens
++
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.ColumnScope
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.material3.Scaffold
++import androidx.compose.material3.SnackbarHost
++import androidx.compose.material3.SnackbarHostState
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.remember
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.unit.dp
++import io.github.yingqiu0871.evolune.export.PortableExportRange
++import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsImportExportBlock
++import io.github.yingqiu0871.evolune.viewmodel.ImportResult
++
++/** Scrollable host mirroring the inline Settings layout for section-level Compose tests. */
++@Composable
++internal fun TestScrollHost(content: @Composable ColumnScope.() -> Unit) {
++    Column(
++        modifier = Modifier
++            .fillMaxSize()
++            .verticalScroll(rememberScrollState())
++            .padding(16.dp),
++        content = content
++    )
++}
++
++/** Host for the inline import/export block: supplies the shared snackbar host the screen owns. */
++@Composable
++internal fun TestDataImportExportHost(
++    importResult: ImportResult,
++    onDismissImportResult: () -> Unit,
++    clipboardExportMessage: String?,
++    onClipboardExportMessageShown: () -> Unit,
++    onImportClick: () -> Unit,
++    onImportFromClipboard: () -> Unit,
++    onExportClick: () -> Unit,
++    onExportToClipboard: () -> Unit,
++    portableBusy: Boolean = false,
++    onExportPortableJson: (PortableExportRange) -> Unit = {},
++    onExportPortableCsv: (PortableExportRange) -> Unit = {},
++    onImportPortableJson: () -> Unit = {},
++    portableDialog: PortableDialogMessage? = null,
++    onDismissPortableDialog: () -> Unit = {}
++) {
++    val snackbarHostState = remember { SnackbarHostState() }
++    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
++        Column(
++            modifier = Modifier
++                .fillMaxSize()
++                .padding(padding)
++                .verticalScroll(rememberScrollState())
++                .padding(16.dp)
++        ) {
++            SettingsImportExportBlock(
++                importResult = importResult,
++                onDismissImportResult = onDismissImportResult,
++                clipboardExportMessage = clipboardExportMessage,
++                onClipboardExportMessageShown = onClipboardExportMessageShown,
++                onImportClick = onImportClick,
++                onImportFromClipboard = onImportFromClipboard,
++                onExportClick = onExportClick,
++                onExportToClipboard = onExportToClipboard,
++                portableBusy = portableBusy,
++                onExportPortableJson = onExportPortableJson,
++                onExportPortableCsv = onExportPortableCsv,
++                onImportPortableJson = onImportPortableJson,
++                portableDialog = portableDialog,
++                onDismissPortableDialog = onDismissPortableDialog,
++                snackbarHostState = snackbarHostState
++            )
++        }
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SliceCSettingsSmokeTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SliceCSettingsSmokeTest.kt
+new file mode 100644
+index 0000000..1f62efb
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SliceCSettingsSmokeTest.kt
+@@ -0,0 +1,149 @@
++package io.github.yingqiu0871.evolune.ui.screens
++
++import android.content.Context
++import android.content.Intent
++import android.graphics.Bitmap
++import androidx.compose.ui.test.ExperimentalTestApi
++import androidx.compose.ui.test.assertIsDisplayed
++import androidx.compose.ui.test.junit4.createEmptyComposeRule
++import androidx.compose.ui.test.onAllNodesWithTag
++import androidx.compose.ui.test.onAllNodesWithText
++import androidx.compose.ui.test.onNodeWithTag
++import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollTo
++import androidx.test.core.app.ActivityScenario
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import androidx.test.platform.app.InstrumentationRegistry
++import io.github.yingqiu0871.evolune.MainActivity
++import io.github.yingqiu0871.evolune.data.SettingsDataStore
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
++import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import kotlinx.coroutines.runBlocking
++import org.junit.After
++import org.junit.Before
++import org.junit.Rule
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.io.File
++
++/**
++ * v1.7.2 Slice C AVD acceptance — seeds the exact canonical LEGACY_BUILTIN state through the
++ * real settings DataStore, exercises the flattened screen and palette selection through the
++ * real app shell, and captures device screenshots for the evidence bundle.
++ */
++@OptIn(ExperimentalTestApi::class)
++@RunWith(AndroidJUnit4::class)
++class SliceCSettingsSmokeTest {
++    @get:Rule
++    val composeRule = createEmptyComposeRule()
++
++    private val context = ApplicationProvider.getApplicationContext<Context>()
++    private val store = SettingsDataStore(context)
++    private lateinit var scenario: ActivityScenario<MainActivity>
++
++    @Before
++    fun prepare() {
++        runBlocking {
++            val onboarding = OnboardingStateStore(context, isExistingInstallation = true)
++            onboarding.initializeIfNeeded()
++            onboarding.acceptTerms()
++            onboarding.acknowledgeMedicalPkDisclosure()
++            onboarding.completeOnboarding()
++            onboarding.markFeatureTutorialHandled()
++            store.replaceSettings(
++                UserSettings(
++                    themeMode = ThemeMode.SYSTEM,
++                    themeColorSource = ThemeColorSource.PRESET,
++                    themePreset = ThemePresetSelection.LegacyBuiltin
++                )
++            )
++        }
++        scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java))
++    }
++
++    @After
++    fun close() {
++        scenario.close()
++        runBlocking { store.replaceSettings(UserSettings()) }
++    }
++
++    @Test
++    fun flattenedSettingsAndPaletteFlowOnAvd() {
++        composeRule.waitForIdle()
++        openSettings()
++        dismissUpdateDialogIfVisible()
++
++        composeRule.onNodeWithTag("settings-basic-data-section").assertIsDisplayed()
++        screenshot("01-settings-top")
++
++        composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo()
++        composeRule.onNodeWithTag("color-legacy-builtin-current").assertIsDisplayed()
++        screenshot("02-legacy-builtin-state")
++
++        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
++        composeRule.waitForIdle()
++        Thread.sleep(400)
++        screenshot("03-monet-blue-selected")
++
++        composeRule.onNodeWithTag("theme-mode-dark").performScrollTo().performClick()
++        composeRule.waitForIdle()
++        Thread.sleep(400)
++        screenshot("04-dark-theme-mode")
++
++        composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
++        screenshot("05-lower-sections")
++
++        composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo()
++        composeRule.onNodeWithTag("palette-tile-monet_amber").performClick()
++        composeRule.waitForIdle()
++        Thread.sleep(400)
++        screenshot("06-monet-amber-selected")
++    }
++
++    private fun dismissUpdateDialogIfVisible() {
++        val cancellations = composeRule.onAllNodesWithText("取消").fetchSemanticsNodes()
++        if (cancellations.isNotEmpty()) {
++            composeRule.onAllNodesWithText("取消")[0].performClick()
++            composeRule.waitForIdle()
++            Thread.sleep(300)
++        }
++    }
++
++    private fun openSettings() {
++        composeRule.waitUntil(15_000L) {
++            composeRule.onAllNodesWithTag("nav-bar-settings").fetchSemanticsNodes().isNotEmpty() ||
++                composeRule.onAllNodesWithTag("nav-rail-settings").fetchSemanticsNodes().isNotEmpty()
++        }
++        if (composeRule.onAllNodesWithTag("nav-rail-settings").fetchSemanticsNodes().isNotEmpty()) {
++            composeRule.onNodeWithTag("nav-rail-settings").performClick()
++        } else {
++            composeRule.onNodeWithTag("nav-bar-settings").performClick()
++        }
++        composeRule.waitUntil(5_000L) {
++            composeRule.onAllNodesWithTag("settings-basic-data-section")
++                .fetchSemanticsNodes().isNotEmpty()
++        }
++    }
++
++    private fun screenshot(name: String) {
++        val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
++        val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
++        val values = android.content.ContentValues().apply {
++            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, "$name.png")
++            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
++            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/slice-c")
++        }
++        val uri = targetContext.contentResolver.insert(
++            android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
++            values
++        ) ?: error("failed to create media store entry for $name")
++        targetContext.contentResolver.openOutputStream(uri)!!.use { out ->
++            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
++        }
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupNavigationTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupNavigationTest.kt
+index 7eccdb7..522150a 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupNavigationTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupNavigationTest.kt
+@@ -16,9 +16,6 @@ import androidx.test.core.app.ApplicationProvider
+ import androidx.test.ext.junit.runners.AndroidJUnit4
+ import io.github.yingqiu0871.evolune.MainActivity
+ import io.github.yingqiu0871.evolune.R
+-import io.github.yingqiu0871.evolune.onboarding.CURRENT_MEDICAL_PK_DISCLOSURE_VERSION
+-import io.github.yingqiu0871.evolune.onboarding.CURRENT_ONBOARDING_VERSION
+-import io.github.yingqiu0871.evolune.onboarding.CURRENT_TERMS_VERSION
+ import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
+ import kotlinx.coroutines.runBlocking
+ import org.junit.After
+@@ -55,67 +52,43 @@ class SyncAndBackupNavigationTest {
+     }
+ 
+     @Test
+-    fun settingsCategoryPagesNavigateBackToSettings() {
++    fun flattenedSettingsKeepInlineControlsAndRetainedRoutesStable() {
+         composeRule.waitForIdle()
+         openSettings()
+ 
+-        openCategory("settings-basic-data-entry", "settings-basic-data-screen")
+-        pressBackToSettings()
+-
+-        openCategory("settings-appearance-format-entry", "settings-appearance-format-screen")
+-        pressBackToSettings()
+-
+-        openCategory("settings-sync-backup-entry", "settings-sync-backup-data-entry")
+-        pressBackToSettings()
+-
+-        openCategory("settings-update-entry", "settings-update-screen")
+-        pressBackToSettings()
+-
+-        openCategory("settings-about-entry", "settings-about-screen")
+-        pressBackToSettings()
+-    }
+-
+-    @Test
+-    fun settingsSyncBackupHealthConnectAndDriveBackNavigationIsStable() {
+-        composeRule.waitForIdle()
+-        openSettings()
+-
+-        composeRule.onNodeWithTag("settings-sync-backup-entry")
++        composeRule.onNodeWithTag("settings-basic-data-section").performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-appearance-section").performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-import-export-block").performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
++            .assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-update-section").performScrollTo()
++            .assertIsDisplayed()
++
++        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
+             .performScrollTo()
+             .performClick()
+-        composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag("settings-sync-backup-data-entry")
+-                .fetchSemanticsNodes().isNotEmpty()
+-        }
+-
+-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").performClick()
+-        composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag("health-connect-sync-title")
+-                .fetchSemanticsNodes().isNotEmpty()
+-        }
+-        pressBack()
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
+-
+-        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").performClick()
+         composeRule.waitUntil(5_000L) {
+             composeRule.onAllNodesWithTag("google-drive-backup-now")
+                 .fetchSemanticsNodes().isNotEmpty()
+         }
+         composeRule.onNodeWithTag("google-drive-backup-now").assertIsDisplayed()
+-        composeRule.onNodeWithTag("google-drive-restore-from-backup").assertIsDisplayed()
+         pressBack()
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").assertIsDisplayed()
++    }
+ 
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").performClick()
+-        composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag("settings-import-json")
+-                .fetchSemanticsNodes().isNotEmpty()
+-        }
+-        composeRule.onNodeWithTag("settings-import-json").assertIsDisplayed()
+-        pressBack()
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
++    @Test
++    fun retainedContentRowsOpenAndReturnToTheFlattenedScreen() {
++        composeRule.waitForIdle()
++        openSettings()
++
++        openRowAndReturn("settings-privacy-entry", assertTitle = R.string.disclosures_title)
++        openRowAndReturn("settings-about-entry", assertTag = "settings-about-screen")
++        openRowAndReturn("settings-feature-tutorial-entry", assertTag = "feature-tutorial-step-title")
++        openRowAndReturn("settings-guide-entry", assertTitle = R.string.onboarding_title)
+ 
+-        pressBack()
+         composeRule.onNodeWithTag("app-top-title").assertTextEquals(
+             context.getString(R.string.settings_title)
+         )
+@@ -129,25 +102,36 @@ class SyncAndBackupNavigationTest {
+             composeRule.onNodeWithTag("nav-bar-settings").performClick()
+         }
+         composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag("settings-basic-data-entry")
++            composeRule.onAllNodesWithTag("settings-basic-data-section")
+                 .fetchSemanticsNodes().isNotEmpty()
+         }
+     }
+ 
+-    private fun openCategory(entryTag: String, destinationTag: String) {
+-        composeRule.onNodeWithTag(entryTag)
+-            .performScrollTo()
+-            .performClick()
++    private fun openRowAndReturn(
++        entryTag: String,
++        assertTag: String? = null,
++        assertTitle: Int? = null
++    ) {
++        composeRule.onNodeWithTag(entryTag).performScrollTo().performClick()
++        if (assertTag != null) {
++            composeRule.waitUntil(5_000L) {
++                composeRule.onAllNodesWithTag(assertTag).fetchSemanticsNodes().isNotEmpty()
++            }
++            composeRule.onNodeWithTag(assertTag).assertIsDisplayed()
++        }
++        if (assertTitle != null) {
++            composeRule.waitUntil(5_000L) {
++                composeRule.onAllNodesWithTag("app-top-title").fetchSemanticsNodes().isNotEmpty()
++            }
++            composeRule.onNodeWithTag("app-top-title").assertTextEquals(
++                context.getString(assertTitle)
++            )
++        }
++        pressBack()
+         composeRule.waitUntil(5_000L) {
+-            composeRule.onAllNodesWithTag(destinationTag)
++            composeRule.onAllNodesWithTag("settings-basic-data-section")
+                 .fetchSemanticsNodes().isNotEmpty()
+         }
+-        composeRule.onNodeWithTag(destinationTag).assertIsDisplayed()
+-    }
+-
+-    private fun pressBackToSettings() {
+-        pressBack()
+-        composeRule.onNodeWithTag("settings-basic-data-entry").assertIsDisplayed()
+     }
+ 
+     private fun pressBack() {
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreenTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreenTest.kt
+index 752c65d..6905962 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreenTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreenTest.kt
+@@ -1,15 +1,19 @@
+ package io.github.yingqiu0871.evolune.ui.screens
+ 
++import androidx.compose.material3.SnackbarHostState
++import androidx.compose.runtime.remember
+ import androidx.compose.ui.test.assertIsDisplayed
+ import androidx.compose.ui.test.junit4.createComposeRule
+ import androidx.compose.ui.test.onNodeWithTag
+ import androidx.compose.ui.test.onNodeWithText
+ import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performScrollTo
+ import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
+ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
+ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupId
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsSyncBackupSection
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import io.github.yingqiu0871.evolune.viewmodel.ImportResult
+ import org.junit.Assert.assertEquals
+@@ -21,31 +25,50 @@ class SyncAndBackupScreenTest {
+     val composeRule = createComposeRule()
+ 
+     @Test
+-    fun syncAndBackupPageExposesOnlyNavigationRowsAndPassiveSummaries() {
++    fun syncAndBackupInlineSectionExposesLocalHealthAndDriveControls() {
+         val opened = mutableListOf<String>()
+         composeRule.setContent {
+             EvoluneTheme {
+-                SyncAndBackupScreen(
+-                    settings = UserSettings(),
+-                    healthConnectWeightSyncState = HealthConnectWeightSyncState(),
+-                    backupRestoreConnected = true,
+-                    onOpenData = { opened += "data" },
+-                    onOpenHealthConnect = { opened += "health" },
+-                    onOpenGoogleDrive = { opened += "drive" }
+-                )
++                val snackbarHostState = remember { SnackbarHostState() }
++                TestScrollHost {
++                    SettingsSyncBackupSection(
++                        settings = UserSettings(),
++                        healthConnectWeightSyncState = HealthConnectWeightSyncState(),
++                        backupRestoreConnected = true,
++                        importResult = ImportResult.Idle,
++                        onDismissImportResult = {},
++                        clipboardExportMessage = null,
++                        onClipboardExportMessageShown = {},
++                        onImportClick = {},
++                        onImportFromClipboard = {},
++                        onExportClick = {},
++                        onExportToClipboard = {},
++                        portableBusy = false,
++                        onExportPortableJson = {},
++                        onExportPortableCsv = {},
++                        onImportPortableJson = {},
++                        portableDialog = null,
++                        onDismissPortableDialog = {},
++                        onWeightSyncEnabledChange = { opened += "health" },
++                        onReauthorize = {},
++                        onManagePermissions = {},
++                        onOpenGoogleDrive = { opened += "drive" },
++                        snackbarHostState = snackbarHostState
++                    )
++                }
+             }
+         }
+ 
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").assertIsDisplayed()
+-        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").assertIsDisplayed()
++        composeRule.onNodeWithTag("settings-import-export-block").assertIsDisplayed()
++        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
++        composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
++            .performScrollTo()
++            .assertIsDisplayed()
+         composeRule.onNodeWithText("已连接（当前会话）").assertIsDisplayed()
+ 
+-        composeRule.onNodeWithTag("settings-sync-backup-data-entry").performClick()
+-        composeRule.onNodeWithTag("settings-sync-backup-health-connect-entry").performClick()
+         composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry").performClick()
+ 
+-        assertEquals(listOf("data", "health", "drive"), opened)
++        assertEquals(listOf("drive"), opened)
+     }
+ 
+     @Test
+@@ -53,7 +76,7 @@ class SyncAndBackupScreenTest {
+         val opened = mutableListOf<String>()
+         composeRule.setContent {
+             EvoluneTheme {
+-                DataImportExportScreen(
++                TestDataImportExportHost(
+                     importResult = ImportResult.Idle,
+                     onDismissImportResult = {},
+                     clipboardExportMessage = null,
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index 8bd3687..dc939bd 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -97,7 +97,10 @@ import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
+ import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
+ import io.github.yingqiu0871.evolune.application.MedicationPlanDraft
+ import io.github.yingqiu0871.evolune.core.model.ExtraKey
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
+ import io.github.yingqiu0871.evolune.export.BoundedReadResult
+ import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
+ import io.github.yingqiu0871.evolune.export.PortableExportFormat
+@@ -119,13 +122,9 @@ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
+ import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
+-import io.github.yingqiu0871.evolune.ui.screens.AppearanceAndFormatScreen
+-import io.github.yingqiu0871.evolune.ui.screens.BasicDataScreen
+ import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
+-import io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreen
+-import io.github.yingqiu0871.evolune.ui.screens.PortableDialogMessage
++import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
+ import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
+-import io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreen
+ import io.github.yingqiu0871.evolune.ui.screens.HistoryScreen
+ import io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreen
+ import io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreen
+@@ -133,8 +132,6 @@ import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
+ import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
+ import io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreen
+ import io.github.yingqiu0871.evolune.ui.screens.SettingsScreen
+-import io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreen
+-import io.github.yingqiu0871.evolune.ui.screens.UpdateScreen
+ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationError
+ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
+ import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
+@@ -160,13 +157,7 @@ import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
+ 
+ private const val NAV_CLICK_THROTTLE_MS = 200L
+ private const val NAV_SWIPE_THRESHOLD_DP = 60
+-private const val BASIC_DATA_ROUTE = "settings_basic_data"
+-private const val APPEARANCE_FORMAT_ROUTE = "settings_appearance_format"
+-private const val SYNC_AND_BACKUP_ROUTE = "sync_and_backup"
+-private const val UPDATE_ROUTE = "settings_update"
+ private const val ABOUT_ROUTE = "settings_about"
+-private const val DATA_IMPORT_EXPORT_ROUTE = "data_import_export"
+-private const val HEALTH_CONNECT_SYNC_ROUTE = "health_connect_sync"
+ private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
+ private const val ONBOARDING_ROUTE = "onboarding"
+ private const val DISCLOSURES_ROUTE = "disclosures"
+@@ -802,13 +793,7 @@ fun AppNavigation(
+     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
+     val navBackStackEntry by navController.currentBackStackEntryAsState()
+     val currentRoute = navBackStackEntry?.destination?.route
+-    val isSettingsSubroute = currentRoute == BASIC_DATA_ROUTE ||
+-        currentRoute == APPEARANCE_FORMAT_ROUTE ||
+-        currentRoute == SYNC_AND_BACKUP_ROUTE ||
+-        currentRoute == UPDATE_ROUTE ||
+-        currentRoute == ABOUT_ROUTE ||
+-        currentRoute == DATA_IMPORT_EXPORT_ROUTE ||
+-        currentRoute == HEALTH_CONNECT_SYNC_ROUTE ||
++    val isSettingsSubroute = currentRoute == ABOUT_ROUTE ||
+         currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
+         currentRoute == ONBOARDING_ROUTE ||
+         currentRoute == DISCLOSURES_ROUTE ||
+@@ -837,14 +822,7 @@ fun AppNavigation(
+                     alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
+                     onRefresh = hrtViewModel::runSimulation,
+                     titleOverride = when (currentRoute) {
+-                        BASIC_DATA_ROUTE -> stringResource(R.string.settings_basic_data_title)
+-                        APPEARANCE_FORMAT_ROUTE ->
+-                            stringResource(R.string.settings_appearance_format_title)
+-                        SYNC_AND_BACKUP_ROUTE -> stringResource(R.string.settings_sync_backup_title)
+-                        UPDATE_ROUTE -> stringResource(R.string.settings_update_title)
+                         ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
+-                        DATA_IMPORT_EXPORT_ROUTE -> stringResource(R.string.settings_data_import_export_title)
+-                        HEALTH_CONNECT_SYNC_ROUTE -> stringResource(R.string.settings_health_connect_sync_title)
+                         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
+                             stringResource(R.string.settings_google_drive_backup_restore_title)
+                         ONBOARDING_ROUTE -> stringResource(R.string.onboarding_title)
+@@ -1020,22 +998,65 @@ fun AppNavigation(
+             }
+             composable(Screen.SETTINGS.route) {
+                 SettingsScreen(
+-                    onOpenBasicData = {
+-                        navController.navigate(BASIC_DATA_ROUTE) { launchSingleTop = true }
++                    userSettings = userSettings,
++                    healthConnectWeightSyncState = healthConnectWeightSyncState,
++                    backupRestoreConnected = backupRestoreConnected,
++                    updateCheckResult = updateCheckResult,
++                    onBodyWeightChange = settingsViewModel::updateBodyWeight,
++                    onThemeModeChange = settingsViewModel::updateThemeMode,
++                    onSelectDynamicSource = {
++                        settingsViewModel.updateThemeColorSource(ThemeColorSource.DYNAMIC)
+                     },
+-                    onOpenAppearanceAndFormat = {
+-                        navController.navigate(APPEARANCE_FORMAT_ROUTE) { launchSingleTop = true }
++                    onSelectPresetSource = {
++                        settingsViewModel.updateThemePreset(
++                            ThemePresetSelection.Preset(PresetPalette.MONET_TEAL)
++                        )
+                     },
+-                    onOpenSyncAndBackup = {
+-                        navController.navigate(SYNC_AND_BACKUP_ROUTE) {
+-                            launchSingleTop = true
++                    onPresetPaletteChange = { palette ->
++                        settingsViewModel.updateThemePreset(ThemePresetSelection.Preset(palette))
++                    },
++                    onTimeFormatChange = settingsViewModel::updateTimeFormat,
++                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
++                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
++                    onHealthConnectWeightSyncEnabledChange = { enabled ->
++                        if (enabled) {
++                            pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_ENABLE
++                        } else {
++                            settingsViewModel.setHealthConnectWeightSyncEnabled(false)
+                         }
+                     },
+-                    onOpenUpdate = {
+-                        navController.navigate(UPDATE_ROUTE) { launchSingleTop = true }
++                    onHealthConnectReauthorize = {
++                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE
++                    },
++                    onHealthConnectManagePermissions = {
++                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_MANAGE
+                     },
+-                    onOpenAbout = {
+-                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
++                    importResult = importResult,
++                    onDismissImportResult = hrtViewModel::dismissImportResult,
++                    clipboardExportMessage = clipboardExportMessage,
++                    onClipboardExportMessageShown = { clipboardExportMessage = null },
++                    onImportClick = {
++                        importLauncher.launch(arrayOf("application/json", "*/*"))
++                    },
++                    onImportFromClipboard = { importFromClipboard() },
++                    onExportClick = { exportLegacyToFile() },
++                    onExportToClipboard = { exportLegacyToClipboard() },
++                    portableBusy = portableBusy,
++                    onExportPortableJson = { range ->
++                        startPortableExport(PortableExportFormat.JSON, range)
++                    },
++                    onExportPortableCsv = { range ->
++                        startPortableExport(PortableExportFormat.CSV, range)
++                    },
++                    onImportPortableJson = {
++                        portableImportLauncher.launch(arrayOf("application/json", "*/*"))
++                    },
++                    portableDialog = portableDialog,
++                    onDismissPortableDialog = { portableDialog = null },
++                    onOpenGoogleDrive = {
++                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
++                            launchSingleTop = true
++                        }
+                     },
+                     onOpenGuide = {
+                         navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
+@@ -1046,51 +1067,10 @@ fun AppNavigation(
+                     onOpenFeatureTutorial = {
+                         navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
+                     },
+-                    showTopBar = false
+-                )
+-            }
+-            composable(BASIC_DATA_ROUTE) {
+-                BasicDataScreen(
+-                    bodyWeight = userSettings.bodyWeight,
+-                    onBodyWeightChange = settingsViewModel::updateBodyWeight
+-                )
+-            }
+-            composable(APPEARANCE_FORMAT_ROUTE) {
+-                AppearanceAndFormatScreen(
+-                    settings = userSettings,
+-                    onThemeModeChange = settingsViewModel::updateThemeMode,
+-                    onColorThemeChange = settingsViewModel::updateColorTheme,
+-                    onTimeFormatChange = settingsViewModel::updateTimeFormat
+-                )
+-            }
+-            composable(SYNC_AND_BACKUP_ROUTE) {
+-                SyncAndBackupScreen(
+-                    settings = userSettings,
+-                    healthConnectWeightSyncState = healthConnectWeightSyncState,
+-                    backupRestoreConnected = backupRestoreConnected,
+-                    onOpenData = {
+-                        navController.navigate(DATA_IMPORT_EXPORT_ROUTE) {
+-                            launchSingleTop = true
+-                        }
+-                    },
+-                    onOpenHealthConnect = {
+-                        navController.navigate(HEALTH_CONNECT_SYNC_ROUTE) {
+-                            launchSingleTop = true
+-                        }
++                    onOpenAbout = {
++                        navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
+                     },
+-                    onOpenGoogleDrive = {
+-                        navController.navigate(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+-                            launchSingleTop = true
+-                        }
+-                    }
+-                )
+-            }
+-            composable(UPDATE_ROUTE) {
+-                UpdateScreen(
+-                    autoCheckUpdates = userSettings.autoCheckUpdates,
+-                    onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
+-                    onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
+-                    updateCheckResult = updateCheckResult
++                    showTopBar = false
+                 )
+             }
+             composable(ABOUT_ROUTE) {
+@@ -1138,51 +1118,6 @@ fun AppNavigation(
+             composable(DISCLOSURES_ROUTE) {
+                 DisclosuresScreen()
+             }
+-            composable(DATA_IMPORT_EXPORT_ROUTE) {
+-                DataImportExportScreen(
+-                    importResult = importResult,
+-                    onDismissImportResult = hrtViewModel::dismissImportResult,
+-                    clipboardExportMessage = clipboardExportMessage,
+-                    onClipboardExportMessageShown = { clipboardExportMessage = null },
+-                    onImportClick = {
+-                        importLauncher.launch(arrayOf("application/json", "*/*"))
+-                    },
+-                    onImportFromClipboard = { importFromClipboard() },
+-                    onExportClick = { exportLegacyToFile() },
+-                    onExportToClipboard = { exportLegacyToClipboard() },
+-                    portableBusy = portableBusy,
+-                    onExportPortableJson = { range ->
+-                        startPortableExport(PortableExportFormat.JSON, range)
+-                    },
+-                    onExportPortableCsv = { range ->
+-                        startPortableExport(PortableExportFormat.CSV, range)
+-                    },
+-                    onImportPortableJson = {
+-                        portableImportLauncher.launch(arrayOf("application/json", "*/*"))
+-                    },
+-                    portableDialog = portableDialog,
+-                    onDismissPortableDialog = { portableDialog = null }
+-                )
+-            }
+-            composable(HEALTH_CONNECT_SYNC_ROUTE) {
+-                HealthConnectSyncScreen(
+-                    settings = userSettings,
+-                    state = healthConnectWeightSyncState,
+-                    onWeightSyncEnabledChange = { enabled ->
+-                        if (enabled) {
+-                            pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_ENABLE
+-                        } else {
+-                            settingsViewModel.setHealthConnectWeightSyncEnabled(false)
+-                        }
+-                    },
+-                    onReauthorize = {
+-                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_REAUTHORIZE
+-                    },
+-                    onManagePermissions = {
+-                        pendingAuthorization = PendingAuthorization.HEALTH_CONNECT_MANAGE
+-                    }
+-                )
+-            }
+             composable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+                 GoogleDriveBackupRestoreScreen(
+                     connected = backupRestoreConnected,
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+index cf8a6d4..9ef6260 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt
+@@ -10,44 +10,84 @@ import androidx.compose.foundation.layout.padding
+ import androidx.compose.foundation.layout.safeDrawing
+ import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.foundation.verticalScroll
+-import androidx.compose.material.icons.Icons
+-import androidx.compose.material.icons.outlined.Info
+-import androidx.compose.material.icons.outlined.Lock
+-import androidx.compose.material.icons.outlined.Palette
+-import androidx.compose.material.icons.outlined.PhoneAndroid
+-import androidx.compose.material.icons.outlined.Sync
+-import androidx.compose.material.icons.outlined.SystemUpdate
+ import androidx.compose.material3.ExperimentalMaterial3Api
+ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.Scaffold
++import androidx.compose.material3.SnackbarHost
++import androidx.compose.material3.SnackbarHostState
+ import androidx.compose.material3.Text
+ import androidx.compose.material3.TopAppBar
+ import androidx.compose.material3.TopAppBarDefaults
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.remember
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.tooling.preview.Preview
+ import androidx.compose.ui.unit.dp
+ import io.github.yingqiu0871.evolune.R
+-import io.github.yingqiu0871.evolune.ui.components.SettingsNavigationRow
++import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.TimeFormat
++import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.export.PortableExportRange
++import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import io.github.yingqiu0871.evolune.ui.screens.settings.PortableDialogMessage
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsAppearanceSection
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsBasicDataSection
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsNavigationRowsSection
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsSyncBackupSection
++import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsUpdateSection
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
++import io.github.yingqiu0871.evolune.viewmodel.ImportResult
++import io.github.yingqiu0871.evolune.viewmodel.UpdateCheckResult
+ 
+-/** Pure navigation hub for the Settings information architecture. */
++/**
++ * v1.7.2 Slice C — one vertically scrollable Settings screen. Common controls are inline
++ * sections consuming hoisted canonical state; the four content/workflow entries stay
++ * navigation rows. No section re-collects a flow and no section owns persisted state.
++ */
+ @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+ @Composable
+ fun SettingsScreen(
+-    onOpenBasicData: () -> Unit,
+-    onOpenAppearanceAndFormat: () -> Unit,
+-    onOpenSyncAndBackup: () -> Unit,
+-    onOpenUpdate: () -> Unit,
++    userSettings: UserSettings,
++    healthConnectWeightSyncState: HealthConnectWeightSyncState,
++    backupRestoreConnected: Boolean,
++    updateCheckResult: UpdateCheckResult,
++    onBodyWeightChange: (Double) -> Unit,
++    onThemeModeChange: (ThemeMode) -> Unit,
++    onSelectDynamicSource: () -> Unit,
++    onSelectPresetSource: () -> Unit,
++    onPresetPaletteChange: (PresetPalette) -> Unit,
++    onTimeFormatChange: (TimeFormat) -> Unit,
++    onAutoCheckUpdatesChange: (Boolean) -> Unit,
++    onCheckForUpdates: () -> Unit,
++    onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit,
++    onHealthConnectReauthorize: () -> Unit,
++    onHealthConnectManagePermissions: () -> Unit,
++    importResult: ImportResult,
++    onDismissImportResult: () -> Unit,
++    clipboardExportMessage: String?,
++    onClipboardExportMessageShown: () -> Unit,
++    onImportClick: () -> Unit,
++    onImportFromClipboard: () -> Unit,
++    onExportClick: () -> Unit,
++    onExportToClipboard: () -> Unit,
++    portableBusy: Boolean,
++    onExportPortableJson: (PortableExportRange) -> Unit,
++    onExportPortableCsv: (PortableExportRange) -> Unit,
++    onImportPortableJson: () -> Unit,
++    portableDialog: PortableDialogMessage?,
++    onDismissPortableDialog: () -> Unit,
++    onOpenGoogleDrive: () -> Unit,
++    onOpenGuide: () -> Unit,
++    onOpenPrivacy: () -> Unit,
++    onOpenFeatureTutorial: () -> Unit,
+     onOpenAbout: () -> Unit,
+-    showTopBar: Boolean = true,
+-    onOpenGuide: () -> Unit = {},
+-    onOpenPrivacy: () -> Unit = {},
+-    onOpenFeatureTutorial: () -> Unit = {}
++    showTopBar: Boolean = true
+ ) {
++    val snackbarHostState = remember { SnackbarHostState() }
+     Scaffold(
+         contentWindowInsets = if (showTopBar) {
+             WindowInsets.safeDrawing.only(
+@@ -56,6 +96,7 @@ fun SettingsScreen(
+         } else {
+             WindowInsets(0, 0, 0, 0)
+         },
++        snackbarHost = { SnackbarHost(snackbarHostState) },
+         topBar = {
+             if (showTopBar) {
+                 TopAppBar(
+@@ -80,64 +121,58 @@ fun SettingsScreen(
+                 .fillMaxSize()
+                 .padding(padding)
+                 .verticalScroll(rememberScrollState())
+-                .padding(16.dp),
+-            verticalArrangement = Arrangement.spacedBy(16.dp)
++                .padding(16.dp)
++                .testTag("settings-root"),
++            verticalArrangement = Arrangement.spacedBy(24.dp)
+         ) {
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-basic-data-entry"),
+-                title = stringResource(R.string.settings_basic_data_title),
+-                description = stringResource(R.string.settings_basic_data_desc),
+-                icon = Icons.Outlined.PhoneAndroid,
+-                onClick = onOpenBasicData
++            SettingsBasicDataSection(
++                bodyWeight = userSettings.bodyWeight,
++                onBodyWeightChange = onBodyWeightChange
+             )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-appearance-format-entry"),
+-                title = stringResource(R.string.settings_appearance_format_title),
+-                description = stringResource(R.string.settings_appearance_format_desc),
+-                icon = Icons.Outlined.Palette,
+-                onClick = onOpenAppearanceAndFormat
++            SettingsAppearanceSection(
++                settings = userSettings,
++                onThemeModeChange = onThemeModeChange,
++                onSelectDynamicSource = onSelectDynamicSource,
++                onSelectPresetSource = onSelectPresetSource,
++                onPresetPaletteChange = onPresetPaletteChange,
++                onTimeFormatChange = onTimeFormatChange
+             )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-sync-backup-entry"),
+-                title = stringResource(R.string.settings_sync_backup_title),
+-                description = stringResource(R.string.settings_sync_backup_desc),
+-                icon = Icons.Outlined.Sync,
+-                onClick = onOpenSyncAndBackup
++            SettingsSyncBackupSection(
++                settings = userSettings,
++                healthConnectWeightSyncState = healthConnectWeightSyncState,
++                backupRestoreConnected = backupRestoreConnected,
++                importResult = importResult,
++                onDismissImportResult = onDismissImportResult,
++                clipboardExportMessage = clipboardExportMessage,
++                onClipboardExportMessageShown = onClipboardExportMessageShown,
++                onImportClick = onImportClick,
++                onImportFromClipboard = onImportFromClipboard,
++                onExportClick = onExportClick,
++                onExportToClipboard = onExportToClipboard,
++                portableBusy = portableBusy,
++                onExportPortableJson = onExportPortableJson,
++                onExportPortableCsv = onExportPortableCsv,
++                onImportPortableJson = onImportPortableJson,
++                portableDialog = portableDialog,
++                onDismissPortableDialog = onDismissPortableDialog,
++                onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
++                onReauthorize = onHealthConnectReauthorize,
++                onManagePermissions = onHealthConnectManagePermissions,
++                onOpenGoogleDrive = onOpenGoogleDrive,
++                snackbarHostState = snackbarHostState
+             )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-update-entry"),
+-                title = stringResource(R.string.settings_update_title),
+-                description = stringResource(R.string.settings_update_desc),
+-                icon = Icons.Outlined.SystemUpdate,
+-                onClick = onOpenUpdate
++            SettingsUpdateSection(
++                autoCheckUpdates = userSettings.autoCheckUpdates,
++                onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
++                onCheckForUpdates = onCheckForUpdates,
++                updateCheckResult = updateCheckResult,
++                snackbarHostState = snackbarHostState
+             )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-guide-entry"),
+-                title = stringResource(R.string.settings_guide_title),
+-                description = stringResource(R.string.settings_guide_desc),
+-                icon = Icons.Outlined.Info,
+-                onClick = onOpenGuide
+-            )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-privacy-entry"),
+-                title = stringResource(R.string.settings_privacy_title),
+-                description = stringResource(R.string.settings_privacy_desc),
+-                icon = Icons.Outlined.Lock,
+-                onClick = onOpenPrivacy
+-            )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-feature-tutorial-entry"),
+-                title = stringResource(R.string.settings_feature_tutorial_title),
+-                description = stringResource(R.string.settings_feature_tutorial_desc),
+-                icon = Icons.Outlined.Info,
+-                onClick = onOpenFeatureTutorial
+-            )
+-            SettingsNavigationRow(
+-                modifier = Modifier.testTag("settings-about-entry"),
+-                title = stringResource(R.string.settings_about_title),
+-                description = stringResource(R.string.settings_about_desc),
+-                icon = Icons.Outlined.Info,
+-                onClick = onOpenAbout
++            SettingsNavigationRowsSection(
++                onOpenGuide = onOpenGuide,
++                onOpenPrivacy = onOpenPrivacy,
++                onOpenFeatureTutorial = onOpenFeatureTutorial,
++                onOpenAbout = onOpenAbout
+             )
+         }
+     }
+@@ -147,6 +182,42 @@ fun SettingsScreen(
+ @Composable
+ private fun SettingsScreenPreview() {
+     EvoluneTheme {
+-        SettingsScreen({}, {}, {}, {}, {})
++        SettingsScreen(
++            userSettings = UserSettings(),
++            healthConnectWeightSyncState = HealthConnectWeightSyncState(),
++            backupRestoreConnected = false,
++            updateCheckResult = UpdateCheckResult.Idle,
++            onBodyWeightChange = {},
++            onThemeModeChange = {},
++            onSelectDynamicSource = {},
++            onSelectPresetSource = {},
++            onPresetPaletteChange = {},
++            onTimeFormatChange = {},
++            onAutoCheckUpdatesChange = {},
++            onCheckForUpdates = {},
++            onHealthConnectWeightSyncEnabledChange = {},
++            onHealthConnectReauthorize = {},
++            onHealthConnectManagePermissions = {},
++            importResult = ImportResult.Idle,
++            onDismissImportResult = {},
++            clipboardExportMessage = null,
++            onClipboardExportMessageShown = {},
++            onImportClick = {},
++            onImportFromClipboard = {},
++            onExportClick = {},
++            onExportToClipboard = {},
++            portableBusy = false,
++            onExportPortableJson = {},
++            onExportPortableCsv = {},
++            onImportPortableJson = {},
++            portableDialog = null,
++            onDismissPortableDialog = {},
++            onOpenGoogleDrive = {},
++            onOpenGuide = {},
++            onOpenPrivacy = {},
++            onOpenFeatureTutorial = {},
++            onOpenAbout = {},
++            showTopBar = false
++        )
+     }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreen.kt
+deleted file mode 100644
+index 7425ec6..0000000
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreen.kt
++++ /dev/null
+@@ -1,132 +0,0 @@
+-package io.github.yingqiu0871.evolune.ui.screens
+-
+-import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
+-import androidx.compose.material.icons.Icons
+-import androidx.compose.material.icons.outlined.Cloud
+-import androidx.compose.material.icons.outlined.HealthAndSafety
+-import androidx.compose.material.icons.outlined.SwapVert
+-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.platform.testTag
+-import androidx.compose.ui.res.stringResource
+-import androidx.compose.ui.unit.dp
+-import io.github.yingqiu0871.evolune.R
+-import io.github.yingqiu0871.evolune.data.UserSettings
+-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
+-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
+-import io.github.yingqiu0871.evolune.ui.components.SettingsNavigationRow
+-
+-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+-@Composable
+-fun SyncAndBackupScreen(
+-    settings: UserSettings,
+-    healthConnectWeightSyncState: HealthConnectWeightSyncState,
+-    backupRestoreConnected: Boolean,
+-    onOpenData: () -> Unit,
+-    onOpenHealthConnect: () -> Unit,
+-    onOpenGoogleDrive: () -> Unit
+-) {
+-    Column(
+-        modifier = Modifier
+-            .fillMaxSize()
+-            .verticalScroll(rememberScrollState())
+-            .padding(16.dp),
+-        verticalArrangement = Arrangement.spacedBy(24.dp)
+-    ) {
+-        SettingsNavigationGroup(
+-            title = stringResource(R.string.settings_sync_backup_local_title),
+-            rowTag = "settings-sync-backup-data-entry",
+-            rowTitle = stringResource(R.string.settings_sync_backup_data_title),
+-            rowDescription = stringResource(R.string.settings_sync_backup_data_desc),
+-            icon = Icons.Outlined.SwapVert,
+-            onClick = onOpenData
+-        )
+-
+-        SettingsNavigationGroup(
+-            title = stringResource(R.string.settings_sync_backup_health_title),
+-            rowTag = "settings-sync-backup-health-connect-entry",
+-            rowTitle = stringResource(R.string.settings_health_connect_sync_title),
+-            rowDescription = healthConnectSummary(
+-                enabled = settings.healthConnectWeightSyncEnabled,
+-                state = healthConnectWeightSyncState
+-            ),
+-            icon = Icons.Outlined.HealthAndSafety,
+-            onClick = onOpenHealthConnect
+-        )
+-
+-        SettingsNavigationGroup(
+-            title = stringResource(R.string.settings_sync_backup_cloud_title),
+-            rowTag = "settings-sync-backup-google-drive-entry",
+-            rowTitle = stringResource(R.string.settings_sync_backup_google_drive_title),
+-            rowDescription = stringResource(
+-                if (backupRestoreConnected) {
+-                    R.string.settings_backup_restore_connected
+-                } else {
+-                    R.string.settings_backup_restore_authorization_required
+-                }
+-            ),
+-            icon = Icons.Outlined.Cloud,
+-            onClick = onOpenGoogleDrive
+-        )
+-    }
+-}
+-
+-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+-@Composable
+-private fun SettingsNavigationGroup(
+-    title: String,
+-    rowTag: String,
+-    rowTitle: String,
+-    rowDescription: String,
+-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+-    onClick: () -> Unit
+-) {
+-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+-        Text(
+-            text = title,
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
+-            modifier = Modifier.padding(horizontal = 16.dp)
+-        )
+-        SettingsNavigationRow(
+-            modifier = Modifier
+-                .fillMaxWidth()
+-                .testTag(rowTag),
+-            title = rowTitle,
+-            description = rowDescription,
+-            icon = icon,
+-            onClick = onClick
+-        )
+-    }
+-}
+-
+-@Composable
+-private fun healthConnectSummary(
+-    enabled: Boolean,
+-    state: HealthConnectWeightSyncState
+-): String = when {
+-    !enabled -> stringResource(R.string.settings_health_connect_sync_status_disabled)
+-    state.status == HealthConnectWeightSyncStatus.PERMISSION_REQUIRED ->
+-        stringResource(R.string.settings_health_connect_sync_status_permission)
+-    state.status == HealthConnectWeightSyncStatus.UNAVAILABLE ->
+-        stringResource(R.string.settings_health_connect_sync_status_unavailable)
+-    state.status == HealthConnectWeightSyncStatus.UPDATE_REQUIRED ->
+-        stringResource(R.string.settings_health_connect_sync_status_update_required)
+-    state.status == HealthConnectWeightSyncStatus.NO_DATA ->
+-        stringResource(R.string.settings_health_connect_sync_status_no_data)
+-    state.status == HealthConnectWeightSyncStatus.ERROR ->
+-        stringResource(R.string.settings_health_connect_sync_status_error)
+-    state.status == HealthConnectWeightSyncStatus.CHECKING ||
+-        state.status == HealthConnectWeightSyncStatus.SYNCING ->
+-        stringResource(R.string.settings_health_connect_sync_status_checking)
+-    else -> stringResource(R.string.settings_health_connect_sync_status_connected)
+-}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/AppearanceAndFormatScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsAppearanceSection.kt
+similarity index 67%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/AppearanceAndFormatScreen.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsAppearanceSection.kt
+index 834ae13..e1f3050 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/AppearanceAndFormatScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsAppearanceSection.kt
+@@ -1,18 +1,13 @@
+-package io.github.yingqiu0871.evolune.ui.screens
++package io.github.yingqiu0871.evolune.ui.screens.settings
+ 
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material.icons.Icons
+-import androidx.compose.material.icons.outlined.ColorLens
+ import androidx.compose.material.icons.outlined.Contrast
+ import androidx.compose.material.icons.outlined.DarkMode
+ import androidx.compose.material.icons.outlined.LightMode
+-import androidx.compose.material.icons.outlined.Palette
+ import androidx.compose.material.icons.outlined.PhoneAndroid
+ import androidx.compose.material.icons.outlined.Schedule
+ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+@@ -27,32 +22,46 @@ import androidx.compose.ui.platform.testTag
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.unit.dp
+ import io.github.yingqiu0871.evolune.R
+-import io.github.yingqiu0871.evolune.data.ColorTheme
+ import io.github.yingqiu0871.evolune.data.ThemeMode
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
+ import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
+ import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
+ 
++/**
++ * v1.7.2 Slice C — Appearance & format inline section: ThemeMode, the canonical 配色 control
++ * and time format. Each control keeps its existing state owner.
++ */
+ @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+ @Composable
+-fun AppearanceAndFormatScreen(
++internal fun SettingsAppearanceSection(
+     settings: UserSettings,
+     onThemeModeChange: (ThemeMode) -> Unit,
+-    onColorThemeChange: (ColorTheme) -> Unit,
++    onSelectDynamicSource: () -> Unit,
++    onSelectPresetSource: () -> Unit,
++    onPresetPaletteChange: (PresetPalette) -> Unit,
+     onTimeFormatChange: (TimeFormat) -> Unit
+ ) {
+     Column(
+         modifier = Modifier
+-            .fillMaxSize()
+-            .testTag("settings-appearance-format-screen")
+-            .verticalScroll(rememberScrollState())
+-            .padding(16.dp),
++            .fillMaxWidth()
++            .testTag("settings-appearance-section"),
+         verticalArrangement = Arrangement.spacedBy(24.dp)
+     ) {
+-        ThemeModeSection(settings.themeMode, onThemeModeChange)
+-        ColorThemeSection(settings.colorTheme, onColorThemeChange)
+-        TimeFormatSection(settings.timeFormat, onTimeFormatChange)
++        SettingsSectionHeader(title = stringResource(R.string.settings_appearance_format_title))
++        ThemeModeSection(currentMode = settings.themeMode, onModeChange = onThemeModeChange)
++        SettingsColorSchemeSection(
++            source = settings.themeColorSource,
++            preset = settings.themePreset,
++            onSelectDynamicSource = onSelectDynamicSource,
++            onSelectPresetSource = onSelectPresetSource,
++            onPresetPaletteChange = onPresetPaletteChange
++        )
++        TimeFormatSection(
++            currentFormat = settings.timeFormat,
++            onFormatChange = onTimeFormatChange
++        )
+     }
+ }
+ 
+@@ -65,8 +74,8 @@ private fun ThemeModeSection(
+     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+         Text(
+             text = stringResource(R.string.settings_theme_mode_title),
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
++            style = MaterialTheme.typography.titleSmall,
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
+             modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         Column(
+@@ -115,53 +124,6 @@ private fun ThemeModeSection(
+     }
+ }
+ 
+-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+-@Composable
+-private fun ColorThemeSection(
+-    currentTheme: ColorTheme,
+-    onThemeChange: (ColorTheme) -> Unit
+-) {
+-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+-        Text(
+-            text = stringResource(R.string.settings_color_theme_title),
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
+-            modifier = Modifier.padding(horizontal = 16.dp)
+-        )
+-        Column(
+-            modifier = Modifier.fillMaxWidth(),
+-            verticalArrangement = Arrangement.spacedBy(2.dp)
+-        ) {
+-            ColorTheme.entries.forEachIndexed { index, theme ->
+-                val label = when (theme) {
+-                    ColorTheme.DYNAMIC -> stringResource(R.string.settings_color_theme_dynamic)
+-                    ColorTheme.BUILTIN -> stringResource(R.string.settings_color_theme_builtin)
+-                }
+-                val description = when (theme) {
+-                    ColorTheme.DYNAMIC -> stringResource(R.string.settings_color_theme_dynamic_desc)
+-                    ColorTheme.BUILTIN -> stringResource(R.string.settings_color_theme_builtin_desc)
+-                }
+-                val icon = when (theme) {
+-                    ColorTheme.DYNAMIC -> Icons.Outlined.ColorLens
+-                    ColorTheme.BUILTIN -> Icons.Outlined.Palette
+-                }
+-                SegmentedListItem(
+-                    modifier = Modifier.testTag("color-theme-${theme.name.lowercase()}"),
+-                    selected = currentTheme == theme,
+-                    onClick = { onThemeChange(theme) },
+-                    shapes = stableSegmentedShapes(index, ColorTheme.entries.size),
+-                    colors = settingsListItemColors(),
+-                    leadingContent = { Icon(imageVector = icon, contentDescription = null) },
+-                    trailingContent = {
+-                        RadioButton(selected = currentTheme == theme, onClick = null)
+-                    },
+-                    supportingContent = { Text(description) }
+-                ) { Text(label) }
+-            }
+-        }
+-    }
+-}
+-
+ @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+ @Composable
+ private fun TimeFormatSection(
+@@ -171,8 +133,8 @@ private fun TimeFormatSection(
+     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+         Text(
+             text = stringResource(R.string.settings_time_format_title),
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
++            style = MaterialTheme.typography.titleSmall,
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
+             modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         Column(
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/BasicDataScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsBasicDataSection.kt
+similarity index 74%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/BasicDataScreen.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsBasicDataSection.kt
+index 6b3b27f..8711114 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/BasicDataScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsBasicDataSection.kt
+@@ -1,13 +1,10 @@
+-package io.github.yingqiu0871.evolune.ui.screens
++package io.github.yingqiu0871.evolune.ui.screens.settings
+ 
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.rememberScrollState
+ import androidx.compose.foundation.text.KeyboardOptions
+-import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.OutlinedTextField
+ import androidx.compose.material3.Text
+@@ -24,39 +21,29 @@ import androidx.compose.ui.unit.dp
+ import io.github.yingqiu0871.evolune.R
+ import io.github.yingqiu0871.evolune.data.isValidBodyWeight
+ 
++/**
++ * v1.7.2 Slice C — Basic data inline section. The persisted authority remains
++ * SettingsViewModel/SettingsDataStore; only the text-field interaction state is local.
++ */
+ @Composable
+-fun BasicDataScreen(
+-    bodyWeight: Double,
+-    onBodyWeightChange: (Double) -> Unit
+-) {
+-    Column(
+-        modifier = Modifier
+-            .fillMaxSize()
+-            .testTag("settings-basic-data-screen")
+-            .verticalScroll(rememberScrollState())
+-            .padding(16.dp),
+-        verticalArrangement = Arrangement.spacedBy(24.dp)
+-    ) {
+-        BodyWeightSection(
+-            bodyWeight = bodyWeight,
+-            onBodyWeightChange = onBodyWeightChange
+-        )
+-    }
+-}
+-
+-@Composable
+-private fun BodyWeightSection(
++internal fun SettingsBasicDataSection(
+     bodyWeight: Double,
+     onBodyWeightChange: (Double) -> Unit
+ ) {
+     var weightText by remember(bodyWeight) { mutableStateOf(bodyWeight.toString()) }
+     var isError by remember { mutableStateOf(false) }
+ 
+-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-basic-data-section"),
++        verticalArrangement = Arrangement.spacedBy(8.dp)
++    ) {
++        SettingsSectionHeader(title = stringResource(R.string.settings_basic_data_title))
+         Text(
+             text = stringResource(R.string.settings_weight_title),
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
++            style = MaterialTheme.typography.titleSmall,
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
+             modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         Text(
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsColorSchemeSection.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsColorSchemeSection.kt
+new file mode 100644
+index 0000000..5092dd5
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsColorSchemeSection.kt
+@@ -0,0 +1,217 @@
++package io.github.yingqiu0871.evolune.ui.screens.settings
++
++import androidx.compose.foundation.BorderStroke
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.size
++import androidx.compose.foundation.selection.selectable
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.filled.Check
++import androidx.compose.material.icons.outlined.ColorLens
++import androidx.compose.material.icons.outlined.Palette
++import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
++import androidx.compose.material3.Icon
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.RadioButton
++import androidx.compose.material3.SegmentedListItem
++import androidx.compose.material3.Surface
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.semantics.Role
++import androidx.compose.ui.text.style.TextOverflow
++import androidx.compose.ui.unit.dp
++import io.github.yingqiu0871.evolune.R
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
++import io.github.yingqiu0871.evolune.theme.palette.PaletteCatalog
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
++import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
++
++/** Single UI metadata mapping from the frozen Slice A palette identities to the widget labels. */
++internal fun PresetPalette.paletteLabelRes(): Int = when (this) {
++    PresetPalette.MONET_BLUE -> R.string.widget_config_palette_blue
++    PresetPalette.MONET_VIOLET -> R.string.widget_config_palette_violet
++    PresetPalette.MONET_SAKURA -> R.string.widget_config_palette_sakura
++    PresetPalette.MONET_MINT -> R.string.widget_config_palette_mint
++    PresetPalette.MONET_TEAL -> R.string.widget_config_palette_teal
++    PresetPalette.MONET_AMBER -> R.string.widget_config_palette_amber
++    PresetPalette.MONET_NEUTRAL -> R.string.widget_config_palette_neutral
++    PresetPalette.MONET_LAVENDER -> R.string.widget_config_palette_lavender
++}
++
++/**
++ * v1.7.2 Slice C — 配色 section consuming the frozen Slice B canonical state only.
++ *
++ * - source rows: DYNAMIC (跟随壁纸) / PRESET (预设配色)
++ * - exactly the eight [PresetPalette] tiles, previewed from [PaletteCatalog] seeds
++ * - LEGACY_BUILTIN is a truthful compatibility row, never a ninth tile
++ */
++@OptIn(ExperimentalMaterial3ExpressiveApi::class)
++@Composable
++internal fun SettingsColorSchemeSection(
++    source: ThemeColorSource,
++    preset: ThemePresetSelection?,
++    onSelectDynamicSource: () -> Unit,
++    onSelectPresetSource: () -> Unit,
++    onPresetPaletteChange: (PresetPalette) -> Unit
++) {
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-color-scheme-section"),
++        verticalArrangement = Arrangement.spacedBy(8.dp)
++    ) {
++        SettingsSectionHeader(title = stringResource(R.string.settings_color_scheme_title))
++        Column(
++            modifier = Modifier.fillMaxWidth(),
++            verticalArrangement = Arrangement.spacedBy(2.dp)
++        ) {
++            SegmentedListItem(
++                modifier = Modifier.testTag("color-source-dynamic"),
++                selected = source == ThemeColorSource.DYNAMIC,
++                onClick = onSelectDynamicSource,
++                shapes = stableSegmentedShapes(index = 0, count = 2),
++                colors = settingsListItemColors(),
++                leadingContent = {
++                    Icon(imageVector = Icons.Outlined.ColorLens, contentDescription = null)
++                },
++                trailingContent = {
++                    RadioButton(selected = source == ThemeColorSource.DYNAMIC, onClick = null)
++                },
++                supportingContent = {
++                    Text(stringResource(R.string.settings_color_theme_dynamic_desc))
++                }
++            ) { Text(stringResource(R.string.settings_color_source_dynamic)) }
++
++            SegmentedListItem(
++                modifier = Modifier.testTag("color-source-preset"),
++                selected = source == ThemeColorSource.PRESET,
++                onClick = {
++                    if (source != ThemeColorSource.PRESET) onSelectPresetSource()
++                },
++                shapes = stableSegmentedShapes(index = 1, count = 2),
++                colors = settingsListItemColors(),
++                leadingContent = {
++                    Icon(imageVector = Icons.Outlined.Palette, contentDescription = null)
++                },
++                trailingContent = {
++                    RadioButton(selected = source == ThemeColorSource.PRESET, onClick = null)
++                },
++                supportingContent = {
++                    Text(stringResource(R.string.settings_color_source_preset_desc))
++                }
++            ) { Text(stringResource(R.string.settings_color_source_preset)) }
++        }
++
++        if (preset == ThemePresetSelection.LegacyBuiltin) {
++            Surface(
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .testTag("color-legacy-builtin-current"),
++                shape = MaterialTheme.shapes.medium,
++                color = MaterialTheme.colorScheme.surfaceContainerHigh
++            ) {
++                Text(
++                    text = stringResource(R.string.settings_color_legacy_builtin_current),
++                    style = MaterialTheme.typography.bodyMedium,
++                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
++                )
++            }
++        }
++
++        val selectedPalette = (preset as? ThemePresetSelection.Preset)?.palette
++        Column(
++            modifier = Modifier
++                .fillMaxWidth()
++                .testTag("settings-palette-grid"),
++            verticalArrangement = Arrangement.spacedBy(8.dp)
++        ) {
++            PresetPalette.entries.chunked(4).forEach { rowPalettes ->
++                Row(
++                    modifier = Modifier.fillMaxWidth(),
++                    horizontalArrangement = Arrangement.spacedBy(8.dp)
++                ) {
++                    rowPalettes.forEach { palette ->
++                        PaletteTile(
++                            palette = palette,
++                            selected = selectedPalette == palette,
++                            onSelect = { onPresetPaletteChange(palette) },
++                            modifier = Modifier.weight(1f)
++                        )
++                    }
++                }
++            }
++        }
++    }
++}
++
++@Composable
++private fun PaletteTile(
++    palette: PresetPalette,
++    selected: Boolean,
++    onSelect: () -> Unit,
++    modifier: Modifier = Modifier
++) {
++    val label = stringResource(palette.paletteLabelRes())
++    val seed = PaletteCatalog.seed(palette)
++    Surface(
++        modifier = modifier
++            .testTag("palette-tile-${palette.name.lowercase()}")
++            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect),
++        shape = MaterialTheme.shapes.medium,
++        color = if (selected) {
++            MaterialTheme.colorScheme.primaryContainer
++        } else {
++            MaterialTheme.colorScheme.surfaceContainerHigh
++        },
++        border = if (selected) {
++            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
++        } else {
++            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
++        }
++    ) {
++        Column(
++            modifier = Modifier.padding(horizontal = 6.dp, vertical = 10.dp),
++            horizontalAlignment = Alignment.CenterHorizontally,
++            verticalArrangement = Arrangement.spacedBy(6.dp)
++        ) {
++            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
++                listOf(seed.lightPrimary, seed.lightSecondary, seed.lightTertiary).forEach { argb ->
++                    Surface(
++                        modifier = Modifier.size(12.dp),
++                        shape = CircleShape,
++                        color = Color(argb)
++                    ) {}
++                }
++            }
++            Row(
++                horizontalArrangement = Arrangement.spacedBy(2.dp),
++                verticalAlignment = Alignment.CenterVertically
++            ) {
++                if (selected) {
++                    Icon(
++                        imageVector = Icons.Filled.Check,
++                        contentDescription = null,
++                        modifier = Modifier.size(12.dp)
++                    )
++                }
++                Text(
++                    text = label,
++                    style = MaterialTheme.typography.labelMedium,
++                    maxLines = 1,
++                    overflow = TextOverflow.Ellipsis
++                )
++            }
++        }
++    }
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsHealthConnectSection.kt
+similarity index 81%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreen.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsHealthConnectSection.kt
+index 8f04311..abe78c9 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsHealthConnectSection.kt
+@@ -1,14 +1,11 @@
+-package io.github.yingqiu0871.evolune.ui.screens
++package io.github.yingqiu0871.evolune.ui.screens.settings
+ 
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+ import androidx.compose.foundation.layout.Spacer
+-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+ import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material3.Button
+ import androidx.compose.material3.HorizontalDivider
+ import androidx.compose.material3.ListItem
+@@ -28,8 +25,12 @@ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
+ import java.time.ZoneId
+ import java.time.format.DateTimeFormatter
+ 
++/**
++ * v1.7.2 Slice C — Health Connect controls inline in Sync & backup. Presentation only:
++ * permission handling, consent flows and the existing SettingsDataStore owner are unchanged.
++ */
+ @Composable
+-fun HealthConnectSyncScreen(
++internal fun SettingsHealthConnectSection(
+     settings: UserSettings,
+     state: HealthConnectWeightSyncState,
+     onWeightSyncEnabledChange: (Boolean) -> Unit,
+@@ -41,41 +42,35 @@ fun HealthConnectSyncScreen(
+ 
+     Column(
+         modifier = Modifier
+-            .fillMaxSize()
+-            .verticalScroll(rememberScrollState())
+-            .padding(16.dp),
++            .fillMaxWidth()
++            .testTag("settings-health-connect-section"),
+         verticalArrangement = Arrangement.spacedBy(16.dp)
+     ) {
+         Text(
+-            text = stringResource(R.string.settings_health_connect_sync_title),
+-            style = MaterialTheme.typography.headlineSmall,
+-            modifier = Modifier.testTag("health-connect-sync-title")
+-        )
+-        Text(
+-            text = stringResource(R.string.settings_health_connect_sync_desc),
+-            style = MaterialTheme.typography.bodyMedium,
+-            color = MaterialTheme.colorScheme.onSurfaceVariant
+-        )
+-
+-        Text(
+-            text = stringResource(R.string.settings_health_connect_sync_connection),
+-            style = MaterialTheme.typography.titleMedium
++            text = stringResource(R.string.settings_sync_backup_health_title),
++            style = MaterialTheme.typography.titleSmall,
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
++            modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         Text(
+             text = connectionStatusText(state.status),
+             style = MaterialTheme.typography.bodyLarge,
+-            modifier = Modifier.testTag("health-connect-sync-connection-status")
++            modifier = Modifier
++                .padding(horizontal = 16.dp)
++                .testTag("health-connect-sync-connection-status")
+         )
+         Text(
+             text = connectionDescriptionText(state.status),
+             style = MaterialTheme.typography.bodySmall,
+-            color = MaterialTheme.colorScheme.onSurfaceVariant
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
++            modifier = Modifier.padding(horizontal = 16.dp)
+         )
+ 
+         HorizontalDivider()
+         Text(
+             text = stringResource(R.string.settings_health_connect_sync_items),
+-            style = MaterialTheme.typography.titleMedium
++            style = MaterialTheme.typography.titleSmall,
++            modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         ListItem(
+             modifier = Modifier.testTag("health-connect-weight-sync-row"),
+@@ -101,13 +96,17 @@ fun HealthConnectSyncScreen(
+                     dateFormatter.format(state.lastAdoptedAt)
+                 ),
+                 style = MaterialTheme.typography.bodyMedium,
+-                modifier = Modifier.testTag("health-connect-sync-last")
++                modifier = Modifier
++                    .padding(horizontal = 16.dp)
++                    .testTag("health-connect-sync-last")
+             )
+         }
+         if (state.status == HealthConnectWeightSyncStatus.NO_DATA) {
+             Text(
+                 text = stringResource(R.string.settings_health_connect_sync_no_data),
+-                modifier = Modifier.testTag("health-connect-sync-no-data")
++                modifier = Modifier
++                    .padding(horizontal = 16.dp)
++                    .testTag("health-connect-sync-no-data")
+             )
+         }
+ 
+@@ -132,15 +131,19 @@ fun HealthConnectSyncScreen(
+         HorizontalDivider()
+         Text(
+             text = stringResource(R.string.settings_health_connect_sync_permissions),
+-            style = MaterialTheme.typography.titleMedium
++            style = MaterialTheme.typography.titleSmall,
++            modifier = Modifier.padding(horizontal = 16.dp)
+         )
+         Text(
+             text = permissionStatusText(state.status),
+-            modifier = Modifier.testTag("health-connect-weight-permission-status")
++            modifier = Modifier
++                .padding(horizontal = 16.dp)
++                .testTag("health-connect-weight-permission-status")
+         )
+         Button(
+             modifier = Modifier
+                 .fillMaxWidth()
++                .padding(horizontal = 16.dp)
+                 .testTag("health-connect-manage-permissions"),
+             onClick = onManagePermissions
+         ) {
+@@ -153,6 +156,7 @@ fun HealthConnectSyncScreen(
+             OutlinedButton(
+                 modifier = Modifier
+                     .fillMaxWidth()
++                    .padding(horizontal = 16.dp)
+                     .testTag("health-connect-reauthorize"),
+                 onClick = onReauthorize
+             ) {
+@@ -163,7 +167,8 @@ fun HealthConnectSyncScreen(
+         Text(
+             text = stringResource(R.string.settings_health_connect_sync_deferred_note),
+             style = MaterialTheme.typography.bodySmall,
+-            color = MaterialTheme.colorScheme.onSurfaceVariant
++            color = MaterialTheme.colorScheme.onSurfaceVariant,
++            modifier = Modifier.padding(horizontal = 16.dp)
+         )
+     }
+ }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsImportExportBlock.kt
+similarity index 66%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsImportExportBlock.kt
+index f1bd47a..b795891 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsImportExportBlock.kt
+@@ -1,9 +1,10 @@
+-package io.github.yingqiu0871.evolune.ui.screens
++package io.github.yingqiu0871.evolune.ui.screens.settings
+ 
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.Spacer
+ import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.height
+ import androidx.compose.foundation.layout.padding
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.outlined.ContentCopy
+@@ -12,8 +13,9 @@ import androidx.compose.material.icons.outlined.Download
+ import androidx.compose.material.icons.outlined.Upload
+ import androidx.compose.material3.AlertDialog
+ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+-import androidx.compose.material3.Scaffold
+-import androidx.compose.material3.SnackbarHost
++import androidx.compose.material3.Icon
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.SegmentedListItem
+ import androidx.compose.material3.SnackbarHostState
+ import androidx.compose.material3.Text
+ import androidx.compose.material3.TextButton
+@@ -33,13 +35,6 @@ import io.github.yingqiu0871.evolune.export.PortableExportRange
+ import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
+ import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
+ import io.github.yingqiu0871.evolune.viewmodel.ImportResult
+-import androidx.compose.foundation.layout.Spacer
+-import androidx.compose.foundation.layout.height
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
+-import androidx.compose.material3.Icon
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.SegmentedListItem
+ 
+ /** Typed, already-localized canonical dialog payload (V17-E §34). */
+ data class PortableDialogMessage(
+@@ -47,9 +42,14 @@ data class PortableDialogMessage(
+     val body: String
+ )
+ 
++/**
++ * v1.7.2 Slice C — local import/export inline block. Same actions, same dialog protections
++ * and the same owner callbacks as the former DataImportExport page; the snackbar host is
++ * hoisted to the shared Settings scaffold.
++ */
+ @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+ @Composable
+-fun DataImportExportScreen(
++internal fun SettingsImportExportBlock(
+     importResult: ImportResult,
+     onDismissImportResult: () -> Unit,
+     clipboardExportMessage: String?,
+@@ -58,14 +58,14 @@ fun DataImportExportScreen(
+     onImportFromClipboard: () -> Unit,
+     onExportClick: () -> Unit,
+     onExportToClipboard: () -> Unit,
+-    portableBusy: Boolean = false,
+-    onExportPortableJson: (PortableExportRange) -> Unit = {},
+-    onExportPortableCsv: (PortableExportRange) -> Unit = {},
+-    onImportPortableJson: () -> Unit = {},
+-    portableDialog: PortableDialogMessage? = null,
+-    onDismissPortableDialog: () -> Unit = {}
++    portableBusy: Boolean,
++    onExportPortableJson: (PortableExportRange) -> Unit,
++    onExportPortableCsv: (PortableExportRange) -> Unit,
++    onImportPortableJson: () -> Unit,
++    portableDialog: PortableDialogMessage?,
++    onDismissPortableDialog: () -> Unit,
++    snackbarHostState: SnackbarHostState
+ ) {
+-    val snackbarHostState = remember { SnackbarHostState() }
+     var rangeDialogFormat by remember { mutableStateOf<PortableExportFormat?>(null) }
+     var showClipboardWarning by remember { mutableStateOf(false) }
+ 
+@@ -76,111 +76,104 @@ fun DataImportExportScreen(
+         }
+     }
+ 
+-    Scaffold(
+-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+-        snackbarHost = { SnackbarHost(snackbarHostState) }
+-    ) { padding ->
+-        Column(
+-            modifier = Modifier
+-                .fillMaxSize()
+-                .padding(padding)
+-                .verticalScroll(rememberScrollState())
+-                .padding(16.dp),
+-            verticalArrangement = Arrangement.spacedBy(16.dp)
+-        ) {
+-            PortableSection(
+-                busy = portableBusy,
+-                onExportJsonClick = { rangeDialogFormat = PortableExportFormat.JSON },
+-                onExportCsvClick = { rangeDialogFormat = PortableExportFormat.CSV },
+-                onImportJsonClick = onImportPortableJson
+-            )
+-            if (portableBusy) {
+-                Text(
+-                    text = stringResource(R.string.portable_busy),
+-                    style = MaterialTheme.typography.bodyMedium,
+-                    color = MaterialTheme.colorScheme.primary,
+-                    modifier = Modifier
+-                        .padding(horizontal = 16.dp)
+-                        .testTag("portable-busy")
+-                )
+-            }
+-            LegacySection(
+-                busy = portableBusy,
+-                onImportClick = onImportClick,
+-                onImportFromClipboard = onImportFromClipboard,
+-                onExportClick = onExportClick,
+-                onExportToClipboard = { showClipboardWarning = true }
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-import-export-block"),
++        verticalArrangement = Arrangement.spacedBy(16.dp)
++    ) {
++        PortableSection(
++            busy = portableBusy,
++            onExportJsonClick = { rangeDialogFormat = PortableExportFormat.JSON },
++            onExportCsvClick = { rangeDialogFormat = PortableExportFormat.CSV },
++            onImportJsonClick = onImportPortableJson
++        )
++        if (portableBusy) {
++            Text(
++                text = stringResource(R.string.portable_busy),
++                style = MaterialTheme.typography.bodyMedium,
++                color = MaterialTheme.colorScheme.primary,
++                modifier = Modifier
++                    .padding(horizontal = 16.dp)
++                    .testTag("portable-busy")
+             )
+-            Spacer(modifier = Modifier.height(8.dp))
+         }
++        LegacySection(
++            busy = portableBusy,
++            onImportClick = onImportClick,
++            onImportFromClipboard = onImportFromClipboard,
++            onExportClick = onExportClick,
++            onExportToClipboard = { showClipboardWarning = true }
++        )
++        Spacer(modifier = Modifier.height(8.dp))
++    }
+ 
+-        rangeDialogFormat?.let { format ->
+-            ExportRangeDialog(
+-                onChoose = { range ->
+-                    rangeDialogFormat = null
+-                    when (format) {
+-                        PortableExportFormat.JSON -> onExportPortableJson(range)
+-                        PortableExportFormat.CSV -> onExportPortableCsv(range)
+-                    }
+-                },
+-                onDismiss = { rangeDialogFormat = null }
+-            )
+-        }
++    rangeDialogFormat?.let { format ->
++        ExportRangeDialog(
++            onChoose = { range ->
++                rangeDialogFormat = null
++                when (format) {
++                    PortableExportFormat.JSON -> onExportPortableJson(range)
++                    PortableExportFormat.CSV -> onExportPortableCsv(range)
++                }
++            },
++            onDismiss = { rangeDialogFormat = null }
++        )
++    }
+ 
+-        if (showClipboardWarning) {
+-            AlertDialog(
+-                modifier = Modifier.testTag("legacy-clipboard-warning"),
+-                onDismissRequest = { showClipboardWarning = false },
+-                title = { Text(stringResource(R.string.portable_clipboard_warning_title)) },
+-                text = { Text(stringResource(R.string.portable_clipboard_warning_message)) },
+-                confirmButton = {
+-                    TextButton(
+-                        modifier = Modifier.testTag("legacy-clipboard-confirm"),
+-                        onClick = {
+-                            showClipboardWarning = false
+-                            onExportToClipboard()
+-                        }
+-                    ) {
+-                        Text(stringResource(R.string.common_confirm))
+-                    }
+-                },
+-                dismissButton = {
+-                    TextButton(
+-                        modifier = Modifier.testTag("legacy-clipboard-cancel"),
+-                        onClick = { showClipboardWarning = false }
+-                    ) {
+-                        Text(stringResource(R.string.common_cancel))
++    if (showClipboardWarning) {
++        AlertDialog(
++            modifier = Modifier.testTag("legacy-clipboard-warning"),
++            onDismissRequest = { showClipboardWarning = false },
++            title = { Text(stringResource(R.string.portable_clipboard_warning_title)) },
++            text = { Text(stringResource(R.string.portable_clipboard_warning_message)) },
++            confirmButton = {
++                TextButton(
++                    modifier = Modifier.testTag("legacy-clipboard-confirm"),
++                    onClick = {
++                        showClipboardWarning = false
++                        onExportToClipboard()
+                     }
++                ) {
++                    Text(stringResource(R.string.common_confirm))
+                 }
+-            )
+-        }
++            },
++            dismissButton = {
++                TextButton(
++                    modifier = Modifier.testTag("legacy-clipboard-cancel"),
++                    onClick = { showClipboardWarning = false }
++                ) {
++                    Text(stringResource(R.string.common_cancel))
++                }
++            }
++        )
++    }
+ 
+-        portableDialog?.let { dialog ->
+-            ImportResultDialog(
+-                title = dialog.title,
+-                message = dialog.body,
+-                onDismiss = onDismissPortableDialog
+-            )
+-        }
++    portableDialog?.let { dialog ->
++        ImportResultDialog(
++            title = dialog.title,
++            message = dialog.body,
++            onDismiss = onDismissPortableDialog
++        )
++    }
+ 
+-        when (val result = importResult) {
+-            is ImportResult.Success -> ImportResultDialog(
+-                title = stringResource(R.string.settings_import_json),
+-                message = stringResource(R.string.import_success, result.importedCount),
+-                onDismiss = onDismissImportResult
+-            )
+-            is ImportResult.Error -> ImportResultDialog(
+-                title = stringResource(R.string.settings_import_json),
+-                message = if (result.tooLarge) {
+-                    stringResource(R.string.portable_import_too_large)
+-                } else {
+-                    stringResource(R.string.import_error, result.message)
+-                },
+-                onDismiss = onDismissImportResult
+-            )
+-            ImportResult.Idle,
+-            ImportResult.Importing -> Unit
+-        }
++    when (val result = importResult) {
++        is ImportResult.Success -> ImportResultDialog(
++            title = stringResource(R.string.settings_import_json),
++            message = stringResource(R.string.import_success, result.importedCount),
++            onDismiss = onDismissImportResult
++        )
++        is ImportResult.Error -> ImportResultDialog(
++            title = stringResource(R.string.settings_import_json),
++            message = if (result.tooLarge) {
++                stringResource(R.string.portable_import_too_large)
++            } else {
++                stringResource(R.string.import_error, result.message)
++            },
++            onDismiss = onDismissImportResult
++        )
++        ImportResult.Idle,
++        ImportResult.Importing -> Unit
+     }
+ }
+ 
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsNavigationRowsSection.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsNavigationRowsSection.kt
+new file mode 100644
+index 0000000..f7ae905
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsNavigationRowsSection.kt
+@@ -0,0 +1,65 @@
++package io.github.yingqiu0871.evolune.ui.screens.settings
++
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.outlined.Info
++import androidx.compose.material.icons.outlined.Lock
++import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.unit.dp
++import io.github.yingqiu0871.evolune.R
++import io.github.yingqiu0871.evolune.ui.components.SettingsNavigationRow
++
++/**
++ * v1.7.2 Slice C — retained content/navigation rows (Guide / Privacy / Tutorial / About)
++ * keep their existing routes and behavior; they are not flattened.
++ */
++@OptIn(ExperimentalMaterial3ExpressiveApi::class)
++@Composable
++internal fun SettingsNavigationRowsSection(
++    onOpenGuide: () -> Unit,
++    onOpenPrivacy: () -> Unit,
++    onOpenFeatureTutorial: () -> Unit,
++    onOpenAbout: () -> Unit
++) {
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-navigation-rows"),
++        verticalArrangement = Arrangement.spacedBy(16.dp)
++    ) {
++        SettingsNavigationRow(
++            modifier = Modifier.testTag("settings-guide-entry"),
++            title = stringResource(R.string.settings_guide_title),
++            description = stringResource(R.string.settings_guide_desc),
++            icon = Icons.Outlined.Info,
++            onClick = onOpenGuide
++        )
++        SettingsNavigationRow(
++            modifier = Modifier.testTag("settings-privacy-entry"),
++            title = stringResource(R.string.settings_privacy_title),
++            description = stringResource(R.string.settings_privacy_desc),
++            icon = Icons.Outlined.Lock,
++            onClick = onOpenPrivacy
++        )
++        SettingsNavigationRow(
++            modifier = Modifier.testTag("settings-feature-tutorial-entry"),
++            title = stringResource(R.string.settings_feature_tutorial_title),
++            description = stringResource(R.string.settings_feature_tutorial_desc),
++            icon = Icons.Outlined.Info,
++            onClick = onOpenFeatureTutorial
++        )
++        SettingsNavigationRow(
++            modifier = Modifier.testTag("settings-about-entry"),
++            title = stringResource(R.string.settings_about_title),
++            description = stringResource(R.string.settings_about_desc),
++            icon = Icons.Outlined.Info,
++            onClick = onOpenAbout
++        )
++    }
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSectionHeader.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSectionHeader.kt
+new file mode 100644
+index 0000000..c3398d7
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSectionHeader.kt
+@@ -0,0 +1,19 @@
++package io.github.yingqiu0871.evolune.ui.screens.settings
++
++import androidx.compose.foundation.layout.padding
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.unit.dp
++
++/** Shared section title treatment for the flattened v1.7.2 Settings screen. */
++@Composable
++internal fun SettingsSectionHeader(title: String, modifier: Modifier = Modifier) {
++    Text(
++        text = title,
++        style = MaterialTheme.typography.titleMedium,
++        color = MaterialTheme.colorScheme.primary,
++        modifier = modifier.padding(horizontal = 16.dp)
++    )
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSyncBackupSection.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSyncBackupSection.kt
+new file mode 100644
+index 0000000..38e046d
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsSyncBackupSection.kt
+@@ -0,0 +1,117 @@
++package io.github.yingqiu0871.evolune.ui.screens.settings
++
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.padding
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.outlined.Cloud
++import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.material3.SnackbarHostState
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.testTag
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.unit.dp
++import io.github.yingqiu0871.evolune.R
++import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.export.PortableExportRange
++import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
++import io.github.yingqiu0871.evolune.ui.components.SettingsNavigationRow
++import io.github.yingqiu0871.evolune.viewmodel.ImportResult
++
++/**
++ * v1.7.2 Slice C — Sync & backup inline section: local import/export actions, Health Connect
++ * controls and the retained Google Drive backup/restore entry (its secure multi-step route is
++ * kept and only linked from here).
++ */
++@OptIn(ExperimentalMaterial3ExpressiveApi::class)
++@Composable
++internal fun SettingsSyncBackupSection(
++    settings: UserSettings,
++    healthConnectWeightSyncState: HealthConnectWeightSyncState,
++    backupRestoreConnected: Boolean,
++    importResult: ImportResult,
++    onDismissImportResult: () -> Unit,
++    clipboardExportMessage: String?,
++    onClipboardExportMessageShown: () -> Unit,
++    onImportClick: () -> Unit,
++    onImportFromClipboard: () -> Unit,
++    onExportClick: () -> Unit,
++    onExportToClipboard: () -> Unit,
++    portableBusy: Boolean,
++    onExportPortableJson: (PortableExportRange) -> Unit,
++    onExportPortableCsv: (PortableExportRange) -> Unit,
++    onImportPortableJson: () -> Unit,
++    portableDialog: PortableDialogMessage?,
++    onDismissPortableDialog: () -> Unit,
++    onWeightSyncEnabledChange: (Boolean) -> Unit,
++    onReauthorize: () -> Unit,
++    onManagePermissions: () -> Unit,
++    onOpenGoogleDrive: () -> Unit,
++    snackbarHostState: SnackbarHostState
++) {
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-sync-backup-section"),
++        verticalArrangement = Arrangement.spacedBy(24.dp)
++    ) {
++        SettingsSectionHeader(title = stringResource(R.string.settings_sync_backup_title))
++
++        SettingsImportExportBlock(
++            importResult = importResult,
++            onDismissImportResult = onDismissImportResult,
++            clipboardExportMessage = clipboardExportMessage,
++            onClipboardExportMessageShown = onClipboardExportMessageShown,
++            onImportClick = onImportClick,
++            onImportFromClipboard = onImportFromClipboard,
++            onExportClick = onExportClick,
++            onExportToClipboard = onExportToClipboard,
++            portableBusy = portableBusy,
++            onExportPortableJson = onExportPortableJson,
++            onExportPortableCsv = onExportPortableCsv,
++            onImportPortableJson = onImportPortableJson,
++            portableDialog = portableDialog,
++            onDismissPortableDialog = onDismissPortableDialog,
++            snackbarHostState = snackbarHostState
++        )
++
++        SettingsHealthConnectSection(
++            settings = settings,
++            state = healthConnectWeightSyncState,
++            onWeightSyncEnabledChange = onWeightSyncEnabledChange,
++            onReauthorize = onReauthorize,
++            onManagePermissions = onManagePermissions
++        )
++
++        Column(
++            modifier = Modifier.fillMaxWidth(),
++            verticalArrangement = Arrangement.spacedBy(8.dp)
++        ) {
++            Text(
++                text = stringResource(R.string.settings_sync_backup_cloud_title),
++                style = MaterialTheme.typography.titleSmall,
++                color = MaterialTheme.colorScheme.onSurfaceVariant,
++                modifier = Modifier.padding(horizontal = 16.dp)
++            )
++            SettingsNavigationRow(
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .testTag("settings-sync-backup-google-drive-entry"),
++                title = stringResource(R.string.settings_sync_backup_google_drive_title),
++                description = stringResource(
++                    if (backupRestoreConnected) {
++                        R.string.settings_backup_restore_connected
++                    } else {
++                        R.string.settings_backup_restore_authorization_required
++                    }
++                ),
++                icon = Icons.Outlined.Cloud,
++                onClick = onOpenGoogleDrive
++            )
++        }
++    }
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/UpdateScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsUpdateSection.kt
+similarity index 76%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/UpdateScreen.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsUpdateSection.kt
+index aca104f..6f5bfc4 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/UpdateScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsUpdateSection.kt
+@@ -1,40 +1,29 @@
+-package io.github.yingqiu0871.evolune.ui.screens
++package io.github.yingqiu0871.evolune.ui.screens.settings
+ 
+ import android.content.ClipData
+ import android.content.ClipboardManager
+ import androidx.compose.foundation.layout.Arrangement
+ import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.WindowInsets
+-import androidx.compose.foundation.layout.WindowInsetsSides
+-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.foundation.layout.fillMaxWidth
+-import androidx.compose.foundation.layout.only
+ import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.layout.safeDrawing
+ import androidx.compose.foundation.layout.size
+-import androidx.compose.foundation.rememberScrollState
+-import androidx.compose.foundation.verticalScroll
+ import androidx.compose.material.icons.Icons
+ import androidx.compose.material.icons.filled.Check
+ import androidx.compose.material.icons.outlined.ContentCopy
+ import androidx.compose.material.icons.outlined.PhoneAndroid
+ import androidx.compose.material.icons.outlined.Refresh
+ import androidx.compose.material.icons.outlined.SystemUpdate
+-import androidx.compose.material3.ExperimentalMaterial3Api
+ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+ import androidx.compose.material3.Icon
+ import androidx.compose.material3.ListItemDefaults
+ import androidx.compose.material3.LoadingIndicator
+ import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Scaffold
+ import androidx.compose.material3.SegmentedListItem
+-import androidx.compose.material3.SnackbarHost
+ import androidx.compose.material3.SnackbarHostState
+ import androidx.compose.material3.Switch
+ import androidx.compose.material3.SwitchDefaults
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.remember
+ import androidx.compose.runtime.rememberCoroutineScope
+ import androidx.compose.ui.Modifier
+@@ -49,41 +38,10 @@ import kotlinx.coroutines.launch
+ 
+ private const val CLIPBOARD_LABEL_VERSION = "version"
+ 
+-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+-@Composable
+-fun UpdateScreen(
+-    autoCheckUpdates: Boolean,
+-    onAutoCheckUpdatesChange: (Boolean) -> Unit,
+-    onCheckForUpdates: () -> Unit,
+-    updateCheckResult: UpdateCheckResult
+-) {
+-    val snackbarHostState = remember { SnackbarHostState() }
+-    Scaffold(
+-        contentWindowInsets = WindowInsets.safeDrawing.only(
+-            WindowInsetsSides.Horizontal + WindowInsetsSides.Top
+-        ),
+-        snackbarHost = { SnackbarHost(snackbarHostState) }
+-    ) { padding ->
+-        UpdateSection(
+-            modifier = Modifier
+-                .fillMaxSize()
+-                .testTag("settings-update-screen")
+-                .padding(padding)
+-                .verticalScroll(rememberScrollState())
+-                .padding(16.dp),
+-            autoCheckUpdates = autoCheckUpdates,
+-            onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
+-            onCheckForUpdates = onCheckForUpdates,
+-            updateCheckResult = updateCheckResult,
+-            snackbarHostState = snackbarHostState
+-        )
+-    }
+-}
+-
++/** v1.7.2 Slice C — Updates inline section (same owner, same actions as the old page). */
+ @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+ @Composable
+-private fun UpdateSection(
+-    modifier: Modifier,
++internal fun SettingsUpdateSection(
+     autoCheckUpdates: Boolean,
+     onAutoCheckUpdatesChange: (Boolean) -> Unit,
+     onCheckForUpdates: () -> Unit,
+@@ -114,13 +72,13 @@ private fun UpdateSection(
+     }
+     val versionCopiedText = stringResource(R.string.version_copied)
+ 
+-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+-        Text(
+-            text = stringResource(R.string.settings_update_title),
+-            style = MaterialTheme.typography.titleMedium,
+-            color = MaterialTheme.colorScheme.primary,
+-            modifier = Modifier.padding(horizontal = 16.dp)
+-        )
++    Column(
++        modifier = Modifier
++            .fillMaxWidth()
++            .testTag("settings-update-section"),
++        verticalArrangement = Arrangement.spacedBy(8.dp)
++    ) {
++        SettingsSectionHeader(title = stringResource(R.string.settings_update_title))
+         Column(
+             modifier = Modifier.fillMaxWidth(),
+             verticalArrangement = Arrangement.spacedBy(2.dp)
+diff --git a/app/src/main/res/values-zh-rCN/strings.xml b/app/src/main/res/values-zh-rCN/strings.xml
+index 3d67c3a..866dd59 100644
+--- a/app/src/main/res/values-zh-rCN/strings.xml
++++ b/app/src/main/res/values-zh-rCN/strings.xml
+@@ -124,6 +124,12 @@
+     <string name="settings_color_theme_dynamic_desc">跟随系统动态着色 (Android 12+)</string>
+     <string name="settings_color_theme_builtin_desc">使用应用内置配色方案</string>
+ 
++    <string name="settings_color_scheme_title">配色</string>
++    <string name="settings_color_source_dynamic">跟随壁纸</string>
++    <string name="settings_color_source_preset">预设配色</string>
++    <string name="settings_color_source_preset_desc">从 8 种内置调色板中选择</string>
++    <string name="settings_color_legacy_builtin_current">当前主题：内置主题（兼容保留）</string>
++
+     <string name="settings_time_format_title">时间制式</string>
+     <string name="settings_time_format_system">跟随系统</string>
+     <string name="settings_time_format_12h">12小时制</string>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index a902703..5337c60 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -124,6 +124,12 @@
+     <string name="settings_color_theme_dynamic_desc">跟随系统动态着色 (Android 12+)</string>
+     <string name="settings_color_theme_builtin_desc">使用应用内置配色方案</string>
+ 
++    <string name="settings_color_scheme_title">配色</string>
++    <string name="settings_color_source_dynamic">跟随壁纸</string>
++    <string name="settings_color_source_preset">预设配色</string>
++    <string name="settings_color_source_preset_desc">从 8 种内置调色板中选择</string>
++    <string name="settings_color_legacy_builtin_current">当前主题：内置主题（兼容保留）</string>
++
+     <string name="settings_time_format_title">时间制式</string>
+     <string name="settings_time_format_system">跟随系统</string>
+     <string name="settings_time_format_12h">12小时制</string>
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/export/PortableArchitectureGuardTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/export/PortableArchitectureGuardTest.kt
+index cc502bd..a9f16f8 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/export/PortableArchitectureGuardTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/export/PortableArchitectureGuardTest.kt
+@@ -15,7 +15,7 @@ class PortableArchitectureGuardTest {
+ 
+     private val exportDir = Path.of("src/main/java/io/github/yingqiu0871/evolune/export")
+     private val navigationFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt")
+-    private val screenFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreen.kt")
++    private val screenFile = Path.of("src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/SettingsImportExportBlock.kt")
+ 
+     private val exportFiles: List<Path> = Files.list(exportDir).use { stream ->
+         stream.filter { it.fileName.toString().endsWith(".kt") }.toList()
