@@ -144,7 +144,15 @@ See `V172_INVENTORY.md` §3. Key facts:
   9 persisted ID strings or hex seeds** — this must be added before extraction (slice A).
 
 The v1.7.2 preset family exposed to App theming is the **8 `MONET_*` presets**;
-`MATERIAL_YOU_AUTO` is not a preset (it is the DYNAMIC source).
+`MATERIAL_YOU_AUTO` is not a preset (it is the DYNAMIC source). In addition, the shared
+authority carries ONE internal App compatibility identity, `LEGACY_BUILTIN` (§9/§10), which
+exists only so upgraded legacy users keep their exact colors; it is never offered as a new
+user-selectable preset and it never modifies any Widget palette.
+
+Palette authority rule (frozen): every existing Widget preset's ARGB/token output must remain
+value-identical during extraction. Widget palettes must NOT be altered to match old App
+`Color.kt` values; the legacy App appearance is preserved through its own compatibility
+identity instead.
 
 ## 9. Shared palette architecture
 
@@ -155,6 +163,8 @@ io.github.yingqiu0871.evolune.theme.palette
   PresetPalette            enum of the 8 stable ids (MONET_BLUE … MONET_LAVENDER)
   PaletteSeed              data class: 11 ARGB tokens (as Long) — identical to today's seeds
   PaletteCatalog           object: seed(preset), stableIds, fromId(id): PresetPalette?
+  LegacyBuiltinTheme       internal compatibility identity: the EXACT v1.7.1 App built-in
+                           Material light/dark schemes (sourced from ui/theme/Color.kt values)
 ```
 
 Consumers:
@@ -163,11 +173,17 @@ Consumers:
   `MATERIAL_YOU_AUTO` stays widget-side. Renderer/resolver behavior and every ARGB output
   value stay byte-identical (widget tests must remain green untouched).
 - **App Material theme**: `ui/theme` gains preset scheme builders that consume the same
-  `PaletteSeed`s (see §13).
+  `PaletteSeed`s (see §13), plus the `LEGACY_BUILTIN` compatibility schemes (exact v1.7.1
+  values; see §12/§13).
 
 Dependency direction: `ui/theme → palette` and `widget → palette`; `palette` depends on
 nothing. No App → widget dependency; widget never depends on Compose MaterialTheme.
+`LEGACY_BUILTIN` is App-side only and must not appear among `WidgetColorScheme` values.
 Wear duplication is explicitly out of scope (recorded P3).
+
+Compatibility-identity rule (P2-1): `LEGACY_BUILTIN` is exposed to the theme only; it is not
+a user-selectable new preset. The shared catalog may therefore contain the 8 canonical Widget
+presets plus this one internal App legacy compatibility entry, and nothing else.
 
 ## 10. ThemeColorSource model
 
@@ -177,31 +193,76 @@ enum class ThemeColorSource { DYNAMIC, PRESET }        // persisted name string
 
 - Persisted key: `theme_color_source` (string) in the `settings` DataStore.
 - Read precedence: `theme_color_source` if a valid name; else derive from legacy
-  `color_theme` (DYNAMIC → DYNAMIC; BUILTIN → PRESET with `MONET_TEAL`); missing/invalid →
-  DYNAMIC.
+  `color_theme`:
+  - `DYNAMIC` → DYNAMIC
+  - `BUILTIN` → PRESET + the exact legacy compatibility identity `LEGACY_BUILTIN`.
+    Mapping `BUILTIN → MONET_TEAL` is allowed ONLY if slice A proves the complete effective
+    App Material color scheme (light AND dark, every role actually used) of the legacy
+    built-in theme is EXACTLY equal to the preset-derived MONET_TEAL scheme. "Near-identical"
+    or visually close is NOT sufficient. Until such proof exists, `LEGACY_BUILTIN` is
+    mandatory.
+  - missing/invalid → DYNAMIC
 - `ColorTheme` remains in the codebase only as a legacy persisted value/backup token; the
   Appearance selector no longer edits it directly.
 
 ## 11. Preset palette model
 
-- Persisted key: `theme_preset_id` (string), value = `PresetPalette.name`.
-- Valid values: the 8 preset ids. Invalid/missing while source = PRESET → `MONET_TEAL`
-  (closest to the legacy built-in scheme; documented fallback).
+- Persisted key: `theme_preset_id` (string), value = a preset identity name.
+- Valid values: the 8 `MONET_*` ids plus the internal compatibility id `LEGACY_BUILTIN`.
+- Only the 8 `MONET_*` ids are exposed as user-selectable preset choices; `LEGACY_BUILTIN`
+  is a compatibility/current state only.
+- Invalid/missing while source = PRESET: deterministic ladder — legacy `color_theme ==
+  BUILTIN` → `LEGACY_BUILTIN`; otherwise → `MONET_TEAL`.
 - One selected source + one selected preset id; no second authority anywhere.
+- Settings UX for a migrated legacy user: the Appearance section shows the current state as a
+  compatibility/current theme row (e.g. "当前主题：内置主题（兼容保留）") and NONE of the 8
+  palette tiles is marked selected while `LEGACY_BUILTIN` is active. All 8 tiles stay
+  available; the first time the user actively selects one, normal PRESET persistence takes
+  over and the compatibility identity becomes unreachable (it is never silently shown as
+  MONET_TEAL).
 
 ## 12. Persistence / default / migration behavior
 
 - Existing users (no new keys): source derives to DYNAMIC unless legacy `color_theme ==
-  BUILTIN`, in which case PRESET + `MONET_TEAL`. Default behavior for the vast majority
-  (DYNAMIC) is unchanged.
+  BUILTIN`, in which case PRESET + `LEGACY_BUILTIN` — no visible color change solely because
+  of the upgrade. Default behavior for the vast majority (DYNAMIC) is unchanged.
 - Writes stay atomic and additive: `updateThemeColorSource` and `updatePresetPalette` write the
-  new keys AND keep the legacy `color_theme` in sync (DYNAMIC → `DYNAMIC`; PRESET →
-  `BUILTIN`) so old readers/backups stay meaningful.
-- Backup/restore (audited): the backup schema is NOT changed in v1.7.2; `color_theme` remains
-  the exported token. `replaceSettings` (restore path) must also write derived
-  `theme_color_source`/`theme_preset_id` values from the restored `color_theme` so a restore
-  cannot leave a stale source/preset behind. Restoring a v1.7.2-created backup on v1.7.1 keeps
-  working (legacy key present, preset detail dropped) — documented limitation.
+  new keys AND keep the legacy `color_theme` in sync (DYNAMIC → `DYNAMIC`; PRESET → `BUILTIN`)
+  so old readers stay meaningful; the new keys carry the precise identity.
+- Backup/codec policy — DECISION B (narrow payload schema version update). The audited codec
+  enforces EXACT payload field sets (`requireExactPayloadFields` compares key sets,
+  EvoluneBackupCodec.kt:455/527/937-949) and exact version equality
+  (`EvoluneBackupV1.kt:134-135`, EvoluneBackupCodec.kt:313/457). Policy A (optional fields
+  without a version bump) is therefore impossible without weakening the exact-field guard,
+  which is forbidden. v1.7.2 therefore:
+  - writes `payloadSchemaVersion = 2` in both the envelope and the canonical payload
+    (`PAYLOAD_SCHEMA_VERSION_LEGACY = 1`, `PAYLOAD_SCHEMA_VERSION = 2`);
+  - reads versions {1, 2}: v1 keeps today's exact parsing untouched; v2 parses the legacy
+    settings fields plus OPTIONAL `themeColorSource` and `themePresetId` (validated when
+    present; the settings object uses an allowed-set check in v2 only — every other object
+    keeps exact equality);
+  - leaves plans/slots/events serialization byte-identical (no medication-format semantic
+    change, no Drive workflow change);
+  - v1.7.1 and older readers reject a v2 backup deterministically with
+    `UNSUPPORTED_PAYLOAD_VERSION` — no crash, no partial restore (downgrade restore of new
+    backups is intentionally blocked and documented).
+- Restore precedence (deterministic):
+  1. If the restored payload carries valid new fields → restore `theme_color_source`
+     (∈ {DYNAMIC, PRESET}) and, when PRESET, the validated `theme_preset_id`.
+  2. Else derive from the restored legacy `color_theme` per §10 (BUILTIN → `LEGACY_BUILTIN`
+     unless exact MONET_TEAL equivalence is proven).
+  3. Invalid new source/preset → deterministic fallback per §10/§11 ladder; never crash; the
+     existing codec error convention applies (`INVALID_PAYLOAD`, field-scoped, for invalid
+     enum values in v2).
+- `replaceSettings` (restore path) writes the legacy keys AND `theme_color_source`/
+  `theme_preset_id` in one atomic edit, so a restore can never leave a stale source/preset
+  behind.
+- Round-trip guarantees (mandatory, tested): DYNAMIC → DYNAMIC; PRESET + each of the 8
+  exposed presets → the same PRESET + same preset id; the `LEGACY_BUILTIN` compatibility state
+  → the same effective legacy theme.
+- Old-backup behavior (v1.7.1-and-earlier payloads, version 1): old DYNAMIC → DYNAMIC; old
+  BUILTIN → the exact legacy built-in appearance (`LEGACY_BUILTIN` unless exact MONET_TEAL
+  equivalence is proven). Restore never mutates Widget appearance preferences.
 - No Room migration, no medication-data migration, no widget-preference migration.
 - Widget palette ids are never touched by App theme changes; widget selections survive
   unchanged.
@@ -222,6 +283,10 @@ enum class ThemeColorSource { DYNAMIC, PRESET }        // persisted name string
     outlineVariant = 50% onSurfaceVariant over surface
   - error/onError and inverse roles: fixed project constants (no palette-specific error seed)
   - AMOLED post-processing (`withAmoledSurfaces`) applies to preset schemes exactly as today.
+- The `LEGACY_BUILTIN` compatibility identity does NOT use the derivation above: its light and
+  dark schemes are the EXACT v1.7.1 built-in `lightScheme`/`darkScheme` values from
+  `ui/theme/Color.kt` (with the unchanged AMOLED post-processing), so an upgraded BUILTIN user
+  sees zero color change.
 - Exact numeric values are finalized in slice B and must satisfy a contrast golden test
   (text roles ≥ 4.5:1, non-text ≥ 3:1 as already practiced by widget tests).
 
@@ -275,10 +340,16 @@ Remove ONLY the displayed sentence `根据记录上下文推断匹配` from the 
 ## 18. Compatibility
 
 - Upgrade 1.7.1 → 1.7.2: default appearance unchanged (DYNAMIC source, existing theme mode).
-  Users who explicitly chose the legacy built-in teal are mapped to PRESET + `MONET_TEAL`
-  (visually near-identical; documented).
-- Widgets: persisted palette ids and rendering untouched; no widget migration.
-- Backup files: schema unchanged; legacy `color_theme` remains the portable token.
+  Users who explicitly chose the legacy built-in theme are migrated to PRESET +
+  `LEGACY_BUILTIN`, which reproduces the v1.7.1 built-in light/dark schemes exactly — no
+  visible color change occurs solely because of the upgrade. (Auto-mapping BUILTIN →
+  `MONET_TEAL` only if slice A proves full effective-scheme equality; otherwise never.)
+- Widgets: persisted palette ids and rendering untouched; no widget migration; restore never
+  mutates widget appearance preferences.
+- Backup files: the payload schema version becomes 2 (Decision B, §12). v1.7.2 writes and
+  reads both v1 and v2; older apps deterministically reject v2 backups
+  (`UNSUPPORTED_PAYLOAD_VERSION`, no crash). Old v1.7.1 backups restore on v1.7.2 with the
+  §12 precedence (old DYNAMIC → DYNAMIC; old BUILTIN → exact legacy appearance).
 - No Room/schema or medication-data migration.
 
 ## 19. Frozen surfaces
@@ -299,6 +370,20 @@ dependencies, and all historical evidence bundles (v1.7.0/v1.7.1).
   persists across process recreation; invalid/legacy stored id falls back safely; every preset
   maps to a coherent light+dark scheme (contrast golden test); widget persisted selection
   unaffected; no circular dependency (guard test).
+- Palette compatibility (new, mandatory): stable Widget persisted ID strings pinned; stable
+  Widget ARGB values before/after extraction pinned; exact legacy App built-in token snapshot
+  pinned; an explicit test PROVES or DISPROVES exact legacy-built-in vs MONET_TEAL scheme
+  equality (the result decides whether auto-mapping is allowed; the fallback compatibility
+  identity must exist regardless).
+- Upgrade: DYNAMIC remains DYNAMIC; an existing BUILTIN selection retains its exact effective
+  colors (light+dark) after upgrade.
+- Backup/codec (new, mandatory): every exposed preset round-trips (8 ids);
+  DYNAMIC round-trips; the `LEGACY_BUILTIN` compatibility state round-trips; old v1 payload
+  without new fields restores deterministically (v1 DYNAMIC / v1 BUILTIN cases); a v2 payload
+  with missing optional fields restores via legacy derivation; valid new fields win; unknown
+  preset id falls back per the ladder; malformed/unknown source is rejected or falls back per
+  the codec convention without crashing; restore never mutates Widget appearance; older-reader
+  rejection of v2 is asserted (`UNSUPPORTED_PAYLOAD_VERSION`).
 - History: sentence absent; inferred matched record behavior identical (same classification
   tests pass); no matcher/data-model delta (guard by path-scoped diff).
 - Architecture guards: no duplicate palette tables (single-authority test scanning for hex
@@ -313,10 +398,17 @@ dependencies, and all historical evidence bundles (v1.7.0/v1.7.1).
    功能教程/关于) remain reachable and unchanged.
 2. A user can pick 跟随壁纸(DYNAMIC) or 预设配色(PRESET) + one of the 8 presets; the choice
    applies live, survives relaunch, and dark/light modes remain independent.
-3. Existing users see no default visual change after upgrade; widgets keep their palettes.
-4. The sentence `根据记录上下文推断匹配` no longer appears on the medication-record card while
+3. Existing users see no default visual change after upgrade; a legacy BUILTIN selection keeps
+   its exact effective light+dark colors via the compatibility state; widgets keep their
+   palettes.
+4. Backup round-trips (both on-device persistence and backup/restore): DYNAMIC → DYNAMIC;
+   PRESET + MONET_BLUE → PRESET + MONET_BLUE; PRESET + MONET_SAKURA → PRESET + MONET_SAKURA;
+   every exposed preset survives; the legacy compatibility theme restores to the same
+   effective theme; old v1.7.1 backups restore deterministically; new backups never mutate
+   widget appearance.
+5. The sentence `根据记录上下文推断匹配` no longer appears on the medication-record card while
    inferred matching behavior is byte-identical.
-5. All frozen surfaces are untouched (verified by path-scoped audit); JVM + affected
+6. All frozen surfaces are untouched (verified by path-scoped audit); JVM + affected
    instrumentation suites green; real-device acceptance recorded.
 
 ## 22. Rollback / failure behavior
@@ -330,13 +422,23 @@ dependencies, and all historical evidence bundles (v1.7.0/v1.7.1).
   is reported instead of forced-deleted.
 - If preset schemes fail contrast tests, the palette is not exposed until mapping is fixed;
   DYNAMIC stays the default.
+- Legacy BUILTIN continuity is NOT allowed to degrade: if slice A cannot prove exact
+  legacy-vs-MONET_TEAL equality, the `LEGACY_BUILTIN` compatibility identity is mandatory and
+  the BUILTIN → MONET_TEAL auto-migration is forbidden. If the compatibility identity cannot
+  reproduce v1.7.1 colors exactly, slice B must stop and report.
+- If the payload v2 codec change cannot be completed without weakening the exact-field guard,
+  the backup round-trip requirement blocks and is reported (no partial schema change).
 - A failed v1.7.2 phase never modifies released tags or evidence (v1.7.1 stays frozen).
 
 ## 23. Implementation slices
 
-A — shared palette catalog + widget golden tests (no behavior change)
-B — App Material theme preset support (source/preset model, persistence, schemes, tests)
-C — Settings flattening + Goal B settings UI
+A — shared palette catalog + widget golden tests (no behavior change; includes the exact
+    legacy built-in token snapshot and the PROVE/DISPROVE exact-equality test for
+    legacy-built-in vs MONET_TEAL)
+B — App Material theme preset support (source/preset model, `LEGACY_BUILTIN` compatibility
+    identity, persistence, live schemes, backup codec v2 + restore precedence, tests)
+C — Settings flattening + Goal B settings UI (including the truthful compatibility/current
+    theme row for migrated legacy users)
 D — History copy removal
 E — regression + real-device acceptance
 F — docs/status + packaging preparation (release packaging is a separate future task; no

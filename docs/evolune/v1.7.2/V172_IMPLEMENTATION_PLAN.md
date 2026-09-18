@@ -18,32 +18,55 @@ identity.
 - NEW golden test (widget package tests): the 9 persisted id strings and the 8 preset hex
   seed tables are pinned; SharedPreferences key names (`widget_<id>_theme|color|opacity|style`,
   file `widget_appearance`) pinned.
+- NEW legacy snapshot + equivalence task (P2-1): snapshot the EXACT v1.7.1 App built-in
+  light/dark scheme values (`ui/theme/Theme.kt` lightScheme/darkScheme resolved from
+  `ui/theme/Color.kt`) into a test; then PROVE or DISPROVE exact equality against the
+  preset-derived MONET_TEAL scheme (every role actually used, light AND dark). The recorded
+  result decides whether BUILTIN → MONET_TEAL auto-mapping is allowed; the
+  `LEGACY_BUILTIN` compatibility identity in slice B is required unless equality is proven.
 - Existing tests must pass untouched: `WidgetAppearanceTest`, `WidgetRemoteViewsTest`,
   `WidgetHostContractTest`, `ColorRoleConformanceTest`.
 - Dependency guard: `palette` package must not import Compose/Android; widget may import
-  palette; palette imports nothing from widget.
+  palette; palette imports nothing from widget; `LEGACY_BUILTIN` is App-side only and never
+  appears in `WidgetColorScheme`.
 - Acceptance: path-scoped audit shows no UI/output change; all widget tests green; new golden
-  test green; zero persisted-id delta.
+  tests green; zero persisted-id delta; equivalence result recorded for slice B.
 
 ## Slice B — App Material theme preset support
 
-Goal: `ThemeColorSource {DYNAMIC, PRESET}` + `PresetPalette` selection driving the App theme.
+Goal: `ThemeColorSource {DYNAMIC, PRESET}` + `PresetPalette` selection driving the App theme,
+with exact legacy preservation and full backup round-trip.
 
 - `SettingsDataStore.kt` (or adjacent): `ThemeColorSource` enum; new keys
   `theme_color_source`, `theme_preset_id`; read precedence per contract §10/§11 (legacy
-  `color_theme` fallback mapping); writers `updateThemeColorSource`/`updatePresetPalette` that
-  also keep legacy `color_theme` in sync; extend `replaceSettings` to derive the new keys from
-  the restored legacy value (backup schema unchanged).
+  `color_theme` fallback mapping: DYNAMIC→DYNAMIC, BUILTIN→PRESET+`LEGACY_BUILTIN` unless
+  slice A proved exact MONET_TEAL equality); writers `updateThemeColorSource`/
+  `updatePresetPalette` that also keep legacy `color_theme` in sync; `replaceSettings`
+  derives/writes all theme keys atomically.
+- `LEGACY_BUILTIN` compatibility identity (unless slice A proved exact equality): defined in
+  the shared authority / `ui/theme`, reproducing the v1.7.1 built-in light+dark schemes
+  exactly; never listed among the 8 user-selectable presets; never alters Widget tokens.
 - `ui/theme/`: preset light/dark scheme builders from `PaletteSeed` per contract §13
   (contrastOn helper + documented blend); `EvoluneTheme` selects: DYNAMIC → dynamic schemes
-  (unchanged), PRESET → preset schemes; AMOLED post-processing unchanged.
-- `SettingsViewModel`: new update methods; `MainActivity` unchanged structurally (it already
-  passes mode+colorTheme; extend to source+preset).
-- Tests: upgrade default (no keys → DYNAMIC); legacy BUILTIN → PRESET+MONET_TEAL; DYNAMIC
-  behavior unchanged; live switch; persistence across recreation; invalid id fallback;
-  contrast golden for all 8 palettes × light/dark; backup compat (codec tests unchanged).
-- Acceptance: theme switches live on device; existing user default unchanged; widget tests
-  untouched.
+  (unchanged), PRESET → preset schemes, `LEGACY_BUILTIN` → exact v1.7.1 schemes; AMOLED
+  post-processing unchanged.
+- Backup codec (Decision B, contract §12): `PAYLOAD_SCHEMA_VERSION_LEGACY = 1` /
+  `PAYLOAD_SCHEMA_VERSION = 2`; encoder writes v2; decoder accepts v1 (exact parsing
+  unchanged) and v2 (settings object allowed-set check; optional `themeColorSource` /
+  `themePresetId` validated when present); plans/slots/events serialization byte-identical;
+  older readers reject v2 deterministically (`UNSUPPORTED_PAYLOAD_VERSION`).
+- Tests (mandatory): upgrade default (no keys → DYNAMIC); legacy BUILTIN → PRESET +
+  `LEGACY_BUILTIN` with EXACT effective colors (light+dark snapshot comparison); DYNAMIC
+  behavior unchanged; live switch; persistence across recreation; invalid/unknown stored
+  values fall back per the ladder without crash; contrast golden for all 8 palettes ×
+  light/dark; backup/codec suite: v1 payload → deterministic restore (v1 DYNAMIC / v1
+  BUILTIN), v2 round-trip for DYNAMIC + every exposed preset + `LEGACY_BUILTIN`, missing
+  optional fields, unknown preset id, malformed source, unknown payload version rejection;
+  restore never mutates widget appearance; existing `EvoluneBackupCodecTest` /
+  `BackupRestoreCoordinatorTest` updated for v2 where they pin payload versions.
+- Acceptance: theme switches live on device; existing user default unchanged; legacy BUILTIN
+  user sees zero color change; backup files round-trip the exact preset identity; widget
+  tests untouched.
 
 ## Slice C — Settings flattening + Goal B settings UI
 
@@ -59,6 +82,10 @@ Goal: one flat Settings screen per contract §5/§6, plus the 配色 selector UI
   selector using the 8 presets, names from `widget_config_palette_*`, widget-style swatch
   tiles, selected-state border/check + semantics, disabled (non-interactive, dimmed) while
   DYNAMIC, live apply, persists.
+- Migrated legacy UX (P2-1): when the effective state is `LEGACY_BUILTIN`, the section shows a
+  truthful compatibility/current theme row (e.g. "当前主题：内置主题（兼容保留）") and NONE of
+  the 8 tiles is marked selected; the first active tile selection migrates to normal PRESET
+  persistence. MONET_TEAL is never shown as selected unless it actually is selected.
 - Route cleanup (pending reachability proof): remove BASIC_DATA / APPEARANCE_FORMAT / UPDATE /
   SYNC_AND_BACKUP / DATA_IMPORT_EXPORT / HEALTH_CONNECT_SYNC destinations + route constants +
   top-bar title overrides; keep GOOGLE_DRIVE / ONBOARDING / DISCLOSURES / FEATURE_TUTORIAL /
