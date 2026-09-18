@@ -308,11 +308,13 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.2 · Slice E（全量回归 + 真实设备验收）— CLOSED / FROZEN**（物理 Pixel 11 Pro：
   两个就地升级案例 + Settings/8 预设/矩阵/History/备份沙盒/导航/重建通过；物理定向仪器
   55/55/0；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
-- **v1.7.2 · Slice F（版本 bump + 发布打包候选）— PACKAGING CANDIDATE / REVIEW PENDING**
-  （版本 1.7.2 / Phone 101070200 / Wear 1101070200；clean release 构建成功；证书与 v1.7.1
-  一致 `b9b6b955…`；release-candidates 资产 + SHA256SUMS 2/2；Phone/Wear AVD smoke 通过；
-  evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** Slice F packaging review。
+- **v1.7.2 · Slice F（版本 bump + 发布打包候选）— CLOSED / FROZEN**（implementation @
+  `562ad663…`；版本 1.7.2 / Phone 101070200 / Wear 1101070200；证书 `b9b6b955…`；冻结资产
+  `dcccbeee…` / `5ea4c5a7…`；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+- **v1.7.2 发布候选：APPROVED；Release execution: PENDING TAG / PUBLICATION**（release notes
+  `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`；资产与发布正文在仓库外
+  `D:\Evolune-Workspace\release-candidates\v1.7.2\`）。
+  **NEXT:** v1.7.2 tag + GitHub Release 发布执行。
 
 ## Historical and future milestones
 

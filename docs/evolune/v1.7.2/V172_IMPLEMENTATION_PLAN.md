@@ -4,7 +4,8 @@ Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A CLOSED / FROZEN (incl. the evi
 encoding correction 5acddc2); Slice B CLOSED / FROZEN (independent review APPROVE V1.7.2
 SLICE B @ e01a55e); Slice C CLOSED / FROZEN @ 69f859d; Slice D CLOSED / FROZEN @
 50b20e8; Slice E-R1 CLOSED / FROZEN @ 61cd190; Slice E CLOSED / FROZEN @ 3c06bee;
-Slice F PACKAGING CANDIDATE / REVIEW PENDING (release NOT TAGGED / NOT PUBLISHED).
+Slice F CLOSED / FROZEN @ 562ad663; Release candidate APPROVED; Release execution
+PENDING TAG / PUBLICATION (release notes: `V172_RELEASE_NOTES.md`).
 Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
 `V172_INVENTORY.md`. One commit per slice; each slice is independently reviewable and
 revertable. No version bump in the implementation phase.

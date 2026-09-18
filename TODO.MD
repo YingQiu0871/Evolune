@@ -280,14 +280,17 @@
       v1.7.1→候选 DYNAMIC 与 LEGACY_BUILTIN 两个就地升级案例通过；Settings 走查、8 预设、
       ThemeMode 矩阵、History（含推断项）、备份恢复沙盒、导航、进程重建均通过；物理定向仪器
       55/55/0；logcat 无 app FATAL/ANR；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
-- [x] v1.7.2 Slice F（版本 bump + 发布打包候选）— **PACKAGING CANDIDATE / REVIEW PENDING**
-      （`chore(release): prepare v1.7.2 packaging`；版本公式证明：1.7.2 / Phone 101070200 /
-      Wear 1101070200；clean release 构建 Phone+Wear 成功；证书与 v1.7.1 完全一致
-      `b9b6b955…`；APK 资产在 `D:\Evolune-Workspace\release-candidates\v1.7.2\` +
-      SHA256SUMS（2/2 校验）；Phone AVD smoke + Wear AVD smoke 均通过；打包 sanity JVM
-      147/1387/0；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-- [ ] NEXT：**v1.7.2 Slice F packaging review**（通过后方可另行授权 tag/publish；当前
-      **NOT TAGGED / NOT PUBLISHED**）。
+- [x] v1.7.2 Slice F（版本 bump + 发布打包候选）— **CLOSED / FROZEN**（`chore(release):
+      prepare v1.7.2 packaging` @ `562ad663f7674e0f646f265248d1f457ed381d29`；版本
+      1.7.2 / Phone 101070200 / Wear 1101070200；clean release 构建成功；证书与 v1.7.1
+      一致 `b9b6b955…`；冻结资产 Evolune-Phone-v1.7.2.apk `dcccbeee…`（6,313,112 B）/
+      Evolune-Wear-v1.7.2.apk `5ea4c5a7…`（2,604,764 B）/ SHA256SUMS `6fcd0706…`；
+      Phone/Wear AVD smoke 通过；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+- [x] v1.7.2 发布候选 — **APPROVED**；**Release execution: PENDING TAG / PUBLICATION**
+      （release notes `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`；发布正文与资产在仓库外
+      `D:\Evolune-Workspace\release-candidates\v1.7.2\`）。
+- [ ] NEXT：**v1.7.2 tag + GitHub Release 发布执行**（final docs commit → annotated tag
+      v1.7.2 → push → GitHub Release 上传 3 资产 → 发布字节校验）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

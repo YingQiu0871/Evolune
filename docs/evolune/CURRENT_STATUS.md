@@ -358,12 +358,14 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - v1.7.2 Slice E（全量回归 + 真实设备验收）— **CLOSED / FROZEN**（物理 Pixel 11 Pro：
     两个就地升级案例 + Settings/8 预设/矩阵/History/备份沙盒/导航/重建通过；物理定向仪器
     55/55/0；evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
-  - v1.7.2 Slice F（版本 bump + 发布打包候选）— **PACKAGING CANDIDATE / REVIEW PENDING**
-    （版本 1.7.2 / Phone 101070200 / Wear 1101070200；clean release 构建成功；证书与 v1.7.1
-    一致 `b9b6b955…`；release-candidates 资产 + SHA256SUMS 2/2；Phone/Wear AVD smoke 通过；
-    打包 sanity JVM 147/1387/0；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-  - **Release: NOT TAGGED / NOT PUBLISHED.**
-  - **NEXT:** **v1.7.2 Slice F packaging review**（通过后方可另行授权 tag/publish）。
+  - v1.7.2 Slice F（版本 bump + 发布打包候选）— **CLOSED / FROZEN**（implementation @
+    `562ad663f7674e0f646f265248d1f457ed381d29`；版本 1.7.2 / Phone 101070200 /
+    Wear 1101070200；证书 `b9b6b955…`；冻结资产 `dcccbeee…` / `5ea4c5a7…`；
+    evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
+  - **v1.7.2 发布候选：APPROVED。Release execution: PENDING TAG / PUBLICATION**
+    （release notes `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`）。
+  - **NEXT:** v1.7.2 tag + GitHub Release 发布执行（final docs commit → annotated tag →
+    push → release + 发布字节校验）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
