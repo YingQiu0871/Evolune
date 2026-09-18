@@ -168,6 +168,24 @@ class EvoluneBackupCodec(
         if (settings.timeFormat !in SUPPORTED_TIME_FORMATS) {
             return invalid("settings.timeFormat")
         }
+        when (settings.themeColorSource) {
+            null ->
+                if (settings.themePresetId != null) {
+                    return invalid("settings.themePresetId")
+                }
+
+            "DYNAMIC" ->
+                if (settings.themePresetId != null) {
+                    return invalid("settings.themePresetId")
+                }
+
+            "PRESET" ->
+                if (settings.themePresetId !in SUPPORTED_THEME_PRESET_IDS) {
+                    return invalid("settings.themePresetId")
+                }
+
+            else -> return invalid("settings.themeColorSource")
+        }
 
         return BackupValidationResult.Valid(
             ValidatedEvoluneBackupPayloadV1(payload)
@@ -194,7 +212,13 @@ class EvoluneBackupCodec(
         metadata: BackupProducerMetadataV1,
         kdfIterations: Int = EvoluneBackupFormat.DEFAULT_KDF_ITERATIONS
     ): BackupEncodeResult {
-        val validated = when (val result = validate(payload)) {
+        // v1.7.2: every newly written backup is canonical schema v2 — the theme identity keys
+        // are always populated (derived deterministically from the legacy projection when the
+        // caller supplied a pre-v2-shaped payload).
+        val canonicalPayload = payload.copy(
+            settings = payload.settings.withCanonicalThemeState()
+        )
+        val validated = when (val result = validate(canonicalPayload)) {
             is BackupValidationResult.Valid -> result.payload
             is BackupValidationResult.Invalid -> return BackupEncodeResult.Failure(result.error)
         }
@@ -310,7 +334,7 @@ class EvoluneBackupCodec(
                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_ENVELOPE_VERSION)
             )
         }
-        if (envelope.payloadSchemaVersion != EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION) {
+        if (envelope.payloadSchemaVersion !in EvoluneBackupFormat.SUPPORTED_PAYLOAD_SCHEMA_VERSIONS) {
             return BackupDecodeResult.Failure(
                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION)
             )
@@ -388,10 +412,14 @@ class EvoluneBackupCodec(
             )
         }
         val payload = try {
-            parsePayload(payloadText)
+            parsePayload(payloadText, envelope.payloadSchemaVersion)
         } catch (error: UnsupportedPayloadVersionException) {
             return BackupDecodeResult.Failure(
                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION)
+            )
+        } catch (error: InvalidSettingsPayloadException) {
+            return BackupDecodeResult.Failure(
+                BackupCodecError(BackupCodecErrorCode.INVALID_PAYLOAD, "settings")
             )
         } catch (error: PayloadFormatException) {
             return BackupDecodeResult.Failure(
@@ -443,7 +471,7 @@ class EvoluneBackupCodec(
         )
     }
 
-    private fun parsePayload(text: String): EvoluneBackupPayloadV1 {
+    private fun parsePayload(text: String, envelopeSchemaVersion: Int): EvoluneBackupPayloadV1 {
         val root = try {
             json.parseToJsonElement(text)
         } catch (_: SerializationException) {
@@ -454,7 +482,9 @@ class EvoluneBackupCodec(
         val rootObject = root as? JsonObject ?: throw PayloadFormatException(null)
         requireExactPayloadFields(rootObject)
         val payloadVersion = rootObject.requiredPayloadInt("payloadSchemaVersion")
-        if (payloadVersion != EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION) {
+        if (payloadVersion !in EvoluneBackupFormat.SUPPORTED_PAYLOAD_SCHEMA_VERSIONS ||
+            payloadVersion != envelopeSchemaVersion
+        ) {
             throw UnsupportedPayloadVersionException()
         }
         val plans = rootObject.requiredPayloadArray("medicationPlans").mapIndexed { index, element ->
@@ -466,7 +496,7 @@ class EvoluneBackupCodec(
         val events = rootObject.requiredPayloadArray("doseEvents").mapIndexed { index, element ->
             parseEvent(element, index)
         }
-        val settings = parseSettings(rootObject.requiredPayloadObject("settings"))
+        val settings = parseSettings(rootObject.requiredPayloadObject("settings"), payloadVersion)
         return EvoluneBackupPayloadV1(plans, slots, events, settings)
     }
 
@@ -523,14 +553,32 @@ class EvoluneBackupCodec(
         )
     }
 
-    private fun parseSettings(objectValue: JsonObject): BackupSettingsV1 {
-        requireExactPayloadFields(objectValue, "settings")
+    private fun parseSettings(objectValue: JsonObject, schemaVersion: Int): BackupSettingsV1 {
+        if (schemaVersion == EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION_LEGACY) {
+            // Schema v1 is byte/semantically frozen: exact legacy field set, no new keys.
+            requireExactPayloadFields(objectValue, "settings")
+            return BackupSettingsV1(
+                bodyWeightKg = objectValue.requiredPayloadDouble("bodyWeightKg"),
+                themeMode = objectValue.requiredPayloadString("themeMode"),
+                colorTheme = objectValue.requiredPayloadString("colorTheme"),
+                autoCheckUpdates = objectValue.requiredPayloadBoolean("autoCheckUpdates"),
+                timeFormat = objectValue.requiredPayloadString("timeFormat")
+            )
+        }
+        // Schema v2: strict exact field set including both canonical theme keys.
+        if (objectValue.keys != SETTINGS_FIELDS_V2) {
+            throw InvalidSettingsPayloadException()
+        }
+        val themePresetId = objectValue.requiredPayloadNullableString("themePresetId")
+        val themeColorSource = objectValue.requiredPayloadString("themeColorSource")
         return BackupSettingsV1(
             bodyWeightKg = objectValue.requiredPayloadDouble("bodyWeightKg"),
             themeMode = objectValue.requiredPayloadString("themeMode"),
             colorTheme = objectValue.requiredPayloadString("colorTheme"),
             autoCheckUpdates = objectValue.requiredPayloadBoolean("autoCheckUpdates"),
-            timeFormat = objectValue.requiredPayloadString("timeFormat")
+            timeFormat = objectValue.requiredPayloadString("timeFormat"),
+            themeColorSource = themeColorSource,
+            themePresetId = themePresetId
         )
     }
 
@@ -606,6 +654,8 @@ class EvoluneBackupCodec(
                 put("colorTheme", payload.settings.colorTheme)
                 put("autoCheckUpdates", payload.settings.autoCheckUpdates)
                 put("timeFormat", payload.settings.timeFormat)
+                put("themeColorSource", payload.settings.themeColorSource)
+                put("themePresetId", payload.settings.themePresetId)
             }
         }
         return json.encodeToString(JsonElement.serializer(), root)
@@ -937,7 +987,7 @@ class EvoluneBackupCodec(
     private fun requireExactPayloadFields(objectValue: JsonObject, field: String? = null) {
         val expected = when (field) {
             null -> PAYLOAD_FIELDS
-            "settings" -> SETTINGS_FIELDS
+            "settings" -> SETTINGS_FIELDS_V1
             else -> when {
                 field.startsWith("medicationPlans[") -> PLAN_FIELDS
                 field.startsWith("scheduledDoseSlots[") -> SLOT_FIELDS
@@ -946,6 +996,23 @@ class EvoluneBackupCodec(
             }
         }
         if (objectValue.keys != expected) throw PayloadFormatException(field)
+    }
+
+    /**
+     * v1.7.2 canonicalization: every written backup is schema v2. A payload without explicit
+     * canonical theme fields is derived deterministically from its legacy projection —
+     * DYNAMIC -> DYNAMIC + null; anything else valid -> PRESET + LEGACY_BUILTIN (Slice A proved
+     * legacy BUILTIN != MONET_TEAL, so the compatibility identity is the only correct mapping).
+     */
+    private fun BackupSettingsV1.withCanonicalThemeState(): BackupSettingsV1 {
+        if (themeColorSource != null) return this
+        return when (colorTheme) {
+            "DYNAMIC" -> copy(themeColorSource = "DYNAMIC", themePresetId = null)
+            else -> copy(
+                themeColorSource = "PRESET",
+                themePresetId = io.github.yingqiu0871.evolune.data.ThemePresetSelection.LEGACY_BUILTIN_ID
+            )
+        }
     }
 
     private fun JsonObject.stringOrNull(field: String): String? =
@@ -1011,6 +1078,13 @@ class EvoluneBackupCodec(
         val SUPPORTED_THEME_MODES = setOf("LIGHT", "DARK", "AMOLED", "SYSTEM")
         val SUPPORTED_COLOR_THEMES = setOf("DYNAMIC", "BUILTIN")
         val SUPPORTED_TIME_FORMATS = setOf("SYSTEM", "HOUR_12", "HOUR_24")
+        val SUPPORTED_THEME_COLOR_SOURCES = setOf(
+            io.github.yingqiu0871.evolune.data.ThemeColorSource.DYNAMIC.name,
+            io.github.yingqiu0871.evolune.data.ThemeColorSource.PRESET.name
+        )
+        val SUPPORTED_THEME_PRESET_IDS =
+            io.github.yingqiu0871.evolune.theme.palette.PresetPalette.entries.map { it.name }.toSet() +
+                io.github.yingqiu0871.evolune.data.ThemePresetSelection.LEGACY_BUILTIN_ID
 
         val ENVELOPE_FIELDS = setOf(
             "magic",
@@ -1043,8 +1117,15 @@ class EvoluneBackupCodec(
             "id", "route", "occurredAt", "zoneId", "localDate", "doseMG", "ester", "extras",
             "slotId", "source", "status", "revision"
         )
-        val SETTINGS_FIELDS = setOf(
+
+        /** Frozen schema-v1 settings field set (the released v1.7.1 format). */
+        val SETTINGS_FIELDS_V1 = setOf(
             "bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat"
+        )
+
+        /** Strict schema-v2 settings field set: v1 fields + both canonical theme keys. */
+        val SETTINGS_FIELDS_V2 = SETTINGS_FIELDS_V1 + setOf(
+            "themeColorSource", "themePresetId"
         )
     }
 }
@@ -1052,5 +1133,8 @@ class EvoluneBackupCodec(
 private class EnvelopeFormatException(val field: String?) : RuntimeException()
 
 private class PayloadFormatException(val field: String?) : RuntimeException()
+
+/** Schema-v2 settings exact-shape violation: maps to INVALID_PAYLOAD (not MALFORMED_PAYLOAD). */
+private class InvalidSettingsPayloadException : RuntimeException()
 
 private class UnsupportedPayloadVersionException : RuntimeException()

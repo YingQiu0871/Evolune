@@ -2,8 +2,11 @@ package io.github.yingqiu0871.evolune.backup
 
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.data.ColorTheme
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.TimeFormat
+import io.github.yingqiu0871.evolune.data.toLegacyColorTheme
 
 /** Stable result codes for the B2 restore transaction and startup recovery. */
 internal enum class RestoreErrorCode {
@@ -129,20 +132,48 @@ internal interface RestoreJournalStore {
     suspend fun delete()
 }
 
-internal fun BackupSettingsV1.toUserSettings(): UserSettings = UserSettings(
-    bodyWeight = bodyWeightKg,
-    themeMode = ThemeMode.valueOf(themeMode),
-    colorTheme = ColorTheme.valueOf(colorTheme),
-    autoCheckUpdates = autoCheckUpdates,
-    timeFormat = TimeFormat.valueOf(timeFormat)
-)
+/**
+ * v1.7.2: the canonical theme identity is authoritative in schema v2; schema v1 derives it
+ * from the legacy `colorTheme` projection (DYNAMIC -> DYNAMIC; BUILTIN -> PRESET +
+ * LEGACY_BUILTIN — never MONET_TEAL). The persisted `colorTheme` is always rewritten as the
+ * coherent projection of the canonical source.
+ */
+internal fun BackupSettingsV1.toUserSettings(): UserSettings {
+    val canonicalSource = themeColorSource?.let(ThemeColorSource::fromStored)
+        ?: if (colorTheme == ColorTheme.BUILTIN.name) {
+            ThemeColorSource.PRESET
+        } else {
+            ThemeColorSource.DYNAMIC
+        }
+    val canonicalPreset = if (canonicalSource == ThemeColorSource.PRESET) {
+        ThemePresetSelection.fromStored(themePresetId)
+            ?: ThemePresetSelection.LegacyBuiltin
+    } else {
+        null
+    }
+    return UserSettings(
+        bodyWeight = bodyWeightKg,
+        themeMode = ThemeMode.valueOf(themeMode),
+        colorTheme = canonicalSource.toLegacyColorTheme(),
+        themeColorSource = canonicalSource,
+        themePreset = canonicalPreset,
+        autoCheckUpdates = autoCheckUpdates,
+        timeFormat = TimeFormat.valueOf(timeFormat)
+    )
+}
 
 internal fun UserSettings.toBackupSettings(): BackupSettingsV1 = BackupSettingsV1(
     bodyWeightKg = bodyWeight,
     themeMode = themeMode.name,
-    colorTheme = colorTheme.name,
+    colorTheme = themeColorSource.toLegacyColorTheme().name,
     autoCheckUpdates = autoCheckUpdates,
-    timeFormat = timeFormat.name
+    timeFormat = timeFormat.name,
+    themeColorSource = themeColorSource.name,
+    themePresetId = if (themeColorSource == ThemeColorSource.PRESET) {
+        (themePreset ?: ThemePresetSelection.LegacyBuiltin).persistedId
+    } else {
+        null
+    }
 )
 
 internal fun restorePreview(

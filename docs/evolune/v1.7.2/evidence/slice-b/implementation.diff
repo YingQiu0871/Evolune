@@ -1,0 +1,2266 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+index 515c271..c5d52c6 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+@@ -8,7 +8,9 @@ import io.github.yingqiu0871.evolune.data.AppDatabase
+ import io.github.yingqiu0871.evolune.data.AtomicSettingsStore
+ import io.github.yingqiu0871.evolune.data.ColorTheme
+ import io.github.yingqiu0871.evolune.data.SettingsStore
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import java.time.Instant
+@@ -155,6 +157,22 @@ class B2RoomRestorePersistenceTest {
+             userSettings.value = userSettings.value.copy(colorTheme = theme)
+         }
+ 
++        override suspend fun updateThemeColorSource(source: ThemeColorSource) {
++            userSettings.value = userSettings.value.copy(
++                themeColorSource = source,
++                themePreset = if (source == ThemeColorSource.DYNAMIC) null else userSettings.value.themePreset,
++                colorTheme = if (source == ThemeColorSource.DYNAMIC) ColorTheme.DYNAMIC else ColorTheme.BUILTIN
++            )
++        }
++
++        override suspend fun updateThemePreset(selection: ThemePresetSelection) {
++            userSettings.value = userSettings.value.copy(
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = selection,
++                colorTheme = ColorTheme.BUILTIN
++            )
++        }
++
+         override suspend fun updateAutoCheckUpdates(enabled: Boolean) {
+             userSettings.value = userSettings.value.copy(autoCheckUpdates = enabled)
+         }
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/ThemeStateDeviceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/ThemeStateDeviceTest.kt
+new file mode 100644
+index 0000000..c0b36d3
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/ThemeStateDeviceTest.kt
+@@ -0,0 +1,151 @@
++package io.github.yingqiu0871.evolune.data
++
++import android.content.Context
++import androidx.test.core.app.ApplicationProvider
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.SupervisorJob
++import kotlinx.coroutines.cancel
++import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.runBlocking
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Before
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.time.Clock
++
++/**
++ * v1.7.2 Slice B — canonical theme state on the real settings DataStore.
++ *
++ * Verifies the writer/read round-trips and the legacy compatibility projection of the ONE
++ * persisted authority (no parallel store). Legacy-storage derivation (keys absent) is covered
++ * by the pure [deriveThemeState] JVM matrix, since raw DataStore key injection would require a
++ * second DataStore instance for the same file.
++ */
++@RunWith(AndroidJUnit4::class)
++class ThemeStateDeviceTest {
++
++    private val context = ApplicationProvider.getApplicationContext<Context>()
++    private val store = SettingsDataStore(context, Clock.systemUTC())
++    private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
++
++    @Before
++    fun resetSettings() = runBlocking {
++        store.replaceSettings(
++            UserSettings(
++                bodyWeight = 55.0,
++                themeMode = ThemeMode.SYSTEM,
++                autoCheckUpdates = true,
++                timeFormat = TimeFormat.SYSTEM
++            )
++        )
++        Unit
++    }
++
++    @After
++    fun close() {
++        scope.cancel()
++    }
++
++    @Test
++    fun canonicalDynamicWriteRoundTrips() = runBlocking {
++        store.updateThemeColorSource(ThemeColorSource.DYNAMIC)
++
++        val settings = store.userSettings.first()
++        assertEquals(ThemeColorSource.DYNAMIC, settings.themeColorSource)
++        assertNull(settings.themePreset)
++        assertEquals(ColorTheme.DYNAMIC, settings.colorTheme)
++    }
++
++    @Test
++    fun everyPresetWriteRoundTripsAndSyncsTheLegacyProjection() = runBlocking {
++        PresetPalette.entries.forEach { palette ->
++            store.updateThemePreset(ThemePresetSelection.Preset(palette))
++
++            val settings = store.userSettings.first()
++            assertEquals(ThemeColorSource.PRESET, settings.themeColorSource)
++            assertEquals(ThemePresetSelection.Preset(palette), settings.themePreset)
++            assertEquals(ColorTheme.BUILTIN, settings.colorTheme)
++        }
++    }
++
++    @Test
++    fun legacyBuiltinWriteRoundTrips() = runBlocking {
++        store.updateThemePreset(ThemePresetSelection.LegacyBuiltin)
++
++        val settings = store.userSettings.first()
++        assertEquals(ThemeColorSource.PRESET, settings.themeColorSource)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, settings.themePreset)
++        assertEquals(ColorTheme.BUILTIN, settings.colorTheme)
++    }
++
++    @Test
++    fun oldUiColorThemeApiMapsToCanonicalState() = runBlocking {
++        store.updateColorTheme(ColorTheme.BUILTIN)
++        val builtin = store.userSettings.first()
++        assertEquals(ThemeColorSource.PRESET, builtin.themeColorSource)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, builtin.themePreset)
++        assertEquals(ColorTheme.BUILTIN, builtin.colorTheme)
++
++        store.updateColorTheme(ColorTheme.DYNAMIC)
++        val dynamic = store.userSettings.first()
++        assertEquals(ThemeColorSource.DYNAMIC, dynamic.themeColorSource)
++        assertNull(dynamic.themePreset)
++        assertEquals(ColorTheme.DYNAMIC, dynamic.colorTheme)
++    }
++
++    @Test
++    fun switchingBackToDynamicClearsTheActivePreset() = runBlocking {
++        store.updateThemePreset(ThemePresetSelection.Preset(PresetPalette.MONET_SAKURA))
++        store.updateThemeColorSource(ThemeColorSource.DYNAMIC)
++
++        val settings = store.userSettings.first()
++        assertEquals(ThemeColorSource.DYNAMIC, settings.themeColorSource)
++        assertNull(settings.themePreset)
++        assertEquals(ColorTheme.DYNAMIC, settings.colorTheme)
++    }
++
++    @Test
++    fun replaceSettingsWritesTheCanonicalIdentityAtomically() = runBlocking {
++        store.replaceSettings(
++            UserSettings(
++                bodyWeight = 61.5,
++                themeMode = ThemeMode.DARK,
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = ThemePresetSelection.Preset(PresetPalette.MONET_AMBER),
++                autoCheckUpdates = false,
++                timeFormat = TimeFormat.HOUR_24
++            )
++        )
++
++        val settings = store.userSettings.first()
++        assertEquals(61.5, settings.bodyWeight, 0.0)
++        assertEquals(ThemeMode.DARK, settings.themeMode)
++        assertEquals(ThemeColorSource.PRESET, settings.themeColorSource)
++        assertEquals(
++            ThemePresetSelection.Preset(PresetPalette.MONET_AMBER),
++            settings.themePreset
++        )
++        assertEquals(ColorTheme.BUILTIN, settings.colorTheme)
++        assertEquals(false, settings.autoCheckUpdates)
++        assertEquals(TimeFormat.HOUR_24, settings.timeFormat)
++
++        store.replaceSettings(
++            UserSettings(
++                bodyWeight = 55.0,
++                themeMode = ThemeMode.SYSTEM,
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = ThemePresetSelection.LegacyBuiltin,
++                autoCheckUpdates = true,
++                timeFormat = TimeFormat.SYSTEM
++            )
++        )
++        val legacy = store.userSettings.first()
++        assertEquals(ThemePresetSelection.LegacyBuiltin, legacy.themePreset)
++        assertEquals(ColorTheme.BUILTIN, legacy.colorTheme)
++    }
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+index 679f78d..71a51be 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+@@ -179,10 +179,12 @@ class MainActivity : ComponentActivity() {
+                 )
+             }
+             
+-            // 应用主题
++            // 应用主题（v1.7.2：规范主题状态；colorTheme 仅作兼容投影）
+             EvoluneTheme(
+                 themeMode = userSettings.themeMode,
+-                colorTheme = userSettings.colorTheme
++                colorTheme = userSettings.colorTheme,
++                colorSource = userSettings.themeColorSource,
++                preset = userSettings.themePreset
+             ) {
+                 val windowBackgroundColor = MaterialTheme.colorScheme.background
+                 SideEffect {
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreProtocol.kt b/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreProtocol.kt
+index 4ce66d5..e7d01c2 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreProtocol.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreProtocol.kt
+@@ -2,8 +2,11 @@ package io.github.yingqiu0871.evolune.backup
+ 
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.data.ColorTheme
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
++import io.github.yingqiu0871.evolune.data.toLegacyColorTheme
+ 
+ /** Stable result codes for the B2 restore transaction and startup recovery. */
+ internal enum class RestoreErrorCode {
+@@ -129,20 +132,48 @@ internal interface RestoreJournalStore {
+     suspend fun delete()
+ }
+ 
+-internal fun BackupSettingsV1.toUserSettings(): UserSettings = UserSettings(
+-    bodyWeight = bodyWeightKg,
+-    themeMode = ThemeMode.valueOf(themeMode),
+-    colorTheme = ColorTheme.valueOf(colorTheme),
+-    autoCheckUpdates = autoCheckUpdates,
+-    timeFormat = TimeFormat.valueOf(timeFormat)
+-)
++/**
++ * v1.7.2: the canonical theme identity is authoritative in schema v2; schema v1 derives it
++ * from the legacy `colorTheme` projection (DYNAMIC -> DYNAMIC; BUILTIN -> PRESET +
++ * LEGACY_BUILTIN — never MONET_TEAL). The persisted `colorTheme` is always rewritten as the
++ * coherent projection of the canonical source.
++ */
++internal fun BackupSettingsV1.toUserSettings(): UserSettings {
++    val canonicalSource = themeColorSource?.let(ThemeColorSource::fromStored)
++        ?: if (colorTheme == ColorTheme.BUILTIN.name) {
++            ThemeColorSource.PRESET
++        } else {
++            ThemeColorSource.DYNAMIC
++        }
++    val canonicalPreset = if (canonicalSource == ThemeColorSource.PRESET) {
++        ThemePresetSelection.fromStored(themePresetId)
++            ?: ThemePresetSelection.LegacyBuiltin
++    } else {
++        null
++    }
++    return UserSettings(
++        bodyWeight = bodyWeightKg,
++        themeMode = ThemeMode.valueOf(themeMode),
++        colorTheme = canonicalSource.toLegacyColorTheme(),
++        themeColorSource = canonicalSource,
++        themePreset = canonicalPreset,
++        autoCheckUpdates = autoCheckUpdates,
++        timeFormat = TimeFormat.valueOf(timeFormat)
++    )
++}
+ 
+ internal fun UserSettings.toBackupSettings(): BackupSettingsV1 = BackupSettingsV1(
+     bodyWeightKg = bodyWeight,
+     themeMode = themeMode.name,
+-    colorTheme = colorTheme.name,
++    colorTheme = themeColorSource.toLegacyColorTheme().name,
+     autoCheckUpdates = autoCheckUpdates,
+-    timeFormat = timeFormat.name
++    timeFormat = timeFormat.name,
++    themeColorSource = themeColorSource.name,
++    themePresetId = if (themeColorSource == ThemeColorSource.PRESET) {
++        (themePreset ?: ThemePresetSelection.LegacyBuiltin).persistedId
++    } else {
++        null
++    }
+ )
+ 
+ internal fun restorePreview(
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt b/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt
+index 6724142..21a8dff 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt
+@@ -168,6 +168,24 @@ class EvoluneBackupCodec(
+         if (settings.timeFormat !in SUPPORTED_TIME_FORMATS) {
+             return invalid("settings.timeFormat")
+         }
++        when (settings.themeColorSource) {
++            null ->
++                if (settings.themePresetId != null) {
++                    return invalid("settings.themePresetId")
++                }
++
++            "DYNAMIC" ->
++                if (settings.themePresetId != null) {
++                    return invalid("settings.themePresetId")
++                }
++
++            "PRESET" ->
++                if (settings.themePresetId !in SUPPORTED_THEME_PRESET_IDS) {
++                    return invalid("settings.themePresetId")
++                }
++
++            else -> return invalid("settings.themeColorSource")
++        }
+ 
+         return BackupValidationResult.Valid(
+             ValidatedEvoluneBackupPayloadV1(payload)
+@@ -194,7 +212,13 @@ class EvoluneBackupCodec(
+         metadata: BackupProducerMetadataV1,
+         kdfIterations: Int = EvoluneBackupFormat.DEFAULT_KDF_ITERATIONS
+     ): BackupEncodeResult {
+-        val validated = when (val result = validate(payload)) {
++        // v1.7.2: every newly written backup is canonical schema v2 — the theme identity keys
++        // are always populated (derived deterministically from the legacy projection when the
++        // caller supplied a pre-v2-shaped payload).
++        val canonicalPayload = payload.copy(
++            settings = payload.settings.withCanonicalThemeState()
++        )
++        val validated = when (val result = validate(canonicalPayload)) {
+             is BackupValidationResult.Valid -> result.payload
+             is BackupValidationResult.Invalid -> return BackupEncodeResult.Failure(result.error)
+         }
+@@ -310,7 +334,7 @@ class EvoluneBackupCodec(
+                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_ENVELOPE_VERSION)
+             )
+         }
+-        if (envelope.payloadSchemaVersion != EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION) {
++        if (envelope.payloadSchemaVersion !in EvoluneBackupFormat.SUPPORTED_PAYLOAD_SCHEMA_VERSIONS) {
+             return BackupDecodeResult.Failure(
+                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION)
+             )
+@@ -388,11 +412,15 @@ class EvoluneBackupCodec(
+             )
+         }
+         val payload = try {
+-            parsePayload(payloadText)
++            parsePayload(payloadText, envelope.payloadSchemaVersion)
+         } catch (error: UnsupportedPayloadVersionException) {
+             return BackupDecodeResult.Failure(
+                 BackupCodecError(BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION)
+             )
++        } catch (error: InvalidSettingsPayloadException) {
++            return BackupDecodeResult.Failure(
++                BackupCodecError(BackupCodecErrorCode.INVALID_PAYLOAD, "settings")
++            )
+         } catch (error: PayloadFormatException) {
+             return BackupDecodeResult.Failure(
+                 BackupCodecError(BackupCodecErrorCode.MALFORMED_PAYLOAD, error.field)
+@@ -443,7 +471,7 @@ class EvoluneBackupCodec(
+         )
+     }
+ 
+-    private fun parsePayload(text: String): EvoluneBackupPayloadV1 {
++    private fun parsePayload(text: String, envelopeSchemaVersion: Int): EvoluneBackupPayloadV1 {
+         val root = try {
+             json.parseToJsonElement(text)
+         } catch (_: SerializationException) {
+@@ -454,7 +482,9 @@ class EvoluneBackupCodec(
+         val rootObject = root as? JsonObject ?: throw PayloadFormatException(null)
+         requireExactPayloadFields(rootObject)
+         val payloadVersion = rootObject.requiredPayloadInt("payloadSchemaVersion")
+-        if (payloadVersion != EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION) {
++        if (payloadVersion !in EvoluneBackupFormat.SUPPORTED_PAYLOAD_SCHEMA_VERSIONS ||
++            payloadVersion != envelopeSchemaVersion
++        ) {
+             throw UnsupportedPayloadVersionException()
+         }
+         val plans = rootObject.requiredPayloadArray("medicationPlans").mapIndexed { index, element ->
+@@ -466,7 +496,7 @@ class EvoluneBackupCodec(
+         val events = rootObject.requiredPayloadArray("doseEvents").mapIndexed { index, element ->
+             parseEvent(element, index)
+         }
+-        val settings = parseSettings(rootObject.requiredPayloadObject("settings"))
++        val settings = parseSettings(rootObject.requiredPayloadObject("settings"), payloadVersion)
+         return EvoluneBackupPayloadV1(plans, slots, events, settings)
+     }
+ 
+@@ -523,14 +553,32 @@ class EvoluneBackupCodec(
+         )
+     }
+ 
+-    private fun parseSettings(objectValue: JsonObject): BackupSettingsV1 {
+-        requireExactPayloadFields(objectValue, "settings")
++    private fun parseSettings(objectValue: JsonObject, schemaVersion: Int): BackupSettingsV1 {
++        if (schemaVersion == EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION_LEGACY) {
++            // Schema v1 is byte/semantically frozen: exact legacy field set, no new keys.
++            requireExactPayloadFields(objectValue, "settings")
++            return BackupSettingsV1(
++                bodyWeightKg = objectValue.requiredPayloadDouble("bodyWeightKg"),
++                themeMode = objectValue.requiredPayloadString("themeMode"),
++                colorTheme = objectValue.requiredPayloadString("colorTheme"),
++                autoCheckUpdates = objectValue.requiredPayloadBoolean("autoCheckUpdates"),
++                timeFormat = objectValue.requiredPayloadString("timeFormat")
++            )
++        }
++        // Schema v2: strict exact field set including both canonical theme keys.
++        if (objectValue.keys != SETTINGS_FIELDS_V2) {
++            throw InvalidSettingsPayloadException()
++        }
++        val themePresetId = objectValue.requiredPayloadNullableString("themePresetId")
++        val themeColorSource = objectValue.requiredPayloadString("themeColorSource")
+         return BackupSettingsV1(
+             bodyWeightKg = objectValue.requiredPayloadDouble("bodyWeightKg"),
+             themeMode = objectValue.requiredPayloadString("themeMode"),
+             colorTheme = objectValue.requiredPayloadString("colorTheme"),
+             autoCheckUpdates = objectValue.requiredPayloadBoolean("autoCheckUpdates"),
+-            timeFormat = objectValue.requiredPayloadString("timeFormat")
++            timeFormat = objectValue.requiredPayloadString("timeFormat"),
++            themeColorSource = themeColorSource,
++            themePresetId = themePresetId
+         )
+     }
+ 
+@@ -606,6 +654,8 @@ class EvoluneBackupCodec(
+                 put("colorTheme", payload.settings.colorTheme)
+                 put("autoCheckUpdates", payload.settings.autoCheckUpdates)
+                 put("timeFormat", payload.settings.timeFormat)
++                put("themeColorSource", payload.settings.themeColorSource)
++                put("themePresetId", payload.settings.themePresetId)
+             }
+         }
+         return json.encodeToString(JsonElement.serializer(), root)
+@@ -937,7 +987,7 @@ class EvoluneBackupCodec(
+     private fun requireExactPayloadFields(objectValue: JsonObject, field: String? = null) {
+         val expected = when (field) {
+             null -> PAYLOAD_FIELDS
+-            "settings" -> SETTINGS_FIELDS
++            "settings" -> SETTINGS_FIELDS_V1
+             else -> when {
+                 field.startsWith("medicationPlans[") -> PLAN_FIELDS
+                 field.startsWith("scheduledDoseSlots[") -> SLOT_FIELDS
+@@ -948,6 +998,23 @@ class EvoluneBackupCodec(
+         if (objectValue.keys != expected) throw PayloadFormatException(field)
+     }
+ 
++    /**
++     * v1.7.2 canonicalization: every written backup is schema v2. A payload without explicit
++     * canonical theme fields is derived deterministically from its legacy projection —
++     * DYNAMIC -> DYNAMIC + null; anything else valid -> PRESET + LEGACY_BUILTIN (Slice A proved
++     * legacy BUILTIN != MONET_TEAL, so the compatibility identity is the only correct mapping).
++     */
++    private fun BackupSettingsV1.withCanonicalThemeState(): BackupSettingsV1 {
++        if (themeColorSource != null) return this
++        return when (colorTheme) {
++            "DYNAMIC" -> copy(themeColorSource = "DYNAMIC", themePresetId = null)
++            else -> copy(
++                themeColorSource = "PRESET",
++                themePresetId = io.github.yingqiu0871.evolune.data.ThemePresetSelection.LEGACY_BUILTIN_ID
++            )
++        }
++    }
++
+     private fun JsonObject.stringOrNull(field: String): String? =
+         (this[field] as? JsonPrimitive)?.takeIf(JsonPrimitive::isString)?.content
+ 
+@@ -1011,6 +1078,13 @@ class EvoluneBackupCodec(
+         val SUPPORTED_THEME_MODES = setOf("LIGHT", "DARK", "AMOLED", "SYSTEM")
+         val SUPPORTED_COLOR_THEMES = setOf("DYNAMIC", "BUILTIN")
+         val SUPPORTED_TIME_FORMATS = setOf("SYSTEM", "HOUR_12", "HOUR_24")
++        val SUPPORTED_THEME_COLOR_SOURCES = setOf(
++            io.github.yingqiu0871.evolune.data.ThemeColorSource.DYNAMIC.name,
++            io.github.yingqiu0871.evolune.data.ThemeColorSource.PRESET.name
++        )
++        val SUPPORTED_THEME_PRESET_IDS =
++            io.github.yingqiu0871.evolune.theme.palette.PresetPalette.entries.map { it.name }.toSet() +
++                io.github.yingqiu0871.evolune.data.ThemePresetSelection.LEGACY_BUILTIN_ID
+ 
+         val ENVELOPE_FIELDS = setOf(
+             "magic",
+@@ -1043,9 +1117,16 @@ class EvoluneBackupCodec(
+             "id", "route", "occurredAt", "zoneId", "localDate", "doseMG", "ester", "extras",
+             "slotId", "source", "status", "revision"
+         )
+-        val SETTINGS_FIELDS = setOf(
++
++        /** Frozen schema-v1 settings field set (the released v1.7.1 format). */
++        val SETTINGS_FIELDS_V1 = setOf(
+             "bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat"
+         )
++
++        /** Strict schema-v2 settings field set: v1 fields + both canonical theme keys. */
++        val SETTINGS_FIELDS_V2 = SETTINGS_FIELDS_V1 + setOf(
++            "themeColorSource", "themePresetId"
++        )
+     }
+ }
+ 
+@@ -1053,4 +1134,7 @@ private class EnvelopeFormatException(val field: String?) : RuntimeException()
+ 
+ private class PayloadFormatException(val field: String?) : RuntimeException()
+ 
++/** Schema-v2 settings exact-shape violation: maps to INVALID_PAYLOAD (not MALFORMED_PAYLOAD). */
++private class InvalidSettingsPayloadException : RuntimeException()
++
+ private class UnsupportedPayloadVersionException : RuntimeException()
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupV1.kt b/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupV1.kt
+index d57274a..7ec6fad 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupV1.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupV1.kt
+@@ -55,7 +55,17 @@ data class BackupSettingsV1(
+     val themeMode: String,
+     val colorTheme: String,
+     val autoCheckUpdates: Boolean,
+-    val timeFormat: String
++    val timeFormat: String,
++    /**
++     * v1.7.2 schema v2 canonical theme-color source ("DYNAMIC" / "PRESET"). Null in schema v1
++     * payloads; schema v2 always carries this key.
++     */
++    val themeColorSource: String? = null,
++    /**
++     * v1.7.2 schema v2 preset identity (a PresetPalette name or "LEGACY_BUILTIN"), or JSON null
++     * for DYNAMIC. Null in schema v1 payloads; schema v2 always carries this key.
++     */
++    val themePresetId: String? = null
+ )
+ 
+ data class BackupProducerMetadataV1(
+@@ -132,7 +142,16 @@ sealed interface BackupDecodeResult {
+ object EvoluneBackupFormat {
+     const val MAGIC = "EVOLUNE_BACKUP"
+     const val ENVELOPE_FORMAT_VERSION = 1
+-    const val PAYLOAD_SCHEMA_VERSION = 1
++
++    /** Frozen schema-v1 payload version (the released v1.7.1 format). */
++    const val PAYLOAD_SCHEMA_VERSION_LEGACY = 1
++
++    /** Current schema version written by this code (v1.7.2: strict settings theme fields). */
++    const val PAYLOAD_SCHEMA_VERSION = 2
++
++    /** Reader support: exactly these two versions, nothing else. */
++    val SUPPORTED_PAYLOAD_SCHEMA_VERSIONS = setOf(PAYLOAD_SCHEMA_VERSION_LEGACY, PAYLOAD_SCHEMA_VERSION)
++
+     const val ENCRYPTION_ALGORITHM = "AES-256-GCM"
+     const val KDF_ALGORITHM = "PBKDF2-HMAC-SHA256"
+     const val DEFAULT_KDF_ITERATIONS = 600_000
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt b/app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt
+index 0d097e7..42f1308 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt
+@@ -52,6 +52,14 @@ data class UserSettings(
+     val colorTheme: ColorTheme = ColorTheme.DYNAMIC,
+     val autoCheckUpdates: Boolean = true,    // 默认开启自动检查更新
+     val timeFormat: TimeFormat = TimeFormat.SYSTEM,  // 默认跟随系统时间制式
++    /**
++     * v1.7.2 canonical theme-color source. [colorTheme] is a compatibility projection of this
++     * value (DYNAMIC -> DYNAMIC, PRESET -> BUILTIN) used by the pre-Slice-C UI and the legacy
++     * persisted key; it is never the authority for preset identity.
++     */
++    val themeColorSource: ThemeColorSource = ThemeColorSource.DYNAMIC,
++    /** Active preset identity when [themeColorSource] is PRESET; null for DYNAMIC. */
++    val themePreset: ThemePresetSelection? = null,
+     /** User intent for foreground-only Health Connect weight adoption. */
+     val healthConnectWeightSyncEnabled: Boolean = false,
+     /** Sync metadata only; [bodyWeight] remains the local authority. */
+@@ -70,7 +78,16 @@ interface SettingsStore {
+ 
+     suspend fun updateBodyWeight(weight: Double): Boolean
+     suspend fun updateThemeMode(mode: ThemeMode)
++
++    /** Legacy compatibility setter: maps onto the canonical theme state. */
+     suspend fun updateColorTheme(theme: ColorTheme)
++
++    /** v1.7.2 canonical theme-color source setter (keeps the legacy key in sync). */
++    suspend fun updateThemeColorSource(source: ThemeColorSource)
++
++    /** v1.7.2 canonical preset setter; implies source = PRESET (keeps the legacy key in sync). */
++    suspend fun updateThemePreset(selection: ThemePresetSelection)
++
+     suspend fun updateAutoCheckUpdates(enabled: Boolean)
+     suspend fun updateTimeFormat(format: TimeFormat)
+     suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean)
+@@ -99,6 +116,8 @@ class SettingsDataStore(
+         private val BODY_WEIGHT_KEY = doublePreferencesKey("body_weight")
+         private val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+         private val COLOR_THEME_KEY = stringPreferencesKey("color_theme")
++        private val THEME_COLOR_SOURCE_KEY = stringPreferencesKey("theme_color_source")
++        private val THEME_PRESET_ID_KEY = stringPreferencesKey("theme_preset_id")
+         private val AUTO_CHECK_UPDATES_KEY = booleanPreferencesKey("auto_check_updates")
+         private val TIME_FORMAT_KEY = stringPreferencesKey("time_format")
+         private val HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY =
+@@ -113,6 +132,18 @@ class SettingsDataStore(
+      * 获取用户设置的 Flow
+      */
+     override val userSettings: Flow<UserSettings> = context.dataStore.data.map { preferences ->
++        val legacyColorTheme = preferences[COLOR_THEME_KEY]?.let {
++            try {
++                ColorTheme.valueOf(it).name
++            } catch (e: IllegalArgumentException) {
++                null
++            }
++        }
++        val derivedTheme = deriveThemeState(
++            storedSource = preferences[THEME_COLOR_SOURCE_KEY],
++            storedPresetId = preferences[THEME_PRESET_ID_KEY],
++            legacyColorTheme = legacyColorTheme
++        )
+         UserSettings(
+             bodyWeight = preferences[BODY_WEIGHT_KEY] ?: 55.0,
+             themeMode = preferences[THEME_MODE_KEY]?.let { 
+@@ -122,13 +153,9 @@ class SettingsDataStore(
+                     ThemeMode.SYSTEM 
+                 }
+             } ?: ThemeMode.SYSTEM,
+-            colorTheme = preferences[COLOR_THEME_KEY]?.let {
+-                try {
+-                    ColorTheme.valueOf(it)
+-                } catch (e: IllegalArgumentException) {
+-                    ColorTheme.DYNAMIC
+-                }
+-            } ?: ColorTheme.DYNAMIC,
++            colorTheme = derivedTheme.source.toLegacyColorTheme(),
++            themeColorSource = derivedTheme.source,
++            themePreset = derivedTheme.preset,
+             autoCheckUpdates = preferences[AUTO_CHECK_UPDATES_KEY] ?: true,
+             timeFormat = preferences[TIME_FORMAT_KEY]?.let {
+                 try {
+@@ -168,11 +195,37 @@ class SettingsDataStore(
+     }
+     
+     /**
+-     * 保存颜色主题
++     * 保存颜色主题（v1.7.1 兼容入口）：映射到 v1.7.2 规范主题状态。
+      */
+     override suspend fun updateColorTheme(theme: ColorTheme) {
++        when (theme) {
++            ColorTheme.DYNAMIC -> updateThemeColorSource(ThemeColorSource.DYNAMIC)
++            ColorTheme.BUILTIN -> updateThemePreset(ThemePresetSelection.LegacyBuiltin)
++        }
++    }
++
++    /**
++     * 保存 v1.7.2 规范主题来源；同时同步 legacy color_theme 投影（DYNAMIC / BUILTIN）。
++     * DYNAMIC 时移除不再活跃的 theme_preset_id。
++     */
++    override suspend fun updateThemeColorSource(source: ThemeColorSource) {
++        context.dataStore.edit { preferences ->
++            preferences[THEME_COLOR_SOURCE_KEY] = source.name
++            preferences[COLOR_THEME_KEY] = source.toLegacyColorTheme().name
++            if (source == ThemeColorSource.DYNAMIC) {
++                preferences.remove(THEME_PRESET_ID_KEY)
++            }
++        }
++    }
++
++    /**
++     * 保存 v1.7.2 预设选择（隐式 source = PRESET）；同时同步 legacy color_theme = BUILTIN。
++     */
++    override suspend fun updateThemePreset(selection: ThemePresetSelection) {
+         context.dataStore.edit { preferences ->
+-            preferences[COLOR_THEME_KEY] = theme.name
++            preferences[THEME_COLOR_SOURCE_KEY] = ThemeColorSource.PRESET.name
++            preferences[THEME_PRESET_ID_KEY] = selection.persistedId
++            preferences[COLOR_THEME_KEY] = ColorTheme.BUILTIN.name
+         }
+     }
+ 
+@@ -235,6 +288,13 @@ class SettingsDataStore(
+             preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = clock.instant().toString()
+             preferences[THEME_MODE_KEY] = settings.themeMode.name
+             preferences[COLOR_THEME_KEY] = settings.colorTheme.name
++            preferences[THEME_COLOR_SOURCE_KEY] = settings.themeColorSource.name
++            val preset = settings.themePreset
++            if (settings.themeColorSource == ThemeColorSource.PRESET && preset != null) {
++                preferences[THEME_PRESET_ID_KEY] = preset.persistedId
++            } else {
++                preferences.remove(THEME_PRESET_ID_KEY)
++            }
+             preferences[AUTO_CHECK_UPDATES_KEY] = settings.autoCheckUpdates
+             preferences[TIME_FORMAT_KEY] = settings.timeFormat.name
+         }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/data/ThemeState.kt b/app/src/main/java/io/github/yingqiu0871/evolune/data/ThemeState.kt
+new file mode 100644
+index 0000000..a10ed9e
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/data/ThemeState.kt
+@@ -0,0 +1,108 @@
++package io.github.yingqiu0871.evolune.data
++
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++
++/**
++ * v1.7.2 Slice B — canonical App theme-color source. Persisted as the enum name in the
++ * `settings` DataStore key `theme_color_source`; the legacy `color_theme` key remains a
++ * compatibility projection only.
++ */
++enum class ThemeColorSource {
++    DYNAMIC,
++    PRESET;
++
++    companion object {
++        fun fromStored(value: String?): ThemeColorSource? =
++            entries.firstOrNull { it.name == value }
++    }
++}
++
++/**
++ * v1.7.2 Slice B — the selected preset identity when [ThemeColorSource.PRESET] is active.
++ *
++ * The eight normal values reuse [PresetPalette] (one vocabulary with the widget presets);
++ * `LegacyBuiltin` is the internal compatibility identity for upgraded users who selected the
++ * released v1.7.1 built-in theme. It is persisted as its own stable string id and is never
++ * part of [PresetPalette].
++ */
++sealed interface ThemePresetSelection {
++
++    data class Preset(val palette: PresetPalette) : ThemePresetSelection
++
++    data object LegacyBuiltin : ThemePresetSelection
++
++    val persistedId: String
++        get() = when (this) {
++            is Preset -> palette.name
++            LegacyBuiltin -> LEGACY_BUILTIN_ID
++        }
++
++    companion object {
++        const val LEGACY_BUILTIN_ID = "LEGACY_BUILTIN"
++
++        fun fromStored(value: String?): ThemePresetSelection? = when {
++            value == null -> null
++            value == LEGACY_BUILTIN_ID -> LegacyBuiltin
++            else -> PresetPalette.fromId(value)?.let { Preset(it) }
++        }
++    }
++}
++
++/** The effective runtime theme state derived from the persisted keys. */
++internal data class DerivedThemeState(
++    val source: ThemeColorSource,
++    val preset: ThemePresetSelection?
++)
++
++/**
++ * v1.7.2 Slice B — deterministic runtime derivation (local DataStore, NOT backup validation).
++ *
++ * Matrix:
++ * - valid `theme_color_source` = DYNAMIC  -> DYNAMIC (stale preset ids are ignored)
++ * - valid `theme_color_source` = PRESET   -> PRESET + valid `theme_preset_id`; otherwise the
++ *   deterministic fallback: legacy `color_theme` == BUILTIN -> LEGACY_BUILTIN, else MONET_TEAL
++ * - missing/invalid source -> derive from legacy `color_theme`:
++ *   DYNAMIC -> DYNAMIC; BUILTIN -> PRESET + LEGACY_BUILTIN; anything else -> DYNAMIC
++ *
++ * Slice A proved legacy BUILTIN != MONET_TEAL, so the legacy migration never uses MONET_TEAL.
++ * Malformed local values never crash startup and never loosen backup schema validation.
++ */
++internal fun deriveThemeState(
++    storedSource: String?,
++    storedPresetId: String?,
++    legacyColorTheme: String?
++): DerivedThemeState = when (ThemeColorSource.fromStored(storedSource)) {
++    ThemeColorSource.DYNAMIC -> DerivedThemeState(
++        source = ThemeColorSource.DYNAMIC,
++        preset = null
++    )
++
++    ThemeColorSource.PRESET -> DerivedThemeState(
++        source = ThemeColorSource.PRESET,
++        preset = ThemePresetSelection.fromStored(storedPresetId)
++            ?: presetFallbackFor(legacyColorTheme)
++    )
++
++    null -> when (legacyColorTheme) {
++        ColorTheme.BUILTIN.name -> DerivedThemeState(
++            source = ThemeColorSource.PRESET,
++            preset = ThemePresetSelection.LegacyBuiltin
++        )
++
++        else -> DerivedThemeState(
++            source = ThemeColorSource.DYNAMIC,
++            preset = null
++        )
++    }
++}
++
++private fun presetFallbackFor(legacyColorTheme: String?): ThemePresetSelection =
++    if (legacyColorTheme == ColorTheme.BUILTIN.name) {
++        ThemePresetSelection.LegacyBuiltin
++    } else {
++        ThemePresetSelection.Preset(PresetPalette.MONET_TEAL)
++    }
++
++/** Compatibility projection for the legacy `color_theme` key / pre-Slice-C UI. */
++internal fun ThemeColorSource.toLegacyColorTheme(): ColorTheme =
++    if (this == ThemeColorSource.DYNAMIC) ColorTheme.DYNAMIC else ColorTheme.BUILTIN
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Color.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Color.kt
+index a4d82e2..4408bba 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Color.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Color.kt
+@@ -1,41 +1,10 @@
+ package io.github.yingqiu0871.evolune.ui.theme
+ import androidx.compose.ui.graphics.Color
+ 
+-val primaryLight = Color(0xFF006A64)
+-val onPrimaryLight = Color(0xFFFFFFFF)
+-val primaryContainerLight = Color(0xFF9DF2E9)
+-val onPrimaryContainerLight = Color(0xFF00504B)
+-val secondaryLight = Color(0xFF4A6360)
+-val onSecondaryLight = Color(0xFFFFFFFF)
+-val secondaryContainerLight = Color(0xFFCCE8E4)
+-val onSecondaryContainerLight = Color(0xFF324B49)
+-val tertiaryLight = Color(0xFF48617A)
+-val onTertiaryLight = Color(0xFFFFFFFF)
+-val tertiaryContainerLight = Color(0xFFCFE5FF)
+-val onTertiaryContainerLight = Color(0xFF304962)
+-val errorLight = Color(0xFFBA1A1A)
+-val onErrorLight = Color(0xFFFFFFFF)
+-val errorContainerLight = Color(0xFFFFDAD6)
+-val onErrorContainerLight = Color(0xFF93000A)
+-val backgroundLight = Color(0xFFF4FBF9)
+-val onBackgroundLight = Color(0xFF161D1C)
+-val surfaceLight = Color(0xFFF4FBF9)
+-val onSurfaceLight = Color(0xFF161D1C)
+-val surfaceVariantLight = Color(0xFFDAE5E2)
+-val onSurfaceVariantLight = Color(0xFF3F4947)
+-val outlineLight = Color(0xFF6F7977)
+-val outlineVariantLight = Color(0xFFBEC9C6)
+-val scrimLight = Color(0xFF000000)
+-val inverseSurfaceLight = Color(0xFF2B3231)
+-val inverseOnSurfaceLight = Color(0xFFECF2F0)
+-val inversePrimaryLight = Color(0xFF81D5CD)
+-val surfaceDimLight = Color(0xFFD5DBDA)
+-val surfaceBrightLight = Color(0xFFF4FBF9)
+-val surfaceContainerLowestLight = Color(0xFFFFFFFF)
+-val surfaceContainerLowLight = Color(0xFFEFF5F3)
+-val surfaceContainerLight = Color(0xFFE9EFED)
+-val surfaceContainerHighLight = Color(0xFFE3E9E8)
+-val surfaceContainerHighestLight = Color(0xFFDDE4E2)
++// v1.7.2 Slice B: the released v1.7.1 standard built-in role constants were removed together
++// with the inline lightScheme/darkScheme; the single authority is now the shared
++// `theme.palette.LegacyBuiltinTheme` (see ui/theme/PresetColorSchemes.kt). The medium/high
++// contrast tables below remain untouched and unused (pre-existing, out of scope).
+ 
+ val primaryLightMediumContrast = Color(0xFF003E3A)
+ val onPrimaryLightMediumContrast = Color(0xFFFFFFFF)
+@@ -109,42 +78,6 @@ val surfaceContainerLightHighContrast = Color(0xFFDDE4E2)
+ val surfaceContainerHighLightHighContrast = Color(0xFFCFD6D4)
+ val surfaceContainerHighestLightHighContrast = Color(0xFFC1C8C6)
+ 
+-val primaryDark = Color(0xFF81D5CD)
+-val onPrimaryDark = Color(0xFF003734)
+-val primaryContainerDark = Color(0xFF00504B)
+-val onPrimaryContainerDark = Color(0xFF9DF2E9)
+-val secondaryDark = Color(0xFFB0CCC8)
+-val onSecondaryDark = Color(0xFF1C3532)
+-val secondaryContainerDark = Color(0xFF324B49)
+-val onSecondaryContainerDark = Color(0xFFCCE8E4)
+-val tertiaryDark = Color(0xFFAFC9E7)
+-val onTertiaryDark = Color(0xFF18324A)
+-val tertiaryContainerDark = Color(0xFF304962)
+-val onTertiaryContainerDark = Color(0xFFCFE5FF)
+-val errorDark = Color(0xFFFFB4AB)
+-val onErrorDark = Color(0xFF690005)
+-val errorContainerDark = Color(0xFF93000A)
+-val onErrorContainerDark = Color(0xFFFFDAD6)
+-val backgroundDark = Color(0xFF0E1514)
+-val onBackgroundDark = Color(0xFFDDE4E2)
+-val surfaceDark = Color(0xFF0E1514)
+-val onSurfaceDark = Color(0xFFDDE4E2)
+-val surfaceVariantDark = Color(0xFF3F4947)
+-val onSurfaceVariantDark = Color(0xFFBEC9C6)
+-val outlineDark = Color(0xFF899391)
+-val outlineVariantDark = Color(0xFF3F4947)
+-val scrimDark = Color(0xFF000000)
+-val inverseSurfaceDark = Color(0xFFDDE4E2)
+-val inverseOnSurfaceDark = Color(0xFF2B3231)
+-val inversePrimaryDark = Color(0xFF006A64)
+-val surfaceDimDark = Color(0xFF0E1514)
+-val surfaceBrightDark = Color(0xFF343A39)
+-val surfaceContainerLowestDark = Color(0xFF090F0F)
+-val surfaceContainerLowDark = Color(0xFF161D1C)
+-val surfaceContainerDark = Color(0xFF1A2120)
+-val surfaceContainerHighDark = Color(0xFF252B2A)
+-val surfaceContainerHighestDark = Color(0xFF2F3635)
+-
+ val primaryDarkMediumContrast = Color(0xFF97EBE3)
+ val onPrimaryDarkMediumContrast = Color(0xFF002B28)
+ val primaryContainerDarkMediumContrast = Color(0xFF489E97)
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemes.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemes.kt
+new file mode 100644
+index 0000000..2ced483
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemes.kt
+@@ -0,0 +1,195 @@
++package io.github.yingqiu0871.evolune.ui.theme
++
++import androidx.compose.material3.ColorScheme
++import androidx.compose.material3.darkColorScheme
++import androidx.compose.material3.lightColorScheme
++import androidx.compose.ui.graphics.Color
++import io.github.yingqiu0871.evolune.theme.palette.LegacyBuiltinTheme
++import io.github.yingqiu0871.evolune.theme.palette.LegacyThemeRole
++import io.github.yingqiu0871.evolune.theme.palette.PaletteCatalog
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import kotlin.math.roundToInt
++
++/**
++ * v1.7.2 Slice B — App Material schemes built from the shared palette authority.
++ *
++ * - [presetLightScheme]/[presetDarkScheme] realize the frozen contract §13 derivation for the
++ *   eight [PresetPalette] values; seeds come exclusively from [PaletteCatalog] (no duplicated
++ *   MONET tables).
++ * - [legacyBuiltinLightScheme]/[legacyBuiltinDarkScheme] reproduce the released v1.7.1 built-in
++ *   theme role-by-role from [LegacyBuiltinTheme] (App compatibility identity).
++ *
++ * Roles outside the frozen derivation table (scrim / inverse / surfaceDim / surfaceBright /
++ * surfaceContainer*) intentionally keep Material's fixed baseline constants for presets; the
++ * legacy schemes pass every role explicitly.
++ */
++private const val LIGHT_ON_SURFACE = 0xFF1F1D20
++private const val DARK_ON_SURFACE = 0xFFF2EFF4
++private const val LIGHT_ON_SURFACE_VARIANT = 0xFF4C464E
++private const val DARK_ON_SURFACE_VARIANT = 0xFFCDC5D3
++private const val LIGHT_ERROR = 0xFFBA1A1A
++private const val DARK_ERROR = 0xFFFFB4AB
++private const val LIGHT_ON_ERROR = 0xFFFFFFFF
++private const val DARK_ON_ERROR = 0xFF690005
++private const val DARK_ON_PRIMARY_CONTAINER = 0xFFFFFFFF
++
++internal fun presetLightScheme(preset: PresetPalette): ColorScheme {
++    val seed = PaletteCatalog.seed(preset)
++    val surface = Color(seed.lightSurface)
++    val primary = Color(seed.lightPrimary)
++    val secondary = Color(seed.lightSecondary)
++    val tertiary = Color(seed.lightTertiary)
++    val secondaryContainer = surface.blendToward(secondary, 0.12)
++    val tertiaryContainer = surface.blendToward(tertiary, 0.12)
++    val onSurfaceVariant = Color(LIGHT_ON_SURFACE_VARIANT)
++    return lightColorScheme(
++        primary = primary,
++        onPrimary = contrastOn(primary),
++        primaryContainer = Color(seed.lightContainer),
++        onPrimaryContainer = Color(seed.lightOnContainer),
++        secondary = secondary,
++        onSecondary = contrastOn(secondary),
++        secondaryContainer = secondaryContainer,
++        onSecondaryContainer = contrastOn(secondaryContainer),
++        tertiary = tertiary,
++        onTertiary = contrastOn(tertiary),
++        tertiaryContainer = tertiaryContainer,
++        onTertiaryContainer = contrastOn(tertiaryContainer),
++        error = Color(LIGHT_ERROR),
++        onError = Color(LIGHT_ON_ERROR),
++        background = surface,
++        onBackground = Color(LIGHT_ON_SURFACE),
++        surface = surface,
++        onSurface = Color(LIGHT_ON_SURFACE),
++        surfaceVariant = surface.blendToward(primary, 0.08),
++        onSurfaceVariant = onSurfaceVariant,
++        outline = onSurfaceVariant,
++        outlineVariant = surface.blendToward(onSurfaceVariant, 0.50)
++    )
++}
++
++internal fun presetDarkScheme(preset: PresetPalette): ColorScheme {
++    val seed = PaletteCatalog.seed(preset)
++    val surface = Color(seed.darkSurface)
++    val primary = Color(seed.darkPrimary)
++    val secondary = Color(seed.darkSecondary)
++    val tertiary = Color(seed.darkTertiary)
++    val secondaryContainer = surface.blendToward(secondary, 0.12)
++    val tertiaryContainer = surface.blendToward(tertiary, 0.12)
++    val onSurfaceVariant = Color(DARK_ON_SURFACE_VARIANT)
++    return darkColorScheme(
++        primary = primary,
++        onPrimary = contrastOn(primary),
++        primaryContainer = Color(seed.darkContainer),
++        onPrimaryContainer = Color(DARK_ON_PRIMARY_CONTAINER),
++        secondary = secondary,
++        onSecondary = contrastOn(secondary),
++        secondaryContainer = secondaryContainer,
++        onSecondaryContainer = contrastOn(secondaryContainer),
++        tertiary = tertiary,
++        onTertiary = contrastOn(tertiary),
++        tertiaryContainer = tertiaryContainer,
++        onTertiaryContainer = contrastOn(tertiaryContainer),
++        error = Color(DARK_ERROR),
++        onError = Color(DARK_ON_ERROR),
++        background = surface,
++        onBackground = Color(DARK_ON_SURFACE),
++        surface = surface,
++        onSurface = Color(DARK_ON_SURFACE),
++        surfaceVariant = surface.blendToward(primary, 0.08),
++        onSurfaceVariant = onSurfaceVariant,
++        outline = onSurfaceVariant,
++        outlineVariant = surface.blendToward(onSurfaceVariant, 0.50)
++    )
++}
++
++internal fun legacyBuiltinLightScheme(): ColorScheme =
++    legacyScheme(LegacyBuiltinTheme.lightRoles)
++
++internal fun legacyBuiltinDarkScheme(): ColorScheme =
++    legacyScheme(LegacyBuiltinTheme.darkRoles)
++
++/**
++ * Builds a scheme with EVERY role passed explicitly, so the light/dark builder choice cannot
++ * influence the result (their only difference is defaults for unset roles). `surfaceTint` is
++ * passed explicitly for the same reason.
++ */
++private fun legacyScheme(roles: Map<LegacyThemeRole, Long>): ColorScheme {
++    fun role(value: LegacyThemeRole): Color = Color(roles.getValue(value))
++    return lightColorScheme(
++        primary = role(LegacyThemeRole.PRIMARY),
++        onPrimary = role(LegacyThemeRole.ON_PRIMARY),
++        primaryContainer = role(LegacyThemeRole.PRIMARY_CONTAINER),
++        onPrimaryContainer = role(LegacyThemeRole.ON_PRIMARY_CONTAINER),
++        secondary = role(LegacyThemeRole.SECONDARY),
++        onSecondary = role(LegacyThemeRole.ON_SECONDARY),
++        secondaryContainer = role(LegacyThemeRole.SECONDARY_CONTAINER),
++        onSecondaryContainer = role(LegacyThemeRole.ON_SECONDARY_CONTAINER),
++        tertiary = role(LegacyThemeRole.TERTIARY),
++        onTertiary = role(LegacyThemeRole.ON_TERTIARY),
++        tertiaryContainer = role(LegacyThemeRole.TERTIARY_CONTAINER),
++        onTertiaryContainer = role(LegacyThemeRole.ON_TERTIARY_CONTAINER),
++        error = role(LegacyThemeRole.ERROR),
++        onError = role(LegacyThemeRole.ON_ERROR),
++        errorContainer = role(LegacyThemeRole.ERROR_CONTAINER),
++        onErrorContainer = role(LegacyThemeRole.ON_ERROR_CONTAINER),
++        background = role(LegacyThemeRole.BACKGROUND),
++        onBackground = role(LegacyThemeRole.ON_BACKGROUND),
++        surface = role(LegacyThemeRole.SURFACE),
++        onSurface = role(LegacyThemeRole.ON_SURFACE),
++        surfaceVariant = role(LegacyThemeRole.SURFACE_VARIANT),
++        onSurfaceVariant = role(LegacyThemeRole.ON_SURFACE_VARIANT),
++        outline = role(LegacyThemeRole.OUTLINE),
++        outlineVariant = role(LegacyThemeRole.OUTLINE_VARIANT),
++        scrim = role(LegacyThemeRole.SCRIM),
++        inverseSurface = role(LegacyThemeRole.INVERSE_SURFACE),
++        inverseOnSurface = role(LegacyThemeRole.INVERSE_ON_SURFACE),
++        inversePrimary = role(LegacyThemeRole.INVERSE_PRIMARY),
++        surfaceDim = role(LegacyThemeRole.SURFACE_DIM),
++        surfaceBright = role(LegacyThemeRole.SURFACE_BRIGHT),
++        surfaceContainerLowest = role(LegacyThemeRole.SURFACE_CONTAINER_LOWEST),
++        surfaceContainerLow = role(LegacyThemeRole.SURFACE_CONTAINER_LOW),
++        surfaceContainer = role(LegacyThemeRole.SURFACE_CONTAINER),
++        surfaceContainerHigh = role(LegacyThemeRole.SURFACE_CONTAINER_HIGH),
++        surfaceContainerHighest = role(LegacyThemeRole.SURFACE_CONTAINER_HIGHEST),
++        surfaceTint = role(LegacyThemeRole.PRIMARY)
++    )
++}
++
++internal fun contrastOn(background: Color): Color =
++    if (contrastRatio(Color.White, background) >= contrastRatio(Color.Black, background)) {
++        Color.White
++    } else {
++        Color.Black
++    }
++
++internal fun contrastRatio(foreground: Color, background: Color): Double {
++    val lighter = maxOf(luminance(foreground), luminance(background))
++    val darker = minOf(luminance(foreground), luminance(background))
++    return (lighter + 0.05) / (darker + 0.05)
++}
++
++private fun luminance(color: Color): Double {
++    fun channel(value: Float): Double {
++        val v = value.toDouble()
++        return if (v <= 0.04045) v / 12.92 else Math.pow((v + 0.055) / 1.055, 2.4)
++    }
++    return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue)
++}
++
++private fun Color.blendToward(target: Color, amount: Double): Color {
++    val fraction = amount.coerceIn(0.0, 1.0)
++    fun channel(start: Float, end: Float): Float {
++        val startByte = start * 255f
++        val endByte = end * 255f
++        return (startByte + (endByte - startByte) * fraction)
++            .roundToInt()
++            .coerceIn(0, 255) / 255f
++    }
++    return Color(
++        red = channel(red, target.red),
++        green = channel(green, target.green),
++        blue = channel(blue, target.blue),
++        alpha = 1f
++    )
++}
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt
+index bec2c78..ba8e0bf 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt
+@@ -17,83 +17,16 @@ import androidx.compose.ui.graphics.Color
+ import androidx.compose.ui.graphics.toArgb
+ import androidx.compose.ui.platform.LocalContext
+ import io.github.yingqiu0871.evolune.data.ColorTheme
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ 
+-private val lightScheme = lightColorScheme(
+-    primary = primaryLight,
+-    onPrimary = onPrimaryLight,
+-    primaryContainer = primaryContainerLight,
+-    onPrimaryContainer = onPrimaryContainerLight,
+-    secondary = secondaryLight,
+-    onSecondary = onSecondaryLight,
+-    secondaryContainer = secondaryContainerLight,
+-    onSecondaryContainer = onSecondaryContainerLight,
+-    tertiary = tertiaryLight,
+-    onTertiary = onTertiaryLight,
+-    tertiaryContainer = tertiaryContainerLight,
+-    onTertiaryContainer = onTertiaryContainerLight,
+-    error = errorLight,
+-    onError = onErrorLight,
+-    errorContainer = errorContainerLight,
+-    onErrorContainer = onErrorContainerLight,
+-    background = backgroundLight,
+-    onBackground = onBackgroundLight,
+-    surface = surfaceLight,
+-    onSurface = onSurfaceLight,
+-    surfaceVariant = surfaceVariantLight,
+-    onSurfaceVariant = onSurfaceVariantLight,
+-    outline = outlineLight,
+-    outlineVariant = outlineVariantLight,
+-    scrim = scrimLight,
+-    inverseSurface = inverseSurfaceLight,
+-    inverseOnSurface = inverseOnSurfaceLight,
+-    inversePrimary = inversePrimaryLight,
+-    surfaceDim = surfaceDimLight,
+-    surfaceBright = surfaceBrightLight,
+-    surfaceContainerLowest = surfaceContainerLowestLight,
+-    surfaceContainerLow = surfaceContainerLowLight,
+-    surfaceContainer = surfaceContainerLight,
+-    surfaceContainerHigh = surfaceContainerHighLight,
+-    surfaceContainerHighest = surfaceContainerHighestLight,
+-)
+-
+-private val darkScheme = darkColorScheme(
+-    primary = primaryDark,
+-    onPrimary = onPrimaryDark,
+-    primaryContainer = primaryContainerDark,
+-    onPrimaryContainer = onPrimaryContainerDark,
+-    secondary = secondaryDark,
+-    onSecondary = onSecondaryDark,
+-    secondaryContainer = secondaryContainerDark,
+-    onSecondaryContainer = onSecondaryContainerDark,
+-    tertiary = tertiaryDark,
+-    onTertiary = onTertiaryDark,
+-    tertiaryContainer = tertiaryContainerDark,
+-    onTertiaryContainer = onTertiaryContainerDark,
+-    error = errorDark,
+-    onError = onErrorDark,
+-    errorContainer = errorContainerDark,
+-    onErrorContainer = onErrorContainerDark,
+-    background = backgroundDark,
+-    onBackground = onBackgroundDark,
+-    surface = surfaceDark,
+-    onSurface = onSurfaceDark,
+-    surfaceVariant = surfaceVariantDark,
+-    onSurfaceVariant = onSurfaceVariantDark,
+-    outline = outlineDark,
+-    outlineVariant = outlineVariantDark,
+-    scrim = scrimDark,
+-    inverseSurface = inverseSurfaceDark,
+-    inverseOnSurface = inverseOnSurfaceDark,
+-    inversePrimary = inversePrimaryDark,
+-    surfaceDim = surfaceDimDark,
+-    surfaceBright = surfaceBrightDark,
+-    surfaceContainerLowest = surfaceContainerLowestDark,
+-    surfaceContainerLow = surfaceContainerLowDark,
+-    surfaceContainer = surfaceContainerDark,
+-    surfaceContainerHigh = surfaceContainerHighDark,
+-    surfaceContainerHighest = surfaceContainerHighestDark,
+-)
++/**
++ * v1.7.2 Slice B: the released v1.7.1 built-in light/dark schemes now live in the shared
++ * compatibility authority (`LegacyBuiltinTheme`) and are realized by
++ * `legacyBuiltinLightScheme()` / `legacyBuiltinDarkScheme()`; the former inline definitions
++ * and their Color.kt constants were removed once continuity was proven.
++ */
+ 
+ internal fun ThemeMode.usesDarkColors(systemInDarkTheme: Boolean): Boolean = when (this) {
+     ThemeMode.LIGHT -> false
+@@ -283,6 +216,8 @@ val unspecified_scheme = ColorFamily(
+ fun EvoluneTheme(
+     themeMode: ThemeMode = ThemeMode.SYSTEM,
+     colorTheme: ColorTheme = ColorTheme.DYNAMIC,
++    colorSource: ThemeColorSource? = null,
++    preset: ThemePresetSelection? = null,
+     content: @Composable() () -> Unit
+ ) {
+     val systemInDarkTheme = isSystemInDarkTheme()
+@@ -290,16 +225,33 @@ fun EvoluneTheme(
+     // 根据主题模式确定是否使用深色主题
+     val darkTheme = themeMode.usesDarkColors(systemInDarkTheme)
+     
+-    // 根据颜色主题确定是否使用动态颜色
+-    val dynamicColor = colorTheme == ColorTheme.DYNAMIC
++    // v1.7.2 canonical source; `colorTheme` is a compatibility projection used only when the
++    // caller does not provide the canonical value (pre-Slice-C screens/tests/previews).
++    val effectiveSource = colorSource
++        ?: if (colorTheme == ColorTheme.DYNAMIC) ThemeColorSource.DYNAMIC else ThemeColorSource.PRESET
+     
+-    val baseColorScheme = when {
+-        dynamicColor -> {
++    val baseColorScheme = when (effectiveSource) {
++        ThemeColorSource.DYNAMIC -> {
+             val context = LocalContext.current
+             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+         }
+-        darkTheme -> darkScheme
+-        else -> lightScheme
++
++        ThemeColorSource.PRESET -> {
++            val effectivePreset = preset
++                ?: ThemePresetSelection.LegacyBuiltin
++            val scheme = when (effectivePreset) {
++                ThemePresetSelection.LegacyBuiltin ->
++                    if (darkTheme) legacyBuiltinDarkScheme() else legacyBuiltinLightScheme()
++
++                is ThemePresetSelection.Preset ->
++                    if (darkTheme) {
++                        presetDarkScheme(effectivePreset.palette)
++                    } else {
++                        presetLightScheme(effectivePreset.palette)
++                    }
++            }
++            scheme
++        }
+     }
+     val colorScheme = if (themeMode == ThemeMode.AMOLED) {
+         baseColorScheme.withAmoledSurfaces()
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
+index 62f707e..7637cd4 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
+@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
+ import android.util.Log
+ import io.github.yingqiu0871.evolune.data.ColorTheme
+ import io.github.yingqiu0871.evolune.data.SettingsStore
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProvider
+@@ -157,7 +159,7 @@ class SettingsViewModel(
+     }
+ 
+     /**
+-     * 更新颜色主题
++     * 更新颜色主题（v1.7.1 兼容入口）：映射到 v1.7.2 规范主题状态。
+      */
+     fun updateColorTheme(theme: ColorTheme) {
+         scope.launch {
+@@ -165,6 +167,24 @@ class SettingsViewModel(
+         }
+     }
+ 
++    /**
++     * 更新 v1.7.2 规范主题来源（DYNAMIC / PRESET）。
++     */
++    fun updateThemeColorSource(source: ThemeColorSource) {
++        scope.launch {
++            settingsDataStore.updateThemeColorSource(source)
++        }
++    }
++
++    /**
++     * 更新 v1.7.2 预设选择（8 个 MONET 预设或 LEGACY_BUILTIN 兼容身份）。
++     */
++    fun updateThemePreset(selection: ThemePresetSelection) {
++        scope.launch {
++            settingsDataStore.updateThemePreset(selection)
++        }
++    }
++
+     /**
+      * 更新自动检查更新开关
+      */
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinatorTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinatorTest.kt
+index 0ff7893..ad02429 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinatorTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinatorTest.kt
+@@ -271,6 +271,31 @@ class BackupRestoreCoordinatorTest {
+         assertEquals(0, fixture.refreshCalls)
+     }
+ 
++    @Test
++    fun `invalid schema v2 theme payload fails before any settings or room mutation`() = runBlocking {
++        val fixture = Fixture()
++        fixture.provider.uploadedBytes = BackupTamperTestSupport.replaceCiphertextWithPayload(
++            fixture.encodedBackup(),
++            "secret".toCharArray(),
++            invalidV2ThemePayload()
++        )
++
++        val result = fixture.coordinator.prepareRestore(
++            fixture.provider.generation,
++            "secret".toCharArray()
++        )
++
++        assertTrue(result.toString(), result is RestorePreparationResult.Failure)
++        assertEquals(
++            BackupRestoreErrorCode.INVALID_OR_CORRUPT_BACKUP,
++            (result as RestorePreparationResult.Failure).error.code
++        )
++        assertEquals(0, fixture.persistence.roomReads)
++        assertEquals(0, fixture.persistence.replaceRoomCalls)
++        assertEquals(0, fixture.persistence.replaceSettingsCalls)
++        assertEquals(0, fixture.refreshCalls)
++    }
++
+     @Test
+     fun `snapshot preserves dangling event slot and all backup settings`() = runBlocking {
+         val fixture = Fixture()
+@@ -568,6 +593,29 @@ class BackupRestoreCoordinatorTest {
+     }
+ 
+     companion object {
++        /** Structurally valid schema v2 payload with an unknown preset id (validation must fail). */
++        private fun invalidV2ThemePayload(): String = buildString {
++            append("{\"payloadSchemaVersion\":2,")
++            append("\"medicationPlans\":[")
++            append("{\"id\":\"00000000-0000-0000-0000-000000000001\",\"name\":\"Plan\",")
++            append("\"route\":\"ORAL\",\"ester\":\"E2\",\"doseMG\":2.0,\"scheduleType\":\"DAILY\",")
++            append("\"daysOfWeek\":[],\"intervalDays\":1,\"isEnabled\":true,\"extras\":{},")
++            append("\"createdAt\":\"2026-01-01T00:00:00Z\"}],")
++            append("\"scheduledDoseSlots\":[")
++            append("{\"id\":\"00000000-0000-0000-0000-000000000002\",")
++            append("\"planId\":\"00000000-0000-0000-0000-000000000001\",")
++            append("\"localTime\":\"08:00\",\"position\":0}],")
++            append("\"doseEvents\":[")
++            append("{\"id\":\"00000000-0000-0000-0000-000000000003\",\"route\":\"ORAL\",")
++            append("\"occurredAt\":\"2026-01-01T08:00:00Z\",\"zoneId\":\"UTC\",")
++            append("\"localDate\":\"2026-01-01\",\"doseMG\":2.0,\"ester\":\"E2\",\"extras\":{},")
++            append("\"slotId\":\"00000000-0000-0000-0000-000000000002\",\"source\":\"MANUAL\",")
++            append("\"status\":\"RECORDED\",\"revision\":1}],")
++            append("\"settings\":{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",")
++            append("\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",")
++            append("\"themeColorSource\":\"PRESET\",\"themePresetId\":\"NOT_A_PRESET\"}}")
++        }
++
+         private fun samplePayload() = EvoluneBackupPayloadV1(
+             medicationPlans = listOf(
+                 BackupMedicationPlanV1(
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupTamperTestSupport.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupTamperTestSupport.kt
+new file mode 100644
+index 0000000..3321294
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupTamperTestSupport.kt
+@@ -0,0 +1,92 @@
++package io.github.yingqiu0871.evolune.backup
++
++import kotlinx.serialization.json.Json
++import kotlinx.serialization.json.JsonElement
++import kotlinx.serialization.json.JsonObject
++import kotlinx.serialization.json.JsonPrimitive
++import kotlinx.serialization.json.intOrNull
++import kotlinx.serialization.json.jsonObject
++import kotlinx.serialization.json.jsonPrimitive
++import java.nio.charset.StandardCharsets
++import java.util.Base64
++import javax.crypto.Cipher
++import javax.crypto.SecretKeyFactory
++import javax.crypto.spec.GCMParameterSpec
++import javax.crypto.spec.PBEKeySpec
++import javax.crypto.spec.SecretKeySpec
++
++/**
++ * v1.7.2 Slice B test support: re-encrypts a crafted payload into an existing envelope (the
++ * envelope format and its authenticated header are untouched). Used by tests that must present
++ * structurally valid but semantically invalid payloads to the RESTORE path.
++ *
++ * The AAD reconstruction mirrors the codec's canonical authenticated header exactly (same key
++ * order, same default [Json] configuration).
++ */
++internal object BackupTamperTestSupport {
++
++    private val json = Json
++
++    private val AUTH_HEADER_FIELDS = listOf(
++        "magic",
++        "envelopeFormatVersion",
++        "payloadSchemaVersion",
++        "createdAt",
++        "producerAppVersionName",
++        "producerAppVersionCode",
++        "encryptionAlgorithm",
++        "kdfAlgorithm",
++        "kdfIterations",
++        "derivedKeyLengthBits",
++        "salt",
++        "nonce"
++    )
++
++    fun replaceCiphertextWithPayload(
++        bytes: ByteArray,
++        passphrase: CharArray,
++        payload: String
++    ): ByteArray {
++        val root = json.parseToJsonElement(String(bytes, StandardCharsets.UTF_8)).jsonObject
++        val salt = Base64.getDecoder().decode(root.getValue("salt").jsonPrimitive.content)
++        val nonce = Base64.getDecoder().decode(root.getValue("nonce").jsonPrimitive.content)
++        val iterations = root.getValue("kdfIterations").jsonPrimitive.intOrNull
++            ?: error("missing kdfIterations")
++        val keySpec = PBEKeySpec(
++            passphrase,
++            salt,
++            iterations,
++            EvoluneBackupFormat.DERIVED_KEY_LENGTH_BITS
++        )
++        val keyBytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
++            .generateSecret(keySpec)
++            .encoded
++        keySpec.clearPassword()
++        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
++        cipher.init(
++            Cipher.ENCRYPT_MODE,
++            SecretKeySpec(keyBytes, "AES"),
++            GCMParameterSpec(EvoluneBackupFormat.GCM_TAG_BITS, nonce)
++        )
++        cipher.updateAAD(authenticatedHeaderJson(root).toByteArray(StandardCharsets.UTF_8))
++        val ciphertext = cipher.doFinal(payload.toByteArray(StandardCharsets.UTF_8))
++        keyBytes.fill(0)
++        val replaced = JsonObject(
++            root.mapValues { (key, value) ->
++                if (key == "ciphertext") {
++                    JsonPrimitive(Base64.getEncoder().encodeToString(ciphertext))
++                } else {
++                    value
++                }
++            }
++        )
++        return json.encodeToString(JsonElement.serializer(), replaced)
++            .toByteArray(StandardCharsets.UTF_8)
++    }
++
++    private fun authenticatedHeaderJson(root: JsonObject): String =
++        json.encodeToString(
++            JsonElement.serializer(),
++            JsonObject(AUTH_HEADER_FIELDS.associateWith { root.getValue(it) })
++        )
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupThemeSchemaV2Test.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupThemeSchemaV2Test.kt
+new file mode 100644
+index 0000000..90b0959
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupThemeSchemaV2Test.kt
+@@ -0,0 +1,335 @@
++package io.github.yingqiu0871.evolune.backup
++
++import io.github.yingqiu0871.evolune.data.ColorTheme
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
++import io.github.yingqiu0871.evolune.data.UserSettings
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import kotlinx.serialization.json.Json
++import kotlinx.serialization.json.JsonElement
++import kotlinx.serialization.json.JsonObject
++import kotlinx.serialization.json.JsonPrimitive
++import kotlinx.serialization.json.jsonObject
++import kotlinx.serialization.json.jsonPrimitive
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++/**
++ * v1.7.2 Slice B — backup schema v2 theme identity.
++ *
++ * Covers: canonical v2 serialization, strict exact field sets, the full valid/invalid matrix,
++ * frozen schema-v1 compatibility, the intentional old-reader rejection, and the B2
++ * settings↔UserSettings mappings.
++ */
++class BackupThemeSchemaV2Test {
++
++    private val json = Json
++    private val passphrase = "secret".toCharArray()
++
++    // ---------- round-trip: every canonical identity ----------
++
++    @Test
++    fun `every canonical theme identity round-trips through schema v2`() {
++        val identities = listOf(
++            ThemeColorSource.DYNAMIC to null,
++            ThemeColorSource.PRESET to ThemePresetSelection.LegacyBuiltin
++        ) + PresetPalette.entries.map { ThemeColorSource.PRESET to ThemePresetSelection.Preset(it) }
++
++        identities.forEach { (source, preset) ->
++            val settings = settingsFor(source, preset)
++            val encoded = requireEncoded(payloadWith(settings))
++            val decoded = requireDecoded(encoded)
++
++            assertEquals("source=$source preset=$preset", settings, decoded.settings)
++            assertEquals(
++                "legacy projection for source=$source",
++                if (source == ThemeColorSource.DYNAMIC) "DYNAMIC" else "BUILTIN",
++                decoded.settings.colorTheme
++            )
++        }
++    }
++
++    @Test
++    fun `a legacy-shaped payload without canonical fields is canonicalized deterministically`() {
++        val dynamic = requireDecoded(requireEncoded(payloadWith(legacySettings("DYNAMIC"))))
++        assertEquals("DYNAMIC", dynamic.settings.themeColorSource)
++        assertNull(dynamic.settings.themePresetId)
++        assertEquals("DYNAMIC", dynamic.settings.colorTheme)
++
++        val builtin = requireDecoded(requireEncoded(payloadWith(legacySettings("BUILTIN"))))
++        assertEquals("PRESET", builtin.settings.themeColorSource)
++        assertEquals("LEGACY_BUILTIN", builtin.settings.themePresetId)
++        assertEquals("BUILTIN", builtin.settings.colorTheme)
++    }
++
++    // ---------- schema v2: strict matrix via crafted raw payloads ----------
++
++    @Test
++    fun `valid crafted schema v2 payloads decode`() {
++        listOf(
++            v2Settings("DYNAMIC", "null"),
++            v2Settings("PRESET", "\"LEGACY_BUILTIN\""),
++            v2Settings("PRESET", "\"MONET_BLUE\""),
++            v2Settings("PRESET", "\"MONET_LAVENDER\"")
++        ).forEach { settings ->
++            val result = decodeCrafted(payloadJson(2, settings))
++            assertTrue("settings=$settings -> $result", result is BackupDecodeResult.Success)
++        }
++    }
++
++    @Test
++    fun `schema v2 invalid theme fields fail with INVALID_PAYLOAD and no fallback`() {
++        val invalidSettings = listOf(
++            // missing themePresetId key
++            "{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"BUILTIN\"," +
++                "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",\"themeColorSource\":\"PRESET\"}",
++            // missing themeColorSource key
++            "{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"BUILTIN\"," +
++                "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",\"themePresetId\":null}",
++            // extra settings key
++            "{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"BUILTIN\"," +
++                "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",\"themeColorSource\":\"DYNAMIC\"," +
++                "\"themePresetId\":null,\"unexpected\":true}",
++            // DYNAMIC + non-null preset
++            v2Settings("DYNAMIC", "\"MONET_BLUE\""),
++            // PRESET + null
++            v2Settings("PRESET", "null"),
++            // unknown source
++            v2Settings("AUTO", "null"),
++            // unknown preset
++            v2Settings("PRESET", "\"NOT_A_PRESET\"")
++        )
++
++        invalidSettings.forEach { settings ->
++            val result = decodeCrafted(payloadJson(2, settings))
++            val failure = result as? BackupDecodeResult.Failure
++                ?: throw AssertionError("expected INVALID_PAYLOAD for $settings but got $result")
++            assertEquals(
++                "settings=$settings",
++                BackupCodecErrorCode.INVALID_PAYLOAD,
++                failure.error.code
++            )
++        }
++    }
++
++    // ---------- schema v1: frozen ----------
++
++    @Test
++    fun `schema v1 payloads still decode with null canonical fields`() {
++        val decoded = asSuccess(
++            decodeCrafted(payloadJson(1, legacySettingsJson("BUILTIN")), envelopeVersion = 1)
++        )
++        assertNull(decoded.settings.themeColorSource)
++        assertNull(decoded.settings.themePresetId)
++        assertEquals("BUILTIN", decoded.settings.colorTheme)
++
++        val mapped = decoded.settings.toUserSettings()
++        assertEquals(ThemeColorSource.PRESET, mapped.themeColorSource)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, mapped.themePreset)
++    }
++
++    @Test
++    fun `schema v1 with an added v2 key stays rejected with the frozen classification`() {
++        // The frozen v1 parser rejects any extra settings key; the released v1.7.1 classification
++        // for that exact-shape violation was MALFORMED_PAYLOAD and stays unchanged.
++        val result = decodeCrafted(
++            payloadJson(1, legacySettingsJson("DYNAMIC", extraFields = "\"themeColorSource\":\"DYNAMIC\",")),
++            envelopeVersion = 1
++        )
++        val failure = result as? BackupDecodeResult.Failure
++            ?: throw AssertionError("expected rejection but got $result")
++        assertEquals(BackupCodecErrorCode.MALFORMED_PAYLOAD, failure.error.code)
++    }
++
++    @Test
++    fun `envelope and payload schema versions must match and be supported`() {
++        // Crafted envelope v1 with a v2 payload -> mismatch -> UNSUPPORTED.
++        val mismatched = decodeCrafted(payloadJson(2, v2Settings("DYNAMIC", "null")), envelopeVersion = 1)
++        val failure = mismatched as? BackupDecodeResult.Failure
++            ?: throw AssertionError("expected mismatch failure but got $mismatched")
++        assertEquals(BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION, failure.error.code)
++    }
++
++    // ---------- old reader (source-backed fixture, NOT an executed old APK) ----------
++
++    @Test
++    fun `a schema v1 reader deterministically rejects a v2 backup before mutation`() {
++        val encoded = requireEncoded(payloadWith(settingsFor(ThemeColorSource.DYNAMIC, null)))
++        val envelopeVersion =
++            json.parseToJsonElement(String(encoded, Charsets.UTF_8))
++                .jsonObject.getValue("payloadSchemaVersion").jsonPrimitive.content.toInt()
++        assertEquals(EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION, envelopeVersion)
++
++        // Frozen replica of the released v1.7.1 version gate: only schema 1 was readable.
++        fun releasedV1ReaderGate(payloadSchemaVersion: Int): BackupCodecErrorCode? =
++            if (payloadSchemaVersion != 1) BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION else null
++
++        assertEquals(
++            BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION,
++            releasedV1ReaderGate(envelopeVersion)
++        )
++    }
++
++    // ---------- B2 settings mappings ----------
++
++    @Test
++    fun `B2 settings to UserSettings derives the canonical state for v1 and v2`() {
++        val v2Dynamic = settingsFor(ThemeColorSource.DYNAMIC, null).toUserSettings()
++        assertEquals(ThemeColorSource.DYNAMIC, v2Dynamic.themeColorSource)
++        assertNull(v2Dynamic.themePreset)
++        assertEquals(ColorTheme.DYNAMIC, v2Dynamic.colorTheme)
++
++        PresetPalette.entries.forEach { palette ->
++            val mapped = settingsFor(
++                ThemeColorSource.PRESET,
++                ThemePresetSelection.Preset(palette)
++            ).toUserSettings()
++            assertEquals(ThemeColorSource.PRESET, mapped.themeColorSource)
++            assertEquals(ThemePresetSelection.Preset(palette), mapped.themePreset)
++            assertEquals(ColorTheme.BUILTIN, mapped.colorTheme)
++        }
++
++        val legacyBuiltin = settingsFor(
++            ThemeColorSource.PRESET,
++            ThemePresetSelection.LegacyBuiltin
++        ).toUserSettings()
++        assertEquals(ThemePresetSelection.LegacyBuiltin, legacyBuiltin.themePreset)
++
++        // v1 payload (no canonical fields): BUILTIN -> LEGACY_BUILTIN, DYNAMIC -> DYNAMIC.
++        val v1Builtin = legacySettings("BUILTIN").toUserSettings()
++        assertEquals(ThemeColorSource.PRESET, v1Builtin.themeColorSource)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, v1Builtin.themePreset)
++        val v1Dynamic = legacySettings("DYNAMIC").toUserSettings()
++        assertEquals(ThemeColorSource.DYNAMIC, v1Dynamic.themeColorSource)
++        assertNull(v1Dynamic.themePreset)
++    }
++
++    @Test
++    fun `UserSettings toBackupSettings writes the canonical identity and the legacy projection`() {
++        val dynamic = UserSettings(themeColorSource = ThemeColorSource.DYNAMIC)
++        val dynamicBackup = dynamic.toBackupSettings()
++        assertEquals("DYNAMIC", dynamicBackup.themeColorSource)
++        assertNull(dynamicBackup.themePresetId)
++        assertEquals("DYNAMIC", dynamicBackup.colorTheme)
++
++        PresetPalette.entries.forEach { palette ->
++            val backup = UserSettings(
++                themeColorSource = ThemeColorSource.PRESET,
++                themePreset = ThemePresetSelection.Preset(palette)
++            ).toBackupSettings()
++            assertEquals("PRESET", backup.themeColorSource)
++            assertEquals(palette.name, backup.themePresetId)
++            assertEquals("BUILTIN", backup.colorTheme)
++        }
++
++        val legacyBackup = UserSettings(
++            themeColorSource = ThemeColorSource.PRESET,
++            themePreset = ThemePresetSelection.LegacyBuiltin
++        ).toBackupSettings()
++        assertEquals("PRESET", legacyBackup.themeColorSource)
++        assertEquals("LEGACY_BUILTIN", legacyBackup.themePresetId)
++        assertEquals("BUILTIN", legacyBackup.colorTheme)
++    }
++
++    // ---------- helpers ----------
++
++    private fun settingsFor(
++        source: ThemeColorSource,
++        preset: ThemePresetSelection?
++    ): BackupSettingsV1 = BackupSettingsV1(
++        bodyWeightKg = 55.0,
++        themeMode = "SYSTEM",
++        colorTheme = if (source == ThemeColorSource.DYNAMIC) "DYNAMIC" else "BUILTIN",
++        autoCheckUpdates = true,
++        timeFormat = "SYSTEM",
++        themeColorSource = source.name,
++        themePresetId = preset?.persistedId
++    )
++
++    private fun legacySettings(colorTheme: String): BackupSettingsV1 = BackupSettingsV1(
++        bodyWeightKg = 55.0,
++        themeMode = "SYSTEM",
++        colorTheme = colorTheme,
++        autoCheckUpdates = true,
++        timeFormat = "SYSTEM"
++    )
++
++    private fun payloadWith(settings: BackupSettingsV1): EvoluneBackupPayloadV1 =
++        EvoluneBackupPayloadV1(
++            medicationPlans = emptyList(),
++            scheduledDoseSlots = emptyList(),
++            doseEvents = emptyList(),
++            settings = settings
++        )
++
++    private fun requireEncoded(payload: EvoluneBackupPayloadV1): ByteArray =
++        when (
++            val result = EvoluneBackupCodec().encode(
++                payload,
++                passphrase.copyOf(),
++                BackupProducerMetadataV1(
++                    createdAt = "2026-08-23T22:10:00Z",
++                    producerAppVersionName = "test",
++                    producerAppVersionCode = 1
++                ),
++                100_000
++            )
++        ) {
++            is BackupEncodeResult.Success -> result.bytes
++            is BackupEncodeResult.Failure -> error("encode failed: ${result.error}")
++        }
++
++    private fun requireDecoded(bytes: ByteArray): EvoluneBackupPayloadV1 =
++        asSuccess(EvoluneBackupCodec().decodeAndValidate(bytes, passphrase.copyOf()))
++
++    private fun asSuccess(result: BackupDecodeResult): EvoluneBackupPayloadV1 =
++        when (result) {
++            is BackupDecodeResult.Success -> result.payload.payload
++            is BackupDecodeResult.Failure -> error("decode failed: ${result.error}")
++        }
++
++    /** Re-encrypts a crafted payload into the carrier envelope (helper keeps content honest). */
++    private fun decodeCrafted(payload: String, envelopeVersion: Int = 2): BackupDecodeResult {
++        var carrier = requireEncoded(payloadWith(settingsFor(ThemeColorSource.DYNAMIC, null)))
++        if (envelopeVersion != EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION) {
++            carrier = replaceEnvelopeField(
++                carrier,
++                "payloadSchemaVersion",
++                JsonPrimitive(envelopeVersion)
++            )
++        }
++        return EvoluneBackupCodec().decodeAndValidate(
++            BackupTamperTestSupport.replaceCiphertextWithPayload(
++                carrier,
++                passphrase.copyOf(),
++                payload
++            ),
++            passphrase.copyOf()
++        )
++    }
++
++    private fun replaceEnvelopeField(bytes: ByteArray, field: String, value: JsonElement): ByteArray {
++        val root = json.parseToJsonElement(String(bytes, Charsets.UTF_8)).jsonObject
++        val replaced = JsonObject(
++            root.mapValues { (key, current) -> if (key == field) value else current }
++        )
++        return json.encodeToString(JsonElement.serializer(), replaced).toByteArray(Charsets.UTF_8)
++    }
++
++    private fun payloadJson(payloadVersion: Int, settings: String): String = buildString {
++        append("{\"payloadSchemaVersion\":").append(payloadVersion).append(',')
++        append("\"medicationPlans\":[],\"scheduledDoseSlots\":[],\"doseEvents\":[],")
++        append("\"settings\":").append(settings).append('}')
++    }
++
++    private fun v2Settings(source: String, presetJson: String): String =
++        "{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"BUILTIN\"," +
++            "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\"," +
++            "\"themeColorSource\":\"$source\",\"themePresetId\":$presetJson}"
++
++    private fun legacySettingsJson(colorTheme: String, extraFields: String = ""): String =
++        "{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"$colorTheme\"," +
++            "${extraFields}\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\"}"
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodecTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodecTest.kt
+index 038ed96..c09342c 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodecTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodecTest.kt
+@@ -152,7 +152,7 @@ class EvoluneBackupCodecTest {
+             kdfIterations = EvoluneBackupFormat.DEFAULT_KDF_ITERATIONS
+         )
+ 
+-        assertEquals("5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9", sha256Hex(encoded))
++        assertEquals("0840d2940eb4ebd598ffdb1fc93106e035b077f60357889179bb9dc62b47c6b8", sha256Hex(encoded))
+     }
+ 
+     @Test
+@@ -249,7 +249,7 @@ class EvoluneBackupCodecTest {
+         )
+         assertFailure(
+             EvoluneBackupCodec().decodeAndValidate(
+-                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(2)),
++                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(3)),
+                 passphrase
+             ),
+             BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION
+@@ -417,7 +417,7 @@ class EvoluneBackupCodecTest {
+     fun `unknown root and nested payload fields are rejected`() {
+         val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
+         val unknownRoot = minimalPayloadJson(
+-            payloadPrefix = "\"payloadSchemaVersion\":1,\"unexpected\":true,"
++            payloadPrefix = "\"payloadSchemaVersion\":${EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION},\"unexpected\":true,"
+         )
+         val unknownNested = minimalPayloadJson(
+             plan = minimalPlanJson(fieldsPrefix = "\"unexpected\":true,")
+@@ -645,7 +645,9 @@ class EvoluneBackupCodecTest {
+                 themeMode = "DARK",
+                 colorTheme = "BUILTIN",
+                 autoCheckUpdates = false,
+-                timeFormat = "HOUR_24"
++                timeFormat = "HOUR_24",
++                themeColorSource = "PRESET",
++                themePresetId = "LEGACY_BUILTIN"
+             )
+         )
+ 
+@@ -760,10 +762,10 @@ class EvoluneBackupCodecTest {
+     }
+ 
+     private fun minimalPayloadJson(
+-        payloadPrefix: String = "\"payloadSchemaVersion\":1,",
++        payloadPrefix: String = "\"payloadSchemaVersion\":${EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION},",
+         plan: String = minimalPlanJson(),
+         event: String = minimalEventJson(),
+-        settings: String = minimalSettingsJson()
++        settings: String = minimalSettingsV2Json()
+     ): String =
+         "{$payloadPrefix\"medicationPlans\":[$plan],\"scheduledDoseSlots\":[" +
+             "{\"id\":\"$SLOT_ID\",\"planId\":\"$PLAN_ID\",\"localTime\":\"08:00\",\"position\":0}" +
+@@ -797,6 +799,29 @@ class EvoluneBackupCodecTest {
+         "{$fieldsPrefix\"bodyWeightKg\":$bodyWeightJson,\"themeMode\":\"DARK\"," +
+             "\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":false,\"timeFormat\":\"HOUR_24\"}"
+ 
++    private fun minimalSettingsV2Json(
++        fieldsPrefix: String = "",
++        bodyWeightJson: String = "55.0"
++    ): String =
++        "{$fieldsPrefix\"bodyWeightKg\":$bodyWeightJson,\"themeMode\":\"DARK\"," +
++            "\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":false,\"timeFormat\":\"HOUR_24\"," +
++            "\"themeColorSource\":\"PRESET\",\"themePresetId\":\"LEGACY_BUILTIN\"}"
++
++    /**
++     * v1.7.2: the carrier envelope is written as schema v2, so a crafted schema-v1 payload must
++     * also downgrade the envelope's version/authenticated header BEFORE the ciphertext is
++     * re-encrypted (the version is part of the AAD).
++     */
++    private fun replaceCiphertextWithPayloadV1(bytes: ByteArray, payload: String): ByteArray =
++        replaceCiphertextWithPayload(
++            replaceEnvelopeField(
++                bytes,
++                "payloadSchemaVersion",
++                JsonPrimitive(EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION_LEGACY)
++            ),
++            payload
++        )
++
+     private fun authenticatedHeaderJson(root: JsonObject): String =
+         json.encodeToString(
+             JsonElement.serializer(),
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/data/ThemeStateDerivationTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/data/ThemeStateDerivationTest.kt
+new file mode 100644
+index 0000000..cdbdcda
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/data/ThemeStateDerivationTest.kt
+@@ -0,0 +1,124 @@
++package io.github.yingqiu0871.evolune.data
++
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNull
++import org.junit.Test
++
++/**
++ * v1.7.2 Slice B — deterministic runtime theme-state derivation (local DataStore, NOT backup).
++ *
++ * Matrix under test:
++ * - legacy storage without new keys: DYNAMIC -> DYNAMIC; BUILTIN -> PRESET + LEGACY_BUILTIN
++ * - canonical DYNAMIC ignores stale preset ids
++ * - canonical PRESET uses a valid preset id; otherwise the deterministic ladder
++ *   (legacy BUILTIN -> LEGACY_BUILTIN, else MONET_TEAL)
++ * - malformed local values never crash and fall back deterministically
++ */
++class ThemeStateDerivationTest {
++
++    @Test
++    fun `legacy dynamic storage derives canonical dynamic`() {
++        val derived = deriveThemeState(
++            storedSource = null,
++            storedPresetId = null,
++            legacyColorTheme = "DYNAMIC"
++        )
++        assertEquals(ThemeColorSource.DYNAMIC, derived.source)
++        assertNull(derived.preset)
++    }
++
++    @Test
++    fun `legacy builtin storage derives preset legacy builtin and never monet teal`() {
++        val derived = deriveThemeState(
++            storedSource = null,
++            storedPresetId = null,
++            legacyColorTheme = "BUILTIN"
++        )
++        assertEquals(ThemeColorSource.PRESET, derived.source)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, derived.preset)
++    }
++
++    @Test
++    fun `missing or malformed legacy storage derives dynamic`() {
++        listOf(null, "", "MONET_TEAL", "UNKNOWN").forEach { legacy ->
++            val derived = deriveThemeState(null, null, legacy)
++            assertEquals("legacy=$legacy", ThemeColorSource.DYNAMIC, derived.source)
++            assertNull("legacy=$legacy", derived.preset)
++        }
++    }
++
++    @Test
++    fun `canonical dynamic ignores a stale preset id`() {
++        val derived = deriveThemeState(
++            storedSource = "DYNAMIC",
++            storedPresetId = "MONET_BLUE",
++            legacyColorTheme = "BUILTIN"
++        )
++        assertEquals(ThemeColorSource.DYNAMIC, derived.source)
++        assertNull(derived.preset)
++    }
++
++    @Test
++    fun `canonical preset resolves every valid identity`() {
++        PresetPalette.entries.forEach { palette ->
++            val derived = deriveThemeState("PRESET", palette.name, "BUILTIN")
++            assertEquals(ThemeColorSource.PRESET, derived.source)
++            assertEquals(ThemePresetSelection.Preset(palette), derived.preset)
++        }
++        val legacy = deriveThemeState(
++            "PRESET",
++            ThemePresetSelection.LEGACY_BUILTIN_ID,
++            "BUILTIN"
++        )
++        assertEquals(ThemePresetSelection.LegacyBuiltin, legacy.preset)
++    }
++
++    @Test
++    fun `canonical preset with invalid id uses the deterministic fallback ladder`() {
++        val withLegacyBuiltin = deriveThemeState("PRESET", "NOT_A_PRESET", "BUILTIN")
++        assertEquals(ThemeColorSource.PRESET, withLegacyBuiltin.source)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, withLegacyBuiltin.preset)
++
++        listOf(null, "", "NOT_A_PRESET", "DYNAMIC").forEach { invalidId ->
++            val fallback = deriveThemeState("PRESET", invalidId, "DYNAMIC")
++            assertEquals(ThemeColorSource.PRESET, fallback.source)
++            assertEquals(
++                "invalidId=$invalidId",
++                ThemePresetSelection.Preset(PresetPalette.MONET_TEAL),
++                fallback.preset
++            )
++        }
++    }
++
++    @Test
++    fun `invalid source with builtin legacy derives the exact legacy compatibility state`() {
++        val derived = deriveThemeState("NOT_A_SOURCE", "MONET_BLUE", "BUILTIN")
++        assertEquals(ThemeColorSource.PRESET, derived.source)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, derived.preset)
++    }
++
++    @Test
++    fun `legacy color theme projection mirrors the canonical source`() {
++        assertEquals(ColorTheme.DYNAMIC, ThemeColorSource.DYNAMIC.toLegacyColorTheme())
++        assertEquals(ColorTheme.BUILTIN, ThemeColorSource.PRESET.toLegacyColorTheme())
++    }
++
++    @Test
++    fun `preset selection persistence ids are the stable strings`() {
++        assertEquals("LEGACY_BUILTIN", ThemePresetSelection.LegacyBuiltin.persistedId)
++        PresetPalette.entries.forEach { palette ->
++            assertEquals(palette.name, ThemePresetSelection.Preset(palette).persistedId)
++        }
++        assertEquals(
++            ThemePresetSelection.LegacyBuiltin,
++            ThemePresetSelection.fromStored("LEGACY_BUILTIN")
++        )
++        assertEquals(
++            ThemePresetSelection.Preset(PresetPalette.MONET_SAKURA),
++            ThemePresetSelection.fromStored("MONET_SAKURA")
++        )
++        assertNull(ThemePresetSelection.fromStored("NOT_A_PRESET"))
++        assertNull(ThemePresetSelection.fromStored(null))
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/healthconnect/HealthConnectWeightSyncCoordinatorTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/healthconnect/HealthConnectWeightSyncCoordinatorTest.kt
+index 8747d82..8f07d88 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/healthconnect/HealthConnectWeightSyncCoordinatorTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/healthconnect/HealthConnectWeightSyncCoordinatorTest.kt
+@@ -2,7 +2,9 @@ package io.github.yingqiu0871.evolune.healthconnect
+ 
+ import io.github.yingqiu0871.evolune.data.ColorTheme
+ import io.github.yingqiu0871.evolune.data.SettingsStore
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.data.isValidBodyWeight
+@@ -440,6 +442,22 @@ private class FakeSettingsStore(
+         userSettings.value = userSettings.value.copy(colorTheme = theme)
+     }
+ 
++    override suspend fun updateThemeColorSource(source: ThemeColorSource) {
++        userSettings.value = userSettings.value.copy(
++            themeColorSource = source,
++            themePreset = if (source == ThemeColorSource.DYNAMIC) null else userSettings.value.themePreset,
++            colorTheme = if (source == ThemeColorSource.DYNAMIC) ColorTheme.DYNAMIC else ColorTheme.BUILTIN
++        )
++    }
++
++    override suspend fun updateThemePreset(selection: ThemePresetSelection) {
++        userSettings.value = userSettings.value.copy(
++            themeColorSource = ThemeColorSource.PRESET,
++            themePreset = selection,
++            colorTheme = ColorTheme.BUILTIN
++        )
++    }
++
+     override suspend fun updateAutoCheckUpdates(enabled: Boolean) {
+         userSettings.value = userSettings.value.copy(autoCheckUpdates = enabled)
+     }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+index efb1929..a3ba3c7 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+@@ -2,7 +2,9 @@ package io.github.yingqiu0871.evolune.history.retrospective
+ 
+ import io.github.yingqiu0871.evolune.data.ColorTheme
+ import io.github.yingqiu0871.evolune.data.SettingsStore
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
+ import io.github.yingqiu0871.evolune.data.ThemeMode
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+ import io.github.yingqiu0871.evolune.data.TimeFormat
+ import io.github.yingqiu0871.evolune.data.UserSettings
+ import io.github.yingqiu0871.evolune.experience.HistoricalProjection
+@@ -133,6 +135,8 @@ internal class FakeSettingsStore(
+ 
+     override suspend fun updateThemeMode(mode: ThemeMode) = Unit
+     override suspend fun updateColorTheme(theme: ColorTheme) = Unit
++    override suspend fun updateThemeColorSource(source: ThemeColorSource) = Unit
++    override suspend fun updateThemePreset(selection: ThemePresetSelection) = Unit
+     override suspend fun updateAutoCheckUpdates(enabled: Boolean) = Unit
+     override suspend fun updateTimeFormat(format: TimeFormat) = Unit
+     override suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean) = Unit
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/LegacyBuiltinContinuityTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/LegacyBuiltinContinuityTest.kt
+new file mode 100644
+index 0000000..fac2319
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/LegacyBuiltinContinuityTest.kt
+@@ -0,0 +1,108 @@
++package io.github.yingqiu0871.evolune.ui.theme
++
++import androidx.compose.material3.ColorScheme
++import androidx.compose.ui.graphics.Color
++import io.github.yingqiu0871.evolune.theme.palette.LegacyBuiltinTheme
++import io.github.yingqiu0871.evolune.theme.palette.LegacyThemeRole
++import org.junit.Assert.assertEquals
++import org.junit.Test
++
++/**
++ * v1.7.2 Slice B — LEGACY_BUILTIN continuity.
++ *
++ * Chain of proof:
++ * 1. Slice A `LegacyBuiltinSnapshotTest` pins the shared compatibility role values against
++ *    independent constants transcribed from the released v1.7.1 theme source;
++ * 2. before this slice deleted the old inline scheme definitions, `legacyBuiltinLightScheme()`
++ *    / `legacyBuiltinDarkScheme()` were verified role-by-role against the released
++ *    `lightScheme` / `darkScheme` (including AMOLED) — recorded in the slice-b evidence;
++ * 3. this committed test guards that every App scheme role is wired from the shared authority
++ *    exactly (no approximation, no MONET_TEAL substitution).
++ */
++class LegacyBuiltinContinuityTest {
++
++    private fun assertRolesFromMap(
++        scheme: ColorScheme,
++        roles: Map<LegacyThemeRole, Long>
++    ) {
++        fun expected(role: LegacyThemeRole): Color = Color(roles.getValue(role))
++        assertEquals("primary", expected(LegacyThemeRole.PRIMARY), scheme.primary)
++        assertEquals("onPrimary", expected(LegacyThemeRole.ON_PRIMARY), scheme.onPrimary)
++        assertEquals("primaryContainer", expected(LegacyThemeRole.PRIMARY_CONTAINER), scheme.primaryContainer)
++        assertEquals("onPrimaryContainer", expected(LegacyThemeRole.ON_PRIMARY_CONTAINER), scheme.onPrimaryContainer)
++        assertEquals("inversePrimary", expected(LegacyThemeRole.INVERSE_PRIMARY), scheme.inversePrimary)
++        assertEquals("secondary", expected(LegacyThemeRole.SECONDARY), scheme.secondary)
++        assertEquals("onSecondary", expected(LegacyThemeRole.ON_SECONDARY), scheme.onSecondary)
++        assertEquals("secondaryContainer", expected(LegacyThemeRole.SECONDARY_CONTAINER), scheme.secondaryContainer)
++        assertEquals("onSecondaryContainer", expected(LegacyThemeRole.ON_SECONDARY_CONTAINER), scheme.onSecondaryContainer)
++        assertEquals("tertiary", expected(LegacyThemeRole.TERTIARY), scheme.tertiary)
++        assertEquals("onTertiary", expected(LegacyThemeRole.ON_TERTIARY), scheme.onTertiary)
++        assertEquals("tertiaryContainer", expected(LegacyThemeRole.TERTIARY_CONTAINER), scheme.tertiaryContainer)
++        assertEquals("onTertiaryContainer", expected(LegacyThemeRole.ON_TERTIARY_CONTAINER), scheme.onTertiaryContainer)
++        assertEquals("background", expected(LegacyThemeRole.BACKGROUND), scheme.background)
++        assertEquals("onBackground", expected(LegacyThemeRole.ON_BACKGROUND), scheme.onBackground)
++        assertEquals("surface", expected(LegacyThemeRole.SURFACE), scheme.surface)
++        assertEquals("onSurface", expected(LegacyThemeRole.ON_SURFACE), scheme.onSurface)
++        assertEquals("surfaceVariant", expected(LegacyThemeRole.SURFACE_VARIANT), scheme.surfaceVariant)
++        assertEquals("onSurfaceVariant", expected(LegacyThemeRole.ON_SURFACE_VARIANT), scheme.onSurfaceVariant)
++        assertEquals("surfaceTint", expected(LegacyThemeRole.PRIMARY), scheme.surfaceTint)
++        assertEquals("inverseSurface", expected(LegacyThemeRole.INVERSE_SURFACE), scheme.inverseSurface)
++        assertEquals("inverseOnSurface", expected(LegacyThemeRole.INVERSE_ON_SURFACE), scheme.inverseOnSurface)
++        assertEquals("error", expected(LegacyThemeRole.ERROR), scheme.error)
++        assertEquals("onError", expected(LegacyThemeRole.ON_ERROR), scheme.onError)
++        assertEquals("errorContainer", expected(LegacyThemeRole.ERROR_CONTAINER), scheme.errorContainer)
++        assertEquals("onErrorContainer", expected(LegacyThemeRole.ON_ERROR_CONTAINER), scheme.onErrorContainer)
++        assertEquals("outline", expected(LegacyThemeRole.OUTLINE), scheme.outline)
++        assertEquals("outlineVariant", expected(LegacyThemeRole.OUTLINE_VARIANT), scheme.outlineVariant)
++        assertEquals("scrim", expected(LegacyThemeRole.SCRIM), scheme.scrim)
++        assertEquals("surfaceBright", expected(LegacyThemeRole.SURFACE_BRIGHT), scheme.surfaceBright)
++        assertEquals("surfaceDim", expected(LegacyThemeRole.SURFACE_DIM), scheme.surfaceDim)
++        assertEquals("surfaceContainer", expected(LegacyThemeRole.SURFACE_CONTAINER), scheme.surfaceContainer)
++        assertEquals("surfaceContainerHigh", expected(LegacyThemeRole.SURFACE_CONTAINER_HIGH), scheme.surfaceContainerHigh)
++        assertEquals("surfaceContainerHighest", expected(LegacyThemeRole.SURFACE_CONTAINER_HIGHEST), scheme.surfaceContainerHighest)
++        assertEquals("surfaceContainerLow", expected(LegacyThemeRole.SURFACE_CONTAINER_LOW), scheme.surfaceContainerLow)
++        assertEquals("surfaceContainerLowest", expected(LegacyThemeRole.SURFACE_CONTAINER_LOWEST), scheme.surfaceContainerLowest)
++    }
++
++    @Test
++    fun `legacy builtin light scheme is wired from the shared compatibility authority`() {
++        assertRolesFromMap(legacyBuiltinLightScheme(), LegacyBuiltinTheme.lightRoles)
++    }
++
++    @Test
++    fun `legacy builtin dark scheme is wired from the shared compatibility authority`() {
++        assertRolesFromMap(legacyBuiltinDarkScheme(), LegacyBuiltinTheme.darkRoles)
++    }
++
++    @Test
++    fun `legacy builtin amoled applies the exact frozen surface overrides`() {
++        val amoled = legacyBuiltinDarkScheme().withAmoledSurfaces()
++        LegacyBuiltinTheme.amoledSurfaceOverrides.forEach { (role, value) ->
++            val actual = when (role) {
++                LegacyThemeRole.BACKGROUND -> amoled.background
++                LegacyThemeRole.SURFACE -> amoled.surface
++                LegacyThemeRole.SURFACE_DIM -> amoled.surfaceDim
++                LegacyThemeRole.SURFACE_BRIGHT -> amoled.surfaceBright
++                LegacyThemeRole.SURFACE_CONTAINER_LOWEST -> amoled.surfaceContainerLowest
++                LegacyThemeRole.SURFACE_CONTAINER_LOW -> amoled.surfaceContainerLow
++                LegacyThemeRole.SURFACE_CONTAINER -> amoled.surfaceContainer
++                LegacyThemeRole.SURFACE_CONTAINER_HIGH -> amoled.surfaceContainerHigh
++                LegacyThemeRole.SURFACE_CONTAINER_HIGHEST -> amoled.surfaceContainerHighest
++                else -> error("unexpected AMOLED override role $role")
++            }
++            assertEquals("amoled $role", Color(value), actual)
++        }
++        // Non-surface semantics survive the AMOLED post-processing untouched.
++        assertEquals(
++            Color(LegacyBuiltinTheme.darkRoles.getValue(LegacyThemeRole.PRIMARY)),
++            amoled.primary
++        )
++    }
++
++    @Test
++    fun `legacy builtin scheme is built from the shared compatibility role authority`() {
++        assertEquals(35, LegacyBuiltinTheme.lightRoles.size)
++        assertEquals(35, LegacyBuiltinTheme.darkRoles.size)
++        assertEquals(9, LegacyBuiltinTheme.amoledSurfaceOverrides.size)
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemesTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemesTest.kt
+new file mode 100644
+index 0000000..ff2e8ba
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemesTest.kt
+@@ -0,0 +1,85 @@
++package io.github.yingqiu0871.evolune.ui.theme
++
++import androidx.compose.material3.ColorScheme
++import androidx.compose.ui.graphics.Color
++import io.github.yingqiu0871.evolune.theme.palette.PaletteCatalog
++import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertNotEquals
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++/**
++ * v1.7.2 Slice B — App Material preset schemes.
++ *
++ * Every preset builds a coherent light + dark scheme whose palette roles come from the shared
++ * catalog (no duplicated seed tables), with readable on-colors and the frozen §13 mapping.
++ */
++class PresetColorSchemesTest {
++
++    private fun assertCatalogRoles(scheme: ColorScheme, preset: PresetPalette, dark: Boolean) {
++        val seed = PaletteCatalog.seed(preset)
++        val mode = if (dark) "dark" else "light"
++        assertEquals("$preset/$mode primary", Color(if (dark) seed.darkPrimary else seed.lightPrimary), scheme.primary)
++        assertEquals("$preset/$mode secondary", Color(if (dark) seed.darkSecondary else seed.lightSecondary), scheme.secondary)
++        assertEquals("$preset/$mode tertiary", Color(if (dark) seed.darkTertiary else seed.lightTertiary), scheme.tertiary)
++        assertEquals("$preset/$mode primaryContainer", Color(if (dark) seed.darkContainer else seed.lightContainer), scheme.primaryContainer)
++        assertEquals("$preset/$mode surface", Color(if (dark) seed.darkSurface else seed.lightSurface), scheme.surface)
++        assertEquals("$preset/$mode background", Color(if (dark) seed.darkSurface else seed.lightSurface), scheme.background)
++        if (!dark) {
++            assertEquals("$preset/$mode onPrimaryContainer", Color(seed.lightOnContainer), scheme.onPrimaryContainer)
++        } else {
++            assertEquals("$preset/$mode onPrimaryContainer", Color.White, scheme.onPrimaryContainer)
++        }
++    }
++
++    private fun assertReadable(scheme: ColorScheme, preset: PresetPalette, dark: Boolean) {
++        val mode = if (dark) "dark" else "light"
++        listOf(
++            "primary" to (scheme.primary to scheme.onPrimary),
++            "secondary" to (scheme.secondary to scheme.onSecondary),
++            "tertiary" to (scheme.tertiary to scheme.onTertiary),
++            "secondaryContainer" to (scheme.secondaryContainer to scheme.onSecondaryContainer),
++            "tertiaryContainer" to (scheme.tertiaryContainer to scheme.onTertiaryContainer),
++            "surface" to (scheme.surface to scheme.onSurface),
++            "surfaceVariant" to (scheme.surfaceVariant to scheme.onSurfaceVariant)
++        ).forEach { (name, pair) ->
++            assertTrue(
++                "$preset/$mode $name contrast must be readable (was ${contrastRatio(pair.first, pair.second)})",
++                contrastRatio(pair.first, pair.second) >= 4.5
++            )
++        }
++    }
++
++    @Test
++    fun `every preset builds light and dark schemes from the shared catalog`() {
++        PresetPalette.entries.forEach { preset ->
++            val light = presetLightScheme(preset)
++            val dark = presetDarkScheme(preset)
++            assertCatalogRoles(light, preset, dark = false)
++            assertCatalogRoles(dark, preset, dark = true)
++            assertReadable(light, preset, dark = false)
++            assertReadable(dark, preset, dark = true)
++        }
++    }
++
++    @Test
++    fun `preset schemes differ across palettes in their core roles`() {
++        val lightPrimaries = PresetPalette.entries.map { presetLightScheme(it).primary }
++        assertEquals("preset primaries must be distinct", PresetPalette.entries.size, lightPrimaries.distinct().size)
++        val darkPrimaries = PresetPalette.entries.map { presetDarkScheme(it).primary }
++        assertEquals(PresetPalette.entries.size, darkPrimaries.distinct().size)
++        assertNotEquals(presetLightScheme(PresetPalette.MONET_BLUE), presetLightScheme(PresetPalette.MONET_TEAL))
++    }
++
++    @Test
++    fun `light and dark schemes for the same preset are distinct`() {
++        PresetPalette.entries.forEach { preset ->
++            assertNotEquals(
++                "preset $preset must not render identical light/dark schemes",
++                presetLightScheme(preset).primary,
++                presetDarkScheme(preset).primary
++            )
++        }
++    }
++}

@@ -1,0 +1,16 @@
+v1.7.2 Slice B — identity
+=========================
+
+Branch                 : feature/v1.7.2-settings-theme-history
+Starting HEAD          : 5acddc2d0206695a1b97d496a6140c239330ceb7
+                         (docs(v1.7.2): normalize slice A evidence encoding)
+Slice A implementation : 31447caae85baec08e9e79ac0b4a29cd486ab686 (frozen)
+Released baseline      : v1.7.1 @ 746fc0a970bf0dfb3735c9225ce662e9511514ae
+Worktree at start      : clean (git status --porcelain empty)
+`git diff --check`     : clean
+Slice A evidence       : frozen (path-scoped diff vs 5acddc2 = 0 files)
+
+Scope: App theme state (ThemeColorSource + preset identity + LEGACY_BUILTIN wiring) and the
+strict backup schema v2 for the Settings theme identity only. No Settings UI/flattening, no
+preset selector UI, no History change, no Wear, no version bump (still 1.7.1 / 101070100 /
+1101070100).

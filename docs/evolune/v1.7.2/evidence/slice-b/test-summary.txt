@@ -1,0 +1,40 @@
+v1.7.2 Slice B — test summary
+=============================
+
+All runs fresh (--rerun-tasks); counts below checked against the run's JUnit XML; per-suite
+machine-readable summaries under logs/ (junit-summary.txt, focused-summary.txt,
+device-summary.txt).
+
+Full app JVM
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm-full.log       summary: logs/junit-summary.txt
+  result : suites=147  tests=1387  failures=0  errors=0  skipped=0
+           (Slice A baseline 1360 + 27 new Slice-B tests)
+
+Focused Slice-B suites (7 filtered suites, one run)
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks --tests <7 classes>
+  log    : logs/slice-b-focused.log    summary: logs/focused-summary.txt
+  result : suites=7  tests=66  failures=0  errors=0  skipped=0
+  ThemeStateDerivationTest          :  9
+  PresetColorSchemesTest            :  3
+  LegacyBuiltinContinuityTest       :  4
+  ThemeTest                         :  2
+  BackupThemeSchemaV2Test           : 10
+  BackupRestoreCoordinatorTest      : 19
+  EvoluneBackupCodecTest            : 19
+
+Android instrumentation (Pixel_7 AVD API 35, emulator-5554)
+  command: :app:connectedDebugAndroidTest (3 affected classes)
+  log    : logs/device-tests.log       summary: logs/device-summary.txt
+  result : tests=14  failures=0  errors=0  skipped=0
+  ThemeStateDeviceTest 6 · ColorRoleConformanceTest 3 · SettingsCategoryScreenTest 5 —
+  real DataStore canonical writes/projection sync, legacy old-UI theme path through
+  EvoluneTheme, and unchanged Settings selector behavior on device.
+
+Debug build (fresh)
+  command: .\gradlew.bat :app:assembleDebug --rerun-tasks (38/38 executed; BUILD SUCCESSFUL)
+  log    : logs/app-debug-build.log
+
+Not run / not claimed: experience-core/Wear suites (untouched modules); full instrumentation
+suite rerun (only the affected theme/data/settings classes were run); physical-device
+acceptance (Slice E).

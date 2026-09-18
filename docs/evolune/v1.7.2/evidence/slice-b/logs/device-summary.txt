@@ -1,0 +1,9 @@
+v1.7.2 Slice B — device instrumentation summary (from connectedDebugAndroidTest XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Command: :app:connectedDebugAndroidTest (ThemeStateDeviceTest + ColorRoleConformanceTest + SettingsCategoryScreenTest)
+
+io.github.yingqiu0871.evolune.data.ThemeStateDeviceTest  tests=6 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest  tests=3 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest  tests=5 failures=0 errors=0 skipped=0
+
+TOTAL tests=14 failures=0 errors=0 skipped=0

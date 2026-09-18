@@ -1,0 +1,25 @@
+v1.7.2 Slice B — architecture guards and duplicate-authority scan
+=================================================================
+
+Guards:
+- PaletteArchitectureGuardTest (Slice A, unchanged, 3/3 green): theme.palette stays pure
+  Kotlin; widget consumes it one-way; no preset seed literals in the widget file.
+- ui/theme now imports theme.palette (PresetColorSchemes) and must not import widget — the
+  widget package is not referenced anywhere under ui/theme (path-scoped grep = 0).
+- Settings state lives only in the `settings` DataStore; no Widget SharedPreferences reference
+  exists in data/theme/backup code (grep = 0).
+- backup field sets are explicit constants (SETTINGS_FIELDS_V1 / SETTINGS_FIELDS_V2), never
+  permissive.
+
+Duplicate-authority scan (post-Slice-B):
+- MONET preset seed literals: still ONLY in theme/palette/PaletteCatalog.kt (88 seeds);
+  widget package = 0; ui/theme contains no preset seed table — the only teal-family overlaps
+  (3 distinct values, 14 occurrences) live inside the RETAINED dead medium/high-contrast
+  tables of Color.kt (dead before Slice B as well; classified P3, no cleanup performed);
+  tests contain the independent goldens (allowed); wear/ duplication unchanged and out of
+  scope.
+- Legacy built-in role values: the inline Theme.kt schemes and the 70 standard Color.kt
+  constants were REMOVED (0 references remain); the single live authority is
+  theme.palette.LegacyBuiltinTheme.
+- No second theme-state authority: no new DataStore, no mirrored mutable authority; IO state
+  is observed through the existing SettingsViewModel flow.

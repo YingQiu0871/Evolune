@@ -55,7 +55,17 @@ data class BackupSettingsV1(
     val themeMode: String,
     val colorTheme: String,
     val autoCheckUpdates: Boolean,
-    val timeFormat: String
+    val timeFormat: String,
+    /**
+     * v1.7.2 schema v2 canonical theme-color source ("DYNAMIC" / "PRESET"). Null in schema v1
+     * payloads; schema v2 always carries this key.
+     */
+    val themeColorSource: String? = null,
+    /**
+     * v1.7.2 schema v2 preset identity (a PresetPalette name or "LEGACY_BUILTIN"), or JSON null
+     * for DYNAMIC. Null in schema v1 payloads; schema v2 always carries this key.
+     */
+    val themePresetId: String? = null
 )
 
 data class BackupProducerMetadataV1(
@@ -132,7 +142,16 @@ sealed interface BackupDecodeResult {
 object EvoluneBackupFormat {
     const val MAGIC = "EVOLUNE_BACKUP"
     const val ENVELOPE_FORMAT_VERSION = 1
-    const val PAYLOAD_SCHEMA_VERSION = 1
+
+    /** Frozen schema-v1 payload version (the released v1.7.1 format). */
+    const val PAYLOAD_SCHEMA_VERSION_LEGACY = 1
+
+    /** Current schema version written by this code (v1.7.2: strict settings theme fields). */
+    const val PAYLOAD_SCHEMA_VERSION = 2
+
+    /** Reader support: exactly these two versions, nothing else. */
+    val SUPPORTED_PAYLOAD_SCHEMA_VERSIONS = setOf(PAYLOAD_SCHEMA_VERSION_LEGACY, PAYLOAD_SCHEMA_VERSION)
+
     const val ENCRYPTION_ALGORITHM = "AES-256-GCM"
     const val KDF_ALGORITHM = "PBKDF2-HMAC-SHA256"
     const val DEFAULT_KDF_ITERATIONS = 600_000

@@ -1,0 +1,30 @@
+v1.7.2 Slice B — restore atomicity and old-reader compatibility
+===============================================================
+
+Restore atomicity (unchanged architecture, extended identity):
+- prepareRestore = download -> codec decode+validate -> preview; NO persistence mutation
+  (asserted: zero room reads/writes, zero settings writes, zero refresh on every failure path,
+  including the new invalid-v2 test);
+- confirmRestore -> B2RestoreTransaction -> journal -> Room transaction -> ONE
+  `replaceSettings` edit -> postcondition -> commit;
+- `replaceSettings` now writes weight/mode/projection/source/preset/autoCheck/timeFormat in a
+  single DataStore edit (ThemeStateDeviceTest verifies the read-back identity atomically);
+- rollback/journal paths use the existing before-settings snapshot (BackupSettingsV1) and are
+  unchanged.
+
+Old-reader / new-backup direction (source-backed fixture, NOT an executed old APK):
+- v1.7.2 writes schema v2; the released v1.7.1 reader gate accepted only schema 1.
+- Test `a schema v1 reader deterministically rejects a v2 backup before mutation`
+  (BackupThemeSchemaV2Test) extracts the encoded envelope's payloadSchemaVersion (== 2) and
+  runs a frozen replica of the released reader gate
+  (`if (version != 1) UNSUPPORTED_PAYLOAD_VERSION`), asserting the deterministic rejection.
+- Additionally the reader's own gate rejects version 3 and envelope/payload mismatches with
+  UNSUPPORTED_PAYLOAD_VERSION (asserted).
+- Honest limitation recorded: this is a logic-equivalent fixture of the released gate, not an
+  execution of the released APK.
+
+Old-backup compatibility:
+- crafted/representative schema v1 payloads still decode (exact v1 parser) with null canonical
+  fields; the restore mapping derives DYNAMIC or PRESET + LEGACY_BUILTIN deterministically;
+- a v1 payload with an added v2 key is rejected with the frozen v1 classification
+  MALFORMED_PAYLOAD (documented decision, see backup-schema-v1.txt).

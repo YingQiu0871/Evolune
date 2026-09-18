@@ -179,10 +179,12 @@ class MainActivity : ComponentActivity() {
                 )
             }
             
-            // 应用主题
+            // 应用主题（v1.7.2：规范主题状态；colorTheme 仅作兼容投影）
             EvoluneTheme(
                 themeMode = userSettings.themeMode,
-                colorTheme = userSettings.colorTheme
+                colorTheme = userSettings.colorTheme,
+                colorSource = userSettings.themeColorSource,
+                preset = userSettings.themePreset
             ) {
                 val windowBackgroundColor = MaterialTheme.colorScheme.background
                 SideEffect {

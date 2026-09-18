@@ -1,13 +1,14 @@
 # Evolune v1.7.2 — Implementation Plan
 
-Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A IMPLEMENTED / REVIEW PENDING; Slice B NOT
-STARTED. Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
+Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A CLOSED / FROZEN (incl. the evidence
+encoding correction 5acddc2); Slice B IMPLEMENTED / REVIEW PENDING; Slice C NOT STARTED.
+Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
 `V172_INVENTORY.md`. One commit per slice; each slice is independently reviewable and
 revertable. No version bump in the implementation phase.
 
 ---
 
-## Slice A — Shared palette catalog + widget golden protection — IMPLEMENTED / REVIEW PENDING
+## Slice A — Shared palette catalog + widget golden protection — CLOSED / FROZEN
 
 Goal: create ONE token authority for the 8 presets without changing any behavior or persisted
 identity.
@@ -38,10 +39,32 @@ Actual implementation (commit `refactor(theme): centralize palette definitions`)
   `ui/theme/Color.kt` remain until Slice B connects `LEGACY_BUILTIN` to the theme wiring; this
   is the only allowed duplication and it is not a MONET authority.
 
-## Slice B — App Material theme preset support
+## Slice B — App Material theme preset support — IMPLEMENTED / REVIEW PENDING
 
 Goal: `ThemeColorSource {DYNAMIC, PRESET}` + `PresetPalette` selection driving the App theme,
 with exact legacy preservation and full backup round-trip.
+
+Actual implementation (commit `feat(theme): add preset theme state and backup v2`):
+- NEW `data/ThemeState.kt`: `ThemeColorSource`, `ThemePresetSelection` (Preset/LegacyBuiltin,
+  persisted ids = palette names / `LEGACY_BUILTIN`), pure `deriveThemeState` runtime matrix.
+- `SettingsDataStore`: keys `theme_color_source` + `theme_preset_id`, atomic writers keeping
+  the legacy `color_theme` projection in sync, extended `replaceSettings`; `SettingsViewModel`
+  gained `updateThemeColorSource`/`updateThemePreset` (old `updateColorTheme` maps to both).
+- `ui/theme/PresetColorSchemes.kt`: preset light/dark builders from the shared catalog +
+  legacy built-in builders from `LegacyBuiltinTheme`; `EvoluneTheme(themeMode, colorTheme,
+  colorSource, preset, content)` with the legacy `colorTheme` param retained as a pre-Slice-C
+  compatibility projection; old inline `lightScheme`/`darkScheme` + the 70 standard Color.kt
+  constants removed after a pre-deletion role-by-role continuity run.
+- Backup: schema v2 constants + strict `SETTINGS_FIELDS_V2`, v1 frozen parser, dual-version
+  reading with envelope/payload equality, canonical v2 writer (always emits both keys; legacy
+  inputs canonicalized), B2 `toUserSettings`/`toBackupSettings` derive/write the canonical
+  identity + coherent projection.
+- Decision records: v1 extra-key classification stays MALFORMED_PAYLOAD (frozen); v2
+  settings violations are INVALID_PAYLOAD; no payload-internal cross-field rule (new fields
+  authoritative, projection repaired on restore).
+- Verification: full app JVM 147 suites / 1387 tests / 0 failures; device 14/14; debug build
+  38/38 + AVD smoke (DYNAMIC default + legacy BUILTIN path live). Evidence:
+  `docs/evolune/v1.7.2/evidence/slice-b/`.
 
 - `SettingsDataStore.kt` (or adjacent): `ThemeColorSource` enum; new keys
   `theme_color_source`, `theme_preset_id`; read precedence per contract §10/§11 (legacy

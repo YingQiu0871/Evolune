@@ -338,13 +338,19 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
     `V172_IMPLEMENTATION_PLAN.md`；两轮修正（LEGACY_BUILTIN 精确保全、backup v2 严格化），
     final review **APPROVE V1.7.2 FINAL CONTRACT**）。
-  - v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **IMPLEMENTED / REVIEW PENDING**
-    （纯 Kotlin `theme/palette/`（PresetPalette / PaletteSeed / PaletteCatalog /
-    LegacyBuiltinTheme）；widget 委派、输出零变化（pre/post 金标 5/5 + 2/2，176 ARGB 全等）；
-    legacy BUILTIN vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、dark 14/20 不匹配）；full
-    app JVM 1360/0（+17）；widget 仪器 12/12；evidence
+  - v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **CLOSED / FROZEN**（implementation
+    @ `31447caae85baec08e9e79ac0b4a29cd486ab686`；evidence encoding correction @
+    `5acddc2d0206695a1b97d496a6140c239330ceb7`；纯 Kotlin `theme/palette/`；widget 委派零变化
+    （pre/post 金标 5/5 + 2/2）；legacy BUILTIN vs MONET_TEAL **DISPROVED**；evidence
     `docs/evolune/v1.7.2/evidence/slice-a/`）。
-  - **NEXT:** **v1.7.2 Slice A review**（通过后开始 Slice B）。
+  - v1.7.2 Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— **IMPLEMENTED /
+    REVIEW PENDING**（`ThemeColorSource`/`ThemePresetSelection` + DataStore
+    `theme_color_source`/`theme_preset_id`（legacy `color_theme` 兼容投影原子同步）；
+    EvoluneTheme 消费规范状态，8 预设 Material 方案 + LEGACY_BUILTIN 精确复刻（删除前逐角色
+    对照）；backup 严格 v2 + v1 冻结兼容 + 无效 payload 零变更；full app JVM
+    147 suites/1387/0（+27）；设备测试 14/14；evidence
+    `docs/evolune/v1.7.2/evidence/slice-b/`）。
+  - **NEXT:** **v1.7.2 Slice B review**（通过后开始 Slice C）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

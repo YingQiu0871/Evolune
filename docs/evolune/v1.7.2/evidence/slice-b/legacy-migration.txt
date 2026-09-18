@@ -1,0 +1,23 @@
+v1.7.2 Slice B — legacy migration (existing v1.7.1 users, no visual change)
+===========================================================================
+
+Mechanism (documented per contract): NO physical migration write is performed on upgrade.
+The runtime derivation reads the legacy `color_theme` key when the canonical keys are absent:
+
+  legacy color_theme = DYNAMIC -> canonical DYNAMIC                -> dynamic color path
+                                                                     (v1.7.1 behavior)
+  legacy color_theme = BUILTIN -> canonical PRESET + LEGACY_BUILTIN -> exact v1.7.1 built-in
+                                                                     scheme (see continuity)
+
+The first canonical write (old UI or, in Slice C, the new selector) atomically writes
+`theme_color_source` + `theme_preset_id` + the legacy projection, after which the canonical
+keys are authoritative.
+
+Evidence:
+- pure derivation matrix: ThemeStateDerivationTest (9/9) — legacy DYNAMIC/BUILTIN, malformed
+  values, stale preset with DYNAMIC, invalid preset ladder;
+- real DataStore round-trips: ThemeStateDeviceTest 6/6 on device (canonical writes, legacy
+  projection sync, replaceSettings atomic identity);
+- old UI mapping: updateColorTheme(DYNAMIC) -> canonical DYNAMIC; updateColorTheme(BUILTIN)
+  -> canonical PRESET + LEGACY_BUILTIN (device test + smoke screenshot 02);
+- MONET_TEAL is never selected by the legacy migration path (asserted in the derivation test).

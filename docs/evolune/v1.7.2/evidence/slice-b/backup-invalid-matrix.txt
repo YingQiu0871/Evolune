@@ -1,0 +1,27 @@
+v1.7.2 Slice B — backup invalid matrix and zero-mutation proof
+==============================================================
+
+Test: BackupThemeSchemaV2Test (JVM) + BackupRestoreCoordinatorTest (JVM, 19/19).
+
+INVALID v2 settings (each -> INVALID_PAYLOAD; no silent fallback to another theme):
+  missing themeColorSource key
+  missing themePresetId key
+  extra unexpected settings key
+  unknown themeColorSource ("AUTO")
+  DYNAMIC + non-null preset
+  PRESET + null preset
+  PRESET + unknown preset id
+  (plus, by construction: unsupported payload schema version -> UNSUPPORTED_PAYLOAD_VERSION;
+   unknown root/nested fields -> MALFORMED_PAYLOAD; duplicate keys -> MALFORMED_PAYLOAD)
+
+Zero-mutation proof (restore path, BackupRestoreCoordinatorTest
+`invalid schema v2 theme payload fails before any settings or room mutation`):
+  crafted v2 payload (structurally valid, PRESET + unknown preset) is re-encrypted into a
+  valid carrier envelope (BackupTamperTestSupport) and fed to the real coordinator:
+    prepareRestore -> Failure INVALID_OR_CORRUPT_BACKUP (codec INVALID_PAYLOAD)
+    roomReads = 0 ; replaceRoomCalls = 0 ; replaceSettingsCalls = 0 ; refreshCalls = 0
+  i.e. the entire decode+validate happens BEFORE any settings/room access; no partial write.
+
+Widget preferences: the restore path touches only the `settings` DataStore and Room through
+RestorePersistence; widget SharedPreferences are not referenced by any backup/restore code
+(pre-existing architecture; unchanged).

@@ -1,0 +1,24 @@
+v1.7.2 Slice B — backup schema v1 (frozen) / version gate
+=========================================================
+
+Version constants (EvoluneBackupV1.kt):
+  PAYLOAD_SCHEMA_VERSION_LEGACY = 1   (released v1.7.1 format, parsing frozen)
+  PAYLOAD_SCHEMA_VERSION        = 2   (everything written by this code)
+  SUPPORTED_PAYLOAD_SCHEMA_VERSIONS = {1, 2}   (reader support; nothing else)
+
+Schema v1 rules (unchanged from the released v1.7.1 behavior):
+- settings exact field set = bodyWeightKg, themeMode, colorTheme, autoCheckUpdates,
+  timeFormat (SETTINGS_FIELDS_V1). No new keys accepted; no interpretation of v2 keys.
+- exact-set violation keeps the released classification MALFORMED_PAYLOAD (frozen behavior;
+  the task note suggesting INVALID_PAYLOAD for a v2 key added to a v1 payload is superseded
+  by the frozen v1 parser contract — recorded decision).
+- after a valid v1 decode the canonical identity is uniquely DERIVED at the restore mapping:
+  colorTheme DYNAMIC -> DYNAMIC; colorTheme BUILTIN -> PRESET + LEGACY_BUILTIN. MONET_TEAL is
+  never inferred.
+
+Version gate:
+- envelope `payloadSchemaVersion` must be in {1, 2};
+- the payload's own `payloadSchemaVersion` must be in {1, 2} AND exactly equal to the
+  envelope's value;
+- any violation -> UNSUPPORTED_PAYLOAD_VERSION before domain parsing (and before any
+  persistence access on the restore path).

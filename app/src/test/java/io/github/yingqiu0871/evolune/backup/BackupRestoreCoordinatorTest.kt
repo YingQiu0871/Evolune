@@ -272,6 +272,31 @@ class BackupRestoreCoordinatorTest {
     }
 
     @Test
+    fun `invalid schema v2 theme payload fails before any settings or room mutation`() = runBlocking {
+        val fixture = Fixture()
+        fixture.provider.uploadedBytes = BackupTamperTestSupport.replaceCiphertextWithPayload(
+            fixture.encodedBackup(),
+            "secret".toCharArray(),
+            invalidV2ThemePayload()
+        )
+
+        val result = fixture.coordinator.prepareRestore(
+            fixture.provider.generation,
+            "secret".toCharArray()
+        )
+
+        assertTrue(result.toString(), result is RestorePreparationResult.Failure)
+        assertEquals(
+            BackupRestoreErrorCode.INVALID_OR_CORRUPT_BACKUP,
+            (result as RestorePreparationResult.Failure).error.code
+        )
+        assertEquals(0, fixture.persistence.roomReads)
+        assertEquals(0, fixture.persistence.replaceRoomCalls)
+        assertEquals(0, fixture.persistence.replaceSettingsCalls)
+        assertEquals(0, fixture.refreshCalls)
+    }
+
+    @Test
     fun `snapshot preserves dangling event slot and all backup settings`() = runBlocking {
         val fixture = Fixture()
         val expected = samplePayload().copy(
@@ -568,6 +593,29 @@ class BackupRestoreCoordinatorTest {
     }
 
     companion object {
+        /** Structurally valid schema v2 payload with an unknown preset id (validation must fail). */
+        private fun invalidV2ThemePayload(): String = buildString {
+            append("{\"payloadSchemaVersion\":2,")
+            append("\"medicationPlans\":[")
+            append("{\"id\":\"00000000-0000-0000-0000-000000000001\",\"name\":\"Plan\",")
+            append("\"route\":\"ORAL\",\"ester\":\"E2\",\"doseMG\":2.0,\"scheduleType\":\"DAILY\",")
+            append("\"daysOfWeek\":[],\"intervalDays\":1,\"isEnabled\":true,\"extras\":{},")
+            append("\"createdAt\":\"2026-01-01T00:00:00Z\"}],")
+            append("\"scheduledDoseSlots\":[")
+            append("{\"id\":\"00000000-0000-0000-0000-000000000002\",")
+            append("\"planId\":\"00000000-0000-0000-0000-000000000001\",")
+            append("\"localTime\":\"08:00\",\"position\":0}],")
+            append("\"doseEvents\":[")
+            append("{\"id\":\"00000000-0000-0000-0000-000000000003\",\"route\":\"ORAL\",")
+            append("\"occurredAt\":\"2026-01-01T08:00:00Z\",\"zoneId\":\"UTC\",")
+            append("\"localDate\":\"2026-01-01\",\"doseMG\":2.0,\"ester\":\"E2\",\"extras\":{},")
+            append("\"slotId\":\"00000000-0000-0000-0000-000000000002\",\"source\":\"MANUAL\",")
+            append("\"status\":\"RECORDED\",\"revision\":1}],")
+            append("\"settings\":{\"bodyWeightKg\":55.0,\"themeMode\":\"SYSTEM\",")
+            append("\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",")
+            append("\"themeColorSource\":\"PRESET\",\"themePresetId\":\"NOT_A_PRESET\"}}")
+        }
+
         private fun samplePayload() = EvoluneBackupPayloadV1(
             medicationPlans = listOf(
                 BackupMedicationPlanV1(

@@ -1,0 +1,35 @@
+v1.7.2 Slice B — backup schema v2 (strict)
+==========================================
+
+Settings field set:
+  V2 = V1 (bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat)
+     + themeColorSource + themePresetId
+
+Strictness (guard preserved, not weakened):
+- exact key-set equality for the v2 settings object; unknown extra key OR missing required
+  key -> INVALID_PAYLOAD ("settings"); the parse-side violation uses a dedicated exception and
+  never loosens v1 classification;
+- every other payload object keeps its exact field set;
+- no allowed-set validation anywhere; no field absence as state.
+
+Canonical v2 serialization (always written):
+  DYNAMIC                -> themeColorSource="DYNAMIC", themePresetId=null, colorTheme=DYNAMIC
+  PRESET + MONET_*       -> themeColorSource="PRESET", themePresetId=<stable id>,
+                            colorTheme=BUILTIN
+  PRESET + LEGACY_BUILTIN-> themeColorSource="PRESET", themePresetId="LEGACY_BUILTIN",
+                            colorTheme=BUILTIN
+- `themePresetId` uses the codec's canonical JSON-null convention (present key, JSON null);
+- a hand-built payload without explicit canonical fields is canonicalized deterministically
+  (DYNAMIC -> DYNAMIC/null; otherwise valid legacy -> PRESET + LEGACY_BUILTIN) BEFORE
+  validation and encryption, so a written v2 backup can never omit the identity;
+- envelope/payload version both = 2; canonical AAD header unchanged (only the version value).
+
+Cross-field consistency policy (recorded decision, audited against the frozen contract):
+- the frozen contract declares themeColorSource/themePresetId AUTHORITATIVE and colorTheme
+  compatibility metadata only; it does NOT require payload-internal cross-field equality
+  (the default parse carries legacy-shaped inputs through encoder canonicalization, so a
+  written v2 payload is always canonically consistent);
+- therefore NO cross-field rejection rule is added. A theoretically crafted inconsistent v2
+  payload (e.g. PRESET + MONET_BLUE + colorTheme DYNAMIC) restores PRESET + MONET_BLUE — the
+  new fields are used, and the persisted legacy projection is repaired to BUILTIN on restore
+  (never silently rewriting the payload's explicit identity).

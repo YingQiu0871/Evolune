@@ -1,0 +1,24 @@
+v1.7.2 Slice B — duplicate-authority scan (commands and results)
+================================================================
+
+1. ui/theme -> widget references
+   git grep -n "evolune.widget" -- app/src/main/.../ui/theme        => 0 matches
+2. Widget SharedPreferences in App settings/backup code
+   git grep -n "widget_appearance\|getSharedPreferences" -- app/src/main/.../data
+                                                           app/src/main/.../backup
+                                                                    => 0 matches
+3. Removed inline legacy schemes
+   git grep -n "val lightScheme\|val darkScheme" -- app/src/main    => 0 matches
+   git grep -n "val primaryLight = " -- app/src/main                => 0 matches
+4. Preset seed sentinels in the widget package
+   git grep -n "<8 preset light-primary seeds>" -- app/src/main/.../widget => 0 matches
+5. Preset seed literals in ui/theme
+   scan of all 88 PaletteCatalog seeds against ui/theme/*.kt:
+     hits = 3 distinct values (0xFF0E1514, 0xFF81D5CD, 0xFFF4FBF9), 14 occurrences, ALL in
+     Color.kt's retained dead medium/high-contrast tables — classification: dead legacy
+     contrast constants (P3), NOT a live preset authority; no preset table exists in ui/theme.
+6. Wear duplication: unchanged, explicitly out of scope for v1.7.2.
+
+Conclusion: exactly one live MONET authority (theme.palette.PaletteCatalog) and exactly one
+live legacy built-in authority (theme.palette.LegacyBuiltinTheme). No duplicate canonical
+Settings authority (single `settings` DataStore, single SettingsStore interface).

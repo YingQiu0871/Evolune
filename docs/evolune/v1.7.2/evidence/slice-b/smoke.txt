@@ -1,0 +1,19 @@
+v1.7.2 Slice B — emulator smoke
+===============================
+
+Device: Pixel_7 AVD API 35 (emulator-5554), fresh onboarding completed on the AVD.
+
+1. Debug build (38/38) + install -r + launch:
+   result: launched; process alive (pid 5981); device metadata 1.7.1-debug / 101070100.
+   Screenshot: screenshots/01-dynamic-default.png (default DYNAMIC path renders; no restart).
+2. Legacy BUILTIN compatibility path exercised through the EXISTING (pre-Slice-C) UI:
+   Settings -> 外观与格式 -> 内置配色 selected.
+   result: theme applied live; process pid unchanged (no crash/restart); the screen renders
+   the legacy built-in teal palette.
+   Screenshot: screenshots/02-legacy-builtin-applied.png
+3. Canonical state correctness for this flow is covered by ThemeStateDeviceTest (old-UI
+   BUILTIN -> canonical PRESET + LEGACY_BUILTIN) — the smoke only proves the on-screen path
+   works end-to-end.
+
+This is a behavior-neutral slice smoke, NOT the v1.7.2 feature acceptance (Slice C adds the
+preset selector UI; Slice E performs device acceptance).

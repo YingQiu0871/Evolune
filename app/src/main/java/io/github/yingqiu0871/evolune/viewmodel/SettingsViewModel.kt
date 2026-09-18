@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import android.util.Log
 import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.SettingsStore
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProvider
@@ -157,11 +159,29 @@ class SettingsViewModel(
     }
 
     /**
-     * 更新颜色主题
+     * 更新颜色主题（v1.7.1 兼容入口）：映射到 v1.7.2 规范主题状态。
      */
     fun updateColorTheme(theme: ColorTheme) {
         scope.launch {
             settingsDataStore.updateColorTheme(theme)
+        }
+    }
+
+    /**
+     * 更新 v1.7.2 规范主题来源（DYNAMIC / PRESET）。
+     */
+    fun updateThemeColorSource(source: ThemeColorSource) {
+        scope.launch {
+            settingsDataStore.updateThemeColorSource(source)
+        }
+    }
+
+    /**
+     * 更新 v1.7.2 预设选择（8 个 MONET 预设或 LEGACY_BUILTIN 兼容身份）。
+     */
+    fun updateThemePreset(selection: ThemePresetSelection) {
+        scope.launch {
+            settingsDataStore.updateThemePreset(selection)
         }
     }
 

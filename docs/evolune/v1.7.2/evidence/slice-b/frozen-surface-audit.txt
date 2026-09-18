@@ -1,0 +1,25 @@
+v1.7.2 Slice B — frozen-surface audit
+=====================================
+
+Path-scoped diff vs Slice-B parent 5acddc2 (production focus):
+
+  app/src/main/.../ui/screens/SettingsScreen.kt, SettingsScreen routes, Settings flattening
+      (AppNavigation settings rows / route table)                     => 0 files
+  History UI / history matching / occurrence generation              => 0 files
+  Room / schema / DAOs / migrations                                  => 0 files
+  Timeline / Insights / retrospective PK                             => 0 files
+  Widget behavior / identity / layout / rendering                    => 0 files
+  Wear module                                                        => 0 files
+  Health Connect behavior                                            => 0 files
+  Drive workflow (provider/gateway/UI)                               => 0 files
+  build.gradle.kts / gradle / version metadata                       => 0 files
+  docs/evolune/v1.7/evidence/** (v1.7.0/v1.7.1 frozen evidence)      => 0 files
+  docs/evolune/v1.7.1/evidence/** (frozen)                           => 0 files
+  docs/evolune/v1.7.2/evidence/slice-a/** (frozen)                   => 0 files
+
+Backup codec scope: ONLY the contracted Settings theme portion + payload schema version
+changed (EvoluneBackupV1.kt, EvoluneBackupCodec.kt settings/parse/serialize, B2RestoreProtocol
+mappings). Medication payload serialization (plans/slots/events) is byte-identical by
+construction and covered by existing round-trip tests; no encryption/passphrase/Drive change.
+
+Version metadata remains 1.7.1 / Phone 101070100 / Wear 1101070100.

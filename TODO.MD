@@ -247,16 +247,26 @@
       final review **APPROVE V1.7.2 FINAL CONTRACT**；packets
       `v172-contract-candidate.txt` / `v172-contract-correction.txt` /
       `v172-contract-final-correction.txt`；版本仍 1.7.1）。
-- [x] v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **IMPLEMENTED / REVIEW PENDING**
-      （`refactor(theme): centralize palette definitions`；新增纯 Kotlin 权威
-      `theme/palette/`（PresetPalette / PaletteSeed / PaletteCatalog / LegacyBuiltinTheme）；
-      widget 委派共享权威、输出零变化（pre/post 金标一致：identity 5/5、tokens 2/2，176 个
-      ARGB 值逐一相等）；legacy BUILTIN vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、
-      dark 14/20 不匹配；dark tertiary `0xFFAFC9E7` vs `0xFFB2C8E8`）；full app JVM
-      1360/0（+17）；widget 仪器 smoke 12/12；evidence
-      `docs/evolune/v1.7.2/evidence/slice-a/`；packet
-      `review-packets/v172-slice-a-candidate.txt`）。
-- [ ] NEXT：**v1.7.2 Slice A review**（通过后方可开始 Slice B：App 主题预设支持 + backup v2）。
+- [x] v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **CLOSED / FROZEN**
+      （implementation `refactor(theme): centralize palette definitions` @
+      `31447caae85baec08e9e79ac0b4a29cd486ab686`；evidence encoding correction
+      `docs(v1.7.2): normalize slice A evidence encoding` @
+      `5acddc2d0206695a1b97d496a6140c239330ceb7`；新增纯 Kotlin 权威 `theme/palette/`；
+      widget 委派零输出变化（pre/post 金标 5/5 + 2/2，176 ARGB 全等）；legacy BUILTIN vs
+      MONET_TEAL 等价性 **DISPROVED**；evidence
+      `docs/evolune/v1.7.2/evidence/slice-a/`；packets
+      `v172-slice-a-candidate.txt` + `v172-slice-a-evidence-correction.txt`）。
+- [x] v1.7.2 Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— **IMPLEMENTED /
+      REVIEW PENDING**（`feat(theme): add preset theme state and backup v2`；新增
+      `ThemeColorSource` / `ThemePresetSelection`（data/ThemeState.kt）+ 规范 DataStore 键
+      `theme_color_source` / `theme_preset_id`（legacy `color_theme` 仅作兼容投影、原子同步）；
+      EvoluneTheme 消费规范状态：DYNAMIC 不变、8 个 MONET 预设由共享目录构建 Material 明暗方案、
+      LEGACY_BUILTIN 精确复刻 v1.7.1 内置方案（删除旧 inline scheme + Color.kt 标准常量，删除前
+      已做逐角色对照）；backup schema v2 严格精确字段集 + 双向版本门 + v1 冻结兼容 + 无效 payload
+      `INVALID_PAYLOAD` 零变更；legacy BUILTIN → LEGACY_BUILTIN（不映射 MONET_TEAL）；full app
+      JVM 147 suites/1387/0（+27）；设备测试 14/14；evidence
+      `docs/evolune/v1.7.2/evidence/slice-b/`；packet `v172-slice-b-candidate.txt`）。
+- [ ] NEXT：**v1.7.2 Slice B review**（通过后方可开始 Slice C：Settings 扁平化 + 配色选择 UI）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

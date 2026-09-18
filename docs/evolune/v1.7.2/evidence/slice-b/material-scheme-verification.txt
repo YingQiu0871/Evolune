@@ -1,0 +1,29 @@
+v1.7.2 Slice B — App Material preset schemes
+============================================
+
+Implementation: ui/theme/PresetColorSchemes.kt (consumes theme.palette only; no widget import).
+
+For each of the 8 PresetPalette values the App builds light AND dark Material ColorSchemes
+from the shared PaletteCatalog seeds with the frozen §13 role mapping:
+  primary/onPrimary(contrastOn) · primaryContainer/onPrimaryContainer(seed on-container; dark
+  white per widget convention) · secondary/tertiary + contrastOn · secondaryContainer/
+  tertiaryContainer = 12% seed over surface + contrastOn · background/surface/onSurface (fixed
+  light 0xFF1F1D20 / dark 0xFFF2EFF4) · surfaceVariant = 8% primary over surface ·
+  onSurfaceVariant fixed (0xFF4C464E / 0xFFCDC5D3) · outline/outlineVariant · error fixed
+  constants. Roles outside the frozen table keep Material's fixed baseline defaults.
+
+Verification (PresetColorSchemesTest 3/3, JVM):
+  - every preset builds light + dark schemes whose core roles equal the shared catalog seeds
+    (identity check for all 8 x 2);
+  - text-role contrast >= 4.5:1 for primary/secondary/tertiary/secondaryContainer/
+    tertiaryContainer/surface/surfaceVariant pairs (all presets, both modes);
+  - preset primaries are distinct across palettes; light != dark per preset.
+
+No duplicated seed table: ui/theme contains ZERO preset seed literals (guarded by
+PaletteArchitectureGuardTest's widget-side check; app-wide scan in duplicate-authority-scan.txt).
+
+DYNAMIC path: unchanged v1.7.1 `dynamicLight/DarkColorScheme(context)`; when source = DYNAMIC
+the stored preset identity is never read for rendering (Theme.kt selects the dynamic branch
+first).
+ThemeMode (LIGHT/DARK/AMOLED/SYSTEM) remains an independent axis; AMOLED post-processing
+(`withAmoledSurfaces`) is applied AFTER base scheme selection exactly as before.

@@ -1,0 +1,29 @@
+v1.7.2 Slice B — LEGACY_BUILTIN continuity and Color.kt closure
+==============================================================
+
+Proof chain:
+1. Slice A (frozen) pins the shared compatibility authority against independent constants:
+   LegacyBuiltinSnapshotTest — 35 light + 35 dark roles + 9 AMOLED overrides, tests=3/0.
+2. PRE-DELETION direct comparison (executed before the old inline schemes were removed):
+   command : .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.ui.theme.*
+             --rerun-tasks
+   result  : BUILD SUCCESSFUL; LegacyBuiltinContinuityTest tests=4 failures=0
+   The temporary version of this test compared the new builders role-by-role (all 36
+   ColorScheme fields + surfaceTint) against the released inline `lightScheme`/`darkScheme`
+   AND against their AMOLED post-processing: all equal.
+3. COMMITTED guard: LegacyBuiltinContinuityTest (rewritten after deletion) verifies every App
+   scheme role is wired from LegacyBuiltinTheme and the AMOLED overrides apply exactly.
+
+Color.kt closure (temporary Slice A boundary eliminated):
+- REMOVED: the inline `lightScheme`/`darkScheme` definitions from ui/theme/Theme.kt and the
+  standard built-in role constants (primaryLight…surfaceContainerHighestLight/Dark, 70
+  symbols) from ui/theme/Color.kt. Nothing else referenced them (path-scoped grep).
+- The single authority for the legacy built-in effective scheme is now
+  theme.palette.LegacyBuiltinTheme consumed by ui/theme/PresetColorSchemes.kt.
+- RETAINED (documented, pre-existing, unrelated): the medium/high-contrast constant tables in
+  Color.kt are dead before and after Slice B; removing them is out of scope (P3).
+- No MONET preset literal remains outside PaletteCatalog (see duplicate-authority-scan.txt).
+
+AMOLED: `darkScheme.withAmoledSurfaces() == legacyBuiltinDarkScheme().withAmoledSurfaces()`
+was proven in the pre-deletion run; LegacyBuiltinContinuityTest asserts the 9 overrides and
+that non-surface semantics survive.

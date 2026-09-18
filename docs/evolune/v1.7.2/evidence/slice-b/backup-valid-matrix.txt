@@ -1,0 +1,21 @@
+v1.7.2 Slice B — backup valid matrix and round-trip results
+===========================================================
+
+Test: BackupThemeSchemaV2Test (JVM, 10/10) + EvoluneBackupCodecTest (19/19).
+
+VALID v2 combinations (each round-trips through encode -> decode with exact settings identity):
+  DYNAMIC + null
+  PRESET + MONET_BLUE / MONET_VIOLET / MONET_SAKURA / MONET_MINT / MONET_TEAL / MONET_AMBER /
+          MONET_NEUTRAL / MONET_LAVENDER        (all 8 exercised)
+  PRESET + LEGACY_BUILTIN
+  Legacy-shaped input (colorTheme DYNAMIC / BUILTIN, no canonical fields) canonicalizes to
+  DYNAMIC/null and PRESET/LEGACY_BUILTIN respectively.
+
+Legacy projection synchronization verified alongside each round-trip:
+  DYNAMIC -> colorTheme DYNAMIC ; every PRESET -> colorTheme BUILTIN.
+
+Representative payload round-trip (EvoluneBackupCodecTest): full medication payload +
+canonical PRESET/LEGACY_BUILTIN settings decodes to the identical payload object.
+Fixed-salt/nonce golden representation updated intentionally for schema v2:
+  sha256(encoded) = 0840d2940eb4ebd598ffdb1fc93106e035b077f60357889179bb9dc62b47c6b8
+  (deterministic; the prior v1 hash 5cbc47bc... belongs to the superseded v1 format).

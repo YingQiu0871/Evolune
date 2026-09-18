@@ -1,0 +1,30 @@
+v1.7.2 Slice B — DataStore compatibility matrix
+===============================================
+
+Writer/read behavior on the real settings DataStore (device tests, ThemeStateDeviceTest 6/6):
+
+  canonical write DYNAMIC            -> source DYNAMIC, preset absent/null, color_theme
+                                        DYNAMIC (verified)
+  canonical write each of the 8      -> source PRESET, exact preset id, color_theme BUILTIN
+    MONET presets                       (verified per preset)
+  canonical write LEGACY_BUILTIN     -> source PRESET, id LEGACY_BUILTIN, color_theme BUILTIN
+  switching back to DYNAMIC          -> removes the active preset id; DYNAMIC + null
+  old UI updateColorTheme(DYNAMIC)   -> canonical DYNAMIC
+  old UI updateColorTheme(BUILTIN)   -> canonical PRESET + LEGACY_BUILTIN
+  replaceSettings(PRESET + AMBER)    -> one atomic edit: weight/themeMode/autoCheck/
+                                        timeFormat + source + preset id + projection (read back
+                                        identical); follow-up replaceSettings(LEGACY_BUILTIN)
+                                        also coherent.
+
+Runtime malformed-value behavior (pure derivation; no crash path):
+  invalid stored source + legacy BUILTIN -> PRESET + LEGACY_BUILTIN (preserve legacy intent)
+  invalid stored source + legacy DYNAMIC -> DYNAMIC
+  PRESET + invalid preset id             -> legacy BUILTIN -> LEGACY_BUILTIN, else MONET_TEAL
+  DYNAMIC + stale preset id              -> DYNAMIC (stale id ignored for rendering and
+                                            cleared by the next DYNAMIC write)
+
+This runtime path is separate from backup validation: malformed v2 BACKUP payloads are
+rejected with INVALID_PAYLOAD (no fallback), see backup-invalid-matrix.txt.
+
+No parallel preference store: only the existing `settings` DataStore; widget SharedPreferences
+are never touched by App theme state.

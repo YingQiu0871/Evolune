@@ -2,7 +2,9 @@ package io.github.yingqiu0871.evolune.history.retrospective
 
 import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.SettingsStore
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.experience.HistoricalProjection
@@ -133,6 +135,8 @@ internal class FakeSettingsStore(
 
     override suspend fun updateThemeMode(mode: ThemeMode) = Unit
     override suspend fun updateColorTheme(theme: ColorTheme) = Unit
+    override suspend fun updateThemeColorSource(source: ThemeColorSource) = Unit
+    override suspend fun updateThemePreset(selection: ThemePresetSelection) = Unit
     override suspend fun updateAutoCheckUpdates(enabled: Boolean) = Unit
     override suspend fun updateTimeFormat(format: TimeFormat) = Unit
     override suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean) = Unit

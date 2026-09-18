@@ -17,83 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import io.github.yingqiu0871.evolune.data.ColorTheme
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 
-private val lightScheme = lightColorScheme(
-    primary = primaryLight,
-    onPrimary = onPrimaryLight,
-    primaryContainer = primaryContainerLight,
-    onPrimaryContainer = onPrimaryContainerLight,
-    secondary = secondaryLight,
-    onSecondary = onSecondaryLight,
-    secondaryContainer = secondaryContainerLight,
-    onSecondaryContainer = onSecondaryContainerLight,
-    tertiary = tertiaryLight,
-    onTertiary = onTertiaryLight,
-    tertiaryContainer = tertiaryContainerLight,
-    onTertiaryContainer = onTertiaryContainerLight,
-    error = errorLight,
-    onError = onErrorLight,
-    errorContainer = errorContainerLight,
-    onErrorContainer = onErrorContainerLight,
-    background = backgroundLight,
-    onBackground = onBackgroundLight,
-    surface = surfaceLight,
-    onSurface = onSurfaceLight,
-    surfaceVariant = surfaceVariantLight,
-    onSurfaceVariant = onSurfaceVariantLight,
-    outline = outlineLight,
-    outlineVariant = outlineVariantLight,
-    scrim = scrimLight,
-    inverseSurface = inverseSurfaceLight,
-    inverseOnSurface = inverseOnSurfaceLight,
-    inversePrimary = inversePrimaryLight,
-    surfaceDim = surfaceDimLight,
-    surfaceBright = surfaceBrightLight,
-    surfaceContainerLowest = surfaceContainerLowestLight,
-    surfaceContainerLow = surfaceContainerLowLight,
-    surfaceContainer = surfaceContainerLight,
-    surfaceContainerHigh = surfaceContainerHighLight,
-    surfaceContainerHighest = surfaceContainerHighestLight,
-)
-
-private val darkScheme = darkColorScheme(
-    primary = primaryDark,
-    onPrimary = onPrimaryDark,
-    primaryContainer = primaryContainerDark,
-    onPrimaryContainer = onPrimaryContainerDark,
-    secondary = secondaryDark,
-    onSecondary = onSecondaryDark,
-    secondaryContainer = secondaryContainerDark,
-    onSecondaryContainer = onSecondaryContainerDark,
-    tertiary = tertiaryDark,
-    onTertiary = onTertiaryDark,
-    tertiaryContainer = tertiaryContainerDark,
-    onTertiaryContainer = onTertiaryContainerDark,
-    error = errorDark,
-    onError = onErrorDark,
-    errorContainer = errorContainerDark,
-    onErrorContainer = onErrorContainerDark,
-    background = backgroundDark,
-    onBackground = onBackgroundDark,
-    surface = surfaceDark,
-    onSurface = onSurfaceDark,
-    surfaceVariant = surfaceVariantDark,
-    onSurfaceVariant = onSurfaceVariantDark,
-    outline = outlineDark,
-    outlineVariant = outlineVariantDark,
-    scrim = scrimDark,
-    inverseSurface = inverseSurfaceDark,
-    inverseOnSurface = inverseOnSurfaceDark,
-    inversePrimary = inversePrimaryDark,
-    surfaceDim = surfaceDimDark,
-    surfaceBright = surfaceBrightDark,
-    surfaceContainerLowest = surfaceContainerLowestDark,
-    surfaceContainerLow = surfaceContainerLowDark,
-    surfaceContainer = surfaceContainerDark,
-    surfaceContainerHigh = surfaceContainerHighDark,
-    surfaceContainerHighest = surfaceContainerHighestDark,
-)
+/**
+ * v1.7.2 Slice B: the released v1.7.1 built-in light/dark schemes now live in the shared
+ * compatibility authority (`LegacyBuiltinTheme`) and are realized by
+ * `legacyBuiltinLightScheme()` / `legacyBuiltinDarkScheme()`; the former inline definitions
+ * and their Color.kt constants were removed once continuity was proven.
+ */
 
 internal fun ThemeMode.usesDarkColors(systemInDarkTheme: Boolean): Boolean = when (this) {
     ThemeMode.LIGHT -> false
@@ -283,6 +216,8 @@ val unspecified_scheme = ColorFamily(
 fun EvoluneTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     colorTheme: ColorTheme = ColorTheme.DYNAMIC,
+    colorSource: ThemeColorSource? = null,
+    preset: ThemePresetSelection? = null,
     content: @Composable() () -> Unit
 ) {
     val systemInDarkTheme = isSystemInDarkTheme()
@@ -290,16 +225,33 @@ fun EvoluneTheme(
     // 根据主题模式确定是否使用深色主题
     val darkTheme = themeMode.usesDarkColors(systemInDarkTheme)
     
-    // 根据颜色主题确定是否使用动态颜色
-    val dynamicColor = colorTheme == ColorTheme.DYNAMIC
+    // v1.7.2 canonical source; `colorTheme` is a compatibility projection used only when the
+    // caller does not provide the canonical value (pre-Slice-C screens/tests/previews).
+    val effectiveSource = colorSource
+        ?: if (colorTheme == ColorTheme.DYNAMIC) ThemeColorSource.DYNAMIC else ThemeColorSource.PRESET
     
-    val baseColorScheme = when {
-        dynamicColor -> {
+    val baseColorScheme = when (effectiveSource) {
+        ThemeColorSource.DYNAMIC -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> darkScheme
-        else -> lightScheme
+
+        ThemeColorSource.PRESET -> {
+            val effectivePreset = preset
+                ?: ThemePresetSelection.LegacyBuiltin
+            val scheme = when (effectivePreset) {
+                ThemePresetSelection.LegacyBuiltin ->
+                    if (darkTheme) legacyBuiltinDarkScheme() else legacyBuiltinLightScheme()
+
+                is ThemePresetSelection.Preset ->
+                    if (darkTheme) {
+                        presetDarkScheme(effectivePreset.palette)
+                    } else {
+                        presetLightScheme(effectivePreset.palette)
+                    }
+            }
+            scheme
+        }
     }
     val colorScheme = if (themeMode == ThemeMode.AMOLED) {
         baseColorScheme.withAmoledSurfaces()

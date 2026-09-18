@@ -1,0 +1,31 @@
+v1.7.2 Slice B — canonical theme state model
+============================================
+
+Types (app/src/main/java/io/github/yingqiu0871/evolune/data/ThemeState.kt):
+  enum ThemeColorSource { DYNAMIC, PRESET }            persisted as the enum name
+  sealed interface ThemePresetSelection
+      data class Preset(val palette: PresetPalette)    persisted id = palette.name
+      data object LegacyBuiltin                        persisted id = "LEGACY_BUILTIN"
+  DerivedThemeState(source, preset) — pure derivation from the three persisted inputs.
+
+Authorities:
+- ONE persisted owner: the existing `settings` DataStore via SettingsDataStore
+  (keys `theme_color_source`, `theme_preset_id`; legacy `color_theme` remains a compatibility
+  projection and is kept in sync atomically on every canonical write).
+- PresetPalette identity is reused wholesale for the 8 normal presets (no parallel enum, no
+  second MONET vocabulary). LEGACY_BUILTIN is NOT a PresetPalette member (asserted by Slice A
+  goldens, unchanged).
+- UserSettings gains `themeColorSource` + `themePreset`; `colorTheme` is always the coherent
+  projection (DYNAMIC -> DYNAMIC, PRESET -> BUILTIN).
+
+Derivation matrix (pure, JVM-tested in ThemeStateDerivationTest, 9 tests):
+  stored source = DYNAMIC                -> DYNAMIC, preset ignored (stale ids never render)
+  stored source = PRESET + valid id      -> PRESET + that id (8 presets or LEGACY_BUILTIN)
+  stored source = PRESET + invalid/missing id
+      legacy color_theme = BUILTIN       -> PRESET + LEGACY_BUILTIN
+      otherwise                          -> PRESET + MONET_TEAL (deterministic ladder default)
+  stored source missing/invalid
+      legacy color_theme = BUILTIN       -> PRESET + LEGACY_BUILTIN
+      legacy = DYNAMIC or anything else  -> DYNAMIC
+  No path ever crashes startup; no path silently deep-links to MONET_TEAL for legacy BUILTIN
+  (Slice A disproved equivalence).

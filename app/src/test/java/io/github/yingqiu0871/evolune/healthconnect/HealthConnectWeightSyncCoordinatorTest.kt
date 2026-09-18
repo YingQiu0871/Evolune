@@ -2,7 +2,9 @@ package io.github.yingqiu0871.evolune.healthconnect
 
 import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.SettingsStore
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
 import io.github.yingqiu0871.evolune.data.ThemeMode
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.data.isValidBodyWeight
@@ -438,6 +440,22 @@ private class FakeSettingsStore(
 
     override suspend fun updateColorTheme(theme: ColorTheme) {
         userSettings.value = userSettings.value.copy(colorTheme = theme)
+    }
+
+    override suspend fun updateThemeColorSource(source: ThemeColorSource) {
+        userSettings.value = userSettings.value.copy(
+            themeColorSource = source,
+            themePreset = if (source == ThemeColorSource.DYNAMIC) null else userSettings.value.themePreset,
+            colorTheme = if (source == ThemeColorSource.DYNAMIC) ColorTheme.DYNAMIC else ColorTheme.BUILTIN
+        )
+    }
+
+    override suspend fun updateThemePreset(selection: ThemePresetSelection) {
+        userSettings.value = userSettings.value.copy(
+            themeColorSource = ThemeColorSource.PRESET,
+            themePreset = selection,
+            colorTheme = ColorTheme.BUILTIN
+        )
     }
 
     override suspend fun updateAutoCheckUpdates(enabled: Boolean) {

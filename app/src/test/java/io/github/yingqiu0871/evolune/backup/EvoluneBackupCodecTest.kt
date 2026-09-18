@@ -152,7 +152,7 @@ class EvoluneBackupCodecTest {
             kdfIterations = EvoluneBackupFormat.DEFAULT_KDF_ITERATIONS
         )
 
-        assertEquals("5cbc47bc978c23abcd3e6cbafcad25d4e96208a13dfff6e4a8f5e174349eeaa9", sha256Hex(encoded))
+        assertEquals("0840d2940eb4ebd598ffdb1fc93106e035b077f60357889179bb9dc62b47c6b8", sha256Hex(encoded))
     }
 
     @Test
@@ -249,7 +249,7 @@ class EvoluneBackupCodecTest {
         )
         assertFailure(
             EvoluneBackupCodec().decodeAndValidate(
-                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(2)),
+                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(3)),
                 passphrase
             ),
             BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION
@@ -417,7 +417,7 @@ class EvoluneBackupCodecTest {
     fun `unknown root and nested payload fields are rejected`() {
         val encoded = requireEncoded(representativePayload(), kdfIterations = 100_000)
         val unknownRoot = minimalPayloadJson(
-            payloadPrefix = "\"payloadSchemaVersion\":1,\"unexpected\":true,"
+            payloadPrefix = "\"payloadSchemaVersion\":${EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION},\"unexpected\":true,"
         )
         val unknownNested = minimalPayloadJson(
             plan = minimalPlanJson(fieldsPrefix = "\"unexpected\":true,")
@@ -645,7 +645,9 @@ class EvoluneBackupCodecTest {
                 themeMode = "DARK",
                 colorTheme = "BUILTIN",
                 autoCheckUpdates = false,
-                timeFormat = "HOUR_24"
+                timeFormat = "HOUR_24",
+                themeColorSource = "PRESET",
+                themePresetId = "LEGACY_BUILTIN"
             )
         )
 
@@ -760,10 +762,10 @@ class EvoluneBackupCodecTest {
     }
 
     private fun minimalPayloadJson(
-        payloadPrefix: String = "\"payloadSchemaVersion\":1,",
+        payloadPrefix: String = "\"payloadSchemaVersion\":${EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION},",
         plan: String = minimalPlanJson(),
         event: String = minimalEventJson(),
-        settings: String = minimalSettingsJson()
+        settings: String = minimalSettingsV2Json()
     ): String =
         "{$payloadPrefix\"medicationPlans\":[$plan],\"scheduledDoseSlots\":[" +
             "{\"id\":\"$SLOT_ID\",\"planId\":\"$PLAN_ID\",\"localTime\":\"08:00\",\"position\":0}" +
@@ -796,6 +798,29 @@ class EvoluneBackupCodecTest {
     ): String =
         "{$fieldsPrefix\"bodyWeightKg\":$bodyWeightJson,\"themeMode\":\"DARK\"," +
             "\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":false,\"timeFormat\":\"HOUR_24\"}"
+
+    private fun minimalSettingsV2Json(
+        fieldsPrefix: String = "",
+        bodyWeightJson: String = "55.0"
+    ): String =
+        "{$fieldsPrefix\"bodyWeightKg\":$bodyWeightJson,\"themeMode\":\"DARK\"," +
+            "\"colorTheme\":\"BUILTIN\",\"autoCheckUpdates\":false,\"timeFormat\":\"HOUR_24\"," +
+            "\"themeColorSource\":\"PRESET\",\"themePresetId\":\"LEGACY_BUILTIN\"}"
+
+    /**
+     * v1.7.2: the carrier envelope is written as schema v2, so a crafted schema-v1 payload must
+     * also downgrade the envelope's version/authenticated header BEFORE the ciphertext is
+     * re-encrypted (the version is part of the AAD).
+     */
+    private fun replaceCiphertextWithPayloadV1(bytes: ByteArray, payload: String): ByteArray =
+        replaceCiphertextWithPayload(
+            replaceEnvelopeField(
+                bytes,
+                "payloadSchemaVersion",
+                JsonPrimitive(EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION_LEGACY)
+            ),
+            payload
+        )
 
     private fun authenticatedHeaderJson(root: JsonObject): String =
         json.encodeToString(

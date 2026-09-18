@@ -1,0 +1,65 @@
+v1.7.2 Slice B — changed files
+==============================
+
+Production (7 files; 3 NEW)
+  NEW app/src/main/java/io/github/yingqiu0871/evolune/data/ThemeState.kt
+      ThemeColorSource, ThemePresetSelection, pure deriveThemeState + projection helper.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt
+      keys theme_color_source/theme_preset_id, derivation read, atomic writers with legacy
+      color_theme sync, extended replaceSettings, SettingsStore interface additions.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
+      updateThemeColorSource/updateThemePreset; updateColorTheme maps to canonical state.
+  NEW app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemes.kt
+      preset light/dark builders (shared catalog) + legacy built-in builders + contrast/blend.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Theme.kt
+      EvoluneTheme consumes canonical state (colorTheme kept as pre-Slice-C compat param);
+      inline lightScheme/darkScheme removed; AMOLED post-processing unchanged.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/ui/theme/Color.kt
+      standard built-in role constants removed (single authority = LegacyBuiltinTheme);
+      medium/high-contrast dead tables retained (P3).
+  M   app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+      passes colorSource + preset into EvoluneTheme.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupV1.kt
+      schema constants (legacy 1 / current 2 / supported set) + BackupSettingsV1 canonical
+      theme fields.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodec.kt
+      dual-version gates, strict V1/V2 settings field sets, v2 parse + validation matrix,
+      canonical v2 writer, encode-time canonicalization.
+  M   app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreProtocol.kt
+      toUserSettings/toBackupSettings canonical mappings (v1 derivation, v2 authoritative,
+      coherent projection rewritten on restore).
+
+Tests (5 NEW + 4 modified)
+  NEW app/src/test/java/io/github/yingqiu0871/evolune/data/ThemeStateDerivationTest.kt (9)
+  NEW app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/PresetColorSchemesTest.kt (3)
+  NEW app/src/test/java/io/github/yingqiu0871/evolune/ui/theme/LegacyBuiltinContinuityTest.kt (4)
+  NEW app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupThemeSchemaV2Test.kt (10)
+  NEW app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupTamperTestSupport.kt (helper)
+  M   app/src/test/java/io/github/yingqiu0871/evolune/backup/EvoluneBackupCodecTest.kt
+      (canonical v2 fixture settings, intentional golden-hash update, future-version=3,
+       crafted payloads consistent with the v2 carrier envelope)
+  M   app/src/test/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinatorTest.kt
+      (invalid-v2 zero-mutation restore test + helper)
+  M   app/src/test/java/io/github/yingqiu0871/evolune/healthconnect/HealthConnectWeightSyncCoordinatorTest.kt
+  M   app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveTestFixtures.kt
+      (FakeSettingsStore implementations gained the two new interface members)
+  NEW app/src/androidTest/java/io/github/yingqiu0871/evolune/data/ThemeStateDeviceTest.kt (6)
+  M   app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+      (FakeAtomicSettingsStore gained the two new interface members)
+
+Docs / status (non-evidence)
+  TODO.MD · docs/evolune/CURRENT_STATUS.md · docs/evolune/ROADMAP.md ·
+  docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md
+
+Evidence (this bundle)
+  docs/evolune/v1.7.2/evidence/slice-b/ — 27 files + MANIFEST.sha256
+  (18 root data files: identity, changed-files, theme-state-model, legacy-migration,
+  datastore-compatibility, material-scheme-verification, legacy-builtin-continuity,
+  backup-schema-v1, backup-schema-v2, backup-valid-matrix, backup-invalid-matrix,
+  restore-atomicity, architecture-audit, duplicate-authority-scan, frozen-surface-audit,
+  test-summary, smoke, implementation.diff; 7 log/summary files under logs/;
+  2 screenshots under screenshots/)
+
+Out of scope in this slice (unchanged, verified): Settings flattening/UI, preset selector UI,
+History copy, Wear, Health Connect/Drive behavior, widget rendering, version metadata (still
+1.7.1 / 101070100 / 1101070100), Slice A evidence (frozen).

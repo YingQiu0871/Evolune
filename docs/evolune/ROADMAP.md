@@ -293,11 +293,15 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   FROZEN**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；read-only 审计 + 契约
   `docs/evolune/v1.7.2/`；两轮修正（LEGACY_BUILTIN 精确保全、backup v2 严格化），final review
   **APPROVE V1.7.2 FINAL CONTRACT**）。
-- **v1.7.2 · Slice A（共享调色板权威 + 金标兼容护栏）— IMPLEMENTED / REVIEW PENDING**（纯
-  Kotlin `theme/palette/`；widget 委派、输出零变化（pre/post 金标 5/5 + 2/2）；legacy BUILTIN
-  vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、dark 14/20）；full app JVM 1360/0；widget
-  仪器 12/12；evidence `docs/evolune/v1.7.2/evidence/slice-a/`）。
-  **NEXT:** v1.7.2 Slice A review（通过后开始 Slice B）。
+- **v1.7.2 · Slice A（共享调色板权威 + 金标兼容护栏）— CLOSED / FROZEN**（纯 Kotlin
+  `theme/palette/`；widget 委派零变化（pre/post 金标 5/5 + 2/2）；legacy BUILTIN vs
+  MONET_TEAL 等价性 **DISPROVED**；evidence `docs/evolune/v1.7.2/evidence/slice-a/`）。
+- **v1.7.2 · Slice B（App 主题状态 + LEGACY_BUILTIN + backup schema v2）— IMPLEMENTED /
+  REVIEW PENDING**（`ThemeColorSource`/`ThemePresetSelection` + 规范 DataStore 键；EvoluneTheme
+  消费规范状态；8 预设 Material 方案 + LEGACY_BUILTIN 精确复刻；backup 严格 v2 + v1 冻结兼容 +
+  无效 payload 零变更；full app JVM 147 suites/1387/0；设备测试 14/14；evidence
+  `docs/evolune/v1.7.2/evidence/slice-b/`）。
+  **NEXT:** v1.7.2 Slice B review（通过后开始 Slice C）。
 
 ## Historical and future milestones
 

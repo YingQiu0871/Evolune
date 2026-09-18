@@ -1,0 +1,12 @@
+v1.7.2 Slice B — focused suite summary (from JUnit XML)
+Command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks --tests io.github.yingqiu0871.evolune.data.ThemeStateDerivationTest --tests io.github.yingqiu0871.evolune.ui.theme.PresetColorSchemesTest --tests io.github.yingqiu0871.evolune.ui.theme.LegacyBuiltinContinuityTest --tests io.github.yingqiu0871.evolune.ui.theme.ThemeTest --tests io.github.yingqiu0871.evolune.backup.BackupThemeSchemaV2Test --tests io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest --tests io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest
+
+io.github.yingqiu0871.evolune.backup.BackupRestoreCoordinatorTest  tests=19 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.backup.BackupThemeSchemaV2Test  tests=10 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.backup.EvoluneBackupCodecTest  tests=19 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.data.ThemeStateDerivationTest  tests=9 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.ui.theme.LegacyBuiltinContinuityTest  tests=4 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.ui.theme.PresetColorSchemesTest  tests=3 failures=0 errors=0 skipped=0
+io.github.yingqiu0871.evolune.ui.theme.ThemeTest  tests=2 failures=0 errors=0 skipped=0
+
+TOTAL suites=7 tests=66 failures=0 errors=0 skipped=0
