@@ -1,0 +1,21 @@
+v1.7.2 Slice E (resumed) — History physical acceptance
+======================================================
+
+The integrated History surface was exercised on the physical device through the
+real presentation pipeline by HistoryScreenTest (21/21 on Pixel 11 Pro):
+  - exact matched entry: card + status + actual time + schedule context; no note
+  - inferred matched entry: card present, 已记录 status, medication/dose, actual
+    time 08:05, schedule context 08:00, and the sentence
+    根据记录上下文推断匹配 ABSENT (literal-text assertion)
+  - modern quick record matched by the time window (production shape, real
+    writer + real read service): provenance asserted NULL_SLOT_TIME_WINDOW
+    (inferred classification preserved), no note displayed
+  - unmatched intake and unrecorded occurrence notes still render
+    (history_note_plan_unavailable / history_note_no_recorded_intake /
+    history_note_not_necessarily_missed remain covered by the same suite)
+
+Provenance was NOT inferred visually: it is asserted in the test through the real
+model/projection pipeline (MedicationMatchProvenance.NULL_SLOT_TIME_WINDOW).
+
+Frozen JVM carry-forward: HistoryPresentationTest 21, HistoryQuickRecordInferredTest 2,
+HistoryPresentationWordingTest 7 — all green in the frozen gates.

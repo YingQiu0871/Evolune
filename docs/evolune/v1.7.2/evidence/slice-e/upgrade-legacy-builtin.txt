@@ -1,0 +1,27 @@
+v1.7.2 Slice E (resumed) — upgrade case B: legacy BUILTIN
+=========================================================
+
+Protocol: pm clear isolated debug package -> install v1.7.1 baseline debug ->
+complete onboarding (real UI) -> seed 深色 + 内置配色 + 24小时制 + weight 66.0 ->
+`adb install -r` candidate over it WITHOUT clearing data -> launch -> verify ->
+then tap 蓝 (MONET_BLUE) and verify migration.
+
+Baseline (screenshots/baseline-builtin-appearance.png, baseline-builtin-hub.png):
+深色, 内置配色, 24小时制, weight 66.0 (recorded as read back from the field).
+
+After upgrade (screenshots/candidate-legacy-builtin-appearance.png):
+  - canonical state = PRESET + LEGACY_BUILTIN: 预设配色 source selected
+  - compatibility row visible: 当前主题：内置主题（兼容保留）
+  - NONE of the 8 normal preset tiles selected
+  - MONET_TEAL NOT falsely selected
+  - legacy built-in teal appearance preserved
+  - ThemeMode retained (深色), time format retained (24小时制),
+    body weight retained (66.0 read back after migration)
+  - no crash
+
+Migration tap (screenshots/candidate-monet-blue-migrated.png):
+  - tapping 蓝 -> exact MONET_BLUE selected (border + check + primaryContainer)
+  - compatibility row disappears
+  - live blue palette applied to the whole app chrome
+  - no UI path exposes LEGACY_BUILTIN as a ninth normal preset (verified by the
+    palette inventory test + the UI dump: exactly 8 tiles, no legacy/auto tile)

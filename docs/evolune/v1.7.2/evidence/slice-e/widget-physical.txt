@@ -1,0 +1,19 @@
+v1.7.2 Slice E (resumed) — Widget physical result
+=================================================
+
+Not practically automatable on the physical device: adding/configuring a launcher
+widget requires manual launcher gestures (long-press home -> widgets -> drag), and
+the debug package was uninstalled at the end of acceptance. No fake physical widget
+claim is made.
+
+Frozen evidence instead:
+  - WidgetRemoteViewsTest 12/12 on the frozen AVD full run
+  - WidgetPaletteIdentityGoldenTest 5/5, WidgetPaletteTokenGoldenTest 2/2,
+    WidgetAppearanceTest 13/13 (frozen JVM) — 9 persisted ids unchanged,
+    MATERIAL_YOU_AUTO works, all 8 MONET presets resolve, golden ARGB unchanged
+  - Widget source delta since v1.7.1 is exactly the Slice-A delegation; no widget
+    behavior change
+  - App theme changes do not touch widget appearance prefs (restore/zero-mutation
+    suites + duplicate-authority scan); per-widget palette selection is stored in
+    the separate widget_appearance SharedPreferences and is never written by App
+    theme code

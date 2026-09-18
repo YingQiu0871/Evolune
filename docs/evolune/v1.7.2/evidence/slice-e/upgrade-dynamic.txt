@@ -1,0 +1,28 @@
+v1.7.2 Slice E (resumed) — upgrade case A: legacy DYNAMIC
+=========================================================
+
+Protocol: pm clear of the isolated debug package -> install v1.7.1 baseline debug ->
+seed via the REAL v1.7.1 UI (onboarding, 深色, 动态着色, 24小时制, weight 77.7) ->
+`adb install -r` candidate over it WITHOUT clearing data -> launch -> verify.
+
+Baseline state recorded (screenshots/baseline-dynamic-appearance.png,
+baseline-basic-data.png): 深色 selected, 动态着色 selected, 24小时制 selected,
+weight 77.7.
+
+After upgrade (screenshots/candidate-dynamic-appearance.png,
+candidate-dynamic-appearance-lower.png, candidate-dynamic-lower-sections.png,
+candidate-dynamic-bottom.png, candidate-dynamic-bottom2.png):
+  - app launches normally (no crash, no settings reset)
+  - canonical source = DYNAMIC: 跟随壁纸 row selected
+  - zero normal preset tiles selected
+  - NO compatibility row (color-legacy-builtin-current absent)
+  - wallpaper/system dynamic rendering retained (dark dynamic chrome)
+  - ThemeMode retained: 深色 selected
+  - time format retained: 24小时制 selected
+  - body weight retained: 77.7 (flattened 基础数据 inline)
+  - flattened page scrolls top -> bottom; retained rows 指南 / 隐私与权限 /
+    功能教程 / 关于 and the Google Drive row reachable
+  - no process restart needed for the upgrade rendering; no forced reset
+  - new keys did not exist before the upgrade (derived on first read)
+
+Verification was by real-device UI dumps + screenshots, not inference.

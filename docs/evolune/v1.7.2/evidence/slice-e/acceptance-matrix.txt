@@ -1,0 +1,39 @@
+v1.7.2 Slice E (resumed) — acceptance matrix
+============================================
+
+Gate                                  Result        Evidence
+------------------------------------  ------------  -----------------------------------------
+App JVM (frozen carry-forward)        147/1387/0    slice-e-r1/logs/jvm-summary.txt
+experience-core JVM (frozen)          20/171/0      slice-e-r1/logs (full gate)
+Wear JVM (frozen)                     11/90/0       slice-e-r1/logs (full gate)
+Phone full AVD instrumentation        386/0/0/5     slice-e-r1/full-phone-instrumentation-summary.txt
+E-R1 correction (frozen)              APPROVED      slice-e-r1/*
+Package isolation (debug id)          OK            package-isolation.txt
+Upgrade DYNAMIC                       PASS          upgrade-dynamic.txt
+Upgrade LEGACY_BUILTIN                PASS          upgrade-legacy-builtin.txt
+Settings physical walkthrough         PASS          settings-physical.txt
+8 presets physical                    PASS          eight-presets.txt
+ThemeMode physical matrix             PASS          theme-mode-matrix.txt
+History physical (incl. inferred)     55/55 set     history-physical.txt
+Backup v2 integrated                  PASS          backup-v2.txt
+v1 backup compatibility               PASS (source) backup-v1.txt
+Invalid restore atomicity             PASS (frozen) BackupRestoreCoordinatorTest 19/19
+Widget regression                     PASS (frozen) widget-physical.txt
+Wear regression                       PASS (frozen) carry-forward-gates.txt
+Navigation regression                 PASS          settings-physical.txt + physical 55/55
+Recreation / persistence              PASS          recreation-persistence.txt
+Large font / accessibility            PARTIAL       accessibility-spot-check.txt (AVD-backed)
+Update / network                      PARTIAL       update-network.txt (auto-check + dialog)
+Logcat audit                          CLEAN         logcat-audit.txt
+Startup / performance sanity          CLEAN         startup-performance.txt
+Cross-slice ownership                 PASS          cross-slice-ownership.txt
+Frozen surfaces                       PASS          frozen-surface-audit.txt
+Version unchanged                     PASS          version-check.txt
+Physical targeted instrumentation     55/0/0/0      physical-instrumentation-summary.txt
+Product delta (this round)            ZERO          implementation.diff (empty)
+
+PARTIAL items are honestly disclosed limitations, not failures: the physical
+large-font interactive check was blocked by the onboarding re-seed after the test
+package reinstall (AVD-backed coverage is frozen green), and the explicit check-now
+tap was interrupted by the device switching apps (auto-check path exercised).
+No P0/P1/P2 issue was found.

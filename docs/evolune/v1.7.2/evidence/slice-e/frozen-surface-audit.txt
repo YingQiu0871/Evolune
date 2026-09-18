@@ -1,0 +1,17 @@
+v1.7.2 Slice E (resumed) — frozen-surface audit
+===============================================
+
+git diff 746fc0a..61cd190:
+  experience-core            : zero
+  wear                       : zero
+  app/schemas                : zero (Room schema unchanged)
+  *.gradle.kts / gradle.properties / gradle/libs.versions.toml : zero
+  version metadata           : unchanged (1.7.1 / 101070100 / 1101070100)
+
+Semantics unchanged:
+  DoseEvent model, matcher/projection, PK semantics, medication recording,
+  widget behavior (only Slice-A delegation), Health Connect domain, Drive domain,
+  backup schema (Slice-B-approved v2 only).
+
+Every production delta is owned by Slice A/B/C/D (cross-slice-ownership.txt).
+No fifth product bucket exists. E-R1 and this round changed no product code.

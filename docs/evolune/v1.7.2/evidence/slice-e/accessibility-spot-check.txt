@@ -1,0 +1,20 @@
+v1.7.2 Slice E (resumed) — large font / accessibility spot check
+================================================================
+
+Physical interactive check: NOT COMPLETED. After the physical instrumentation run
+AGP uninstalled the debug package; reinstalling it cleared app data and re-entered
+onboarding. Completing the 5-step onboarding at fontScale 2.0 via scripted taps
+stalled at the step-3 checkbox gate (the checkbox hit target shifts at 2.0 scale),
+and the attempt was abandoned rather than fighting the user's device.
+font_scale was restored to 1.0 (verified) and the debug package was uninstalled.
+
+Evidence instead (frozen gates):
+  - SettingsCategoryScreenTest.largeFontScaleKeepsCoreControlsReachable runs the
+    real SettingsScreen at fontScale 2.0 and reaches the palette grid, the weight
+    input and the About row (green on the AVD full run)
+  - TimelineFontScaleTest 6/6 + TimelineAccessibilityTest 13/13 (frozen AVD)
+  - Palette selection is never conveyed by color alone: selectable semantics
+    (role RadioButton) + 2dp primary border + primaryContainer fill + Check icon;
+    asserted by SettingsPaletteSelectorTest
+  - No obvious accessibility regression observed at normal scale during the physical
+    walkthrough (scrollable page, readable labels, radio/switch semantics intact)

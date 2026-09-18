@@ -1,0 +1,27 @@
+v1.7.2 Slice E (resumed) — physical targeted instrumentation
+============================================================
+
+Command: :app:connectedDebugAndroidTest with 10 release-relevant classes
+         (ANDROID_SERIAL = the Pixel 11 Pro wireless serial)
+Device : Pixel 11 Pro (grizzly), Android 17 / API 37
+Log    : logs/physical-instrumentation.log
+Summary: logs/physical-instrumentation-summary.txt
+
+XML-derived:
+  B2RoomRestorePersistenceTest          4
+  PhysicalBackupPerformanceTest         2
+  SettingsDataStoreTest                 4
+  SettingsThemeIndependenceTest         3
+  ThemeStateDeviceTest                  6
+  HistoryScreenTest                    21
+  SettingsCategoryScreenTest            8
+  SettingsPaletteSelectorTest           4
+  SliceCSettingsSmokeTest               1
+  SyncAndBackupNavigationTest           2
+  TOTAL classes=10 tests=55 failures=0 errors=0 skipped=0
+
+Covers on the real device: Settings flattening + retained rows + back navigation,
+palette selector state matrix, ThemeMode independence on the real DataStore,
+canonical theme state round-trips, legacy-BUILTIN smoke (screenshots pulled to
+screenshots/physical/), History (incl. inferred note absence), restore persistence
+and backup pipeline performance. No skipped tests in this set.

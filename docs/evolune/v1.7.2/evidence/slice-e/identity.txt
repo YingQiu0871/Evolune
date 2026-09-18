@@ -1,0 +1,10 @@
+v1.7.2 Slice E (resumed) — identity
+===================================
+
+Repository: D:\Evolune-Workspace\worktrees\Evolune-v1.7
+Branch: feature/v1.7.2-settings-theme-history
+Acceptance HEAD: 61cd1905046ef12ded09857d3770be89f2f9edf9 (E-R1 evidence correction)
+Predecessors: A @ 31447ca (+5acddc2), B @ e01a55e, C @ 69f859d, D @ 50b20e8,
+E-R1 @ 678b840, E-R1 evidence correction @ 61cd190.
+Version: 1.7.1 / Phone 101070100 / Wear 1101070100 (unchanged).
+No v1.7.2 tag/release exists. This round makes no product/test/resource changes.

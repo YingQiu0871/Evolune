@@ -1,0 +1,18 @@
+v1.7.2 Slice E (resumed) — update / network sanity
+==================================================
+
+Observed on the physical device (isolated candidate):
+  - the real startup auto-check produced the debug update dialog
+    "发现新版本 / 当前为 Debug 版本，最新 Release：v1.7.1，是否前往下载？"
+    and was dismissed with 取消 — the update path works end-to-end with network
+  - the flattened 更新 section shows 自动检查更新, 检查更新 and 当前版本 1.7.1-debug
+
+Explicit "check now" tap with a captured result: not completed on the physical
+device — the scripted tap was interrupted when the device switched to another app;
+it was not retried to avoid interfering with the user's device.
+Coverage instead: SettingsCategoryScreenTest asserts the check-now action wiring;
+SliceCSettingsSmokeTest (physical + AVD) dismisses the real update dialog; the
+updater implementation is unchanged from v1.7.1.
+
+Version display remains 1.7.1-debug — expected during Slice E (bump belongs to
+Slice F). No updater code was changed.

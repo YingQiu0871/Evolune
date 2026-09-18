@@ -1,0 +1,22 @@
+v1.7.2 Slice E (resumed) — package isolation strategy
+=====================================================
+
+The normal debug build already carries a separate applicationId
+(evoluneDebugSuffix = ".debug"), so no temporary isolation patch was needed:
+
+  release : io.github.yingqiu0871.evolune       (user's app — untouched)
+  debug   : io.github.yingqiu0871.evolune.debug (acceptance only)
+
+Baseline v1.7.1 build:
+  disposable worktree D:\Evolune-Workspace\worktrees\Evolune-v1.7-baseline-e
+  at 746fc0a970bf0dfb3735c9225ce662e9511514ae (detached), built with
+  :app:assembleDebug (BUILD SUCCESSFUL) — same debug signing key as the candidate,
+  so in-place upgrade of the isolated package was possible via `adb install -r`
+  without clearing data.
+  The worktree was removed after acceptance; no isolation change was committed.
+
+Candidate APK: app/build/outputs/apk/debug/app-debug.apk at HEAD 61cd190
+(product source identical to the frozen acceptance HEAD; no build-file change).
+
+No temporary package-identity patch was applied to either build.
+The isolation build is NOT a release APK and was never treated as one.

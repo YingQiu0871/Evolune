@@ -303,12 +303,13 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `69f859d…`；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
 - **v1.7.2 · Slice D（History 推断匹配文案移除）— CLOSED / FROZEN**（implementation @
   `50b20e8…`；evidence `docs/evolune/v1.7.2/evidence/slice-d/`）。
-- **v1.7.2 · Slice E（全量回归 + 真实设备验收）— BLOCKED / E-R1 TEST CORRECTION REVIEW
-  PENDING**（全量 AVD 仪器 386 tests/3 failures：三个 v1.7.1 时代测试期望未随 Slice B 规范
-  主题状态更新；REQUEST_FIX 后 E-R1 仅修正三个测试期望：全量 AVD 仪器 71 类/386/0，JVM 147
-  suites/1387/0；物理验收在 E-R1 审核通过前 **DEFERRED**；evidence
-  `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
-  **NEXT:** v1.7.2 Slice E-R1 review（通过后恢复物理验收）。
+- **v1.7.2 · Slice E-R1（过期测试期望修正）— CLOSED / FROZEN**（`678b840` + `61cd190`；
+  全量 AVD 仪器 386/0/0/5；evidence `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
+- **v1.7.2 · Slice E（全量回归 + 真实设备验收）— ACCEPTANCE COMPLETE / REVIEW PENDING**
+  （物理 Pixel 11 Pro：两个就地升级案例通过；Settings/8 预设/ThemeMode 矩阵/History/备份
+  沙盒/导航/重建通过；物理定向仪器 55/55/0；logcat 干净；版本保持 1.7.1；产品 delta 为零；
+  evidence `docs/evolune/v1.7.2/evidence/slice-e/`）。
+  **NEXT:** v1.7.2 Slice E final review（通过后进入 Slice F）。
 
 ## Historical and future milestones
 

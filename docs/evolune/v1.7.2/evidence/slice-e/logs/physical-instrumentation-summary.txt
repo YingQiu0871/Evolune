@@ -1,0 +1,16 @@
+v1.7.2 Slice E physical targeted instrumentation (from JUnit XML)
+Device: Pixel 11 Pro (grizzly), Android 17 / API 37
+Command: :app:connectedDebugAndroidTest (10 release-relevant classes, ANDROID_SERIAL=<physical>)
+
+io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest  tests=4
+io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest  tests=2
+io.github.yingqiu0871.evolune.data.SettingsDataStoreTest  tests=4
+io.github.yingqiu0871.evolune.data.SettingsThemeIndependenceTest  tests=3
+io.github.yingqiu0871.evolune.data.ThemeStateDeviceTest  tests=6
+io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest  tests=21
+io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest  tests=8
+io.github.yingqiu0871.evolune.ui.screens.SettingsPaletteSelectorTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.SliceCSettingsSmokeTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest  tests=2
+
+TOTAL classes=10 tests=55 failures=0 errors=0 skipped=0

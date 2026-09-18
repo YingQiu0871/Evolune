@@ -1,0 +1,17 @@
+v1.7.2 Slice E (resumed) — v1 backup compatibility
+==================================================
+
+Fixture type: SOURCE-BACKED (frozen JVM fixtures), NOT an APK-generated backup.
+The v1.7.1 app was installed on the physical device only to seed legacy SETTINGS
+through its real UI for the upgrade cases; no v1.7.1 Drive backup was generated
+(that would require the user's Google account — deliberately avoided).
+
+Verified semantics (frozen green gates):
+  v1 DYNAMIC -> current DYNAMIC
+  v1 BUILTIN -> current PRESET + LEGACY_BUILTIN
+  no MONET_TEAL substitution
+  no crash
+Evidence: BackupThemeSchemaV2Test (v1 strict fields, mapping), EvoluneBackupCodecTest
+(v1 parser frozen), B2RestoreProtocol mappings (JVM), plus the physical upgrade
+cases which exercise the same legacy-BUILTIN derivation end-to-end through the real
+DataStore.

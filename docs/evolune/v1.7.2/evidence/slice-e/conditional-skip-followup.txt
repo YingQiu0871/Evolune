@@ -1,0 +1,32 @@
+v1.7.2 Slice E (resumed) — conditional skip follow-up
+=====================================================
+
+A. V15InPlaceUpgradeDeviceTest.prepareV14State / verifyV15State
+   Precondition (source): two-phase v1.4 -> v1.5 package contract; each phase runs
+   only with the matching instrumentation phase argument, against a v1.4 debug APK
+   and then the v1.5 APK in place.
+   Result: NOT APPLICABLE to v1.7.2 acceptance — the required v1.4 debug baseline is
+   a historical package not present in this repository state; the phase gate
+   (requirePhase) skips otherwise. The v1.7.1 -> v1.7.2 in-place upgrade was
+   verified directly on the physical device instead (upgrade-dynamic.txt /
+   upgrade-legacy-builtin.txt). No user release package was manipulated.
+
+B. RepairToolOutputMigrationTest.repairedV2CopyMigratesAndProductionRepositoriesReadIt
+   Precondition (source): instrumentation arguments REPAIRED_DATABASE_ARGUMENT +
+   REPAIRED_DATABASE_SHA_ARGUMENT supplying an externally repaired v2 database
+   fixture (assumeNotNull gate).
+   Result: NOT APPLICABLE — no repaired-database fixture was supplied for this
+   round; the same migration contract is covered by AppDatabaseMigrationContractTest
+   (9/9) and AppDatabaseMigrationMatrixTest (22/22) on the frozen AVD run.
+
+C. FoldableNavigationLayoutTest.expandedRailAndSharedTopBarKeepStableGeometry /
+   topLevelTitleRemainsCenteredThroughoutPageTransition
+   Precondition (source): non-compact window so the navigation rail exists
+   (assumeTrue gate).
+   Result: NOT APPLICABLE on Pixel 11 Pro (not a foldable) and on the Pixel_7 AVD
+   (compact). No foldable AVD/device was readily available. The two compact-navigation
+   tests in the same class ran green (4 tests, 2 executed + 2 skipped). Production
+   delta since v1.7.1 is unrelated to navigation-rail geometry.
+
+None of the three is a v1.7.2 regression; each remains environment/phase-conditional
+and is disclosed rather than reported as executed coverage.

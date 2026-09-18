@@ -1,0 +1,38 @@
+v1.7.2 Slice E (resumed) — Settings physical walkthrough
+========================================================
+
+On the isolated candidate (Pixel 11 Pro), exercised through the real UI:
+
+Basic Data
+  - inline body-weight edit + persistence (77.7 / 66.0 retained across upgrade
+    and force-stops; edited value read back from the field)
+
+Appearance
+  - ThemeMode changes (浅色/深色/OLED 全黑/系统默认) all apply live
+  - source rows 跟随壁纸 / 预设配色 work; preset tiles live-apply
+  - time format change and retention (24小时制 verified after upgrade)
+
+Sync & Backup
+  - import/export actions inline; portable export range dialog opens and cancels
+  - legacy clipboard export shows the privacy warning before any clipboard write
+    (screenshots/candidate-clipboard-warning.png); cancelled cleanly
+  - legacy file import opens the SAF file picker; dismissed without import
+  - Health Connect: 管理权限 opens the contextual consent dialog
+    ("连接 Health Connect ... 继续 / 暂不") — permission flow intact
+  - Google Drive row is present; the retained dedicated route is covered by
+    SyncAndBackupNavigationTest on the physical device (2/2)
+
+Updates
+  - update section inline: 自动检查更新 switch, 检查更新 action, 当前版本
+    1.7.1-debug (expected during Slice E)
+  - the real startup auto-check produced the debug update dialog
+    (发现新版本 / 当前为 Debug 版本，最新 Release：v1.7.1) and was dismissed
+
+Navigation
+  - retained rows present and reachable: 指南 / 隐私与权限 / 功能教程 / 关于
+    (SettingsCategoryScreenTest 8/8 and SyncAndBackupNavigationTest 2/2 on the
+    physical device cover opening + back navigation)
+
+Checks: single page scrolls top to bottom; no clipped controls observed; no broken
+route; no stale tile selection (each tap cleared the previous); no crash; theme
+changes applied live without process restart (pid unchanged during tile taps).

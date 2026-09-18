@@ -1,0 +1,26 @@
+v1.7.2 Slice E (resumed) — backup v2 acceptance
+===============================================
+
+Integrated acceptance used the isolated package / instrumentation sandbox only;
+the user's real data was never touched. There is no local-file backup UI (backups
+are Google Drive-only), so the restore mutation was exercised through the
+production-domain sandbox:
+
+  - B2RoomRestorePersistenceTest 4/4 (Pixel 11 Pro): settings replacement via ONE
+    atomic replacement call, canonical post-restore representation preserved
+    (PRESET + LEGACY_BUILTIN + BUILTIN projection), Room restore persistence
+  - SettingsDataStoreTest 4/4 (Pixel 11 Pro): restore writes the local barrier and
+    keeps HC weight metadata with the canonical theme state
+  - PhysicalBackupPerformanceTest 2/2 (Pixel 11 Pro): large-history native backup
+    pipeline round-trip with canonical settings
+  - ThemeStateDeviceTest 6/6 + SettingsThemeIndependenceTest 3/3: canonical
+    identity round-trips; ThemeMode independent
+  - BackupThemeSchemaV2Test 10/10 (frozen JVM): all 10 canonical identities
+    round-trip (DYNAMIC + 8 MONET_* + LEGACY_BUILTIN), strict valid/invalid matrix
+  - BackupRestoreCoordinatorTest 19/19 (frozen JVM): invalid v2 -> zero mutation
+  - Widget appearance preference is not touched by restore: restore code has no
+    widget-prefs access (frozen zero-mutation test) and the widget prefs are not
+    part of the settings DataStore
+
+ThemeMode round-trips and the legacy projection coherence are covered by the same
+suites (canonical source/preset authoritative; projection derived).

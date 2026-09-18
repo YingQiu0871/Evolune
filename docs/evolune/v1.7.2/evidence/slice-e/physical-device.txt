@@ -1,0 +1,19 @@
+v1.7.2 Slice E (resumed) — physical device
+==========================================
+
+Primary physical target: Google Pixel 11 Pro (device codename grizzly)
+  Android 17 / API 37
+  Display 1280x2856 @ 480 dpi
+  Serial: recorded only in private raw logs; redacted from this user-facing summary.
+
+User's installed RELEASE package: io.github.yingqiu0871.evolune (versionName 1.7.1,
+versionCode 101070100). It was NOT uninstalled, cleared, downgraded, replaced or
+mutated in any way. Its data was never used for any test.
+
+Debug candidate used: io.github.yingqiu0871.evolune.debug (separate applicationId,
+same debug signing key) — installed only during this acceptance and uninstalled at
+the end (device left as found). Device settings changed for the walkthrough
+(screen_off_timeout 60s -> 30min, font_scale 1.0 -> 2.0 briefly) were restored:
+final font_scale=1.0, screen_off_timeout=60000.
+
+AVD cross-check: Pixel_7 API 35 (emulator-5554) carried the frozen full-suite gates.

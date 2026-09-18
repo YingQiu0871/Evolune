@@ -1,0 +1,16 @@
+v1.7.2 Slice E (resumed) — startup / performance sanity
+=======================================================
+
+Observed during the physical acceptance:
+  - cold launches: baseline installs, candidate upgrade, force-stop/relaunch cycles
+    and instrumentation runs — the app always reached a usable screen
+  - Settings opening, palette switching and History rendering showed no obvious
+    stall, ANR or crash loop
+  - theme changes applied live without restart; no runaway recomposition or
+    persistent high-frequency error logging was observed (see logcat audit)
+  - no unexpected background service behavior
+
+No timings are reported because none were measured; no formal benchmark was run.
+The frozen device performance suites (PhysicalBackupPerformanceTest,
+V15WidgetPerformanceDeviceTest, V15PkPerformanceDeviceTest, V15RoomPerformanceDeviceTest)
+remain green in the frozen AVD gate.

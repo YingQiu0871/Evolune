@@ -272,13 +272,17 @@
       `noteRes = null`，`isInferredMatch` 分类保持不变；`history_note_inferred_match` 在两个
       locale 权威中删除（零 live 引用）；其他 note 机制与文案保留；evidence
       `docs/evolune/v1.7.2/evidence/slice-d/`）。
-- [ ] v1.7.2 Slice E（全量回归 + 真实设备验收）— **BLOCKED / E-R1 TEST CORRECTION REVIEW
-      PENDING**（Slice E 全量 AVD 仪器 386 tests/3 failures：三个 v1.7.1 时代测试期望未随
-      Slice B 规范主题状态更新；已按协议 REQUEST_FIX。E-R1 仅修正三个测试期望并跑通全量
-      AVD 仪器 71 类/386/0 + JVM 147 suites/1387/0；物理验收在 E-R1 审核通过前保持
-      **DEFERRED**。evidence `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
-- [ ] NEXT：**v1.7.2 Slice E-R1 review**（通过后恢复 Slice E 物理验收：v1.7.1→候选升级、
-      8 预设走查、备份验收、logcat 扫描）。
+- [x] v1.7.2 Slice E-R1（三个过期测试期望修正）— **CLOSED / FROZEN**（`test(v1.7.2): align
+      restore expectations with canonical theme state` @ `678b840`；evidence correction @
+      `61cd190`；全量 AVD 仪器 71 类/386/0（5 个既有条件跳过已如实披露）；evidence
+      `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
+- [x] v1.7.2 Slice E（全量回归 + 真实设备验收）— **ACCEPTANCE COMPLETE / REVIEW PENDING**
+      （物理 Pixel 11 Pro：v1.7.1→候选 DYNAMIC 与 LEGACY_BUILTIN 两个就地升级案例通过
+      （兼容行/迁移/状态保留）；Settings 走查、8 预设、ThemeMode 矩阵、History（含推断项）、
+      备份恢复沙盒、导航、进程重建均通过；物理定向仪器 55/55/0；logcat 无 app FATAL/ANR；
+      版本保持 1.7.1；本回合产品 delta 为零；evidence
+      `docs/evolune/v1.7.2/evidence/slice-e/`）。
+- [ ] NEXT：**v1.7.2 Slice E final review**（通过后进入 Slice F：文档/状态 + 打包准备）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

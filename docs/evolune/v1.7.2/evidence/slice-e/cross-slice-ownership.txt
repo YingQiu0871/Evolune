@@ -1,0 +1,29 @@
+v1.7.2 Slice E (resumed) — cross-slice ownership (746fc0a -> 61cd190)
+=====================================================================
+
+All 30 production files changed since released v1.7.1 belong to exactly A/B/C/D:
+
+Slice A (palette authority):
+  theme/palette/PresetPalette.kt, PaletteSeed.kt, PaletteCatalog.kt,
+  LegacyBuiltinTheme.kt (new); widget/WidgetAppearance.kt (delegation only).
+
+Slice B (canonical theme state + backup v2):
+  data/ThemeState.kt (new); data/SettingsDataStore.kt; viewmodel/SettingsViewModel.kt;
+  MainActivity.kt; ui/theme/Theme.kt; ui/theme/Color.kt; ui/theme/PresetColorSchemes.kt
+  (new); backup/EvoluneBackupV1.kt; backup/EvoluneBackupCodec.kt; backup/B2RestoreProtocol.kt.
+
+Slice C (flattened Settings + palette UI):
+  navigation/AppNavigation.kt; ui/screens/SettingsScreen.kt; ui/screens/settings/**
+  (9 new files); six old screens deleted; res/values{,-zh-rCN}/strings.xml (Slice-C keys).
+
+Slice D (History copy):
+  history/HistoryPresentation.kt; res/values{,-zh-rCN}/strings.xml
+  (history_note_inferred_match removal).
+
+E-R1 / E-R1-EC: tests + evidence only (no product files).
+
+Frozen confirmations (git diff 746fc0a..61cd190):
+  experience-core = zero; wear = zero; app/schemas = zero;
+  *.gradle.kts / gradle.properties / libs.versions.toml = zero;
+  Room schema unchanged; no dependency added; Wear behavior unchanged;
+  DoseEvent / matcher / projection / PK semantics unchanged.

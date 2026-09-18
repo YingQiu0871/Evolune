@@ -1,0 +1,21 @@
+v1.7.2 Slice E (resumed) — ThemeMode physical matrix
+====================================================
+
+Combinations exercised on the isolated candidate (real UI):
+
+  SYSTEM + DYNAMIC   screenshots/candidate-system-dynamic.png
+  LIGHT  + MONET_BLUE  screenshots/candidate-light-blue.png
+  DARK   + MONET_SAKURA screenshots/candidate-dark-sakura.png
+  AMOLED + MONET_MINT  screenshots/candidate-amoled-mint.png
+  DARK   + MONET_BLUE (final retained state)
+
+Observed:
+  - changing ThemeMode never replaced the palette identity (the previously
+    selected tile stayed selected; screenshots show the same tile across modes)
+  - changing the palette never replaced ThemeMode (深色 remained selected)
+  - AMOLED surfaces render black while foreground content stays readable
+  - no unreadable foreground/surface combination was observed in any combo
+
+AMOLED + LEGACY_BUILTIN: the legacy-upgrade state was consumed by the required
+migration tap before the matrix; LEGACY_BUILTIN + AMOLED is covered by
+LegacyBuiltinContinuityTest (exact frozen AMOLED overrides, JVM, frozen green).

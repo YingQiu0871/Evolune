@@ -1,0 +1,28 @@
+v1.7.2 Slice E (resumed) — all 8 presets (physical)
+===================================================
+
+Cycle order executed by tapping each tile's visible label:
+  MONET_BLUE -> MONET_VIOLET -> MONET_SAKURA -> MONET_MINT -> MONET_TEAL ->
+  MONET_AMBER -> MONET_NEUTRAL -> MONET_LAVENDER
+
+For every tile (state read from the real UI):
+  - the tapped tile became selected; the previous tile became unselected
+    (border + primaryContainer + Check indicator moved; visible in the
+    representative screenshots)
+  - app chrome visibly updated to the palette family
+  - the visible label matched the tapped tile (蓝/紫罗兰/樱花/薄荷/青绿/琥珀/中性/薰衣草)
+  - ThemeMode remained unchanged (深色) throughout
+  - leaving/returning Settings (scroll + navigation) kept the selected tile
+    (state derives from the persisted canonical state)
+
+Representative screenshots (not one per tile):
+  screenshots/candidate-preset-lavender.png
+  screenshots/candidate-preset-sakura.png
+  screenshots/candidate-preset-amber.png
+  screenshots/physical/03-monet-blue-selected.png
+  screenshots/physical/06-monet-amber-selected.png
+
+Return to Dynamic: screenshots/candidate-back-to-dynamic.png — 跟随壁纸 selected,
+zero preset tiles selected.
+
+Correctness/state-consistency only; no aesthetic ranking was applied.

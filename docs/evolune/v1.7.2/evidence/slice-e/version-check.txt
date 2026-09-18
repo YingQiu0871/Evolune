@@ -1,0 +1,7 @@
+v1.7.2 Slice E (resumed) — version check
+========================================
+
+build.gradle.kts: evoluneVersionName = "1.7.1"; ordinal 1_070_100 ->
+Phone 101070100, Wear 1101070100.
+No build/version delta vs the acceptance HEAD. No v1.7.2 tag/release exists.
+The debug candidate displays 1.7.1-debug — expected during Slice E.

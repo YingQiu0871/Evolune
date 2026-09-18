@@ -1,0 +1,18 @@
+v1.7.2 Slice E (resumed) — logcat audit
+=======================================
+
+Capture: app-scoped logcat during the physical acceptance session
+(logs/physical-logcat.txt, 9686 lines).
+
+Review result:
+  - FATAL EXCEPTION correlated with the Evolune process: none
+  - ANR correlated with the Evolune process: none
+  - navigation destination errors: none
+  - DataStore parse failures: none
+  - backup schema exceptions: none
+  - Compose runtime crashes: none
+  - IllegalStateException related to theme state: none
+
+Generic Android/Pixel/vendor warnings were not treated as Evolune defects without
+an app-process correlation. The AVD instrumentation console likewise reported no
+app FATAL/ANR.

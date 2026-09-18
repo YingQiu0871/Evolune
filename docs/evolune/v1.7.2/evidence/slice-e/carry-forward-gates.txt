@@ -1,0 +1,23 @@
+v1.7.2 Slice E (resumed) — frozen carry-forward gates
+=====================================================
+
+These gates were already approved/frozen and were NOT re-run this round:
+
+  App JVM             147 suites / 1387 tests / 0 failures
+                      (evidence: docs/evolune/v1.7.2/evidence/slice-e-r1/logs/jvm-summary.txt)
+  experience-core     20 suites / 171 tests / 0 failures
+                      (slice-e-r1 logs/jvm.log via the single full gate)
+  Wear JVM            11 suites / 90 tests / 0 failures
+  Phone full AVD XML  71 classes / 386 testcases / 0 failures / 0 errors /
+                      5 pre-existing conditional skips
+                      (evidence: docs/evolune/v1.7.2/evidence/slice-e-r1/
+                       full-phone-instrumentation-summary.txt + logs/*)
+  E-R1 test correction APPROVED / FROZEN @ 678b840 + 61cd190.
+
+The five conditional skips (not executed coverage, not E-R1 regressions):
+  V15InPlaceUpgradeDeviceTest.verifyV15State
+  V15InPlaceUpgradeDeviceTest.prepareV14State
+  FoldableNavigationLayoutTest.expandedRailAndSharedTopBarKeepStableGeometry
+  FoldableNavigationLayoutTest.topLevelTitleRemainsCenteredThroughoutPageTransition
+  RepairToolOutputMigrationTest.repairedV2CopyMigratesAndProductionRepositoriesReadIt
+Follow-up results are recorded in conditional-skip-followup.txt.

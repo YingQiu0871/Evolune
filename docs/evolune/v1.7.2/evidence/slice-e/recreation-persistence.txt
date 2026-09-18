@@ -1,0 +1,15 @@
+v1.7.2 Slice E (resumed) — process recreation / persistence
+===========================================================
+
+On the isolated candidate (Pixel 11 Pro):
+  - after seeding a preset (MONET_BLUE) and ThemeMode 深色, the app was force-stopped
+    and relaunched several times across the acceptance (baseline -> candidate upgrade,
+    instrumentation runs, font-scale relaunch)
+  - after every relaunch the canonical state returned correctly: selected tile,
+    ThemeMode, time format and body weight unchanged (UI dumps + screenshots)
+  - no canonical/legacy projection drift observed (color_theme stayed coherent with
+    the canonical source: PRESET -> BUILTIN)
+
+Activity recreation is additionally covered by FeatureTutorialNavigationTest's
+activityRecreation test (frozen AVD gate) and by the device suites that read the
+real settings DataStore after writes.
