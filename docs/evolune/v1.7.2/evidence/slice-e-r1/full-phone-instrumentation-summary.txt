@@ -1,0 +1,13 @@
+v1.7.2 Slice E-R1 — FULL Phone instrumentation (final gate)
+============================================================
+
+Command: :app:connectedDebugAndroidTest   (no class filter)
+Device : Pixel_7 AVD API 35 (emulator-5554)
+Log    : logs/full-phone-instrumentation.log
+Console: Starting 386 tests / Finished 391 tests / BUILD SUCCESSFUL in 6m 41s
+
+XML-derived (logs/full-phone-instrumentation-summary.txt):
+  classes=71  tests=386  failures=0  errors=0  skipped=0
+
+No justified skips appeared. The prior Slice-E run (386 tests / 3 failures) is now
+fully green with the corrected expectations.

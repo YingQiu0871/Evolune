@@ -1,0 +1,32 @@
+v1.7.2 Slice E-R1 — root cause per test
+=======================================
+
+All three failures were stale v1.7.1-era expectations that still assumed the legacy
+`color_theme` value is echoed verbatim. Since Slice B the canonical theme state
+(theme_color_source + theme_preset_id) is the authority and `color_theme` is only its
+compatibility projection:
+
+  canonical DYNAMIC           -> color_theme = DYNAMIC
+  canonical PRESET            -> color_theme = BUILTIN
+  v1 BUILTIN restore input    -> canonical PRESET + LEGACY_BUILTIN
+
+1. SettingsDataStoreTest
+   Input `UserSettings(colorTheme = BUILTIN)` left the canonical fields at defaults
+   (DYNAMIC / null) — an incoherent state that no production caller produces.
+   `replaceSettings` correctly treats the canonical source as authority, so the read
+   returns DYNAMIC. The test asserted the old legacy echo.
+
+2. B2RoomRestorePersistenceTest
+   The v1-shaped target was expected to be echoed by `readSettings()`. The approved
+   post-restore invariant is the canonicalized snapshot
+   (toBackupSettings() always emits both canonical keys), so the read returns
+   PRESET + LEGACY_BUILTIN with the BUILTIN projection.
+
+3. PhysicalBackupPerformanceTest
+   The fixture settings were v1-shaped; the encoder canonicalizes theme identity
+   before serialization (frozen Slice-B contract §12), so the decoded payload carries
+   PRESET + LEGACY_BUILTIN. Comparing it to the raw fixture was invalid.
+
+No product defect: all three exercised approved behaviors (canonical authority,
+canonical read snapshot, encode-time canonicalization). Product implementation was
+NOT changed.

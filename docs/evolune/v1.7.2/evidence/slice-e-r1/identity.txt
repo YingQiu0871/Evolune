@@ -1,0 +1,10 @@
+v1.7.2 Slice E-R1 — identity
+============================
+
+Repository: D:\Evolune-Workspace\worktrees\Evolune-v1.7
+Branch: feature/v1.7.2-settings-theme-history
+Baseline/parent HEAD: 50b20e8cbe19b8dcc2d5d6e100a072dd61251396 (Slice E REQUEST_FIX)
+Implementation commit subject: test(v1.7.2): align restore expectations with canonical theme state
+Scope: three stale instrumentation expectations only; no product/test-logic change.
+Version metadata: unchanged 1.7.1 / 101070100 / 1101070100.
+No tag, no push, no release.

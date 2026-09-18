@@ -1,0 +1,8 @@
+v1.7.2 Slice E-R1 — version check
+=================================
+
+build.gradle.kts: evoluneVersionName = "1.7.1"
+Formula (unchanged): ordinal = 1_070_100 -> Phone 101_070_100, Wear 1_101_070_100.
+No build-file delta (git diff 50b20e8 -- "*.gradle.kts" gradle.properties
+gradle/libs.versions.toml = empty).
+No tag/release for v1.7.2 exists.

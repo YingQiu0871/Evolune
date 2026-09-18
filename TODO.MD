@@ -266,13 +266,19 @@
       `69f859d3c32a4fbc668fa8da3ea57c139fd56ea9`；单一可滚动 Settings 页内联四区 + 保留四行；
       六条二级路由/旧屏删除；配色 UI 消费 Slice-B 规范状态；full app JVM 147 suites/1387/0；
       设备 39/39；AVD smoke 1/1 + 6 截图；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
-- [x] v1.7.2 Slice D（History 推断匹配文案移除）— **IMPLEMENTED / REVIEW PENDING**
-      （`fix(history): remove inferred-match display note`；HistoryPresentation matched 分支
+- [x] v1.7.2 Slice D（History 推断匹配文案移除）— **CLOSED / FROZEN**
+      （`fix(history): remove inferred-match display note` @
+      `50b20e8cbe19b8dcc2d5d6e100a072dd61251396`；HistoryPresentation matched 分支
       `noteRes = null`，`isInferredMatch` 分类保持不变；`history_note_inferred_match` 在两个
-      locale 权威中删除（零 live 引用）；其他 note 机制与文案保留；History 聚焦 JVM 37
-      suites/449/0；full app JVM 147 suites/1387/0；设备 HistoryScreenTest 21/21 + 真实管线
-      截图；evidence `docs/evolune/v1.7.2/evidence/slice-d/`）。
-- [ ] NEXT：**v1.7.2 Slice D review**（通过后方可开始 Slice E：回归 + 真实设备验收）。
+      locale 权威中删除（零 live 引用）；其他 note 机制与文案保留；evidence
+      `docs/evolune/v1.7.2/evidence/slice-d/`）。
+- [ ] v1.7.2 Slice E（全量回归 + 真实设备验收）— **BLOCKED / E-R1 TEST CORRECTION REVIEW
+      PENDING**（Slice E 全量 AVD 仪器 386 tests/3 failures：三个 v1.7.1 时代测试期望未随
+      Slice B 规范主题状态更新；已按协议 REQUEST_FIX。E-R1 仅修正三个测试期望并跑通全量
+      AVD 仪器 71 类/386/0 + JVM 147 suites/1387/0；物理验收在 E-R1 审核通过前保持
+      **DEFERRED**。evidence `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
+- [ ] NEXT：**v1.7.2 Slice E-R1 review**（通过后恢复 Slice E 物理验收：v1.7.1→候选升级、
+      8 预设走查、备份验收、logcat 扫描）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

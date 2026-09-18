@@ -1,0 +1,39 @@
+v1.7.2 Slice E-R1 — test semantics before/after
+===============================================
+
+1. SettingsDataStoreTest — restore settings writes local barrier and keeps HC weight metadata
+   BEFORE (input):  UserSettings(bodyWeight=62.2, themeMode=DARK, colorTheme=BUILTIN,
+                    autoCheckUpdates=false, timeFormat=HOUR_24)
+                    + assert restored.colorTheme == settings.colorTheme
+   AFTER (input):   UserSettings(bodyWeight=62.2, themeMode=DARK, colorTheme=BUILTIN,
+                    themeColorSource=PRESET, themePreset=LegacyBuiltin,
+                    autoCheckUpdates=false, timeFormat=HOUR_24)
+   AFTER (asserts): bodyWeight / themeMode / autoCheckUpdates / timeFormat preserved
+                    canonical source == PRESET
+                    canonical preset == LegacyBuiltin
+                    projection colorTheme == BUILTIN
+                    HC metadata (61.1 kg, adoptedAt) preserved
+   Anti-tautology: the three theme facts are asserted as literal constants, not derived
+   from the object under test.
+
+2. B2RoomRestorePersistenceTest — settings replacement uses one atomic replacement call
+   BEFORE: assertEquals(target, persistence.readSettings())
+   AFTER : field-by-field explicit expectations:
+             bodyWeightKg == 62.5, themeMode == "DARK", timeFormat == "HOUR_24",
+             autoCheckUpdates == false, colorTheme == "BUILTIN",
+             themeColorSource == "PRESET", themePresetId == "LEGACY_BUILTIN"
+           and the retained atomicity assertion: settings.replaceCalls == 1
+   Anti-tautology: no call to toUserSettings()/toBackupSettings() in the expectation.
+
+3. PhysicalBackupPerformanceTest — physicalLargeHistoryNativeBackupPipeline
+   BEFORE (fixture): BackupSettingsV1(55.0, "LIGHT", "BUILTIN", true, "HOUR_24")
+   AFTER  (fixture): BackupSettingsV1(55.0, "LIGHT", "BUILTIN", true, "HOUR_24",
+                     themeColorSource="PRESET", themePresetId="LEGACY_BUILTIN")
+   The round-trip equality (expectedCanonicalPayload == decoded.payload.payload) now
+   compares canonical-to-canonical; dataset size, KDF/PSS/plaintext/encrypted-size and
+   preview assertions are untouched.
+   Anti-tautology: the canonical identity is written literally into the fixture.
+
+DYNAMIC-side facts remain covered by the untouched suites
+(BackupThemeSchemaV2Test round-trips, EvoluneBackupCodecTest, ThemeStateDerivationTest,
+ThemeStateDeviceTest) — no DYNAMIC assertion was weakened here.

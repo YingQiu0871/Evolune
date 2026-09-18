@@ -1,0 +1,17 @@
+v1.7.2 Slice E-R1 — focused device confirmation
+===============================================
+
+Command: :app:connectedDebugAndroidTest
+         -Pandroid.testInstrumentationRunnerArguments.class=
+         SettingsDataStoreTest,B2RoomRestorePersistenceTest,PhysicalBackupPerformanceTest
+Device : Pixel_7 AVD API 35 (emulator-5554)
+Log    : logs/focused-device.log
+
+XML-derived:
+  SettingsDataStoreTest            tests=4
+  B2RoomRestorePersistenceTest     tests=4
+  PhysicalBackupPerformanceTest    tests=2
+  TOTAL tests=10 failures=0
+
+Red -> green: the same three classes failed 3/10 before the correction (Slice E) and
+pass 10/10 after it.

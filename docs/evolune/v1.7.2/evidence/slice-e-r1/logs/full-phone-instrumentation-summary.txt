@@ -1,0 +1,77 @@
+v1.7.2 Slice E-R1 FULL Phone instrumentation (from JUnit XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Command: :app:connectedDebugAndroidTest (no class filter)
+
+io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest  tests=4
+io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest  tests=2
+io.github.yingqiu0871.evolune.data.AppDatabaseMigrationMatrixTest  tests=22
+io.github.yingqiu0871.evolune.data.AppDatabaseMigrationTest  tests=18
+io.github.yingqiu0871.evolune.data.AppDatabaseV2BaselineTest  tests=2
+io.github.yingqiu0871.evolune.data.Batch8CPreservedUpgradeTest  tests=2
+io.github.yingqiu0871.evolune.data.migration.contract.AppDatabaseMigrationContractTest  tests=9
+io.github.yingqiu0871.evolune.data.migration.contract.RepairToolOutputMigrationTest  tests=1
+io.github.yingqiu0871.evolune.data.migration.contract.RepairToolParityTest  tests=1
+io.github.yingqiu0871.evolune.data.repository.DoseEventProductionCutoverTest  tests=2
+io.github.yingqiu0871.evolune.data.repository.MedicationPlanProductionCutoverTest  tests=3
+io.github.yingqiu0871.evolune.data.repository.PlanSaveRegressionTest  tests=4
+io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProviderTest  tests=2
+io.github.yingqiu0871.evolune.data.repository.ReceiverWidgetProductionCutoverTest  tests=9
+io.github.yingqiu0871.evolune.data.repository.RoomRepositoryTest  tests=27
+io.github.yingqiu0871.evolune.data.repository.V15RoomPerformanceDeviceTest  tests=1
+io.github.yingqiu0871.evolune.data.repository.WearProductionCutoverTest  tests=5
+io.github.yingqiu0871.evolune.data.SettingsDataStoreTest  tests=4
+io.github.yingqiu0871.evolune.data.SettingsThemeIndependenceTest  tests=3
+io.github.yingqiu0871.evolune.data.ThemeStateDeviceTest  tests=6
+io.github.yingqiu0871.evolune.ExampleInstrumentedTest  tests=1
+io.github.yingqiu0871.evolune.healthconnect.HealthConnectPermissionManifestTest  tests=1
+io.github.yingqiu0871.evolune.history.HistoryIndexQueryPlanTest  tests=1
+io.github.yingqiu0871.evolune.history.HistoryReadZeroWriteDeviceTest  tests=1
+io.github.yingqiu0871.evolune.history.HistorySavedStateFactoryTest  tests=1
+io.github.yingqiu0871.evolune.history.insights.InsightsSavedStateFactoryTest  tests=2
+io.github.yingqiu0871.evolune.history.insights.InsightsSurfaceLifecycleTest  tests=3
+io.github.yingqiu0871.evolune.onboarding.OnboardingStateStoreTest  tests=3
+io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest  tests=2
+io.github.yingqiu0871.evolune.reminder.ReceiverLifecycleInstrumentationTest  tests=7
+io.github.yingqiu0871.evolune.time.V15TimeBoundaryDeviceTest  tests=1
+io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialogTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.AuthorizationGuidanceTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.ColorRoleConformanceTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.DataImportExportScreenTest  tests=6
+io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreenTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreenTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.HealthConnectSyncScreenTest  tests=5
+io.github.yingqiu0871.evolune.ui.screens.HistoryCalendarGeometryTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.HistoryRefreshDeviceTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.HistoryScreenTest  tests=21
+io.github.yingqiu0871.evolune.ui.screens.HistoryVisualEvidenceTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.insights.InsightsReleaseGateTest  tests=7
+io.github.yingqiu0871.evolune.ui.screens.insights.InsightsScreenTest  tests=20
+io.github.yingqiu0871.evolune.ui.screens.insights.InsightsZeroWriteDeviceTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreenTest  tests=14
+io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreenTest  tests=12
+io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreenTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.RealAppImeFrameProbeTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveScreenTest  tests=15
+io.github.yingqiu0871.evolune.ui.screens.SettingsCategoryScreenTest  tests=8
+io.github.yingqiu0871.evolune.ui.screens.SettingsPaletteSelectorTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.SliceCSettingsSmokeTest  tests=1
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest  tests=2
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupScreenTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineAccessibilityTest  tests=13
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineFontScaleTest  tests=6
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineGeometryTest  tests=9
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineLifecycleTest  tests=4
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineNavigationTest  tests=3
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineScreenTest  tests=25
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineVisualEvidenceTest  tests=2
+io.github.yingqiu0871.evolune.viewmodel.V15PkPerformanceDeviceTest  tests=1
+io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest  tests=4
+io.github.yingqiu0871.evolune.widget.V15WidgetPerformanceDeviceTest  tests=1
+io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest  tests=12
+
+TOTAL classes=71 tests=386 failures=0 errors=0 skipped=0

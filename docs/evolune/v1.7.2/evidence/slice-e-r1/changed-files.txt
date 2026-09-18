@@ -1,0 +1,21 @@
+v1.7.2 Slice E-R1 — changed files
+=================================
+
+Exactly three instrumentation test files (test-only correction):
+
+  M app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsDataStoreTest.kt
+      restore test now uses the coherent canonical legacy-builtin state
+      (PRESET + LegacyBuiltin + BUILTIN projection) and asserts canonical source,
+      preset and projection explicitly; body weight / ThemeMode / HC metadata
+      assertions unchanged.
+  M app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+      expected post-restore snapshot is now explicit canonical
+      (PRESET + LEGACY_BUILTIN + BUILTIN projection) field by field; the single
+      atomic replacement call assertion is retained.
+  M app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/PhysicalBackupPerformanceTest.kt
+      large-history fixture settings are canonical from the start
+      (PRESET + LEGACY_BUILTIN), so encoder canonicalization is the identity and the
+      round-trip equality stays meaningful; dataset size and all pipeline assertions
+      unchanged.
+
+No shared test helper was changed. No production/resource/build/version file changed.

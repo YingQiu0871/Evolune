@@ -1,0 +1,67 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+index c5d52c6..53d702b 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+@@ -85,7 +85,17 @@ class B2RoomRestorePersistenceTest {
+             assertEquals(true, persistence.replaceSettings(target))
+ 
+             assertEquals(1, settings.replaceCalls)
+-            assertEquals(target, persistence.readSettings())
++            // v1.7.2: readSettings() returns the canonical post-restore representation —
++            // a v1-shaped BUILTIN target is canonicalized to PRESET + LEGACY_BUILTIN while
++            // keeping the BUILTIN compatibility projection.
++            val restored = persistence.readSettings()
++            assertEquals(62.5, restored.bodyWeightKg, 0.0)
++            assertEquals("DARK", restored.themeMode)
++            assertEquals("HOUR_24", restored.timeFormat)
++            assertEquals(false, restored.autoCheckUpdates)
++            assertEquals("BUILTIN", restored.colorTheme)
++            assertEquals("PRESET", restored.themeColorSource)
++            assertEquals("LEGACY_BUILTIN", restored.themePresetId)
+         }
+ 
+     @Test
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/PhysicalBackupPerformanceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/PhysicalBackupPerformanceTest.kt
+index 36ec7a7..03a9712 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/PhysicalBackupPerformanceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/PhysicalBackupPerformanceTest.kt
+@@ -309,7 +309,12 @@ class PhysicalBackupPerformanceTest {
+                 themeMode = "LIGHT",
+                 colorTheme = "BUILTIN",
+                 autoCheckUpdates = true,
+-                timeFormat = "HOUR_24"
++                timeFormat = "HOUR_24",
++                // v1.7.2: the fixture is canonical from the start, so the encoder's
++                // canonicalization is the identity and the round-trip equality stays
++                // meaningful (PRESET + LEGACY_BUILTIN with the BUILTIN projection).
++                themeColorSource = "PRESET",
++                themePresetId = "LEGACY_BUILTIN"
+             )
+         )
+     }
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsDataStoreTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsDataStoreTest.kt
+index 39a32f1..32e54b4 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsDataStoreTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/SettingsDataStoreTest.kt
+@@ -50,6 +50,8 @@ class SettingsDataStoreTest {
+             bodyWeight = 62.2,
+             themeMode = ThemeMode.DARK,
+             colorTheme = ColorTheme.BUILTIN,
++            themeColorSource = ThemeColorSource.PRESET,
++            themePreset = ThemePresetSelection.LegacyBuiltin,
+             autoCheckUpdates = false,
+             timeFormat = TimeFormat.HOUR_24
+         )
+@@ -59,7 +61,11 @@ class SettingsDataStoreTest {
+         val settings = store.userSettings.first()
+         assertEquals(restored.bodyWeight, settings.bodyWeight, 0.0)
+         assertEquals(restored.themeMode, settings.themeMode)
+-        assertEquals(restored.colorTheme, settings.colorTheme)
++        // v1.7.2 canonical theme authority: PRESET + LEGACY_BUILTIN with the legacy
++        // BUILTIN projection derived from it (no pre-Slice-B legacy echo).
++        assertEquals(ThemeColorSource.PRESET, settings.themeColorSource)
++        assertEquals(ThemePresetSelection.LegacyBuiltin, settings.themePreset)
++        assertEquals(ColorTheme.BUILTIN, settings.colorTheme)
+         assertEquals(restored.autoCheckUpdates, settings.autoCheckUpdates)
+         assertEquals(restored.timeFormat, settings.timeFormat)
+         assertEquals(61.1, requireNotNull(settings.lastHealthConnectWeightKg), 0.0)

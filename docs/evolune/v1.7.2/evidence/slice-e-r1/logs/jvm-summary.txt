@@ -1,0 +1,4 @@
+v1.7.2 Slice E-R1 app JVM sanity (from JUnit XML)
+Command: :app:testDebugUnitTest --rerun-tasks (28/28 executed; BUILD SUCCESSFUL)
+
+TOTAL suites=147 tests=1387 failures=0 errors=0 skipped=0

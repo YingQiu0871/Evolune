@@ -50,6 +50,8 @@ class SettingsDataStoreTest {
             bodyWeight = 62.2,
             themeMode = ThemeMode.DARK,
             colorTheme = ColorTheme.BUILTIN,
+            themeColorSource = ThemeColorSource.PRESET,
+            themePreset = ThemePresetSelection.LegacyBuiltin,
             autoCheckUpdates = false,
             timeFormat = TimeFormat.HOUR_24
         )
@@ -59,7 +61,11 @@ class SettingsDataStoreTest {
         val settings = store.userSettings.first()
         assertEquals(restored.bodyWeight, settings.bodyWeight, 0.0)
         assertEquals(restored.themeMode, settings.themeMode)
-        assertEquals(restored.colorTheme, settings.colorTheme)
+        // v1.7.2 canonical theme authority: PRESET + LEGACY_BUILTIN with the legacy
+        // BUILTIN projection derived from it (no pre-Slice-B legacy echo).
+        assertEquals(ThemeColorSource.PRESET, settings.themeColorSource)
+        assertEquals(ThemePresetSelection.LegacyBuiltin, settings.themePreset)
+        assertEquals(ColorTheme.BUILTIN, settings.colorTheme)
         assertEquals(restored.autoCheckUpdates, settings.autoCheckUpdates)
         assertEquals(restored.timeFormat, settings.timeFormat)
         assertEquals(61.1, requireNotNull(settings.lastHealthConnectWeightKg), 0.0)

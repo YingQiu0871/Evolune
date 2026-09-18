@@ -309,7 +309,12 @@ class PhysicalBackupPerformanceTest {
                 themeMode = "LIGHT",
                 colorTheme = "BUILTIN",
                 autoCheckUpdates = true,
-                timeFormat = "HOUR_24"
+                timeFormat = "HOUR_24",
+                // v1.7.2: the fixture is canonical from the start, so the encoder's
+                // canonicalization is the identity and the round-trip equality stays
+                // meaningful (PRESET + LEGACY_BUILTIN with the BUILTIN projection).
+                themeColorSource = "PRESET",
+                themePresetId = "LEGACY_BUILTIN"
             )
         )
     }

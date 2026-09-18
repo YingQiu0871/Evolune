@@ -85,7 +85,17 @@ class B2RoomRestorePersistenceTest {
             assertEquals(true, persistence.replaceSettings(target))
 
             assertEquals(1, settings.replaceCalls)
-            assertEquals(target, persistence.readSettings())
+            // v1.7.2: readSettings() returns the canonical post-restore representation —
+            // a v1-shaped BUILTIN target is canonicalized to PRESET + LEGACY_BUILTIN while
+            // keeping the BUILTIN compatibility projection.
+            val restored = persistence.readSettings()
+            assertEquals(62.5, restored.bodyWeightKg, 0.0)
+            assertEquals("DARK", restored.themeMode)
+            assertEquals("HOUR_24", restored.timeFormat)
+            assertEquals(false, restored.autoCheckUpdates)
+            assertEquals("BUILTIN", restored.colorTheme)
+            assertEquals("PRESET", restored.themeColorSource)
+            assertEquals("LEGACY_BUILTIN", restored.themePresetId)
         }
 
     @Test

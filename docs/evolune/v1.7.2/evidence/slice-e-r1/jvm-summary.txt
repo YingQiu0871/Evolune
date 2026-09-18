@@ -1,0 +1,10 @@
+v1.7.2 Slice E-R1 — app JVM sanity
+==================================
+
+Command: :app:testDebugUnitTest --rerun-tasks (28/28 executed; BUILD SUCCESSFUL)
+Log    : logs/jvm.log
+
+XML-derived (logs/jvm-summary.txt):
+  suites=147  tests=1387  failures=0  errors=0  skipped=0
+
+Matches the Slice-E baseline; no fixture/helper fallout from the test-only correction.

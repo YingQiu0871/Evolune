@@ -1,0 +1,28 @@
+v1.7.2 Slice E-R1 — original failures (Slice E full AVD run)
+============================================================
+
+Command: .\gradlew.bat :app:connectedDebugAndroidTest   (ANDROID_SERIAL=emulator-5554)
+Result : 386 tests / 3 failures / 0 errors / 0 skipped -> BUILD FAILED
+
+1. io.github.yingqiu0871.evolune.data.SettingsDataStoreTest
+   > restore settings writes local barrier and keeps HC weight metadata
+   java.lang.AssertionError: expected:<BUILTIN> but was:<DYNAMIC>
+   at SettingsDataStoreTest.kt:62
+
+2. io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest
+   > settings replacement uses one atomic replacement call and preserves every field
+   expected:<BackupSettingsV1(bodyWeightKg=62.5, themeMode=DARK, colorTheme=BUILTIN,
+   autoCheckUpdates=false, timeFormat=HOUR_24, themeColorSource=null, themePresetId=null)>
+   but was:<BackupSettingsV1(bodyWeightKg=62.5, themeMode=DARK, colorTheme=BUILTIN,
+   autoCheckUpdates=false, timeFormat=HOUR_24, themeColorSource=PRESET,
+   themePresetId=LEGACY_BUILTIN)>
+   at B2RoomRestorePersistenceTest.kt:88
+
+3. io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest
+   > physicalLargeHistoryNativeBackupPipeline
+   payload equality mismatch: the raw legacy-shaped fixture settings were compared with
+   the decoded canonical settings (themeColorSource=PRESET, themePresetId=LEGACY_BUILTIN)
+   at PhysicalBackupPerformanceTest.kt:189
+
+Isolated rerun of the three classes reproduced the same 3 failures (10 tests / 3
+failures), confirming determinism (Slice E evidence, external).

@@ -1,0 +1,9 @@
+v1.7.2 Slice E-R1 focused device confirmation (from JUnit XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+Classes: SettingsDataStoreTest + B2RoomRestorePersistenceTest + PhysicalBackupPerformanceTest
+
+io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest  tests=4
+io.github.yingqiu0871.evolune.backup.PhysicalBackupPerformanceTest  tests=2
+io.github.yingqiu0871.evolune.data.SettingsDataStoreTest  tests=4
+
+TOTAL tests=10 failures=0

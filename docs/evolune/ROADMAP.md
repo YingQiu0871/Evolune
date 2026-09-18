@@ -301,12 +301,14 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `docs/evolune/v1.7.2/evidence/slice-b/`）。
 - **v1.7.2 · Slice C（Settings 扁平化 + 配色选择 UI）— CLOSED / FROZEN**（implementation @
   `69f859d…`；evidence `docs/evolune/v1.7.2/evidence/slice-c/`）。
-- **v1.7.2 · Slice D（History 推断匹配文案移除）— IMPLEMENTED / REVIEW PENDING**（matched
-  分支 `noteRes = null`、`isInferredMatch` 分类不变；`history_note_inferred_match` 于两个
-  locale 权威删除；其他 note 机制保留；History 聚焦 JVM 37 suites/449/0；full app JVM 147
-  suites/1387/0；设备 HistoryScreenTest 21/21 + 真实管线截图；evidence
-  `docs/evolune/v1.7.2/evidence/slice-d/`）。
-  **NEXT:** v1.7.2 Slice D review（通过后开始 Slice E）。
+- **v1.7.2 · Slice D（History 推断匹配文案移除）— CLOSED / FROZEN**（implementation @
+  `50b20e8…`；evidence `docs/evolune/v1.7.2/evidence/slice-d/`）。
+- **v1.7.2 · Slice E（全量回归 + 真实设备验收）— BLOCKED / E-R1 TEST CORRECTION REVIEW
+  PENDING**（全量 AVD 仪器 386 tests/3 failures：三个 v1.7.1 时代测试期望未随 Slice B 规范
+  主题状态更新；REQUEST_FIX 后 E-R1 仅修正三个测试期望：全量 AVD 仪器 71 类/386/0，JVM 147
+  suites/1387/0；物理验收在 E-R1 审核通过前 **DEFERRED**；evidence
+  `docs/evolune/v1.7.2/evidence/slice-e-r1/`）。
+  **NEXT:** v1.7.2 Slice E-R1 review（通过后恢复物理验收）。
 
 ## Historical and future milestones
 

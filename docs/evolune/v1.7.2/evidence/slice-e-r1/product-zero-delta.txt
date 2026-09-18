@@ -1,0 +1,13 @@
+v1.7.2 Slice E-R1 — product zero-delta
+======================================
+
+git diff 50b20e8 -- <scope>   (working tree, before commit):
+
+  app/src/main              : empty
+  experience-core           : empty
+  wear                      : empty
+  app/src/main/res          : empty
+  *.gradle.kts / gradle.properties / gradle/libs.versions.toml : empty
+
+Changed paths (git status): exactly the three androidTest files listed in
+changed-files.txt. No production/resource/build/version delta.
