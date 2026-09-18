@@ -5,9 +5,30 @@ Command: :app:connectedDebugAndroidTest   (no class filter)
 Device : Pixel_7 AVD API 35 (emulator-5554)
 Log    : logs/full-phone-instrumentation.log
 Console: Starting 386 tests / Finished 391 tests / BUILD SUCCESSFUL in 6m 41s
+         (console progress numbers are not the authoritative testcase count)
 
 XML-derived (logs/full-phone-instrumentation-summary.txt):
-  classes=71  tests=386  failures=0  errors=0  skipped=0
+  classes=71  tests=386  failures=0  errors=0  skipped=5
+  381 non-skipped testcases completed without failure or error (386 - 5; derived from the
+  XML, not a separate Gradle-reported metric).
 
-No justified skips appeared. The prior Slice-E run (386 tests / 3 failures) is now
-fully green with the corrected expectations.
+Conditional skips (5) — pre-existing assumeTrue / device-or-state gates, disclosed and NOT
+counted as executed coverage; the affected classes were NOT modified by E-R1:
+  V15InPlaceUpgradeDeviceTest (2):
+    - verifyV15State
+    - prepareV14State
+  FoldableNavigationLayoutTest (2):
+    - expandedRailAndSharedTopBarKeepStableGeometry
+    - topLevelTitleRemainsCenteredThroughoutPageTransition
+  RepairToolOutputMigrationTest (1):
+    - repairedV2CopyMigratesAndProductionRepositoriesReadIt
+
+These skips are not E-R1 regressions. Follow-up (not executed by this correction):
+V15InPlaceUpgradeDeviceTest's conditional upgrade coverage is to be exercised during the
+resumed Slice-E physical upgrade acceptance; the FoldableNavigationLayoutTest and
+RepairToolOutputMigrationTest conditional flows are to be exercised during resumed
+acceptance where their required device/state prerequisites are available (Pixel 11 Pro
+cannot satisfy a foldable-only prerequisite).
+
+The prior Slice-E run (386 tests / 3 failures) is now green with the corrected
+expectations: 0 failures / 0 errors, with the 5 conditional skips above.

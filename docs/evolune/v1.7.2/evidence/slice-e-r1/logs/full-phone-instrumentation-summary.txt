@@ -74,4 +74,26 @@ io.github.yingqiu0871.evolune.wear.WearAppListenerReachabilityTest  tests=4
 io.github.yingqiu0871.evolune.widget.V15WidgetPerformanceDeviceTest  tests=1
 io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest  tests=12
 
-TOTAL classes=71 tests=386 failures=0 errors=0 skipped=0
+TOTAL classes=71 tests=386 failures=0 errors=0 skipped=5
+
+The XML is authoritative. Console progress numbers (Starting 386 / Finished 391) are not
+the authoritative testcase count. 381 non-skipped testcases completed without failure or
+error (386 - 5; derived, not a separate Gradle-reported metric).
+
+Conditional skips (5) — pre-existing assumeTrue / device-or-state gates, disclosed and NOT
+counted as executed coverage; the affected classes were NOT modified by E-R1:
+  V15InPlaceUpgradeDeviceTest (2):
+    - verifyV15State
+    - prepareV14State
+  FoldableNavigationLayoutTest (2):
+    - expandedRailAndSharedTopBarKeepStableGeometry
+    - topLevelTitleRemainsCenteredThroughoutPageTransition
+  RepairToolOutputMigrationTest (1):
+    - repairedV2CopyMigratesAndProductionRepositoriesReadIt
+
+These skips are not E-R1 regressions. Follow-up (not executed by this correction):
+V15InPlaceUpgradeDeviceTest's conditional upgrade coverage is to be exercised during the
+resumed Slice-E physical upgrade acceptance; the FoldableNavigationLayoutTest and
+RepairToolOutputMigrationTest conditional flows are to be exercised during resumed
+acceptance where their required device/state prerequisites are available (Pixel 11 Pro
+cannot satisfy a foldable-only prerequisite).
