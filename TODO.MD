@@ -240,12 +240,23 @@
       APK + SHA256SUMS；下载资产与已批准 R2 字节一致）；release notes
       `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`；release packet
       `review-packets/v171-final-release.txt`，状态 **RELEASED**）。
-- [x] v1.7.2 Phase 0（Settings 扁平化 / 预设配色 / History 文案移除）— **CONTRACT DRAFTED /
-      IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
-      read-only 审计 + 契约：`docs/evolune/v1.7.2/V172_INVENTORY.md`、`V172_CONTRACT.md`、
-      `V172_IMPLEMENTATION_PLAN.md`；packet `review-packets/v172-contract-candidate.txt`；
-      版本仍 1.7.1/101070100/1101070100；未改任何产品代码）。
-- [ ] NEXT：**v1.7.2 contract review**（通过后方可开始 Slices A–F 实现）。
+- [x] v1.7.2 Phase 0（Settings 扁平化 / 预设配色 / History 文案移除）— **CLOSED / CONTRACT
+      FROZEN**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；read-only 审计 + 契约
+      `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
+      `V172_IMPLEMENTATION_PLAN.md`；经两轮修正（LEGACY_BUILTIN 精确保全、backup v2 严格化），
+      final review **APPROVE V1.7.2 FINAL CONTRACT**；packets
+      `v172-contract-candidate.txt` / `v172-contract-correction.txt` /
+      `v172-contract-final-correction.txt`；版本仍 1.7.1）。
+- [x] v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **IMPLEMENTED / REVIEW PENDING**
+      （`refactor(theme): centralize palette definitions`；新增纯 Kotlin 权威
+      `theme/palette/`（PresetPalette / PaletteSeed / PaletteCatalog / LegacyBuiltinTheme）；
+      widget 委派共享权威、输出零变化（pre/post 金标一致：identity 5/5、tokens 2/2，176 个
+      ARGB 值逐一相等）；legacy BUILTIN vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、
+      dark 14/20 不匹配；dark tertiary `0xFFAFC9E7` vs `0xFFB2C8E8`）；full app JVM
+      1360/0（+17）；widget 仪器 smoke 12/12；evidence
+      `docs/evolune/v1.7.2/evidence/slice-a/`；packet
+      `review-packets/v172-slice-a-candidate.txt`）。
+- [ ] NEXT：**v1.7.2 Slice A review**（通过后方可开始 Slice B：App 主题预设支持 + backup v2）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

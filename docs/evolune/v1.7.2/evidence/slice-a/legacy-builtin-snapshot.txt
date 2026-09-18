@@ -1,0 +1,39 @@
+v1.7.2 Slice A — LEGACY_BUILTIN foundation snapshot
+===================================================
+
+Test: LegacyBuiltinSnapshotTest (JVM); expectations = independent transcription of the
+released v1.7.1 ui/theme/Color.kt constants as wired by Theme.kt lightScheme/darkScheme.
+Result: tests=3 failures=0 errors=0.
+
+LegacyBuiltinTheme roles (35 per mode) pinned exactly; key values:
+
+LIGHT
+  primary 0xFF006A64 · onPrimary 0xFFFFFFFF · primaryContainer 0xFF9DF2E9 · onPrimaryContainer 0xFF00504B
+  secondary 0xFF4A6360 · onSecondary 0xFFFFFFFF · secondaryContainer 0xFFCCE8E4 · onSecondaryContainer 0xFF324B49
+  tertiary 0xFF48617A · onTertiary 0xFFFFFFFF · tertiaryContainer 0xFFCFE5FF · onTertiaryContainer 0xFF304962
+  error 0xFFBA1A1A · onError 0xFFFFFFFF · errorContainer 0xFFFFDAD6 · onErrorContainer 0xFF93000A
+  background/surface 0xFFF4FBF9 · onBackground/onSurface 0xFF161D1C
+  surfaceVariant 0xFFDAE5E2 · onSurfaceVariant 0xFF3F4947 · outline 0xFF6F7977 · outlineVariant 0xFFBEC9C6
+  scrim 0xFF000000 · inverseSurface 0xFF2B3231 · inverseOnSurface 0xFFECF2F0 · inversePrimary 0xFF81D5CD
+  surfaceDim 0xFFD5DBDA · surfaceBright 0xFFF4FBF9
+  containers lowest/low/base/high/highest: 0xFFFFFFFF · 0xFFEFF5F3 · 0xFFE9EFED · 0xFFE3E9E8 · 0xFFDDE4E2
+
+DARK
+  primary 0xFF81D5CD · onPrimary 0xFF003734 · primaryContainer 0xFF00504B · onPrimaryContainer 0xFF9DF2E9
+  secondary 0xFFB0CCC8 · onSecondary 0xFF1C3532 · secondaryContainer 0xFF324B49 · onSecondaryContainer 0xFFCCE8E4
+  tertiary 0xFFAFC9E7 · onTertiary 0xFF18324A · tertiaryContainer 0xFF304962 · onTertiaryContainer 0xFFCFE5FF
+  error 0xFFFFB4AB · onError 0xFF690005 · errorContainer 0xFF93000A · onErrorContainer 0xFFFFDAD6
+  background/surface 0xFF0E1514 · onBackground/onSurface 0xFFDDE4E2
+  surfaceVariant 0xFF3F4947 · onSurfaceVariant 0xFFBEC9C6 · outline 0xFF899391 · outlineVariant 0xFF3F4947
+  scrim 0xFF000000 · inverseSurface 0xFFDDE4E2 · inverseOnSurface 0xFF2B3231 · inversePrimary 0xFF006A64
+  surfaceDim 0xFF0E1514 · surfaceBright 0xFF343A39
+  containers lowest/low/base/high/highest: 0xFF090F0F · 0xFF161D1C · 0xFF1A2120 · 0xFF252B2A · 0xFF2F3635
+
+AMOLED overrides (exact `withAmoledSurfaces`, for Slice B wiring):
+  background/surface/surfaceDim/surfaceContainerLowest = 0xFF000000 · surfaceBright = 0xFF202020
+  containerLow 0xFF050505 · container 0xFF0A0A0A · containerHigh 0xFF101010 · containerHighest 0xFF181818
+
+Boundary note (documented, bounded): the legacy values above also remain in
+ui/theme/Color.kt because Slice A must not change the running App theme. Slice B connects
+LEGACY_BUILTIN to the theme wiring and resolves this temporary duplication. This is the ONLY
+allowed bounded duplication; MONET preset tokens have no second authority.

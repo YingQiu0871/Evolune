@@ -1,0 +1,36 @@
+v1.7.2 Slice A — test summary
+=============================
+
+All runs on branch feature/v1.7.2-settings-theme-history; logs under logs/.
+
+Full app JVM (fresh, --rerun-tasks)
+  command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  log    : logs/app-jvm-full.log (28 actionable tasks: 28 executed)
+  result : suites=143  tests=1360  failures=0  errors=0  skipped=0
+           (pre-Slice baseline 1343 + 17 new Slice-A tests)
+
+Slice-A focused runs (fresh)
+  pre-extraction identity golden : tests=5 failures=0 (see pre-extraction-golden.txt)
+  pre-extraction token golden    : tests=2 failures=0 (verified against unmodified source)
+  post-extraction golden pair    : tests=5 + tests=2 failures=0
+                                   (logs/post-extraction-golden.log)
+  legacy equivalence             : tests=2 failures=0; verdict DISPROVED
+                                   (logs/legacy-equivalence.log)
+  full-suite rerun also green for: PaletteCatalogGoldenTest (2), LegacyBuiltinSnapshotTest (3),
+                                   PaletteArchitectureGuardTest (3), all existing widget suites
+                                   (WidgetAppearanceTest, WidgetHostContractTest, etc.)
+
+Android instrumentation smoke (Pixel_7 AVD API 35, emulator-5554)
+  command: :app:connectedDebugAndroidTest
+           -Pandroid.testInstrumentationRunnerArguments.class=
+           io.github.yingqiu0871.evolune.widget.WidgetRemoteViewsTest
+  log    : logs/widget-instrumentation-smoke.log
+  result : Starting 12 tests -> Finished 12 (0 failed) — real SharedPreferences round-trip
+           through the extracted key helpers + rendered roles from persisted configs.
+
+Debug build (fresh, --rerun-tasks)
+  command: .\gradlew.bat :app:assembleDebug --rerun-tasks
+  log    : logs/app-debug-build.log (38 actionable tasks: 38 executed)
+  result : BUILD SUCCESSFUL.
+
+Not run / not claimed: full instrumentation suite rerun; Wear tests (Wear untouched).

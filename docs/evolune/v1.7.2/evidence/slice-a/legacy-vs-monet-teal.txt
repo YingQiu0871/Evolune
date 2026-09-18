@@ -1,0 +1,45 @@
+v1.7.2 Slice A — legacy built-in vs derived MONET_TEAL: equivalence verdict
+===========================================================================
+
+Test: LegacyVsMonetTealEquivalenceTest (JVM); derivation mirrors the approved contract §13
+(test-local until Slice B moves it to ui/theme). Result: tests=2 failures=0 errors=0.
+
+VERDICT: exact equivalence is DISPROVED (both modes).
+  light : 20 shared roles compared, 11 mismatch
+  dark  : 20 shared roles compared, 14 mismatch
+
+Full mismatch report (verbatim test output):
+
+EQUIV|light|compared=20|mismatches=11
+EQUIV|light|mismatch|ON_PRIMARY_CONTAINER|legacy=0xFF00504B|derived=0xFF00201E
+EQUIV|light|mismatch|SECONDARY_CONTAINER|legacy=0xFFCCE8E4|derived=0xFFE0E9E7
+EQUIV|light|mismatch|ON_SECONDARY_CONTAINER|legacy=0xFF324B49|derived=0xFF000000
+EQUIV|light|mismatch|TERTIARY|legacy=0xFF48617A|derived=0xFF4A607C
+EQUIV|light|mismatch|TERTIARY_CONTAINER|legacy=0xFFCFE5FF|derived=0xFFE0E8EA
+EQUIV|light|mismatch|ON_TERTIARY_CONTAINER|legacy=0xFF304962|derived=0xFF000000
+EQUIV|light|mismatch|ON_SURFACE|legacy=0xFF161D1C|derived=0xFF1F1D20
+EQUIV|light|mismatch|ON_SURFACE_VARIANT|legacy=0xFF3F4947|derived=0xFF4C464E
+EQUIV|light|mismatch|SURFACE_VARIANT|legacy=0xFFDAE5E2|derived=0xFFE0EFED
+EQUIV|light|mismatch|OUTLINE|legacy=0xFF6F7977|derived=0xFF4C464E
+EQUIV|light|mismatch|OUTLINE_VARIANT|legacy=0xFFBEC9C6|derived=0xFFA0A1A4
+EQUIV|dark|compared=20|mismatches=14
+EQUIV|dark|mismatch|ON_PRIMARY|legacy=0xFF003734|derived=0xFF000000
+EQUIV|dark|mismatch|ON_PRIMARY_CONTAINER|legacy=0xFF9DF2E9|derived=0xFFFFFFFF
+EQUIV|dark|mismatch|ON_SECONDARY|legacy=0xFF1C3532|derived=0xFF000000
+EQUIV|dark|mismatch|SECONDARY_CONTAINER|legacy=0xFF324B49|derived=0xFF212B2A
+EQUIV|dark|mismatch|ON_SECONDARY_CONTAINER|legacy=0xFFCCE8E4|derived=0xFFFFFFFF
+EQUIV|dark|mismatch|TERTIARY|legacy=0xFFAFC9E7|derived=0xFFB2C8E8
+EQUIV|dark|mismatch|ON_TERTIARY|legacy=0xFF18324A|derived=0xFF000000
+EQUIV|dark|mismatch|TERTIARY_CONTAINER|legacy=0xFF304962|derived=0xFF222A2D
+EQUIV|dark|mismatch|ON_TERTIARY_CONTAINER|legacy=0xFFCFE5FF|derived=0xFFFFFFFF
+EQUIV|dark|mismatch|ON_SURFACE|legacy=0xFFDDE4E2|derived=0xFFF2EFF4
+EQUIV|dark|mismatch|ON_SURFACE_VARIANT|legacy=0xFFBEC9C6|derived=0xFFCDC5D3
+EQUIV|dark|mismatch|SURFACE_VARIANT|legacy=0xFF3F4947|derived=0xFF172423
+EQUIV|dark|mismatch|OUTLINE|legacy=0xFF899391|derived=0xFFCDC5D3
+EQUIV|dark|mismatch|OUTLINE_VARIANT|legacy=0xFF3F4947|derived=0xFF6E6D74
+
+Known concrete mismatch confirmed: dark TERTIARY legacy 0xFFAFC9E7 vs derived 0xFFB2C8E8.
+
+OPERATIVE MIGRATION PATH (per contract §10): legacy BUILTIN -> LEGACY_BUILTIN, never
+MONET_TEAL. The legacy compatibility identity must be used in Slice B for upgraded BUILTIN
+users (unless a future full-scheme proof overturns this verdict, which is now recorded false).

@@ -1,0 +1,22 @@
+v1.7.2 Slice A — POST-extraction golden re-run (same tests, unchanged expectations)
+===================================================================================
+
+command : .\gradlew.bat :app:testDebugUnitTest
+          --tests io.github.yingqiu0871.evolune.widget.WidgetPaletteIdentityGoldenTest
+          --tests io.github.yingqiu0871.evolune.widget.WidgetPaletteTokenGoldenTest
+          --rerun-tasks
+log     : logs/post-extraction-golden.log
+result  : BUILD SUCCESSFUL; 28 actionable tasks: 28 executed
+          WidgetPaletteIdentityGoldenTest tests=5 failures=0 errors=0
+          WidgetPaletteTokenGoldenTest    tests=2 failures=0 errors=0
+
+Verdict: every pinned identity and every resolved token (8 presets x light/dark x 11 fields)
+is EXACTLY unchanged after the shared-catalog extraction. No golden was updated to fit the
+refactor; the same pre-extraction expectations pass byte-for-byte.
+
+Additional post-extraction evidence:
+- full app JVM: logs/app-jvm-full.log (143 suites / 1360 tests / 0 failures / 0 errors /
+  0 skipped; 28/28 tasks executed) — includes every existing widget test suite.
+- widget instrumentation: logs/widget-instrumentation-smoke.log
+  (WidgetRemoteViewsTest 12/12 on Pixel_7 AVD; real SharedPreferences round-trip with the
+  extracted key helpers).

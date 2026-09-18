@@ -1,0 +1,46 @@
+v1.7.2 Slice A — PRE-extraction characterization (executed before any token change)
+===================================================================================
+
+Order proof: the identity/keys helpers and both golden tests were created and executed BEFORE
+the preset token definitions moved to the shared catalog; the probe output below was captured
+from the released v1.7.1 widget implementation.
+
+1) Widget persisted-identity golden (created + run pre-extraction)
+   command : .\gradlew.bat :app:testDebugUnitTest
+             --tests io.github.yingqiu0871.evolune.widget.WidgetPaletteIdentityGoldenTest
+             --rerun-tasks
+   result  : BUILD SUCCESSFUL; 28 actionable tasks: 28 executed
+             tests=5 skipped=0 failures=0 errors=0
+   pinned  : WidgetColorScheme.entries names+order (9), SharedPreferences file name +
+             widget_<id>_theme|color|opacity|style key formats, unknown/missing -> 
+             MATERIAL_YOU_AUTO fallback, WidgetStyle ids.
+
+2) Token probe (temporary test, captured from pre-extraction production code)
+   command : .\gradlew.bat :app:testDebugUnitTest
+             --tests io.github.yingqiu0871.evolune.widget.WidgetPaletteTokenProbeTest
+             --rerun-tasks
+   result  : BUILD SUCCESSFUL (16 lines captured; probe deleted after transcription)
+
+   GOLDEN|MONET_BLUE|light|surface=0xFFF8F9FF|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF3F5F90|secondary=0xFF565F71|tertiary=0xFF705575|primaryContainer=0xFFD6E3FF|onPrimaryContainer=0xFF0B1B33|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_BLUE|dark|surface=0xFF111318|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFA8C7FA|secondary=0xFFBEC6DC|tertiary=0xFFDDBCE0|primaryContainer=0xFF284777|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_VIOLET|light|surface=0xFFFBF8FF|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF70558F|secondary=0xFF665A70|tertiary=0xFF815343|primaryContainer=0xFFEEDBFF|onPrimaryContainer=0xFF1F1D20|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_VIOLET|dark|surface=0xFF151217|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFDDB8FF|secondary=0xFFD1C0D8|tertiary=0xFFF5B9A5|primaryContainer=0xFF573D74|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_SAKURA|light|surface=0xFFFFF8F9|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF9A405D|secondary=0xFF75565F|tertiary=0xFF775930|primaryContainer=0xFFFFD9E2|onPrimaryContainer=0xFF3E001D|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_SAKURA|dark|surface=0xFF181113|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFFFB1C5|secondary=0xFFE5BDC6|tertiary=0xFFE7C086|primaryContainer=0xFF7D2947|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_MINT|light|surface=0xFFF6FCF7|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF356A4E|secondary=0xFF506355|tertiary=0xFF3F6374|primaryContainer=0xFFB8F2CE|onPrimaryContainer=0xFF002112|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_MINT|dark|surface=0xFF0E1511|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFF9DD6B3|secondary=0xFFB7CCBC|tertiary=0xFFA6CDDF|primaryContainer=0xFF1D5138|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_TEAL|light|surface=0xFFF4FBF9|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF006A64|secondary=0xFF4A6360|tertiary=0xFF4A607C|primaryContainer=0xFF9DF2E9|onPrimaryContainer=0xFF00201E|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_TEAL|dark|surface=0xFF0E1514|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFF81D5CD|secondary=0xFFB0CCC8|tertiary=0xFFB2C8E8|primaryContainer=0xFF00504B|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_AMBER|light|surface=0xFFFFF9F0|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF805600|secondary=0xFF705D3E|tertiary=0xFF53643C|primaryContainer=0xFFFFDEA5|onPrimaryContainer=0xFF291800|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_AMBER|dark|surface=0xFF18130B|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFF6BD6C|secondary=0xFFDEC6A1|tertiary=0xFFBACD97|primaryContainer=0xFF614000|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_NEUTRAL|light|surface=0xFFFAF9FC|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF5F5E65|secondary=0xFF616066|tertiary=0xFF605D6E|primaryContainer=0xFFE5E1E9|onPrimaryContainer=0xFF1B1B1F|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_NEUTRAL|dark|surface=0xFF141316|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFC9C5CD|secondary=0xFFCBC5CD|tertiary=0xFFCAC3DB|primaryContainer=0xFF47464D|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+   GOLDEN|MONET_LAVENDER|light|surface=0xFFFCF8FF|onSurface=0xFF1F1D20|onSurfaceVariant=0xFF1F1D20|primary=0xFF6750A4|secondary=0xFF625B71|tertiary=0xFF7D5260|primaryContainer=0xFFEADDFF|onPrimaryContainer=0xFF21005D|progressTrack=0xFFE1DAE2|error=0xFF1F1D20|primaryForeground=0xFF1F1D20
+   GOLDEN|MONET_LAVENDER|dark|surface=0xFF141218|onSurface=0xFFF2EFF4|onSurfaceVariant=0xFFF2EFF4|primary=0xFFD0BCFF|secondary=0xFFCCC2DC|tertiary=0xFFEFB8C8|primaryContainer=0xFF4F378B|onPrimaryContainer=0xFFFFFFFF|progressTrack=0xFF4B4650|error=0xFFF2EFF4|primaryForeground=0xFFF2EFF4
+
+3) Token golden (transcribed constants) run pre-extraction
+   command : .\gradlew.bat :app:testDebugUnitTest
+             --tests io.github.yingqiu0871.evolune.widget.WidgetPaletteTokenGoldenTest
+             --rerun-tasks
+   result  : BUILD SUCCESSFUL; tests=2 skipped=0 failures=0 errors=0
+   (the transcribed constants were verified against the unmodified pre-extraction source)

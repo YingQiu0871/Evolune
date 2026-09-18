@@ -333,12 +333,18 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     SHA256SUMS；下载资产与已批准 R2 字节一致）；release notes
     `docs/evolune/v1.7.1/V171_RELEASE_NOTES.md`；release packet
     `review-packets/v171-final-release.txt`）。
-  - v1.7.2 Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— **CONTRACT DRAFTED /
-    IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
-    read-only 审计 + 契约 `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
-    `V172_IMPLEMENTATION_PLAN.md`；packet `review-packets/v172-contract-candidate.txt`；
-    版本仍 `1.7.1 / 101070100 / 1101070100`；未改任何产品代码）。
-  - **NEXT:** **v1.7.2 contract review**（通过后方可开始 Slices A–F 实现）。
+  - v1.7.2 Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— **CLOSED / CONTRACT
+    FROZEN**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；read-only 审计 + 契约
+    `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
+    `V172_IMPLEMENTATION_PLAN.md`；两轮修正（LEGACY_BUILTIN 精确保全、backup v2 严格化），
+    final review **APPROVE V1.7.2 FINAL CONTRACT**）。
+  - v1.7.2 Slice A（共享调色板权威 + 金标兼容护栏）— **IMPLEMENTED / REVIEW PENDING**
+    （纯 Kotlin `theme/palette/`（PresetPalette / PaletteSeed / PaletteCatalog /
+    LegacyBuiltinTheme）；widget 委派、输出零变化（pre/post 金标 5/5 + 2/2，176 ARGB 全等）；
+    legacy BUILTIN vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、dark 14/20 不匹配）；full
+    app JVM 1360/0（+17）；widget 仪器 12/12；evidence
+    `docs/evolune/v1.7.2/evidence/slice-a/`）。
+  - **NEXT:** **v1.7.2 Slice A review**（通过后开始 Slice B）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

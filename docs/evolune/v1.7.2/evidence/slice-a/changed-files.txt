@@ -1,0 +1,42 @@
+v1.7.2 Slice A — changed files
+==============================
+
+Implementation commit (staged core, generated into implementation.diff): 11 files
+
+Production — NEW pure-Kotlin shared authority
+  app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/PresetPalette.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/PaletteSeed.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/PaletteCatalog.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/LegacyBuiltinTheme.kt
+
+Production — widget delegation / testability extraction (behavior-neutral)
+  app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetAppearance.kt
+    - WidgetColorScheme.fromStored (persisted-id fallback rule extracted)
+    - WidgetAppearanceKeys (file name + widget_<id>_* key builders extracted)
+    - preset(...) now consumes PaletteCatalog; the MONET PRESETS table was removed
+
+Tests — NEW
+  app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetPaletteIdentityGoldenTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/widget/WidgetPaletteTokenGoldenTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/theme/palette/PaletteCatalogGoldenTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/theme/palette/LegacyBuiltinSnapshotTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/theme/palette/LegacyVsMonetTealEquivalenceTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/theme/palette/PaletteArchitectureGuardTest.kt
+
+Docs / status (factual sync only)
+  TODO.MD
+  docs/evolune/CURRENT_STATUS.md
+  docs/evolune/ROADMAP.md
+  docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md
+
+Evidence (this bundle)
+  docs/evolune/v1.7.2/evidence/slice-a/ — identity.txt, changed-files.txt,
+  pre-extraction-golden.txt, post-extraction-golden.txt, palette-id-golden.txt,
+  palette-token-golden.txt, legacy-builtin-snapshot.txt, legacy-vs-monet-teal.txt,
+  dependency-audit.txt, duplicate-token-scan.txt, test-summary.txt, smoke.txt,
+  implementation.diff, logs/ (5 logs), MANIFEST.sha256
+
+Out of scope in this slice (unchanged, verified): App theme wiring, Settings UI/routes,
+SettingsDataStore keys, backup codec/schema, History UI/copy, Room/schema, matcher/occurrence,
+Timeline, Insights, PK, Health Connect, Drive, Wear module/appearance, Widget layout/style,
+version metadata (still 1.7.1 / 101070100 / 1101070100), Gradle dependencies.

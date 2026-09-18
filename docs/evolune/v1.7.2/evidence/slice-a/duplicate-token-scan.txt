@@ -1,0 +1,28 @@
+v1.7.2 Slice A — MONET token duplicate scan (post-extraction)
+=============================================================
+
+Method: extracted the 88 unique ARGB seed literals from PaletteCatalog.kt, then searched every
+app/src/main Kotlin file OUTSIDE theme/palette/ for each literal; also scanned the widget
+package for any of the 8 preset light-surface seed sentinels.
+
+Result:
+  unique seed literals in the shared catalog : 88
+  seeds also present in app/src/main         : 8 — ALL in ui/theme/Color.kt ONLY:
+    0xFF00504B · 0xFF006A64 · 0xFF0E1514 · 0xFF4A6360 ·
+    0xFF81D5CD · 0xFF9DF2E9 · 0xFFB0CCC8 · 0xFFF4FBF9
+  seeds in the widget package                : 0 (no MONET token table remains in
+                                               WidgetAppearance)
+
+Classification:
+  - theme/palette/PaletteCatalog.kt — the ONE canonical MONET authority (8 presets x 11 seeds).
+  - ui/theme/Color.kt — the released v1.7.1 built-in App theme source (LEGACY source). The 8
+    overlapping literals are legacy compatibility values, NOT a second MONET table; this is
+    the explicitly bounded Slice A -> Slice B boundary duplication (contract §12) that Slice B
+    resolves when EvoluneTheme consumes LEGACY_BUILTIN. Not a blocker.
+  - tests — independent golden expected values (WidgetPaletteTokenGoldenTest,
+    PaletteCatalogGoldenTest, LegacyBuiltinSnapshotTest); legitimate per task §16.
+  - wear/ module — existing Wear palette duplication, explicitly OUT OF SCOPE for v1.7.2
+    (unchanged; recorded as P3).
+
+Conclusion: exactly one canonical MONET token authority in the Phone product source; zero
+MONET seed tables outside it except the classified legacy/test/Wear cases.

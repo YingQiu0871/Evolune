@@ -1,0 +1,14 @@
+v1.7.2 Slice A — identity
+=========================
+
+Branch                 : feature/v1.7.2-settings-theme-history
+Starting HEAD          : 5dc0ea3a25002341a6c175802b6c10cec943bd7b
+                         (docs(v1.7.2): make backup v2 schema strict)
+Released v1.7.1 merge-base: 746fc0a970bf0dfb3735c9225ce662e9511514ae
+Worktree at start      : clean (git status --porcelain empty)
+`git diff --check`     : clean
+
+Scope: Slice A only — shared pure-Kotlin palette authority + widget delegation + golden
+guards + LEGACY_BUILTIN foundation + legacy-vs-MONET_TEAL equivalence verdict.
+No App theme switching, no DataStore keys, no backup schema, no Settings flattening, no
+History copy removal in this slice. Version remains 1.7.1 / 101070100 / 1101070100.

@@ -1,36 +1,42 @@
-# Evolune v1.7.2 — Implementation Plan (Phase 0 draft)
+# Evolune v1.7.2 — Implementation Plan
 
-Status: IMPLEMENTATION NOT STARTED. Baseline: v1.7.1 @ `746fc0a…`. Contract:
-`V172_CONTRACT.md`; inventory: `V172_INVENTORY.md`. One commit per slice; each slice is
-independently reviewable and revertable. No version bump in the implementation phase.
+Status: Phase 0 CLOSED / CONTRACT FROZEN; Slice A IMPLEMENTED / REVIEW PENDING; Slice B NOT
+STARTED. Baseline: v1.7.1 @ `746fc0a…`. Contract: `V172_CONTRACT.md`; inventory:
+`V172_INVENTORY.md`. One commit per slice; each slice is independently reviewable and
+revertable. No version bump in the implementation phase.
 
 ---
 
-## Slice A — Shared palette catalog + widget golden protection
+## Slice A — Shared palette catalog + widget golden protection — IMPLEMENTED / REVIEW PENDING
 
 Goal: create ONE token authority for the 8 presets without changing any behavior or persisted
 identity.
 
+Actual implementation (commit `refactor(theme): centralize palette definitions`):
 - NEW `app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/` (pure Kotlin):
-  `PresetPalette` (8 ids), `PaletteSeed` (11 ARGB Longs), `PaletteCatalog`.
-- Widget adapter: `WidgetAppearance.kt` keeps `WidgetColorScheme` (9 values), `PRESETS` and
-  `preset(...)` delegate to `PaletteCatalog`; every resolved ARGB output stays byte-identical.
-- NEW golden test (widget package tests): the 9 persisted id strings and the 8 preset hex
-  seed tables are pinned; SharedPreferences key names (`widget_<id>_theme|color|opacity|style`,
-  file `widget_appearance`) pinned.
-- NEW legacy snapshot + equivalence task (P2-1): snapshot the EXACT v1.7.1 App built-in
-  light/dark scheme values (`ui/theme/Theme.kt` lightScheme/darkScheme resolved from
-  `ui/theme/Color.kt`) into a test; then PROVE or DISPROVE exact equality against the
-  preset-derived MONET_TEAL scheme (every role actually used, light AND dark). The recorded
-  result decides whether BUILTIN → MONET_TEAL auto-mapping is allowed; the
-  `LEGACY_BUILTIN` compatibility identity in slice B is required unless equality is proven.
-- Existing tests must pass untouched: `WidgetAppearanceTest`, `WidgetRemoteViewsTest`,
-  `WidgetHostContractTest`, `ColorRoleConformanceTest`.
-- Dependency guard: `palette` package must not import Compose/Android; widget may import
-  palette; palette imports nothing from widget; `LEGACY_BUILTIN` is App-side only and never
-  appears in `WidgetColorScheme`.
-- Acceptance: path-scoped audit shows no UI/output change; all widget tests green; new golden
-  tests green; zero persisted-id delta; equivalence result recorded for slice B.
+  `PresetPalette` (8 ids), `PaletteSeed` (11 ARGB Longs), `PaletteCatalog`,
+  `LegacyBuiltinTheme` (35 effective roles x2 + exact AMOLED overrides).
+- Widget delegation: `WidgetAppearance.kt` maps `WidgetColorScheme -> PresetPalette` and builds
+  its `WidgetPalette` from `PaletteCatalog`; the MONET token table was removed from the widget
+  file (0 seed literals remain). `WidgetAppearanceKeys` (file/keys) and
+  `WidgetColorScheme.fromStored` were extracted for testability; behavior identical.
+- NEW golden tests: `WidgetPaletteIdentityGoldenTest` (names/order, file/key formats,
+  fallback), `WidgetPaletteTokenGoldenTest` (8 presets x light/dark x 11 fields = 176 exact
+  ARGB outputs), `PaletteCatalogGoldenTest` (88 seeds), `PaletteArchitectureGuardTest`
+  (pure-Kotlin + one-way dependency + no widget seed remnants).
+- Legacy snapshot: `LegacyBuiltinSnapshotTest` (3 tests, 35 roles x2 + AMOLED).
+- Equivalence verdict: `LegacyVsMonetTealEquivalenceTest` — DISPROVED exact equality in both
+  modes (light 11/20 mismatches, dark 14/20; dark tertiary 0xFFAFC9E7 vs 0xFFB2C8E8). The
+  operative migration path is therefore legacy BUILTIN -> `LEGACY_BUILTIN`, never MONET_TEAL.
+- Existing widget tests pass untouched (`WidgetAppearanceTest`, `WidgetHostContractTest`, and
+  the instrumentation `WidgetRemoteViewsTest` 12/12); full app JVM 143 suites / 1360 tests / 0
+  failures.
+- Pre/post golden equality: identity 5/5 and tokens 2/2 pass with IDENTICAL expectations
+  before and after the extraction (characterization-first order, see evidence
+  `docs/evolune/v1.7.2/evidence/slice-a/`).
+- Bounded boundary duplication (documented): the 8 legacy teal literals also in
+  `ui/theme/Color.kt` remain until Slice B connects `LEGACY_BUILTIN` to the theme wiring; this
+  is the only allowed duplication and it is not a MONET authority.
 
 ## Slice B — App Material theme preset support
 

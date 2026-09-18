@@ -1,0 +1,23 @@
+v1.7.2 Slice A — widget preset token golden
+===========================================
+
+Test: WidgetPaletteTokenGoldenTest (JVM); expectations = independent transcription of the
+PRE-extraction probe (see pre-extraction-golden.txt), captured before the catalog existed.
+Result: tests=2 failures=0 errors=0 (passes pre- and post-extraction, unchanged).
+
+Pinned coverage: 8 presets x {light, dark} x 11 resolved output fields = 176 exact ARGB values
+(surface, onSurface, onSurfaceVariant, primary, secondary, tertiary, primaryContainer,
+onPrimaryContainer, progressTrack, error, primaryForeground) resolved through
+WidgetPaletteResolver (including the v1.7.1 contrast post-processing).
+
+Notable post-contrast collapses that are pinned as-is (released behavior):
+  light: onSurface = onSurfaceVariant = error = primaryForeground = 0xFF1F1D20 (all presets)
+  dark : onSurface = onSurfaceVariant = error = primaryForeground = 0xFFF2EFF4 (all presets)
+  dark : onPrimaryContainer = 0xFFFFFFFF ; progressTrack light 0xFFE1DAE2 / dark 0xFF4B4650
+
+MATERIAL_YOU_AUTO: not a preset; with no system color overrides the dynamic path is asserted
+to equal the MONET_TEAL fallback (released behavior, test case 2).
+
+Also pinned by PaletteCatalogGoldenTest (shared authority):
+  stable ids = the 8 names above (MATERIAL_YOU_AUTO and LEGACY_BUILTIN resolve to null);
+  all 88 seed literals equal the released v1.7.1 widget PRESETS table.

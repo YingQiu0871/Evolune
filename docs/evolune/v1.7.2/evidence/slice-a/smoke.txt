@@ -1,0 +1,24 @@
+v1.7.2 Slice A — behavior-neutral smoke
+=======================================
+
+Slice A contains no user-visible change; a full physical-device acceptance is NOT claimed
+(and is not required for this slice).
+
+Debug build
+  command: .\gradlew.bat :app:assembleDebug --rerun-tasks (38/38 executed; BUILD SUCCESSFUL)
+
+Emulator smoke (Pixel_7 AVD API 35, emulator-5554; fresh boot)
+  install -r app-debug.apk : Success
+  am start MainActivity    : launched; process alive (pid 3751 at check time)
+  device metadata          : versionName=1.7.1-debug versionCode=101070100 (unchanged)
+
+Widget behavior smoke (instrumentation, real Android framework)
+  WidgetRemoteViewsTest 12/12 — SharedPreferences round-trip (file/key identity), palette
+  roles rendered from persisted configs, per-widget isolation and deletion scoping.
+
+Theme/text/tokens: unchanged by construction — the running App still consumes the same
+ui/theme code and DataStore keys; the widget output is proven byte-identical by the token
+golden, and the persistence identity by the id golden + instrumentation round-trip.
+
+Physical-device acceptance: not performed for Slice A (no UI change); Slice E will run the
+device acceptance for the v1.7.2 features once they exist.

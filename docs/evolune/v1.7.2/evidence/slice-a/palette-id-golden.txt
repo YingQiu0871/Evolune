@@ -1,0 +1,30 @@
+v1.7.2 Slice A — palette persisted-identity golden
+==================================================
+
+Test: WidgetPaletteIdentityGoldenTest (JVM)
+Result: tests=5 failures=0 errors=0 (run pre- and post-extraction; expectation set unchanged)
+
+Pinned WidgetColorScheme names and order (user-visible selector order = enum order):
+  1 MATERIAL_YOU_AUTO
+  2 MONET_BLUE
+  3 MONET_VIOLET
+  4 MONET_SAKURA
+  5 MONET_MINT
+  6 MONET_TEAL
+  7 MONET_AMBER
+  8 MONET_NEUTRAL
+  9 MONET_LAVENDER
+
+Pinned persistence identity (SharedPreferences):
+  file : widget_appearance
+  keys : widget_<appWidgetId>_theme | widget_<appWidgetId>_color |
+         widget_<appWidgetId>_opacity | widget_<appWidgetId>_style
+  sample: id 42 -> widget_42_color ; id 7 -> widget_7_color
+
+Pinned fallback (released v1.7.1 behavior):
+  unknown / missing / empty / wrong case stored color id -> MATERIAL_YOU_AUTO
+  valid stored id -> exact enum round-trip by name (all 9 entries asserted)
+
+Pinned WidgetStyle ids (separate identity, unchanged):
+  legacy_default | today_plan | next_dose | current_e2 | pk_chart
+  unknown/null -> legacy_default

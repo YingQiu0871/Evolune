@@ -289,11 +289,15 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `746fc0a970bf0dfb3735c9225ce662e9511514ae`；GitHub Release
   https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.1（stable；Phone/Wear APK +
   SHA256SUMS；下载资产与已批准 R2 字节一致））。
-- **v1.7.2 · Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— CONTRACT DRAFTED /
-  IMPLEMENTATION NOT STARTED**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；
-  read-only 审计 + 契约 `docs/evolune/v1.7.2/V172_INVENTORY.md` / `V172_CONTRACT.md` /
-  `V172_IMPLEMENTATION_PLAN.md`；未改产品代码；版本仍 1.7.1）。
-  **NEXT:** v1.7.2 contract review（通过后方可开始 Slices A–F 实现）。
+- **v1.7.2 · Phase 0（Settings 扁平化 / App 预设配色 / History 文案移除）— CLOSED / CONTRACT
+  FROZEN**（branch `feature/v1.7.2-settings-theme-history` @ v1.7.1；read-only 审计 + 契约
+  `docs/evolune/v1.7.2/`；两轮修正（LEGACY_BUILTIN 精确保全、backup v2 严格化），final review
+  **APPROVE V1.7.2 FINAL CONTRACT**）。
+- **v1.7.2 · Slice A（共享调色板权威 + 金标兼容护栏）— IMPLEMENTED / REVIEW PENDING**（纯
+  Kotlin `theme/palette/`；widget 委派、输出零变化（pre/post 金标 5/5 + 2/2）；legacy BUILTIN
+  vs MONET_TEAL 等价性 **DISPROVED**（light 11/20、dark 14/20）；full app JVM 1360/0；widget
+  仪器 12/12；evidence `docs/evolune/v1.7.2/evidence/slice-a/`）。
+  **NEXT:** v1.7.2 Slice A review（通过后开始 Slice B）。
 
 ## Historical and future milestones
 

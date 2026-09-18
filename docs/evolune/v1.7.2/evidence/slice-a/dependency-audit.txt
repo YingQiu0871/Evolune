@@ -1,0 +1,20 @@
+v1.7.2 Slice A — dependency audit
+=================================
+
+Test: PaletteArchitectureGuardTest (JVM). Result: 3/3 pass.
+
+Rules enforced:
+  - every file under theme/palette/ is pure Kotlin: no `import android*`, no `import androidx*`,
+    no `import io.github*` (no app, widget or UI dependency of any kind);
+  - the phone widget consumes the shared authority one-way:
+    WidgetAppearance.kt imports PaletteCatalog + PresetPalette; no palette file references
+    `io.github.yingqiu0871.evolune.widget`;
+  - no preset seed literal remains in the widget file (8 seed sentinels asserted absent).
+
+Dependency direction after Slice A:
+  ui/theme        -> theme.palette        (future Slice B consumer; not wired yet)
+  widget          -> theme.palette        (the 8 preset seeds only)
+  theme.palette   -> nothing app-specific
+
+LEGACY_BUILTIN is App-side data in the shared package; it is not in WidgetColorScheme and not
+in PresetPalette (asserted by PaletteCatalogGoldenTest: fromId("LEGACY_BUILTIN") == null).
