@@ -161,5 +161,6 @@ P2-2 — the backup payload is strictly exact; optional fields require a version
   and compared with exact equality (`:313,457`). Unknown fields are REJECTED, so
   `color_theme`-only + optional new keys without a schema bump (Policy A) is impossible
   without weakening the exact-field guard. The contract therefore adopts Decision B: narrow
-  payload schema version update (1 → 2) with version-gated parsing; v1.7.1 readers
-  deterministically reject v2 payloads (`UNSUPPORTED_PAYLOAD_VERSION`).
+  payload schema version update (1 → 2) with version-gated parsing and a COMPLETE EXACT v2
+  settings field set (unknown/missing v2 keys → `INVALID_PAYLOAD`, zero mutation); v1.7.1
+  readers deterministically reject v2 payloads (`UNSUPPORTED_PAYLOAD_VERSION`).

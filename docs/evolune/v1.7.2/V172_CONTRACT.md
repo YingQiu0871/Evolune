@@ -229,31 +229,56 @@ enum class ThemeColorSource { DYNAMIC, PRESET }        // persisted name string
 - Writes stay atomic and additive: `updateThemeColorSource` and `updatePresetPalette` write the
   new keys AND keep the legacy `color_theme` in sync (DYNAMIC → `DYNAMIC`; PRESET → `BUILTIN`)
   so old readers stay meaningful; the new keys carry the precise identity.
-- Backup/codec policy — DECISION B (narrow payload schema version update). The audited codec
-  enforces EXACT payload field sets (`requireExactPayloadFields` compares key sets,
-  EvoluneBackupCodec.kt:455/527/937-949) and exact version equality
+- Backup/codec policy — DECISION B (narrow payload schema version update, STRICT v2 schema).
+  The audited codec enforces EXACT payload field sets (`requireExactPayloadFields` compares key
+  sets, EvoluneBackupCodec.kt:455/527/937-949) and exact version equality
   (`EvoluneBackupV1.kt:134-135`, EvoluneBackupCodec.kt:313/457). Policy A (optional fields
   without a version bump) is therefore impossible without weakening the exact-field guard,
   which is forbidden. v1.7.2 therefore:
   - writes `payloadSchemaVersion = 2` in both the envelope and the canonical payload
     (`PAYLOAD_SCHEMA_VERSION_LEGACY = 1`, `PAYLOAD_SCHEMA_VERSION = 2`);
-  - reads versions {1, 2}: v1 keeps today's exact parsing untouched; v2 parses the legacy
-    settings fields plus OPTIONAL `themeColorSource` and `themePresetId` (validated when
-    present; the settings object uses an allowed-set check in v2 only — every other object
-    keeps exact equality);
+  - reads versions {1, 2} with EXACT field sets at both versions (the guard is preserved, not
+    weakened):
+    - `V1_SETTINGS_FIELDS` = the existing five fields (bodyWeightKg, themeMode, colorTheme,
+      autoCheckUpdates, timeFormat) — parser byte/semantically FROZEN: no new keys accepted,
+      no loosened field set, no interpretation of v2 keys;
+    - `V2_SETTINGS_FIELDS` = `V1_SETTINGS_FIELDS` + `themeColorSource` + `themePresetId` —
+      the v2 serializer MUST always emit both new keys (field absence is never used as state);
+    - unknown extra key in v2 settings → `INVALID_PAYLOAD`; missing required v2 key →
+      `INVALID_PAYLOAD`; there is NO generic allowed-set weakening anywhere;
+  - canonical null representation follows the existing codec convention: a nullable field is
+    always written as a present key holding JSON `null` (`put("zoneId", value)` /
+    `requiredPayloadNullableString`, EvoluneBackupCodec.kt:591,596,960-962). Therefore
+    `themePresetId` is always present: JSON `null` for DYNAMIC, a string otherwise;
+  - serializer rules (canonical v2 write, every newly generated backup):
+    - DYNAMIC                → `themeColorSource = "DYNAMIC"`, `themePresetId = null`
+    - PRESET + normal palette → `themeColorSource = "PRESET"`, `themePresetId = <stable id>`
+    - PRESET + compatibility → `themeColorSource = "PRESET"`, `themePresetId = "LEGACY_BUILTIN"`
+    - legacy `color_theme` stays synchronized for compatibility only
+      (DYNAMIC source → `DYNAMIC`; PRESET source → `BUILTIN`);
   - leaves plans/slots/events serialization byte-identical (no medication-format semantic
     change, no Drive workflow change);
   - v1.7.1 and older readers reject a v2 backup deterministically with
     `UNSUPPORTED_PAYLOAD_VERSION` — no crash, no partial restore (downgrade restore of new
     backups is intentionally blocked and documented).
+- V2 field invariants (validated during decode; every violation → `INVALID_PAYLOAD`):
+  - VALID:   DYNAMIC + `null`; PRESET + each of the 8 `MONET_*` ids; PRESET + `LEGACY_BUILTIN`
+  - INVALID: DYNAMIC + non-null preset; PRESET + `null`; PRESET + unknown id;
+             unknown/absent source; absent preset key; extra unexpected settings field
+- Invalid v2 data must NOT silently fall back: no malformed/unknown v2 value may become
+  `MONET_TEAL` or DYNAMIC. Fallback/derivation exists ONLY for older schema versions that
+  genuinely do not contain the new identity information.
 - Restore precedence (deterministic):
-  1. If the restored payload carries valid new fields → restore `theme_color_source`
-     (∈ {DYNAMIC, PRESET}) and, when PRESET, the validated `theme_preset_id`.
-  2. Else derive from the restored legacy `color_theme` per §10 (BUILTIN → `LEGACY_BUILTIN`
-     unless exact MONET_TEAL equivalence is proven).
-  3. Invalid new source/preset → deterministic fallback per §10/§11 ladder; never crash; the
-     existing codec error convention applies (`INVALID_PAYLOAD`, field-scoped, for invalid
-     enum values in v2).
+  1. Valid v2 fields (after full exact-schema validation) are AUTHORITATIVE — never derive
+     from `color_theme` when valid v2 fields exist.
+  2. Version-1 payloads: derive from the validated legacy `color_theme` per §10
+     (DYNAMIC → DYNAMIC; BUILTIN → PRESET + `LEGACY_BUILTIN` unless exact MONET_TEAL
+     equivalence is proven).
+- Restore atomicity: decode + validate the ENTIRE backup before any Settings mutation. If v2
+  theme fields are invalid, restore returns the existing typed failure `INVALID_PAYLOAD` and
+  ZERO mutation occurs (`theme_mode`, `color_theme`, `theme_color_source`, `theme_preset_id`
+  and Widget appearance all unchanged; no partial write). Only after successful full
+  validation may `replaceSettings` perform its single atomic edit.
 - `replaceSettings` (restore path) writes the legacy keys AND `theme_color_source`/
   `theme_preset_id` in one atomic edit, so a restore can never leave a stale source/preset
   behind.
@@ -377,13 +402,20 @@ dependencies, and all historical evidence bundles (v1.7.0/v1.7.1).
   identity must exist regardless).
 - Upgrade: DYNAMIC remains DYNAMIC; an existing BUILTIN selection retains its exact effective
   colors (light+dark) after upgrade.
-- Backup/codec (new, mandatory): every exposed preset round-trips (8 ids);
-  DYNAMIC round-trips; the `LEGACY_BUILTIN` compatibility state round-trips; old v1 payload
-  without new fields restores deterministically (v1 DYNAMIC / v1 BUILTIN cases); a v2 payload
-  with missing optional fields restores via legacy derivation; valid new fields win; unknown
-  preset id falls back per the ladder; malformed/unknown source is rejected or falls back per
-  the codec convention without crashing; restore never mutates Widget appearance; older-reader
-  rejection of v2 is asserted (`UNSUPPORTED_PAYLOAD_VERSION`).
+- Backup/codec (new, mandatory; strict v2 schema):
+  - V1: exact legacy field set accepted; any v2 key added to a v1 payload rejected; v1 DYNAMIC
+    derives DYNAMIC; v1 BUILTIN derives `LEGACY_BUILTIN`.
+  - V2: exact v2 field set required; both new keys always serialized (DYNAMIC serializes
+    `themePresetId` as JSON `null`); every `MONET_*` preset round-trips; `LEGACY_BUILTIN`
+    round-trips; missing `themeColorSource` rejected; missing `themePresetId` key rejected;
+    unknown source rejected; unknown preset rejected; DYNAMIC + non-null preset rejected;
+    PRESET + null rejected; unknown extra settings field rejected — every invalid case returns
+    `INVALID_PAYLOAD` with ZERO Settings mutation;
+  - an invalid backup causes zero Settings mutation (`theme_mode` / `color_theme` /
+    `theme_color_source` / `theme_preset_id` unchanged) and zero Widget preference mutation;
+  - older-reader rejection of v2 is asserted (`UNSUPPORTED_PAYLOAD_VERSION`);
+  - restore of valid v1 payloads (old DYNAMIC / old BUILTIN) restores deterministically; valid
+    v2 fields are authoritative and never derived-over from `color_theme`.
 - History: sentence absent; inferred matched record behavior identical (same classification
   tests pass); no matcher/data-model delta (guard by path-scoped diff).
 - Architecture guards: no duplicate palette tables (single-authority test scanning for hex

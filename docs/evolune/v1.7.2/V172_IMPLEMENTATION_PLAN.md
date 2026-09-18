@@ -50,20 +50,25 @@ with exact legacy preservation and full backup round-trip.
   (contrastOn helper + documented blend); `EvoluneTheme` selects: DYNAMIC → dynamic schemes
   (unchanged), PRESET → preset schemes, `LEGACY_BUILTIN` → exact v1.7.1 schemes; AMOLED
   post-processing unchanged.
-- Backup codec (Decision B, contract §12): `PAYLOAD_SCHEMA_VERSION_LEGACY = 1` /
-  `PAYLOAD_SCHEMA_VERSION = 2`; encoder writes v2; decoder accepts v1 (exact parsing
-  unchanged) and v2 (settings object allowed-set check; optional `themeColorSource` /
-  `themePresetId` validated when present); plans/slots/events serialization byte-identical;
+- Backup codec (Decision B, STRICT v2 schema, contract §12): `PAYLOAD_SCHEMA_VERSION_LEGACY = 1` /
+  `PAYLOAD_SCHEMA_VERSION = 2`; encoder writes v2; decoder accepts v1 (byte/semantically
+  FROZEN exact parsing) and v2 (complete exact `V2_SETTINGS_FIELDS` key-set validation —
+  unknown extra key or missing required key → `INVALID_PAYLOAD`; no allowed-set weakening);
+  both new keys are always serialized (DYNAMIC writes `themePresetId: null` via the codec's
+  standard present-key/JSON-null convention); plans/slots/events serialization byte-identical;
   older readers reject v2 deterministically (`UNSUPPORTED_PAYLOAD_VERSION`).
 - Tests (mandatory): upgrade default (no keys → DYNAMIC); legacy BUILTIN → PRESET +
   `LEGACY_BUILTIN` with EXACT effective colors (light+dark snapshot comparison); DYNAMIC
   behavior unchanged; live switch; persistence across recreation; invalid/unknown stored
-  values fall back per the ladder without crash; contrast golden for all 8 palettes ×
-  light/dark; backup/codec suite: v1 payload → deterministic restore (v1 DYNAMIC / v1
-  BUILTIN), v2 round-trip for DYNAMIC + every exposed preset + `LEGACY_BUILTIN`, missing
-  optional fields, unknown preset id, malformed source, unknown payload version rejection;
-  restore never mutates widget appearance; existing `EvoluneBackupCodecTest` /
-  `BackupRestoreCoordinatorTest` updated for v2 where they pin payload versions.
+  settings values fall back per the §10/§11 ladder without crash; contrast golden for
+  all 8 palettes × light/dark; backup/codec suite v1: exact legacy field set accepted, v2 key
+  added to a v1 payload rejected, v1 DYNAMIC/BUILTIN derivation; backup/codec suite v2: exact
+  field set required, both keys always serialized, DYNAMIC → null, every `MONET_*` preset and
+  `LEGACY_BUILTIN` round-trip, missing source rejected, missing preset key rejected, unknown
+  source/preset rejected, DYNAMIC+non-null and PRESET+null rejected, extra settings field
+  rejected, invalid backup → `INVALID_PAYLOAD` with ZERO Settings/Widget mutation, old-reader
+  v2 rejection asserted; existing `EvoluneBackupCodecTest` / `BackupRestoreCoordinatorTest`
+  updated for v2 where they pin payload versions.
 - Acceptance: theme switches live on device; existing user default unchanged; legacy BUILTIN
   user sees zero color change; backup files round-trip the exact preset identity; widget
   tests untouched.
