@@ -317,9 +317,12 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.3 · 导航卡顿热修 — CLOSED / FROZEN**（implementation @ `a6eec45…`；单一 chrome
   策略驱动显隐与过渡抑制；全量 JVM app 148/1393/0；AVD 导航仪器 15/15；物理前后对照 +
   录像；evidence `docs/evolune/v1.7.3/evidence/navigation-jank/`）。
-- **v1.7.3 · 打包候选 — CANDIDATE / REVIEW PENDING**（版本 1.7.3 / Phone 101070300 /
-  Wear 1101070300；证书 `b9b6b955…`；冻结资产 `cb535ca7…` / `da398a34…`；evidence
-  `docs/evolune/v1.7.3/evidence/packaging/`）。
+- **v1.7.3 · 打包候选 — CLOSED / FROZEN**（implementation @ `cbfcfc5…`；版本 1.7.3 /
+  Phone 101070300 / Wear 1101070300；证书 `b9b6b955…`；冻结资产 `cb535ca7…` /
+  `da398a34…`；evidence `docs/evolune/v1.7.3/evidence/packaging/`）。
+- **v1.7.3 发布候选：APPROVED；Release execution: PENDING TAG / PUBLICATION**（release notes
+  `docs/evolune/v1.7.3/V173_RELEASE_NOTES.md`；资产与发布正文在仓库外
+  `D:\Evolune-Workspace\release-candidates\v1.7.3\`）。
   **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.7.3 发布执行。
 
 ## Historical and future milestones

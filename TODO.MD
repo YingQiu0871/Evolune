@@ -298,12 +298,16 @@
       40/0、全量 JVM app 148/1393/0；AVD 导航仪器 15/15；Pixel 11 Pro 前后对照 + 录像；
       evidence `docs/evolune/v1.7.3/evidence/navigation-jank/`；packet
       `review-packets/v173-navigation-jank-candidate.txt`）。
-- [x] v1.7.3 打包候选（版本 1.7.3 / Phone 101070300 / Wear 1101070300）— **CANDIDATE /
-      REVIEW PENDING**（`chore(release): prepare v1.7.3 packaging`；证书 `b9b6b955…` 连续；
-      冻结资产 Evolune-Phone-v1.7.3.apk `cb535ca7…`（6,313,116 B）/ Evolune-Wear-v1.7.3.apk
+- [x] v1.7.3 打包候选（版本 1.7.3 / Phone 101070300 / Wear 1101070300）— **CLOSED /
+      FROZEN**（`chore(release): prepare v1.7.3 packaging` @
+      `cbfcfc5673a9abf35bff9e6562aa8683c2d89e5e`；证书 `b9b6b955…` 连续；冻结资产
+      Evolune-Phone-v1.7.3.apk `cb535ca7…`（6,313,116 B）/ Evolune-Wear-v1.7.3.apk
       `da398a34…`（2,604,768 B）/ SHA256SUMS `65717299…`；validation task 原始日志 +
       clean release 构建 + Phone/Wear release smoke；evidence
       `docs/evolune/v1.7.3/evidence/packaging/`）。
+- [x] v1.7.3 发布候选 — **APPROVED**；**Release execution: PENDING TAG / PUBLICATION**
+      （release notes `docs/evolune/v1.7.3/V173_RELEASE_NOTES.md`；发布正文与资产在仓库外
+      `D:\Evolune-Workspace\release-candidates\v1.7.3\`）。
 - [ ] NEXT：**v1.7.3 发布执行**（final docs commit → annotated tag v1.7.3 → push →
       GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
