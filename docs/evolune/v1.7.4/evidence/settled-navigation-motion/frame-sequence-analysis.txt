@@ -1,31 +1,20 @@
-v1.7.4 settled navigation motion — frame-sequence analysis
-==========================================================
+v1.7.4 settled navigation motion — pre-correction frame evidence
+================================================================
+
+This is candidate c8f5edff evidence. It is retained for history and is not a
+post-correction visual claim.
 
 Captured on the physical Pixel 11 Pro with a slowed-animation attempt
 (animator_duration_scale=10) and a burst of device screenshots
 (screenshots/frame-forward-*.png, screenshots/frame-back-*.png).
 
 Forward: History -> Insights
-  frame-forward-1  (initial):
-      - top app bar (back arrow + 用药洞察) rendered at FULL brightness and final
-        position -> chrome already at target geometry, not animated
-      - bottom navigation bar already hidden -> chrome switched instantly
-      - page content (统计区间 / range chips / date range / empty text) rendered at
-        LOW alpha and slightly inset -> the settled entrance is at its initial
-        state on the first captured frame (no full-size flash, no snap-down)
-  frame-forward-2..3 (progressing): content fades/scales toward final.
-  frame-forward-4..8 (settled, byte-identical sizes): content at alpha 1 / scale 1.
-  Container geometry: the chrome and the page viewport do NOT change width or
-  height during the sequence (the animation is a graphics-layer transform only).
-
+  frame-forward-1 (initial): chrome already at final geometry; content at low
+  alpha and slightly inset. Frames 2..3 progressed; frames 4..8 settled.
 Back: Insights -> History
-  frame-back-1 (initial):
-      - bottom navigation bar RESTORED and at full brightness/position
-      - top app bar at full brightness
-      - History content (calendar, day summary, entry cards) at LOW alpha and
-        slightly inset -> settled entrance at its initial state
-  frame-back-2..3 (progressing), frame-back-4..8 (settled, byte-identical).
-  Same conclusion: chrome final first, content animates inside stable geometry.
+  frame-back-1 (initial): chrome restored at final geometry; content at low alpha
+  and slightly inset. Frames 2..3 progressed; frames 4..8 settled.
 
-No frame shows: container resizing during the page animation, a full-size first
-frame followed by a snap to 0.98, a scale-out tail, or chrome scaling.
+No historical frame showed container resizing, a full-size flash followed by a
+snap to 0.98, a scale-out tail, or chrome scaling. These observations belong to
+the pre-correction candidate only.

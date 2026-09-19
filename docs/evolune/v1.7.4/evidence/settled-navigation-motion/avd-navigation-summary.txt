@@ -1,9 +1,10 @@
-v1.7.4 settled navigation motion — AVD navigation instrumentation
-=================================================================
+v1.7.4 settled navigation motion — corrected AVD instrumentation
+===============================================================
 
-Command: :app:connectedDebugAndroidTest with the affected navigation classes
-Device : Pixel_7 AVD API 35 (emulator-5554)
-Log    : logs/avd-navigation.log (+ avd-navigation-summary.txt)
+Command: .\gradlew.bat :app:connectedDebugAndroidTest --rerun-tasks with the
+six affected navigation classes, package-qualified.
+Device: Pixel_7(AVD) - 15 / API 35 (emulator-5554)
+Result: BUILD SUCCESSFUL
 
 XML-derived:
   HistoryNavigationTest          4 tests / 0 failures
@@ -12,7 +13,8 @@ XML-derived:
   TimelineNavigationTest         3 tests / 0 failures
   SyncAndBackupNavigationTest    2 tests / 0 failures
   FeatureTutorialNavigationTest  2 tests / 0 failures
-  TOTAL tests=15 failures=0 skipped=0
+  TOTAL tests=15 failures=0 errors=0 skipped=0
 
-Navigation semantics, back-stack behavior and chrome visibility are unchanged by
-the motion refinement.
+The first short-name selector was rejected by the runner before test execution;
+the authoritative retry used the exact package-qualified names above. Navigation
+semantics, back-stack behavior and chrome visibility remain green.

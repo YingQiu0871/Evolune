@@ -57,6 +57,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -794,7 +795,10 @@ fun AppNavigation(
     val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
     // v1.7.4: exactly one motion edge per committed route change.
     val routeEdgeTracker = remember { RouteEdgeTracker() }
-    val navigationEdge = remember(currentRoute) { routeEdgeTracker.onRouteComposed(currentRoute) }
+    val navigationEdge = remember(currentRoute) { routeEdgeTracker.preview(currentRoute) }
+    SideEffect {
+        routeEdgeTracker.commit(navigationEdge)
+    }
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 

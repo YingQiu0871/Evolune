@@ -1,8 +1,16 @@
 diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
-index c410454..fd18e9c 100644
+index c410454..e9d63d5 100644
 --- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
 +++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
-@@ -121,7 +121,9 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
+@@ -57,6 +57,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.LaunchedEffect
++import androidx.compose.runtime.SideEffect
+ import androidx.compose.runtime.collectAsState
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.mutableFloatStateOf
+@@ -121,7 +122,9 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
  import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
  import androidx.compose.animation.EnterTransition
  import androidx.compose.animation.ExitTransition
@@ -12,17 +20,20 @@ index c410454..fd18e9c 100644
  import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
  import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
  import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
-@@ -790,6 +792,9 @@ fun AppNavigation(
+@@ -790,6 +793,12 @@ fun AppNavigation(
      // Single chrome policy: the same predicate drives visibility AND transition
      // suppression (v1.7.3 navigation-jank hotfix).
      val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
 +    // v1.7.4: exactly one motion edge per committed route change.
 +    val routeEdgeTracker = remember { RouteEdgeTracker() }
-+    val navigationEdge = remember(currentRoute) { routeEdgeTracker.onRouteComposed(currentRoute) }
++    val navigationEdge = remember(currentRoute) { routeEdgeTracker.preview(currentRoute) }
++    SideEffect {
++        routeEdgeTracker.commit(navigationEdge)
++    }
      val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
      val currentRouteState = rememberUpdatedState(currentRoute)
  
-@@ -893,7 +898,10 @@ fun AppNavigation(
+@@ -893,7 +902,10 @@ fun AppNavigation(
                  ) ?: Screen.HOME.route,
                  modifier = Modifier
                      .fillMaxSize()
@@ -34,29 +45,12 @@ index c410454..fd18e9c 100644
              enterTransition = {
                  if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
                      EnterTransition.None
-diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
-index 8e61160..9b78ecf 100644
---- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
-+++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
-@@ -30,7 +30,10 @@ fun evolunePageExitTransition(): ExitTransition =
-     fadeOut(animationSpec = tween(PAGE_FADE_OUT_MILLIS))
- 
- private const val PAGE_FADE_OUT_MILLIS = 90
--private const val PAGE_FADE_IN_MILLIS = 220
-+
-+// v1.7.4: shared with the settled-geometry entrance host so both motion paths keep
-+// the identical Evolune fade/scale language (visibility only; zero behavior change).
-+internal const val PAGE_FADE_IN_MILLIS = 220
- private const val PAGE_FADE_IN_DELAY_MILLIS = 90
- private const val NO_PAGE_ENTER_DELAY_MILLIS = 0
--private const val PAGE_INITIAL_SCALE = 0.98f
-+internal const val PAGE_INITIAL_SCALE = 0.98f
 diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
 new file mode 100644
-index 0000000..da3dcca
+index 0000000..e97c2a4
 --- /dev/null
 +++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,95 @@
 +package io.github.yingqiu0871.evolune.ui.motion
 +
 +import androidx.compose.animation.core.Animatable
@@ -97,23 +91,25 @@ index 0000000..da3dcca
 +    PrimaryNavigationChrome.changes(fromRoute, toRoute)
 +
 +/**
-+ * Tracks committed route edges. [onRouteComposed] is called exactly once per route
-+ * change (from a `remember(route)` scope), so unrelated recompositions or ViewModel
-+ * state changes can never fabricate or retrigger an edge.
++ * Previews route edges during composition and advances only after a successful
++ * composition commits. Previewing is pure, while [commit] is idempotent so repeated
++ * SideEffect execution for the same cached edge cannot fabricate or retrigger an edge.
 + */
 +internal class RouteEdgeTracker {
 +    private var previousRoute: String? = null
 +    private var nextId: Long = 0L
 +
-+    fun onRouteComposed(route: String?): NavigationEdgeMotion {
-+        val edge = NavigationEdgeMotion(
-+            fromRoute = previousRoute,
-+            toRoute = route,
-+            id = nextId
-+        )
-+        nextId += 1L
-+        previousRoute = route
-+        return edge
++    fun preview(route: String?): NavigationEdgeMotion = NavigationEdgeMotion(
++        fromRoute = previousRoute,
++        toRoute = route,
++        id = nextId
++    )
++
++    fun commit(edge: NavigationEdgeMotion) {
++        if (edge.id == nextId && edge.fromRoute == previousRoute) {
++            previousRoute = edge.toRoute
++            nextId += 1L
++        }
 +    }
 +}
 +
@@ -152,10 +148,10 @@ index 0000000..da3dcca
 +}
 diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt
 new file mode 100644
-index 0000000..f2c4c99
+index 0000000..a81fb99
 --- /dev/null
 +++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt
-@@ -0,0 +1,102 @@
+@@ -0,0 +1,171 @@
 +package io.github.yingqiu0871.evolune.ui.motion
 +
 +import io.github.yingqiu0871.evolune.navigation.ABOUT_ROUTE
@@ -223,46 +219,115 @@ index 0000000..f2c4c99
 +    }
 +
 +    @Test
-+    fun `route edge tracker emits exactly one edge per committed route change`() {
++    fun `route edge tracker previews committed route changes`() {
 +        val tracker = RouteEdgeTracker()
 +
-+        val startup = tracker.onRouteComposed(Screen.HOME.route)
++        val startup = tracker.preview(Screen.HOME.route)
 +        assertEquals(null, startup.fromRoute)
 +        assertEquals(Screen.HOME.route, startup.toRoute)
 +        assertFalse(startup.crossesPrimaryChromeBoundary())
++        tracker.commit(startup)
 +
-+        val forward = tracker.onRouteComposed(INSIGHTS_ROUTE)
++        val forward = tracker.preview(INSIGHTS_ROUTE)
 +        assertEquals(Screen.HOME.route, forward.fromRoute)
 +        assertEquals(INSIGHTS_ROUTE, forward.toRoute)
 +        assertTrue(forward.crossesPrimaryChromeBoundary())
++        tracker.commit(forward)
 +
-+        val back = tracker.onRouteComposed(Screen.HOME.route)
++        val back = tracker.preview(Screen.HOME.route)
 +        assertEquals(INSIGHTS_ROUTE, back.fromRoute)
 +        assertEquals(Screen.HOME.route, back.toRoute)
 +        assertTrue(back.crossesPrimaryChromeBoundary())
++        tracker.commit(back)
 +
 +        // Distinct edges -> distinct motion keys; one event per committed change.
 +        assertEquals(listOf(0L, 1L, 2L), listOf(startup.id, forward.id, back.id))
 +    }
 +
 +    @Test
-+    fun `repeated same-route composition is not a new edge in the tracker contract`() {
++    fun `abandoned preview leaves the committed tracker state unchanged`() {
 +        val tracker = RouteEdgeTracker()
-+        tracker.onRouteComposed(Screen.HISTORY.route)
-+        // The UI only calls onRouteComposed from a remember(route) scope, so a
-+        // same-route recomposition never reaches the tracker; this documents the
-+        // resulting edge shape if it ever did: same route -> no chrome change.
-+        val sameRoute = tracker.onRouteComposed(Screen.HISTORY.route)
-+        assertEquals(Screen.HISTORY.route, sameRoute.fromRoute)
-+        assertEquals(Screen.HISTORY.route, sameRoute.toRoute)
-+        assertFalse(sameRoute.crossesPrimaryChromeBoundary())
++        tracker.commit(tracker.preview(Screen.HISTORY.route))
++
++        val abandoned = tracker.preview(INSIGHTS_ROUTE)
++        val laterLegitimatePreview = tracker.preview(INSIGHTS_ROUTE)
++
++        assertEquals(Screen.HISTORY.route, laterLegitimatePreview.fromRoute)
++        assertEquals(INSIGHTS_ROUTE, laterLegitimatePreview.toRoute)
++        assertEquals(abandoned.id, laterLegitimatePreview.id)
++
++        tracker.commit(laterLegitimatePreview)
++        val next = tracker.preview(Screen.HISTORY.route)
++        assertEquals(INSIGHTS_ROUTE, next.fromRoute)
++        assertEquals(1L + abandoned.id, next.id)
++    }
++
++    @Test
++    fun `commit is idempotent for repeated SideEffect execution`() {
++        val tracker = RouteEdgeTracker()
++        tracker.commit(tracker.preview(Screen.HOME.route))
++
++        val edge = tracker.preview(INSIGHTS_ROUTE)
++        tracker.commit(edge)
++        tracker.commit(edge)
++        tracker.commit(edge)
++
++        val next = tracker.preview(Screen.HISTORY.route)
++        assertEquals(INSIGHTS_ROUTE, next.fromRoute)
++        assertEquals(Screen.HISTORY.route, next.toRoute)
++        assertEquals(edge.id + 1L, next.id)
++    }
++
++    @Test
++    fun `repeated route cycles receive fresh ids and preserve both directions`() {
++        val tracker = RouteEdgeTracker()
++        tracker.commit(tracker.preview(Screen.HISTORY.route))
++
++        val forward = tracker.preview(INSIGHTS_ROUTE)
++        tracker.commit(forward)
++        val back = tracker.preview(Screen.HISTORY.route)
++        tracker.commit(back)
++        val forwardAgain = tracker.preview(INSIGHTS_ROUTE)
++        tracker.commit(forwardAgain)
++        val edges = listOf(forward, back, forwardAgain)
++
++        assertEquals(
++            listOf(
++                Screen.HISTORY.route to INSIGHTS_ROUTE,
++                INSIGHTS_ROUTE to Screen.HISTORY.route,
++                Screen.HISTORY.route to INSIGHTS_ROUTE
++            ),
++            edges.map { it.fromRoute to it.toRoute }
++        )
++        assertTrue(edges.zipWithNext().all { (first, second) -> second.id > first.id })
++        assertTrue(edges.all(NavigationEdgeMotion::crossesPrimaryChromeBoundary))
++    }
++
++    @Test
++    fun `same route recomposition reuses the cached edge without fabricating a new one`() {
++        val tracker = RouteEdgeTracker()
++        val home = tracker.preview(Screen.HOME.route)
++        tracker.commit(home)
++        tracker.commit(home)
++
++        val records = tracker.preview(Screen.RECORDS.route)
++        assertEquals(Screen.HOME.route, records.fromRoute)
++        assertEquals(Screen.RECORDS.route, records.toRoute)
++        assertEquals(home.id + 1L, records.id)
++        assertTrue(records.id > home.id)
++        assertFalse(records.crossesPrimaryChromeBoundary())
++        tracker.commit(records)
++
++        val next = tracker.preview(Screen.HOME.route)
++        assertEquals(Screen.RECORDS.route, next.fromRoute)
++        assertEquals(home.id + 2L, next.id)
 +    }
 +}
 diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
-index d3119e5..15cd8ab 100644
+index d3119e5..3dd740a 100644
 --- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
 +++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
-@@ -74,6 +74,45 @@ class MotionListUxBoundaryTest {
+@@ -74,6 +74,59 @@ class MotionListUxBoundaryTest {
          assertFalse(source.contains("MutableTransitionState"))
      }
  
@@ -274,8 +339,22 @@ index d3119e5..15cd8ab 100644
 +
 +        // v1.7.3 anti-jank rule intact: one edge tracker, chrome-aware modifier.
 +        assertTrue(source.contains("RouteEdgeTracker()"))
++        assertTrue(source.contains("import androidx.compose.runtime.SideEffect"))
 +        assertTrue(source.contains("val navigationEdge = remember(currentRoute)"))
++        assertTrue(source.contains("routeEdgeTracker.preview(currentRoute)"))
++        assertTrue(source.contains("SideEffect {"))
++        assertTrue(source.contains("routeEdgeTracker.commit(navigationEdge)"))
++        assertFalse(source.contains("onRouteComposed"))
 +        assertTrue(source.contains(".settledGeometryPageMotion(navigationEdge)"))
++
++        val trackerSource = settled.substringAfter("internal class RouteEdgeTracker")
++            .substringBefore("@Composable")
++        val previewSource = trackerSource.substringAfter("fun preview")
++            .substringBefore("fun commit")
++        assertTrue(trackerSource.contains("fun preview"))
++        assertTrue(trackerSource.contains("fun commit"))
++        assertFalse(previewSource.contains("previousRoute ="))
++        assertFalse(previewSource.contains("nextId +="))
 +
 +        // v1.7.4 refinement: the entrance is gated by the chrome-boundary policy and
 +        // runs inside the FINAL geometry after the first committed frame.

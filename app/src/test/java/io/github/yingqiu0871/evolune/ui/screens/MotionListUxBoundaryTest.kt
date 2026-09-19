@@ -82,8 +82,22 @@ class MotionListUxBoundaryTest {
 
         // v1.7.3 anti-jank rule intact: one edge tracker, chrome-aware modifier.
         assertTrue(source.contains("RouteEdgeTracker()"))
+        assertTrue(source.contains("import androidx.compose.runtime.SideEffect"))
         assertTrue(source.contains("val navigationEdge = remember(currentRoute)"))
+        assertTrue(source.contains("routeEdgeTracker.preview(currentRoute)"))
+        assertTrue(source.contains("SideEffect {"))
+        assertTrue(source.contains("routeEdgeTracker.commit(navigationEdge)"))
+        assertFalse(source.contains("onRouteComposed"))
         assertTrue(source.contains(".settledGeometryPageMotion(navigationEdge)"))
+
+        val trackerSource = settled.substringAfter("internal class RouteEdgeTracker")
+            .substringBefore("@Composable")
+        val previewSource = trackerSource.substringAfter("fun preview")
+            .substringBefore("fun commit")
+        assertTrue(trackerSource.contains("fun preview"))
+        assertTrue(trackerSource.contains("fun commit"))
+        assertFalse(previewSource.contains("previousRoute ="))
+        assertFalse(previewSource.contains("nextId +="))
 
         // v1.7.4 refinement: the entrance is gated by the chrome-boundary policy and
         // runs inside the FINAL geometry after the first committed frame.

@@ -1,26 +1,18 @@
-v1.7.4 settled navigation motion — changed files
-================================================
+v1.7.4 settled navigation motion — corrected changed files
+==========================================================
 
-Production
-  A ui/motion/SettledGeometryPageMotion.kt
-      NavigationEdgeMotion, crossesPrimaryChromeBoundary, RouteEdgeTracker,
-      Modifier.settledGeometryPageMotion(edge)
+Correction delta from c8f5edff:
   M navigation/AppNavigation.kt
-      RouteEdgeTracker + `remember(currentRoute)` edge; NavHost modifier gains
-      `.settledGeometryPageMotion(navigationEdge)`; boundary transitions unchanged
-  M ui/motion/EvolunePageMotion.kt
-      visibility only: PAGE_FADE_IN_MILLIS / PAGE_INITIAL_SCALE -> internal
-      (shared constants; zero behavior change)
+      remember(currentRoute) reads preview; SideEffect calls commit.
+  M ui/motion/SettledGeometryPageMotion.kt
+      RouteEdgeTracker is now a pure preview / idempotent commit model.
 
-Tests
-  A ui/motion/SettledGeometryPageMotionTest.kt (5 tests: policy matrix, tracker
-    contract, startup/no-fabrication)
-  M ui/screens/MotionListUxBoundaryTest.kt (+1 guard test: settled-geometry
-    refinement without double animation; v1.7.3 assertions preserved)
+Tests:
+  M ui/motion/SettledGeometryPageMotionTest.kt (8 tests; +3 lifecycle proofs)
+  M ui/screens/MotionListUxBoundaryTest.kt (safe preview/SideEffect guard)
 
-Untouched: EditorTransitionHost.kt (zero diff), PrimaryNavigationChrome.kt,
-all product features, backup/theme/Settings/Widget/Wear/HC/Drive/Room, version.
+Correction-zero files: EvolunePageMotion.kt, EditorTransitionHost.kt,
+PrimaryNavigationChrome.kt, all product features, backup/theme/Settings/Widget/
+Wear/HC/Drive/Room, version.
 
-Environment-only (no git content change): the phase-e golden fixtures were
-re-checked-out with LF bytes (fresh worktree CRLF checkout artifact) so
-PortableGoldenFixtureTest byte comparisons pass; committed blobs unmodified.
+The authoritative implementation.diff is against bcb12d4 and excludes docs.

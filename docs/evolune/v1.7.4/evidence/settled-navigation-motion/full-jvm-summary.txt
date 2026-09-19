@@ -1,17 +1,14 @@
-v1.7.4 settled navigation motion — full JVM summary
-====================================================
+v1.7.4 settled navigation motion — corrected full JVM summary
+==============================================================
 
-Command: :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
-Log: logs/jvm-full.log (+ per-module summaries in logs/)
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test
+         :wear:testDebugUnitTest --rerun-tasks
 
-XML-derived:
-  app             149 suites / 1399 tests / 0 failures / 0 errors / 0 skipped
-                  (v1.7.3 baseline 148/1393 -> +1 suite, +6 tests: the new
-                  SettledGeometryPageMotionTest 5 + one new MotionListUxBoundaryTest)
+Independent XML recount:
+  app             149 suites / 1402 tests / 0 failures / 0 errors / 0 skipped
   experience-core  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
   wear             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
 
-Environment note: the first run failed the two PortableGoldenFixtureTest byte
-comparisons because the fresh worktree checkout applied CRLF to the phase-e
-golden fixtures; the fixtures were restored to their committed LF bytes (no git
-content change) and the final run above is fully green.
+All three tasks completed BUILD SUCCESSFUL. The app total is +3 tests over the
+candidate because the pure tracker suite now contains lifecycle coverage for
+abandoned preview, idempotent commit, repeated cycles, and same-route behavior.

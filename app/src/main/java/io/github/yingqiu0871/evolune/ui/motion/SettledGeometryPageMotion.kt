@@ -38,23 +38,25 @@ internal fun NavigationEdgeMotion.crossesPrimaryChromeBoundary(): Boolean =
     PrimaryNavigationChrome.changes(fromRoute, toRoute)
 
 /**
- * Tracks committed route edges. [onRouteComposed] is called exactly once per route
- * change (from a `remember(route)` scope), so unrelated recompositions or ViewModel
- * state changes can never fabricate or retrigger an edge.
+ * Previews route edges during composition and advances only after a successful
+ * composition commits. Previewing is pure, while [commit] is idempotent so repeated
+ * SideEffect execution for the same cached edge cannot fabricate or retrigger an edge.
  */
 internal class RouteEdgeTracker {
     private var previousRoute: String? = null
     private var nextId: Long = 0L
 
-    fun onRouteComposed(route: String?): NavigationEdgeMotion {
-        val edge = NavigationEdgeMotion(
-            fromRoute = previousRoute,
-            toRoute = route,
-            id = nextId
-        )
-        nextId += 1L
-        previousRoute = route
-        return edge
+    fun preview(route: String?): NavigationEdgeMotion = NavigationEdgeMotion(
+        fromRoute = previousRoute,
+        toRoute = route,
+        id = nextId
+    )
+
+    fun commit(edge: NavigationEdgeMotion) {
+        if (edge.id == nextId && edge.fromRoute == previousRoute) {
+            previousRoute = edge.toRoute
+            nextId += 1L
+        }
     }
 }
 

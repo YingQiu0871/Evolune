@@ -1,10 +1,14 @@
-v1.7.4 settled navigation motion — build summary
-=================================================
+v1.7.4 settled navigation motion — correction build summary
+===========================================================
 
-Debug build:
-  .\gradlew.bat :app:assembleDebug -> BUILD SUCCESSFUL (logs/build.log)
-  APK installed on the physical Pixel 11 Pro for visual acceptance and on the
-  AVD for the navigation instrumentation run.
+Focused JVM: BUILD SUCCESSFUL; SettledGeometryPageMotionTest 8/8 and
+MotionListUxBoundaryTest 5/5.
+Full JVM: BUILD SUCCESSFUL; app 149 suites / 1402 tests, experience-core
+20/171, wear 11/90; all failures/errors/skips = 0.
+AVD route suite: BUILD SUCCESSFUL; Pixel_7(AVD) API 35, 15/15.
 
-No release build was produced in this round. Wear source and build outputs are
-untouched (Wear JVM 11/90/0 in the full gate).
+The corrected debug APK was installed on the connected Pixel 11 Pro. Physical
+route smoke is pending explicit consent to advance that device's first-run
+terms/privacy screen; no physical result or recording is claimed here.
+
+No release build, tag, push, or version bump.

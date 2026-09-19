@@ -1,11 +1,14 @@
-v1.7.4 settled navigation motion — baseline
-===========================================
+v1.7.4 settled navigation motion — correction baseline
+=======================================================
 
-Baseline = origin/main = bcb12d4 (released v1.7.3). The v1.7.3 tree already
-contains the chrome-aware NavHost suppression introduced by the navigation-jank
-hotfix; v1.7.4 builds on it and does not revert it.
+Baseline: bcb12d432af1e9780e66686359545e69a056da39 (released v1.7.3).
+Original candidate: c8f5edff3c9fa571b82c88efa89ae2cce8ae9bd4.
 
-User feedback that motivates this round: v1.7.3 removed the deterministic jank,
-but chrome-changing navigation lost its animation entirely (Enter/Exit = None on
-both sides). The soft fade + 0.98 -> 1.0 entrance is desired again, but only
-inside the already-settled target geometry.
+Independent review: REQUEST_CHANGES V1.7.4 SETTLED MOTION.
+P1: AppNavigation mutated RouteEdgeTracker from a remember(currentRoute)
+initializer, so an abandoned/restarted composition could advance the tracker
+without a successful UI commit.
+
+The correction preserves the existing settled-motion architecture and changes
+only edge lifecycle semantics: preview is pure during composition; commit runs
+from SideEffect after successful composition.

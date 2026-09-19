@@ -1,2 +1,2 @@
-v1.7.4 settled motion — app JVM summary (from JUnit XML)
-TOTAL suites=149 tests=1399 failures=0 errors=0 skipped=0
+v1.7.4 settled motion — corrected app JVM summary (from JUnit XML)
+TOTAL suites=149 tests=1402 failures=0 errors=0 skipped=0
