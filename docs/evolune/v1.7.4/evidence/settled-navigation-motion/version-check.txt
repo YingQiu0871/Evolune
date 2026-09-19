@@ -1,0 +1,11 @@
+v1.7.4 settled navigation motion — version check
+=================================================
+
+versionName : 1.7.3 (unchanged)
+Phone       : 101070300 (unchanged)
+Wear        : 1101070300 (unchanged)
+
+No build-file delta in this round (git diff bcb12d4 -- "*.gradle.kts"
+gradle.properties gradle/libs.versions.toml = empty).
+No tag, no release, no push. The v1.7.4 bump happens only after this refinement
+is independently approved.

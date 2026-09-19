@@ -1,0 +1,31 @@
+v1.7.4 settled navigation motion — architecture
+===============================================
+
+New file: ui/motion/SettledGeometryPageMotion.kt
+  - NavigationEdgeMotion(fromRoute, toRoute, id) — one edge per committed route change
+  - NavigationEdgeMotion.crossesPrimaryChromeBoundary() — consumes the frozen
+    PrimaryNavigationChrome.changes() policy (no duplicated route list)
+  - RouteEdgeTracker — remembers the previous committed route and hands out a
+    fresh edge id per route change
+  - @Composable Modifier.settledGeometryPageMotion(edge) — the entrance host:
+      * entranceRequired = edge.crossesPrimaryChromeBoundary()
+      * pendingEntrance applies PAGE_INITIAL_SCALE / alpha 0 on the very first
+        frame of the new edge (no full-size flash, no snap-down)
+      * LaunchedEffect(edge.id): snapTo(initial) -> appliedEdgeId -> withFrameNanos
+        (final chrome/destination layout committed) -> animateTo(1f, 220 ms)
+      * same-geometry edges: inert (snap to final, no animation)
+
+AppNavigation.kt:
+  - RouteEdgeTracker is remembered once; `remember(currentRoute)` produces exactly
+    one edge per route change (unrelated recompositions never touch the tracker)
+  - NavHost modifier gains `.settledGeometryPageMotion(navigationEdge)`
+  - the four chrome-aware boundary transitions are untouched
+
+EvolunePageMotion.kt: only visibility change — PAGE_FADE_IN_MILLIS and
+PAGE_INITIAL_SCALE became `internal` so the settled host reuses the exact Evolune
+language (0.98 / Center / 220 ms) instead of duplicating constants. No behavior
+change; fadeOut/delay constants untouched.
+
+Chrome is NOT animated: the modifier is applied to the NavHost viewport only;
+BottomNavigationBar / NavigationRailBar / AppTopBar / Scaffold / root Row are
+siblings and stay at their final layout (confirmed by frame evidence).

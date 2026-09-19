@@ -1,0 +1,11 @@
+v1.7.4 settled navigation motion — v1.7.3 policy preservation
+=============================================================
+
+Unchanged and still asserted:
+  - PrimaryNavigationChrome.FULL_SCREEN_ROUTES (8 routes) and shows()/changes()
+  - AppNavigation derives `isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)`
+  - all four NavHost transition boundaries: chrome-changing -> None, else the
+    shared evolunePageEnterTransition()/evolunePageExitTransition()
+  - MotionListUxBoundaryTest `navhost suppresses page motion only when primary
+    chrome changes` still passes with the same assertions (chromeRule count == 4,
+    EnterTransition.None count == 2, ExitTransition.None count == 2).

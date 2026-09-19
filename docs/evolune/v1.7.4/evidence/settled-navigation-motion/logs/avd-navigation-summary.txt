@@ -1,0 +1,11 @@
+v1.7.4 settled motion — AVD navigation instrumentation (from JUnit XML)
+Device: Pixel_7 AVD API 35 (emulator-5554)
+
+io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialNavigationTest tests=2
+io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest tests=4
+io.github.yingqiu0871.evolune.ui.screens.insights.InsightsNavigationTest tests=2
+io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveNavigationTest tests=2
+io.github.yingqiu0871.evolune.ui.screens.SyncAndBackupNavigationTest tests=2
+io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineNavigationTest tests=3
+
+TOTAL tests=15 failures=0 skipped=0

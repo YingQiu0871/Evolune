@@ -1,0 +1,26 @@
+v1.7.4 settled navigation motion — changed files
+================================================
+
+Production
+  A ui/motion/SettledGeometryPageMotion.kt
+      NavigationEdgeMotion, crossesPrimaryChromeBoundary, RouteEdgeTracker,
+      Modifier.settledGeometryPageMotion(edge)
+  M navigation/AppNavigation.kt
+      RouteEdgeTracker + `remember(currentRoute)` edge; NavHost modifier gains
+      `.settledGeometryPageMotion(navigationEdge)`; boundary transitions unchanged
+  M ui/motion/EvolunePageMotion.kt
+      visibility only: PAGE_FADE_IN_MILLIS / PAGE_INITIAL_SCALE -> internal
+      (shared constants; zero behavior change)
+
+Tests
+  A ui/motion/SettledGeometryPageMotionTest.kt (5 tests: policy matrix, tracker
+    contract, startup/no-fabrication)
+  M ui/screens/MotionListUxBoundaryTest.kt (+1 guard test: settled-geometry
+    refinement without double animation; v1.7.3 assertions preserved)
+
+Untouched: EditorTransitionHost.kt (zero diff), PrimaryNavigationChrome.kt,
+all product features, backup/theme/Settings/Widget/Wear/HC/Drive/Room, version.
+
+Environment-only (no git content change): the phase-e golden fixtures were
+re-checked-out with LF bytes (fresh worktree CRLF checkout artifact) so
+PortableGoldenFixtureTest byte comparisons pass; committed blobs unmodified.

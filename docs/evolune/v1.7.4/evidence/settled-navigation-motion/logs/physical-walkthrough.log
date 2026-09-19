@@ -1,0 +1,18 @@
+2026-09-19T19:14:51  v1.7.4 launch: onboarding=False nodes=0
+2026-09-20T00:18:36  v1.7.4 launch: onboarding=False nodes=1
+2026-09-20T00:19:01  after wake: onboarding=True nodes=5
+2026-09-20T00:19:39  onboarding complete at iter 1
+2026-09-20T00:19:46  home: hasHistory=False
+2026-09-20T00:20:44  onboarding complete at iter 1
+2026-09-20T00:20:50  home: hasHistory=False nodes=1
+2026-09-20T00:21:07  state nodes=5
+2026-09-20T00:21:51  onboarding complete at iter 6
+2026-09-20T00:22:03  home: hasHistory=False nodes=7
+2026-09-20T00:23:08  home: hasHistory=True nodes=8
+2026-09-20T00:23:15  history nodes=22
+2026-09-20T00:24:28  v1.7.4 History<->Insights cycles completed=10
+2026-09-20T00:24:46  retrospective round trip ok
+2026-09-20T00:24:53  timeline round trip ok
+2026-09-20T00:25:25  about round trip ok
+2026-09-20T00:26:45  tapping insights at 194,1753 (animator scale 10)
+2026-09-20T00:26:52  forward frames captured

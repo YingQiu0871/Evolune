@@ -1,0 +1,2 @@
+v1.7.4 settled motion — wear JVM summary (from JUnit XML)
+TOTAL suites=11 tests=90 failures=0 errors=0 skipped=0

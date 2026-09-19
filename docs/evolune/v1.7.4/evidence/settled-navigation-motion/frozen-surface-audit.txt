@@ -1,0 +1,17 @@
+v1.7.4 settled navigation motion — frozen-surface audit
+=======================================================
+
+git diff bcb12d4..HEAD -- <scope>:
+
+  ui/components/EditorTransitionHost.kt      : zero
+  navigation/PrimaryNavigationChrome.kt      : zero
+  History / Insights / Retrospective PK / Timeline / PK / matcher : zero
+  records / plans / DoseEvent                : zero
+  backup / theme / Settings persistence      : zero
+  Widget / Wear / Health Connect / Drive     : zero
+  app/schemas (Room)                         : zero
+  experience-core                            : zero
+  dependencies / build files / version       : zero
+
+Product delta is confined to the navigation motion refinement
+(SettledGeometryPageMotion.kt + AppNavigation wiring + constant visibility).

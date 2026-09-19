@@ -1,0 +1,21 @@
+v1.7.4 settled navigation motion — route-edge policy
+====================================================
+
+Edge tracking (pure, testable):
+  RouteEdgeTracker.onRouteComposed(route) returns NavigationEdgeMotion(previous,
+  route, nextId) and advances the id. It is called from `remember(currentRoute)`
+  in AppNavigation, so:
+  - exactly one edge per committed route change
+  - forward and Back both produce exactly one edge each
+  - unrelated recomposition (ViewModel state, theme, etc.) cannot retrigger
+  - startup (previous = null -> start destination) does not cross the chrome
+    boundary, so no fabricated motion event
+
+Motion policy matrix (SettledGeometryPageMotionTest):
+  chrome-changing (motion YES, both directions):
+    History <-> Insights, History <-> Retrospective PK, History <-> Timeline,
+    Settings <-> About, Settings <-> Google Drive backup/restore
+  same-geometry (motion NO, NavHost motion authoritative):
+    Home <-> Records <-> History <-> Medication Plans <-> Settings,
+    Insights <-> Retrospective, Retrospective <-> Timeline, About <-> Disclosures
+  startup/null: no motion

@@ -1,0 +1,21 @@
+v1.7.4 settled navigation motion — root-cause continuity
+========================================================
+
+v1.7.2 defect (fixed in v1.7.3): primary chrome visibility, root content
+geometry and the NavHost page fade/scale all changed in the same frame -> the
+page appeared to expand/shrink and stuttered deterministically.
+
+v1.7.3 fix (preserved): chrome-changing edges use EnterTransition.None /
+ExitTransition.None for enter/exit/popEnter/popExit, so the outgoing page is
+removed instantly and the incoming page composes directly in its final geometry.
+
+v1.7.4 gap: the None transition also removed the pleasant entrance motion.
+
+v1.7.4 refinement: keep the v1.7.3 boundary suppression, then run a LOCAL
+entrance on the destination content inside the settled geometry:
+  - chrome switches immediately (not animated)
+  - NavHost destination changes immediately (no boundary transition)
+  - the destination's final constraints are committed first
+  - only then the new content animates alpha 0 -> 1 and scale 0.98 -> 1.0
+No boundary scale/fade is re-enabled, so the v1.7.2 geometry conflict cannot
+return.

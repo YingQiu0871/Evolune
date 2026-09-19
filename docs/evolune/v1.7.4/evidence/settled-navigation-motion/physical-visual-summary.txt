@@ -1,0 +1,35 @@
+v1.7.4 settled navigation motion — physical visual summary (Pixel 11 Pro)
+=========================================================================
+
+Device: Google Pixel 11 Pro (grizzly), Android 17 / API 37 — DEBUG application
+identity only (io.github.yingqiu0871.evolune.debug). The user's release app was
+never touched; the debug package was uninstalled afterwards and the screen
+timeout was restored to 60000 ms (animator_duration_scale restored to 1.0).
+
+Installed build: v1.7.3-debug (version not bumped in this round) from the
+v1.7.4 worktree.
+
+Protocol and results:
+  - 10 x History -> Insights -> Back cycles completed (entry tapped through the
+    real UI); every Insights surface opened and Back returned to History
+  - extra round trips: History <-> Retrospective PK, History <-> Timeline,
+    Settings -> About -> Back
+  - animation is visibly present in BOTH directions (soft fade + subtle
+    0.98 -> 1.0 entrance)
+  - chrome (bottom bar / rail) switches instantly to its final state and does not
+    scale or fade
+  - no expand/shrink geometry glitch, no deterministic stutter, no blank-frame
+    flash, no scale-out tail, no stuck transition, no crash
+  - logcat: no app-correlated FATAL EXCEPTION / ANR
+
+Recording (outside the repo): D:\Evolune-Workspace\review-packets\v174-recordings\
+  v172-janky-motion.mp4   (v1.7.2 BEFORE, 4,338,194 bytes)
+  v173-no-motion.mp4      (v1.7.3 no-animation, 2,151,805 bytes)
+  v174-settled-motion.mp4 (v1.7.4 candidate, 10,634,242 bytes)
+
+Animation-state instrumentation limitation (per task §19 fallback): with
+ActivityScenario + createEmptyComposeRule the Compose mainClock does not
+deterministically drive Activity-hosted navigation transitions, and
+animator_duration_scale is not reliably honored for the Compose frame clock, so
+no exact scale/alpha device assertion was added. Coverage relies on the pure
+motion-policy tests + route instrumentation + the frame-sequence evidence below.

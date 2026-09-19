@@ -1,0 +1,310 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index c410454..fd18e9c 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -121,7 +121,9 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
+ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
+ import androidx.compose.animation.EnterTransition
+ import androidx.compose.animation.ExitTransition
++import io.github.yingqiu0871.evolune.ui.motion.RouteEdgeTracker
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
++import io.github.yingqiu0871.evolune.ui.motion.settledGeometryPageMotion
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
+ import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
+ import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
+@@ -790,6 +792,9 @@ fun AppNavigation(
+     // Single chrome policy: the same predicate drives visibility AND transition
+     // suppression (v1.7.3 navigation-jank hotfix).
+     val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
++    // v1.7.4: exactly one motion edge per committed route change.
++    val routeEdgeTracker = remember { RouteEdgeTracker() }
++    val navigationEdge = remember(currentRoute) { routeEdgeTracker.onRouteComposed(currentRoute) }
+     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
+     val currentRouteState = rememberUpdatedState(currentRoute)
+ 
+@@ -893,7 +898,10 @@ fun AppNavigation(
+                 ) ?: Screen.HOME.route,
+                 modifier = Modifier
+                     .fillMaxSize()
+-                    .background(MaterialTheme.colorScheme.surface),
++                    .background(MaterialTheme.colorScheme.surface)
++                    // v1.7.4: chrome-changing edges get a settled-geometry entrance
++                    // inside the FINAL layout; same-geometry edges stay inert.
++                    .settledGeometryPageMotion(navigationEdge),
+             enterTransition = {
+                 if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
+                     EnterTransition.None
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
+index 8e61160..9b78ecf 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
+@@ -30,7 +30,10 @@ fun evolunePageExitTransition(): ExitTransition =
+     fadeOut(animationSpec = tween(PAGE_FADE_OUT_MILLIS))
+ 
+ private const val PAGE_FADE_OUT_MILLIS = 90
+-private const val PAGE_FADE_IN_MILLIS = 220
++
++// v1.7.4: shared with the settled-geometry entrance host so both motion paths keep
++// the identical Evolune fade/scale language (visibility only; zero behavior change).
++internal const val PAGE_FADE_IN_MILLIS = 220
+ private const val PAGE_FADE_IN_DELAY_MILLIS = 90
+ private const val NO_PAGE_ENTER_DELAY_MILLIS = 0
+-private const val PAGE_INITIAL_SCALE = 0.98f
++internal const val PAGE_INITIAL_SCALE = 0.98f
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
+new file mode 100644
+index 0000000..da3dcca
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
+@@ -0,0 +1,93 @@
++package io.github.yingqiu0871.evolune.ui.motion
++
++import androidx.compose.animation.core.Animatable
++import androidx.compose.animation.core.tween
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.LaunchedEffect
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.runtime.withFrameNanos
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.graphicsLayer
++import io.github.yingqiu0871.evolune.navigation.PrimaryNavigationChrome
++import kotlinx.coroutines.launch
++
++/**
++ * v1.7.4 — settled-geometry page motion.
++ *
++ * The v1.7.3 anti-jank rule stays: when a navigation changes the primary navigation
++ * chrome (bottom bar / rail), the NavHost boundary transition is None, so the
++ * outgoing page disappears instantly and the incoming page composes directly in its
++ * FINAL geometry. This modifier then animates ONLY the new destination content inside
++ * that settled geometry with the same Evolune language (alpha 0 -> 1, scale
++ * 0.98 -> 1.0, 220 ms, Center origin, no artificial delay).
++ *
++ * Same-geometry navigation is untouched: the modifier is inert and the existing
++ * NavHost page transitions remain authoritative (no double animation).
++ */
++internal data class NavigationEdgeMotion(
++    val fromRoute: String?,
++    val toRoute: String?,
++    val id: Long
++)
++
++/** Pure policy: does this edge cross the primary-chrome boundary? */
++internal fun NavigationEdgeMotion.crossesPrimaryChromeBoundary(): Boolean =
++    PrimaryNavigationChrome.changes(fromRoute, toRoute)
++
++/**
++ * Tracks committed route edges. [onRouteComposed] is called exactly once per route
++ * change (from a `remember(route)` scope), so unrelated recompositions or ViewModel
++ * state changes can never fabricate or retrigger an edge.
++ */
++internal class RouteEdgeTracker {
++    private var previousRoute: String? = null
++    private var nextId: Long = 0L
++
++    fun onRouteComposed(route: String?): NavigationEdgeMotion {
++        val edge = NavigationEdgeMotion(
++            fromRoute = previousRoute,
++            toRoute = route,
++            id = nextId
++        )
++        nextId += 1L
++        previousRoute = route
++        return edge
++    }
++}
++
++@Composable
++internal fun Modifier.settledGeometryPageMotion(edge: NavigationEdgeMotion): Modifier {
++    val entranceRequired = edge.crossesPrimaryChromeBoundary()
++    val scale = remember { Animatable(1f) }
++    val alpha = remember { Animatable(1f) }
++    var appliedEdgeId by remember { mutableStateOf(-1L) }
++    val pendingEntrance = entranceRequired && edge.id != appliedEdgeId
++
++    LaunchedEffect(edge.id, entranceRequired) {
++        if (entranceRequired) {
++            // Apply the initial motion state before the first animated target frame.
++            scale.snapTo(PAGE_INITIAL_SCALE)
++            alpha.snapTo(0f)
++            appliedEdgeId = edge.id
++            // Let the chrome switch and the destination's final layout commit first.
++            withFrameNanos { }
++            launch { scale.animateTo(1f, tween(durationMillis = PAGE_FADE_IN_MILLIS)) }
++            alpha.animateTo(1f, tween(durationMillis = PAGE_FADE_IN_MILLIS))
++        } else {
++            scale.snapTo(1f)
++            alpha.snapTo(1f)
++            appliedEdgeId = edge.id
++        }
++    }
++
++    return graphicsLayer {
++        val appliedScale = if (pendingEntrance) PAGE_INITIAL_SCALE else scale.value
++        val appliedAlpha = if (pendingEntrance) 0f else alpha.value
++        scaleX = appliedScale
++        scaleY = appliedScale
++        this.alpha = appliedAlpha
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt
+new file mode 100644
+index 0000000..f2c4c99
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt
+@@ -0,0 +1,102 @@
++package io.github.yingqiu0871.evolune.ui.motion
++
++import io.github.yingqiu0871.evolune.navigation.ABOUT_ROUTE
++import io.github.yingqiu0871.evolune.navigation.DISCLOSURES_ROUTE
++import io.github.yingqiu0871.evolune.navigation.GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
++import io.github.yingqiu0871.evolune.navigation.INSIGHTS_ROUTE
++import io.github.yingqiu0871.evolune.navigation.RETROSPECTIVE_ROUTE
++import io.github.yingqiu0871.evolune.navigation.Screen
++import io.github.yingqiu0871.evolune.navigation.TIMELINE_ROUTE
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++/**
++ * v1.7.4 — pure policy for the settled-geometry entrance motion.
++ *
++ * Chrome-changing edges must run exactly one local entrance inside the final
++ * geometry; same-geometry edges must stay inert (the NavHost page transition is
++ * authoritative there); startup/null edges must not fabricate a motion event.
++ */
++class SettledGeometryPageMotionTest {
++
++    private fun edge(from: String?, to: String?, id: Long = 0L) =
++        NavigationEdgeMotion(fromRoute = from, toRoute = to, id = id)
++
++    @Test
++    fun `chrome-changing edges require the settled entrance in both directions`() {
++        val boundaries = listOf(
++            Screen.HISTORY.route to INSIGHTS_ROUTE,
++            Screen.HISTORY.route to RETROSPECTIVE_ROUTE,
++            Screen.HISTORY.route to TIMELINE_ROUTE,
++            Screen.SETTINGS.route to ABOUT_ROUTE,
++            Screen.SETTINGS.route to GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE
++        )
++        boundaries.forEach { (from, to) ->
++            assertTrue("$from -> $to", edge(from, to).crossesPrimaryChromeBoundary())
++            assertTrue("$to -> $from (Back)", edge(to, from).crossesPrimaryChromeBoundary())
++        }
++    }
++
++    @Test
++    fun `same-geometry edges stay inert`() {
++        val sameGeometry = listOf(
++            Screen.HOME.route to Screen.RECORDS.route,
++            Screen.RECORDS.route to Screen.HISTORY.route,
++            Screen.HISTORY.route to Screen.MEDICATION_PLANS.route,
++            Screen.MEDICATION_PLANS.route to Screen.SETTINGS.route,
++            INSIGHTS_ROUTE to RETROSPECTIVE_ROUTE,
++            RETROSPECTIVE_ROUTE to TIMELINE_ROUTE,
++            ABOUT_ROUTE to DISCLOSURES_ROUTE
++        )
++        sameGeometry.forEach { (from, to) ->
++            assertFalse("$from -> $to", edge(from, to).crossesPrimaryChromeBoundary())
++            assertFalse("$to -> $from", edge(to, from).crossesPrimaryChromeBoundary())
++        }
++    }
++
++    @Test
++    fun `startup and null edges do not fabricate motion`() {
++        assertFalse(edge(null, null).crossesPrimaryChromeBoundary())
++        assertFalse(edge(null, Screen.HOME.route).crossesPrimaryChromeBoundary())
++        assertFalse(edge(Screen.HOME.route, null).crossesPrimaryChromeBoundary())
++        assertFalse(edge(Screen.HISTORY.route, Screen.HISTORY.route).crossesPrimaryChromeBoundary())
++    }
++
++    @Test
++    fun `route edge tracker emits exactly one edge per committed route change`() {
++        val tracker = RouteEdgeTracker()
++
++        val startup = tracker.onRouteComposed(Screen.HOME.route)
++        assertEquals(null, startup.fromRoute)
++        assertEquals(Screen.HOME.route, startup.toRoute)
++        assertFalse(startup.crossesPrimaryChromeBoundary())
++
++        val forward = tracker.onRouteComposed(INSIGHTS_ROUTE)
++        assertEquals(Screen.HOME.route, forward.fromRoute)
++        assertEquals(INSIGHTS_ROUTE, forward.toRoute)
++        assertTrue(forward.crossesPrimaryChromeBoundary())
++
++        val back = tracker.onRouteComposed(Screen.HOME.route)
++        assertEquals(INSIGHTS_ROUTE, back.fromRoute)
++        assertEquals(Screen.HOME.route, back.toRoute)
++        assertTrue(back.crossesPrimaryChromeBoundary())
++
++        // Distinct edges -> distinct motion keys; one event per committed change.
++        assertEquals(listOf(0L, 1L, 2L), listOf(startup.id, forward.id, back.id))
++    }
++
++    @Test
++    fun `repeated same-route composition is not a new edge in the tracker contract`() {
++        val tracker = RouteEdgeTracker()
++        tracker.onRouteComposed(Screen.HISTORY.route)
++        // The UI only calls onRouteComposed from a remember(route) scope, so a
++        // same-route recomposition never reaches the tracker; this documents the
++        // resulting edge shape if it ever did: same route -> no chrome change.
++        val sameRoute = tracker.onRouteComposed(Screen.HISTORY.route)
++        assertEquals(Screen.HISTORY.route, sameRoute.fromRoute)
++        assertEquals(Screen.HISTORY.route, sameRoute.toRoute)
++        assertFalse(sameRoute.crossesPrimaryChromeBoundary())
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
+index d3119e5..15cd8ab 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
+@@ -74,6 +74,45 @@ class MotionListUxBoundaryTest {
+         assertFalse(source.contains("MutableTransitionState"))
+     }
+ 
++    @Test
++    fun `settled geometry motion refines chrome boundaries without double animation`() {
++        val source = source("navigation/AppNavigation.kt")
++        val settled = source("ui/motion/SettledGeometryPageMotion.kt")
++        val motion = source("ui/motion/EvolunePageMotion.kt")
++
++        // v1.7.3 anti-jank rule intact: one edge tracker, chrome-aware modifier.
++        assertTrue(source.contains("RouteEdgeTracker()"))
++        assertTrue(source.contains("val navigationEdge = remember(currentRoute)"))
++        assertTrue(source.contains(".settledGeometryPageMotion(navigationEdge)"))
++
++        // v1.7.4 refinement: the entrance is gated by the chrome-boundary policy and
++        // runs inside the FINAL geometry after the first committed frame.
++        assertTrue(settled.contains("PrimaryNavigationChrome.changes(fromRoute, toRoute)"))
++        assertTrue(settled.contains("if (entranceRequired)"))
++        assertTrue(settled.contains("withFrameNanos"))
++        assertTrue(settled.contains("graphicsLayer"))
++        assertTrue(settled.contains("PAGE_INITIAL_SCALE"))
++        assertTrue(settled.contains("PAGE_FADE_IN_MILLIS"))
++        assertTrue(settled.contains("snapTo"))
++        assertTrue(settled.contains("animateTo"))
++
++        // Shared motion language: the existing constants are reused, not duplicated.
++        assertTrue(motion.contains("internal const val PAGE_FADE_IN_MILLIS = 220"))
++        assertTrue(motion.contains("internal const val PAGE_INITIAL_SCALE = 0.98f"))
++
++        // No new motion vocabulary, no chrome animation, no scale-out, no spring.
++        listOf("slideIn", "slideOut", "scaleOut", "spring(", "bounce", "animateContentSize")
++            .forEach { term ->
++                assertFalse("settled motion must not contain '$term'", settled.contains(term))
++            }
++        assertFalse(settled.contains("BottomNavigationBar"))
++        assertFalse(settled.contains("NavigationRailBar"))
++
++        // Same-geometry path still uses the original NavHost page transitions.
++        assertTrue(source.split("evolunePageEnterTransition()").size - 1 >= 2)
++        assertTrue(source.split("evolunePageExitTransition()").size - 1 >= 2)
++    }
++
+     @Test
+     fun `editor layers cover a persistent top-level scaffold`() {
+         val source = source("navigation/AppNavigation.kt")

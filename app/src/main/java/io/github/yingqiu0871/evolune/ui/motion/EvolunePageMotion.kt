@@ -30,7 +30,10 @@ fun evolunePageExitTransition(): ExitTransition =
     fadeOut(animationSpec = tween(PAGE_FADE_OUT_MILLIS))
 
 private const val PAGE_FADE_OUT_MILLIS = 90
-private const val PAGE_FADE_IN_MILLIS = 220
+
+// v1.7.4: shared with the settled-geometry entrance host so both motion paths keep
+// the identical Evolune fade/scale language (visibility only; zero behavior change).
+internal const val PAGE_FADE_IN_MILLIS = 220
 private const val PAGE_FADE_IN_DELAY_MILLIS = 90
 private const val NO_PAGE_ENTER_DELAY_MILLIS = 0
-private const val PAGE_INITIAL_SCALE = 0.98f
+internal const val PAGE_INITIAL_SCALE = 0.98f

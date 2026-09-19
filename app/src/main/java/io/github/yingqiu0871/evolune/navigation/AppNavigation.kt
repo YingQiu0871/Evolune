@@ -121,7 +121,9 @@ import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import io.github.yingqiu0871.evolune.ui.motion.RouteEdgeTracker
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
+import io.github.yingqiu0871.evolune.ui.motion.settledGeometryPageMotion
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
 import io.github.yingqiu0871.evolune.ui.screens.HomeScreen
@@ -790,6 +792,9 @@ fun AppNavigation(
     // Single chrome policy: the same predicate drives visibility AND transition
     // suppression (v1.7.3 navigation-jank hotfix).
     val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
+    // v1.7.4: exactly one motion edge per committed route change.
+    val routeEdgeTracker = remember { RouteEdgeTracker() }
+    val navigationEdge = remember(currentRoute) { routeEdgeTracker.onRouteComposed(currentRoute) }
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -893,7 +898,10 @@ fun AppNavigation(
                 ) ?: Screen.HOME.route,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
+                    .background(MaterialTheme.colorScheme.surface)
+                    // v1.7.4: chrome-changing edges get a settled-geometry entrance
+                    // inside the FINAL layout; same-geometry edges stay inert.
+                    .settledGeometryPageMotion(navigationEdge),
             enterTransition = {
                 if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
                     EnterTransition.None

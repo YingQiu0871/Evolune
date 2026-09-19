@@ -1,0 +1,10 @@
+v1.7.4 settled navigation motion — build summary
+=================================================
+
+Debug build:
+  .\gradlew.bat :app:assembleDebug -> BUILD SUCCESSFUL (logs/build.log)
+  APK installed on the physical Pixel 11 Pro for visual acceptance and on the
+  AVD for the navigation instrumentation run.
+
+No release build was produced in this round. Wear source and build outputs are
+untouched (Wear JVM 11/90/0 in the full gate).

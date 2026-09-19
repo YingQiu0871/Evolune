@@ -1,0 +1,11 @@
+v1.7.4 settled navigation motion — baseline
+===========================================
+
+Baseline = origin/main = bcb12d4 (released v1.7.3). The v1.7.3 tree already
+contains the chrome-aware NavHost suppression introduced by the navigation-jank
+hotfix; v1.7.4 builds on it and does not revert it.
+
+User feedback that motivates this round: v1.7.3 removed the deterministic jank,
+but chrome-changing navigation lost its animation entirely (Enter/Exit = None on
+both sides). The soft fade + 0.98 -> 1.0 entrance is desired again, but only
+inside the already-settled target geometry.

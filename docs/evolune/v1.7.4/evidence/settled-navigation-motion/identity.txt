@@ -1,0 +1,10 @@
+v1.7.4 settled navigation motion — identity
+===========================================
+
+Repository worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.7.4
+Branch: feature/v1.7.4-settled-navigation-motion
+Baseline (authoritative main): bcb12d432af1e9780e66686359545e69a056da39
+  (= released v1.7.3 commit; tag v1.7.3 peels to the same commit)
+Implementation commit subject: fix(navigation): restore settled-geometry page motion
+Version during this round: 1.7.3 / Phone 101070300 / Wear 1101070300 (not bumped).
+No tag, no release, no push.

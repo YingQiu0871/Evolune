@@ -1,0 +1,13 @@
+v1.7.4 settled navigation motion — focused JVM summary
+=======================================================
+
+Command: :app:testDebugUnitTest --tests SettledGeometryPageMotionTest
+         --tests MotionListUxBoundaryTest --tests TimelineUiArchitectureGuardTest
+         --tests PrimaryNavigationChromeTest
+
+XML-derived:
+  SettledGeometryPageMotionTest        5 tests / 0 failures
+  MotionListUxBoundaryTest             5 tests / 0 failures
+  TimelineUiArchitectureGuardTest     28 tests / 0 failures
+  PrimaryNavigationChromeTest          5 tests / 0 failures
+  TOTAL suites=4 tests=43 failures=0

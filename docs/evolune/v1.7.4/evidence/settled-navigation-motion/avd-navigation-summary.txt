@@ -1,0 +1,18 @@
+v1.7.4 settled navigation motion — AVD navigation instrumentation
+=================================================================
+
+Command: :app:connectedDebugAndroidTest with the affected navigation classes
+Device : Pixel_7 AVD API 35 (emulator-5554)
+Log    : logs/avd-navigation.log (+ avd-navigation-summary.txt)
+
+XML-derived:
+  HistoryNavigationTest          4 tests / 0 failures
+  InsightsNavigationTest         2 tests / 0 failures
+  RetrospectiveNavigationTest    2 tests / 0 failures
+  TimelineNavigationTest         3 tests / 0 failures
+  SyncAndBackupNavigationTest    2 tests / 0 failures
+  FeatureTutorialNavigationTest  2 tests / 0 failures
+  TOTAL tests=15 failures=0 skipped=0
+
+Navigation semantics, back-stack behavior and chrome visibility are unchanged by
+the motion refinement.

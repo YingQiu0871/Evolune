@@ -75,6 +75,45 @@ class MotionListUxBoundaryTest {
     }
 
     @Test
+    fun `settled geometry motion refines chrome boundaries without double animation`() {
+        val source = source("navigation/AppNavigation.kt")
+        val settled = source("ui/motion/SettledGeometryPageMotion.kt")
+        val motion = source("ui/motion/EvolunePageMotion.kt")
+
+        // v1.7.3 anti-jank rule intact: one edge tracker, chrome-aware modifier.
+        assertTrue(source.contains("RouteEdgeTracker()"))
+        assertTrue(source.contains("val navigationEdge = remember(currentRoute)"))
+        assertTrue(source.contains(".settledGeometryPageMotion(navigationEdge)"))
+
+        // v1.7.4 refinement: the entrance is gated by the chrome-boundary policy and
+        // runs inside the FINAL geometry after the first committed frame.
+        assertTrue(settled.contains("PrimaryNavigationChrome.changes(fromRoute, toRoute)"))
+        assertTrue(settled.contains("if (entranceRequired)"))
+        assertTrue(settled.contains("withFrameNanos"))
+        assertTrue(settled.contains("graphicsLayer"))
+        assertTrue(settled.contains("PAGE_INITIAL_SCALE"))
+        assertTrue(settled.contains("PAGE_FADE_IN_MILLIS"))
+        assertTrue(settled.contains("snapTo"))
+        assertTrue(settled.contains("animateTo"))
+
+        // Shared motion language: the existing constants are reused, not duplicated.
+        assertTrue(motion.contains("internal const val PAGE_FADE_IN_MILLIS = 220"))
+        assertTrue(motion.contains("internal const val PAGE_INITIAL_SCALE = 0.98f"))
+
+        // No new motion vocabulary, no chrome animation, no scale-out, no spring.
+        listOf("slideIn", "slideOut", "scaleOut", "spring(", "bounce", "animateContentSize")
+            .forEach { term ->
+                assertFalse("settled motion must not contain '$term'", settled.contains(term))
+            }
+        assertFalse(settled.contains("BottomNavigationBar"))
+        assertFalse(settled.contains("NavigationRailBar"))
+
+        // Same-geometry path still uses the original NavHost page transitions.
+        assertTrue(source.split("evolunePageEnterTransition()").size - 1 >= 2)
+        assertTrue(source.split("evolunePageExitTransition()").size - 1 >= 2)
+    }
+
+    @Test
     fun `editor layers cover a persistent top-level scaffold`() {
         val source = source("navigation/AppNavigation.kt")
 
