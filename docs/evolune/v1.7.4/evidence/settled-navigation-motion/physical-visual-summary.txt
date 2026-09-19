@@ -1,23 +1,42 @@
 v1.7.4 settled navigation motion — corrected physical visual summary
 ====================================================================
 
-Pre-correction candidate evidence preserved:
-  The prior v1.7.4 candidate walkthrough, screenshots, and recordings remain
-  historical evidence only. They are not post-correction validation.
+Historical pre-correction candidate evidence is preserved. The v172/v173/v174
+candidate recordings were not overwritten.
 
-Post-correction device state:
-  Device: Google Pixel 11 Pro (grizzly), Android API 35 — DEBUG package only
-  (io.github.yingqiu0871.evolune.debug).
-  Corrected v1.7.3-debug APK installed successfully from this worktree.
-  Smoke is pending explicit user consent on the first-run terms/privacy screen.
-  No History/Insights cycle, extra route smoke, visual verdict, or corrected
-  recording is claimed yet. No prior recording was overwritten.
+Post-correction physical smoke:
+  Device: Google Pixel 11 Pro (grizzly), Android API 35.
+  Package: io.github.yingqiu0871.evolune.debug only.
+  Build: 1.7.3-debug from the corrected v1.7.4 worktree.
+  Consent: Evolune Terms, Privacy, and medical disclosure accepted under the
+           explicit user authorization for this debug-only smoke.
 
-Requested post-correction protocol remains:
-  10+ History <-> Insights cycles; History <-> Timeline; Settings <-> About;
-  verify visible forward/back motion, stable geometry, no flash/snap, no stuck
-  translucent/scaled state, and no crash. Suggested new recording name:
-  v174-p1-corrected-smoke.mp4.
+Navigation coverage:
+  History <-> Insights: 12 complete forward/back cycles passed after the
+                        initial route settled; two initial taps before the
+                        target was ready were not counted.
+  History <-> Timeline: forward and reverse route checks passed.
+  Settings <-> About: About opened and returned to Settings successfully.
+
+Physical observations during the recorded run:
+  Forward and reverse motion remained visible.
+  No geometry expand/shrink regression observed.
+  No flash or snap-down observed.
+  No stuck alpha/scale state observed.
+  No double animation observed.
+  No crash or Evolune-process fatal/ANR observed.
+
+Recording:
+  D:\Evolune-Workspace\review-packets\v174-recordings\v174-p1-corrected-smoke.mp4
+  bytes: 56846604
+  SHA-256: 6b8cab5b17d5ed2df9c19a2e1dcc6bc6911ff0df81dff1abe28dffb38da74606
+
+Cleanup and preservation:
+  The debug package was uninstalled after capture.
+  Release package path was unchanged before and after cleanup.
+  Existing v172/v173/v174 recordings remain present.
+  Animator duration scale, transition animation scale, and screen timeout
+  remained at their original values: 1.0, 1.0, and 60000 ms.
 
 The previous candidate's animation-state instrumentation limitation remains
 applicable: exact alpha/scale frame assertions are not substituted for the

@@ -7,8 +7,10 @@ Full JVM: BUILD SUCCESSFUL; app 149 suites / 1402 tests, experience-core
 20/171, wear 11/90; all failures/errors/skips = 0.
 AVD route suite: BUILD SUCCESSFUL; Pixel_7(AVD) API 35, 15/15.
 
-The corrected debug APK was installed on the connected Pixel 11 Pro. Physical
-route smoke is pending explicit consent to advance that device's first-run
-terms/privacy screen; no physical result or recording is claimed here.
+Physical Pixel 11 Pro smoke: PASS on the authorized debug package only.
+History <-> Insights completed 12 counted cycles; History <-> Timeline and
+Settings <-> About both passed in both directions. The corrected recording is
+captured at D:\Evolune-Workspace\review-packets\v174-recordings\v174-p1-corrected-smoke.mp4.
 
-No release build, tag, push, or version bump.
+The debug package was uninstalled after capture. No release build, tag, push,
+or version bump was made.

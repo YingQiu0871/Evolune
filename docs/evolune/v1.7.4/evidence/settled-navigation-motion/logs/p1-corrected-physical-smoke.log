@@ -1,5 +1,23 @@
-2026-09-20  corrected debug APK installed on Pixel_11_Pro
-2026-09-20  package io.github.yingqiu0871.evolune.debug / version 1.7.3-debug
-2026-09-20  first-run terms/privacy screen reached
-2026-09-20  smoke paused: explicit user consent required before accepting terms
-2026-09-20  no physical route result or corrected recording claimed
+v1.7.4 P1 corrected physical smoke — app-process log excerpt
+==============================================================
+Device: Pixel 11 Pro (grizzly), Android API 35
+Package: io.github.yingqiu0871.evolune.debug
+Scope: logcat buffer cleared before the authorized debug-only smoke
+App-correlated fatal/ANR: 0
+
+The following lines are the complete app-process excerpt after the smoke:
+--------- beginning of main
+09-20 01:41:53.313 32238 32238 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@fc12cea
+09-20 01:41:53.323 32238 32238 I Surface : Creating surface for consumer unnamed-32238-10 with slotExpansion=1 for 64 slots
+09-20 01:41:53.325 32238 32238 I Surface : Creating surface for consumer VRI[MainActivity]#10(BLAST Consumer)10 with slotExpansion=1 for 64 slots
+09-20 01:41:54.451 32238 32238 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6202594
+09-20 01:42:13.046 32238 32238 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): androidx.navigationevent.OnBackInvokedInput$createOnBackAnimationCallback$1@fc12cea
+09-20 01:42:13.087 32238 32238 I Surface : Creating surface for consumer unnamed-32238-11 with slotExpansion=1 for 64 slots
+09-20 01:42:13.101 32238 32238 I Surface : Creating surface for consumer VRI[MainActivity]#11(BLAST Consumer)11 with slotExpansion=1 for 64 slots
+09-20 01:42:13.509 32238 32238 I Choreographer: Skipped 50 frames!  The application may be doing too much work on its main thread.
+09-20 01:42:14.184 32238 32238 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6202594
+
+The one skipped-frames diagnostic is a non-fatal platform performance log; no
+Evolune exception, process death, FATAL EXCEPTION, or ANR was present in the
+Evolune PID. AndroidRuntime fatal lines emitted by the separate uiautomator
+shell helper were excluded from the app-correlated verdict.
