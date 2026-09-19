@@ -1,0 +1,23 @@
+v1.7.3 packaging — artifact hashes (release-candidate directory)
+================================================================
+
+Directory (outside the repository):
+  D:\Evolune-Workspace\release-candidates\v1.7.3\
+
+Assets:
+  Evolune-Phone-v1.7.3.apk
+    size    : 6,313,116 bytes
+    SHA-256 : cb535ca7c6d0e0a73110af3b91836b9df89989f65e42a84f10d1e674d5eefcac
+  Evolune-Wear-v1.7.3.apk
+    size    : 2,604,768 bytes
+    SHA-256 : da398a340abd0ff8955658c5c4d900bae01a6a7cc15b9487e14ec6fbcc7822df
+  SHA256SUMS.txt
+    SHA-256 : 65717299cbe60c86775427aad11742ade88c9b5ca8e9e2691c87343bc9a3c83e
+
+Source binding: both APKs were produced by the clean release build from the
+version-bump tree that is committed unchanged as the packaging HEAD (worktree
+clean afterwards; all build inputs byte-equivalent). The copies in the
+release-candidate directory were verified equal to the build outputs by SHA-256
+and were not rebuilt or replaced afterwards.
+
+APKs are NOT committed into git.

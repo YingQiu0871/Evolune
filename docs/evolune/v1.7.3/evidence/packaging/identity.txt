@@ -1,0 +1,10 @@
+v1.7.3 packaging — identity
+===========================
+
+Repository worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.7.3
+Branch: hotfix/v1.7.3-navigation-jank
+Approved hotfix HEAD (frozen product tree): a6eec45be3cdf523303fdc3b0657694e7b08586c
+  (parent a6b5d712b2070abb5d056e6f698196ea6c315904 — bilingual README carry-forward)
+Packaging commit subject: chore(release): prepare v1.7.3 packaging
+Predecessor release: v1.7.2 (tag peeled f6b9134ed5c191b400a9ed23900af31ac342364d)
+No v1.7.3 tag or GitHub release exists; this round does not create one.

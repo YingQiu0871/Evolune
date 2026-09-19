@@ -1,0 +1,19 @@
+v1.7.3 packaging — Wear release smoke
+=====================================
+
+Environment: Wear_OS_Large_Round AVD (emulator-5556, Android 17), started
+headless for this smoke and shut down afterwards.
+
+  Evolune-Wear-v1.7.3.apk -> install Success
+  dumpsys package io.github.yingqiu0871.evolune:
+    versionName=1.7.3  versionCode=1101070300  minSdk=30 targetSdk=36
+  launch io.github.yingqiu0871.evolune.wear.WearAppActivity:
+    mCurrentFocus = io.github.yingqiu0871.evolune/.wear.WearAppActivity
+  screenshot: release-wear-launch.png — real Wear surface
+    (Evolune / 未连接手机，显示上次数据 / 估算浓度暂不可用 / 等待手机端数据)
+  logcat: no app-correlated FATAL EXCEPTION / ANR
+
+Note: the first two launch attempts were covered by Wear system first-boot
+overlays (TrayInitializationOverlay / charging screen); the app was then
+re-focused and verified. No new Wear functional testing was performed (Wear
+source unchanged).

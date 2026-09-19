@@ -286,11 +286,26 @@
       一致 `b9b6b955…`；冻结资产 Evolune-Phone-v1.7.2.apk `dcccbeee…`（6,313,112 B）/
       Evolune-Wear-v1.7.2.apk `5ea4c5a7…`（2,604,764 B）/ SHA256SUMS `6fcd0706…`；
       Phone/Wear AVD smoke 通过；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-- [x] v1.7.2 发布候选 — **APPROVED**；**Release execution: PENDING TAG / PUBLICATION**
-      （release notes `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`；发布正文与资产在仓库外
-      `D:\Evolune-Workspace\release-candidates\v1.7.2\`）。
-- [ ] NEXT：**v1.7.2 tag + GitHub Release 发布执行**（final docs commit → annotated tag
-      v1.7.2 → push → GitHub Release 上传 3 资产 → 发布字节校验）。
+- [x] v1.7.2 发布 — **RELEASED**（annotated tag `v1.7.2` @
+      `f6b9134ed5c191b400a9ed23900af31ac342364d`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.2 已发布，3 资产，发布后
+      下载字节校验 2/2 + SHA256SUMS 一致；Phone `dcccbeee…` / Wear `5ea4c5a7…`；
+      closure packet `review-packets/v172-final-release.txt`）。
+- [x] v1.7.3 导航卡顿热修（chrome 变化时抑制页面过渡）— **CLOSED / FROZEN**
+      （`fix(navigation): suppress chrome-changing page transitions` @
+      `a6eec45be3cdf523303fdc3b0657694e7b08586c`，parent `a6b5d71`（双语 README 搬运）；
+      单一策略 `PrimaryNavigationChrome` 同时驱动 chrome 显隐与四个过渡边界；聚焦 JVM
+      40/0、全量 JVM app 148/1393/0；AVD 导航仪器 15/15；Pixel 11 Pro 前后对照 + 录像；
+      evidence `docs/evolune/v1.7.3/evidence/navigation-jank/`；packet
+      `review-packets/v173-navigation-jank-candidate.txt`）。
+- [x] v1.7.3 打包候选（版本 1.7.3 / Phone 101070300 / Wear 1101070300）— **CANDIDATE /
+      REVIEW PENDING**（`chore(release): prepare v1.7.3 packaging`；证书 `b9b6b955…` 连续；
+      冻结资产 Evolune-Phone-v1.7.3.apk `cb535ca7…`（6,313,116 B）/ Evolune-Wear-v1.7.3.apk
+      `da398a34…`（2,604,768 B）/ SHA256SUMS `65717299…`；validation task 原始日志 +
+      clean release 构建 + Phone/Wear release smoke；evidence
+      `docs/evolune/v1.7.3/evidence/packaging/`）。
+- [ ] NEXT：**v1.7.3 发布执行**（final docs commit → annotated tag v1.7.3 → push →
+      GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

@@ -1,0 +1,15 @@
+v1.7.3 packaging — checksum verification
+========================================
+
+SHA256SUMS.txt content (two spaces between hash and filename, lowercase hex):
+
+cb535ca7c6d0e0a73110af3b91836b9df89989f65e42a84f10d1e674d5eefcac  Evolune-Phone-v1.7.3.apk
+da398a340abd0ff8955658c5c4d900bae01a6a7cc15b9487e14ec6fbcc7822df  Evolune-Wear-v1.7.3.apk
+
+Independent recompute of each file's hash and comparison to the listing:
+  Evolune-Phone-v1.7.3.apk : match
+  Evolune-Wear-v1.7.3.apk  : match
+  verified = 2/2
+
+SHA256SUMS.txt is not listed inside itself (by design). Its own SHA-256:
+65717299cbe60c86775427aad11742ade88c9b5ca8e9e2691c87343bc9a3c83e

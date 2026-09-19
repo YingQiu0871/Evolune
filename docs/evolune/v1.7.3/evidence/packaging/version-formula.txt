@@ -1,0 +1,21 @@
+v1.7.3 packaging — version formula proof
+========================================
+
+Authoritative declarations: root build.gradle.kts
+
+  ordinal = major * 1_000_000 + minor * 10_000 + patch * 100 + revision
+  Phone   = 100_000_000 + ordinal
+  Wear    = 1_100_000_000 + ordinal
+
+v1.7.2 (released, pre-bump):
+  patch = 2 -> ordinal = 1*1_000_000 + 7*10_000 + 2*100 + 0 = 1_070_200
+  Phone = 101_070_200 ; Wear = 1_101_070_200  (matches the released APKs)
+
+v1.7.3 (derived mechanically):
+  patch = 3 -> ordinal = 1*1_000_000 + 7*10_000 + 3*100 + 0 = 1_070_300
+  Phone = 100_000_000 + 1_070_300 = 101_070_300
+  Wear  = 1_100_000_000 + 1_070_300 = 1_101_070_300
+
+validateEvoluneIdentityAndVersioning was updated to the derived values and ran
+green with a dedicated raw log (validation-task.log). The expected numbers in
+the task prompt were accepted only because the repository formula derives them.

@@ -1,0 +1,20 @@
+v1.7.3 packaging — build environment
+====================================
+
+Git HEAD (pre-commit packaging tree): a6eec45be3cdf523303fdc3b0657694e7b08586c
+Branch: hotfix/v1.7.3-navigation-jank
+JDK: Temurin OpenJDK 17.0.19+10
+Gradle: 9.2.1 (wrapper)
+Android Gradle Plugin: 9.0.1
+compileSdk / targetSdk: 36; minSdk: Phone 31, Wear 30
+Verification tools: build-tools 36.1.0 (aapt2, apksigner)
+OS: Windows (win32, PowerShell 5.1)
+Build invocation:
+  .\gradlew.bat :app:clean :wear:clean :app:assembleRelease :wear:assembleRelease
+Result: BUILD SUCCESSFUL in 1m 38s (97 tasks: 95 executed, 2 up-to-date)
+Log: release-build.log
+
+Release signing: the repository's established environment-variable procedure
+(EVOLUNE_KEYSTORE_PATH / EVOLUNE_KEYSTORE_PASSWORD / EVOLUNE_KEY_ALIAS /
+EVOLUNE_KEY_PASSWORD). Secrets and key bytes are not recorded; only certificate
+fingerprints are reported. No toolchain upgrade.

@@ -1,0 +1,8 @@
+v1.7.3 packaging — versionCode monotonicity
+===========================================
+
+  Phone 1.7.2 = 101070200 -> 1.7.3 = 101070300   (strictly increased)
+  Wear  1.7.2 = 1101070200 -> 1.7.3 = 1101070300 (strictly increased)
+
+No downgrade. validateEvoluneIdentityAndVersioning encodes the monotonicity and
+range checks and ran green (validation-task.log).

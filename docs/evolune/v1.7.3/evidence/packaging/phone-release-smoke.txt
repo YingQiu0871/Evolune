@@ -1,0 +1,27 @@
+v1.7.3 packaging — Phone release smoke
+======================================
+
+Environment: Pixel_7 AVD API 35 (emulator-5554) — disposable test environment.
+The user's Pixel 11 Pro release installation was NOT touched.
+
+Installed the exact frozen candidate:
+  Evolune-Phone-v1.7.3.apk -> install Success
+  dumpsys package io.github.yingqiu0871.evolune:
+    versionName=1.7.3  versionCode=101070300  minSdk=31 targetSdk=36
+
+Steps and results:
+  1. MainActivity launched (no crash) — existing release-package data retained
+  2. Home rendered
+  3. History opened (screenshots/release-history.png)
+  4. History -> Insights (entry card) -> Back -> History
+     (screenshots/release-insights.png)
+  5. History -> Timeline (entry card) -> Back -> History
+  6. Settings -> About -> Back -> Settings
+     (screenshots/release-about.png; back returned to the Settings screen)
+  7. logcat: no app-correlated FATAL EXCEPTION / ANR
+
+The released signed candidate carries the frozen hotfix policy (chrome-changing
+transitions use the suppression path); no old expand/shrink tail was observed in
+the settled smoke states. A full 10-cycle physical benchmark was NOT repeated
+(the hotfix behavior is already frozen by the approved physical acceptance on
+the debug build; release and debug differ only in signing/version).

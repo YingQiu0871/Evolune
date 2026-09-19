@@ -1,0 +1,7 @@
+v1.7.3 packaging — release-candidate directory inventory
+Path: D:\Evolune-Workspace\release-candidates\v1.7.3\
+
+Evolune-Phone-v1.7.3.apk  6313116 bytes  sha256=cb535ca7c6d0e0a73110af3b91836b9df89989f65e42a84f10d1e674d5eefcac
+Evolune-Wear-v1.7.3.apk  2604768 bytes  sha256=da398a340abd0ff8955658c5c4d900bae01a6a7cc15b9487e14ec6fbcc7822df
+RELEASE_BODY-v1.7.3.md  1104 bytes  sha256=9e9acd4c07ba9c830b91d48ea5af96202dd96ae095a964749b4bd3ab720b56ee
+SHA256SUMS.txt  181 bytes  sha256=65717299cbe60c86775427aad11742ade88c9b5ca8e9e2691c87343bc9a3c83e

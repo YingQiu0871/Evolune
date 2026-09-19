@@ -362,10 +362,20 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `562ad663f7674e0f646f265248d1f457ed381d29`；版本 1.7.2 / Phone 101070200 /
     Wear 1101070200；证书 `b9b6b955…`；冻结资产 `dcccbeee…` / `5ea4c5a7…`；
     evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-  - **v1.7.2 发布候选：APPROVED。Release execution: PENDING TAG / PUBLICATION**
-    （release notes `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`）。
-  - **NEXT:** v1.7.2 tag + GitHub Release 发布执行（final docs commit → annotated tag →
-    push → release + 发布字节校验）。
+  - **v1.7.2 发布 — RELEASED**（annotated tag `v1.7.2` @
+    `f6b9134ed5c191b400a9ed23900af31ac342364d`；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.2，3 资产，发布后字节校验
+    2/2 + SHA256SUMS 一致；closure packet `review-packets/v172-final-release.txt`）。
+  - v1.7.3 导航卡顿热修 — **CLOSED / FROZEN**（implementation @
+    `a6eec45be3cdf523303fdc3b0657694e7b08586c`；单一 chrome 策略驱动显隐与过渡抑制；
+    全量 JVM app 148/1393/0；AVD 导航仪器 15/15；物理前后对照 + 录像；evidence
+    `docs/evolune/v1.7.3/evidence/navigation-jank/`）。
+  - v1.7.3 打包候选 — **CANDIDATE / REVIEW PENDING**（版本 1.7.3 / Phone 101070300 /
+    Wear 1101070300；证书 `b9b6b955…`；冻结资产 `cb535ca7…` / `da398a34…`；
+    evidence `docs/evolune/v1.7.3/evidence/packaging/`）。
+  - **Release: NOT TAGGED / NOT PUBLISHED.**
+  - **NEXT:** v1.7.3 发布执行（final docs commit → annotated tag v1.7.3 → push →
+    GitHub Release 上传 3 资产 → 发布字节校验）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

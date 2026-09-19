@@ -1,0 +1,21 @@
+v1.7.3 packaging — Wear release APK metadata
+============================================
+
+Artifact: wear/build/outputs/apk/release/wear-release.apk
+(verified with aapt2 build-tools 36.1.0 + apksigner)
+
+  package      : io.github.yingqiu0871.evolune
+  versionName  : 1.7.3
+  versionCode  : 1101070300
+  minSdk       : 30
+  targetSdk    : 36
+  compileSdk   : 36
+  file size    : 2,604,768 bytes
+  SHA-256      : da398a340abd0ff8955658c5c4d900bae01a6a7cc15b9487e14ec6fbcc7822df
+
+Signing (apksigner verify --print-certs):
+  Signer #1 certificate SHA-256:
+    b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Package id continuity: released v1.7.2 Wear release also used
+io.github.yingqiu0871.evolune (shared applicationId, wear namespace unchanged).

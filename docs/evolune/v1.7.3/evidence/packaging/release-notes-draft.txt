@@ -1,0 +1,33 @@
+v1.7.3 packaging — release notes draft
+======================================
+
+Evolune v1.7.3（导航卡顿修复 / navigation jank hotfix）
+
+中文
+- 修复进入/退出部分全屏子页面（历史↔用药洞察、历史↔回顾性 PK、历史↔用药时间线、
+  设置↔关于、设置↔Google Drive 备份）时可稳定复现的页面展开/收缩卡顿。
+- 当主导航栏（底部导航栏/侧边导航栏）显隐会改变页面几何时，不再同时执行整页缩放/
+  淡入淡出动画；前进与返回对称生效。
+- 普通同布局页面切换（主页/记录/历史/方案/设置之间、全屏子页面之间）动画保持不变。
+- 未改变用药记录、History、Insights、回顾性 PK、Timeline、Wear、Widget 或 PK 行为；
+  无数据库 schema 变化。
+
+English
+- Fixed deterministic expand/shrink stutter when entering or leaving selected
+  full-screen child pages (History <-> Insights, History <-> Retrospective PK,
+  History <-> Timeline, Settings <-> About, Settings <-> Google Drive backup).
+- Page transition animation is suppressed only when primary navigation chrome
+  visibility changes the root layout geometry; forward and Back behave
+  symmetrically.
+- Normal same-geometry page transitions (top-level tabs, child-to-child) keep
+  the existing animation.
+- No medication, History, Insights, retrospective PK, Timeline, Wear, Widget, or
+  PK behavior changes; no database schema changes.
+
+Artifacts
+- Evolune-Phone-v1.7.3.apk
+- Evolune-Wear-v1.7.3.apk
+- SHA256SUMS.txt
+
+(NOT PUBLISHED — draft only. Publish-ready body kept outside the repository at
+D:\Evolune-Workspace\release-candidates\v1.7.3\RELEASE_BODY-v1.7.3.md)

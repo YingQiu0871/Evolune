@@ -1,0 +1,11 @@
+v1.7.3 packaging — package id continuity
+========================================
+
+Released v1.7.2 identity: io.github.yingqiu0871.evolune (Phone and Wear).
+
+v1.7.3 candidates:
+  Phone : io.github.yingqiu0871.evolune
+  Wear  : io.github.yingqiu0871.evolune (wear namespace io.github.yingqiu0871.evolune.wear)
+
+No application-id migration; no namespace change; debug suffix convention
+unchanged (.debug). Verified from the built APK bytes with aapt2.

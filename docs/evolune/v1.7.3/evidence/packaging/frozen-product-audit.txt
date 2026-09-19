@@ -1,0 +1,23 @@
+v1.7.3 packaging — frozen product audit
+=======================================
+
+git diff a6eec45..<packaging candidate>:
+
+  app/src/main (all, incl. navigation/AppNavigation.kt and
+  navigation/PrimaryNavigationChrome.kt)              : zero
+  app/src/test / app/src/androidTest                  : zero
+  app/src/main/res                                    : zero
+  ui/motion/EvolunePageMotion.kt                      : zero
+  ui/components/EditorTransitionHost.kt               : zero
+  History / Insights / Retrospective PK / Timeline    : zero
+  matcher / DoseEvent / plans / records               : zero
+  backup / theme / Settings persistence               : zero
+  Widget / Wear / Health Connect / Drive              : zero
+  app/schemas (Room)                                  : zero
+  experience-core                                     : zero
+  dependencies / plugins / repositories / build types : zero
+  R8 / ProGuard / packaging rules                     : zero
+
+The only substantive delta is the authoritative version declaration file
+build.gradle.kts (version name + patch + the validate task's expected codes).
+The approved navigation hotfix (a6eec45) is untouched.

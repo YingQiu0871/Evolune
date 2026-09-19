@@ -311,10 +311,16 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.2 · Slice F（版本 bump + 发布打包候选）— CLOSED / FROZEN**（implementation @
   `562ad663…`；版本 1.7.2 / Phone 101070200 / Wear 1101070200；证书 `b9b6b955…`；冻结资产
   `dcccbeee…` / `5ea4c5a7…`；evidence `docs/evolune/v1.7.2/evidence/slice-f/`）。
-- **v1.7.2 发布候选：APPROVED；Release execution: PENDING TAG / PUBLICATION**（release notes
-  `docs/evolune/v1.7.2/V172_RELEASE_NOTES.md`；资产与发布正文在仓库外
-  `D:\Evolune-Workspace\release-candidates\v1.7.2\`）。
-  **NEXT:** v1.7.2 tag + GitHub Release 发布执行。
+- **v1.7.2 发布 — RELEASED**（annotated tag `v1.7.2` @ `f6b9134…`；GitHub Release
+  https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.2，3 资产，发布后字节校验
+  2/2 + SHA256SUMS 一致）。
+- **v1.7.3 · 导航卡顿热修 — CLOSED / FROZEN**（implementation @ `a6eec45…`；单一 chrome
+  策略驱动显隐与过渡抑制；全量 JVM app 148/1393/0；AVD 导航仪器 15/15；物理前后对照 +
+  录像；evidence `docs/evolune/v1.7.3/evidence/navigation-jank/`）。
+- **v1.7.3 · 打包候选 — CANDIDATE / REVIEW PENDING**（版本 1.7.3 / Phone 101070300 /
+  Wear 1101070300；证书 `b9b6b955…`；冻结资产 `cb535ca7…` / `da398a34…`；evidence
+  `docs/evolune/v1.7.3/evidence/packaging/`）。
+  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.7.3 发布执行。
 
 ## Historical and future milestones
 

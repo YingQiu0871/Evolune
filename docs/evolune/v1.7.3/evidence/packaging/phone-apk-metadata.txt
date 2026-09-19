@@ -1,0 +1,21 @@
+v1.7.3 packaging — Phone release APK metadata
+=============================================
+
+Artifact: app/build/outputs/apk/release/app-release.apk
+(verified with aapt2 build-tools 36.1.0 + apksigner)
+
+  package      : io.github.yingqiu0871.evolune
+  versionName  : 1.7.3
+  versionCode  : 101070300
+  minSdk       : 31
+  targetSdk    : 36
+  compileSdk   : 36
+  file size    : 6,313,116 bytes
+  SHA-256      : cb535ca7c6d0e0a73110af3b91836b9df89989f65e42a84f10d1e674d5eefcac
+
+Signing (apksigner verify --print-certs):
+  Signer #1 certificate SHA-256:
+    b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+  (same certificate as released v1.7.2)
+
+Not debug-signed; no unsigned artifact.
