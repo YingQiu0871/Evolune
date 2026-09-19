@@ -46,6 +46,35 @@ class MotionListUxBoundaryTest {
     }
 
     @Test
+    fun `navhost suppresses page motion only when primary chrome changes`() {
+        val source = source("navigation/AppNavigation.kt")
+        val policySource = source("navigation/PrimaryNavigationChrome.kt")
+
+        // The chrome predicate is the single source of truth (no duplicated route list).
+        assertTrue(policySource.contains("fun shows(route: String?)"))
+        assertTrue(policySource.contains("fun changes(fromRoute: String?, toRoute: String?)"))
+        assertTrue(source.contains("val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)"))
+
+        // All four transition boundaries consult the same chrome-change policy.
+        val chromeRule =
+            "PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)"
+        assertTrue(source.split(chromeRule).size - 1 == 4)
+
+        // Chrome-changing navigation uses None on both sides; the same-geometry path
+        // keeps the released page motion.
+        assertTrue(source.split("EnterTransition.None").size - 1 == 2)
+        assertTrue(source.split("ExitTransition.None").size - 1 == 2)
+        assertTrue(source.contains("popEnterTransition = {"))
+        assertTrue(source.contains("popExitTransition = {"))
+
+        // No new motion vocabulary anywhere in the navigation layer.
+        assertFalse(source.contains("slideIn"))
+        assertFalse(source.contains("slideOut"))
+        assertFalse(source.contains("AnimatedVisibility"))
+        assertFalse(source.contains("MutableTransitionState"))
+    }
+
+    @Test
     fun `editor layers cover a persistent top-level scaffold`() {
         val source = source("navigation/AppNavigation.kt")
 

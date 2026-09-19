@@ -1,0 +1,18 @@
+v1.7.3 navigation-jank hotfix — full JVM summary
+================================================
+
+Command: :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Log: logs/jvm-full.log (+ per-module summaries in logs/)
+
+XML-derived:
+  app             148 suites / 1393 tests / 0 failures / 0 errors / 0 skipped
+                  (v1.7.2 baseline 147/1387 -> +1 suite, +6 tests: the new
+                  PrimaryNavigationChromeTest 5 + one new MotionListUxBoundaryTest)
+  experience-core  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+
+Environment note: a fresh worktree checkout applied CRLF to the phase-e golden
+fixtures (core.autocrlf=true, no .gitattributes), which broke the two
+PortableGoldenFixtureTest byte comparisons in the first run; the fixtures were
+restored to their committed LF bytes (no git content change) and the final run
+above is fully green.

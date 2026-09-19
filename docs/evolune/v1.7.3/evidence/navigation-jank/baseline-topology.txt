@@ -1,0 +1,15 @@
+v1.7.3 navigation-jank hotfix — baseline topology
+=================================================
+
+The GitHub `main` lineage (ebb5a198a75557cc9ba905b8353aeaa40b76b114, parent
+72a468cc929e3967e7be297cd0b645a0c0fb03df) is NOT the authoritative v1.7.2
+product tree and was deliberately not used as the hotfix base.
+
+Authoritative released baseline:
+  annotated tag  v1.7.2
+  tag object     80fe9947791e3c2601f88794eca9fa5ea8c6ab46
+  peeled commit  f6b9134ed5c191b400a9ed23900af31ac342364d
+
+The hotfix worktree was created from exactly f6b9134 and the bilingual README
+was carried over as a separate docs-only commit (a6b5d71). No `main` content was
+merged.

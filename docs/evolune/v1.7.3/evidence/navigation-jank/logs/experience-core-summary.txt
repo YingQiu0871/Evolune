@@ -1,0 +1,2 @@
+v1.7.3 navigation-jank — experience-core JVM summary (from JUnit XML)
+TOTAL suites=20 tests=171 failures=0 errors=0 skipped=0

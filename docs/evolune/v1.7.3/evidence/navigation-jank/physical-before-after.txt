@@ -1,0 +1,52 @@
+v1.7.3 navigation-jank hotfix — physical before/after (Pixel 11 Pro)
+====================================================================
+
+Device: Google Pixel 11 Pro (grizzly), Android 17 / API 37 — DEBUG application
+identity only (io.github.yingqiu0871.evolune.debug). The user's installed
+release package was never touched; the debug package was uninstalled after the
+session.
+
+BEFORE build: disposable worktree at f6b9134 (released v1.7.2), :app:assembleDebug.
+AFTER build : hotfix worktree, :app:assembleDebug (installed with `adb install -r`
+              over the BEFORE package, data retained).
+
+Protocol per build:
+  1. gfxinfo reset
+  2. screenrecord (external evidence: review-packets/v173-recordings/)
+  3. 10 x History -> Insights -> Back cycles (entry card tapped through the real
+     UI; no synthetic harness)
+  4. AFTER only: additional round trips History <-> Retrospective PK,
+     History <-> Timeline, Settings -> About -> Back
+  5. gfxinfo dump; settled screenshots
+
+Observed (both builds):
+  - 10/10 History<->Insights cycles completed; every entry opened the real
+    Insights surface and Back returned to History
+  - bottom NavigationBar hidden inside the child route, restored on History
+    (chrome correctness)
+  - AFTER: Retrospective and Timeline round trips OK; About opened from Settings
+  - no crash, no stuck transition, no blank frame, no flicker observed in the
+    settled states; logcat showed no app FATAL/ANR during the session
+
+Recordings (for human visual review; kept outside the repository):
+  before-history-insights.mp4 (4,338,194 bytes) — review-packets/v173-recordings/
+  after-history-insights.mp4  (2,151,805 bytes) — review-packets/v173-recordings/
+These recordings are the primary visual evidence of the transition difference;
+no frame-level claim is made from them here.
+
+Optional frame evidence (supplementary, small non-benchmark samples):
+  gfxinfo BEFORE: Total 775 frames, Janky 48 (6.19%), 90th 17 ms, 95th 34 ms, 99th 77 ms
+  gfxinfo AFTER : Total 1150 frames, Janky 67 (5.83%), 90th 16 ms, 95th 38 ms, 99th 77 ms
+  (different workloads — AFTER included the extra round trips; NOT a benchmark
+  and NOT a "zero dropped frames" claim.)
+
+Honest limitations:
+  - the Settings->About back-row re-check after Back was inconclusive because the
+    Settings list resets to the top (row off-screen); the About round trip itself
+    opened correctly (screenshot) and is covered green on the AVD by
+    SyncAndBackupNavigationTest/SettingsCategoryScreenTest.
+  - no animation-clock device assertion was added: with ActivityScenario +
+    createEmptyComposeRule the Compose mainClock does not deterministically drive
+    the Activity-hosted navigation transitions, so a timing test would be flaky.
+    Coverage relies on the pure policy tests + route instrumentation + these
+    physical recordings (documented limitation, per the task fallback).

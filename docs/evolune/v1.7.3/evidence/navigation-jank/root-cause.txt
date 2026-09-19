@@ -1,0 +1,32 @@
+v1.7.3 navigation-jank hotfix — root cause (independently reconstructed)
+========================================================================
+
+Source chain verified at the released v1.7.2 tree (f6b9134):
+
+1. `ui/motion/EvolunePageMotion.kt` (unchanged by this hotfix):
+     enter = fadeIn(220 ms, delay 90 ms) + scaleIn(initialScale 0.98f, Center)
+     exit  = fadeOut(90 ms)
+
+2. `navigation/AppNavigation.kt` (released): the NavHost applied those
+   transitions UNCONDITIONALLY to every destination change:
+     enterTransition = { evolunePageEnterTransition() }
+     exitTransition  = { evolunePageExitTransition() }
+     popEnterTransition / popExitTransition likewise.
+
+3. The same file derived primary chrome visibility from the route list
+   `isSettingsSubroute` (ABOUT / GOOGLE_DRIVE / ONBOARDING / DISCLOSURES /
+   FEATURE_TUTORIAL / INSIGHTS / RETROSPECTIVE / TIMELINE):
+     bottomBar  = if (!useNavigationRail && !isSettingsSubroute) { BottomNavigationBar(...) }
+     rail       = if (useNavigationRail && !isSettingsSubroute) { NavigationRailBar(...) }
+
+4. Consequence: entering/leaving any of those routes removes/adds the bottom
+   NavigationBar (compact) or NavigationRail (expanded) from the root Scaffold
+   in the SAME frame in which the destination runs fade+scale. The NavHost
+   container geometry changes while the new page is still scaling from 0.98,
+   producing the visible "page expanding/shrinking" effect and deterministic
+   stutter — History -> Insights and back, and symmetrically for
+   Retrospective / Timeline / Settings full-screen children.
+
+The defect is the coincidence of (a) chrome geometry change and (b) page
+scale/fade animation — not the child-page navigation itself and not the shared
+motion definition.

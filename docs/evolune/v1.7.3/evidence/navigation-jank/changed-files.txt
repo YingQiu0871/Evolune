@@ -1,0 +1,31 @@
+v1.7.3 navigation-jank hotfix — changed files
+=============================================
+
+Production
+  M navigation/AppNavigation.kt
+      - `isSettingsSubroute` route list replaced by the shared policy
+        (`isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)`)
+      - the 8 full-screen route constants moved to the policy file
+      - all four NavHost transition boundaries are chrome-change aware
+        (EnterTransition.None / ExitTransition.None vs the shared page motion)
+  A navigation/PrimaryNavigationChrome.kt
+      - full-screen route constants + shows()/changes() policy (new)
+
+Tests
+  A navigation/PrimaryNavigationChromeTest.kt
+      - pure policy matrix (chrome-changing vs same-geometry routes)
+  M ui/screens/MotionListUxBoundaryTest.kt
+      - new guard: NavHost chrome-aware suppression + None usage counts +
+        editor-overlay motion preserved + no slide vocabulary
+  M ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+      - F15/F16 guard now reads the sub-route identity from the single policy
+        file (no weakening; Screen enum five-tab and no-argument checks intact)
+
+Untouched (explicitly): ui/motion/EvolunePageMotion.kt,
+ui/components/EditorTransitionHost.kt, all History/Insights/PK/Timeline
+semantics, backup, theme, Settings persistence, Widget, Wear, Room, version.
+
+Environment-only (no git content change): the two phase-e golden fixtures were
+re-checked-out with LF bytes because the fresh worktree checkout applied CRLF
+(core.autocrlf=true, no .gitattributes) which broke PortableGoldenFixtureTest
+byte comparisons; the committed blobs were not modified.

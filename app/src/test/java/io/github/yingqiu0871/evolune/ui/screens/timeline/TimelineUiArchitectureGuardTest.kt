@@ -203,12 +203,21 @@ class TimelineUiArchitectureGuardTest {
         val navigation = Files.readString(
             Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt")
         )
+        // v1.7.3: the sub-route identity lives in the single chrome policy file.
+        val chromePolicy = Files.readString(
+            Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt")
+        )
         assertTrue(
             "the route must carry no argument",
-            navigation.contains("private const val TIMELINE_ROUTE = \"timeline\"")
+            chromePolicy.contains("internal const val TIMELINE_ROUTE = \"timeline\"")
         )
         assertFalse(navigation.contains("\"timeline/"))
-        assertTrue(navigation.contains("currentRoute == TIMELINE_ROUTE"))
+        assertTrue(
+            "Timeline must stay a chrome-hiding sub-route",
+            chromePolicy.contains("FULL_SCREEN_ROUTES") &&
+                chromePolicy.contains("TIMELINE_ROUTE")
+        )
+        assertTrue(navigation.contains("PrimaryNavigationChrome.shows(currentRoute)"))
 
         val screen = Files.readString(
             Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/Screen.kt")

@@ -1,0 +1,31 @@
+v1.7.3 navigation-jank hotfix — route/chrome policy
+===================================================
+
+New single source of truth:
+  navigation/PrimaryNavigationChrome.kt
+    - the eight full-screen route constants (moved here so no route list is
+      duplicated between visibility and transition logic)
+    - FULL_SCREEN_ROUTES = { ABOUT, GOOGLE_DRIVE_BACKUP_RESTORE, ONBOARDING,
+      DISCLOSURES, FEATURE_TUTORIAL, INSIGHTS, RETROSPECTIVE, TIMELINE }
+    - shows(route)  = route !in FULL_SCREEN_ROUTES
+    - changes(from, to) = shows(from) != shows(to)
+
+Usage in AppNavigation.kt:
+  - chrome visibility: `val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)`
+    (bottom NavigationBar / NavigationRail / top-bar alignment / back handling)
+  - NavHost transitions (forward AND pop):
+      if (PrimaryNavigationChrome.changes(initial, target)) -> EnterTransition.None /
+      ExitTransition.None, else evolunePageEnterTransition()/ExitTransition().
+
+Behavior contract:
+  - chrome-changing navigation (History<->Insights, <->Retrospective,
+    <->Timeline, Settings<->About, Settings<->Google Drive, and every other
+    full-screen boundary): NO page scale/fade, symmetric for forward and pop.
+  - same-geometry navigation (tab-to-tab, child-to-child): the released
+    220 ms fade+scale motion is preserved.
+  - the editor overlay path (EditorTransitionHost, startImmediately=true) is
+    untouched.
+
+Files:
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt

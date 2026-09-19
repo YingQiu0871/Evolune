@@ -1,0 +1,21 @@
+v1.7.3 navigation-jank hotfix — navigation device summary (AVD)
+===============================================================
+
+Command: :app:connectedDebugAndroidTest with the affected navigation classes
+Device : Pixel_7 AVD API 35 (emulator-5554)
+Log    : logs/navigation-device.log (+ navigation-device-summary.txt)
+
+XML-derived:
+  HistoryNavigationTest          4 tests / 0 failures
+  InsightsNavigationTest         2 tests / 0 failures
+  RetrospectiveNavigationTest    2 tests / 0 failures
+  TimelineNavigationTest         3 tests / 0 failures
+  SyncAndBackupNavigationTest    2 tests / 0 failures  (Settings <-> Drive child)
+  FeatureTutorialNavigationTest  2 tests / 0 failures
+  TOTAL tests=15 failures=0 skipped=0
+
+Round trips proven on device: History -> Insights -> Back -> History
+(InsightsNavigationTest), History -> Retrospective -> Back -> History,
+History -> Timeline -> Back -> History, Settings -> Google Drive -> Back ->
+Settings, plus the History/Insights/Timeline "bottom bar hidden on the
+sub-route" chrome assertions.

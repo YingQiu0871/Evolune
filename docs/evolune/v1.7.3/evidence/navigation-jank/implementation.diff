@@ -1,0 +1,338 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index dc939bd..c410454 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -119,6 +119,8 @@ import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
+ import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
+ import io.github.yingqiu0871.evolune.ui.components.PatchMode
+ import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
++import androidx.compose.animation.EnterTransition
++import androidx.compose.animation.ExitTransition
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
+ import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
+ import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
+@@ -157,14 +159,6 @@ import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
+ 
+ private const val NAV_CLICK_THROTTLE_MS = 200L
+ private const val NAV_SWIPE_THRESHOLD_DP = 60
+-private const val ABOUT_ROUTE = "settings_about"
+-private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
+-private const val ONBOARDING_ROUTE = "onboarding"
+-private const val DISCLOSURES_ROUTE = "disclosures"
+-private const val INSIGHTS_ROUTE = "insights"
+-private const val RETROSPECTIVE_ROUTE = "retrospective"
+-private const val TIMELINE_ROUTE = "timeline"
+-internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
+ private val NAVIGATION_RAIL_WIDTH = 80.dp
+ private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
+ 
+@@ -793,14 +787,9 @@ fun AppNavigation(
+     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
+     val navBackStackEntry by navController.currentBackStackEntryAsState()
+     val currentRoute = navBackStackEntry?.destination?.route
+-    val isSettingsSubroute = currentRoute == ABOUT_ROUTE ||
+-        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
+-        currentRoute == ONBOARDING_ROUTE ||
+-        currentRoute == DISCLOSURES_ROUTE ||
+-        currentRoute == FEATURE_TUTORIAL_ROUTE ||
+-        currentRoute == INSIGHTS_ROUTE ||
+-        currentRoute == RETROSPECTIVE_ROUTE ||
+-        currentRoute == TIMELINE_ROUTE
++    // Single chrome policy: the same predicate drives visibility AND transition
++    // suppression (v1.7.3 navigation-jank hotfix).
++    val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
+     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
+     val currentRouteState = rememberUpdatedState(currentRoute)
+ 
+@@ -812,14 +801,14 @@ fun AppNavigation(
+                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+             ),
+             bottomBar = {
+-                if (!useNavigationRail && !isSettingsSubroute) {
++                if (!useNavigationRail && !isFullScreenSubroute) {
+                     BottomNavigationBar(navController = navController)
+                 }
+             },
+             topBar = {
+                 AppTopBar(
+                     currentScreen = currentScreen,
+-                    alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
++                    alignWithNavigationRail = useNavigationRail && !isFullScreenSubroute,
+                     onRefresh = hrtViewModel::runSimulation,
+                     titleOverride = when (currentRoute) {
+                         ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
+@@ -836,7 +825,7 @@ fun AppNavigation(
+                     },
+                 onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
+                     ::exitFeatureTutorial
+-                } else if (isSettingsSubroute) {
++                } else if (isFullScreenSubroute) {
+                     {
+                         if (!navController.popBackStack()) {
+                             activity?.finish()
+@@ -860,7 +849,7 @@ fun AppNavigation(
+                 .consumeWindowInsets(innerPadding)
+                 .fillMaxSize()
+         ) {
+-            if (useNavigationRail && !isSettingsSubroute) {
++            if (useNavigationRail && !isFullScreenSubroute) {
+                 NavigationRailBar(navController = navController)
+             }
+             Box(
+@@ -906,16 +895,32 @@ fun AppNavigation(
+                     .fillMaxSize()
+                     .background(MaterialTheme.colorScheme.surface),
+             enterTransition = {
+-                evolunePageEnterTransition()
++                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
++                    EnterTransition.None
++                } else {
++                    evolunePageEnterTransition()
++                }
+             },
+             exitTransition = {
+-                evolunePageExitTransition()
++                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
++                    ExitTransition.None
++                } else {
++                    evolunePageExitTransition()
++                }
+             },
+             popEnterTransition = {
+-                evolunePageEnterTransition()
++                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
++                    EnterTransition.None
++                } else {
++                    evolunePageEnterTransition()
++                }
+             },
+             popExitTransition = {
+-                evolunePageExitTransition()
++                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
++                    ExitTransition.None
++                } else {
++                    evolunePageExitTransition()
++                }
+             },
+         ) {
+             composable(Screen.HOME.route) {
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt
+new file mode 100644
+index 0000000..adca9eb
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt
+@@ -0,0 +1,44 @@
++package io.github.yingqiu0871.evolune.navigation
++
++/**
++ * v1.7.3 — single source of truth for primary navigation chrome visibility.
++ *
++ * The full-screen child destinations hide the app's primary navigation chrome
++ * (bottom NavigationBar in compact windows, NavigationRail otherwise). Route
++ * changes across that boundary must not run the shared page fade/scale motion:
++ * the chrome appearing/disappearing changes the NavHost container geometry in
++ * the same frame, which made the page look like it was expanding/shrinking and
++ * produced deterministic stutter on the released v1.7.2 build.
++ *
++ * Both the chrome visibility itself and the NavHost transition suppression use
++ * this policy, so the route set is never duplicated.
++ */
++internal object PrimaryNavigationChrome {
++
++    val FULL_SCREEN_ROUTES: Set<String> = setOf(
++        ABOUT_ROUTE,
++        GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE,
++        ONBOARDING_ROUTE,
++        DISCLOSURES_ROUTE,
++        FEATURE_TUTORIAL_ROUTE,
++        INSIGHTS_ROUTE,
++        RETROSPECTIVE_ROUTE,
++        TIMELINE_ROUTE
++    )
++
++    /** True when the route shows the primary navigation chrome (bar/rail). */
++    fun shows(route: String?): Boolean = route !in FULL_SCREEN_ROUTES
++
++    /** True when navigating between these routes changes chrome visibility. */
++    fun changes(fromRoute: String?, toRoute: String?): Boolean =
++        shows(fromRoute) != shows(toRoute)
++}
++
++internal const val ABOUT_ROUTE = "settings_about"
++internal const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
++internal const val ONBOARDING_ROUTE = "onboarding"
++internal const val DISCLOSURES_ROUTE = "disclosures"
++internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
++internal const val INSIGHTS_ROUTE = "insights"
++internal const val RETROSPECTIVE_ROUTE = "retrospective"
++internal const val TIMELINE_ROUTE = "timeline"
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChromeTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChromeTest.kt
+new file mode 100644
+index 0000000..308e5aa
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChromeTest.kt
+@@ -0,0 +1,96 @@
++package io.github.yingqiu0871.evolune.navigation
++
++import io.github.yingqiu0871.evolune.navigation.Screen.HISTORY
++import io.github.yingqiu0871.evolune.navigation.Screen.HOME
++import io.github.yingqiu0871.evolune.navigation.Screen.MEDICATION_PLANS
++import io.github.yingqiu0871.evolune.navigation.Screen.RECORDS
++import io.github.yingqiu0871.evolune.navigation.Screen.SETTINGS
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++/**
++ * v1.7.3 navigation-jank hotfix — pure policy for primary navigation chrome.
++ *
++ * Chrome-changing navigation must suppress the shared page fade/scale motion
++ * (the chrome appearing/disappearing changes the NavHost geometry in the same
++ * frame); same-geometry navigation keeps the released animation.
++ */
++class PrimaryNavigationChromeTest {
++
++    @Test
++    fun `full-screen routes are exactly the released child destinations`() {
++        assertEquals(
++            setOf(
++                ABOUT_ROUTE,
++                GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE,
++                ONBOARDING_ROUTE,
++                DISCLOSURES_ROUTE,
++                FEATURE_TUTORIAL_ROUTE,
++                INSIGHTS_ROUTE,
++                RETROSPECTIVE_ROUTE,
++                TIMELINE_ROUTE
++            ),
++            PrimaryNavigationChrome.FULL_SCREEN_ROUTES
++        )
++    }
++
++    @Test
++    fun `top-level tabs and full-screen children classify correctly`() {
++        listOf(HOME.route, RECORDS.route, HISTORY.route, MEDICATION_PLANS.route, SETTINGS.route)
++            .forEach { route ->
++                assertTrue("$route shows chrome", PrimaryNavigationChrome.shows(route))
++            }
++        PrimaryNavigationChrome.FULL_SCREEN_ROUTES.forEach { route ->
++            assertFalse("$route hides chrome", PrimaryNavigationChrome.shows(route))
++        }
++        assertTrue("unknown/null route keeps chrome", PrimaryNavigationChrome.shows(null))
++    }
++
++    @Test
++    fun `chrome-changing navigation suppresses page animation`() {
++        val chromeChanging = listOf(
++            HISTORY.route to INSIGHTS_ROUTE,
++            INSIGHTS_ROUTE to HISTORY.route,
++            HISTORY.route to RETROSPECTIVE_ROUTE,
++            RETROSPECTIVE_ROUTE to HISTORY.route,
++            HISTORY.route to TIMELINE_ROUTE,
++            TIMELINE_ROUTE to HISTORY.route,
++            SETTINGS.route to ABOUT_ROUTE,
++            ABOUT_ROUTE to SETTINGS.route,
++            SETTINGS.route to GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE,
++            GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE to SETTINGS.route
++        )
++        chromeChanging.forEach { (from, to) ->
++            assertTrue("$from -> $to must change chrome", PrimaryNavigationChrome.changes(from, to))
++            assertTrue("$to -> $from must change chrome", PrimaryNavigationChrome.changes(to, from))
++        }
++    }
++
++    @Test
++    fun `same-geometry navigation keeps the released page animation`() {
++        val sameChrome = listOf(
++            HOME.route to RECORDS.route,
++            RECORDS.route to HISTORY.route,
++            HISTORY.route to MEDICATION_PLANS.route,
++            MEDICATION_PLANS.route to SETTINGS.route,
++            SETTINGS.route to HOME.route,
++            ABOUT_ROUTE to DISCLOSURES_ROUTE,
++            DISCLOSURES_ROUTE to ABOUT_ROUTE,
++            INSIGHTS_ROUTE to RETROSPECTIVE_ROUTE,
++            TIMELINE_ROUTE to INSIGHTS_ROUTE
++        )
++        sameChrome.forEach { (from, to) ->
++            assertFalse("$from -> $to must keep chrome", PrimaryNavigationChrome.changes(from, to))
++            assertFalse("$to -> $from must keep chrome", PrimaryNavigationChrome.changes(to, from))
++        }
++    }
++
++    @Test
++    fun `unknown or missing routes do not fabricate a chrome change`() {
++        assertFalse(PrimaryNavigationChrome.changes(null, null))
++        assertFalse(PrimaryNavigationChrome.changes(HISTORY.route, HISTORY.route))
++        assertTrue(PrimaryNavigationChrome.changes(null, ABOUT_ROUTE))
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
+index dffdaeb..d3119e5 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
+@@ -45,6 +45,35 @@ class MotionListUxBoundaryTest {
+         assertFalse(motionSource.contains("BottomEnd"))
+     }
+ 
++    @Test
++    fun `navhost suppresses page motion only when primary chrome changes`() {
++        val source = source("navigation/AppNavigation.kt")
++        val policySource = source("navigation/PrimaryNavigationChrome.kt")
++
++        // The chrome predicate is the single source of truth (no duplicated route list).
++        assertTrue(policySource.contains("fun shows(route: String?)"))
++        assertTrue(policySource.contains("fun changes(fromRoute: String?, toRoute: String?)"))
++        assertTrue(source.contains("val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)"))
++
++        // All four transition boundaries consult the same chrome-change policy.
++        val chromeRule =
++            "PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)"
++        assertTrue(source.split(chromeRule).size - 1 == 4)
++
++        // Chrome-changing navigation uses None on both sides; the same-geometry path
++        // keeps the released page motion.
++        assertTrue(source.split("EnterTransition.None").size - 1 == 2)
++        assertTrue(source.split("ExitTransition.None").size - 1 == 2)
++        assertTrue(source.contains("popEnterTransition = {"))
++        assertTrue(source.contains("popExitTransition = {"))
++
++        // No new motion vocabulary anywhere in the navigation layer.
++        assertFalse(source.contains("slideIn"))
++        assertFalse(source.contains("slideOut"))
++        assertFalse(source.contains("AnimatedVisibility"))
++        assertFalse(source.contains("MutableTransitionState"))
++    }
++
+     @Test
+     fun `editor layers cover a persistent top-level scaffold`() {
+         val source = source("navigation/AppNavigation.kt")
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+index d7c55a0..b3f2601 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineUiArchitectureGuardTest.kt
+@@ -203,12 +203,21 @@ class TimelineUiArchitectureGuardTest {
+         val navigation = Files.readString(
+             Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt")
+         )
++        // v1.7.3: the sub-route identity lives in the single chrome policy file.
++        val chromePolicy = Files.readString(
++            Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt")
++        )
+         assertTrue(
+             "the route must carry no argument",
+-            navigation.contains("private const val TIMELINE_ROUTE = \"timeline\"")
++            chromePolicy.contains("internal const val TIMELINE_ROUTE = \"timeline\"")
+         )
+         assertFalse(navigation.contains("\"timeline/"))
+-        assertTrue(navigation.contains("currentRoute == TIMELINE_ROUTE"))
++        assertTrue(
++            "Timeline must stay a chrome-hiding sub-route",
++            chromePolicy.contains("FULL_SCREEN_ROUTES") &&
++                chromePolicy.contains("TIMELINE_ROUTE")
++        )
++        assertTrue(navigation.contains("PrimaryNavigationChrome.shows(currentRoute)"))
+ 
+         val screen = Files.readString(
+             Path.of("src/main/java/io/github/yingqiu0871/evolune/navigation/Screen.kt")

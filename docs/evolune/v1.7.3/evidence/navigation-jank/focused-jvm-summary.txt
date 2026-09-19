@@ -1,0 +1,19 @@
+v1.7.3 navigation-jank hotfix — focused JVM summary
+===================================================
+
+Command: :app:testDebugUnitTest --tests PrimaryNavigationChromeTest
+         --tests MotionListUxBoundaryTest --tests FeatureTutorialRouteTest
+         --tests TimelineUiArchitectureGuardTest
+
+XML-derived:
+  PrimaryNavigationChromeTest         5 tests / 0 failures
+  MotionListUxBoundaryTest            4 tests / 0 failures
+  FeatureTutorialRouteTest            3 tests / 0 failures
+  TimelineUiArchitectureGuardTest    28 tests / 0 failures
+  TOTAL suites=4 tests=40 failures=0
+
+Policy matrix covered: History<->Insights, History<->Retrospective,
+History<->Timeline, Settings<->About, Settings<->Google Drive (chrome-changing
+-> suppressed) and Home<->Records<->History<->Plans<->Settings,
+About<->Disclosures, Insights<->Retrospective, Timeline<->Insights
+(same-geometry -> animation preserved).

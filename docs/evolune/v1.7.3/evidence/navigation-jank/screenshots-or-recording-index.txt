@@ -1,0 +1,18 @@
+v1.7.3 navigation-jank hotfix — screenshots / recording index
+=============================================================
+
+Screenshots (in this evidence directory):
+  screenshots/before-history-settled.png        History settled after BEFORE cycles
+  screenshots/after-retrospective-open.png      Retrospective PK opened on the hotfix build
+  screenshots/after-timeline-open.png           Timeline opened on the hotfix build
+  screenshots/after-about-open.png              About opened from Settings on the hotfix build
+
+Recordings (kept OUTSIDE the repository to avoid committing large binaries):
+  D:\Evolune-Workspace\review-packets\v173-recordings\
+    before-history-insights.mp4   10 x History<->Insights on the released v1.7.2 debug build
+    after-history-insights.mp4    10 x History<->Insights on the hotfix debug build
+  These are the primary human-reviewable visual evidence of the transition
+  difference; the recordings were captured from the physical Pixel 11 Pro.
+
+Frame evidence (supplementary, not a benchmark):
+  logs/gfxinfo-before.txt, logs/gfxinfo-after.txt

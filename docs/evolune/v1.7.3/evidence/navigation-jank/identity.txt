@@ -1,0 +1,12 @@
+v1.7.3 navigation-jank hotfix — identity
+========================================
+
+Hotfix worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.7.3
+Branch: hotfix/v1.7.3-navigation-jank
+Released baseline (authoritative product tree): annotated tag v1.7.2 ->
+f6b9134ed5c191b400a9ed23900af31ac342364d
+V173_BASELINE_DOCS_COMMIT: a6b5d712b2070abb5d056e6f698196ea6c315904
+  (docs: carry bilingual README onto v1.7.2 baseline; parent f6b9134; only readme.md)
+Hotfix implementation commit: see changed-files.txt / packet.
+Version during this round: 1.7.2 / Phone 101070200 / Wear 1101070200 (not bumped).
+No tag, no release, no push.

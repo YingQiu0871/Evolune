@@ -1,0 +1,14 @@
+v1.7.3 navigation-jank hotfix — build summary
+=============================================
+
+Hotfix debug build:
+  .\gradlew.bat :app:assembleDebug -> BUILD SUCCESSFUL (38 tasks; logs/build.log)
+  APK: app/build/outputs/apk/debug/app-debug.apk (78,661,204 bytes class of build,
+  installed on the physical device and the AVD for verification)
+
+BEFORE baseline debug build:
+  disposable worktree at f6b9134, :app:assembleDebug -> BUILD SUCCESSFUL
+  (used only for the before/after physical comparison; worktree removed after use)
+
+No release build was produced in this round. Wear source and build outputs are
+untouched (Wear JVM 11/90/0 in the full gate).

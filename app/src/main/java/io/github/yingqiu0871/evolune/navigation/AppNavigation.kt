@@ -119,6 +119,8 @@ import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageEnterTransition
 import io.github.yingqiu0871.evolune.ui.motion.evolunePageExitTransition
 import io.github.yingqiu0871.evolune.ui.screens.AboutScreen
@@ -157,14 +159,6 @@ import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
-private const val ABOUT_ROUTE = "settings_about"
-private const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
-private const val ONBOARDING_ROUTE = "onboarding"
-private const val DISCLOSURES_ROUTE = "disclosures"
-private const val INSIGHTS_ROUTE = "insights"
-private const val RETROSPECTIVE_ROUTE = "retrospective"
-private const val TIMELINE_ROUTE = "timeline"
-internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -793,14 +787,9 @@ fun AppNavigation(
     val planEditSession by medicationPlanViewModel.editSession.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val isSettingsSubroute = currentRoute == ABOUT_ROUTE ||
-        currentRoute == GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ||
-        currentRoute == ONBOARDING_ROUTE ||
-        currentRoute == DISCLOSURES_ROUTE ||
-        currentRoute == FEATURE_TUTORIAL_ROUTE ||
-        currentRoute == INSIGHTS_ROUTE ||
-        currentRoute == RETROSPECTIVE_ROUTE ||
-        currentRoute == TIMELINE_ROUTE
+    // Single chrome policy: the same predicate drives visibility AND transition
+    // suppression (v1.7.3 navigation-jank hotfix).
+    val isFullScreenSubroute = !PrimaryNavigationChrome.shows(currentRoute)
     val currentScreen = Screen.entries.firstOrNull { it.route == currentRoute } ?: Screen.SETTINGS
     val currentRouteState = rememberUpdatedState(currentRoute)
 
@@ -812,14 +801,14 @@ fun AppNavigation(
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
             ),
             bottomBar = {
-                if (!useNavigationRail && !isSettingsSubroute) {
+                if (!useNavigationRail && !isFullScreenSubroute) {
                     BottomNavigationBar(navController = navController)
                 }
             },
             topBar = {
                 AppTopBar(
                     currentScreen = currentScreen,
-                    alignWithNavigationRail = useNavigationRail && !isSettingsSubroute,
+                    alignWithNavigationRail = useNavigationRail && !isFullScreenSubroute,
                     onRefresh = hrtViewModel::runSimulation,
                     titleOverride = when (currentRoute) {
                         ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
@@ -836,7 +825,7 @@ fun AppNavigation(
                     },
                 onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
                     ::exitFeatureTutorial
-                } else if (isSettingsSubroute) {
+                } else if (isFullScreenSubroute) {
                     {
                         if (!navController.popBackStack()) {
                             activity?.finish()
@@ -860,7 +849,7 @@ fun AppNavigation(
                 .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            if (useNavigationRail && !isSettingsSubroute) {
+            if (useNavigationRail && !isFullScreenSubroute) {
                 NavigationRailBar(navController = navController)
             }
             Box(
@@ -906,16 +895,32 @@ fun AppNavigation(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface),
             enterTransition = {
-                evolunePageEnterTransition()
+                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
+                    EnterTransition.None
+                } else {
+                    evolunePageEnterTransition()
+                }
             },
             exitTransition = {
-                evolunePageExitTransition()
+                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
+                    ExitTransition.None
+                } else {
+                    evolunePageExitTransition()
+                }
             },
             popEnterTransition = {
-                evolunePageEnterTransition()
+                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
+                    EnterTransition.None
+                } else {
+                    evolunePageEnterTransition()
+                }
             },
             popExitTransition = {
-                evolunePageExitTransition()
+                if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
+                    ExitTransition.None
+                } else {
+                    evolunePageExitTransition()
+                }
             },
         ) {
             composable(Screen.HOME.route) {

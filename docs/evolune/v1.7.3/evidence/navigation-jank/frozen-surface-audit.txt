@@ -1,0 +1,20 @@
+v1.7.3 navigation-jank hotfix — frozen-surface audit
+====================================================
+
+git diff a6b5d71..HEAD -- <scope>:
+
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt : zero
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/components/EditorTransitionHost.kt : zero
+  history/** (History/HistoryViewModel/HistoryReadService/Insights/Retrospective/
+  Timeline/PK/matcher/projection) : zero
+  data/** / backup/** / theme/** / widget/** / wear/** / healthconnect/**
+  backup cloud (Drive) : zero
+  app/schemas (Room) : zero
+  experience-core/** : zero
+  *.gradle.kts / gradle.properties / gradle/libs.versions.toml : zero
+  version metadata : unchanged (1.7.2 / 101070200 / 1101070200)
+
+Product delta is confined to the navigation transition/chrome policy
+(AppNavigation.kt + the new PrimaryNavigationChrome.kt). Test delta is confined
+to the three navigation/motion guard files. No editor-overlay, no shared-motion,
+no product-surface semantics change.

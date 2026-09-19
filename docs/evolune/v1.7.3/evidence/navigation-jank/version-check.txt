@@ -1,0 +1,11 @@
+v1.7.3 navigation-jank hotfix — version check
+=============================================
+
+versionName : 1.7.2 (unchanged)
+Phone       : 101070200 (unchanged)
+Wear        : 1101070200 (unchanged)
+
+No build-file delta in this round (git diff a6b5d71 -- "*.gradle.kts"
+gradle.properties gradle/libs.versions.toml = empty).
+No tag, no release, no push. The v1.7.3 version bump happens only after this
+hotfix is independently approved.

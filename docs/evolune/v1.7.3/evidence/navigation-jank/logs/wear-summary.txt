@@ -1,0 +1,2 @@
+v1.7.3 navigation-jank — wear JVM summary (from JUnit XML)
+TOTAL suites=11 tests=90 failures=0 errors=0 skipped=0
