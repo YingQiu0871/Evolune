@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 B-01 — RECOMPOSITION IDENTITY PROOF
+
+Test: MainFeatureServicesTest.same activity owner keeps service graph identities across root recomposition
+
+The pure Activity-owned boundary is exercised by reading the same captured
+MainFeatureServices owner twice, representing two root-composition passes.
+The test asserts same holder identity and same identities for:
+- HistoryReadService
+- InsightsViewModelFactory
+- RetrospectivePkViewModelFactory
+- TimelineViewModelFactory
+- PortableExportService
+- PortableImportService
+
+This does not rely on constructor logs. Because graph construction occurs in
+MainActivity.onCreate before setContent, there is no Compose remember-key
+behavior to validate; recomposition cannot execute MainFeatureServices.create.

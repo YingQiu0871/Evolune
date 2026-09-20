@@ -1,0 +1,4 @@
+B-01 full JVM regression
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Result: BUILD SUCCESSFUL; app 150 suites / 1409 tests; experience-core 20 / 171; wear 11 / 90; total 181 suites / 1670 tests; 0 failures; 0 errors; 0 skipped.
+Note: two pre-existing portable golden-byte fixtures required temporary LF normalization and were restored.

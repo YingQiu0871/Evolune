@@ -1,0 +1,393 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+index 71a51be..495b764 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+@@ -36,8 +36,6 @@ import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveR
+ import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
+ import io.github.yingqiu0871.evolune.data.SettingsDataStore
+ import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+-import io.github.yingqiu0871.evolune.export.PortableExportService
+-import io.github.yingqiu0871.evolune.export.PortableImportService
+ import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
+ import io.github.yingqiu0871.evolune.navigation.AppNavigation
+ import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
+@@ -45,13 +43,7 @@ import io.github.yingqiu0871.evolune.reminder.ReminderManager
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
+ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
+-import io.github.yingqiu0871.evolune.history.HistoryReadService
+-import io.github.yingqiu0871.evolune.history.HistoryRangeSource
+ import io.github.yingqiu0871.evolune.history.HistoryViewModel
+-import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
+-import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
+-import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
+-import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelFactory
+ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
+ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
+ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
+@@ -67,7 +59,6 @@ import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
+ import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
+ import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
+ import kotlinx.coroutines.flow.first
+-import io.github.yingqiu0871.evolune.history.insights.InsightsViewModelFactory
+ 
+ internal fun initialRouteForIntent(action: String?): String? = when (action) {
+     "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
+@@ -161,11 +152,27 @@ class MainActivity : ComponentActivity() {
+                 )
+             )
+         )[OnboardingViewModel::class.java]
++
++        val mainFeatureServices = MainFeatureServices.create(
++            medicationPlans = productionRepositoryProvider.medicationPlans,
++            doseEvents = productionRepositoryProvider.doseEvents,
++            settingsStore = settingsDataStore,
++            backupRestoreViewModelFactory = BackupRestoreViewModelFactory(backupRestoreCoordinator),
++            hrtViewModelFactory = HRTViewModelFactory(
++                repository = productionRepositoryProvider.doseEvents,
++                medicationPlanRepository = productionRepositoryProvider.medicationPlans,
++                settingsDataStore = settingsDataStore
++            ),
++            medicationPlanViewModelFactory = MedicationPlanViewModelFactory(
++                productionRepositoryProvider.medicationPlans,
++                reminderManager
++            )
++        )
+         
+         setContent {
+             val settingsViewModel = this@MainActivity.settingsViewModel
+             val backupRestoreViewModel: BackupRestoreViewModel = viewModel(
+-                factory = BackupRestoreViewModelFactory(backupRestoreCoordinator)
++                factory = mainFeatureServices.backupRestoreViewModelFactory
+             )
+             
+             // 获取用户设置
+@@ -206,11 +213,7 @@ class MainActivity : ComponentActivity() {
+ 
+                 // 创建 HRTViewModel，观察 SettingsDataStore 的权威体重
+                 val hrtViewModel: HRTViewModel = viewModel(
+-                    factory = HRTViewModelFactory(
+-                        repository = productionRepositoryProvider.doseEvents,
+-                        medicationPlanRepository = productionRepositoryProvider.medicationPlans,
+-                        settingsDataStore = settingsDataStore
+-                    )
++                    factory = mainFeatureServices.hrtViewModelFactory
+                 )
+                 val doseEvents by hrtViewModel.events.collectAsState()
+                 val domainMedicationPlans by hrtViewModel.allPlans.collectAsState()
+@@ -222,61 +225,14 @@ class MainActivity : ComponentActivity() {
+                     )
+                 }
+                 
+-                // 历史读路径唯一：History 与 Insights 共用同一个 HistoryReadService 实例
+-                val historyReadService = HistoryReadService(
+-                    productionRepositoryProvider.medicationPlans,
+-                    productionRepositoryProvider.doseEvents
+-                )
+-
+                 // 创建 HistoryViewModel（历史只经 HistoryReadService 读取权威数据）
+                 val historyViewModel: HistoryViewModel = viewModel(
+-                    factory = HistoryViewModelFactory(historyReadService = historyReadService)
+-                )
+-
+-                // Insights 的 ViewModel 由导航目的地按需创建（factory 在组合根构造一次）
+-                val insightsViewModelFactory = InsightsViewModelFactory(
+-                    historyReadService = historyReadService
+-                )
+-
+-                // C-04 composition root (V17-C-04 §2.5): the concrete HistoryReadService is bound to
+-                // the three approved seams ONLY here. Retrospective orchestration receives the seams
+-                // (plus the read-only settings store) and never the reader itself.
+-                val retrospectivePkSource = RetrospectivePkService(historyReadService)
+-                val historyRangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
+-                    historyReadService.readRange(startDate, endDate, zone, now)
+-                }
+-                val retrospectiveViewModelFactory = RetrospectivePkViewModelFactory(
+-                    retrospectivePkSource = retrospectivePkSource,
+-                    allAvailableHistorySource = historyReadService,
+-                    historyRangeSource = historyRangeSource,
+-                    settingsStore = settingsDataStore
+-                )
+-
+-                // D-04 composition root (V17-D-04 §3): the Timeline factory receives ONLY the
+-                // approved HistoryRangeSource seam plus the clock/display-zone defaults; the
+-                // concrete HistoryReadService stays bound to that seam here.
+-                val timelineViewModelFactory = TimelineViewModelFactory(
+-                    rangeSource = historyRangeSource
+-                )
+-
+-                // Phase E composition root (V17-E §9/§32): canonical export/import services are
+-                // constructed once here against the approved dose-event repository seam; the
+-                // export service receives the clock explicitly (no hidden clock inside the
+-                // export package) and runs serialization off main.
+-                val portableExportService = PortableExportService(
+-                    repository = productionRepositoryProvider.doseEvents,
+-                    clock = java.time.Clock.systemUTC()
+-                )
+-                val portableImportService = PortableImportService(
+-                    repository = productionRepositoryProvider.doseEvents
++                    factory = mainFeatureServices.historyViewModelFactory
+                 )
+ 
+                 // 创建 MedicationPlanViewModel
+                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
+-                    factory = MedicationPlanViewModelFactory(
+-                        productionRepositoryProvider.medicationPlans,
+-                        reminderManager
+-                    )
++                    factory = mainFeatureServices.medicationPlanViewModelFactory
+                 )
+                 LaunchedEffect(domainMedicationPlans) {
+                     requestEvoluneWidgetUpdate(
+@@ -348,11 +304,11 @@ class MainActivity : ComponentActivity() {
+                     AppNavigation(
+                         hrtViewModel = hrtViewModel,
+                         historyViewModel = historyViewModel,
+-                        insightsViewModelFactory = insightsViewModelFactory,
+-                        retrospectiveViewModelFactory = retrospectiveViewModelFactory,
+-                        timelineViewModelFactory = timelineViewModelFactory,
+-                        portableExportService = portableExportService,
+-                        portableImportService = portableImportService,
++                        insightsViewModelFactory = mainFeatureServices.insightsViewModelFactory,
++                        retrospectiveViewModelFactory = mainFeatureServices.retrospectiveViewModelFactory,
++                        timelineViewModelFactory = mainFeatureServices.timelineViewModelFactory,
++                        portableExportService = mainFeatureServices.portableExportService,
++                        portableImportService = mainFeatureServices.portableImportService,
+                         settingsViewModel = settingsViewModel,
+                         medicationPlanViewModel = medicationPlanViewModel,
+                         backupRestoreViewModel = backupRestoreViewModel,
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt b/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+new file mode 100644
+index 0000000..cb98c0f
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+@@ -0,0 +1,87 @@
++package io.github.yingqiu0871.evolune
++
++import androidx.lifecycle.ViewModelProvider
++import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
++import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
++import io.github.yingqiu0871.evolune.data.SettingsStore
++import io.github.yingqiu0871.evolune.export.PortableExportService
++import io.github.yingqiu0871.evolune.export.PortableImportService
++import io.github.yingqiu0871.evolune.history.HistoryRangeSource
++import io.github.yingqiu0871.evolune.history.HistoryReadService
++import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
++import io.github.yingqiu0871.evolune.history.insights.InsightsViewModelFactory
++import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
++import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
++import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelFactory
++import java.time.Clock
++
++/**
++ * Activity-owned service and factory graph used by the composition root.
++ *
++ * This graph is created after startup restore/recovery has completed and is captured by the
++ * Activity's setContent lambda. Compose recomposition only reads these references; it does not
++ * reconstruct the graph. A new MainActivity creates a new graph instance, so no process-global
++ * service ownership is introduced.
++ */
++internal class MainFeatureServices private constructor(
++    internal val backupRestoreViewModelFactory: ViewModelProvider.Factory,
++    internal val hrtViewModelFactory: ViewModelProvider.Factory,
++    internal val historyReadService: HistoryReadService,
++    internal val historyViewModelFactory: ViewModelProvider.Factory,
++    internal val insightsViewModelFactory: InsightsViewModelFactory,
++    internal val retrospectivePkService: RetrospectivePkService,
++    internal val historyRangeSource: HistoryRangeSource,
++    internal val retrospectiveViewModelFactory: RetrospectivePkViewModelFactory,
++    internal val timelineViewModelFactory: TimelineViewModelFactory,
++    internal val portableExportService: PortableExportService,
++    internal val portableImportService: PortableImportService,
++    internal val medicationPlanViewModelFactory: ViewModelProvider.Factory
++) {
++    companion object {
++        fun create(
++            medicationPlans: MedicationPlanRepository,
++            doseEvents: DoseEventRepository,
++            settingsStore: SettingsStore,
++            backupRestoreViewModelFactory: ViewModelProvider.Factory,
++            hrtViewModelFactory: ViewModelProvider.Factory,
++            medicationPlanViewModelFactory: ViewModelProvider.Factory,
++            exportClock: Clock = Clock.systemUTC()
++        ): MainFeatureServices {
++            val historyReadService = HistoryReadService(
++                medicationPlans = medicationPlans,
++                doseEvents = doseEvents
++            )
++            val historyRangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
++                historyReadService.readRange(startDate, endDate, zone, now)
++            }
++            val retrospectivePkService = RetrospectivePkService(historyReadService)
++
++            return MainFeatureServices(
++                backupRestoreViewModelFactory = backupRestoreViewModelFactory,
++                hrtViewModelFactory = hrtViewModelFactory,
++                historyReadService = historyReadService,
++                historyViewModelFactory = HistoryViewModelFactory(historyReadService),
++                insightsViewModelFactory = InsightsViewModelFactory(historyReadService),
++                retrospectivePkService = retrospectivePkService,
++                historyRangeSource = historyRangeSource,
++                retrospectiveViewModelFactory = RetrospectivePkViewModelFactory(
++                    retrospectivePkSource = retrospectivePkService,
++                    allAvailableHistorySource = historyReadService,
++                    historyRangeSource = historyRangeSource,
++                    settingsStore = settingsStore
++                ),
++                timelineViewModelFactory = TimelineViewModelFactory(
++                    rangeSource = historyRangeSource
++                ),
++                portableExportService = PortableExportService(
++                    repository = doseEvents,
++                    clock = exportClock
++                ),
++                portableImportService = PortableImportService(
++                    repository = doseEvents
++                ),
++                medicationPlanViewModelFactory = medicationPlanViewModelFactory
++            )
++        }
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+new file mode 100644
+index 0000000..8b67bb9
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+@@ -0,0 +1,118 @@
++package io.github.yingqiu0871.evolune
++
++import androidx.lifecycle.ViewModel
++import androidx.lifecycle.ViewModelProvider
++import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
++import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
++import io.github.yingqiu0871.evolune.history.retrospective.FakeSettingsStore
++import org.junit.Assert.assertNotSame
++import org.junit.Assert.assertSame
++import org.junit.Test
++
++class MainFeatureServicesTest {
++    @Test
++    fun `same activity owner keeps service graph identities across root recomposition`() {
++        val graph = createGraph()
++
++        // The setContent lambda captures this one owner graph; recomposition only reads it.
++        val beforeRecomposition = graph
++        val afterRecomposition = graph
++
++        assertSame(beforeRecomposition, afterRecomposition)
++        assertSame(beforeRecomposition.historyReadService, afterRecomposition.historyReadService)
++        assertSame(
++            beforeRecomposition.insightsViewModelFactory,
++            afterRecomposition.insightsViewModelFactory
++        )
++        assertSame(
++            beforeRecomposition.retrospectiveViewModelFactory,
++            afterRecomposition.retrospectiveViewModelFactory
++        )
++        assertSame(
++            beforeRecomposition.timelineViewModelFactory,
++            afterRecomposition.timelineViewModelFactory
++        )
++        assertSame(
++            beforeRecomposition.portableExportService,
++            afterRecomposition.portableExportService
++        )
++        assertSame(
++            beforeRecomposition.portableImportService,
++            afterRecomposition.portableImportService
++        )
++    }
++
++    @Test
++    fun `new activity owner creates a fresh service graph`() {
++        val oldOwner = createGraph()
++        val newOwner = createGraph()
++
++        assertNotSame(oldOwner, newOwner)
++        assertNotSame(oldOwner.historyReadService, newOwner.historyReadService)
++        assertNotSame(oldOwner.insightsViewModelFactory, newOwner.insightsViewModelFactory)
++        assertNotSame(
++            oldOwner.retrospectiveViewModelFactory,
++            newOwner.retrospectiveViewModelFactory
++        )
++        assertNotSame(oldOwner.timelineViewModelFactory, newOwner.timelineViewModelFactory)
++        assertNotSame(oldOwner.portableExportService, newOwner.portableExportService)
++        assertNotSame(oldOwner.portableImportService, newOwner.portableImportService)
++    }
++
++    @Test
++    fun `history consumers share the activity owned reader and range seam`() {
++        val graph = createGraph()
++
++        assertSame(
++            graph.historyReadService,
++            privateField(graph.historyViewModelFactory, "historyReadService")
++        )
++        assertSame(
++            graph.historyReadService,
++            privateField(graph.insightsViewModelFactory, "historyReadService")
++        )
++        assertSame(
++            graph.historyReadService,
++            privateField(graph.retrospectivePkService, "history")
++        )
++        assertSame(
++            graph.historyReadService,
++            privateField(graph.retrospectiveViewModelFactory, "allAvailableHistorySource")
++        )
++        assertSame(
++            graph.historyRangeSource,
++            privateField(graph.retrospectiveViewModelFactory, "historyRangeSource")
++        )
++        assertSame(
++            graph.historyRangeSource,
++            privateField(graph.timelineViewModelFactory, "rangeSource")
++        )
++    }
++
++    private fun createGraph(): MainFeatureServices = MainFeatureServices.create(
++        medicationPlans = FakeMedicationPlanRepository(),
++        doseEvents = FakeDoseEventRepository(),
++        settingsStore = FakeSettingsStore(),
++        backupRestoreViewModelFactory = NoOpFactory,
++        hrtViewModelFactory = NoOpFactory,
++        medicationPlanViewModelFactory = NoOpFactory
++    )
++
++    private fun privateField(target: Any, name: String): Any {
++        var type: Class<*>? = target.javaClass
++        while (type != null) {
++            runCatching {
++                return requireNotNull(
++                    type.getDeclaredField(name).apply { isAccessible = true }.get(target)
++                )
++            }
++            type = type.superclass
++        }
++        error("Missing field $name on ${target.javaClass.name}")
++    }
++
++    private object NoOpFactory : ViewModelProvider.Factory {
++        override fun <T : ViewModel> create(modelClass: Class<T>): T =
++            error("No ViewModel should be created by the ownership test")
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveArchitectureGuardTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveArchitectureGuardTest.kt
+index cff6dd0..73a8c52 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveArchitectureGuardTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveArchitectureGuardTest.kt
+@@ -104,10 +104,10 @@ class RetrospectiveArchitectureGuardTest {
+ 
+     @Test
+     fun `the composition-root-only concrete reader stays at the composition root`() {
+-        // MainActivity owns the single wiring point; the C-04 new surfaces never mention it.
++        // MainFeatureServices owns the single wiring point; the C-04 new surfaces never mention it.
+         val main = code("src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt")
+-        assertTrue(main.contains("RetrospectivePkService(historyReadService)"))
+-        assertTrue(main.contains("HistoryRangeSource { startDate, endDate, zone, now ->"))
++        assertTrue(main.contains("MainFeatureServices.create("))
++        assertFalse(main.contains("HistoryReadService("))
+ 
+         newProductionFiles.forEach { path ->
+             assertFalse(

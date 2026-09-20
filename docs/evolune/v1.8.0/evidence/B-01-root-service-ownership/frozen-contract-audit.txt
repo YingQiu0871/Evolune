@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 B-01 — FROZEN CONTRACT AUDIT
+
+PASS — exact parent is 0610a5b7b117ad5622b5346c1fb7b6f0ed9bb0cb.
+PASS — A-01 files/evidence have zero delta from the exact parent.
+PASS — A-02 PkSimulationCalculator files/evidence have zero delta from the exact parent.
+PASS — restore recovery remains before repository/provider and MainFeatureServices creation.
+PASS — MainFeatureServices has no Context, Activity, Composable, NavController,
+      View, or ActivityResult launcher field.
+PASS — no DI framework, process-global graph, static mutable graph, or service locator.
+PASS — ViewModel owners, keys, SavedStateHandle creation, navBackStackEntry use,
+      retained ViewModels, selection persistence, generation tokens, and refresh
+      coalescing are unchanged.
+PASS — History eager-load behavior is unchanged; B-02 lazy History creation is out of scope.
+PASS — startup restore ordering, database existence check, settings initialization,
+      repository creation, journal, backup recovery, and setContent gate are unchanged.
+PASS — portable format, validation, document flow, transaction, restore, and file behavior are unchanged.
+PASS — History, Insights, Retrospective, Timeline, PK math, event semantics,
+      navigation routes, Wear, widgets, Health Connect, Drive, schema, and protocol are unchanged.
+PASS — versionName remains 1.7.4; phone versionCode 101070400; Wear versionCode 1101070400.

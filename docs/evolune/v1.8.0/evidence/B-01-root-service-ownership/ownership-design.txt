@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 B-01 — OWNERSHIP DESIGN
+
+Selected solution: Option A, an Activity-owned MainFeatureServices holder.
+
+MainFeatureServices.create(...) is called exactly once from MainActivity.onCreate,
+after recoverInterruptedRestoreAtStartup has succeeded and after the existing
+repository/backup/onboarding setup, but before setContent. The setContent lambda
+captures that one holder and only reads its fields during recomposition.
+
+The holder owns the shared HistoryReadService, the single HistoryRangeSource,
+the retrospective service and factories, the Insights and Timeline factories,
+portable import/export services, and the root ViewModel factories. The three
+factory objects that depend on concrete Activity setup are created as arguments
+at the same pre-composition boundary.
+
+Why Activity-owned instead of remember(keys): every required dependency is
+already available at the existing post-recovery Activity boundary and has an
+Activity/app-stable lifetime. No dependency needs composition-only identity.
+Avoiding remember also makes the owner boundary explicit: one graph per
+MainActivity instance, fresh graph after Activity recreation.
+
+No process-global graph, static mutable cache, service locator, DI framework,
+Composable lambda, NavController, View, Activity, or ActivityResult launcher is
+stored by MainFeatureServices. The graph carries repositories, settings seams,
+factories, and read-only services only.

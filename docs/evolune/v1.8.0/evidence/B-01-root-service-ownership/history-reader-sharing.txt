@@ -1,0 +1,18 @@
+EVOLUNE v1.8.0 B-01 — HISTORYREADSERVICE SHARING
+
+MainFeatureServices creates exactly one HistoryReadService from the two
+repository dependencies.
+
+The same object is wired to:
+- HistoryViewModelFactory.historyReadService
+- InsightsViewModelFactory.historyReadService
+- RetrospectivePkService.history
+- RetrospectivePkViewModelFactory.allAvailableHistorySource
+
+One HistoryRangeSource closure over that reader is wired to:
+- RetrospectivePkViewModelFactory.historyRangeSource
+- TimelineViewModelFactory.rangeSource
+
+MainFeatureServicesTest directly asserts these identities through the test-only
+JVM inspection seam. No consumer intentionally requires a distinct history
+reader, and no feature semantics were changed.

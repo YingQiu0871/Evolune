@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 B-01 — FULL JVM VERIFICATION
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Fresh final results:
+- app:             150 suites, 1409 tests, 0 failures, 0 errors, 0 skipped
+- experience-core:  20 suites,  171 tests, 0 failures, 0 errors, 0 skipped
+- wear:             11 suites,   90 tests, 0 failures, 0 errors, 0 skipped
+- total:           181 suites, 1670 tests, 0 failures, 0 errors, 0 skipped
+
+The two unchanged portable golden-byte fixtures were temporarily represented
+with their tracked LF bytes for the run and restored before the B-01 diff.

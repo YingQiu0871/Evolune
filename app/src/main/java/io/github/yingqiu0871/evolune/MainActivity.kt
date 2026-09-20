@@ -36,8 +36,6 @@ import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveR
 import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
-import io.github.yingqiu0871.evolune.export.PortableExportService
-import io.github.yingqiu0871.evolune.export.PortableImportService
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
@@ -45,13 +43,7 @@ import io.github.yingqiu0871.evolune.reminder.ReminderManager
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
-import io.github.yingqiu0871.evolune.history.HistoryReadService
-import io.github.yingqiu0871.evolune.history.HistoryRangeSource
 import io.github.yingqiu0871.evolune.history.HistoryViewModel
-import io.github.yingqiu0871.evolune.history.HistoryViewModelFactory
-import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
-import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
-import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
@@ -67,7 +59,6 @@ import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
 import kotlinx.coroutines.flow.first
-import io.github.yingqiu0871.evolune.history.insights.InsightsViewModelFactory
 
 internal fun initialRouteForIntent(action: String?): String? = when (action) {
     "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
@@ -161,11 +152,27 @@ class MainActivity : ComponentActivity() {
                 )
             )
         )[OnboardingViewModel::class.java]
+
+        val mainFeatureServices = MainFeatureServices.create(
+            medicationPlans = productionRepositoryProvider.medicationPlans,
+            doseEvents = productionRepositoryProvider.doseEvents,
+            settingsStore = settingsDataStore,
+            backupRestoreViewModelFactory = BackupRestoreViewModelFactory(backupRestoreCoordinator),
+            hrtViewModelFactory = HRTViewModelFactory(
+                repository = productionRepositoryProvider.doseEvents,
+                medicationPlanRepository = productionRepositoryProvider.medicationPlans,
+                settingsDataStore = settingsDataStore
+            ),
+            medicationPlanViewModelFactory = MedicationPlanViewModelFactory(
+                productionRepositoryProvider.medicationPlans,
+                reminderManager
+            )
+        )
         
         setContent {
             val settingsViewModel = this@MainActivity.settingsViewModel
             val backupRestoreViewModel: BackupRestoreViewModel = viewModel(
-                factory = BackupRestoreViewModelFactory(backupRestoreCoordinator)
+                factory = mainFeatureServices.backupRestoreViewModelFactory
             )
             
             // 获取用户设置
@@ -206,11 +213,7 @@ class MainActivity : ComponentActivity() {
 
                 // 创建 HRTViewModel，观察 SettingsDataStore 的权威体重
                 val hrtViewModel: HRTViewModel = viewModel(
-                    factory = HRTViewModelFactory(
-                        repository = productionRepositoryProvider.doseEvents,
-                        medicationPlanRepository = productionRepositoryProvider.medicationPlans,
-                        settingsDataStore = settingsDataStore
-                    )
+                    factory = mainFeatureServices.hrtViewModelFactory
                 )
                 val doseEvents by hrtViewModel.events.collectAsState()
                 val domainMedicationPlans by hrtViewModel.allPlans.collectAsState()
@@ -222,61 +225,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 
-                // 历史读路径唯一：History 与 Insights 共用同一个 HistoryReadService 实例
-                val historyReadService = HistoryReadService(
-                    productionRepositoryProvider.medicationPlans,
-                    productionRepositoryProvider.doseEvents
-                )
-
                 // 创建 HistoryViewModel（历史只经 HistoryReadService 读取权威数据）
                 val historyViewModel: HistoryViewModel = viewModel(
-                    factory = HistoryViewModelFactory(historyReadService = historyReadService)
-                )
-
-                // Insights 的 ViewModel 由导航目的地按需创建（factory 在组合根构造一次）
-                val insightsViewModelFactory = InsightsViewModelFactory(
-                    historyReadService = historyReadService
-                )
-
-                // C-04 composition root (V17-C-04 §2.5): the concrete HistoryReadService is bound to
-                // the three approved seams ONLY here. Retrospective orchestration receives the seams
-                // (plus the read-only settings store) and never the reader itself.
-                val retrospectivePkSource = RetrospectivePkService(historyReadService)
-                val historyRangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
-                    historyReadService.readRange(startDate, endDate, zone, now)
-                }
-                val retrospectiveViewModelFactory = RetrospectivePkViewModelFactory(
-                    retrospectivePkSource = retrospectivePkSource,
-                    allAvailableHistorySource = historyReadService,
-                    historyRangeSource = historyRangeSource,
-                    settingsStore = settingsDataStore
-                )
-
-                // D-04 composition root (V17-D-04 §3): the Timeline factory receives ONLY the
-                // approved HistoryRangeSource seam plus the clock/display-zone defaults; the
-                // concrete HistoryReadService stays bound to that seam here.
-                val timelineViewModelFactory = TimelineViewModelFactory(
-                    rangeSource = historyRangeSource
-                )
-
-                // Phase E composition root (V17-E §9/§32): canonical export/import services are
-                // constructed once here against the approved dose-event repository seam; the
-                // export service receives the clock explicitly (no hidden clock inside the
-                // export package) and runs serialization off main.
-                val portableExportService = PortableExportService(
-                    repository = productionRepositoryProvider.doseEvents,
-                    clock = java.time.Clock.systemUTC()
-                )
-                val portableImportService = PortableImportService(
-                    repository = productionRepositoryProvider.doseEvents
+                    factory = mainFeatureServices.historyViewModelFactory
                 )
 
                 // 创建 MedicationPlanViewModel
                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
-                    factory = MedicationPlanViewModelFactory(
-                        productionRepositoryProvider.medicationPlans,
-                        reminderManager
-                    )
+                    factory = mainFeatureServices.medicationPlanViewModelFactory
                 )
                 LaunchedEffect(domainMedicationPlans) {
                     requestEvoluneWidgetUpdate(
@@ -348,11 +304,11 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         hrtViewModel = hrtViewModel,
                         historyViewModel = historyViewModel,
-                        insightsViewModelFactory = insightsViewModelFactory,
-                        retrospectiveViewModelFactory = retrospectiveViewModelFactory,
-                        timelineViewModelFactory = timelineViewModelFactory,
-                        portableExportService = portableExportService,
-                        portableImportService = portableImportService,
+                        insightsViewModelFactory = mainFeatureServices.insightsViewModelFactory,
+                        retrospectiveViewModelFactory = mainFeatureServices.retrospectiveViewModelFactory,
+                        timelineViewModelFactory = mainFeatureServices.timelineViewModelFactory,
+                        portableExportService = mainFeatureServices.portableExportService,
+                        portableImportService = mainFeatureServices.portableImportService,
                         settingsViewModel = settingsViewModel,
                         medicationPlanViewModel = medicationPlanViewModel,
                         backupRestoreViewModel = backupRestoreViewModel,

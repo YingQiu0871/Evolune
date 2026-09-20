@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 B-01 — OWNER RECREATION PROOF
+
+Test: MainFeatureServicesTest.new activity owner creates a fresh service graph
+
+Two independent MainFeatureServices.create(...) calls are treated as two
+MainActivity instances. The test asserts oldGraph !== newGraph and distinct
+identities for HistoryReadService, InsightsViewModelFactory,
+RetrospectivePkViewModelFactory, TimelineViewModelFactory,
+PortableExportService, and PortableImportService.
+
+MainFeatureServices has no static graph or global retained cache, so the new
+owner boundary cannot inherit the old graph through B-01 code.

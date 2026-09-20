@@ -1,0 +1,3 @@
+B-01 version and identity guard
+Command: .\gradlew.bat validateEvoluneIdentityAndVersioning --rerun-tasks
+Result: BUILD SUCCESSFUL; versionName 1.7.4; phone versionCode 101070400; Wear versionCode 1101070400.

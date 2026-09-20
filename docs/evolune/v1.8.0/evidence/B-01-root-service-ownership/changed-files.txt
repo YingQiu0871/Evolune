@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 B-01 — CHANGED FILES
+
+Production:
+- app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+
+Tests:
+- app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+- app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveArchitectureGuardTest.kt
+
+The guard-test change updates only the incidental source-string assertion from
+the former MainActivity wiring spelling to the new MainFeatureServices boundary.
+No feature behavior, repository, screen, navigation, PK, or persisted contract
+file changed.

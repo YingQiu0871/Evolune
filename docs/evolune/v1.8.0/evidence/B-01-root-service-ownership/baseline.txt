@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 B-01 — BASELINE
+
+Approved parent: 0610a5b7b117ad5622b5346c1fb7b6f0ed9bb0cb
+
+The closed A-02 predecessor established the clean JVM baseline:
+- app: 149 suites, 1406 tests
+- experience-core: 20 suites, 171 tests
+- wear: 11 suites, 90 tests
+- total: 180 suites, 1667 tests
+
+B-01 adds exactly three JVM ownership tests. The fresh B-01 full run below
+reports app 150 suites / 1409 tests and total 181 suites / 1670 tests.
+The B-01 full run was executed fresh in this worktree; no A-02 XML was reused.

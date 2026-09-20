@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 B-01 — IDENTITY
+
+Released v1.7.4 baseline: d73428364670ceb691cbe90547bd34fe9acd272f
+A-01 final head: 95123612aa55e0acb2e828f809120eb4a655c5e6
+A-02 final head / exact B-01 parent: 0610a5b7b117ad5622b5346c1fb7b6f0ed9bb0cb
+B-01 branch: feature/v1.8.0-b01-root-service-ownership
+B-01 worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-b01
+Initial B-01 worktree state: clean at the exact A-02 final head
+
+Frozen release identity:
+- versionName: 1.7.4
+- phone versionCode: 101070400
+- Wear versionCode: 1101070400
+
+B-01 changes only composition-root ownership and its proof/guard tests.
+No push, tag, or release was performed.

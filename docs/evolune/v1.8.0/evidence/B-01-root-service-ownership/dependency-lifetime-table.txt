@@ -1,0 +1,50 @@
+EVOLUNE v1.8.0 B-01 — DEPENDENCY LIFETIME TABLE
+
+Object | Dependencies | Classification | B-01 treatment
+
+HistoryReadService | medicationPlans repository; doseEvents repository | A:
+Activity-stable service graph object | Construct once in MainFeatureServices.
+
+HistoryRangeSource | one closure over HistoryReadService | A: Activity-stable
+read seam | Construct once and share with retrospective and Timeline factories.
+
+HistoryViewModelFactory | HistoryReadService; default clock/zone providers | C:
+ViewModel factory preserving owner semantics | Construct once; existing
+Activity/destination ViewModel owners and SavedStateHandle behavior unchanged.
+
+InsightsViewModelFactory | HistoryReadService; default aggregator/clock/zone |
+C: destination ViewModel factory | Construct once; destination creation semantics
+unchanged.
+
+RetrospectivePkService | AllAvailableHistorySource = HistoryReadService | A:
+Activity-stable service | Construct once and share with its factory.
+
+RetrospectivePkViewModelFactory | RetrospectivePkService, same reader, same
+HistoryRangeSource, SettingsStore | C: destination ViewModel factory | Construct
+once; three approved seams and settings store remain unchanged.
+
+TimelineViewModelFactory | same HistoryRangeSource | C: destination ViewModel
+factory | Construct once; Timeline owner/lifecycle semantics unchanged.
+
+PortableExportService | doseEvents repository; UTC Clock | A: Activity-stable
+service | Construct once; capture, serialization, and file semantics unchanged.
+
+PortableImportService | doseEvents repository | A: Activity-stable service |
+Construct once; validation, transaction, and partial-failure semantics unchanged.
+
+BackupRestoreViewModelFactory | existing BackupRestoreCoordinator | C: retained
+ViewModel factory | Created once before setContent; owner and restore semantics unchanged.
+
+HRTViewModelFactory | doseEvents, medicationPlans, SettingsDataStore | C:
+retained Activity ViewModel factory | Created once before setContent; owner and
+body-weight flow semantics unchanged.
+
+MedicationPlanViewModelFactory | medicationPlans, ReminderManager | C: retained
+Activity ViewModel factory | Created once before setContent; owner and reminder
+semantics unchanged.
+
+Settings/Onboarding factories | existing onCreate construction | C: existing
+Activity-owned factories | Not moved or behaviorally changed.
+
+Theme values, collected state, navigation locals, and transient UI state | root
+Compose state | D: incidental composition state | Not included in the service graph.

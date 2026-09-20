@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 B-01 — FOCUSED TESTS
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.MainFeatureServicesTest --tests io.github.yingqiu0871.evolune.history.* --tests io.github.yingqiu0871.evolune.export.* --tests io.github.yingqiu0871.evolune.navigation.* --rerun-tasks
+
+Fresh result:
+- 50 suites
+- 550 tests
+- 0 failures
+- 0 errors
+- 0 skipped
+
+The first checkout-level attempt exposed only the pre-existing CRLF-vs-LF
+portable golden-byte fixture issue. The same command passed after temporarily
+using the tracked LF bytes for the two unchanged fixtures; both were restored.

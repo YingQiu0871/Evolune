@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 B-01 — OWNERSHIP BEFORE
+
+MainActivity performs startup recovery, repository-provider creation, backup
+coordinator creation, and Activity ViewModel creation in onCreate. After that,
+setContent enters the root Compose content.
+
+Inside that root content, ordinary recomposition could execute these plain
+constructor expressions again:
+- BackupRestoreViewModelFactory(backupRestoreCoordinator)
+- HRTViewModelFactory(doseEvents, medicationPlans, settingsDataStore)
+- HistoryReadService(medicationPlans, doseEvents)
+- HistoryViewModelFactory(historyReadService)
+- InsightsViewModelFactory(historyReadService)
+- RetrospectivePkService(historyReadService)
+- HistoryRangeSource { ... historyReadService.readRange(...) }
+- RetrospectivePkViewModelFactory(retrospective source, all-history reader,
+  range source, settings store)
+- TimelineViewModelFactory(historyRangeSource)
+- PortableExportService(doseEvents, Clock.systemUTC())
+- PortableImportService(doseEvents)
+- MedicationPlanViewModelFactory(medicationPlans, reminderManager)
+
+Root-observed state that can invalidate composition includes userSettings,
+system dark-theme state, HRT events, all medication plans, PK state, and the
+state read/collected by AppNavigation. Those invalidations can reconstruct the
+expressions above.
+
+The retained ViewModels are not claimed to be recreated by this. Their existing
+owner and key semantics retain them. The actual defect is service/factory
+identity churn and unclear lifetime: a later-created destination can receive a
+new service graph while an already-created destination still holds an older
+graph.

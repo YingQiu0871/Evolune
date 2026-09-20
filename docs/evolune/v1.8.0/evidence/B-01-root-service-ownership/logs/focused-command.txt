@@ -1,0 +1,4 @@
+B-01 affected regression
+Command: .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.MainFeatureServicesTest --tests io.github.yingqiu0871.evolune.history.* --tests io.github.yingqiu0871.evolune.export.* --tests io.github.yingqiu0871.evolune.navigation.* --rerun-tasks
+Result: BUILD SUCCESSFUL; 50 suites; 550 tests; 0 failures; 0 errors; 0 skipped.
+Note: two pre-existing portable golden-byte fixtures required temporary LF normalization and were restored.

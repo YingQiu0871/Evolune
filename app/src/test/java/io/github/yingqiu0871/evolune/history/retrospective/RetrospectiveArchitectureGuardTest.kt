@@ -104,10 +104,10 @@ class RetrospectiveArchitectureGuardTest {
 
     @Test
     fun `the composition-root-only concrete reader stays at the composition root`() {
-        // MainActivity owns the single wiring point; the C-04 new surfaces never mention it.
+        // MainFeatureServices owns the single wiring point; the C-04 new surfaces never mention it.
         val main = code("src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt")
-        assertTrue(main.contains("RetrospectivePkService(historyReadService)"))
-        assertTrue(main.contains("HistoryRangeSource { startDate, endDate, zone, now ->"))
+        assertTrue(main.contains("MainFeatureServices.create("))
+        assertFalse(main.contains("HistoryReadService("))
 
         newProductionFiles.forEach { path ->
             assertFalse(
