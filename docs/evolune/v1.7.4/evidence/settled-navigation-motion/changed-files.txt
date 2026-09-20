@@ -1,18 +1,22 @@
-v1.7.4 settled navigation motion — corrected changed files
-==========================================================
+v1.7.4 settled navigation motion — final baseline-to-HEAD changed files
+======================================================================
 
-Correction delta from c8f5edff:
-  M navigation/AppNavigation.kt
+Authoritative delta: bcb12d432af1e9780e66686359545e69a056da39 -> HEAD
+15743b336dad48336707b797dc176f745ee6ba7d; app-only, excluding docs.
+
+Production files:
+  M app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
       remember(currentRoute) reads preview; SideEffect calls commit.
-  M ui/motion/SettledGeometryPageMotion.kt
+  M app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
+      Visibility-only baseline-to-HEAD delta, retained in the authoritative
+      final diff.
+  M app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
       RouteEdgeTracker is now a pure preview / idempotent commit model.
 
-Tests:
-  M ui/motion/SettledGeometryPageMotionTest.kt (8 tests; +3 lifecycle proofs)
-  M ui/screens/MotionListUxBoundaryTest.kt (safe preview/SideEffect guard)
+Test files:
+  M app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt
+      8 tests, including lifecycle and idempotent-commit proofs.
+  M app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt
+      Safe preview/SideEffect source guard.
 
-Correction-zero files: EvolunePageMotion.kt, EditorTransitionHost.kt,
-PrimaryNavigationChrome.kt, all product features, backup/theme/Settings/Widget/
-Wear/HC/Drive/Room, version.
-
-The authoritative implementation.diff is against bcb12d4 and excludes docs.
+Total authoritative implementation.diff file count: 5.

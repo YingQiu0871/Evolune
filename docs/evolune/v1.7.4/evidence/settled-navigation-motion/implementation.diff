@@ -45,6 +45,23 @@ index c410454..e9d63d5 100644
              enterTransition = {
                  if (PrimaryNavigationChrome.changes(initialState.destination.route, targetState.destination.route)) {
                      EnterTransition.None
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
+index 8e61160..9b78ecf 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt
+@@ -30,7 +30,10 @@ fun evolunePageExitTransition(): ExitTransition =
+     fadeOut(animationSpec = tween(PAGE_FADE_OUT_MILLIS))
+ 
+ private const val PAGE_FADE_OUT_MILLIS = 90
+-private const val PAGE_FADE_IN_MILLIS = 220
++
++// v1.7.4: shared with the settled-geometry entrance host so both motion paths keep
++// the identical Evolune fade/scale language (visibility only; zero behavior change).
++internal const val PAGE_FADE_IN_MILLIS = 220
+ private const val PAGE_FADE_IN_DELAY_MILLIS = 90
+ private const val NO_PAGE_ENTER_DELAY_MILLIS = 0
+-private const val PAGE_INITIAL_SCALE = 0.98f
++internal const val PAGE_INITIAL_SCALE = 0.98f
 diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt
 new file mode 100644
 index 0000000..e97c2a4
