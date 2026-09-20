@@ -8,7 +8,15 @@ Implementation and test files:
   Adds deterministic injected-dispatcher thread-ownership coverage.
 - app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
   Adds cancellation/publication coverage for the caller scope.
+- app/src/androidTest/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkAndroidDispatcherProofTest.kt
+  Evidence supplement (this round): instrumentation-only probe proving caller =
+  Android main thread while the production-default computation and the curve
+  runner execute off main. No production code touched.
 
 SimulationEngine.kt has zero diff from the authoritative baseline.
 No schema, navigation, UI, Home/history standard, or version file changed.
 The binary-safe implementation diff is implementation.diff in this directory.
+
+Android dispatcher proof (evidence supplement):
+- android-dispatcher-proof.txt (summary + measured thread identities)
+- logs/android-dispatcher-proof.log (raw instrumentation + logcat capture)

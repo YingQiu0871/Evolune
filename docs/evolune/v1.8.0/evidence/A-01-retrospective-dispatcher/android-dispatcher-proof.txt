@@ -1,0 +1,51 @@
+EVOLUNE v1.8.0 A-01 — ANDROID DISPATCHER PROOF
+===============================================
+
+Purpose: device-level proof that retrospective PK computation no longer executes
+on the UI Main thread, exercising the production default Dispatchers.Default
+path on a real Android runtime.
+
+Device / runtime
+- Pixel_7 AVD (emulator-5554), model sdk_gphone64_x86_64, Android 15 / API 35
+- Fingerprint google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+- App under test: debug build io.github.yingqiu0871.evolune.debug, A-01 HEAD 00ce3b4
+- Instrumentation: androidx.test.runner.AndroidJUnitRunner via adb am instrument
+  (class-filtered to the single probe test)
+
+Probe (instrumentation-only, no production change)
+- app/src/androidTest/.../history/pk/RetrospectivePkAndroidDispatcherProofTest.kt
+- Caller: the service is invoked from `withContext(Dispatchers.Main)`; the caller
+  thread is captured there.
+- Production default path: `RetrospectivePkService(history)` — real public
+  constructor with the production defaults `DefaultRetrospectivePkCurveRunner`
+  and `Dispatchers.Default`; the thread observed inside the computation context
+  (history read, which executes inside the service's withContext boundary) is
+  captured.
+- Curve-runner observation: a test-only delegating runner probe passed through
+  the internal seam with `computationDispatcher = Dispatchers.Default` (the
+  production default value); it delegates to the real
+  `DefaultRetrospectivePkCurveRunner` and records the actual runner thread.
+- Gate: object-identity comparisons against `Looper.getMainLooper().thread`
+  (assertSame / assertNotSame); thread-name prefixes are corroboration only.
+
+Measured thread identities (logcat, 2026-09-20 18:59:12, PID 3443)
+- caller-thread            = main                       identity=124838970  sameAsMain=true
+- main-looper-thread       = main                       identity=124838970
+- production-reader-thread = DefaultDispatcher-worker-3 identity=259459307  sameAsMain=false
+- probe-reader-thread      = DefaultDispatcher-worker-3 identity=259459307  sameAsMain=false
+- runner-thread            = DefaultDispatcher-worker-3 identity=259459307  sameAsMain=false
+
+Assertions (all PASS)
+- caller thread === Android main thread (Looper.getMainLooper().thread)
+- production computation (history read inside the service boundary) !== main
+- curve runner (production DefaultRetrospectivePkCurveRunner delegate) !== main
+- both off-main threads are Dispatchers.Default workers (corroboration)
+
+Semantic smoke (same run)
+- result = RetrospectivePkResult.Available; seriesPoints=8641; engineEvents=1;
+  no crash, no dispatcher-related error; instrumentation OK (1 test), 0 failures,
+  0 errors, 0 skips.
+
+Note: thread-name/identity values are runtime observations, not performance
+claims; no elapsed-time interpretation is made anywhere in this evidence.
+Raw capture: logs/android-dispatcher-proof.log.

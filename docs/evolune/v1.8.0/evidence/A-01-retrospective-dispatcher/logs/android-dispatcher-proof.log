@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 A-01 — ANDROID DISPATCHER PROOF LOG (captured)
+Device: Pixel_7 AVD (emulator-5554), model sdk_gphone64_x86_64, Android 15 / API 35
+Fingerprint: google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+App under test: debug build (io.github.yingqiu0871.evolune.debug), A-01 HEAD 00ce3b460f9356b1ea695cd27fe3c2219055bada
+Command: adb -s emulator-5554 shell am instrument -w -e class io.github.yingqiu0871.evolune.history.pk.RetrospectivePkAndroidDispatcherProofTest io.github.yingqiu0871.evolune.debug.test/androidx.test.runner.AndroidJUnitRunner
+
+--- instrumentation result ---
+io.github.yingqiu0871.evolune.history.pk.RetrospectivePkAndroidDispatcherProofTest:.
+Time: 0.495
+OK (1 test)
+
+--- logcat -s A01DispatcherProof:I ---
+09-20 18:59:12.101  3443  3593 I A01DispatcherProof: caller-thread=main identity=124838970 sameAsMain=true
+09-20 18:59:12.101  3443  3593 I A01DispatcherProof: main-looper-thread=main identity=124838970 sameAsMain=true
+09-20 18:59:12.101  3443  3593 I A01DispatcherProof: production-reader-thread=DefaultDispatcher-worker-3 identity=259459307 sameAsMain=false
+09-20 18:59:12.102  3443  3593 I A01DispatcherProof: probe-reader-thread=DefaultDispatcher-worker-3 identity=259459307 sameAsMain=false
+09-20 18:59:12.102  3443  3593 I A01DispatcherProof: runner-thread=DefaultDispatcher-worker-3 identity=259459307 sameAsMain=false
+09-20 18:59:12.102  3443  3593 I A01DispatcherProof: result=Available seriesPoints=8641 engineEvents=1 dispatcher=Dispatchers.Default
+09-20 18:59:12.102  3443  3593 I A01DispatcherProof: A01_ANDROID_DISPATCHER_PROOF_PASS
