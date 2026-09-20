@@ -1,0 +1,4 @@
+Class: io.github.yingqiu0871.evolune.diagnostics.ComposeDiagnosticsKt
+Observed token path: Composer.changedInstance(Object)
+Observed effect path: EffectsKt.SideEffect(Function0, Composer, int)
+Forbidden structural call: recompositionToken.hashCode() — absent

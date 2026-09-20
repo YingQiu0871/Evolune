@@ -1,0 +1,5 @@
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Result: BUILD SUCCESSFUL
+app=1409, experience-core=171, wear=90, total=1670
+failures=0, errors=0, skipped=0
+Note: frozen portable fixtures were temporarily restored to tracked LF bytes and restored byte-for-byte after the run.

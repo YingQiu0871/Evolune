@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-01 — HASHCODE REGRESSION PROOF
+
+Focused on-device command:
+  .\gradlew.bat :app:connectedDebugAndroidTest
+    "-Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.diagnostics.ComposeDiagnosticsTest"
+    --rerun-tasks
+
+Device:
+  Pixel 11 Pro - 17
+
+Result:
+  3 tests, 0 failures, 0 errors, 0 skipped
+
+Tests:
+  tokenIdentityChangeStillRecordsSameLabel — passed
+  debugDiagnosticDoesNotInvokeTokenHashCode — passed
+  nonDebuggablePathReturnsBeforeTokenInspection — passed
+
+The second test passes a token whose hashCode() increments a counter and throws.
+The debug diagnostic records successfully and the counter remains zero. The
+third test supplies a non-debuggable context and the same sentinel; the
+diagnostic remains a no-op and the counter remains zero.
+
+The compiled debug bytecode was also inspected: it contains Composer.changedInstance
+for the token capture and no recompositionToken.hashCode() call.

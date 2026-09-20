@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-01 — FROZEN CONTRACT AUDIT
+
+Diff against exact B-01 parent:
+  only ComposeDiagnostics.kt and ComposeDiagnosticsTest.kt are changed.
+
+A-01 / A-02 / B-01 zero-delta checks:
+  RetrospectivePkService*              unchanged
+  PkSimulationCalculator*              unchanged
+  MainActivity.kt                       unchanged
+  MainFeatureServices.kt                unchanged
+  MainFeatureServicesTest.kt            unchanged
+  A-01 evidence directory               unchanged
+  A-02 evidence directory               unchanged
+  B-01 evidence directory               unchanged
+
+UI/PK freeze:
+  Home PK calculation, timer, forecast logic, chart geometry/interpolation/
+  drawing/viewport, and current-concentration semantics were not edited.
+
+Version identity:
+  versionName:          1.7.4
+  phone versionCode:    101070400
+  Wear versionCode:     1101070400
+
+No schema, protocol, navigation, release, push, tag, or release action.

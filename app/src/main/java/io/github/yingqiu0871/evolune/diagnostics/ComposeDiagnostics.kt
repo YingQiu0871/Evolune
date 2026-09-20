@@ -36,10 +36,13 @@ internal fun RecordComposeRecomposition(
     val isDebuggable = LocalContext.current.applicationInfo.flags and
         ApplicationInfo.FLAG_DEBUGGABLE != 0
     if (!isDebuggable) return
-    // Keep the token in the call signature so a time-driven parent invalidation
-    // cannot skip this diagnostic call when the rendered state label is unchanged.
-    recompositionToken.hashCode()
+    // Capture the opaque token as a Compose parameter dependency without invoking
+    // its equality/hash contract. The call sites pass unstable state objects, so
+    // a parent invalidation still re-runs this diagnostic when the label is stable.
+    val observedToken = recompositionToken
     SideEffect {
+        @Suppress("UNUSED_EXPRESSION")
+        observedToken
         ComposeDiagnostics.record(surface, state)
     }
 }

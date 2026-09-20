@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 D-01 — PRE-D-01 DIAGNOSTIC PATH
+
+Exact predecessor:
+  7b8e7ad8a2a3153145d7b766cb9ddbb1e7f3d7d0
+
+Source:
+  app/src/main/java/io/github/yingqiu0871/evolune/diagnostics/ComposeDiagnostics.kt
+
+Pre-D-01 behavior from the predecessor:
+  line 38: if (!isDebuggable) return
+  line 41: recompositionToken.hashCode()
+  line 42: SideEffect { ComposeDiagnostics.record(surface, state) }
+
+The non-debuggable guard executed before the explicit hash call, so no release
+overhead was claimed. In the debug path, the hash call was only a discarded
+expression; it did not change the diagnostic label or output format.
+
+Call sites audited:
+  HomeScreen.kt passes PKState as the token.
+  ConcentrationChart.kt passes SimulationResult as the token.
+
+Data-shape audit:
+  SimulationResult is a data class containing timeH: List<Double>,
+  concPGmL: List<Double>, and auc: Double. Its generated hashCode delegates
+  to both lists and therefore traverses their elements.
+  PKState is a data class containing simulationResult and
+  baselineSimulationResult, so its generated hashCode can reach nested
+  SimulationResult collections as well.

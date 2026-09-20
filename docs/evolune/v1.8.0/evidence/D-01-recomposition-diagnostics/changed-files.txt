@@ -1,0 +1,10 @@
+EVOLUNE v1.8.0 D-01 — CHANGED FILES
+
+Production:
+  app/src/main/java/io/github/yingqiu0871/evolune/diagnostics/ComposeDiagnostics.kt
+
+Tests:
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/diagnostics/ComposeDiagnosticsTest.kt
+
+No HomeScreen.kt or ConcentrationChart.kt call-site expression changed.
+No PK/domain/repository/service/root wiring file changed.

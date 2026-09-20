@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 D-01 — FULL JVM VERIFICATION
+
+Exact command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Fresh final results:
+  app:             150 suites, 1,409 tests, 0 failures, 0 errors, 0 skipped
+  experience-core:  20 suites,   171 tests, 0 failures, 0 errors, 0 skipped
+  wear:             11 suites,    90 tests, 0 failures, 0 errors, 0 skipped
+  total:           181 suites, 1,670 tests, 0 failures, 0 errors, 0 skipped
+
+The total remains at the B-01 baseline because D-01 focused tests are Android
+instrumentation tests and are not part of this JVM command.

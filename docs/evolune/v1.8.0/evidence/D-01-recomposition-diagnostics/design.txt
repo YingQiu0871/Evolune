@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 D-01 — DESIGN
+
+Final mechanism:
+  Keep the existing recompositionToken parameter and capture it in the existing
+  SideEffect lambda. Compose's generated code observes this opaque Any? token
+  with changedInstance, which is identity-based and does not invoke the token's
+  equals/hashCode contract. The lambda continues to call the unchanged
+  ComposeDiagnostics.record(surface, state) exactly once per successful effect.
+
+Why this is the smallest safe change:
+  - no call-site changes were necessary;
+  - no new state, generation counter, singleton, or public API was added;
+  - the existing debuggable guard stays before token capture;
+  - surface/state labels and log format remain unchanged;
+  - token changes remain observable to the composable, proven on-device;
+  - the release/non-debuggable path still returns before token inspection.
+
+The discarded structural hash was removed rather than replaced by an identity
+hash integer, avoiding collision-based semantics and avoiding any collection
+traversal.

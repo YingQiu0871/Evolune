@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-01 — BASELINE
+
+B-01 frozen JVM baseline:
+  1,670 tests before D-01 additions, as recorded in the committed B-01
+  full-jvm-summary.txt.
+
+D-01 fresh full JVM result:
+  app:             1,409 tests, 0 failures, 0 errors, 0 skipped
+  experience-core:   171 tests, 0 failures, 0 errors, 0 skipped
+  wear:               90 tests, 0 failures, 0 errors, 0 skipped
+  total:           1,670 tests, 0 failures, 0 errors, 0 skipped
+
+The first raw Windows-worktree run exposed the unchanged portable golden files
+as CRLF while their frozen contract is LF. The two files were temporarily
+represented with their tracked LF bytes for the fresh run and restored byte for
+byte in a finally block. No fixture change is part of D-01.

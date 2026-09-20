@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-01 — FOCUSED TESTS
+
+Fresh JVM focused command:
+  .\gradlew.bat :app:testDebugUnitTest
+    --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest
+    --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest
+    --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest
+    --tests io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineUiArchitectureGuardTest
+    --tests io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveWordingGuardTest
+    --tests io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest
+    --rerun-tasks
+
+Fresh results:
+  ConcentrationChartGeometryTest:       8 passed
+  ConcentrationChartLayoutTest:          3 passed
+  HomeScheduleBoundaryTest:              1 passed
+  TimelineUiArchitectureGuardTest:      28 passed
+  RetrospectiveWordingGuardTest:         5 passed
+  PortableArchitectureGuardTest:        11 passed
+  total:                                56 passed
+  failures/errors/skips:                 0/0/0
+
+The ComposeDiagnosticsTest instrumentation suite is recorded separately in
+hashcode-regression-proof.txt because it runs on the Android test device.

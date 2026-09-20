@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 D-01 — IDENTITY
+
+Approved predecessor / exact parent:
+  7b8e7ad8a2a3153145d7b766cb9ddbb1e7f3d7d0
+
+Branch:
+  feature/v1.8.0-d01-recomposition-diagnostics
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d01
+
+Initial D-01 state:
+  clean at the exact B-01 final head above
+
+Scope:
+  debug-only recomposition diagnostic token observation; no PK, UI, release,
+  navigation, schema, or version behavior changes.
+
+No push, tag, or release was performed.
