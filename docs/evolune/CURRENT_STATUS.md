@@ -383,9 +383,11 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     目标页在最终几何内执行 220 ms 淡入 + 0.98→1.0 缩放，前进/返回对称；全量 JVM app
     149/1399/0；AVD 导航 15/15；Pixel 11 Pro 10 轮 + 帧序列 + 录像；evidence
     `docs/evolune/v1.7.4/evidence/settled-navigation-motion/`）。
-  - v1.7.4 打包候选 — **CANDIDATE / REVIEW PENDING**（版本 1.7.4 / Phone 101070400 /
-    Wear 1101070400；证书 `b9b6b955…`；冻结资产 `243049b5…` / `93a6980f…`；evidence
-    `docs/evolune/v1.7.4/evidence/packaging/`）。
+  - v1.7.4 打包候选 — **CLOSED / FROZEN · APPROVED**（版本 1.7.4 / Phone 101070400 /
+    Wear 1101070400；packaging @ `8e28fce…`；evidence byte-identity correction @
+    `18e3720…`；证书 `b9b6b955…`；冻结资产 `243049b5…` / `93a6980f…`；evidence
+    `docs/evolune/v1.7.4/evidence/packaging/`；release notes
+    `docs/evolune/v1.7.4/V174_RELEASE_NOTES.md`）。
   - **Release: NOT TAGGED / NOT PUBLISHED.**
   - **NEXT:** v1.7.4 发布执行（final docs commit → annotated tag v1.7.4 → push →
     GitHub Release 上传 3 资产 → 发布字节校验）。

@@ -317,12 +317,15 @@
       内执行 alpha 0→1 / scale 0.98→1.0（220 ms、Center、无延迟），前进/返回对称；全量 JVM
       app 149/1399/0；AVD 导航 15/15；Pixel 11 Pro 10 轮 + 帧序列证据 + 三段录像；approved
       implementation.diff 5 文件/19,372 B/`ad200b9d…`）。
-- [x] v1.7.4 打包候选（版本 1.7.4 / Phone 101070400 / Wear 1101070400）— **CANDIDATE /
-      REVIEW PENDING**（`chore(release): prepare v1.7.4 packaging`；证书 `b9b6b955…` 连续；
-      冻结资产 Evolune-Phone-v1.7.4.apk `243049b5…`（6,313,116 B）/ Evolune-Wear-v1.7.4.apk
+- [x] v1.7.4 打包候选（版本 1.7.4 / Phone 101070400 / Wear 1101070400）— **CLOSED /
+      FROZEN · APPROVED**（`chore(release): prepare v1.7.4 packaging` @
+      `8e28fce252e6670720a19a8f95c3ea99f6e881a4`；evidence byte-identity correction @
+      `18e3720e2d229fde6e1e526f8b625294fb657a1c`；证书 `b9b6b955…` 连续；冻结资产
+      Evolune-Phone-v1.7.4.apk `243049b5…`（6,313,116 B）/ Evolune-Wear-v1.7.4.apk
       `93a6980f…`（2,604,764 B）/ SHA256SUMS `4ca5623f…`；validation task 原始日志 + clean
       release 构建 + Phone/Wear signed-release smoke；evidence
-      `docs/evolune/v1.7.4/evidence/packaging/`）。
+      `docs/evolune/v1.7.4/evidence/packaging/`；release notes
+      `docs/evolune/v1.7.4/V174_RELEASE_NOTES.md`）。
 - [ ] NEXT：**v1.7.4 发布执行**（final docs commit → annotated tag v1.7.4 → push →
       GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
