@@ -1,0 +1,3 @@
+Identity/version verification
+Command: .\gradlew.bat validateEvoluneIdentityAndVersioning --rerun-tasks
+Result: BUILD SUCCESSFUL; versionName 1.7.4; phone 101070400; Wear 1101070400.

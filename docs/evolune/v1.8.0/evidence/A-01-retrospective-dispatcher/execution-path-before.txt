@@ -1,0 +1,34 @@
+EVOLUNE v1.8.0 A-01 — ORIGINAL EXECUTION PATH
+
+Baseline: d73428364670ceb691cbe90547bd34fe9acd272f (v1.7.4 / origin/main)
+
+Source reconstruction from the authoritative baseline:
+
+1. RetrospectivePkViewModel.startLoad() launches in `scope`, where the default is
+   `viewModelScope`; the default ViewModel scope is Main.immediate/Main-owned.
+2. The load coroutine calls `RetrospectivePkSurfaceCoordinator.load(capture)`.
+3. The coordinator performs the frozen sequential reads: Read 1
+   `RetrospectivePkSource.estimate(...)`, then Read 2
+   `AllAvailableHistorySource.readAllAvailable(...)`, then Read 3
+   `HistoryRangeSource.read(...)`.
+4. The composition root constructs Read 1 with
+   `RetrospectivePkService(historyReadService)`.
+5. `RetrospectivePkService.estimate(...)` has no dispatcher switch. It validates the
+   request, calls `history.readAllAvailable(...)`, extracts/project inputs, computes
+   the 12-points-per-hour grid, calls `curveRunner.run(...)`, validates the series,
+   and publishes the result through the coordinator back to the ViewModel caller.
+6. `DefaultRetrospectivePkCurveRunner.run(...)` synchronously constructs and calls
+   `SimulationEngine(...).run()`.
+
+Conclusion: the service's synchronous extraction/projection and SimulationEngine call
+inherit the caller context. From the default ViewModel path, that is the Main caller
+context. The coordinator's three reads are sequential and non-atomic; this A-01 must
+not combine, parallelize, or otherwise reorder them. ViewModel generation checks and
+state publication remain owned by the existing ViewModel scope.
+
+Files read for this reconstruction:
+- app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkSurfaceCoordinator.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkModels.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt

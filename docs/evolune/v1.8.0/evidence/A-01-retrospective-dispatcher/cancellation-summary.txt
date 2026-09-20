@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 A-01 — CANCELLATION/PUBLICATION
+
+The service retains its existing CancellationException rethrow behavior and
+does not translate cancellation into unavailable/error. withContext preserves
+structured cancellation across the new dispatcher boundary.
+
+Existing service cancellation coverage remains green. The new ViewModel test
+cancels the caller scope while the load is gated, releases the gate, and
+asserts that the state remains LOADING with null result and null failure. This
+preserves the existing rule that cancellation cannot publish a late terminal
+success or error.
+
+Generation checks, refresh/coalescing, and stale-result guards remain in their
+existing owners and passed the focused and full JVM suites.

@@ -1,0 +1,21 @@
+EVOLUNE v1.8.0 A-01 — FROZEN CONTRACT AUDIT
+
+PASS — numerical behavior: original RetrospectivePkService body retained;
+  step grid, event projection, curve validation, and result mapping unchanged.
+PASS — read order: coordinator still performs Read 1 estimate, Read 2
+  readAllAvailable, then Read 3 range read, sequentially and non-atomically.
+PASS — zero-read invalid weight: invalid body weight still rejects before any
+  history read.
+PASS — unavailable/failure: existing service and coordinator short-circuit
+  behavior remains unchanged.
+PASS — marker reconciliation: existing marker derivation and reconciliation
+  behavior is unchanged.
+PASS — generation/race guards: existing generation checks and refresh/coalescing
+  behavior remain in the ViewModel/coordinator path.
+PASS — publication: results are still published through the existing caller
+  scope; computation ownership moved only inside RetrospectivePkService.
+PASS — cancellation: CancellationException remains cancellation, with no
+  terminal success/error publication after caller-scope cancellation.
+PASS — schema/version/UI: no schema, migration, navigation, UI, or version
+  identity changes.
+PASS — engine: SimulationEngine.kt is byte-for-byte unchanged from baseline.

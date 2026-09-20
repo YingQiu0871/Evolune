@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 A-01 — FULL JVM VERIFICATION
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Results from Gradle XML reports:
+- app:             149 suites, 1404 tests, 0 failures, 0 errors, 0 skipped
+- experience-core:  20 suites,  171 tests, 0 failures, 0 errors, 0 skipped
+- wear:             11 suites,   90 tests, 0 failures, 0 errors, 0 skipped
+- total:           180 suites, 1665 tests, 0 failures, 0 errors, 0 skipped
+
+The command completed successfully. Existing canonical fixture resources were
+normalized to their tracked LF bytes during setup; their content hashes match
+the baseline and they are not implementation changes.

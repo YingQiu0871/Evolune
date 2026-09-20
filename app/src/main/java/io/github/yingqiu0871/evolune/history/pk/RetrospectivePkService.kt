@@ -9,8 +9,11 @@ import io.github.yingqiu0871.evolune.history.AllAvailableHistory
 import io.github.yingqiu0871.evolune.history.AllAvailableHistorySource
 import io.github.yingqiu0871.evolune.history.HistoricalOccurrenceLimitExceededException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
@@ -24,15 +27,24 @@ import kotlin.math.ceil
  */
 class RetrospectivePkService internal constructor(
     private val history: AllAvailableHistorySource,
-    private val curveRunner: RetrospectivePkCurveRunner
+    private val curveRunner: RetrospectivePkCurveRunner,
+    private val computationDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : RetrospectivePkSource {
 
     constructor(history: AllAvailableHistorySource) : this(
         history = history,
-        curveRunner = DefaultRetrospectivePkCurveRunner
+        curveRunner = DefaultRetrospectivePkCurveRunner,
+        computationDispatcher = Dispatchers.Default
     )
 
-    override suspend fun estimate(request: RetrospectivePkRequest): RetrospectivePkResult {
+    override suspend fun estimate(request: RetrospectivePkRequest): RetrospectivePkResult =
+        withContext(computationDispatcher) {
+            estimateOnComputationDispatcher(request)
+        }
+
+    private suspend fun estimateOnComputationDispatcher(
+        request: RetrospectivePkRequest
+    ): RetrospectivePkResult {
         require(isValidBodyWeight(request.bodyWeightKG)) {
             "retrospective PK body weight must be finite, positive and within the settings range"
         }

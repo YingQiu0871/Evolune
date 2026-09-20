@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 A-01 — CHANGED FILES
+
+Implementation and test files:
+- app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt
+  Adds the injected/default computation dispatcher and preserves the original
+  estimate body under that boundary.
+- app/src/test/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkServiceTest.kt
+  Adds deterministic injected-dispatcher thread-ownership coverage.
+- app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+  Adds cancellation/publication coverage for the caller scope.
+
+SimulationEngine.kt has zero diff from the authoritative baseline.
+No schema, navigation, UI, Home/history standard, or version file changed.
+The binary-safe implementation diff is implementation.diff in this directory.

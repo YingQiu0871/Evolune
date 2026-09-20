@@ -1,0 +1,26 @@
+EVOLUNE v1.8.0 A-01 — DISPATCHER DESIGN
+
+Boundary: RetrospectivePkService. Its public estimate(request) is the
+computation seam and wraps the existing service orchestration in
+withContext(computationDispatcher).
+
+Dispatcher policy:
+- Default production dispatcher: Dispatchers.Default.
+- Internal constructor accepts an injected CoroutineDispatcher for deterministic
+  ownership tests.
+- The existing public composition-root constructor remains
+  RetrospectivePkService(historyReadService).
+
+The whole service computation stays together: validation, the existing
+history read, extraction/projection, step calculation, curve-runner call, and
+series validation execute in the computation context. The curve runner and
+SimulationEngine therefore no longer execute on the caller/Main context.
+
+The coordinator's three reads remain in their existing order and remain
+sequential/non-atomic. ViewModel generation checks and publication remain in
+the existing caller-owned ViewModel flow. Cancellation is not caught or
+converted by the dispatcher boundary; structured cancellation propagates
+through withContext.
+
+No new global scope, long-lived scope, parallel read, cache, numerical rewrite,
+or SimulationEngine change was introduced.

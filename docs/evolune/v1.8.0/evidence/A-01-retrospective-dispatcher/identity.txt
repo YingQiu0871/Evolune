@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-01 — IDENTITY
+
+Authoritative baseline: d73428364670ceb691cbe90547bd34fe9acd272f
+Baseline labels: v1.7.4 and origin/main
+Implementation worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a01
+Implementation branch: feature/v1.8.0-a01-retrospective-dispatcher
+Initial worktree state: clean at the authoritative baseline
+
+Release identity was intentionally unchanged:
+- versionName: 1.7.4
+- phone versionCode: 101070400
+- Wear versionCode: 1101070400
+
+The repository identity/version guard passed after implementation.
+No push, tag, release, or external publication was performed.

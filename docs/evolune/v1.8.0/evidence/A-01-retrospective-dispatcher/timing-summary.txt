@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 A-01 — THREAD OWNERSHIP SAMPLE
+
+These are single local JVM samples, not a universal performance claim.
+The primary evidence is executor/thread ownership.
+
+Before (baseline, caller executor):
+- typical 30-day window: 72 ms; runner thread retrospective-baseline-caller
+  @coroutine#1
+- large 366-day window: 26 ms; runner thread retrospective-baseline-caller
+  @coroutine#2
+
+After (A-01, injected computation executor):
+- typical 30-day window: 74 ms; runner thread retrospective-timing-computation
+  @coroutine#1
+- large 366-day window: 26 ms; runner thread retrospective-timing-computation
+  @coroutine#2
+
+The deterministic final unit test separately asserts the runner thread starts
+with retrospective-computation-test and does not start with the distinct
+retrospective-caller-test name.

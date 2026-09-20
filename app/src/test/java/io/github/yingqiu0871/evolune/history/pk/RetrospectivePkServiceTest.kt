@@ -17,6 +17,7 @@ import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.pk.SimulationEngine
 import io.github.yingqiu0871.evolune.pk.SimulationResult
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -33,6 +34,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.UUID
+import java.util.concurrent.Executors
 
 /**
  * V17-C-01 §13.4: service orchestration, query/resource validation, cursor, limitations,
@@ -43,6 +45,44 @@ class RetrospectivePkServiceTest {
     private val utc: ZoneId = ZoneOffset.UTC
     private val t0: Instant = Instant.parse("2025-06-01T08:00:00Z")
     private val policy = MedicationOccurrencePolicy()
+
+    @Test
+    fun `A01 estimate runs the curve runner on the injected computation dispatcher`() {
+        val callerExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "retrospective-caller-test")
+        }
+        val computationExecutor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "retrospective-computation-test")
+        }
+        val callerDispatcher = callerExecutor.asCoroutineDispatcher()
+        val computationDispatcher = computationExecutor.asCoroutineDispatcher()
+        var runnerThreadName: String? = null
+        val runner = RetrospectivePkCurveRunner { _, _, startTimeH, endTimeH, _ ->
+            runnerThreadName = Thread.currentThread().name
+            SimulationResult(
+                timeH = listOf(startTimeH, endTimeH),
+                concPGmL = listOf(0.0, 0.0),
+                auc = 0.0
+            )
+        }
+
+        try {
+            val result = runBlocking(callerDispatcher) {
+                RetrospectivePkService(
+                    history = reader(events = listOf(injectionEvent(UUID(0L, 101L), t0))),
+                    curveRunner = runner,
+                    computationDispatcher = computationDispatcher
+                ).estimate(request())
+            }
+
+            assertTrue(result is RetrospectivePkResult.Available)
+            assertTrue(runnerThreadName.orEmpty().startsWith("retrospective-computation-test"))
+            assertTrue(!runnerThreadName.orEmpty().startsWith("retrospective-caller-test"))
+        } finally {
+            callerDispatcher.close()
+            computationDispatcher.close()
+        }
+    }
 
     // ------------------------------------------------------------------
     // S1 / W1: established-style retrospective golden on the R4.2 EV fixture

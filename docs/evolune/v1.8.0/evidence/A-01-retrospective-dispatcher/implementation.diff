@@ -1,0 +1,139 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt
+index 3baca24..5969d44 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt
+@@ -9,8 +9,11 @@ import io.github.yingqiu0871.evolune.history.AllAvailableHistory
+ import io.github.yingqiu0871.evolune.history.AllAvailableHistorySource
+ import io.github.yingqiu0871.evolune.history.HistoricalOccurrenceLimitExceededException
+ import kotlinx.coroutines.CancellationException
++import kotlinx.coroutines.CoroutineDispatcher
++import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.currentCoroutineContext
+ import kotlinx.coroutines.ensureActive
++import kotlinx.coroutines.withContext
+ import java.time.Duration
+ import java.time.Instant
+ import kotlin.math.ceil
+@@ -24,15 +27,24 @@ import kotlin.math.ceil
+  */
+ class RetrospectivePkService internal constructor(
+     private val history: AllAvailableHistorySource,
+-    private val curveRunner: RetrospectivePkCurveRunner
++    private val curveRunner: RetrospectivePkCurveRunner,
++    private val computationDispatcher: CoroutineDispatcher = Dispatchers.Default
+ ) : RetrospectivePkSource {
+ 
+     constructor(history: AllAvailableHistorySource) : this(
+         history = history,
+-        curveRunner = DefaultRetrospectivePkCurveRunner
++        curveRunner = DefaultRetrospectivePkCurveRunner,
++        computationDispatcher = Dispatchers.Default
+     )
+ 
+-    override suspend fun estimate(request: RetrospectivePkRequest): RetrospectivePkResult {
++    override suspend fun estimate(request: RetrospectivePkRequest): RetrospectivePkResult =
++        withContext(computationDispatcher) {
++            estimateOnComputationDispatcher(request)
++        }
++
++    private suspend fun estimateOnComputationDispatcher(
++        request: RetrospectivePkRequest
++    ): RetrospectivePkResult {
+         require(isValidBodyWeight(request.bodyWeightKG)) {
+             "retrospective PK body weight must be finite, positive and within the settings range"
+         }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkServiceTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkServiceTest.kt
+index 34c72b3..d8df611 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkServiceTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkServiceTest.kt
+@@ -17,6 +17,7 @@ import io.github.yingqiu0871.evolune.pk.Ester
+ import io.github.yingqiu0871.evolune.pk.Route
+ import io.github.yingqiu0871.evolune.pk.SimulationEngine
+ import io.github.yingqiu0871.evolune.pk.SimulationResult
++import kotlinx.coroutines.asCoroutineDispatcher
+ import kotlinx.coroutines.CancellationException
+ import kotlinx.coroutines.runBlocking
+ import org.junit.Assert.assertEquals
+@@ -33,6 +34,7 @@ import java.time.LocalTime
+ import java.time.ZoneId
+ import java.time.ZoneOffset
+ import java.util.UUID
++import java.util.concurrent.Executors
+ 
+ /**
+  * V17-C-01 §13.4: service orchestration, query/resource validation, cursor, limitations,
+@@ -44,6 +46,44 @@ class RetrospectivePkServiceTest {
+     private val t0: Instant = Instant.parse("2025-06-01T08:00:00Z")
+     private val policy = MedicationOccurrencePolicy()
+ 
++    @Test
++    fun `A01 estimate runs the curve runner on the injected computation dispatcher`() {
++        val callerExecutor = Executors.newSingleThreadExecutor { runnable ->
++            Thread(runnable, "retrospective-caller-test")
++        }
++        val computationExecutor = Executors.newSingleThreadExecutor { runnable ->
++            Thread(runnable, "retrospective-computation-test")
++        }
++        val callerDispatcher = callerExecutor.asCoroutineDispatcher()
++        val computationDispatcher = computationExecutor.asCoroutineDispatcher()
++        var runnerThreadName: String? = null
++        val runner = RetrospectivePkCurveRunner { _, _, startTimeH, endTimeH, _ ->
++            runnerThreadName = Thread.currentThread().name
++            SimulationResult(
++                timeH = listOf(startTimeH, endTimeH),
++                concPGmL = listOf(0.0, 0.0),
++                auc = 0.0
++            )
++        }
++
++        try {
++            val result = runBlocking(callerDispatcher) {
++                RetrospectivePkService(
++                    history = reader(events = listOf(injectionEvent(UUID(0L, 101L), t0))),
++                    curveRunner = runner,
++                    computationDispatcher = computationDispatcher
++                ).estimate(request())
++            }
++
++            assertTrue(result is RetrospectivePkResult.Available)
++            assertTrue(runnerThreadName.orEmpty().startsWith("retrospective-computation-test"))
++            assertTrue(!runnerThreadName.orEmpty().startsWith("retrospective-caller-test"))
++        } finally {
++            callerDispatcher.close()
++            computationDispatcher.close()
++        }
++    }
++
+     // ------------------------------------------------------------------
+     // S1 / W1: established-style retrospective golden on the R4.2 EV fixture
+     // ------------------------------------------------------------------
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+index 80d4900..c874105 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModelTest.kt
+@@ -399,6 +399,25 @@ class RetrospectivePkViewModelTest {
+         }
+     }
+ 
++    @Test
++    fun `cancelling the caller scope does not publish a terminal retrospective state`() {
++        val gate = CompletableDeferred<Unit>()
++        val fixture = fixture(gate = gate)
++        try {
++            assertEquals(RetrospectivePhase.LOADING, fixture.viewModel.uiState.value.phase)
++
++            fixture.scope.cancel()
++            gate.complete(Unit)
++
++            val state = fixture.viewModel.uiState.value
++            assertEquals(RetrospectivePhase.LOADING, state.phase)
++            assertNull(state.result)
++            assertNull(state.failure)
++        } finally {
++            fixture.close()
++        }
++    }
++
+     @Test
+     fun `the first surface entry adds no load while a re-entry refreshes once`() {
+         val fixture = fixture()

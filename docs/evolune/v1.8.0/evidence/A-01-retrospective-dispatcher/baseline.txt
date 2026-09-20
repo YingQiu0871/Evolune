@@ -1,0 +1,18 @@
+EVOLUNE v1.8.0 A-01 — BASELINE VERIFICATION
+
+Baseline commit: d73428364670ceb691cbe90547bd34fe9acd272f
+
+Focused baseline command:
+  .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  [the ten A-01 regression suites listed in focused-tests.txt]
+
+Baseline result: 126 tests, 0 failures, 0 errors, 0 skipped.
+
+The original execution path is recorded in execution-path-before.txt. The
+retrospective service had no dispatcher switch: its validation, history
+extraction/projection, step calculation, curve-runner call, and synchronous
+SimulationEngine execution inherited the caller context. The default caller
+was the ViewModel's Main-owned scope.
+
+The three coordinator reads were already sequential and non-atomic. No
+baseline code was changed while reconstructing that path.

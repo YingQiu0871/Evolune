@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 A-01 — FOCUSED TESTS
+
+Suites: RetrospectivePkServiceTest, RetrospectivePkZeroWriteTest,
+RetrospectivePkGuardTest, RetrospectivePkViewModelTest,
+RetrospectiveArchitectureGuardTest, RetrospectiveMarkerDerivationTest,
+RetrospectivePolicyInvariantTest, RetrospectiveStringsParityTest,
+InsightsOrchestrationGuardTest, SimulationEngineTest.
+
+Baseline: 126 tests, 0 failures, 0 errors, 0 skipped.
+Final:    128 tests, 0 failures, 0 errors, 0 skipped.
+
+Added coverage:
+- Injected single-thread computation dispatcher receives the curve-runner
+  execution while a separate caller executor remains distinct.
+- Cancelling the caller scope does not publish a terminal retrospective state.
+
+Final command completed successfully with the exact ten-suite selection.

@@ -1,0 +1,4 @@
+Baseline focused verification
+Baseline: d73428364670ceb691cbe90547bd34fe9acd272f
+Command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks with the ten suites in focused-tests.txt
+Result: BUILD SUCCESSFUL; 126 tests; 0 failures; 0 errors; 0 skipped.

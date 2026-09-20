@@ -1,0 +1,6 @@
+Temporary measurement probes (removed before final commit)
+Baseline runner: retrospective-baseline-caller @coroutine#N
+Baseline samples: typical_30d_ms=72; large_366d_ms=26
+A-01 runner: retrospective-timing-computation @coroutine#N
+A-01 samples: typical_30d_ms=74; large_366d_ms=26
+These samples document thread ownership only; they are not a universal performance claim.

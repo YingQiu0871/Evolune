@@ -400,6 +400,25 @@ class RetrospectivePkViewModelTest {
     }
 
     @Test
+    fun `cancelling the caller scope does not publish a terminal retrospective state`() {
+        val gate = CompletableDeferred<Unit>()
+        val fixture = fixture(gate = gate)
+        try {
+            assertEquals(RetrospectivePhase.LOADING, fixture.viewModel.uiState.value.phase)
+
+            fixture.scope.cancel()
+            gate.complete(Unit)
+
+            val state = fixture.viewModel.uiState.value
+            assertEquals(RetrospectivePhase.LOADING, state.phase)
+            assertNull(state.result)
+            assertNull(state.failure)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
     fun `the first surface entry adds no load while a re-entry refreshes once`() {
         val fixture = fixture()
         try {
