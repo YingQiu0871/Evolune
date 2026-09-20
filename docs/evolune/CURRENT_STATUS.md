@@ -374,10 +374,20 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `cbfcfc5673a9abf35bff9e6562aa8683c2d89e5e`；版本 1.7.3 / Phone 101070300 /
     Wear 1101070300；证书 `b9b6b955…`；冻结资产 `cb535ca7…` / `da398a34…`；
     evidence `docs/evolune/v1.7.3/evidence/packaging/`）。
-  - **v1.7.3 发布候选：APPROVED。Release execution: PENDING TAG / PUBLICATION**
-    （release notes `docs/evolune/v1.7.3/V173_RELEASE_NOTES.md`）。
+  - **v1.7.3 发布 — RELEASED**（annotated tag `v1.7.3` @
+    `bcb12d432af1e9780e66686359545e69a056da39`；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.3，3 资产，发布后字节校验 2/2；
+    closure packet `review-packets/v173-final-release.txt`）。
+  - v1.7.4 导航动效精修 — **CLOSED / FROZEN**（implementation @ `c8f5edf…`；P1 correction @
+    `edd1dc91…`；evidence refresh/repair @ `15743b33…` / `8118d785…`；保留 v1.7.3 防卡顿规则，
+    目标页在最终几何内执行 220 ms 淡入 + 0.98→1.0 缩放，前进/返回对称；全量 JVM app
+    149/1399/0；AVD 导航 15/15；Pixel 11 Pro 10 轮 + 帧序列 + 录像；evidence
+    `docs/evolune/v1.7.4/evidence/settled-navigation-motion/`）。
+  - v1.7.4 打包候选 — **CANDIDATE / REVIEW PENDING**（版本 1.7.4 / Phone 101070400 /
+    Wear 1101070400；证书 `b9b6b955…`；冻结资产 `243049b5…` / `93a6980f…`；evidence
+    `docs/evolune/v1.7.4/evidence/packaging/`）。
   - **Release: NOT TAGGED / NOT PUBLISHED.**
-  - **NEXT:** v1.7.3 发布执行（final docs commit → annotated tag v1.7.3 → push →
+  - **NEXT:** v1.7.4 发布执行（final docs commit → annotated tag v1.7.4 → push →
     GitHub Release 上传 3 资产 → 发布字节校验）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /

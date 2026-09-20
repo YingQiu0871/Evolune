@@ -1,0 +1,18 @@
+v1.7.4 packaging — changed files
+================================
+
+Packaging-phase changes vs approved implementation HEAD 8118d78:
+
+  M build.gradle.kts                     version bump only (1.7.4 / 101_070_400 / 1_101_070_400)
+  M TODO.MD                              status docs
+  M docs/evolune/CURRENT_STATUS.md       status docs
+  M docs/evolune/ROADMAP.md              status docs
+  A docs/evolune/v1.7.4/evidence/packaging/  this evidence bundle
+
+ZERO diff to the frozen implementation files:
+  AppNavigation.kt, SettledGeometryPageMotion.kt, EvolunePageMotion.kt,
+  SettledGeometryPageMotionTest.kt, MotionListUxBoundaryTest.kt,
+  PrimaryNavigationChrome.kt, EditorTransitionHost.kt
+  (verified with `git diff --name-only -- <frozen list>` = empty)
+
+No other product/test/resource file changed. No APK/AAB is committed.

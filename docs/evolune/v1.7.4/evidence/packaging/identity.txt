@@ -1,0 +1,13 @@
+v1.7.4 packaging — identity
+===========================
+
+Repository worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.7.4
+Branch: feature/v1.7.4-settled-navigation-motion
+Approved implementation/evidence HEAD (frozen): 8118d78544de54f105228ae8da737fff3e14d08d
+  (parent 15743b336dad48336707b797dc176f745ee6ba7d)
+Released baseline: bcb12d432af1e9780e66686359545e69a056da39 (v1.7.3)
+Commit chain: c8f5edf (original) -> edd1dc9 (P1 correction) -> 15743b3 (evidence refresh)
+  -> 8118d78 (evidence integrity repair)
+Packaging commit subject: chore(release): prepare v1.7.4 packaging
+No v1.7.4 tag exists locally or remotely; no GitHub Release; this round does not
+create one.

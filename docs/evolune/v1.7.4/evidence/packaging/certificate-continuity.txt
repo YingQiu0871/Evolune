@@ -1,0 +1,12 @@
+v1.7.4 packaging — certificate continuity
+=========================================
+
+Release signing certificate SHA-256 (apksigner verify --print-certs):
+
+  Evolune-Phone-v1.7.4.apk : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+  Evolune-Wear-v1.7.4.apk  : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Same certificate as the released v1.7.2 / v1.7.3 candidates and all prior v1.x
+releases (v1.7.3 recorded b9b6b955...). Keystore: EVOLUNE_KEYSTORE_PATH
+(D:\Evolune-Secrets\release\evolune-release.p12), alias Evolune, via environment
+only — no secret material in this repository.

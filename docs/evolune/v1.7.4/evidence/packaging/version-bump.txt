@@ -1,0 +1,19 @@
+v1.7.4 packaging — version bump
+===============================
+
+Formula (root build.gradle.kts):
+  ordinal = major*1_000_000 + minor*10_000 + patch*100 + revision
+  Phone = 100_000_000 + ordinal ; Wear = 1_100_000_000 + ordinal
+
+1.7.3 (released): patch 3 -> ordinal 1_070_300 -> 101_070_300 / 1_101_070_300
+1.7.4 (derived):  patch 4 -> ordinal 1_070_400 -> Phone 101_070_400 /
+                  Wear 1_101_070_400
+
+Diff (build.gradle.kts only):
+  -val evoluneVersionName by extra("1.7.3")   +val evoluneVersionName by extra("1.7.4")
+  -val evoluneVersionPatch = 3                +val evoluneVersionPatch = 4
+  -check(evoluneVersionName == "1.7.3")       +check(evoluneVersionName == "1.7.4")
+  -check(phoneCode == 101_070_300)            +check(phoneCode == 101_070_400)
+  -check(wearCode == 1_101_070_300)           +check(wearCode == 1_101_070_400)
+
+validateEvoluneIdentityAndVersioning -> BUILD SUCCESSFUL (validation-task.log).

@@ -1,0 +1,17 @@
+v1.7.4 packaging — Phone APK metadata
+=====================================
+
+Artifact: Evolune-Phone-v1.7.4.apk
+Source  : app/build/outputs/apk/release/app-release.apk
+
+package name    : io.github.yingqiu0871.evolune
+versionName     : 1.7.4
+versionCode     : 101070400
+minSdkVersion   : 31
+targetSdkVersion: 36
+compileSdk      : 36 (platformBuildVersionName 16 / code 36)
+size (bytes)    : 6,313,116
+SHA-256         : 243049b56fc5c3431ce08897b109bc583c86b9002dc63fb6d1849b9305089bc2
+
+apksigner verify: certificate SHA-256 digest =
+  b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08

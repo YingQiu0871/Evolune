@@ -1,0 +1,16 @@
+v1.7.4 packaging — packaging diff
+=================================
+
+Full packaging diff vs approved implementation HEAD 8118d78 is captured in
+packaging.diff. It contains ONLY build.gradle.kts (version bump):
+
+  -val evoluneVersionName by extra("1.7.3")   +val evoluneVersionName by extra("1.7.4")
+  -val evoluneVersionPatch = 3                +val evoluneVersionPatch = 4
+  -check(evoluneVersionName == "1.7.3")       +check(evoluneVersionName == "1.7.4")
+  -check(phoneCode == 101_070_300)            +check(phoneCode == 101_070_400)
+  -check(wearCode == 1_101_070_300)           +check(wearCode == 1_101_070_400)
+
+Evidence/docs files are additive only (this directory + 3 status docs); they do
+not alter build inputs beyond the version source. The frozen approved
+implementation.diff in ../settled-navigation-motion/ was NOT touched (still
+19,372 B / ad200b9d...).

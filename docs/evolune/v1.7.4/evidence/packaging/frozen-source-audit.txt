@@ -1,0 +1,19 @@
+v1.7.4 packaging — frozen source audit
+======================================
+
+git diff 8118d78..<packaging candidate>:
+
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt   : zero
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotion.kt : zero
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/motion/EvolunePageMotion.kt : zero
+  app/src/test/java/io/github/yingqiu0871/evolune/ui/motion/SettledGeometryPageMotionTest.kt : zero
+  app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/MotionListUxBoundaryTest.kt : zero
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/PrimaryNavigationChrome.kt : zero
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/components/EditorTransitionHost.kt : zero
+  app/src/main (all other) / app/src/test / app/src/androidTest : zero
+  app/src/main/res : zero
+  experience-core / wear : zero
+  app/schemas (Room) : zero
+
+The only product/build-affecting delta is the authoritative version declaration
+file build.gradle.kts. No motion behaviour change in packaging.

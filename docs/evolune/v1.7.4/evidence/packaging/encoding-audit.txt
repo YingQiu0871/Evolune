@@ -1,0 +1,24 @@
+v1.7.4 packaging — encoding audit
+=================================
+
+Scope: every file in this evidence directory (recursive), MANIFEST.sha256
+generated after this audit.
+
+Hand-authored evidence (.txt): UTF-8 without BOM, LF line endings, no NUL.
+  identity.txt, baseline.txt, approved-implementation.txt, version-bump.txt,
+  changed-files.txt, frozen-source-audit.txt, phone-apk-metadata.txt,
+  wear-apk-metadata.txt, certificate-continuity.txt, artifact-hashes.txt,
+  release-smoke-phone.txt, release-smoke-wear.txt, packaging-diff.txt,
+  encoding-audit.txt
+
+Raw captures:
+  validation-task.log, release-build.log — raw Gradle stdout/stderr redirected
+  verbatim (CRLF present as produced on Windows; bytes are the authoritative
+  capture, intentionally not normalised). No BOM, no NUL.
+  logs/physical-walkthrough.log — UTF-8 no BOM, LF.
+
+Binary: screenshots/*.png, release-wear-launch.png — PNG payloads, exempt from
+text encoding rules; hashed in MANIFEST.sha256.
+
+Result: PASS (no BOM anywhere; text evidence LF-only; no NUL; raw logs kept
+verbatim).

@@ -1,0 +1,15 @@
+v1.7.4 packaging — artifact hashes
+==================================
+
+Staged external candidates: D:\Evolune-Workspace\release-candidates\v1.7.4\
+
+  Evolune-Phone-v1.7.4.apk  6,313,116 B
+    243049b56fc5c3431ce08897b109bc583c86b9002dc63fb6d1849b9305089bc2
+  Evolune-Wear-v1.7.4.apk   2,604,764 B
+    93a6980f74ac81ad6319492730677a361ee550dc93d96f23d9866a21addd6303
+  SHA256SUMS.txt            (2 entries, lowercase, no headers)
+    4ca5623fa13349469abd27c2fb1440b141cb59aa492a6bdc6ad51394acf01008
+  RELEASE_BODY-v1.7.4.md    (not a release asset; used by the closure round)
+
+Candidate bytes are the clean-build outputs copied 1:1 from the packaging build;
+SHA256SUMS.txt content re-read and matched against fresh hashes.

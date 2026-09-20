@@ -1,0 +1,21 @@
+v1.7.4 packaging — Phone signed-release smoke (AVD emulator-5554, Pixel_7 API 35)
+================================================================================
+
+Artifact under test: Evolune-Phone-v1.7.4.apk (external candidate bytes)
+
+1. adb install -r -> Success
+2. dumpsys package io.github.yingqiu0871.evolune
+     versionCode=101070400 minSdk=31 targetSdk=36
+     versionName=1.7.4
+3. Cold launch MainActivity -> app content composed (no onboarding overlay)
+4. Home tab reachable; screenshot release-phone-history.png (History)
+5. History -> 用药洞察 (Insights) opened -> Back -> History
+     screenshot release-phone-insights.png
+6. History -> 用药时间线 (Timeline) opened -> Back -> History
+7. Settings -> About opened -> Back -> Settings
+     screenshot release-phone-about.png
+8. logcat (last 2500 lines): no evolune FATAL EXCEPTION / no ANR in
+     (clean)
+
+Result: PASS — signed release APK installs, launches, and navigates
+(forward + Back) on the release build; no crash/ANR.

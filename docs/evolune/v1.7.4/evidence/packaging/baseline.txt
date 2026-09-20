@@ -1,0 +1,9 @@
+v1.7.4 packaging — baseline
+===========================
+
+Released predecessor: v1.7.3 (tag v1.7.3 -> bcb12d4; GitHub Release published
+2026-09-19 with 3 assets, byte-verified).
+
+v1.7.3 behaviour: chrome-changing navigation suppressed the NavHost page motion
+completely (no animation at all). v1.7.4 restores the soft entrance INSIDE the
+settled target geometry while keeping the v1.7.3 anti-jank suppression rule.

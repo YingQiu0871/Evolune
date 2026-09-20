@@ -1,0 +1,17 @@
+v1.7.4 packaging — Wear APK metadata
+====================================
+
+Artifact: Evolune-Wear-v1.7.4.apk
+Source  : wear/build/outputs/apk/release/wear-release.apk
+
+package name    : io.github.yingqiu0871.evolune
+versionName     : 1.7.4
+versionCode     : 1101070400
+minSdkVersion   : 30
+targetSdkVersion: 36
+compileSdk      : 36 (platformBuildVersionName 16 / code 36)
+size (bytes)    : 2,604,764
+SHA-256         : 93a6980f74ac81ad6319492730677a361ee550dc93d96f23d9866a21addd6303
+
+apksigner verify: certificate SHA-256 digest =
+  b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08

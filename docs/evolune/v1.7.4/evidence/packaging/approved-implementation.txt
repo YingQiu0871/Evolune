@@ -1,0 +1,17 @@
+v1.7.4 packaging — approved implementation
+==========================================
+
+Approved implementation/evidence HEAD: 8118d78544de54f105228ae8da737fff3e14d08d
+
+Approved implementation.diff (frozen, NOT overwritten by this round):
+  path   : docs/evolune/v1.7.4/evidence/settled-navigation-motion/implementation.diff
+  files  : 5
+  bytes  : 19,372
+  SHA-256: ad200b9ddb0e2b3996644782b3e2a2140900e7ab68d83f370b37f725c0f46e6a
+  (re-verified from the frozen tree before any packaging change)
+
+Frozen source (ZERO packaging-phase diff, verified in frozen-source-audit.txt):
+  navigation/AppNavigation.kt, ui/motion/SettledGeometryPageMotion.kt,
+  ui/motion/EvolunePageMotion.kt, ui/motion/SettledGeometryPageMotionTest.kt,
+  ui/screens/MotionListUxBoundaryTest.kt, navigation/PrimaryNavigationChrome.kt,
+  ui/components/EditorTransitionHost.kt

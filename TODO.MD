@@ -305,10 +305,25 @@
       `da398a34…`（2,604,768 B）/ SHA256SUMS `65717299…`；validation task 原始日志 +
       clean release 构建 + Phone/Wear release smoke；evidence
       `docs/evolune/v1.7.3/evidence/packaging/`）。
-- [x] v1.7.3 发布候选 — **APPROVED**；**Release execution: PENDING TAG / PUBLICATION**
-      （release notes `docs/evolune/v1.7.3/V173_RELEASE_NOTES.md`；发布正文与资产在仓库外
-      `D:\Evolune-Workspace\release-candidates\v1.7.3\`）。
-- [ ] NEXT：**v1.7.3 发布执行**（final docs commit → annotated tag v1.7.3 → push →
+- [x] v1.7.3 发布 — **RELEASED**（annotated tag `v1.7.3` @
+      `bcb12d432af1e9780e66686359545e69a056da39`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.3，3 资产，发布后字节校验
+      2/2；closure packet `review-packets/v173-final-release.txt`）。
+- [x] v1.7.4 导航动效精修（settled-geometry motion）— **CLOSED / FROZEN**
+      （implementation `fix(navigation): restore settled-geometry page motion` @
+      `c8f5edff…`；P1 correction `fix(navigation): commit route edges after composition` @
+      `edd1dc91…`；evidence refresh @ `15743b33…` + integrity repair @
+      `8118d78544de54f105228ae8da737fff3e14d08d`；保留 v1.7.3 防卡顿规则，目标页在最终几何
+      内执行 alpha 0→1 / scale 0.98→1.0（220 ms、Center、无延迟），前进/返回对称；全量 JVM
+      app 149/1399/0；AVD 导航 15/15；Pixel 11 Pro 10 轮 + 帧序列证据 + 三段录像；approved
+      implementation.diff 5 文件/19,372 B/`ad200b9d…`）。
+- [x] v1.7.4 打包候选（版本 1.7.4 / Phone 101070400 / Wear 1101070400）— **CANDIDATE /
+      REVIEW PENDING**（`chore(release): prepare v1.7.4 packaging`；证书 `b9b6b955…` 连续；
+      冻结资产 Evolune-Phone-v1.7.4.apk `243049b5…`（6,313,116 B）/ Evolune-Wear-v1.7.4.apk
+      `93a6980f…`（2,604,764 B）/ SHA256SUMS `4ca5623f…`；validation task 原始日志 + clean
+      release 构建 + Phone/Wear signed-release smoke；evidence
+      `docs/evolune/v1.7.4/evidence/packaging/`）。
+- [ ] NEXT：**v1.7.4 发布执行**（final docs commit → annotated tag v1.7.4 → push →
       GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
