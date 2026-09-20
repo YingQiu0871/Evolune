@@ -1,0 +1,21 @@
+EVOLUNE v1.8.0 A-02 — RESULT REUSE SAFETY AUDIT
+
+SimulationResult is a data class with val timeH, val concPGmL, and val auc.
+The engine constructs its series as lists, but every inspected downstream
+consumer treats them as read-only values.
+
+Consumer audit:
+- PKState stores and forwards both result references without mutation.
+- HomeScreen reads values and interpolation output only.
+- ConcentrationChart reads series values and uses SimulationResult as a
+  recomposition/effect key; it does not require baseline and full references to
+  differ.
+- WearDataLayer reads concentration values only.
+- Tests use value equality; no production or test consumer relies on
+  baselineResult !== fullResult or on identity inequality.
+- No list[index] assignment, clear/add/remove/sort mutation, or mutable backing
+  storage escape was found for these result collections.
+
+Conclusion: reusing the same completed SimulationResult reference is
+semantically safe. A-02 does not add copying, retained caching, memoization, or
+cross-call state.

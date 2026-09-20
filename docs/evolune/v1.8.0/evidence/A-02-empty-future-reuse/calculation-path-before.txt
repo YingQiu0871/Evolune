@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 A-02 — CALCULATION PATH AUDIT
+
+Source: app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+
+1. Historical domain dose events are filtered to recorded, non-antiandrogen
+   events and adapted to PK events.
+2. Enabled non-antiandrogen plans generate future events; conflicting predicted
+   events are filtered against the historical PK events.
+3. After the existing cancellation check, both-empty input returns an empty
+   PKState before any engine run.
+4. The calculator computes the fixed current-time ±15-day bounds and the
+   existing 12-points-per-hour step count.
+5. A nonempty historical list runs the baseline engine.
+6. The old full path concatenated historicalEvents + futureEvents and ran a
+   second engine whenever allEvents was nonempty.
+7. Current concentration is interpolated from fullResult, falling back to the
+   baseline result; PKState publishes both result slots.
+
+Equivalence finding for the only optimized branch:
+When historicalEvents is nonempty and futureEvents is empty, allEvents contains
+the same ordered historical event values, with the same body weight, start/end
+bounds, step count, and PK parameters. The second engine input is therefore a
+complete duplicate of the already completed baseline input. No equivalence is
+assumed for any branch with a nonempty futureEvents list.

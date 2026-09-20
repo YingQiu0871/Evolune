@@ -1,0 +1,21 @@
+EVOLUNE v1.8.0 A-02 — INVOCATION COUNT PROOF
+
+The test seam records every simulation-runner call and its event list.
+
+Parent-style red proof, before restoring the A-02 branch:
+- empty future test: failed with expected one call but observed two calls
+  (the old baseline plus identical full simulation).
+- nonempty future control: passed with two calls and a larger full event list.
+
+Final A-02 proof:
+- historical nonempty + future empty: exactly one call; the full result is the
+  same object reference as baselineResult; timeH, concentrations, and AUC are
+  the exact returned values; current concentration is derived from that same
+  complete result.
+- historical nonempty + real future plan: exactly two calls; baseline receives
+  the historical event set, full receives historical plus generated future
+  events; the two result references remain distinct.
+
+The removed work is the second SimulationEngine construction/run and its
+second complete SimulationResult allocation, strictly within the same
+calculate invocation. No timing or universal speedup claim is made.

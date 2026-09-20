@@ -1,0 +1,3 @@
+Final full JVM regression
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Result: BUILD SUCCESSFUL; app 1406, experience-core 171, wear 90; total 1667 tests; 0 failures; 0 errors; 0 skipped.

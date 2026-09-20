@@ -1,0 +1,4 @@
+A-02 parent focused baseline
+Parent: 95123612aa55e0acb2e828f809120eb4a655c5e6
+Command: .\gradlew.bat :app:testDebugUnitTest --rerun-tasks with the eight suites in focused-tests.txt
+Result: BUILD SUCCESSFUL; 8 suites; 51 tests; 0 failures; 0 errors; 0 skipped.

@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 A-02 — IDENTITY
+
+Released baseline: d73428364670ceb691cbe90547bd34fe9acd272f
+A-01 final parent: 95123612aa55e0acb2e828f809120eb4a655c5e6
+A-01 implementation commit: 00ce3b460f9356b1ea695cd27fe3c2219055bada
+A-02 branch: feature/v1.8.0-a02-empty-future-reuse
+A-02 worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a02
+Initial A-02 worktree state: clean at the exact A-01 parent
+
+Frozen release identity:
+- versionName: 1.7.4
+- phone versionCode: 101070400
+- Wear versionCode: 1101070400
+
+A-02 introduces no schema, protocol, UI, navigation, or release metadata
+change. No push, tag, or release was performed.

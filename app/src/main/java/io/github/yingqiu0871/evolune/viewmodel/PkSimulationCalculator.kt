@@ -6,6 +6,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.pk.Route
 import io.github.yingqiu0871.evolune.pk.SimulationEngine
+import io.github.yingqiu0871.evolune.pk.SimulationResult
 import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -29,8 +30,35 @@ internal fun interface PkSimulationCalculator {
     suspend fun calculate(input: PkSimulationInput): PKState
 }
 
+internal fun interface PkSimulationRunner {
+    fun run(
+        events: List<io.github.yingqiu0871.evolune.pk.DoseEvent>,
+        bodyWeightKG: Double,
+        startTimeH: Double,
+        endTimeH: Double,
+        numberOfSteps: Int
+    ): SimulationResult
+}
+
+private val defaultPkSimulationRunner = PkSimulationRunner { events, bodyWeightKG, startTimeH,
+    endTimeH, numberOfSteps ->
+    SimulationEngine(
+        events = events,
+        bodyWeightKG = bodyWeightKG,
+        startTimeH = startTimeH,
+        endTimeH = endTimeH,
+        numberOfSteps = numberOfSteps
+    ).run()
+}
+
 internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
-    override suspend fun calculate(input: PkSimulationInput): PKState {
+    override suspend fun calculate(input: PkSimulationInput): PKState =
+        calculate(input, defaultPkSimulationRunner)
+
+    internal suspend fun calculate(
+        input: PkSimulationInput,
+        simulationRunner: PkSimulationRunner
+    ): PKState {
         val historicalEvents = DomainDoseEventToPkAdapter.adapt(
             input.historicalDoseEvents.filter { event ->
                 event.status == DoseEventStatus.RECORDED &&
@@ -67,26 +95,28 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
         ).toInt() + 1
         val numberOfSteps = maxOf(stepsNeeded, 1000)
         val baselineResult = if (historicalEvents.isNotEmpty()) {
-            SimulationEngine(
+            simulationRunner.run(
                 events = historicalEvents,
                 bodyWeightKG = input.bodyWeightKG,
                 startTimeH = startTimeH,
                 endTimeH = endTimeH,
                 numberOfSteps = numberOfSteps
-            ).run()
+            )
         } else {
             null
         }
         currentCoroutineContext().ensureActive()
         val allEvents = historicalEvents + futureEvents
-        val fullResult = if (allEvents.isNotEmpty()) {
-            SimulationEngine(
+        val fullResult = if (futureEvents.isEmpty()) {
+            baselineResult
+        } else if (allEvents.isNotEmpty()) {
+            simulationRunner.run(
                 events = allEvents,
                 bodyWeightKG = input.bodyWeightKG,
                 startTimeH = startTimeH,
                 endTimeH = endTimeH,
                 numberOfSteps = numberOfSteps
-            ).run()
+            )
         } else {
             null
         }

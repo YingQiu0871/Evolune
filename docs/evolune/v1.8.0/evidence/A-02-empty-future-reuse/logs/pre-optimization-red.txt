@@ -1,0 +1,4 @@
+Temporary parent-style red proof
+Command: two new PkSimulationCalculatorTest methods with fullResult using the old allEvents path
+Result: BUILD FAILED as intended; empty-future test expected one runner call but observed two; nonempty-future control passed.
+The parent-style branch was immediately restored to the A-02 futureEvents.isEmpty() reuse condition.

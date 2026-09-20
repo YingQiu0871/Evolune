@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 A-02 — FROZEN CONTRACT AUDIT
+
+PASS — optimization condition is exactly futureEvents.isEmpty(), inside one
+  calculate invocation only.
+PASS — no cross-call/global cache, singleton result cache, hash key, repository
+  cache, or ViewModel cache.
+PASS — SimulationEngine, ThreeCompartmentModel, parameter resolution, adapter,
+  event ordering, dose/patch semantics, grids, timestamps, bounds, AUC,
+  interpolation, and prediction eligibility are unchanged.
+PASS — empty historical and empty future input still returns before any engine.
+PASS — filtered-empty future input uses the same literal empty-list condition;
+  no broader optimization condition was introduced.
+PASS — nonempty future input keeps the existing baseline plus full simulation
+  path and distinct result values.
+PASS — cancellation checkpoints surrounding baseline/full/post-processing are
+  preserved; no SimulationEngine cooperative cancellation change was made.
+PASS — route/event coverage remains in the existing oral, sublingual,
+  injection, patch/remove, adapter, predictor, and SimulationEngine suites.
+PASS — version, schema, protocol, navigation, Home, Wear, widget, health, and
+  release contracts are unchanged.

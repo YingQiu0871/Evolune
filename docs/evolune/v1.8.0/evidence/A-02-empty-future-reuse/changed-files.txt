@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 A-02 — CHANGED FILES
+
+Production:
+- app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+  Adds an internal runner seam for deterministic tests, routes both existing
+  engine calls through it, and reuses baselineResult only when
+  futureEvents.isEmpty().
+
+Test:
+- app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt
+  Adds empty-future invocation/equivalence coverage and a nonempty-future
+  two-execution control.
+
+Frozen zero-diff files:
+- app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+- app/src/main/java/io/github/yingqiu0871/evolune/utils/MedicationPlanPredictor.kt
+- all A-01 retrospective production/test files and A-01 evidence
+
+No other production or test file is changed. The binary-safe code/test diff is
+implementation.diff in this directory.

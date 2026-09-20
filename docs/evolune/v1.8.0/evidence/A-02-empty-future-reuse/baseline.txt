@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 A-02 — BASELINE VERIFICATION
+
+Parent: 95123612aa55e0acb2e828f809120eb4a655c5e6
+
+Directly affected baseline command:
+  .\gradlew.bat :app:testDebugUnitTest --rerun-tasks
+  [the eight pre-A-02 suites listed in focused-tests.txt]
+
+Baseline result: 8 suites, 51 tests, 0 failures, 0 errors, 0 skipped.
+
+The clean parent calculation ran a baseline SimulationEngine execution for
+historical events and then ran a second full SimulationEngine execution for
+historicalEvents + futureEvents. The A-02 audit and the original path are
+recorded in calculation-path-before.txt.

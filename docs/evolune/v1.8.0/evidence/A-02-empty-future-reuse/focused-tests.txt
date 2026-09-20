@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 A-02 — FOCUSED TESTS
+
+Suites:
+- PkSimulationCalculatorTest
+- SimulationEngineTest
+- HRTViewModelTest
+- RetrospectivePkPatchPreprocessorTest
+- DomainDoseEventToPkAdapterTest
+- DomainDoseEventToPkParityTest
+- DomainDoseEventToPkBoundaryTest
+- MedicationPlanPredictorTest
+- MedicationPlanPredictorParityTest
+
+Baseline: 8 suites, 51 tests, 0 failures, 0 errors, 0 skipped.
+Final:    9 suites, 70 tests, 0 failures, 0 errors, 0 skipped.
+
+New tests:
+- historical events with empty future reuse the baseline simulation result
+  proves one runner invocation, same result reference, exact result equality,
+  and complete output preservation.
+- nonempty future keeps distinct baseline and full simulations proves two
+  runner invocations with a real generated future plan event set.
