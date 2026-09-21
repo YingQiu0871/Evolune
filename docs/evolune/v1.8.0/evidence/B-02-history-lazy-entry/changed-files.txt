@@ -1,0 +1,19 @@
+B-02 committed paths
+
+Production:
+  app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+
+Tests:
+  app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/navigation/HistoryLazyEntryArchitectureTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt
+
+Evidence:
+  docs/evolune/v1.8.0/evidence/B-02-history-lazy-entry/**
+
+No HistoryReadService, HistoryRangeSource, repository, DAO, Room, retrospective PK source,
+ScheduleBoundaryTracker, HomeScreen, ComposeDiagnostics, or prior-slice evidence path changed.

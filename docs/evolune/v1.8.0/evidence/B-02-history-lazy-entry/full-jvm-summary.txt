@@ -1,0 +1,24 @@
+B-02 canonical tracked-LF full JVM regression
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+The two unchanged portable golden fixtures were temporarily materialized as their tracked Git LF
+blob bytes for this run only. The finally block restored their raw Windows checkout bytes.
+
+Accepted result:
+  app:             152 suites / 1426 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           183 suites / 1687 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The A-05 baseline was 1683 tests. B-02 adds four architecture-guard tests, so 1687 is the actual
+expected and observed total. The raw Windows checkout is not the accepted gate; only the canonical
+tracked-LF run above is the full regression gate.
+
+Fixture identity:
+  tracked JSON blob: e453c5d35647b2bc5b10a361b7615d5be604c163
+  tracked CSV blob:  17307ce7a2f041f10e8c4918ac331abec7e3614f
+  restored raw JSON SHA-256: 3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3
+  restored raw CSV SHA-256:  dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495

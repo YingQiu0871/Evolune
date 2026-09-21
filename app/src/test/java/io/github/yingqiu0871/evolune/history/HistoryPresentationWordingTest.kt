@@ -160,7 +160,8 @@ class HistoryPresentationWordingTest {
     fun `ui reads history only through the history read service seam`() {
         val factory = source("history/HistoryViewModel.kt")
         assertTrue(factory.contains("HistoryRangeSource"))
-        assertTrue(factory.contains("historyReadService.readRange("))
+        val compositionRoot = source("MainFeatureServices.kt")
+        assertTrue(compositionRoot.contains("historyReadService.readRange("))
 
         val screen = source("ui/screens/HistoryScreen.kt")
         assertTrue(screen.contains("HistoryPresentation.present(state)"))

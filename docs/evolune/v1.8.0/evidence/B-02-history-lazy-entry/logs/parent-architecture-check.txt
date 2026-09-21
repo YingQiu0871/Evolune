@@ -1,0 +1,18 @@
+B-02 parent/candidate source guard predicates
+
+Exact parent:
+  59d58d2b9ba563a07cf29fc9bd580cf99589e9cc
+
+Parent:
+  PARENT_EAGER_HISTORY_VM=True
+  PARENT_LAZY_HISTORY_ROUTE=False
+  PARENT_GUARD_EXPECTED_FAIL=True
+
+Candidate:
+  CANDIDATE_EAGER_HISTORY_VM=False
+  CANDIDATE_LAZY_HISTORY_ROUTE=True
+  CANDIDATE_GUARD_EXPECTED_PASS=True
+
+The parent still requests HistoryViewModel from MainActivity root composition. The candidate
+passes the stable factory into navigation and requests the Activity-owned ViewModel only inside
+the History destination.

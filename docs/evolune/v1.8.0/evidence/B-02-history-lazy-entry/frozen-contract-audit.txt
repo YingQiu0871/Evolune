@@ -1,0 +1,19 @@
+B-02 frozen-contract audit
+
+Zero-delta requirements are checked against the A-05 parent before commit.
+
+Unchanged frozen surfaces include:
+  - A-01, A-02, B-01, D-01, A-03E, A-03, A-04, A-05E, and A-05 evidence directories;
+  - ScheduleBoundaryTracker and its tests;
+  - HomeScreen A-04/A-05 lifecycle and boundary paths;
+  - ComposeDiagnostics and D-01 sources/tests;
+  - HistoryReadService, HistoryRangeSource, repositories, DAOs, Room, and PK simulation sources;
+  - version and public/persisted contract sources.
+
+The only production changes are the root/navigation lazy boundary, the necessary factory seam
+parameterization for shared range-source identity, and no data/query/PK semantics.
+
+Version identity remains:
+  versionName 1.7.4
+  phone versionCode 101070400
+  Wear versionCode 1101070400

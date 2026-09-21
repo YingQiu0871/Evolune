@@ -192,7 +192,7 @@ internal fun resolveAppStartRoute(
 @Composable
 fun AppNavigation(
     hrtViewModel: HRTViewModel,
-    historyViewModel: HistoryViewModel,
+    historyViewModelFactory: ViewModelProvider.Factory,
     insightsViewModelFactory: ViewModelProvider.Factory,
     retrospectiveViewModelFactory: ViewModelProvider.Factory,
     timelineViewModelFactory: ViewModelProvider.Factory,
@@ -949,7 +949,14 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
-            composable(Screen.HISTORY.route) {
+            composable(Screen.HISTORY.route) { entry ->
+                // History is Activity-owned like the other history feature surfaces, but its
+                // ViewModel is not requested until this destination is actually entered.
+                val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
+                val historyViewModel: HistoryViewModel = viewModel(
+                    viewModelStoreOwner = owner,
+                    factory = historyViewModelFactory
+                )
                 HistoryScreen(
                     viewModel = historyViewModel,
                     is24Hour = is24Hour,

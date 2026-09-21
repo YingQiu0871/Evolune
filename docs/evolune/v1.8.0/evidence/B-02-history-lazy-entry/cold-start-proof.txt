@@ -1,0 +1,19 @@
+Cold-start and root-recomposition proof
+
+HistoryLazyEntryArchitectureTest passed on the B-02 candidate.
+
+Assertions:
+  - MainActivity contains no HistoryViewModel viewModel request.
+  - MainActivity passes exactly one stable historyViewModelFactory reference to AppNavigation.
+  - The History destination contains exactly one HistoryViewModel viewModel request.
+  - The request is Activity-owned and is located inside the History destination block.
+
+Consequences:
+  - cold start on Home/non-History route: HistoryViewModel creation count = 0;
+  - cold start History read/load count caused by that root path = 0;
+  - ordinary root recomposition: creation count remains 0 and the factory is not invoked;
+  - first History entry: one destination request creates the Activity-owned ViewModel, whose
+    unchanged init performs the one initial month load.
+
+The same guard predicates fail on the exact A-05 parent, proving this is a regression guard rather
+than a vacuous source assertion.

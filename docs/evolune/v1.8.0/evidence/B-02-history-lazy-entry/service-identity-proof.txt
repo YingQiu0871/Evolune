@@ -1,0 +1,12 @@
+B-01 service identity proof
+
+MainFeatureServicesTest passed with these identity assertions:
+  - one Activity-owned HistoryReadService is shared by History, Insights, Retrospective PK, and
+    the all-history source;
+  - the HistoryViewModelFactory receives graph.historyRangeSource by object identity;
+  - the same graph.historyRangeSource remains the Retrospective and Timeline range seam;
+  - a new Activity graph creates fresh owner-scoped instances;
+  - root recomposition preserves the same graph and representative service/factory identities.
+
+No HistoryReadService, HistoryRangeSource, repository, DAO, Room, or retrospective PK source file
+was modified. No service is constructed from a composable body.

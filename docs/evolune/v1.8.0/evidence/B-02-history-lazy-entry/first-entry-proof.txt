@@ -1,0 +1,9 @@
+First History entry
+
+The History destination performs one ViewModel lookup with the stable factory and the existing
+Activity owner. HistoryViewModel itself remains unchanged in its initial-load behavior:
+constructor -> init -> loadMonth(current visible month).
+
+Therefore first entry requires no extra click or manual refresh, uses the existing current-month
+range/default, and performs exactly one initial load for a fresh Activity ViewModel. The existing
+HistoryViewModelTest initial-load/read-count contract remains green.

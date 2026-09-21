@@ -1,0 +1,19 @@
+B-02 baseline and F06 confirmation
+
+The exact A-05 parent is 59d58d2b9ba563a07cf29fc9bd580cf99589e9cc.
+Its committed JVM baseline is 1,683 tests.
+
+Parent source proof:
+  MainActivity.setContent eagerly evaluated
+    val historyViewModel: HistoryViewModel = viewModel(
+        factory = mainFeatureServices.historyViewModelFactory
+    )
+  before calling AppNavigation.
+
+HistoryViewModel.init immediately called loadMonth(_uiState.value.visibleMonth), so the eager
+ViewModel request also started the first HistoryRangeSource read before History navigation.
+
+The B-02 source guard's parent predicates were evaluated directly against the exact parent:
+  PARENT_EAGER_HISTORY_VM=True
+  PARENT_LAZY_HISTORY_ROUTE=False
+  PARENT_GUARD_EXPECTED_FAIL=True

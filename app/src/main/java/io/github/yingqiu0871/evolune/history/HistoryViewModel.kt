@@ -240,7 +240,7 @@ class HistoryViewModel(
  * does not restore.
  */
 class HistoryViewModelFactory(
-    private val historyReadService: HistoryReadService,
+    private val rangeSource: HistoryRangeSource,
     private val clock: Clock = Clock.systemUTC(),
     private val displayZone: () -> ZoneId = ZoneId::systemDefault
 ) : ViewModelProvider.Factory {
@@ -254,9 +254,7 @@ class HistoryViewModelFactory(
         val savedStateHandle = runCatching { extras.createSavedStateHandle() }.getOrNull()
         @Suppress("UNCHECKED_CAST")
         return HistoryViewModel(
-            rangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
-                historyReadService.readRange(startDate, endDate, zone, now)
-            },
+            rangeSource = rangeSource,
             clock = clock,
             displayZone = displayZone,
             savedStateHandle = savedStateHandle

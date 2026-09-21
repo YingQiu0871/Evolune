@@ -128,8 +128,11 @@ class HistorySavedStateFactoryTest {
         lateinit var viewModel: HistoryViewModel
         scenario.onActivity { activity ->
             val provider = ProductionRepositoryProvider.get(activity)
+            val historyReadService = HistoryReadService(provider.medicationPlans, provider.doseEvents)
             val factory = HistoryViewModelFactory(
-                historyReadService = HistoryReadService(provider.medicationPlans, provider.doseEvents),
+                rangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
+                    historyReadService.readRange(startDate, endDate, zone, now)
+                },
                 clock = Clock.fixed(LocalDate.now(zone).atTime(12, 0).toInstant(ZoneOffset.UTC), zone),
                 displayZone = { zone }
             )

@@ -1,0 +1,9 @@
+Android proof decision
+
+No additional Android instrumentation was run for B-02. The accepted mechanism is pure root/
+destination architecture: the Activity-owned graph is created before setContent, while the
+HistoryViewModel request is textually and structurally confined to the existing History NavHost
+destination. The deterministic JVM architecture guard fails on the exact parent and passes on the
+candidate, and the existing History navigation/HistoryScreen Android tests remain unchanged.
+
+No emulator or physical device was used.

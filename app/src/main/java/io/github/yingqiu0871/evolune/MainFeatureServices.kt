@@ -60,7 +60,7 @@ internal class MainFeatureServices private constructor(
                 backupRestoreViewModelFactory = backupRestoreViewModelFactory,
                 hrtViewModelFactory = hrtViewModelFactory,
                 historyReadService = historyReadService,
-                historyViewModelFactory = HistoryViewModelFactory(historyReadService),
+                historyViewModelFactory = HistoryViewModelFactory(historyRangeSource),
                 insightsViewModelFactory = InsightsViewModelFactory(historyReadService),
                 retrospectivePkService = retrospectivePkService,
                 historyRangeSource = historyRangeSource,

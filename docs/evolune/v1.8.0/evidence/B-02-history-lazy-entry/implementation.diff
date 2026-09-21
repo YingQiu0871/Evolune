@@ -1,0 +1,145 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt
+index 801b03a..0add2cf 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt
+@@ -128,8 +128,11 @@ class HistorySavedStateFactoryTest {
+         lateinit var viewModel: HistoryViewModel
+         scenario.onActivity { activity ->
+             val provider = ProductionRepositoryProvider.get(activity)
++            val historyReadService = HistoryReadService(provider.medicationPlans, provider.doseEvents)
+             val factory = HistoryViewModelFactory(
+-                historyReadService = HistoryReadService(provider.medicationPlans, provider.doseEvents),
++                rangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
++                    historyReadService.readRange(startDate, endDate, zone, now)
++                },
+                 clock = Clock.fixed(LocalDate.now(zone).atTime(12, 0).toInstant(ZoneOffset.UTC), zone),
+                 displayZone = { zone }
+             )
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+index 495b764..42afd70 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/MainActivity.kt
+@@ -43,7 +43,6 @@ import io.github.yingqiu0871.evolune.reminder.ReminderManager
+ import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
+ import io.github.yingqiu0871.evolune.ui.theme.usesDarkColors
+ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
+-import io.github.yingqiu0871.evolune.history.HistoryViewModel
+ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModelFactory
+ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModel
+ import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanViewModelFactory
+@@ -225,11 +224,6 @@ class MainActivity : ComponentActivity() {
+                     )
+                 }
+                 
+-                // 创建 HistoryViewModel（历史只经 HistoryReadService 读取权威数据）
+-                val historyViewModel: HistoryViewModel = viewModel(
+-                    factory = mainFeatureServices.historyViewModelFactory
+-                )
+-
+                 // 创建 MedicationPlanViewModel
+                 val medicationPlanViewModel: MedicationPlanViewModel = viewModel(
+                     factory = mainFeatureServices.medicationPlanViewModelFactory
+@@ -303,7 +297,7 @@ class MainActivity : ComponentActivity() {
+                 ) {
+                     AppNavigation(
+                         hrtViewModel = hrtViewModel,
+-                        historyViewModel = historyViewModel,
++                        historyViewModelFactory = mainFeatureServices.historyViewModelFactory,
+                         insightsViewModelFactory = mainFeatureServices.insightsViewModelFactory,
+                         retrospectiveViewModelFactory = mainFeatureServices.retrospectiveViewModelFactory,
+                         timelineViewModelFactory = mainFeatureServices.timelineViewModelFactory,
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt b/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+index cb98c0f..ebb2f67 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/MainFeatureServices.kt
+@@ -60,7 +60,7 @@ internal class MainFeatureServices private constructor(
+                 backupRestoreViewModelFactory = backupRestoreViewModelFactory,
+                 hrtViewModelFactory = hrtViewModelFactory,
+                 historyReadService = historyReadService,
+-                historyViewModelFactory = HistoryViewModelFactory(historyReadService),
++                historyViewModelFactory = HistoryViewModelFactory(historyRangeSource),
+                 insightsViewModelFactory = InsightsViewModelFactory(historyReadService),
+                 retrospectivePkService = retrospectivePkService,
+                 historyRangeSource = historyRangeSource,
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt b/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+index d488b31..48e3495 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryViewModel.kt
+@@ -240,7 +240,7 @@ class HistoryViewModel(
+  * does not restore.
+  */
+ class HistoryViewModelFactory(
+-    private val historyReadService: HistoryReadService,
++    private val rangeSource: HistoryRangeSource,
+     private val clock: Clock = Clock.systemUTC(),
+     private val displayZone: () -> ZoneId = ZoneId::systemDefault
+ ) : ViewModelProvider.Factory {
+@@ -254,9 +254,7 @@ class HistoryViewModelFactory(
+         val savedStateHandle = runCatching { extras.createSavedStateHandle() }.getOrNull()
+         @Suppress("UNCHECKED_CAST")
+         return HistoryViewModel(
+-            rangeSource = HistoryRangeSource { startDate, endDate, zone, now ->
+-                historyReadService.readRange(startDate, endDate, zone, now)
+-            },
++            rangeSource = rangeSource,
+             clock = clock,
+             displayZone = displayZone,
+             savedStateHandle = savedStateHandle
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index e9d63d5..1ab7d36 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -192,7 +192,7 @@ internal fun resolveAppStartRoute(
+ @Composable
+ fun AppNavigation(
+     hrtViewModel: HRTViewModel,
+-    historyViewModel: HistoryViewModel,
++    historyViewModelFactory: ViewModelProvider.Factory,
+     insightsViewModelFactory: ViewModelProvider.Factory,
+     retrospectiveViewModelFactory: ViewModelProvider.Factory,
+     timelineViewModelFactory: ViewModelProvider.Factory,
+@@ -949,7 +949,14 @@ fun AppNavigation(
+                     showTopBar = false
+                 )
+             }
+-            composable(Screen.HISTORY.route) {
++            composable(Screen.HISTORY.route) { entry ->
++                // History is Activity-owned like the other history feature surfaces, but its
++                // ViewModel is not requested until this destination is actually entered.
++                val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
++                val historyViewModel: HistoryViewModel = viewModel(
++                    viewModelStoreOwner = owner,
++                    factory = historyViewModelFactory
++                )
+                 HistoryScreen(
+                     viewModel = historyViewModel,
+                     is24Hour = is24Hour,
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+index 8b67bb9..91edab4 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/MainFeatureServicesTest.kt
+@@ -64,8 +64,8 @@ class MainFeatureServicesTest {
+         val graph = createGraph()
+ 
+         assertSame(
+-            graph.historyReadService,
+-            privateField(graph.historyViewModelFactory, "historyReadService")
++            graph.historyRangeSource,
++            privateField(graph.historyViewModelFactory, "rangeSource")
+         )
+         assertSame(
+             graph.historyReadService,
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+index 70ff783..680ef74 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationWordingTest.kt
+@@ -160,7 +160,8 @@ class HistoryPresentationWordingTest {
+     fun `ui reads history only through the history read service seam`() {
+         val factory = source("history/HistoryViewModel.kt")
+         assertTrue(factory.contains("HistoryRangeSource"))
+-        assertTrue(factory.contains("historyReadService.readRange("))
++        val compositionRoot = source("MainFeatureServices.kt")
++        assertTrue(compositionRoot.contains("historyReadService.readRange("))
+ 
+         val screen = source("ui/screens/HistoryScreen.kt")
+         assertTrue(screen.contains("HistoryPresentation.present(state)"))

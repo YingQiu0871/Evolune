@@ -1,0 +1,11 @@
+B-02 focused JVM regression
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.MainFeatureServicesTest --tests io.github.yingqiu0871.evolune.history.HistoryViewModelTest --tests io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest --tests io.github.yingqiu0871.evolune.history.HistoryPresentationWordingTest --tests io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest --tests io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest --tests io.github.yingqiu0871.evolune.history.timeline.TimelineArchitectureGuardTest --tests io.github.yingqiu0871.evolune.history.timeline.TimelineRangeArchitectureGuardTest --tests io.github.yingqiu0871.evolune.navigation.PrimaryNavigationChromeTest --rerun-tasks
+
+Result:
+  9 suites / 64 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+This set covers MainFeatureServices identity, History ViewModel initial loads, B-02 lazy root
+wiring, navigation chrome, and retrospective/timeline architecture guards.

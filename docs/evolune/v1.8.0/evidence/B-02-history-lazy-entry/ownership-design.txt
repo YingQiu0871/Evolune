@@ -1,0 +1,20 @@
+B-02 ownership after
+
+MainFeatureServices remains created once in MainActivity.onCreate and captured by setContent.
+HistoryReadService and HistoryRangeSource remain passive Activity-owned objects.
+
+MainActivity now passes the stable historyViewModelFactory as data to AppNavigation. The History
+destination is the narrow creation boundary:
+  composable(Screen.HISTORY.route) { entry ->
+      val owner = activity as? ViewModelStoreOwner ?: entry
+      val historyViewModel = viewModel(viewModelStoreOwner = owner, factory = historyViewModelFactory)
+      HistoryScreen(viewModel = historyViewModel, ...)
+  }
+
+The Activity owner matches the established Insights, Retrospective, and Timeline ownership idiom.
+The existing History route and navigation actions are unchanged. No DI framework, static/global
+cache, composable service construction, or route change was introduced.
+
+The production root supplies the one MainFeatureServices.historyRangeSource to the
+HistoryViewModelFactory constructor. The direct Android saved-state factory test also supplies an
+explicit HistoryRangeSource seam; no factory constructor creates a hidden production reader seam.

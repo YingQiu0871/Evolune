@@ -1,0 +1,17 @@
+Eager path before B-02
+
+MainActivity.onCreate
+  -> MainFeatureServices.create(...)
+  -> setContent
+  -> root theme/content composition
+  -> MainActivity requests HistoryViewModel with historyViewModelFactory
+  -> HistoryViewModelFactory.create(...)
+  -> HistoryViewModel constructor
+  -> HistoryViewModel.init
+  -> loadMonth(current visible month)
+  -> HistoryRangeSource/HistoryReadService read
+  -> AppNavigation receives an already-created HistoryViewModel
+  -> History destination later renders that same instance
+
+The root request was independent of the NavHost start destination. A normal Home launch therefore
+created the History ViewModel and began its initial read without entering History.

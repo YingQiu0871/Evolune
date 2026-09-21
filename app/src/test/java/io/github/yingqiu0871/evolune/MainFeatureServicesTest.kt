@@ -64,8 +64,8 @@ class MainFeatureServicesTest {
         val graph = createGraph()
 
         assertSame(
-            graph.historyReadService,
-            privateField(graph.historyViewModelFactory, "historyReadService")
+            graph.historyRangeSource,
+            privateField(graph.historyViewModelFactory, "rangeSource")
         )
         assertSame(
             graph.historyReadService,

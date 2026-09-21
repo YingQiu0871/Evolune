@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 B-02 — History lazy entry
+
+Approved predecessor:
+  A-05 final HEAD 59d58d2b9ba563a07cf29fc9bd580cf99589e9cc
+
+Branch:
+  feature/v1.8.0-b02-history-lazy-entry
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-b02
+
+Goal:
+  Defer HistoryViewModel construction and its constructor-owned initial range read until the
+  History destination is actually entered, while preserving Activity-owned B-01 services,
+  ViewModel ownership, navigation, and History semantics.

@@ -1,0 +1,12 @@
+Leave/re-entry and configuration semantics
+
+History remains Activity-scoped, matching the existing feature-surface owner discipline. Home ->
+History -> Home -> History therefore resolves the existing Activity ViewModel when the Activity
+ViewModelStore still owns it; it does not create a per-composition or per-recomposition instance.
+
+If a destination is recreated, normal Android ViewModel owner/key semantics remain the authority.
+The Activity owner is retained across configuration change, so an active History ViewModel follows
+the existing retention behavior. A new Activity that has never entered History has no History route
+request and therefore creates no History ViewModel during root setup.
+
+No saved-state API, route, back-stack option, or HistoryScreen lifecycle code changed.
