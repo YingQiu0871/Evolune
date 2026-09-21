@@ -1,0 +1,19 @@
+ScheduleBoundaryTracker.observe truth table
+
+State | Identity / retained state | Provider called | Provider result used | crossed | Meaning
+A initial | new identity, no retained deadline | YES | YES | NO | Initialize retained strict-future boundary.
+B steady pre-boundary | same identity, retained B, now < B | YES | NO | NO | Keep retained B; provider work is redundant to the result.
+C exact crossing | same identity, retained B, now >= B | YES | YES | YES | Consume B once, accept the provider's replacement.
+D after crossing | same identity, retained B2, now < B2 | YES | NO | NO | Keep B2; no duplicate refresh.
+E plan / enabled-identity change | new plan-list identity | YES | YES | NO | Clear old retained boundary and initialize from new identity.
+F timezone identity change | new zone identity | YES | YES | NO | Invalidate old absolute deadline without synthetic crossing.
+G empty plans | identity with empty plan list | YES | YES (null) | NO | Clear the retained boundary; later plans initialize fresh.
+H long resume / jump | same identity, retained B, now >= B | YES | YES | YES | One consumed crossing and one replacement; skipped intermediate boundaries are not replayed.
+
+The table follows ScheduleBoundaryTracker.kt:37-62. The provider is deliberately
+called before the acceptance condition at line 56. The accepted-result rule is
+identityChanged || retainedDeadline == null || crossed; otherwise the retained
+deadline is returned unchanged.
+
+Existing committed tests cover A/C, close independent boundaries, H, E, G, F,
+and the explicit provider-called-on-every-observation contract.

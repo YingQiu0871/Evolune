@@ -1,0 +1,24 @@
+A-05E full JVM regression disposition
+
+A-05E did not modify app/src/main, app/src/test, app/src/androidTest, wear, or
+experience-core. The exact A-04 parent already contains the accepted canonical-
+tracked-LF full JVM gate:
+
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Inherited canonical tracked-LF result from A-04 evidence:
+  app:             151 suites / 1420 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:              11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:            182 suites / 1681 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The accepted A-04 gate temporarily materialized the two unchanged golden
+fixtures as their tracked Git LF blob bytes. In the raw Windows checkout the
+known PortableGoldenFixtureTest canonical JSON and canonical CSV byte assertions
+fail; that raw result is not the accepted full regression gate.
+
+A-05E did not re-run the 1,681-test full suite because the source/test subtree
+was kept byte-identical to A-04 and the A-05E objective is evidence-only cost
+characterization. The fresh A-05E focused verification is separately recorded
+as 7 suites / 54 tests / 0 failures / 0 errors / 0 skipped.

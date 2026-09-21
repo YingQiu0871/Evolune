@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 — A-05E Home per-tick schedule / chart cost characterization
+
+Role:
+  Evidence / performance-characterization engineer
+
+Approved predecessor (exact parent):
+  0653cfeeda980a35fb16e549da1eee5ae88060e0
+  perf(home): lifecycle-gate clock collection
+
+Branch:
+  feature/v1.8.0-a05e-home-cost-characterization
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a05e
+
+Candidate HEAD before the evidence-only commit:
+  0653cfeeda980a35fb16e549da1eee5ae88060e0
+
+Initial worktree state:
+  clean
+
+Scope:
+  Characterize F03 Home per-tick seven-day schedule work and M01 chart/current-
+  concentration interpolation work. No production source, committed test, A-03
+  semantic, A-04 lifecycle, PK math, navigation, version, tag, push, or release
+  change is authorized by this slice.
+
+Evidence-only boundary:
+  The only committed delta is this directory:
+  docs/evolune/v1.8.0/evidence/A-05E-home-cost-characterization/

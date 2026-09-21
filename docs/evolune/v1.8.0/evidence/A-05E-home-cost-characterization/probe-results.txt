@@ -1,0 +1,21 @@
+Disposable A-05E JVM probe results
+
+The probe was added only under app/src/test for this characterization and was
+deleted before commit. It was not part of the final tree.
+
+A05E_TRACKER_PROBE steady_60=observations=60,provider_calls=60,result_used=1,crossings=0
+A05E_TRACKER_PROBE crossing_600=observations=600,provider_calls=600,result_used=2,crossings=1
+A05E_PREDICTOR_PROBE case=daily_1_slot,plans=1,slots=1,events=7
+A05E_PREDICTOR_PROBE case=daily_3_slots,plans=1,slots=3,events=21
+A05E_PREDICTOR_PROBE case=daily_5_plans,plans=5,slots=5,events=35
+A05E_PREDICTOR_PROBE case=daily_10_plans,plans=10,slots=10,events=70
+A05E_PREDICTOR_PROBE case=daily_20_plans,plans=20,slots=20,events=140
+A05E_PREDICTOR_PROBE case=weekly_monday_thursday,plans=1,slots=1,events=2
+A05E_PREDICTOR_PROBE case=custom_every_2_days,plans=1,slots=1,events=4
+A05E_PREDICTOR_PROBE case=mixed_daily_weekly_custom,plans=3,slots=3,events=12
+A05E_PREDICTOR_PROBE case=disabled,plans=1,slots=1,events=0
+A05E_INTERPOLATION_PROBE points=100,target=50.5,result=101.0,min_scan=100,max_scan=100,linear_scan=51,total_element_visits=251
+A05E_INTERPOLATION_PROBE points=1000,target=500.5,result=1001.0,min_scan=1000,max_scan=1000,linear_scan=501,total_element_visits=2501
+A05E_INTERPOLATION_PROBE points=8641,target=4321.0,result=8642.0,min_scan=8641,max_scan=8641,linear_scan=4322,total_element_visits=21604
+
+Both disposable probe test executions completed with BUILD SUCCESSFUL.

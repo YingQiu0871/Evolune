@@ -1,0 +1,30 @@
+Chart draw-path characterization
+
+ConcentrationChart.kt:115-124 records recomposition by simulation-result
+identity. The current-time state is read inside the Canvas draw lambda at line
+349, matching the source comment that current-time changes should not trigger
+chart-content recomposition.
+
+On each invalidated draw, the source performs:
+
+* fork-point interpolation: forward scan until the target segment, then a
+  nearest-point fallback scan if no segment is found (lines 392-413);
+* optional baseline path traversal (425-447);
+* main path-before traversal (457-487);
+* main path-after traversal (498-520);
+* dose marker traversal and per-dose SimulationResult.concentration lookup
+  (522-548);
+* current-time marker nearest-point traversal over the complete simulation grid
+  (550-568);
+* grid, axis, and label drawing.
+
+Therefore M01 is draw-phase work rather than a claim that currentTimeH causes
+ConcentrationChart composable recomposition. The source still performs
+per-tick O(N)-scale point traversal for the current marker and path drawing,
+with additional interpolation work. At the normal 8,641-point grid this is a
+material characterization target, but source inspection alone cannot quantify
+frame time, jank, or battery impact.
+
+Existing deterministic chart coverage is in ConcentrationChartGeometryTest
+(8 tests) and ConcentrationChartLayoutTest (3 tests). No instrumentation or
+device timing was run for M01 in this evidence-only slice.

@@ -1,0 +1,22 @@
+Representative seven-day predictor sizes
+
+Probe conditions:
+  Fixed fromDateTime = 2026-01-05T07:30 (UTC), daysAhead = 7, all enabled
+  plans use Route.ORAL / Ester.E2, and the same domain predictor as Home.
+
+Fixture                         Plans  Slots  Generated events
+daily_1_slot                       1      1                 7
+daily_3_slots                     1      3                21
+daily_5_plans                     5      5                35
+daily_10_plans                   10     10                70
+daily_20_plans                   20     20               140
+weekly_monday_thursday             1      1                 2
+custom_every_2_days                1      1                 4
+mixed_daily_weekly_custom          3      3                12
+disabled                           1      1                 0
+
+The daily 1/3-slot and 5/10/20-plan rows show linear growth in schedule
+entries for the seven-day window. Weekly and custom rows show that date
+eligibility reduces accepted events but does not remove the per-call traversal.
+These are deterministic work-size measurements; no device timing or battery
+extrapolation is made.

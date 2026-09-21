@@ -1,0 +1,31 @@
+Future A-05 contract if approved
+
+F03 contract:
+
+1. Preserve the exact A-03 observation result for initialization, identity
+   change, empty plans, timezone change, exact crossing, close boundaries, and
+   long resume jumps.
+2. A stable retained B observation must return B without executing the full
+   seven-day provider calculation.
+3. The provider may run when identity changes, when no retained boundary exists,
+   and once after a consumed crossing to obtain the first strict-future
+   replacement.
+4. Crossing must remain single-consumption and must not synthesize a crossing
+   on plan/zone identity invalidation.
+5. Home chart fork-point and current-marker behavior must remain unchanged.
+6. Active/stopped lifecycle behavior from A-04 must remain unchanged; no new
+   service or process owner is introduced.
+
+M01 guardrails:
+
+1. Any interpolation or cursor optimization must preserve the current helper's
+   empty, range, equal-time, and endpoint behavior.
+2. Any chart change must preserve draw-phase current-time invalidation rather
+   than accidentally making every tick a full chart-content recomposition.
+3. Benchmarking must use representative simulation sizes, including the normal
+   8,641-point grid, and should include device frame/battery profiling before a
+   performance claim is accepted.
+
+Disposition:
+  A-05E justifies a future F03 optimization investigation. M01 remains a
+  separate profiled concern; no implementation is included here.

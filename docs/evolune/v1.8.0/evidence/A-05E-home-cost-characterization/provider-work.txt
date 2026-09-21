@@ -1,0 +1,28 @@
+Provider work and scaling model
+
+Home's provider is nextPlanForkPointTimeH (HomeScreen.kt:705-717), which calls
+MedicationPlanPredictor.generateFutureEventsForDomainPlans(..., daysAhead = 7)
+and then minOfOrNull over all generated events.
+
+MedicationPlanPredictor.kt performs the following work for every provider call:
+
+* filters disabled plans;
+* traverses seven day offsets for DAILY and WEEKLY schedules;
+* traverses 0, intervalDays, 2*intervalDays, ... for CUSTOM schedules;
+* visits every slot on each eligible date;
+* applies the strict-future check;
+* allocates a DoseEvent with UUID.randomUUID for every accepted event;
+* converts every accepted local date/time through ZoneId.systemDefault();
+* sorts each plan's event list and then sorts the aggregate list.
+
+Let P be enabled plans, S the total slots per plan, D = 7, and E the accepted
+event count. The candidate traversal is O(P*D*S) for daily/weekly schedules,
+and O(sum ceil(D/intervalDays)*S) for custom schedules. Event materialization
+adds O(E) allocation/time-zone work; the per-plan and aggregate sorts add
+O(E log E) terms. The provider's final min scan is O(E).
+
+Relevant source anchors:
+  MedicationPlanPredictor.kt:68-108, 111-124, 136-147
+
+The provider result is discarded in state B/D even though the traversal,
+allocations, conversions, and sorting have already happened.

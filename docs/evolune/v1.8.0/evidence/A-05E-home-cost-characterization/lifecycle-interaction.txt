@@ -1,0 +1,18 @@
+A-04 lifecycle interaction
+
+HRTViewModel.currentTimeH remains a one-second StateFlow with
+SharingStarted.WhileSubscribed(5000) (HRTViewModel.kt:185-193). A-04 changed
+Home's collection to collectAsStateWithLifecycle (HomeScreen.kt:58), so active
+Home observes the one-Hz stream while stopped downstream collection is
+suppressed after the existing five-second sharing grace.
+
+While Home is active, the per-tick path is:
+  currentTimeH tick -> Home snapshotFlow -> ViewModel tracker observe ->
+  seven-day provider call -> retained deadline / crossing result -> fork-point
+  state update and current-time-driven card/chart draw.
+
+The ScheduleBoundaryTracker is a private ViewModel field
+(HRTViewModel.kt:183). Home re-entry on the same ViewModel retains A-03 pending
+state; a new ViewModel gets a new tracker. The A-04 focused test and existing
+HRTViewModel tests cover these lifecycle/ownership properties. A-05E does not
+change lifecycle collection or service ownership.

@@ -1,0 +1,27 @@
+A-05E evidence-only changed paths
+
+Expected and committed scope:
+  docs/evolune/v1.8.0/evidence/A-05E-home-cost-characterization/
+
+Files:
+  A-05E-home-cost-characterization/identity.txt
+  A-05E-home-cost-characterization/execution-path.txt
+  A-05E-home-cost-characterization/provider-call-truth-table.txt
+  A-05E-home-cost-characterization/steady-state-call-count.txt
+  A-05E-home-cost-characterization/provider-work.txt
+  A-05E-home-cost-characterization/scaling-probe.txt
+  A-05E-home-cost-characterization/f03-assessment.txt
+  A-05E-home-cost-characterization/lifecycle-interaction.txt
+  A-05E-home-cost-characterization/interpolation-analysis.txt
+  A-05E-home-cost-characterization/chart-analysis.txt
+  A-05E-home-cost-characterization/m01-assessment.txt
+  A-05E-home-cost-characterization/full-jvm-summary.txt
+  A-05E-home-cost-characterization/existing-tests-audit.txt
+  A-05E-home-cost-characterization/future-a05-contract.txt
+  A-05E-home-cost-characterization/probe-results.txt
+  A-05E-home-cost-characterization/optional-host-timing.txt
+  A-05E-home-cost-characterization/changed-files.txt
+  A-05E-home-cost-characterization/MANIFEST.sha256
+
+No app/src/main, app/src/test, app/src/androidTest, wear, or experience-core
+path is permitted in the evidence commit.

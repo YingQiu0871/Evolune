@@ -1,0 +1,26 @@
+Home current-concentration interpolation
+
+HomeScreen.kt:723-750 implements calculateConcentrationAtTime as follows:
+
+* empty arrays return null;
+* minOrNull and maxOrNull each scan the complete time list;
+* an out-of-range target returns null;
+* an in-range target is found with a forward linear scan and linearly
+  interpolated, with an equal-time guard.
+
+For a target in segment k of an ordered N-point result, the source-level scan
+work is 2N + (k + 1) element visits (two full range scans plus the forward
+search). It is O(N) per current-time update; no binary-search index or retained
+segment cursor is used.
+
+Disposable reflection probe results, using the actual private helper and exact
+midpoint fixtures:
+
+points  target  result  min scan  max scan  linear scan  total visits
+   100    50.5   101.0        100       100           51           251
+ 1,000   500.5  1001.0       1000      1000          501          2501
+ 8,641  4321.0  8642.0       8641      8641         4322         21604
+
+The probe verified the expected midpoint values. The 8,641-point size is the
+normal PK grid implied by PkSimulationCalculator.kt:18 and 91-96 for a 30-day
+window at 12 points/hour (720*12 + 1).

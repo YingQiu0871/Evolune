@@ -1,0 +1,26 @@
+Observed source path
+
+1. HomeScreen collects HRTViewModel.currentTimeH with
+   collectAsStateWithLifecycle (HomeScreen.kt:58).
+2. HomeScreenContent owns one LaunchedEffect(enabledPlans) and collects the
+   current-time state with snapshotFlow (HomeScreen.kt:117-120).
+3. Each observed tick calls the ViewModel schedule-boundary entry point
+   (HomeScreen.kt:65-73; HRTViewModel.kt:360-368).
+4. The ViewModel delegates to its retained ScheduleBoundaryTracker. The lambda
+   passed to the tracker calls nextPlanForkPointTimeH (HomeScreen.kt:705-717).
+5. nextPlanForkPointTimeH converts the current absolute hour to the system zone
+   and invokes MedicationPlanPredictor.generateFutureEventsForDomainPlans with
+   daysAhead = 7, then takes the minimum event time.
+6. The same current-time state is passed into the current-concentration card and
+   ConcentrationChart (HomeScreen.kt:240-248, 370-411).
+7. ConcentrationChart reads currentTimeHState.value inside the Canvas draw
+   lambda (ConcentrationChart.kt:231, 349), so current-time changes invalidate
+   draw work without requiring chart-content recomposition.
+
+Clock ownership / lifecycle
+
+HRTViewModel.currentTimeH is a one-second flow with
+SharingStarted.WhileSubscribed(5000) (HRTViewModel.kt:185-193). A-04 gates the
+Home collection with collectAsStateWithLifecycle. A stopped downstream can
+therefore stop active one-Hz collection after the existing five-second sharing
+grace; the retained ScheduleBoundaryTracker remains ViewModel-owned.

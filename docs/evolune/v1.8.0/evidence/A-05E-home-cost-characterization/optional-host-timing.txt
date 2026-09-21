@@ -1,0 +1,11 @@
+Host timing
+
+No host wall-clock benchmark is used as an acceptance gate for A-05E. The
+provider and chart paths contain allocation, time-zone, sorting, Compose draw,
+and platform-dependent behavior; a desktop timing number would not establish
+Android frame or battery impact.
+
+The accepted evidence is therefore the deterministic call-count, result-use,
+work-scaling, source-complexity, and interpolation-count characterization in
+the companion files. Device profiling remains required before an M01 jank or
+battery claim.

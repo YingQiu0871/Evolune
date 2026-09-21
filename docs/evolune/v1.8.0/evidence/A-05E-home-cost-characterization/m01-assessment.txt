@@ -1,0 +1,22 @@
+M01 assessment
+
+Finding:
+  M01 is confirmed as a deterministic source-level draw/interpolation cost,
+  but this slice does not authorize a chart implementation change or claim a
+  device-level performance regression.
+
+The current-time card performs the O(N) Home interpolation described in
+interpolation-analysis.txt on active clock updates. ConcentrationChart reads
+the same state in Canvas draw and scans the simulation grid for fork/current
+markers while rebuilding paths. The draw-only state read avoids content
+recomposition, but it does not avoid per-tick draw work.
+
+A future M01 implementation should preserve fork-point interpolation,
+duplicate-time handling, out-of-range behavior, current-marker correctness,
+and the existing draw-only invalidation boundary. Device profiling is required
+before selecting an optimization based on jank, frame budget, or battery.
+
+Decision for this evidence slice:
+  F03 is the architecturally justified future A-05 target. M01 is recorded as
+  a separate, profiled follow-up concern rather than silently bundled into an
+  implementation.

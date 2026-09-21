@@ -1,0 +1,19 @@
+Steady-state call-count probe
+
+Probe conditions:
+  Fixed UTC zone; one enabled daily plan with one 08:00 slot; provider body was
+  the same seven-day domain predictor used by Home's nextPlanForkPointTimeH.
+  Ticks were deterministic one-second observations.
+
+Scenario                         Observations  Provider calls  Results used  Crossings  Redundant calls
+steady_60 (pre-boundary)                 60             60             1          0              59
+crossing_600 (one exact crossing)       600            600             2          1             598
+
+The first scenario establishes the stable retained-B case. The second begins
+before the daily boundary and includes the exact crossing at the final tick;
+the second accepted result is the following day's strict-future boundary.
+
+The minimum provider-call count under the current A-03 semantics is one call at
+initialization plus one call per consumed boundary. Therefore the minimum for
+the two scenarios is respectively 1 and 2, versus the observed 60 and 600.
+This is a structural redundancy result, not a wall-clock or battery claim.

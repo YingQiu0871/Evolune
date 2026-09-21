@@ -1,0 +1,29 @@
+Existing-test audit
+
+Focused command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest --tests io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest --tests io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorParityTest --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest --rerun-tasks
+
+Result:
+  7 suites / 54 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Suite counts:
+  ScheduleBoundaryTrackerTest: 7
+  HRTViewModelTest: 19
+  HomeScheduleBoundaryTest: 3
+  MedicationPlanPredictorTest: 11
+  MedicationPlanPredictorParityTest: 3
+  ConcentrationChartGeometryTest: 8
+  ConcentrationChartLayoutTest: 3
+
+Coverage relevance:
+  ScheduleBoundaryTrackerTest covers exact crossing, close boundaries, long
+  jumps, plan changes, empty plans, timezone changes, and provider calls on
+  every observation. HRTViewModelTest covers retained boundary across Home
+  re-entry and ViewModel isolation. HomeScheduleBoundaryTest covers midnight,
+  DST gap, and DST overlap. Predictor tests cover prediction behavior and
+  domain/legacy parity. Chart tests cover visible-scale geometry and label
+  layout invariants.
+
+No committed test was modified. The disposable A-05E probe was removed before
+the evidence commit.

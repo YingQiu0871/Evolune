@@ -1,0 +1,25 @@
+F03 assessment
+
+Finding:
+  F03 CONFIRMED — the Home per-tick provider is structurally redundant in the
+  stable retained-boundary state and therefore justifies a future A-05 F03
+  optimization investigation.
+
+Evidence:
+  * Home observes the one-second clock and invokes the boundary path on each
+    active tick.
+  * ScheduleBoundaryTracker calls the provider on every observation.
+  * For an unchanged identity with an unconsumed retained deadline, the result
+    is not used; the retained deadline is returned unchanged.
+  * The 60-tick probe measured 60 provider calls but one accepted result.
+  * The 600-tick crossing probe measured 600 provider calls, two accepted
+    results, and one crossing.
+  * The provider performs seven-day prediction, UUID allocation, time-zone
+    conversion, sorting, and a minimum scan before its result is discarded.
+
+This slice contains no F03 implementation. It preserves the A-03 correctness
+contract: exact-boundary single consumption, strict-future replacement, plan /
+empty / timezone identity invalidation, and long-jump replacement behavior.
+
+The conclusion is structural. It does not claim a measured frame-time,
+battery, or user-visible jank magnitude.
