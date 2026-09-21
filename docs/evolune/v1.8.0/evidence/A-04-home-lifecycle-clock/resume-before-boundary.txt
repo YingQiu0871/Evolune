@@ -1,0 +1,12 @@
+Resume-before-boundary proof
+
+The new device test uses an empty enabled-plan snapshot, so no pending schedule
+boundary exists. It stops the real Home composition's Activity lifecycle, waits
+past WhileSubscribed(5000), advances the injected clock, and resumes.
+
+Observed contract in the test design:
+  clock reads resume after RESUMED
+  the recording PK calculator remains at its one initial call
+  resume alone does not synthesize runSimulation()
+
+This is the no-boundary branch of the required resume distinction.

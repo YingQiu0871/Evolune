@@ -1,0 +1,14 @@
+A-04 frozen-contract audit
+
+Verified unchanged from the A-03 predecessor:
+  HRTViewModel.kt — no production delta
+  ScheduleBoundaryTracker.kt — no production delta
+  currentTimeH ticker source, Clock.millis()/3_600_000.0, delay(1000), and
+    SharingStarted.WhileSubscribed(5000)
+  PK equations, simulation grid, AUC, predictor semantics, and dispatch path
+  chart drawing, fork marker, interpolation, dose UI, navigation, and manual refresh
+  version identity and persisted/public contracts
+
+The only production change is the Home currentTimeH collection API. The only
+test change is the narrow lifecycle instrumentation proof. No A-01, A-02,
+B-01, D-01, A-03E, or A-03 implementation/evidence bytes were edited.

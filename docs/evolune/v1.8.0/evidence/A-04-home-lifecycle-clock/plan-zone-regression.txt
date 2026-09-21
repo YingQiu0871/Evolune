@@ -1,0 +1,12 @@
+Plan and timezone change while stopped
+
+No plan or timezone identity logic was changed. The A-03 identity and invalidation
+guards remain in ScheduleBoundaryTrackerTest:
+  plan change invalidates old boundary without synthetic crossing
+  timezone change invalidates boundary without crossing old zone
+  empty plans clear pending boundary and later plans initialize fresh
+
+Because A-04 does not reset the tracker on lifecycle stop/start, the first resumed
+observation still runs through the existing identity-first logic. A changed plan
+snapshot or ZoneId therefore invalidates stale retained state before any crossing
+can be reported.

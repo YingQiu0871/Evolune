@@ -1,0 +1,23 @@
+Home collection path before A-04
+
+Source:
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+
+HomeScreen collected:
+  pkState with collectAsState()
+  doseTimePoints with collectAsState()
+  enabledPlans with collectAsState()
+  currentTimeH with collectAsState()
+
+The currentTimeH value was passed to HomeScreenContent as a State<Double>. The
+composition retained a LaunchedEffect(enabledPlans) whose snapshotFlow read that
+state and called the ViewModel boundary observer on clock changes. Plain
+collectAsState() did not impose a lifecycle STARTED threshold, so a retained Home
+composition could remain subscribed while its Activity lifecycle was STOPPED.
+
+HRTViewModel.currentTimeH already used:
+  clock.millis() / MILLIS_PER_HOUR
+  delay(1000)
+  SharingStarted.WhileSubscribed(5000)
+
+No source change was made to HRTViewModel.kt or ScheduleBoundaryTracker.kt.

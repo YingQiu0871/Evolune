@@ -1,0 +1,16 @@
+Resume-after-boundary preservation
+
+A-04 does not alter the boundary owner or crossing path. The retained-boundary
+regression remains covered by the existing A-03 JVM tests:
+  HRTViewModelTest — retained schedule boundary survives home reentry and refreshes only once
+  ScheduleBoundaryTrackerTest — five point crossing consumes boundary once at exact deadline
+  ScheduleBoundaryTrackerTest — close boundaries are consumed independently without duplicate refresh
+
+The unchanged A-03 path remains:
+  HRTViewModel owns ScheduleBoundaryTracker
+  STOP does not reset or reinitialize the tracker
+  first resumed currentTimeH observation compares against the retained B
+  a crossed B emits one crossing and advances to the first strict-future B2
+
+The A-04 device test covers the lifecycle collection edge; the A-03 unit tests
+cover the resumed-boundary semantics that must remain frozen.

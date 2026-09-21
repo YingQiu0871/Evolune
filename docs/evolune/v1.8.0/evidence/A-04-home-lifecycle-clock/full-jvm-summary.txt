@@ -1,0 +1,21 @@
+A-04 full JVM regression summary
+
+Accepted gate procedure:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Raw Windows checkout characterization:
+  app: 1420 tests, 2 failures, 0 errors
+  The two failures are exactly PortableGoldenFixtureTest canonical JSON and
+  canonical CSV byte assertions. This raw checkout result is not the accepted
+  full regression gate.
+
+Canonical tracked-LF regression gate:
+  app:            151 suites / 1420 tests / 0 failures / 0 errors / 0 skipped
+  experience-core: 20 suites / 171 tests / 0 failures / 0 errors / 0 skipped
+  wear:            11 suites / 90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:          182 suites / 1681 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The two unchanged golden fixtures were temporarily materialized as their tracked
+Git LF bytes for the accepted run. The script then restored the original Windows
+checkout bytes and verified both raw SHA-256 values matched before normalization.

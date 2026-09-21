@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 A-04 — Home lifecycle-gated clock collection
+
+Parent:
+  61e8227158602a938b328fae3726c7c2ac4f1459
+  docs(v1.8.0): complete A-03 JVM regression evidence
+
+Branch:
+  feature/v1.8.0-a04-home-lifecycle-clock
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a04
+
+Scope:
+  Lifecycle-aware collection of Home's currentTimeH StateFlow only.
+  A-03 ScheduleBoundaryTracker ownership and retained-boundary semantics are frozen.
+
+Expected implementation scope:
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HomeClockLifecycleTest.kt
+
+No version bump, navigation change, ticker change, PK math change, tracker change,
+ViewModel production change, push, tag, or release was performed.

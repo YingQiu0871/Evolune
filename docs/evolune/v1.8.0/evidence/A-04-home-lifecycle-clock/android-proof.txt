@@ -1,0 +1,14 @@
+A-04 Android proof decision
+
+A narrow device test was added:
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HomeClockLifecycleTest.kt
+
+It hosts the real HomeScreen in a real ComponentActivity and exercises:
+  STARTED: the injected clock is read by the Home currentTimeH path
+  STOPPED: after the existing WhileSubscribed(5000) grace period, reads stop
+  RESUMED: the latest clock path is read again
+  no pending boundary: the recording calculator remains at its single initial call
+
+The test source compiled successfully. Runtime execution is pending a Pixel_7
+API 35 emulator; adb devices was empty and no emulator executable was available
+in the local Android SDK installation during this run.

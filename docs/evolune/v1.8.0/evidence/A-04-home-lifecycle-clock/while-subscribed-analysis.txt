@@ -1,0 +1,14 @@
+WhileSubscribed(5000) interaction
+
+HRTViewModel.currentTimeH remains a StateFlow built with:
+  stateIn(scope, started = SharingStarted.WhileSubscribed(5000), initialValue = ...)
+
+When Home's lifecycle-aware collector falls below STARTED, the downstream
+collection becomes inactive. The StateFlow upstream is not promised to stop
+instantly: its existing WhileSubscribed policy may keep the 1 Hz producer alive
+for up to the existing 5000 ms stop timeout.
+
+A-04 does not change that timeout, Clock.millis(), delay(1000), or the source
+flow. The device proof waits 6500 ms after STOP and then an additional 1500 ms
+to establish the post-timeout quiet period before asserting that no further
+clock reads occur.

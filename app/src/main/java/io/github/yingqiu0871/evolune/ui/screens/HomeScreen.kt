@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
@@ -54,7 +55,7 @@ fun HomeScreen(
     val pkState by viewModel.pkState.collectAsState()
     val doseTimePoints by viewModel.doseTimePoints.collectAsState()
     val enabledPlans by viewModel.enabledPlans.collectAsState()
-    val realtimeCurrentTimeState = viewModel.currentTimeH.collectAsState()
+    val realtimeCurrentTimeState = viewModel.currentTimeH.collectAsStateWithLifecycle()
 
     HomeScreenContent(
         pkState = pkState,

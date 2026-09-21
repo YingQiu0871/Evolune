@@ -1,0 +1,11 @@
+Long-gap proof
+
+No long-gap production logic was added in A-04. The A-03 tracker remains the
+single owner of the retained deadline and its long-jump behavior remains covered
+by:
+  ScheduleBoundaryTrackerTest — long jump refreshes once and stores first future boundary after now
+
+That test establishes the required coalescing rule: a resumed observation after
+multiple missed boundaries produces one crossing and stores the first strict-
+future replacement. A-04 only controls whether Home supplies clock observations
+while its lifecycle is active.

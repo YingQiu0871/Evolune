@@ -1,0 +1,19 @@
+A-04 lifecycle design
+
+Production change:
+  HomeScreen.currentTimeH collection changed from collectAsState()
+  to collectAsStateWithLifecycle().
+
+The project already provides the AndroidX lifecycle Compose integration through
+the existing lifecycle dependencies and uses LocalLifecycleOwner elsewhere in
+Compose surfaces. The default lifecycle threshold is STARTED.
+
+Result:
+  STARTED or RESUMED: Home collects currentTimeH and the existing snapshotFlow
+  can observe clock updates.
+  CREATED/STOPPED: the lifecycle-aware collector is inactive while the Home
+  composition may remain retained.
+
+Only currentTimeH was converted. pkState, doseTimePoints, and enabledPlans retain
+their existing collection behavior. No custom observer, ticker, or tracker reset
+was introduced.

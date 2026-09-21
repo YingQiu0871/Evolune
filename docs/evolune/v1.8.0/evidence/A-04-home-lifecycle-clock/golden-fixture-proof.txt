@@ -1,0 +1,25 @@
+Portable golden fixture identity and normalization proof
+
+Tracked Git blobs at A-03 parent / A-04 candidate:
+  app/src/test/resources/phase-e/golden-canonical.json
+    parent blob:   e453c5d35647b2bc5b10a361b7615d5be604c163
+    candidate blob: e453c5d35647b2bc5b10a361b7615d5be604c163
+    tracked size: 3531 bytes
+  app/src/test/resources/phase-e/golden-canonical.csv
+    parent blob:   17307ce7a2f041f10e8c4918ac331abec7e3614f
+    candidate blob: 17307ce7a2f041f10e8c4918ac331abec7e3614f
+    tracked size: 1763 bytes
+
+Raw Windows checkout before the gate:
+  JSON SHA-256 3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3; 3656 bytes; CR=125; LF=125
+  CSV  SHA-256 dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495; 1773 bytes; CR=10; LF=10
+
+Canonical tracked-LF materialization used only for the regression run:
+  JSON SHA-256 dd466f92a94ddef5be7bc213495d26a94e04aea5a85ce9d7e1d93f7051668af8; 3531 bytes; CR=0; LF=125
+  CSV  SHA-256 0734a95c9081d168606ffc6d48175f8437ff734e59ec329076f739e825c04957; 1763 bytes; CR=0; LF=10
+
+After the gate, both exact paths were removed and restored with:
+  git -c core.autocrlf=true restore --source=HEAD --worktree -- <two fixture paths>
+
+Restoration matched the raw hashes above exactly. Parent/candidate tracked fixture
+identity is unchanged; the byte mismatch is checkout line-ending normalization only.

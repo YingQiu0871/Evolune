@@ -1,0 +1,18 @@
+A-04 focused JVM verification
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --rerun-tasks
+
+Result:
+  3 suites
+  29 tests
+  0 failures
+  0 errors
+  0 skipped
+
+The lifecycle instrumentation source also compiled successfully with:
+  .\gradlew.bat :app:compileDebugAndroidTestKotlin --rerun-tasks
+
+The connected-device execution was not run because adb devices reported no
+connected emulator and this machine has no emulator binary available. The test
+is retained for execution on the required Pixel_7 API 35 emulator.

@@ -1,0 +1,10 @@
+A-04 changed-files scope
+
+Implementation/test files:
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HomeClockLifecycleTest.kt
+
+Evidence files:
+  docs/evolune/v1.8.0/evidence/A-04-home-lifecycle-clock/**
+
+No other production or test file is part of the A-04 implementation delta.

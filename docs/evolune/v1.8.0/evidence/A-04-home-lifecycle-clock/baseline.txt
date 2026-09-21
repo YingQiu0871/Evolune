@@ -1,0 +1,23 @@
+Baseline and raw-checkout characterization
+
+The approved predecessor is A-03 evidence HEAD:
+  61e8227158602a938b328fae3726c7c2ac4f1459
+
+Before A-04, HomeScreen.kt used ordinary Compose collection for all four top-level
+flows:
+  pkState.collectAsState()
+  doseTimePoints.collectAsState()
+  enabledPlans.collectAsState()
+  currentTimeH.collectAsState()
+
+The A-03 retained-boundary implementation is already green under the canonical
+tracked-LF full JVM procedure. The known raw Windows checkout issue remains limited
+to the unchanged portable golden JSON and CSV byte assertions.
+
+A-04 raw Windows checkout:
+  app: 1420 tests, 2 failures, 0 errors
+  Failures are exactly:
+    PortableGoldenFixtureTest — the canonical JSON byte fixture is reproduced exactly
+    PortableGoldenFixtureTest — the canonical CSV byte fixture is reproduced exactly
+
+This raw checkout result is diagnostic evidence only, not the accepted full regression gate.
