@@ -1,4 +1,6 @@
 Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
-Result: app 1420 tests / 2 pre-existing PortableGoldenFixtureTest failures / 0 errors; experience-core 171 / 0 / 0; wear 90 / 0 / 0
-Total: 1681 tests / 2 failures / 0 errors
-Delta from A-03E baseline: +11 tests, +0 failures, +0 errors
+Raw Windows candidate: app 1420 tests / 2 exact PortableGoldenFixtureTest failures / 0 errors; experience-core 171 / 0 / 0; wear 90 / 0 / 0; FAILED.
+Raw exact parent: app 1409 tests / 2 exact PortableGoldenFixtureTest failures / 0 errors; experience-core 171 / 0 / 0; wear 90 / 0 / 0; FAILED.
+Canonical tracked-LF candidate: app 1420 / 0 / 0 / 0; experience-core 171 / 0 / 0 / 0; wear 90 / 0 / 0 / 0; BUILD SUCCESSFUL.
+Canonical total: 1681 tests / 0 failures / 0 errors / 0 skipped.
+The canonical tracked-LF run is the accepted gate; raw Windows runs are reproduction evidence only.

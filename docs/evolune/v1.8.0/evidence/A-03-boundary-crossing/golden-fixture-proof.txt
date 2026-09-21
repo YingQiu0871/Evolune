@@ -1,0 +1,26 @@
+EVOLUNE v1.8.0 A-03 - GOLDEN FIXTURE IDENTITY
+
+Parent and candidate Git blobs are equal with zero committed delta:
+
+  app/src/test/resources/phase-e/golden-canonical.json
+    parent blob: e453c5d35647b2bc5b10a361b7615d5be604c163
+    HEAD blob:   e453c5d35647b2bc5b10a361b7615d5be604c163
+    size: 3531 bytes
+    parent-vs-HEAD path diff: empty
+
+  app/src/test/resources/phase-e/golden-canonical.csv
+    parent blob: 17307ce7a2f041f10e8c4918ac331abec7e3614f
+    HEAD blob:   17307ce7a2f041f10e8c4918ac331abec7e3614f
+    size: 1763 bytes
+    parent-vs-HEAD path diff: empty
+
+Raw Windows checkout before and after the canonical run:
+  JSON: SHA-256 3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3, 3656 bytes, CR=125, LF=125
+  CSV:  SHA-256 dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495, 1773 bytes, CR=10, LF=10
+
+Canonical run representation:
+  JSON: tracked LF blob bytes, CR=0, LF=125
+  CSV: tracked LF blob bytes, CR=0, LF=10
+
+Normalization was temporary test-environment setup only. The raw Windows bytes
+were restored after the run and the repository worktree is clean.

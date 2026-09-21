@@ -1,0 +1,18 @@
+RAW WINDOWS CHECKOUT - EXACT PARENT
+
+HEAD: 768d90d468b1f74c4611cbe731739b3ac16f5611
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Gradle result: FAILED
+Final Gradle line: 1409 tests completed, 2 failed
+
+Reported failures, exactly:
+  PortableGoldenFixtureTest > the canonical JSON byte fixture is reproduced exactly
+  PortableGoldenFixtureTest > the canonical CSV byte fixture is reproduced exactly
+
+XML counts:
+  app: 1409 tests, 2 failures, 0 errors, 0 skipped
+  experience-core: 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 90 tests, 0 failures, 0 errors, 0 skipped
+
+The exact same two failures reproduce on the parent under the same Windows
+checkout conditions.

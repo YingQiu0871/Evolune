@@ -25,3 +25,7 @@ Version identity remains unchanged:
 
 No push, tag, release, version bump, PK equation change, predictor semantic
 change, lifecycle-gating change, navigation change, or DI framework change.
+
+Evidence-only follow-up:
+  The implementation/test bytes remain those of d5716d95d8e267240759af9c501b34b497a17abf.
+  This evidence directory is the only intended follow-up commit scope.

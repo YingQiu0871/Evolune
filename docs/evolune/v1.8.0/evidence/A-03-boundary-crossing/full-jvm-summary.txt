@@ -1,19 +1,43 @@
 EVOLUNE v1.8.0 A-03 - FULL JVM SUMMARY
 
-Command:
+Command used for every full regression:
   .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
 
-Final A-03 counts:
-  app testDebugUnitTest: 1420 tests, 2 failures, 0 errors
-  experience-core test: 171 tests, 0 failures, 0 errors
-  wear testDebugUnitTest: 90 tests, 0 failures, 0 errors
-  total: 1681 tests, 2 failures, 0 errors
+A. Raw Windows checkout reproduction (not the accepted regression gate)
 
-The A-03 additions account for 11 tests over the 1670-test baseline:
-  7 ScheduleBoundaryTrackerTest cases
-  2 HRTViewModelTest owner cases
-  2 HomeScheduleBoundaryTest DST cases
+Candidate A-03 HEAD:
+  d5716d95d8e267240759af9c501b34b497a17abf
+  app: 1420 tests, 2 failures, 0 errors, 0 skipped
+  experience-core: 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 90 tests, 0 failures, 0 errors, 0 skipped
+  Gradle result: FAILED
+  Failures exactly:
+    PortableGoldenFixtureTest.the canonical JSON byte fixture is reproduced exactly
+    PortableGoldenFixtureTest.the canonical CSV byte fixture is reproduced exactly
 
-The only failures remain the same two pre-existing PortableGoldenFixtureTest
-canonical JSON and canonical CSV byte assertions reproduced by the A-03E
-baseline. No A-03 test or error failed.
+Exact parent:
+  768d90d468b1f74c4611cbe731739b3ac16f5611
+  app: 1409 tests, 2 failures, 0 errors, 0 skipped
+  experience-core: 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 90 tests, 0 failures, 0 errors, 0 skipped
+  Gradle result: FAILED
+  The same two PortableGoldenFixtureTest byte assertions failed, and no other
+  failure was reported.
+
+B. Canonical tracked-LF regression gate (accepted)
+
+Only these unchanged fixtures were temporarily materialized as their tracked
+Git LF blob bytes:
+  app/src/test/resources/phase-e/golden-canonical.json: 3531 bytes, CR=0, LF=125
+  app/src/test/resources/phase-e/golden-canonical.csv: 1763 bytes, CR=0, LF=10
+
+Fresh canonical-LF result:
+  app testDebugUnitTest: 151 suites, 1420 tests, 0 failures, 0 errors, 0 skipped
+  experience-core test: 20 suites, 171 tests, 0 failures, 0 errors, 0 skipped
+  wear testDebugUnitTest: 11 suites, 90 tests, 0 failures, 0 errors, 0 skipped
+  total: 182 suites, 1681 tests, 0 failures, 0 errors, 0 skipped
+  Gradle result: BUILD SUCCESSFUL
+
+The A-03 additions account for 11 tests over the 1670-test baseline. The
+canonical tracked-LF run is the accepted full-JVM regression gate; the raw
+Windows checkout result is retained only as environment reproduction evidence.

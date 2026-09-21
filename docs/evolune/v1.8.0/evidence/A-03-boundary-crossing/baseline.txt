@@ -1,18 +1,23 @@
-EVOLUNE v1.8.0 A-03 - BASELINE
+EVOLUNE v1.8.0 A-03 - BASELINE AND GOLDEN FIXTURE GATE
 
-Baseline checkout:
-  A-03E parent worktree, exact commit 768d90d468b1f74c4611cbe731739b3ac16f5611
+Exact parent checkout:
+  768d90d468b1f74c4611cbe731739b3ac16f5611
 
-Command:
-  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Raw Windows checkout baseline:
+  app: 1409 tests, 2 failures, 0 errors, 0 skipped
+  experience-core: 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 90 tests, 0 failures, 0 errors, 0 skipped
+  total: 1670 tests, 2 failures, 0 errors, 0 skipped
 
-Baseline test counts:
-  app testDebugUnitTest: 1409 tests, 2 failures, 0 errors
-  experience-core test: 171 tests, 0 failures, 0 errors
-  wear testDebugUnitTest: 90 tests, 0 failures, 0 errors
-  total: 1670 tests, 2 failures, 0 errors
+The two and only two raw-checkout failures are:
+  PortableGoldenFixtureTest canonical JSON byte assertion
+  PortableGoldenFixtureTest canonical CSV byte assertion
 
-The two failures are the pre-existing PortableGoldenFixtureTest canonical JSON
-and canonical CSV byte assertions. They were reproduced before A-03 changes
-and are unrelated to the Home boundary files. No baseline source or test file
-was changed while recording this result.
+Both failures reproduce unchanged on the A-03 candidate. The relevant Git
+blobs are identical between parent and candidate; the Windows worktree presents
+the two resources as CRLF while the tracked blobs are LF. The resources were
+temporarily materialized as tracked LF bytes for the accepted canonical gate,
+then restored to the original Windows checkout bytes.
+
+Accepted canonical tracked-LF gate:
+  1681 tests, 0 failures, 0 errors, 0 skipped, BUILD SUCCESSFUL.

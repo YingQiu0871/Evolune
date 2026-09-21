@@ -1,0 +1,18 @@
+RAW WINDOWS CHECKOUT - A-03 CANDIDATE
+
+HEAD: d5716d95d8e267240759af9c501b34b497a17abf
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Gradle result: FAILED
+Final Gradle line: 1420 tests completed, 2 failed
+
+Reported failures, exactly:
+  PortableGoldenFixtureTest > the canonical JSON byte fixture is reproduced exactly
+  PortableGoldenFixtureTest > the canonical CSV byte fixture is reproduced exactly
+
+XML counts:
+  app: 1420 tests, 2 failures, 0 errors, 0 skipped
+  experience-core: 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 90 tests, 0 failures, 0 errors, 0 skipped
+
+This raw Windows checkout result is reproduction evidence, not the accepted
+full-JVM regression gate.

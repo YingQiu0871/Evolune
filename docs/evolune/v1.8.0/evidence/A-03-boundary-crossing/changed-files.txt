@@ -1,18 +1,18 @@
-EVOLUNE v1.8.0 A-03 - CHANGED FILES
+EVOLUNE v1.8.0 A-03 - CHANGED FILES AND FOLLOW-UP DELTA
 
-Production:
-  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
-  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
-  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+Original implementation commit d5716d95d8e267240759af9c501b34b497a17abf:
+  Production: three files
+    app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
+    app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+    app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+  Tests: three files
+    app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+    app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+    app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
 
-Tests:
-  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
-  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
-  app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
-
-Evidence:
+Evidence-only follow-up commit:
   docs/evolune/v1.8.0/evidence/A-03-boundary-crossing/
+  No production, test, androidTest, Wear, or experience-core file changed.
 
-Expected implementation scope is three production files and three test files.
-No other app, Wear, experience-core, navigation, PK, predictor, lifecycle,
-version, or frozen evidence surface is included.
+The follow-up updates only raw/canonical full-JVM evidence, golden fixture
+identity and normalization records, changed-file accounting, and the manifest.

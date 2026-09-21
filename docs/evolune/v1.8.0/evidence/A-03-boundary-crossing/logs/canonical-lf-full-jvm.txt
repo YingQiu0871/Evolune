@@ -1,0 +1,16 @@
+CANONICAL TRACKED-LF FULL JVM REGRESSION GATE
+
+HEAD: d5716d95d8e267240759af9c501b34b497a17abf
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Fixture setup: only golden-canonical.json and golden-canonical.csv temporarily
+materialized as their tracked Git LF blob bytes.
+Gradle result: BUILD SUCCESSFUL
+
+XML counts:
+  app: 151 suites, 1420 tests, 0 failures, 0 errors, 0 skipped
+  experience-core: 20 suites, 171 tests, 0 failures, 0 errors, 0 skipped
+  wear: 11 suites, 90 tests, 0 failures, 0 errors, 0 skipped
+  TOTAL: 182 suites, 1681 tests, 0 failures, 0 errors, 0 skipped
+
+The temporary fixture normalization was reverted to the original Windows
+checkout bytes immediately after this run.
