@@ -1,0 +1,52 @@
+EVOLUNE v1.8.0 A-03E - STALENESS IMPACT
+
+Directly stale after a missed boundary
+
+PKState.simulationResult and baselineSimulationResult
+  Producer: HRTViewModel.calculateAndPublish through PkSimulationCalculator.
+  Expected: a scheduled-boundary refresh starts a new calculation with the
+  current instant and current plan/event inputs. Actual: no calculation is
+  started by F04, so both result references remain the pre-boundary result.
+  The pre-boundary full result normally already contains the just-crossed
+  scheduled event because it was generated as a future event before B. The
+  defect nevertheless leaves the result's calculation origin, time grid, and
+  future-event set unrefreshed; after a long enough stale interval it can no
+  longer represent the current prediction window or new repository state.
+
+PKState.currentTimeH and concentrationCalculatedAt
+  Producer: calculateAndPublish.
+  Actual: these fields are not updated by the Home clock flow when F04 misses.
+  They remain metadata from the last simulation. They are not the same thing as
+  the live Home clock collected by HomeScreen.
+
+Live Home current-concentration rendering
+  Producer: HomeScreen.currentTimeH plus calculateConcentrationAtTime over the
+  existing simulationResult (HomeScreen.kt:357-368 and 694-717).
+  Actual: the card recomputes an interpolation on each clock-driven
+  recomposition, so the displayed current value can continue moving even while
+  the PKState result itself is not refreshed. This masks part of F04.
+
+forkPointTimeHState / chart split
+  Producer: Home boundary effect and ConcentrationChart.
+  Actual: it is updated every clock tick and jumps from B to B2 at the crossing.
+  The marker can therefore move while the simulation result that it annotates
+  remains unchanged.
+
+doseTimePoints
+  Producer: observed recorded dose-event repository, adapted in HRTViewModel.
+  Actual: unchanged by a scheduled-plan crossing alone. A user-recorded dose or
+  repository emission can refresh it independently and can also trigger PK.
+
+Not supported by the audited Home path
+  No Home next-N-scheduled-dose list, occurrence-status state, or notification
+  completion state is produced by this boundary effect. No staleness claim is
+  made for those categories.
+
+Duration
+  The F04-induced stale interval is unbounded while Home remains active with an
+  unchanged enabled-plan list and no other refresh source. A new process/VM or a
+  repository/settings/manual refresh ends it. Independently, each simulation
+  grid is built around +/-15 days from its calculation time, and Home's local
+  interpolation returns null outside the stored grid; a sufficiently long stale
+  interval can therefore make the displayed current value unavailable rather
+  than merely old.

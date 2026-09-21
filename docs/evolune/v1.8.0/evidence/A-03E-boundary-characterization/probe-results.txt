@@ -1,0 +1,39 @@
+EVOLUNE v1.8.0 A-03E - DISPOSABLE PROBE RESULTS
+
+Temporary probe
+  A temporary uncommitted JVM test named
+  A03EDisposableBoundaryProbeTest was added only to the A-03E worktree. It
+  called the existing internal nextPlanForkPointTimeH helper and reproduced the
+  Home predicate at exact millisecond sample points. The probe was deleted with
+  apply_patch after execution and is absent from the final source/test tree.
+
+Command
+  .\gradlew :app:testDebugUnitTest --tests
+  io.github.yingqiu0871.evolune.ui.screens.A03EDisposableBoundaryProbeTest
+  --rerun-tasks
+
+Result
+  BUILD SUCCESSFUL
+  2 probe tests, 0 failures, 0 errors, 0 skipped.
+
+Captured output
+  A03E multiple-boundary zone=Europe/Paris at=2026-09-21T08:30
+  selected=2026-09-21T08:35
+  A03E timeline zone=Europe/Paris offsetSeconds=-2
+  currentMillis=1789972198000 currentTimeH=497214.49944444443
+  forkPointH=497214.5 triggered=false
+  A03E timeline zone=Europe/Paris offsetSeconds=-1
+  currentMillis=1789972199000 currentTimeH=497214.4997222222
+  forkPointH=497214.5 triggered=false
+  A03E timeline zone=Europe/Paris offsetSeconds=0
+  currentMillis=1789972200000 currentTimeH=497214.5
+  forkPointH=497238.5 triggered=false
+  A03E timeline zone=Europe/Paris offsetSeconds=1
+  currentMillis=1789972201000 currentTimeH=497214.5002777778
+  forkPointH=497238.5 triggered=false
+  A03E timeline zone=Europe/Paris offsetSeconds=2
+  currentMillis=1789972202000 currentTimeH=497214.50055555557
+  forkPointH=497238.5 triggered=false
+
+The result is deterministic and directly exercises the existing source helper;
+no production or committed test file was retained.

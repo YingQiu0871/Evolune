@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 A-03E - OTHER REFRESH SOURCES
+
+Source                                           Directly masks F04?   Evidence
+
+Initial ViewModel trigger                         Yes                   HRTViewModel init combines replayed repository/plan flows and body weight; a newly created ViewModel calculates immediately.
+
+Manual Home refresh / retry                       Yes                   Home passes onRefresh to HRTViewModel.runSimulation, which increments simulationRefresh.
+
+Dose event repository emission                    Yes                   eventUpdates participates in the simulation combine. Record, edit, delete, undo, or import paths that change the observed event list trigger calculation.
+
+Enabled-plan repository emission                 Yes                   enabledPlanUpdates participates in the combine. Enabled-plan save or enable/disable changes can trigger calculation and also restart Home's enabledPlans-keyed effect.
+
+Body-weight settings emission                     Yes                   HRTViewModelFactory maps settingsDataStore.userSettings.bodyWeight into bodyWeightFlow, which participates in the combine.
+
+Current-time clock tick                           No                    It updates currentTimeH and Home rendering, but is not a member of the HRT simulation combine. Its only F04 entry is the faulty boundary effect.
+
+Home navigation re-entry                          No                    Re-entry starts a new Home effect and samples the current clock, but strict-future lookup has already discarded boundaries crossed while away.
+
+Activity onStart / foreground                    No                    MainActivity.onStart calls settingsViewModel.onForeground only. No HRT/Home refresh is wired there.
+
+Process recreation / new ViewModel               Yes                   A new HRTViewModel runs its initial combined trigger and recalculates from the current Clock instant.
+
+Theme, time-format, and unrelated root changes   No                    No source path from those changes to simulationRefresh was found. They may recompose Home, but recomposition does not invoke onRefresh.
+
+Masking conclusion
+  These mechanisms can make the UI correct later, but they do not make the F04
+  predicate correct. A manual/repository/settings/process refresh can mask a
+  missed crossing; absent one, the boundary-induced calculation is not started.

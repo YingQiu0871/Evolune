@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 A-03E - ACTUAL BOUNDARY TYPES
+
+Represented boundary
+  The predicate represents the earliest future scheduled medication occurrence
+  generated from enabled MedicationPlan values. A plan can contribute multiple
+  local-time slots. Schedule types actually handled by the predictor are DAILY,
+  WEEKLY, and CUSTOM.
+
+Not separate boundary types in this path
+  There is no Home predicate for plan start/end, dose completion, notification
+  completion, patch removal, or a separately persisted day boundary. Local day
+  traversal is only the mechanism used to enumerate schedule candidates. The
+  Home helper does not inspect a prediction-window boundary; it only asks for
+  the minimum generated occurrence within seven days.
+
+Time representation
+  currentTimeH and event.timeH are Double epoch hours, using 3,600,000
+  milliseconds per hour. Home first truncates currentTimeH * 3,600,000 to epoch
+  milliseconds, then converts through Instant and LocalDateTime. Predictor output
+  converts the candidate local date/time back through the system zone to epoch
+  milliseconds and then epoch hours.
+
+Timezone
+  Both directions use ZoneId.systemDefault(). No fixed application timezone is
+  supplied to the Home helper or MedicationPlanPredictor.
+
+Comparison semantics
+  Candidate generation is strict future: dateTime.isAfter(fromDateTime). An
+  occurrence exactly equal to the current local date/time is omitted. The Home
+  crossing comparison is inclusive (currentTimeH >= forkPointTimeH), but it is
+  applied to the newly recomputed strict-future result and is additionally
+  limited to less than one second after that result. With no retained deadline,
+  the inclusive comparison cannot observe the occurrence that just became equal
+  to now.
+
+Disabled or empty plans
+  Disabled plans are filtered out by the predictor. An empty enabled-plan list
+  produces null and cannot trigger the boundary refresh.

@@ -1,0 +1,55 @@
+EVOLUNE v1.8.0 A-03E - FUTURE A-03 CONTRACT ONLY
+
+This file is a contract proposal, not an implementation.
+
+State owner
+  The Home boundary-refresh coordinator/effect must own a retained next deadline
+  for the current enabled-plan snapshot. The retained state must survive clock
+  collection pauses across an Activity stop/start while Home remains the active
+  surface. If Home is disposed and later re-entered, the owner must either outlive
+  that composition or perform an explicit current-time refresh decision; a new
+  composition must not silently discard a crossed deadline.
+
+Deadline lifetime
+  Initialize the deadline from the first strict-future lookup. Keep that exact
+  deadline until it is consumed by a refresh or invalidated by an enabled-plan
+  snapshot change. Do not replace it with a newly computed future deadline before
+  testing whether now crossed the retained value.
+
+Comparison semantics
+  Use the retained deadline with now >= deadline. The existing one-second clock
+  sampling is not a substitute for retained state. Preserve the current epoch
+  time representation or use an equivalent Instant/millisecond value without
+  changing schedule-generation timezone semantics.
+
+Recomputation
+  After a refresh is accepted for a consumed deadline, compute the next strictly
+  future deadline from the latest now. If a long suspension crossed several
+  occurrences, one refresh after the jump is sufficient to rebuild current state;
+  the contract does not require one engine run per missed occurrence.
+
+Duplicate prevention
+  A repeated clock emission at or after the same deadline must not enqueue
+  duplicate runSimulation calls. Mark the deadline consumed before/with the
+  refresh request, or otherwise coalesce the request, then advance the retained
+  deadline only after the refresh decision is made.
+
+Plan and empty-state behavior
+  Enabled-plan changes invalidate and reinitialize the retained deadline. Empty
+  or disabled-only plans retain the existing no-boundary/no-refresh behavior.
+  Manual refresh and repository-driven HRT triggers remain independent.
+
+Foreground/resume behavior
+  The first current-time sample after resume must compare against the retained
+  deadline and issue one refresh when it is crossed. Re-entry after a surface
+  disposal must not claim correctness merely because the new lookup returns a
+  later future occurrence.
+
+Required future tests
+  - exact B-2s, B-1s, B, B+1s, B+2s rows with one refresh at the crossing;
+  - repeated ticks after B do not duplicate the refresh;
+  - two close slots and a multi-boundary resume cause one current-state refresh;
+  - enabled-plan change, empty plans, and manual refresh behavior;
+  - local midnight, exact current tick, DST gap/overlap, and system-zone change;
+  - Home live interpolation remains separate from the HRT PK refresh trigger;
+  - no change to schedule generation, PK math, timer cadence, or navigation.

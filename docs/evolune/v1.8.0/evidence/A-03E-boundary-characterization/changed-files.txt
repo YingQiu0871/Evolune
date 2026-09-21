@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 A-03E - CHANGED FILES
+
+Final repository commit scope:
+  docs/evolune/v1.8.0/evidence/A-03E-boundary-characterization/ only
+
+Evidence files:
+  identity.txt
+  execution-path.txt
+  boundary-types.txt
+  timeline-proof.txt
+  refresh-sources.txt
+  staleness-impact.txt
+  pk-separation.txt
+  background-resume.txt
+  existing-tests-audit.txt
+  probe-results.txt
+  f03-interaction.txt
+  future-fix-contract.txt
+  changed-files.txt
+  MANIFEST.sha256 (generated after the other evidence files)
+
+Temporary disposable source:
+  app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/A03EDisposableBoundaryProbeTest.kt
+  was created only for deterministic probing, then deleted. It is not part of
+  the final commit.
+
+Frozen code/test/evidence surfaces:
+  D-01 ComposeDiagnostics.kt and ComposeDiagnosticsTest.kt: unchanged
+  D-01 evidence directory: unchanged
+  A-01, A-02, and B-01 evidence directories: unchanged
+  app/src/main, app/src/test, app/src/androidTest, wear, and experience-core:
+  zero delta against the exact parent.

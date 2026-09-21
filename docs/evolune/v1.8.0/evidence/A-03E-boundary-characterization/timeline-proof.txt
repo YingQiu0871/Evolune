@@ -1,0 +1,44 @@
+EVOLUNE v1.8.0 A-03E - DETERMINISTIC TIMELINE PROOF
+
+Probe fixture
+  Runtime timezone: Europe/Paris
+  Schedule: enabled DAILY plan with a slot at 2026-09-21 08:30 local time
+  Boundary B: 2026-09-21 08:30:00 Europe/Paris
+  Boundary epoch millis: 1789972200000
+  Boundary B in epoch hours: 497214.5
+  Clock granularity: exact epoch milliseconds supplied to the helper; the
+  production clock emits once per approximately 1,000 ms.
+
+The table's previous-boundary column is the value held in the chart-only
+forkPointTimeHState immediately before that row's calculation. It is recorded
+to show that the previous value exists, but the predicate does not read it.
+
+Point       currentTimeH             previous held   computed next       predicate  refresh
+B-2s        497214.49944444443       null            497214.5            false      no
+B-1s        497214.4997222222        497214.5       497214.5            false      no
+B           497214.5                 497214.5       497238.5            false      no
+B+1s        497214.5002777778        497238.5       497238.5            false      no
+B+2s        497214.50055555557       497238.5       497238.5            false      no
+
+Interpretation
+  At B-1s, the strict-future lookup returns B, but now is still less than B.
+  At B, the lookup excludes the equal candidate and returns the next daily
+  occurrence, B+24h. The inclusive comparison is therefore made against B+24h,
+  not against the previously observed B. The same remains true after B.
+
+Home state consequence
+  The boundary effect writes forkPointTimeHState on every row, so its displayed
+  fork marker advances from B to B+24h. No row calls onRefresh; therefore
+  simulationRefresh is not incremented and HRTViewModel does not publish a new
+  PKState from this crossing. The existing simulationResult and its calculation
+  timestamp remain the state delivered before the crossing.
+
+Normal crossing classification
+  C - never detected by the boundary predicate while enabledPlans is unchanged
+  and no unrelated refresh occurs. This is a predicate failure, not an eventual
+  success caused by the one-second clock.
+
+Multiple-slot check
+  A plan with slots at 08:30 and 08:35 returned 08:35 when queried exactly at
+  08:30. The just-crossed first occurrence was discarded and the next remaining
+  occurrence became the new comparison target.

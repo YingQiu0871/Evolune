@@ -1,0 +1,33 @@
+EVOLUNE v1.8.0 A-03E - BACKGROUND AND RESUME
+
+Foreground crossing
+  With Home composed and the one-second clock flow emitting, the deterministic
+  probe shows the scheduled crossing is never detected by the boundary predicate.
+
+Background crossing
+  currentTimeH is WhileSubscribed with a 5-second stop timeout. Home has no
+  ON_STOP/ON_START observer and no foreground callback to HRTViewModel. When the
+  app is stopped or Home is not subscribed, the clock observation does not
+  provide a boundary refresh. This slice does not change that lifecycle behavior.
+
+Resume after one boundary
+  On the first current-time emission after resume, the effect recomputes the
+  first occurrence strictly after the resumed time. If the one boundary was
+  crossed while away, it is no longer the returned boundary, so the predicate
+  remains false. There is no independent Home resume correction.
+
+Resume after multiple boundaries
+  The same lookup skips every occurrence at or before the resumed time and returns
+  only the first remaining future occurrence. None of the crossed occurrences
+  can be compared by the current predicate. A repository/settings/manual refresh
+  or process recreation can correct state, but resume alone does not.
+
+Navigation re-entry
+  Leaving the Home destination disposes its effect; re-entering creates a new
+  effect and immediately samples the current clock. This is not a refresh by
+  itself and has the same strict-future miss behavior.
+
+Process recreation
+  A newly constructed HRTViewModel receives a fresh initial combined trigger,
+  so process recreation is an independent refresh source. That is different from
+  ordinary background/foreground return and must not be used to call F04 fixed.

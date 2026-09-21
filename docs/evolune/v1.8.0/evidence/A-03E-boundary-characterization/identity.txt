@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 A-03E - IDENTITY
+
+Approved parent / D-01 final:
+  a456ac7a83845ea6849d3b7a6e4647cf6149e2fb
+
+Branch:
+  feature/v1.8.0-a03e-boundary-characterization
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a03e
+
+Initial checkout:
+  clean at the exact D-01 final above
+
+Scope:
+  evidence-only characterization of the Home scheduled-boundary refresh path.
+  No production implementation, test change, lifecycle change, PK change,
+  schedule-generation change, timer change, navigation change, version bump,
+  push, tag, or release was performed.
+
+Version identity in the parent:
+  applicationId: io.github.yingqiu0871.evolune
+  versionName: 1.7.4
+  phone versionCode: 101070400
+  Wear versionCode: 1101070400
+
+Disposition:
+  F04 CONFIRMED. This slice records the defect and a future A-03 contract only.

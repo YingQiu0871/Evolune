@@ -1,0 +1,43 @@
+EVOLUNE v1.8.0 A-03E - EXISTING TEST AUDIT
+
+HomeScheduleBoundaryTest
+  app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
+  One test proves that a 23:59 query with a 00:05 daily slot selects the next
+  local calendar day. It does not exercise snapshotFlow, the crossing predicate,
+  onRefresh, repeated clock observations, previous-deadline retention, or a
+  result-version change.
+
+MedicationPlanPredictorParityTest
+  app/src/test/java/io/github/yingqiu0871/evolune/utils/MedicationPlanPredictorParityTest.kt
+  Three tests cover DAILY/WEEKLY/CUSTOM domain-vs-legacy parity, duplicate slot
+  ordering, and identical atZone behavior for a DST gap and overlap. They prove
+  schedule-generation parity, not Home refresh correctness. The DST test does
+  not test the boundary effect.
+
+MedicationPlanPredictorTest
+  app/src/test/java/io/github/yingqiu0871/evolune/utils/MedicationPlanPredictorTest.kt
+  Eleven tests cover conflict-window filtering. They do not cover strict-future
+  equality at the current time or Home's recomputation-before-comparison order.
+
+HRTViewModelTest
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+  Seventeen tests include body-weight-triggered simulation, initial trigger
+  coalescing/off-caller calculation, cancellation ordering, and repository/edit/
+  import behavior. They do not cover currentTimeH boundary crossing or the Home
+  runSimulation callback.
+
+Snapshot/lifecycle search
+  No committed Home test was found that asserts snapshotFlow clock rows,
+  foreground resume refresh, or boundary-triggered simulation count.
+
+Focused audit execution
+  :app:testDebugUnitTest with HomeScheduleBoundaryTest,
+  MedicationPlanPredictorParityTest, and HRTViewModelTest:
+  21 tests, 0 failures, 0 errors, 0 skipped.
+  :app:testDebugUnitTest with HomeScheduleBoundaryTest and
+  MedicationPlanPredictorTest:
+  12 tests, 0 failures, 0 errors, 0 skipped.
+
+No existing test accidentally encodes the faulty predicate. The current
+midnight test remains a valid schedule-generation test, but it is not a crossing
+test.

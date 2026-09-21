@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 A-03E - PK SEPARATION
+
+Independent live-time path
+  HRTViewModel.currentTimeH emits the current clock time independently of the
+  simulation combine. HomeScreen collects it directly. The current concentration
+  card calls calculateConcentrationAtTime(existing simulationResult,
+  currentTimeH) on that live value, and the chart also receives the live time.
+
+F04-dependent path
+  PKState.currentConcentration, concentrationCalculatedAt, simulationResult,
+  and baselineSimulationResult are produced only by calculateAndPublish. A
+  missed Home boundary does not invoke runSimulation, so those PKState fields
+  are not recomputed at the boundary.
+
+Severity distinction
+  F04 is not evidence that the current concentration card freezes at the
+  crossing: the card can interpolate the existing curve at the current clock
+  time. It is evidence that the underlying PK result/prediction refresh is
+  skipped. Because the pre-boundary result generally already includes the
+  scheduled occurrence, the immediate numeric effect can be masked; new inputs,
+  a shifted prediction window, and long foreground/background intervals can
+  expose the stale result.
+
+No PK implementation was changed or inferred here. The result is a separation
+of the live interpolation path from the simulation-refresh trigger.

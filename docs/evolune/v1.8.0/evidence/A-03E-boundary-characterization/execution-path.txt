@@ -1,0 +1,60 @@
+EVOLUNE v1.8.0 A-03E - EXECUTION PATH
+
+1. Clock source
+   app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt:180-199
+   HRTViewModel.currentTimeH is a StateFlow. Its producer emits
+   clock.millis() / 3_600_000.0 and delays 1,000 ms. The injected Clock is
+   Clock.systemUTC() in the production factory. The flow is WhileSubscribed
+   with a 5-second stop timeout and has an immediate clock-based initial value.
+
+2. Home observation
+   app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt:52-66
+   HomeScreen collects currentTimeH, enabledPlans, pkState, and doseTimePoints.
+   The Home content receives onRefresh = { viewModel.runSimulation() }.
+
+3. Boundary effect and predicate
+   app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt:97-110
+   A LaunchedEffect keyed by enabledPlans collects snapshotFlow over the clock
+   State value. Each emission first computes nextPlanForkPointTimeH, writes the
+   result into forkPointTimeHState, and only then evaluates:
+
+       forkPointTimeH != null &&
+       currentTimeH >= forkPointTimeH &&
+       currentTimeH - forkPointTimeH < 1.0 / 3600.0
+
+   A true result calls onRefresh. The remembered forkPointTimeHState is used by
+   the chart; it is not used as the previous deadline in this predicate.
+
+4. Boundary computation
+   app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt:676-689
+   Empty enabledPlans returns null. Otherwise currentTimeH is converted to an
+   Instant using epoch milliseconds, then to a LocalDateTime in
+   ZoneId.systemDefault(). The Home helper generates enabled domain-plan
+   events for a 7-day horizon and returns the minimum event.timeH.
+
+5. Strict-future source
+   app/src/main/java/io/github/yingqiu0871/evolune/utils/MedicationPlanPredictor.kt:68-128
+   DAILY, WEEKLY, and CUSTOM schedules all pass candidate local date/times to
+   addIfFuture. The candidate is emitted only when dateTime.isAfter(fromDateTime).
+   Equality is therefore excluded. The emitted event converts the local date/time
+   through ZoneId.systemDefault() to epoch hours.
+
+6. Refresh entry and downstream simulation
+   app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt:208-217,359-385
+   runSimulation increments simulationRefresh. The ViewModel combines event
+   updates, enabled-plan updates, body-weight updates, and simulationRefresh.
+   A distinct trigger starts calculateAndPublish. That method reads clock.instant,
+   clock.millis, historical events, enabled plans, body weight, and the system
+   zone, then calls the PK calculator and publishes a new PKState.
+
+7. PK prediction path
+   app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt:47-134
+   A triggered calculation generates 15 days of future plan events, filters them
+   against historical PK events, and runs the simulation engine when the inputs
+   are nonempty. No calculation is started by a currentTimeH tick except through
+   the Home boundary onRefresh callback.
+
+Conclusion:
+   The clock tick, boundary lookup, crossing predicate, and refresh callback are
+   connected exactly as suspected. The lookup is recomputed before the crossing
+   test, so the prior deadline is not retained for comparison.

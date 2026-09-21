@@ -1,0 +1,29 @@
+EVOLUNE v1.8.0 A-03E - F03 INTERACTION
+
+What is rebuilt on every clock tick
+  Home's snapshotFlow invokes nextPlanForkPointTimeH on every currentTimeH
+  emission. That helper generates and sorts enabled-plan future events for seven
+  days. This is repeated prediction/boundary enumeration and is the F03-like
+  per-tick work visible in the current source.
+
+What is not rebuilt on every clock tick
+  PkSimulationCalculator.generateFutureEventsForDomainPlans uses a separate
+  15-day calculation and the simulation engine runs only after the HRTViewModel
+  combine emits a distinct trigger. currentTimeH alone is not in that combine.
+  Therefore the current source does not run the complete PK prediction/engine
+  path every second; it does run the smaller boundary prediction path every
+  second.
+
+Ordering
+  The per-tick boundary enumeration and forkPointTimeHState write happen before
+  the crossing predicate. A missed predicate therefore leaves the full
+  simulation result unchanged even though the boundary lookup has done work and
+  the chart fork marker has moved.
+
+Optimization/correctness interaction
+  The per-tick lookup does not mask the correctness failure for PK refresh. It
+  spends work on a fresh strict-future answer while discarding the old deadline
+  needed by the comparison. A future F04 fix should preserve the existing
+  schedule-generation and PK calculation contracts; it should not assume that
+  per-tick boundary enumeration is equivalent to per-tick PK rebuilding or
+  optimize F03 as part of this evidence slice.
