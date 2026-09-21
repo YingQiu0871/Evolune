@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-03 - FIVE-POINT PROOF
+
+Test:
+  ScheduleBoundaryTrackerTest.five point crossing consumes boundary once at
+  exact deadline
+
+Samples:
+  B-2s: pending B, crossed false
+  B-1s: pending B, crossed false
+  B: crossed true, refresh decision consumed B, pending B2
+  B+1s: crossed false, pending B2
+  B+2s: crossed false, pending B2
+
+The focused Gradle test run passed this case. The exact equality row proves
+that now == retained deadline is accepted without an old one-second window.

@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 A-03 - FOCUSED TESTS
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest --rerun-tasks
+
+Result:
+  BUILD SUCCESSFUL
+
+Covered:
+  ScheduleBoundaryTrackerTest: exact five-point crossing, close slots, long
+  jump, plan change, empty plans, timezone change, provider-per-observation,
+  and no optimization of the chart provider.
+  HRTViewModelTest: retained owner survival across Home re-entry, one refresh,
+  duplicate suppression, and new-owner no-leakage.
+  HomeScheduleBoundaryTest: midnight, DST gap, and DST overlap predictor
+  compatibility.

@@ -15,7 +15,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.UUID
+import java.util.TimeZone
 
 class HomeScheduleBoundaryTest {
     @Test
@@ -34,6 +36,71 @@ class HomeScheduleBoundaryTest {
             .toLocalDateTime()
         assertEquals(LocalDate.of(2026, 9, 5), nextLocal.toLocalDate())
         assertEquals(LocalTime.of(0, 5), nextLocal.toLocalTime())
+    }
+
+    @Test
+    fun nextForkPointPreservesDstGapNormalization() {
+        val zone = ZoneId.of("America/New_York")
+        withDefaultZone(zone) {
+            val localNow = LocalDateTime.of(2026, 3, 8, 1, 59)
+            val currentTimeH = localNow.atZone(zone).toInstant().toEpochMilli() / MILLIS_PER_HOUR
+            val plan = planWithSlot(LocalTime.of(2, 30))
+
+            val nextForkPoint = requireNotNull(nextPlanForkPointTimeH(listOf(plan), currentTimeH))
+            val nextLocal = Instant.ofEpochMilli((nextForkPoint * MILLIS_PER_HOUR).toLong())
+                .atZone(zone)
+
+            assertEquals(LocalDateTime.of(2026, 3, 8, 3, 30), nextLocal.toLocalDateTime())
+        }
+    }
+
+    @Test
+    fun nextForkPointPreservesDstOverlapOrdering() {
+        val zone = ZoneId.of("America/New_York")
+        withDefaultZone(zone) {
+            val beforeOverlap = ZonedDateTime.of(
+                LocalDateTime.of(2026, 11, 1, 1, 15),
+                zone
+            ).withEarlierOffsetAtOverlap()
+            val plan = planWithSlot(LocalTime.of(1, 30))
+
+            val firstForkPoint = requireNotNull(
+                nextPlanForkPointTimeH(
+                    listOf(plan),
+                    beforeOverlap.toInstant().toEpochMilli() / MILLIS_PER_HOUR
+                )
+            )
+            val firstLocal = Instant.ofEpochMilli((firstForkPoint * MILLIS_PER_HOUR).toLong())
+                .atZone(zone)
+            assertEquals(LocalDate.of(2026, 11, 1), firstLocal.toLocalDate())
+            assertEquals(LocalTime.of(1, 30), firstLocal.toLocalTime())
+            assertEquals(beforeOverlap.offset, firstLocal.offset)
+
+            val afterOverlap = ZonedDateTime.of(
+                LocalDateTime.of(2026, 11, 1, 1, 45),
+                zone
+            ).withLaterOffsetAtOverlap()
+            val followingForkPoint = requireNotNull(
+                nextPlanForkPointTimeH(
+                    listOf(plan),
+                    afterOverlap.toInstant().toEpochMilli() / MILLIS_PER_HOUR
+                )
+            )
+            val followingLocal = Instant.ofEpochMilli((followingForkPoint * MILLIS_PER_HOUR).toLong())
+                .atZone(zone)
+            assertEquals(LocalDate.of(2026, 11, 2), followingLocal.toLocalDate())
+            assertEquals(LocalTime.of(1, 30), followingLocal.toLocalTime())
+        }
+    }
+
+    private fun <T> withDefaultZone(zone: ZoneId, block: () -> T): T {
+        val previous = TimeZone.getDefault()
+        return try {
+            TimeZone.setDefault(TimeZone.getTimeZone(zone))
+            block()
+        } finally {
+            TimeZone.setDefault(previous)
+        }
     }
 
     private fun planWithSlot(time: LocalTime): MedicationPlan {

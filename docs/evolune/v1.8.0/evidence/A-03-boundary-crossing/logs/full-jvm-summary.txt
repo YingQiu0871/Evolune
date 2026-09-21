@@ -1,0 +1,4 @@
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Result: app 1420 tests / 2 pre-existing PortableGoldenFixtureTest failures / 0 errors; experience-core 171 / 0 / 0; wear 90 / 0 / 0
+Total: 1681 tests / 2 failures / 0 errors
+Delta from A-03E baseline: +11 tests, +0 failures, +0 errors

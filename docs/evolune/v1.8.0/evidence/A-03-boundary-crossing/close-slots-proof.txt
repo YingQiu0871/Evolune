@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-03 - CLOSE-SLOTS PROOF
+
+Test:
+  ScheduleBoundaryTrackerTest.close boundaries are consumed independently
+  without duplicate refresh
+
+Boundaries:
+  08:30 followed by 08:35.
+
+Result:
+  The 08:30 crossing is accepted once and advances the retained value to
+  08:35. Samples between the slots do not duplicate the first refresh. The
+  08:35 crossing is then accepted once and advances to the following boundary.
+
+The focused Gradle test run passed this case.

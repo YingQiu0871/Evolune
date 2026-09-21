@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 A-03 - PLAN CHANGE PROOF
+
+Test:
+  ScheduleBoundaryTrackerTest.plan change invalidates old boundary without
+  synthetic crossing
+
+Result:
+  A new enabled-plan snapshot at now after the old B does not consume the old
+  schedule and does not refresh. It initializes the new snapshot's strict-
+  future deadline. The empty-plan transition clears the pending deadline;
+  reintroducing plans initializes a fresh value without a synthetic crossing.
+
+The focused Gradle test run passed both plan-change and empty-plan cases.

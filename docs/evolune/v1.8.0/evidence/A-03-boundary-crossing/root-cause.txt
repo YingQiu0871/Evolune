@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-03 - ROOT CAUSE
+
+Before A-03, HomeScreen recomputed nextPlanForkPointTimeH on every clock
+sample, assigned the new strict-future result to the chart marker, and only
+then tested currentTimeH against that newly computed value.
+
+At exact boundary B, strict-future generation excludes B by design because the
+predictor uses dateTime.isAfter(fromDateTime). The lookup therefore returns B2,
+so the comparison tests now >= B2 rather than now >= the previously pending B.
+The crossing is lost. The one-second window only suppresses duplicates around
+an observed boundary; it cannot recover a boundary discarded before comparison,
+especially after Home disposal or a long suspension.
+
+The repair retains the old deadline in a ViewModel-owned tracker and consumes
+it before accepting the next strict-future result.

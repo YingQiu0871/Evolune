@@ -1,0 +1,580 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+index 1c9bbe4..2ba7a8a 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+@@ -33,6 +33,8 @@ import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
+ import io.github.yingqiu0871.evolune.viewmodel.ConcentrationLevel
+ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
+ import io.github.yingqiu0871.evolune.viewmodel.PKState
++import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryIdentity
++import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryObservation
+ import java.time.Instant
+ import java.time.ZoneId
+ import kotlin.math.abs
+@@ -59,6 +61,18 @@ fun HomeScreen(
+         doseTimePoints = doseTimePoints,
+         enabledPlans = enabledPlans,
+         realtimeCurrentTimeState = realtimeCurrentTimeState,
++        observeScheduleBoundary = { currentTimeH ->
++            viewModel.observeScheduleBoundary(
++                identity = ScheduleBoundaryIdentity(
++                    enabledPlans = enabledPlans.toList(),
++                    zoneId = ZoneId.systemDefault()
++                ),
++                nowTimeH = currentTimeH,
++                nextDeadlineProvider = {
++                    nextPlanForkPointTimeH(enabledPlans, currentTimeH)
++                }
++            )
++        },
+         onRefresh = { viewModel.runSimulation() },
+         is24Hour = is24Hour,
+         showTopBar = showTopBar,
+@@ -76,6 +90,7 @@ private fun HomeScreenContent(
+     doseTimePoints: List<Double>,
+     enabledPlans: List<MedicationPlan>,
+     realtimeCurrentTimeState: State<Double>,
++    observeScheduleBoundary: (Double) -> ScheduleBoundaryObservation,
+     onRefresh: () -> Unit,
+     modifier: Modifier = Modifier,
+     is24Hour: Boolean = true,
+@@ -100,12 +115,7 @@ private fun HomeScreenContent(
+     // 当且仅当当前时刻晚于下一次计划用药时，触发重新模拟
+     LaunchedEffect(enabledPlans) {
+         snapshotFlow { realtimeCurrentTimeState.value }.collect { currentTimeH ->
+-            val forkPointTimeH = nextPlanForkPointTimeH(enabledPlans, currentTimeH)
+-            forkPointTimeHState.value = forkPointTimeH
+-            if (forkPointTimeH != null && currentTimeH >= forkPointTimeH &&
+-                currentTimeH - forkPointTimeH < 1.0 / 3600.0) { // 晚于分叉点不超过1秒，避免频繁刷新
+-                onRefresh()
+-            }
++            forkPointTimeHState.value = observeScheduleBoundary(currentTimeH).nextDeadlineTimeH
+         }
+     }
+     Scaffold(
+@@ -624,6 +634,12 @@ private fun PreviewHomeScreenEmpty() {
+             doseTimePoints = emptyList(),
+             enabledPlans = emptyList(),
+             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
++            observeScheduleBoundary = { currentTimeH ->
++                ScheduleBoundaryObservation(
++                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
++                    crossed = false
++                )
++            },
+             onRefresh = {}
+         )
+     }
+@@ -639,6 +655,12 @@ private fun PreviewHomeScreenLoading() {
+             doseTimePoints = emptyList(),
+             enabledPlans = emptyList(),
+             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
++            observeScheduleBoundary = { currentTimeH ->
++                ScheduleBoundaryObservation(
++                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
++                    crossed = false
++                )
++            },
+             onRefresh = {}
+         )
+     }
+@@ -669,6 +691,12 @@ private fun PreviewHomeScreenWithData() {
+             ),
+             enabledPlans = emptyList(),
+             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
++            observeScheduleBoundary = { currentTimeH ->
++                ScheduleBoundaryObservation(
++                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
++                    crossed = false
++                )
++            },
+             onRefresh = {}
+         )
+     }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
+index 6566e37..6b72fdc 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
+@@ -180,6 +180,7 @@ class HRTViewModel internal constructor(
+     private val _pkState = MutableStateFlow(PKState())
+     val pkState: StateFlow<PKState> = _pkState.asStateFlow()
+     private val simulationRefresh = MutableStateFlow(0L)
++    private val scheduleBoundaryTracker = ScheduleBoundaryTracker()
+ 
+     val currentTimeH: StateFlow<Double> = flow {
+         while (true) {
+@@ -356,6 +357,22 @@ class HRTViewModel internal constructor(
+             legacyExportRunner.export(weight, events.value)
+         }
+ 
++    internal fun observeScheduleBoundary(
++        identity: ScheduleBoundaryIdentity,
++        nowTimeH: Double,
++        nextDeadlineProvider: () -> Double?
++    ): ScheduleBoundaryObservation {
++        val observation = scheduleBoundaryTracker.observe(
++            identity = identity,
++            nowTimeH = nowTimeH,
++            nextDeadlineProvider = nextDeadlineProvider
++        )
++        if (observation.crossed) {
++            runSimulation()
++        }
++        return observation
++    }
++
+     fun runSimulation() {
+         simulationRefresh.update { it + 1L }
+     }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+new file mode 100644
+index 0000000..7a06c81
+--- /dev/null
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+@@ -0,0 +1,65 @@
++package io.github.yingqiu0871.evolune.viewmodel
++
++import io.github.yingqiu0871.evolune.core.model.MedicationPlan
++import java.time.ZoneId
++
++/**
++ * Identity of the schedule used to interpret a retained absolute deadline.
++ * A zone change must invalidate the old deadline because the same plan can map
++ * to a different instant in the new zone.
++ */
++internal data class ScheduleBoundaryIdentity(
++    val enabledPlans: List<MedicationPlan>,
++    val zoneId: ZoneId
++)
++
++internal data class ScheduleBoundaryObservation(
++    val nextDeadlineTimeH: Double?,
++    val crossed: Boolean
++)
++
++/**
++ * Retains one strict-future schedule boundary independently of composition.
++ *
++ * The caller supplies the schedule-specific strict-future calculation. The
++ * tracker compares against its retained value first, consumes a crossed
++ * value once, and only then accepts the newly calculated future value.
++ */
++internal class ScheduleBoundaryTracker {
++    private var identity: ScheduleBoundaryIdentity? = null
++    private var pendingDeadlineTimeH: Double? = null
++
++    fun observe(
++        identity: ScheduleBoundaryIdentity,
++        nowTimeH: Double,
++        nextDeadlineProvider: () -> Double?
++    ): ScheduleBoundaryObservation {
++        val identityChanged = this.identity != identity
++        if (identityChanged) {
++            this.identity = identity
++            pendingDeadlineTimeH = null
++        }
++
++        val retainedDeadlineTimeH = pendingDeadlineTimeH
++        val crossed = !identityChanged &&
++            retainedDeadlineTimeH != null &&
++            nowTimeH >= retainedDeadlineTimeH
++
++        if (crossed) {
++            // Consume the old boundary before calculating its replacement.
++            pendingDeadlineTimeH = null
++        }
++
++        // Keep the existing per-tick schedule calculation as the chart source;
++        // it is never allowed to replace an unconsumed retained deadline.
++        val calculatedNextDeadlineTimeH = nextDeadlineProvider()
++        if (identityChanged || retainedDeadlineTimeH == null || crossed) {
++            pendingDeadlineTimeH = calculatedNextDeadlineTimeH
++        }
++
++        return ScheduleBoundaryObservation(
++            nextDeadlineTimeH = pendingDeadlineTimeH,
++            crossed = crossed
++        )
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
+index a4cc6e9..34d5e89 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
+@@ -15,7 +15,9 @@ import java.time.LocalDate
+ import java.time.LocalDateTime
+ import java.time.LocalTime
+ import java.time.ZoneId
++import java.time.ZonedDateTime
+ import java.util.UUID
++import java.util.TimeZone
+ 
+ class HomeScheduleBoundaryTest {
+     @Test
+@@ -36,6 +38,71 @@ class HomeScheduleBoundaryTest {
+         assertEquals(LocalTime.of(0, 5), nextLocal.toLocalTime())
+     }
+ 
++    @Test
++    fun nextForkPointPreservesDstGapNormalization() {
++        val zone = ZoneId.of("America/New_York")
++        withDefaultZone(zone) {
++            val localNow = LocalDateTime.of(2026, 3, 8, 1, 59)
++            val currentTimeH = localNow.atZone(zone).toInstant().toEpochMilli() / MILLIS_PER_HOUR
++            val plan = planWithSlot(LocalTime.of(2, 30))
++
++            val nextForkPoint = requireNotNull(nextPlanForkPointTimeH(listOf(plan), currentTimeH))
++            val nextLocal = Instant.ofEpochMilli((nextForkPoint * MILLIS_PER_HOUR).toLong())
++                .atZone(zone)
++
++            assertEquals(LocalDateTime.of(2026, 3, 8, 3, 30), nextLocal.toLocalDateTime())
++        }
++    }
++
++    @Test
++    fun nextForkPointPreservesDstOverlapOrdering() {
++        val zone = ZoneId.of("America/New_York")
++        withDefaultZone(zone) {
++            val beforeOverlap = ZonedDateTime.of(
++                LocalDateTime.of(2026, 11, 1, 1, 15),
++                zone
++            ).withEarlierOffsetAtOverlap()
++            val plan = planWithSlot(LocalTime.of(1, 30))
++
++            val firstForkPoint = requireNotNull(
++                nextPlanForkPointTimeH(
++                    listOf(plan),
++                    beforeOverlap.toInstant().toEpochMilli() / MILLIS_PER_HOUR
++                )
++            )
++            val firstLocal = Instant.ofEpochMilli((firstForkPoint * MILLIS_PER_HOUR).toLong())
++                .atZone(zone)
++            assertEquals(LocalDate.of(2026, 11, 1), firstLocal.toLocalDate())
++            assertEquals(LocalTime.of(1, 30), firstLocal.toLocalTime())
++            assertEquals(beforeOverlap.offset, firstLocal.offset)
++
++            val afterOverlap = ZonedDateTime.of(
++                LocalDateTime.of(2026, 11, 1, 1, 45),
++                zone
++            ).withLaterOffsetAtOverlap()
++            val followingForkPoint = requireNotNull(
++                nextPlanForkPointTimeH(
++                    listOf(plan),
++                    afterOverlap.toInstant().toEpochMilli() / MILLIS_PER_HOUR
++                )
++            )
++            val followingLocal = Instant.ofEpochMilli((followingForkPoint * MILLIS_PER_HOUR).toLong())
++                .atZone(zone)
++            assertEquals(LocalDate.of(2026, 11, 2), followingLocal.toLocalDate())
++            assertEquals(LocalTime.of(1, 30), followingLocal.toLocalTime())
++        }
++    }
++
++    private fun <T> withDefaultZone(zone: ZoneId, block: () -> T): T {
++        val previous = TimeZone.getDefault()
++        return try {
++            TimeZone.setDefault(TimeZone.getTimeZone(zone))
++            block()
++        } finally {
++            TimeZone.setDefault(previous)
++        }
++    }
++
+     private fun planWithSlot(time: LocalTime): MedicationPlan {
+         val planId = UUID.fromString("95000000-0000-0000-0000-000000000001")
+         val slotId = when (val result = ScheduledDoseSlotId.generate(planId, 0, time)) {
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+index a5341e9..613580c 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+@@ -629,6 +629,104 @@ class HRTViewModelTest {
+         }
+     }
+ 
++    @Test
++    fun `retained schedule boundary survives home reentry and refreshes only once`() = runBlocking {
++        val calls = AtomicInteger()
++        val fixture = fixture(
++            repository = FakeDoseEventRepository(),
++            simulationDispatcher = Dispatchers.Unconfined,
++            simulationCalculator = PkSimulationCalculator { input ->
++                calls.incrementAndGet()
++                PKState(currentTimeH = input.currentTimeH)
++            }
++        )
++        try {
++            withTimeout(5_000L) {
++                while (calls.get() < 1) delay(10L)
++            }
++            val identity = ScheduleBoundaryIdentity(emptyList(), ZoneOffset.UTC)
++
++            val initialized = fixture.viewModel.observeScheduleBoundary(
++                identity = identity,
++                nowTimeH = 99.0,
++                nextDeadlineProvider = { 100.0 }
++            )
++            assertTrue(!initialized.crossed)
++            val beforeCrossing = calls.get()
++
++            // No observations occur while Home is disposed.
++            val crossed = fixture.viewModel.observeScheduleBoundary(
++                identity = identity,
++                nowTimeH = 101.0,
++                nextDeadlineProvider = { 200.0 }
++            )
++            assertTrue(crossed.crossed)
++            assertEquals(200.0, crossed.nextDeadlineTimeH!!, 0.0)
++            withTimeout(5_000L) {
++                while (calls.get() < beforeCrossing + 1) delay(10L)
++            }
++
++            val afterCrossing = calls.get()
++            val afterReentry = fixture.viewModel.observeScheduleBoundary(
++                identity = identity,
++                nowTimeH = 102.0,
++                nextDeadlineProvider = { 200.0 }
++            )
++            assertTrue(!afterReentry.crossed)
++            delay(100L)
++            assertEquals(afterCrossing, calls.get())
++        } finally {
++            fixture.close()
++        }
++    }
++
++    @Test
++    fun `new view model does not inherit another view models pending boundary`() = runBlocking {
++        val identity = ScheduleBoundaryIdentity(emptyList(), ZoneOffset.UTC)
++        val firstCalls = AtomicInteger()
++        val first = fixture(
++            repository = FakeDoseEventRepository(),
++            simulationDispatcher = Dispatchers.Unconfined,
++            simulationCalculator = PkSimulationCalculator { input ->
++                firstCalls.incrementAndGet()
++                PKState(currentTimeH = input.currentTimeH)
++            }
++        )
++        try {
++            withTimeout(5_000L) {
++                while (firstCalls.get() < 1) delay(10L)
++            }
++            first.viewModel.observeScheduleBoundary(identity, 99.0) { 100.0 }
++        } finally {
++            first.close()
++        }
++
++        val secondCalls = AtomicInteger()
++        val second = fixture(
++            repository = FakeDoseEventRepository(),
++            simulationDispatcher = Dispatchers.Unconfined,
++            simulationCalculator = PkSimulationCalculator { input ->
++                secondCalls.incrementAndGet()
++                PKState(currentTimeH = input.currentTimeH)
++            }
++        )
++        try {
++            withTimeout(5_000L) {
++                while (secondCalls.get() < 1) delay(10L)
++            }
++            val observation = second.viewModel.observeScheduleBoundary(
++                identity = identity,
++                nowTimeH = 101.0,
++                nextDeadlineProvider = { 200.0 }
++            )
++            assertTrue(!observation.crossed)
++            assertEquals(200.0, observation.nextDeadlineTimeH!!, 0.0)
++            assertEquals(1, secondCalls.get())
++        } finally {
++            second.close()
++        }
++    }
++
+     private fun fixture(
+         repository: FakeDoseEventRepository,
+         sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+new file mode 100644
+index 0000000..d6f530d
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+@@ -0,0 +1,180 @@
++package io.github.yingqiu0871.evolune.viewmodel
++
++import io.github.yingqiu0871.evolune.core.model.MedicationPlan
++import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
++import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlotId
++import io.github.yingqiu0871.evolune.core.model.ScheduleType
++import io.github.yingqiu0871.evolune.pk.Ester
++import io.github.yingqiu0871.evolune.pk.Route
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.time.Instant
++import java.time.LocalTime
++import java.time.ZoneId
++import java.time.ZoneOffset
++import java.util.UUID
++
++class ScheduleBoundaryTrackerTest {
++    @Test
++    fun `five point crossing consumes boundary once at exact deadline`() {
++        val tracker = ScheduleBoundaryTracker()
++        val identity = identity()
++        val boundary = 100.0
++        val followingBoundary = 124.0
++        val observations = listOf(
++            boundary - 2.0 / 3600.0,
++            boundary - 1.0 / 3600.0,
++            boundary,
++            boundary + 1.0 / 3600.0,
++            boundary + 2.0 / 3600.0
++        ).map { nowTimeH ->
++            tracker.observe(identity, nowTimeH) {
++                if (nowTimeH < boundary) boundary else followingBoundary
++            }
++        }
++
++        assertEquals(boundary, observations[0].nextDeadlineTimeH!!, 0.0)
++        assertTrue(!observations[0].crossed)
++        assertTrue(!observations[1].crossed)
++        assertTrue(observations[2].crossed)
++        assertEquals(followingBoundary, observations[2].nextDeadlineTimeH!!, 0.0)
++        assertTrue(!observations[3].crossed)
++        assertTrue(!observations[4].crossed)
++    }
++
++    @Test
++    fun `close boundaries are consumed independently without duplicate refresh`() {
++        val tracker = ScheduleBoundaryTracker()
++        val identity = identity()
++        val firstBoundary = 8.5
++        val secondBoundary = 8.5 + 5.0 / 60.0
++        val thirdBoundary = 9.0
++
++        val before = tracker.observe(identity, firstBoundary - 1.0 / 3600.0) {
++            firstBoundary
++        }
++        val firstCrossing = tracker.observe(identity, firstBoundary) {
++            secondBoundary
++        }
++        val between = tracker.observe(identity, firstBoundary + 1.0 / 3600.0) {
++            secondBoundary
++        }
++        val secondCrossing = tracker.observe(identity, secondBoundary) {
++            thirdBoundary
++        }
++
++        assertTrue(!before.crossed)
++        assertTrue(firstCrossing.crossed)
++        assertEquals(secondBoundary, firstCrossing.nextDeadlineTimeH!!, 0.0)
++        assertTrue(!between.crossed)
++        assertTrue(secondCrossing.crossed)
++        assertEquals(thirdBoundary, secondCrossing.nextDeadlineTimeH!!, 0.0)
++    }
++
++    @Test
++    fun `long jump refreshes once and stores first future boundary after now`() {
++        val tracker = ScheduleBoundaryTracker()
++        val identity = identity()
++        val oldBoundary = 100.0
++        val firstFutureAfterJump = 200.0
++
++        tracker.observe(identity, oldBoundary - 1.0) { oldBoundary }
++        val jumped = tracker.observe(identity, 180.0) { firstFutureAfterJump }
++        val afterJump = tracker.observe(identity, 181.0) { firstFutureAfterJump }
++
++        assertTrue(jumped.crossed)
++        assertEquals(firstFutureAfterJump, jumped.nextDeadlineTimeH!!, 0.0)
++        assertTrue(!afterJump.crossed)
++    }
++
++    @Test
++    fun `plan change invalidates old boundary without synthetic crossing`() {
++        val tracker = ScheduleBoundaryTracker()
++        val oldIdentity = identity(plan = plan("old"))
++        val newIdentity = identity(plan = plan("new"))
++
++        tracker.observe(oldIdentity, 99.0) { 100.0 }
++        val changed = tracker.observe(newIdentity, 101.0) { 200.0 }
++
++        assertTrue(!changed.crossed)
++        assertEquals(200.0, changed.nextDeadlineTimeH!!, 0.0)
++    }
++
++    @Test
++    fun `empty plans clear pending boundary and later plans initialize fresh`() {
++        val tracker = ScheduleBoundaryTracker()
++        val planIdentity = identity(plan = plan("enabled"))
++        val emptyIdentity = identity()
++
++        tracker.observe(planIdentity, 99.0) { 100.0 }
++        val empty = tracker.observe(emptyIdentity, 101.0) { null }
++        val restored = tracker.observe(planIdentity, 101.0) { 200.0 }
++
++        assertTrue(!empty.crossed)
++        assertEquals(null, empty.nextDeadlineTimeH)
++        assertTrue(!restored.crossed)
++        assertEquals(200.0, restored.nextDeadlineTimeH!!, 0.0)
++    }
++
++    @Test
++    fun `timezone change invalidates boundary without crossing old zone`() {
++        val tracker = ScheduleBoundaryTracker()
++        val utcIdentity = identity(zoneId = ZoneOffset.UTC)
++        val parisIdentity = identity(zoneId = ZoneId.of("Europe/Paris"))
++
++        tracker.observe(utcIdentity, 99.0) { 100.0 }
++        val changed = tracker.observe(parisIdentity, 101.0) { 200.0 }
++
++        assertTrue(!changed.crossed)
++        assertEquals(200.0, changed.nextDeadlineTimeH!!, 0.0)
++    }
++
++    @Test
++    fun `schedule provider remains the chart source on every observation`() {
++        val tracker = ScheduleBoundaryTracker()
++        val identity = identity()
++        var providerCalls = 0
++
++        repeat(3) { index ->
++            tracker.observe(identity, 99.0 + index / 10.0) {
++                providerCalls += 1
++                100.0
++            }
++        }
++
++        assertEquals(3, providerCalls)
++    }
++
++    private fun identity(
++        plan: MedicationPlan? = null,
++        zoneId: ZoneId = ZoneOffset.UTC
++    ): ScheduleBoundaryIdentity = ScheduleBoundaryIdentity(
++        enabledPlans = plan?.let(::listOf) ?: emptyList(),
++        zoneId = zoneId
++    )
++
++    private fun plan(name: String): MedicationPlan {
++        val planId = UUID.nameUUIDFromBytes(name.toByteArray())
++        val slotTime = LocalTime.of(8, 30)
++        val slotId = when (val result = ScheduledDoseSlotId.generate(planId, 0, slotTime)) {
++            is io.github.yingqiu0871.evolune.core.model.SlotIdResult.Success -> result.id
++            is io.github.yingqiu0871.evolune.core.model.SlotIdResult.Failure ->
++                error("failed to generate schedule boundary slot: ${result.error}")
++        }
++        return MedicationPlan(
++            id = planId,
++            name = name,
++            route = Route.ORAL,
++            ester = Ester.E2,
++            doseMG = 1.0,
++            scheduleType = ScheduleType.DAILY,
++            slots = listOf(ScheduledDoseSlot(slotId, planId, slotTime, 0)),
++            daysOfWeek = emptySet(),
++            intervalDays = 1,
++            isEnabled = true,
++            extras = emptyMap(),
++            createdAt = Instant.parse("2026-01-01T00:00:00Z")
++        )
++    }
++}

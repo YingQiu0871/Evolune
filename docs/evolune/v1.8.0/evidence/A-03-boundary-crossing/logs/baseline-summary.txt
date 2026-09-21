@@ -1,0 +1,4 @@
+Worktree: A-03E parent at 768d90d468b1f74c4611cbe731739b3ac16f5611
+Command: .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+Result: app 1409 tests / 2 pre-existing PortableGoldenFixtureTest failures / 0 errors; experience-core 171 / 0 / 0; wear 90 / 0 / 0
+Total: 1670 tests / 2 failures / 0 errors

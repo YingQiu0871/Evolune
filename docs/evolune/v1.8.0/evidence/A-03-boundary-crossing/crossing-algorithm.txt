@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 A-03 - CROSSING ALGORITHM
+
+For each Home clock sample:
+
+  A. Compare now against the retained pending deadline before replacing it.
+  B. Use now >= retainedDeadline; no old one-second acceptance window remains.
+  C. If crossed, consume the retained deadline and request exactly one refresh.
+  D. Calculate the strict-future boundary from the latest now and store it only
+     after the crossing decision.
+  E. Return the stored next future value for the chart marker.
+
+Initialization with no pending value computes one strict-future boundary and
+does not refresh. Empty plans retain null and do not refresh. A long jump
+crosses any number of missed occurrences but requests one refresh and stores
+the first strict-future boundary after the current time.
+
+The tracker still invokes the existing schedule provider on every observation
+so A-03 does not take the F03 per-tick enumeration optimization out of scope.
+An unconsumed retained value remains authoritative for crossing and marker
+state.

@@ -1,0 +1,18 @@
+EVOLUNE v1.8.0 A-03 - CHANGED FILES
+
+Production:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+
+Tests:
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/ui/screens/HomeScheduleBoundaryTest.kt
+
+Evidence:
+  docs/evolune/v1.8.0/evidence/A-03-boundary-crossing/
+
+Expected implementation scope is three production files and three test files.
+No other app, Wear, experience-core, navigation, PK, predictor, lifecycle,
+version, or frozen evidence surface is included.

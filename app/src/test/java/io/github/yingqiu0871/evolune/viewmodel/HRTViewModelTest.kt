@@ -629,6 +629,104 @@ class HRTViewModelTest {
         }
     }
 
+    @Test
+    fun `retained schedule boundary survives home reentry and refreshes only once`() = runBlocking {
+        val calls = AtomicInteger()
+        val fixture = fixture(
+            repository = FakeDoseEventRepository(),
+            simulationDispatcher = Dispatchers.Unconfined,
+            simulationCalculator = PkSimulationCalculator { input ->
+                calls.incrementAndGet()
+                PKState(currentTimeH = input.currentTimeH)
+            }
+        )
+        try {
+            withTimeout(5_000L) {
+                while (calls.get() < 1) delay(10L)
+            }
+            val identity = ScheduleBoundaryIdentity(emptyList(), ZoneOffset.UTC)
+
+            val initialized = fixture.viewModel.observeScheduleBoundary(
+                identity = identity,
+                nowTimeH = 99.0,
+                nextDeadlineProvider = { 100.0 }
+            )
+            assertTrue(!initialized.crossed)
+            val beforeCrossing = calls.get()
+
+            // No observations occur while Home is disposed.
+            val crossed = fixture.viewModel.observeScheduleBoundary(
+                identity = identity,
+                nowTimeH = 101.0,
+                nextDeadlineProvider = { 200.0 }
+            )
+            assertTrue(crossed.crossed)
+            assertEquals(200.0, crossed.nextDeadlineTimeH!!, 0.0)
+            withTimeout(5_000L) {
+                while (calls.get() < beforeCrossing + 1) delay(10L)
+            }
+
+            val afterCrossing = calls.get()
+            val afterReentry = fixture.viewModel.observeScheduleBoundary(
+                identity = identity,
+                nowTimeH = 102.0,
+                nextDeadlineProvider = { 200.0 }
+            )
+            assertTrue(!afterReentry.crossed)
+            delay(100L)
+            assertEquals(afterCrossing, calls.get())
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `new view model does not inherit another view models pending boundary`() = runBlocking {
+        val identity = ScheduleBoundaryIdentity(emptyList(), ZoneOffset.UTC)
+        val firstCalls = AtomicInteger()
+        val first = fixture(
+            repository = FakeDoseEventRepository(),
+            simulationDispatcher = Dispatchers.Unconfined,
+            simulationCalculator = PkSimulationCalculator { input ->
+                firstCalls.incrementAndGet()
+                PKState(currentTimeH = input.currentTimeH)
+            }
+        )
+        try {
+            withTimeout(5_000L) {
+                while (firstCalls.get() < 1) delay(10L)
+            }
+            first.viewModel.observeScheduleBoundary(identity, 99.0) { 100.0 }
+        } finally {
+            first.close()
+        }
+
+        val secondCalls = AtomicInteger()
+        val second = fixture(
+            repository = FakeDoseEventRepository(),
+            simulationDispatcher = Dispatchers.Unconfined,
+            simulationCalculator = PkSimulationCalculator { input ->
+                secondCalls.incrementAndGet()
+                PKState(currentTimeH = input.currentTimeH)
+            }
+        )
+        try {
+            withTimeout(5_000L) {
+                while (secondCalls.get() < 1) delay(10L)
+            }
+            val observation = second.viewModel.observeScheduleBoundary(
+                identity = identity,
+                nowTimeH = 101.0,
+                nextDeadlineProvider = { 200.0 }
+            )
+            assertTrue(!observation.crossed)
+            assertEquals(200.0, observation.nextDeadlineTimeH!!, 0.0)
+            assertEquals(1, secondCalls.get())
+        } finally {
+            second.close()
+        }
+    }
+
     private fun fixture(
         repository: FakeDoseEventRepository,
         sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(

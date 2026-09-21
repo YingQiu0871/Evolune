@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 A-03 - LONG-JUMP PROOF
+
+Test:
+  ScheduleBoundaryTrackerTest.long jump refreshes once and stores first future
+  boundary after now
+
+Result:
+  A sample before B initializes B. A jump beyond multiple missed occurrences
+  reports one crossing and stores the supplied first future value after the
+  jumped-to now. The next sample before that value reports no duplicate.
+
+The focused Gradle test run passed this case.

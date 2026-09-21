@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 A-03 - FULL JVM SUMMARY
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Final A-03 counts:
+  app testDebugUnitTest: 1420 tests, 2 failures, 0 errors
+  experience-core test: 171 tests, 0 failures, 0 errors
+  wear testDebugUnitTest: 90 tests, 0 failures, 0 errors
+  total: 1681 tests, 2 failures, 0 errors
+
+The A-03 additions account for 11 tests over the 1670-test baseline:
+  7 ScheduleBoundaryTrackerTest cases
+  2 HRTViewModelTest owner cases
+  2 HomeScheduleBoundaryTest DST cases
+
+The only failures remain the same two pre-existing PortableGoldenFixtureTest
+canonical JSON and canonical CSV byte assertions reproduced by the A-03E
+baseline. No A-03 test or error failed.

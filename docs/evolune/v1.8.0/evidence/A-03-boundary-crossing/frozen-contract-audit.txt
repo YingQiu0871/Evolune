@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-03 - FROZEN CONTRACT AUDIT
+
+Verified unchanged by implementation diff and source inspection:
+  - MedicationPlanPredictor strict-future isAfter semantics and timezone path.
+  - PkSimulationCalculator equations, grid, AUC, and simulation dispatch.
+  - HRTViewModel currentTimeH emission expression, delay(1000), and
+    WhileSubscribed(5000).
+  - Home live interpolation of existing SimulationResult.
+  - A-01, A-02, B-01, D-01, and A-03E evidence/code/test slices.
+  - lifecycle gating, navigation ownership, DI/framework ownership, and
+    version identity.
+
+The only Home behavior change is the source of the retained boundary crossing
+decision: chart marker computation remains on the existing provider path, while
+refresh ownership moves to HRTViewModel-owned ScheduleBoundaryTracker state.

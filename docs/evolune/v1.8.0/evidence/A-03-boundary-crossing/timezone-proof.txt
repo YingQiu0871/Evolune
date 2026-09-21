@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 A-03 - TIMEZONE AND DST PROOF
+
+Timezone identity:
+  ScheduleBoundaryTrackerTest.timezone change invalidates boundary without
+  crossing old zone. UTC to Europe/Paris changes identity and initializes the
+  new boundary without treating the old absolute deadline as a crossing.
+
+Predictor compatibility:
+  HomeScheduleBoundaryTest retains the existing system-zone predictor path and
+  passes deterministic America/New_York DST cases:
+  - the 2026 spring gap local 02:30 normalizes to 03:30;
+  - the 2026 fall overlap preserves the first 01:30 occurrence and, after the
+    later 01:45 occurrence, advances to the following day's 01:30.
+
+The focused Gradle test run passed timezone, midnight, DST gap, and DST overlap
+coverage. No predictor source was changed.

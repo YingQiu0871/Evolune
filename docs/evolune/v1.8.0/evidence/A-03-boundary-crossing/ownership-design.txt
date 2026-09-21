@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 A-03 - OWNERSHIP DESIGN
+
+Owner:
+  HRTViewModel owns one ScheduleBoundaryTracker instance. The tracker is
+  ordinary internal Kotlin state and has no Compose, State, snapshotFlow, or
+  NavController dependency.
+
+Identity:
+  enabled plan snapshot plus ZoneId. A meaningful plan change, empty-plan
+  transition, or system-zone change invalidates the retained deadline and
+  initializes from the current strict-future result without a synthetic
+  crossing.
+
+Home responsibility:
+  Home supplies the current plan snapshot, current epoch-hour sample, and a
+  pure nextPlanForkPointTimeH provider. The existing remembered state remains
+  chart-only; it is not the crossing owner.
+
+Refresh responsibility:
+  HRTViewModel calls runSimulation only when the tracker reports that an
+  unchanged retained deadline was crossed. The consumed state prevents a
+  repeated tick or re-entry sample from issuing a duplicate refresh.

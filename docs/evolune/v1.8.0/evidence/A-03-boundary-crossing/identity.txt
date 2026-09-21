@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 A-03 - IDENTITY
+
+Approved parent / A-03E final:
+  768d90d468b1f74c4611cbe731739b3ac16f5611
+
+Approved predecessor / D-01 final:
+  a456ac7a83845ea6849d3b7a6e4647cf6149e2fb
+
+Branch:
+  feature/v1.8.0-a03-boundary-crossing
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a03
+
+Scope:
+  narrow repair of confirmed F04: retain the strict-future Home schedule
+  boundary in HRTViewModel-owned state, compare against it before refreshing
+  the lookup, consume it once, and publish the next future marker.
+
+Version identity remains unchanged:
+  applicationId: io.github.yingqiu0871.evolune
+  versionName: 1.7.4
+  phone versionCode: 101070400
+  Wear versionCode: 1101070400
+
+No push, tag, release, version bump, PK equation change, predictor semantic
+change, lifecycle-gating change, navigation change, or DI framework change.

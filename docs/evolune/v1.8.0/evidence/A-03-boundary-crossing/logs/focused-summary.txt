@@ -1,0 +1,3 @@
+Command: .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest --rerun-tasks
+Result: BUILD SUCCESSFUL
+Scope: tracker, ViewModel owner/re-entry, Home midnight/DST helper compatibility

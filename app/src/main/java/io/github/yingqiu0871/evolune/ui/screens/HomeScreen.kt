@@ -33,6 +33,8 @@ import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import io.github.yingqiu0871.evolune.viewmodel.ConcentrationLevel
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import io.github.yingqiu0871.evolune.viewmodel.PKState
+import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryIdentity
+import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryObservation
 import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.abs
@@ -59,6 +61,18 @@ fun HomeScreen(
         doseTimePoints = doseTimePoints,
         enabledPlans = enabledPlans,
         realtimeCurrentTimeState = realtimeCurrentTimeState,
+        observeScheduleBoundary = { currentTimeH ->
+            viewModel.observeScheduleBoundary(
+                identity = ScheduleBoundaryIdentity(
+                    enabledPlans = enabledPlans.toList(),
+                    zoneId = ZoneId.systemDefault()
+                ),
+                nowTimeH = currentTimeH,
+                nextDeadlineProvider = {
+                    nextPlanForkPointTimeH(enabledPlans, currentTimeH)
+                }
+            )
+        },
         onRefresh = { viewModel.runSimulation() },
         is24Hour = is24Hour,
         showTopBar = showTopBar,
@@ -76,6 +90,7 @@ private fun HomeScreenContent(
     doseTimePoints: List<Double>,
     enabledPlans: List<MedicationPlan>,
     realtimeCurrentTimeState: State<Double>,
+    observeScheduleBoundary: (Double) -> ScheduleBoundaryObservation,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
     is24Hour: Boolean = true,
@@ -100,12 +115,7 @@ private fun HomeScreenContent(
     // 当且仅当当前时刻晚于下一次计划用药时，触发重新模拟
     LaunchedEffect(enabledPlans) {
         snapshotFlow { realtimeCurrentTimeState.value }.collect { currentTimeH ->
-            val forkPointTimeH = nextPlanForkPointTimeH(enabledPlans, currentTimeH)
-            forkPointTimeHState.value = forkPointTimeH
-            if (forkPointTimeH != null && currentTimeH >= forkPointTimeH &&
-                currentTimeH - forkPointTimeH < 1.0 / 3600.0) { // 晚于分叉点不超过1秒，避免频繁刷新
-                onRefresh()
-            }
+            forkPointTimeHState.value = observeScheduleBoundary(currentTimeH).nextDeadlineTimeH
         }
     }
     Scaffold(
@@ -624,6 +634,12 @@ private fun PreviewHomeScreenEmpty() {
             doseTimePoints = emptyList(),
             enabledPlans = emptyList(),
             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
+            observeScheduleBoundary = { currentTimeH ->
+                ScheduleBoundaryObservation(
+                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
+                    crossed = false
+                )
+            },
             onRefresh = {}
         )
     }
@@ -639,6 +655,12 @@ private fun PreviewHomeScreenLoading() {
             doseTimePoints = emptyList(),
             enabledPlans = emptyList(),
             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
+            observeScheduleBoundary = { currentTimeH ->
+                ScheduleBoundaryObservation(
+                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
+                    crossed = false
+                )
+            },
             onRefresh = {}
         )
     }
@@ -669,6 +691,12 @@ private fun PreviewHomeScreenWithData() {
             ),
             enabledPlans = emptyList(),
             realtimeCurrentTimeState = remember { mutableDoubleStateOf(currentTimeH) },
+            observeScheduleBoundary = { currentTimeH ->
+                ScheduleBoundaryObservation(
+                    nextDeadlineTimeH = nextPlanForkPointTimeH(emptyList(), currentTimeH),
+                    crossed = false
+                )
+            },
             onRefresh = {}
         )
     }

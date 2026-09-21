@@ -180,6 +180,7 @@ class HRTViewModel internal constructor(
     private val _pkState = MutableStateFlow(PKState())
     val pkState: StateFlow<PKState> = _pkState.asStateFlow()
     private val simulationRefresh = MutableStateFlow(0L)
+    private val scheduleBoundaryTracker = ScheduleBoundaryTracker()
 
     val currentTimeH: StateFlow<Double> = flow {
         while (true) {
@@ -355,6 +356,22 @@ class HRTViewModel internal constructor(
         withContext(Dispatchers.Default) {
             legacyExportRunner.export(weight, events.value)
         }
+
+    internal fun observeScheduleBoundary(
+        identity: ScheduleBoundaryIdentity,
+        nowTimeH: Double,
+        nextDeadlineProvider: () -> Double?
+    ): ScheduleBoundaryObservation {
+        val observation = scheduleBoundaryTracker.observe(
+            identity = identity,
+            nowTimeH = nowTimeH,
+            nextDeadlineProvider = nextDeadlineProvider
+        )
+        if (observation.crossed) {
+            runSimulation()
+        }
+        return observation
+    }
 
     fun runSimulation() {
         simulationRefresh.update { it + 1L }

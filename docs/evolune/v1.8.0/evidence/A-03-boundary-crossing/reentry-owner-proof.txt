@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 A-03 - REENTRY OWNER PROOF
+
+Test:
+  HRTViewModelTest.retained schedule boundary survives home reentry and
+  refreshes only once
+
+Sequence:
+  1. The same HRTViewModel initializes pending B.
+  2. No boundary observation is made while Home is disposed.
+  3. The same ViewModel observes now > B after re-entry.
+  4. Exactly one added PK calculation is observed, and a later sample before
+     B2 adds no calculation.
+
+The focused Gradle test run passed this owner-level test. The retained state is
+not a Home remember and is not a static/global value.

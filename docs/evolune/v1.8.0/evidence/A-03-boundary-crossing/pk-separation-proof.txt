@@ -1,0 +1,11 @@
+EVOLUNE v1.8.0 A-03 - PK SEPARATION PROOF
+
+The retained boundary API is the only new path to runSimulation. Initialization
+and samples before the pending deadline return the next marker without adding a
+simulation calculation. The HRTViewModel re-entry test observes no added call
+before the crossing, one added call at the crossing, and no duplicate after it.
+
+Home's live concentration card still interpolates the existing simulationResult
+with the live currentTimeH. The A-03 change only moves the boundary refresh
+decision to HRTViewModel ownership; PK equations, input assembly, calculator
+dispatch, and result publication are unchanged.
