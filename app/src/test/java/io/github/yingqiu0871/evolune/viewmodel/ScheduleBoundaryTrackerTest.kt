@@ -78,14 +78,21 @@ class ScheduleBoundaryTrackerTest {
         val identity = identity()
         val oldBoundary = 100.0
         val firstFutureAfterJump = 200.0
+        var providerCalls = 0
 
-        tracker.observe(identity, oldBoundary - 1.0) { oldBoundary }
-        val jumped = tracker.observe(identity, 180.0) { firstFutureAfterJump }
-        val afterJump = tracker.observe(identity, 181.0) { firstFutureAfterJump }
+        fun provider(): Double {
+            providerCalls += 1
+            return if (providerCalls == 1) oldBoundary else firstFutureAfterJump
+        }
+
+        tracker.observe(identity, oldBoundary - 1.0, ::provider)
+        val jumped = tracker.observe(identity, 180.0, ::provider)
+        val afterJump = tracker.observe(identity, 181.0, ::provider)
 
         assertTrue(jumped.crossed)
         assertEquals(firstFutureAfterJump, jumped.nextDeadlineTimeH!!, 0.0)
         assertTrue(!afterJump.crossed)
+        assertEquals(2, providerCalls)
     }
 
     @Test
@@ -93,12 +100,25 @@ class ScheduleBoundaryTrackerTest {
         val tracker = ScheduleBoundaryTracker()
         val oldIdentity = identity(plan = plan("old"))
         val newIdentity = identity(plan = plan("new"))
+        var providerCalls = 0
 
-        tracker.observe(oldIdentity, 99.0) { 100.0 }
-        val changed = tracker.observe(newIdentity, 101.0) { 200.0 }
+        tracker.observe(oldIdentity, 99.0) {
+            providerCalls += 1
+            100.0
+        }
+        val changed = tracker.observe(newIdentity, 101.0) {
+            providerCalls += 1
+            200.0
+        }
+        val stable = tracker.observe(newIdentity, 102.0) {
+            providerCalls += 1
+            200.0
+        }
 
         assertTrue(!changed.crossed)
         assertEquals(200.0, changed.nextDeadlineTimeH!!, 0.0)
+        assertEquals(200.0, stable.nextDeadlineTimeH!!, 0.0)
+        assertEquals(2, providerCalls)
     }
 
     @Test
@@ -122,28 +142,116 @@ class ScheduleBoundaryTrackerTest {
         val tracker = ScheduleBoundaryTracker()
         val utcIdentity = identity(zoneId = ZoneOffset.UTC)
         val parisIdentity = identity(zoneId = ZoneId.of("Europe/Paris"))
+        var providerCalls = 0
 
-        tracker.observe(utcIdentity, 99.0) { 100.0 }
-        val changed = tracker.observe(parisIdentity, 101.0) { 200.0 }
+        tracker.observe(utcIdentity, 99.0) {
+            providerCalls += 1
+            100.0
+        }
+        val changed = tracker.observe(parisIdentity, 101.0) {
+            providerCalls += 1
+            200.0
+        }
+        val stable = tracker.observe(parisIdentity, 102.0) {
+            providerCalls += 1
+            200.0
+        }
 
         assertTrue(!changed.crossed)
         assertEquals(200.0, changed.nextDeadlineTimeH!!, 0.0)
+        assertEquals(200.0, stable.nextDeadlineTimeH!!, 0.0)
+        assertEquals(2, providerCalls)
     }
 
     @Test
-    fun `schedule provider remains the chart source on every observation`() {
+    fun `steady retained boundary skips provider for sixty observations`() {
         val tracker = ScheduleBoundaryTracker()
         val identity = identity()
         var providerCalls = 0
 
-        repeat(3) { index ->
-            tracker.observe(identity, 99.0 + index / 10.0) {
-                providerCalls += 1
-                100.0
-            }
+        val initialized = tracker.observe(identity, 99.0) {
+            providerCalls += 1
+            100.0
         }
 
-        assertEquals(3, providerCalls)
+        repeat(60) { index ->
+            val observation = tracker.observe(identity, 99.0 + index / 3600.0) {
+                providerCalls += 1
+                200.0
+            }
+            assertTrue(!observation.crossed)
+            assertEquals(100.0, observation.nextDeadlineTimeH!!, 0.0)
+        }
+
+        assertEquals(100.0, initialized.nextDeadlineTimeH!!, 0.0)
+        assertEquals(1, providerCalls)
+    }
+
+    @Test
+    fun `crossing invokes provider once and post-crossing steady state skips it`() {
+        val tracker = ScheduleBoundaryTracker()
+        val identity = identity()
+        var providerCalls = 0
+
+        tracker.observe(identity, 99.0) {
+            providerCalls += 1
+            100.0
+        }
+        repeat(5) { index ->
+            val observation = tracker.observe(identity, 99.0 + index / 3600.0) {
+                providerCalls += 1
+                124.0
+            }
+            assertTrue(!observation.crossed)
+            assertEquals(100.0, observation.nextDeadlineTimeH!!, 0.0)
+        }
+
+        val crossed = tracker.observe(identity, 100.0) {
+            providerCalls += 1
+            124.0
+        }
+        assertTrue(crossed.crossed)
+        assertEquals(124.0, crossed.nextDeadlineTimeH!!, 0.0)
+        assertEquals(2, providerCalls)
+
+        repeat(5) { index ->
+            val observation = tracker.observe(identity, 100.0 + (index + 1) / 3600.0) {
+                providerCalls += 1
+                148.0
+            }
+            assertTrue(!observation.crossed)
+            assertEquals(124.0, observation.nextDeadlineTimeH!!, 0.0)
+        }
+        assertEquals(2, providerCalls)
+    }
+
+    @Test
+    fun `null result is reevaluated so a future horizon event can appear`() {
+        val tracker = ScheduleBoundaryTracker()
+        val identity = identity()
+        var providerCalls = 0
+        var providerResult: Double? = null
+
+        fun provider(): Double? {
+            providerCalls += 1
+            return providerResult
+        }
+
+        val empty = tracker.observe(identity, 99.0, ::provider)
+        assertTrue(!empty.crossed)
+        assertEquals(null, empty.nextDeadlineTimeH)
+        assertEquals(1, providerCalls)
+
+        providerResult = 200.0
+        val appeared = tracker.observe(identity, 100.0, ::provider)
+        assertTrue(!appeared.crossed)
+        assertEquals(200.0, appeared.nextDeadlineTimeH!!, 0.0)
+        assertEquals(2, providerCalls)
+
+        val stable = tracker.observe(identity, 101.0, ::provider)
+        assertTrue(!stable.crossed)
+        assertEquals(200.0, stable.nextDeadlineTimeH!!, 0.0)
+        assertEquals(2, providerCalls)
     }
 
     private fun identity(

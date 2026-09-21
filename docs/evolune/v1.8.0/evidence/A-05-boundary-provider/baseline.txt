@@ -1,0 +1,22 @@
+A-05E baseline
+
+The A-05E parent invokes nextDeadlineProvider() unconditionally after crossing
+detection, even when the identity is unchanged, retainedDeadlineTimeH is
+non-null, and nowTimeH is strictly below the retained deadline.
+
+Before A-05 test additions, the accepted canonical-LF JVM baseline was:
+  app: 1420 tests
+  experience-core: 171 tests
+  wear: 90 tests
+  total: 1681 tests
+
+The A-05E evidence characterized the structural cost as 60 provider calls for
+60 steady observations with one accepted result. A new 60-observation tracker
+regression was executed against the unchanged parent implementation and failed,
+along with the new crossing/identity/null-horizon call-count assertions. This
+confirms the test is sensitive to the A-05 optimization rather than merely
+testing unchanged behavior.
+
+The only known raw Windows checkout issue remains the two portable golden-byte
+assertions inherited from A-04; the accepted full gate uses tracked Git LF
+fixture bytes.

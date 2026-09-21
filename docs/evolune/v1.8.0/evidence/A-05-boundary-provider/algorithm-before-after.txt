@@ -1,0 +1,28 @@
+Tracker algorithm before / after
+
+Before A-05E:
+  1. Compare identity.
+  2. Reset identity and pending deadline if changed.
+  3. Capture retained deadline.
+  4. Detect inclusive crossing with nowTimeH >= retained B.
+  5. Consume B on crossing.
+  6. Always invoke nextDeadlineProvider().
+  7. Accept the calculated result only for identity change, null retained state,
+     or crossing.
+  8. Return the observation.
+
+After A-05:
+  1. Compare identity.
+  2. Reset identity and pending deadline if changed.
+  3. Capture retained deadline.
+  4. Detect inclusive crossing with nowTimeH >= retained B.
+  5. Consume B on crossing.
+  6. If identity is unchanged, retained B is non-null, and crossing is false,
+     return retained B immediately without invoking the provider.
+  7. Otherwise invoke nextDeadlineProvider().
+  8. Accept the calculated result for identity change, null retained state, or
+     crossing.
+  9. Return the observation.
+
+The production delta is the single early return in
+ScheduleBoundaryTracker.kt. HRTViewModel and HomeScreen remain unchanged.

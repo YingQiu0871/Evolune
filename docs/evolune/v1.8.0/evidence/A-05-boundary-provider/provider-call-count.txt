@@ -1,0 +1,17 @@
+Initialization and 60-tick steady-state proof
+
+Test: ScheduleBoundaryTrackerTest.`steady retained boundary skips provider for
+sixty observations`
+
+Sequence:
+  observation 1: providerCalls = 1, retained B = 100.0, crossed = false
+  observations 2-61: same identity, nowTimeH < 100.0
+
+Result:
+  total observations = 61
+  providerCalls = 1
+  crossings = 0
+  observation.nextDeadlineTimeH = 100.0 on every observation
+
+The unchanged A-05E implementation failed this regression because it invoked the
+provider on every steady observation. The A-05 implementation passes it.

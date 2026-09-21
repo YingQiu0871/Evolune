@@ -50,8 +50,13 @@ internal class ScheduleBoundaryTracker {
             pendingDeadlineTimeH = null
         }
 
-        // Keep the existing per-tick schedule calculation as the chart source;
-        // it is never allowed to replace an unconsumed retained deadline.
+        if (!identityChanged && retainedDeadlineTimeH != null && !crossed) {
+            return ScheduleBoundaryObservation(
+                nextDeadlineTimeH = retainedDeadlineTimeH,
+                crossed = false
+            )
+        }
+
         val calculatedNextDeadlineTimeH = nextDeadlineProvider()
         if (identityChanged || retainedDeadlineTimeH == null || crossed) {
             pendingDeadlineTimeH = calculatedNextDeadlineTimeH

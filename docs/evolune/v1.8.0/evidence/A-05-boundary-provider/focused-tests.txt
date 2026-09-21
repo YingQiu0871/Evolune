@@ -1,0 +1,22 @@
+A-05 focused JVM verification
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.ui.screens.HomeScheduleBoundaryTest --tests io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorTest --tests io.github.yingqiu0871.evolune.utils.MedicationPlanPredictorParityTest --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest --rerun-tasks
+
+Result:
+  7 suites / 56 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Suite counts:
+  ScheduleBoundaryTrackerTest: 9
+  HRTViewModelTest: 19
+  HomeScheduleBoundaryTest: 3
+  MedicationPlanPredictorTest: 11
+  MedicationPlanPredictorParityTest: 3
+  ConcentrationChartGeometryTest: 8
+  ConcentrationChartLayoutTest: 3
+
+HRTViewModel source was unchanged. Predictor, Home boundary, parity, and chart
+tests were unchanged. The tracker additions preserve existing A-03 coverage and
+replace the obsolete unconditional-provider expectation with fast-path and
+null-horizon coverage.

@@ -1,0 +1,26 @@
+Frozen-contract and predecessor audit
+
+Verified zero delta from the exact A-05E parent for:
+  HomeScreen.kt
+  HRTViewModel.kt
+  MedicationPlanPredictor.kt
+  ConcentrationChart.kt
+  ConcentrationChartGeometry.kt
+  HomeClockLifecycleTest.kt
+  docs/evolune/v1.8.0/evidence/A-05E-home-cost-characterization/**
+
+The only production delta is:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+
+The only test delta is:
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+
+Thus A-01, A-02, B-01, D-01, A-03E, A-03, A-04, and A-05E are preserved by
+the exact parent topology. No Compose diagnostics, lifecycle collection,
+currentTimeH cadence, ViewModel ownership, predictor semantics, chart code,
+PK math/grid/AUC, navigation, instrumentation, timer, or global cache change
+was made.
+
+Version identity remains versionName 1.7.4, Phone versionCode 101070400, and
+Wear versionCode 1101070400. No schema, protocol, backup, signing, or
+application-ID change was made.

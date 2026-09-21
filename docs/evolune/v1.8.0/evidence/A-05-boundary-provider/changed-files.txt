@@ -1,0 +1,16 @@
+A-05 implementation and evidence changed paths
+
+Production:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+
+Tests:
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt
+
+Evidence:
+  docs/evolune/v1.8.0/evidence/A-05-boundary-provider/**
+
+Expected implementation diff statistics against b99d5584a9bc6d3701bdb906684f50ca6f6212a6:
+  tracker production: 7 additions / 2 deletions
+  tracker test: 120 additions / 12 deletions
+
+No other production or test path is permitted in the implementation commit.

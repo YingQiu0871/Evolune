@@ -1,0 +1,15 @@
+Null-horizon hard gate
+
+Test: ScheduleBoundaryTrackerTest.`null result is reevaluated so a future
+horizon event can appear`
+
+Same identity sequence:
+  observation 1: provider returns null; providerCalls = 1; pending = null;
+  observation 2: provider now returns B = 200; providerCalls = 2; crossed =
+                 false; pending = 200;
+  observation 3 before B: providerCalls remains 2; B is returned directly.
+
+The fast path tests retainedDeadlineTimeH != null, not merely
+identityChanged == false. Null is never cached permanently. This preserves
+finite-horizon behavior where an occurrence can later enter the seven-day
+prediction window without a plan or timezone identity change.

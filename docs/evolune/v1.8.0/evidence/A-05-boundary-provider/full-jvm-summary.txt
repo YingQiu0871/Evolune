@@ -1,0 +1,20 @@
+A-05 canonical tracked-LF full JVM regression
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+The two unchanged portable golden fixtures were temporarily materialized as
+their tracked Git LF blob bytes for this run. The finally block restored the
+raw Windows checkout bytes exactly afterward. See logs/full-jvm-canonical.txt.
+
+Actual accepted result:
+  app:             151 suites / 1422 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:              11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:            182 suites / 1683 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The A-05E baseline was 1,681 tests. A-05 adds two tracker regression tests, so
+1,683 is the expected and actual total. The raw Windows checkout behavior was
+not used as an accepted gate; the known raw JSON/CSV byte assertions are the
+unchanged A-03/A-04 fixture line-ending issue.

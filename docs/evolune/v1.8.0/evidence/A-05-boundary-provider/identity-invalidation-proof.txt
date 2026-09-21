@@ -1,0 +1,16 @@
+Plan and timezone identity invalidation proof
+
+Plan identity:
+  S1 initializes B1 = 100 with providerCalls = 1.
+  S2 at now = 101 invokes the provider once, returns B2 = 200, and reports
+  crossed = false. A following S2 observation before B2 does not call the
+  provider. Total calls = 2.
+
+Timezone identity:
+  UTC initializes B1 = 100 with providerCalls = 1.
+  Europe/Paris at now = 101 invokes the provider once, returns B2 = 200, and
+  reports crossed = false. A following Paris observation before B2 does not
+  call the provider. Total calls = 2.
+
+The old retained absolute boundary is invalidated before crossing evaluation;
+identity changes do not synthesize a crossing.

@@ -1,0 +1,19 @@
+Fast-path proof
+
+The implementation condition is exactly:
+  !identityChanged && retainedDeadlineTimeH != null && !crossed
+
+This is the only state where the retained absolute boundary is already known
+to be valid and strictly future. Returning it directly preserves the value that
+Home receives through observation.nextDeadlineTimeH on every steady tick.
+
+The provider remains required for every other state:
+  * initialization / new identity;
+  * retained null, because the seven-day prediction horizon may later expose B;
+  * inclusive exact or late crossing, to obtain the first strict-future B2;
+  * plan identity change;
+  * timezone identity change.
+
+No provider exception is caught, no fallback is added, and no side effect is
+relied upon. The provider remains a calculation closure; skipped steady-state
+calls are intentional.

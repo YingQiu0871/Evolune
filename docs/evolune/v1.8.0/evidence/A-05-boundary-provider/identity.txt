@@ -1,0 +1,26 @@
+EVOLUNE v1.8.0 — A-05 redundant steady-state boundary provider work
+
+Approved predecessor / exact parent:
+  b99d5584a9bc6d3701bdb906684f50ca6f6212a6
+  docs(v1.8.0): characterize Home per-tick cost
+
+Branch:
+  feature/v1.8.0-a05-boundary-provider
+
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-a05
+
+Scope:
+  F03 only. Skip nextDeadlineProvider() when identity is unchanged, a non-null
+  deadline is retained, and now is strictly before it. M01, chart/interpolation,
+  lifecycle collection, ViewModel ownership, predictor semantics, PK math,
+  navigation, timer/alarm scheduling, and versioning are frozen.
+
+Initial state:
+  HEAD = b99d5584a9bc6d3701bdb906684f50ca6f6212a6
+  parent = 0653cfeeda980a35fb16e549da1eee5ae88060e0
+  worktree clean
+
+Expected implementation files:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTracker.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/ScheduleBoundaryTrackerTest.kt

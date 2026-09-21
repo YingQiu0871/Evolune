@@ -1,0 +1,14 @@
+Exact crossing and post-crossing proof
+
+Test: ScheduleBoundaryTrackerTest.`crossing invokes provider once and
+post-crossing steady state skips it`
+
+Sequence:
+  initialize B = 100.0: providerCalls = 1
+  five pre-B observations: providerCalls remains 1, B remains returned
+  exact nowTimeH = 100.0: crossed = true, providerCalls = 2, B2 = 124.0
+  five post-crossing observations before B2: providerCalls remains 2
+
+The comparison remains inclusive (nowTimeH >= B). The replacement B2 is
+calculated and returned in the same crossing observation, so Home receives no
+one-tick-stale fork marker.

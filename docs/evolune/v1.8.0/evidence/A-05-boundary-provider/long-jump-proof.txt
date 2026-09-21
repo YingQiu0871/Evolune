@@ -1,0 +1,14 @@
+Long-jump proof
+
+The existing long-jump test now counts provider calls. It initializes B = 100,
+jumps to now = 180, and supplies first strict-future Bj = 200.
+
+Result:
+  initialization provider calls = 1
+  jump provider calls = 2
+  crossed = true exactly once
+  pending deadline = 200
+  next steady observation at 181 adds no call
+
+There is no per-missed-dose loop. A late resume consumes the retained boundary
+once and accepts the single provider-supplied first future replacement.

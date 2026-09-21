@@ -1,0 +1,14 @@
+A-05E parent regression before fast-path implementation
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryTrackerTest --rerun-tasks
+
+Result against unchanged b99d5584a9bc6d3701bdb906684f50ca6f6212a6:
+  9 tests completed, 6 failed
+  BUILD FAILED
+
+The failing assertions were the new steady-state provider-count, crossing
+provider-count, long-jump provider-count, plan identity stable-call-count,
+timezone identity stable-call-count, and null-horizon reevaluation checks.
+Existing correctness assertions remained in the same suite. After the narrow
+tracker fast path was applied, the suite passed 9/9.
