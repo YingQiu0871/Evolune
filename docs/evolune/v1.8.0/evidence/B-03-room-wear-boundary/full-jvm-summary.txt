@@ -1,0 +1,34 @@
+EVOLUNE v1.8.0 B-03 — CANONICAL TRACKED-LF FULL JVM REGRESSION
+=============================================================
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Canonical tracked-LF procedure for this run:
+  Three byte-sensitive files were temporarily materialized as their tracked Git
+  LF blob bytes (raw checkout is CRLF under core.autocrlf=true):
+    app/src/test/resources/phase-e/golden-canonical.json   (blob LF)
+    app/src/test/resources/phase-e/golden-canonical.csv    (blob LF)
+    app/src/main/java/.../navigation/AppNavigation.kt      (blob LF)
+  Raw Windows checkout bytes were restored after the run (both fixtures were
+  already LF on disk; AppNavigation.kt was restored to its 70,686-byte CRLF
+  checkout form).
+
+Accepted result:
+  app:             153 suites / 1430 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           184 suites / 1691 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Baseline: B-02 recorded 1687 tests. B-03 adds the 4-test architecture guard
+(RoomRepositoryWearBoundaryTest), so 1691 is the expected and observed total.
+
+Pre-existing environment finding (NOT caused by B-03; no source change made):
+  On a pristine autocrlf checkout, HistoryLazyEntryArchitectureTest (added by
+  B-02) fails because its needle embeds "\n" while the checkout materializes
+  AppNavigation.kt as CRLF. The accepted B-02 full-JVM run was reproducible only
+  because the B-02 worktree's edited region carried LF endings (13 LF-only
+  lines; HistoryScreen(<LF>); a fresh checkout has HistoryScreen(<CR><LF>).
+  Under the canonical tracked-LF procedure above the test passes. B-03 does not
+  touch that test, AppNavigation.kt content, or any B-02 code.

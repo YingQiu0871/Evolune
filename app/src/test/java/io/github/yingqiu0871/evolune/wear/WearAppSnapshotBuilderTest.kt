@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune.wear
 
+import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
@@ -42,8 +43,8 @@ class WearAppSnapshotBuilderTest {
         assertEquals(latest.id, first.recentDose?.eventId)
         assertEquals(latest.revision, first.recentDose?.eventRevision)
         assertEquals(first.recentDose, reversed.recentDose)
-        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(older, latest)))
-        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(latest, older)))
+        assertEquals(latest, RecentRecordedDoseSelector.select(listOf(older, latest)))
+        assertEquals(latest, RecentRecordedDoseSelector.select(listOf(latest, older)))
     }
 
     @Test

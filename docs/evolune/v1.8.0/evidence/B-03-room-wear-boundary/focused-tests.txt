@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 B-03 — FOCUSED TESTS
+==================================
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest
+    --tests io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest
+    --tests io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest
+    --tests io.github.yingqiu0871.evolune.data.repository.RoomRepositoryWearBoundaryTest
+    --tests io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest
+    --tests io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest
+    --rerun-tasks
+
+Fresh result (JUnit XML):
+  RecordDoseEventActionTest:           tests=17 failures=0 errors=0 skipped=0
+  RepositoryContractTest:              tests=3  failures=0 errors=0 skipped=0
+  RoomRepositoryWearBoundaryTest:      tests=4  failures=0 errors=0 skipped=0
+  PhaseFConsistencyTest:               tests=11 failures=0 errors=0 skipped=0
+  WearAppSnapshotBuilderTest:          tests=15 failures=0 errors=0 skipped=0
+  TOTAL: 5 suites / 50 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The guard suite (RoomRepositoryWearBoundaryTest) is the new B-03 architecture
+guard: data.repository must not reference the Wear namespace; the repository
+must use the neutral policy; the neutral policy must import only core.model;
+the old Wear-owned symbol must be gone from production sources.
+
+Note: the first focused attempt failed only because the guard's purity check
+initially used token heuristics ("Room" appears in the KDoc text); the check was
+narrowed to an exact import-list assertion (no source behavior change) and the
+suite passed.

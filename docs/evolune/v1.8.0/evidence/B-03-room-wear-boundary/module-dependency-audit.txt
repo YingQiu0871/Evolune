@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 B-03 — MODULE / BUILD DEPENDENCY AUDIT
+====================================================
+
+Gradle module graph (settings.gradle.kts): :app, :experience-core, :wear.
+- :app  implementation(project(":experience-core"))
+- :wear implementation(project(":experience-core"))
+
+There was NO Gradle module dependency from :app to :wear at the parent; F08 was
+a package-level dependency inside :app (data.repository -> app's wear package).
+B-03 therefore requires no Gradle change; none was made. Build files are
+byte-identical to the parent.
+
+Decision: package-level cleanup is sufficient. No module dependency removal was
+possible or necessary (nothing to remove).

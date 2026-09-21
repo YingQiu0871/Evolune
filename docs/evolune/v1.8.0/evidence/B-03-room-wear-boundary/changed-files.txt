@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 B-03 — CHANGED FILES
+===================================
+
+1. RENAMED/MOVED (neutral ownership):
+   app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppRecentDoseSelector.kt
+     -> app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+   Package moved to core.dataapi; object renamed to RecentRecordedDoseSelector;
+   body identical (only KDoc updated); still internal.
+
+2. MODIFIED (wiring only):
+   app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
+     import replaced; one call site renamed.
+   app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt
+     import added; two call sites renamed.
+   app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
+     two fully-qualified references renamed.
+   app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+     import + one call site renamed.
+   app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt
+     import added; two call sites renamed.
+
+3. ADDED (architecture guard):
+   app/src/test/java/io/github/yingqiu0871/evolune/data/repository/RoomRepositoryWearBoundaryTest.kt
+     4 tests: data.repository Wear-namespace ban; repository uses neutral
+     policy; neutral policy imports only core.model; old Wear-owned symbol gone.
+
+No APK/AAB, no schema, no build/config/version file, no docs outside this
+evidence directory changed.

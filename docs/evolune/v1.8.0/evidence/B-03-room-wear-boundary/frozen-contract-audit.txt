@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 B-03 — FROZEN CONTRACT AUDIT
+===========================================
+
+git diff --name-only 2ce0d0543d180e0d4643185f2f0f56aa529ba3d1 (full repo):
+
+  app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/data/repository/RoomRepositoryWearBoundaryTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt
+
+Exactly the expected B-03 scope (selector relocation + direct consumers/tests +
+one guard). Zero diff outside these paths.
+
+Predecessor freeze (all zero diff):
+- A-01 RetrospectivePkService/RetrospectivePkCurveRunner machinery
+- A-02 empty-future reuse
+- B-01 MainActivity / MainFeatureServices
+- B-02 History lazy-entry code and its architecture test
+- D-01 ComposeDiagnostics
+- A-03E/A-03/A-04/A-05E/A-05 files
+- PK/history calculation semantics, ScheduleBoundaryTracker, Home lifecycle
+- Room schema/DAO/query behavior, Wear protocol/revision/UUID, navigation,
+  Widget, Health Connect, Drive, backup format, preferences
+- build.gradle.kts, settings.gradle.kts, gradle/ (byte-identical)
+- version remains 1.7.4 / 101_070_400 / 1_101_070_400

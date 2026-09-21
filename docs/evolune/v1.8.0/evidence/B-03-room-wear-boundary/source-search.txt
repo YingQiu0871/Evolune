@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 B-03 — SOURCE SEARCH
+===================================
+
+Searches (production + tests, app module):
+
+1. Old qualified name / old package:
+   git grep -n "WearAppRecentDoseSelector" -- app/src
+   -> ZERO matches.
+   git grep -n "evolune\.wear" -- app/src/main/java/.../data app/src/main/java/.../core
+   -> ZERO matches (data/repository and core are free of the Wear namespace).
+
+2. New references (all intended):
+   app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt:15
+   app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt:9,213
+   app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt:3,49,137
+   app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt:166,177
+   app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt:18,178
+   app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt:3,46,47
+
+3. No compatibility alias was left in the Wear package (no frozen public
+   contract required one; the symbol is internal).
+
+Note: MainActivity imports other Wear-layer classes by design (composition
+root); B-03 does not touch those and no guard was added for them.

@@ -1,0 +1,46 @@
+EVOLUNE v1.8.0 B-03 — F08 PROOF AT PARENT (2ce0d05)
+===================================================
+
+F08 confirmed directly from source:
+
+1. Exact imported symbol
+   io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
+
+2. Current package (at parent)
+   io.github.yingqiu0871.evolune.wear
+
+3. Current module
+   :app (package-level ownership; the selector file lived at
+   app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppRecentDoseSelector.kt)
+
+4. Repository import direction (at parent)
+   app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
+   line 16: import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
+   line 213: val recent = WearAppRecentDoseSelector.select(events)
+   => data.repository -> wear (directionally wrong)
+
+5. All callers (production)
+   - RoomDoseEventRepository (data.repository) — wrong direction; enforces the
+     DoseEventRepository.deleteLatestRecordedIfRevisionMatches contract.
+   - WearAppSnapshotBuilder (wear, same package at parent) — lines 48 and 136.
+
+6. All test consumers
+   - app/src/test/.../application/RepositoryFakes.kt (2 fully-qualified usages)
+   - app/src/test/.../phasef/PhaseFTestFixtures.kt (import + 1 usage)
+   - app/src/test/.../wear/WearAppSnapshotBuilderTest.kt (2 usages)
+
+7. Wear-specific or merely misplaced?
+   Merely misplaced. The selector is a pure qualification/ordering rule over
+   core.model.DoseEvent; both the data layer (latest-dose delete contract) and
+   Wear (snapshot recent dose) are legitimate consumers.
+
+8. Android/Wear framework dependencies
+   None. Imports only core.model.DoseEvent and core.model.DoseEventStatus.
+
+9. Pure Kotlin/domain logic
+   Yes — zero android.*, androidx.wear.*, Compose, Tile, service, network or
+   Room dependencies.
+
+Hard question: does RoomDoseEventRepository directly import a symbol owned
+under a Wear-specific namespace? YES -> F08 is real; the dependency is an
+ownership violation, not a legitimate shared dependency.

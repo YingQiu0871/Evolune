@@ -15,7 +15,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
 import io.github.yingqiu0871.evolune.pk.Route
-import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
+import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.time.Instant
@@ -175,7 +175,7 @@ internal class PhaseFRepository(
         val target = events.firstOrNull { it.id == eventId }
             ?: return LatestDoseDeleteResult.EventNotFound
         if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
-        val recent = WearAppRecentDoseSelector.select(events)
+        val recent = RecentRecordedDoseSelector.select(events)
         if (recent?.id != eventId || recent.revision != eventRevision) {
             return LatestDoseDeleteResult.NotLatest
         }

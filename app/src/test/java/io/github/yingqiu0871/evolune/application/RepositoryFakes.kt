@@ -163,7 +163,7 @@ internal class FakeDoseEventRepository(
         eventRevision: Long
     ): LatestDoseDeleteResult {
         latestDoseDeleteCalls += 1
-        val recentBefore = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+        val recentBefore = io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector.select(
             events.values.toList()
         )
         beforeLatestDoseDelete?.invoke()
@@ -174,7 +174,7 @@ internal class FakeDoseEventRepository(
         val target = events[eventId]
             ?: return LatestDoseDeleteResult.EventNotFound
         if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
-        val recentAfter = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
+        val recentAfter = io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector.select(
             events.values.toList()
         )
         if (recentBefore?.id != recentAfter?.id ||

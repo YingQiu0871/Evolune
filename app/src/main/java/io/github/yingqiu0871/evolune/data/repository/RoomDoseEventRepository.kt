@@ -6,6 +6,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
 import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
+import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.data.AppDatabase
@@ -13,7 +14,6 @@ import io.github.yingqiu0871.evolune.data.mapper.MappingResult
 import io.github.yingqiu0871.evolune.data.mapper.toV3DomainDoseEvent
 import io.github.yingqiu0871.evolune.data.mapper.toV3Entity
 import io.github.yingqiu0871.evolune.pk.Route
-import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -210,7 +210,7 @@ class RoomDoseEventRepository(
                 if (target.revision != eventRevision) {
                     return@withTransaction LatestDoseDeleteResult.EventChanged
                 }
-                val recent = WearAppRecentDoseSelector.select(events)
+                val recent = RecentRecordedDoseSelector.select(events)
                 if (recent?.id != eventId || recent.revision != eventRevision) {
                     return@withTransaction LatestDoseDeleteResult.NotLatest
                 }

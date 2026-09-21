@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 B-03 — LOGS: SOURCE SEARCH / GUARD SCAN
+======================================================
+
+git grep -n "WearAppRecentDoseSelector" -- app/src
+  (no output — zero matches)
+
+git grep -n "evolune\.wear" -- app/src/main/java/io/github/yingqiu0871/evolune/data app/src/main/java/io/github/yingqiu0871/evolune/core
+  (no output — zero matches)
+
+git grep -n "RecentRecordedDoseSelector" -- app/src
+  core/dataapi/RecentRecordedDoseSelector.kt:15
+  data/repository/RoomDoseEventRepository.kt:9,213
+  wear/WearAppSnapshotBuilder.kt:3,49,137
+  test application/RepositoryFakes.kt:166,177
+  test phasef/PhaseFTestFixtures.kt:18,178
+  test wear/WearAppSnapshotBuilderTest.kt:3,46,47
+
+git diff --name-only 2ce0d05 -- app
+  the 7 expected B-03 paths only

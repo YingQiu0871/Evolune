@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 B-03 — IDENTITY
+==============================
+
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-b03
+Branch: feature/v1.8.0-b03-room-wear-boundary
+Parent (approved predecessor): 2ce0d0543d180e0d4643185f2f0f56aa529ba3d1
+  (B-02 CLOSED / FROZEN final head)
+Worktree at start: clean; created from exactly the parent commit.
+
+Slice: F08 — remove the Room repository dependency on the Wear-owned selector
+policy. Type: narrow architecture-boundary refactor (ownership/package move),
+not a behavior redesign.
+
+Version remains 1.7.4 / Phone 101_070_400 / Wear 1_101_070_400 (no bump).

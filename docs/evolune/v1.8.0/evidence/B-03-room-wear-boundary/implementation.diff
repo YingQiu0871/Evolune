@@ -1,0 +1,229 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppRecentDoseSelector.kt b/app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+similarity index 65%
+rename from app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppRecentDoseSelector.kt
+rename to app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+index 28cdf51..702db22 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppRecentDoseSelector.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+@@ -1,10 +1,18 @@
+-package io.github.yingqiu0871.evolune.wear
++package io.github.yingqiu0871.evolune.core.dataapi
+ 
+ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
+ 
+-/** The single authoritative qualification and ordering rule for Wear recent dose. */
+-internal object WearAppRecentDoseSelector {
++/**
++ * The single authoritative qualification and ordering rule for the most recent
++ * recorded dose.
++ *
++ * Shared neutral policy: the Room repository uses it to enforce the
++ * [DoseEventRepository.deleteLatestRecordedIfRevisionMatches] contract, and the
++ * Wear snapshot builder uses it to derive the recent dose. It depends on
++ * `core.model` only.
++ */
++internal object RecentRecordedDoseSelector {
+     private val recentOrder = compareBy<DoseEvent>(
+         { it.occurredAt },
+         { it.id.toString() }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt b/app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
+index 7d267a0..4267532 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt
+@@ -6,6 +6,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
+ import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
+ import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+ import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
++import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
+ import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
+ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.data.AppDatabase
+@@ -13,7 +14,6 @@ import io.github.yingqiu0871.evolune.data.mapper.MappingResult
+ import io.github.yingqiu0871.evolune.data.mapper.toV3DomainDoseEvent
+ import io.github.yingqiu0871.evolune.data.mapper.toV3Entity
+ import io.github.yingqiu0871.evolune.pk.Route
+-import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
+ import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.catch
+ import kotlinx.coroutines.flow.map
+@@ -210,7 +210,7 @@ class RoomDoseEventRepository(
+                 if (target.revision != eventRevision) {
+                     return@withTransaction LatestDoseDeleteResult.EventChanged
+                 }
+-                val recent = WearAppRecentDoseSelector.select(events)
++                val recent = RecentRecordedDoseSelector.select(events)
+                 if (recent?.id != eventId || recent.revision != eventRevision) {
+                     return@withTransaction LatestDoseDeleteResult.NotLatest
+                 }
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt b/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt
+index dfa6300..b6c3dc3 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilder.kt
+@@ -1,5 +1,6 @@
+ package io.github.yingqiu0871.evolune.wear
+ 
++import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
+ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+ import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
+@@ -45,7 +46,7 @@ internal object WearAppSnapshotBuilder {
+                     plan.doseMG >= 0.0
+             }
+             .sortedBy { it.id.toString() }
+-        val recordedEvents = WearAppRecentDoseSelector.eligible(events)
++        val recordedEvents = RecentRecordedDoseSelector.eligible(events)
+ 
+         val schedules = enabledPlans.map(MedicationPlan::toMedicationSchedule)
+         val occurrences = MedicationOccurrenceGenerator.generate(
+@@ -133,7 +134,7 @@ internal object WearAppSnapshotBuilder {
+             }
+             .toList()
+ 
+-        val recentDose = WearAppRecentDoseSelector
++        val recentDose = RecentRecordedDoseSelector
+             .select(recordedEvents)
+             ?.toWearAppRecentDose(plans)
+ 
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt b/app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
+index 7b61d76..75167de 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/application/RepositoryFakes.kt
+@@ -163,7 +163,7 @@ internal class FakeDoseEventRepository(
+         eventRevision: Long
+     ): LatestDoseDeleteResult {
+         latestDoseDeleteCalls += 1
+-        val recentBefore = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
++        val recentBefore = io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector.select(
+             events.values.toList()
+         )
+         beforeLatestDoseDelete?.invoke()
+@@ -174,7 +174,7 @@ internal class FakeDoseEventRepository(
+         val target = events[eventId]
+             ?: return LatestDoseDeleteResult.EventNotFound
+         if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
+-        val recentAfter = io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector.select(
++        val recentAfter = io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector.select(
+             events.values.toList()
+         )
+         if (recentBefore?.id != recentAfter?.id ||
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/data/repository/RoomRepositoryWearBoundaryTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/data/repository/RoomRepositoryWearBoundaryTest.kt
+new file mode 100644
+index 0000000..dbb7089
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/data/repository/RoomRepositoryWearBoundaryTest.kt
+@@ -0,0 +1,70 @@
++package io.github.yingqiu0871.evolune.data.repository
++
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertFalse
++import org.junit.Assert.assertTrue
++import org.junit.Test
++import java.nio.file.Files
++import java.nio.file.Path
++
++/**
++ * B-03 ownership guard: the Room repository layer must not depend on the Wear
++ * namespace, and the shared recent-dose policy must stay neutral and pure.
++ */
++class RoomRepositoryWearBoundaryTest {
++
++    @Test
++    fun `data repository sources never reference the Wear namespace`() {
++        val repositoryRoot = Path.of("src/main/java/io/github/yingqiu0871/evolune/data/repository")
++        Files.walk(repositoryRoot).use { paths ->
++            paths.filter { it.toString().endsWith(".kt") }
++                .forEach { path ->
++                    val content = Files.readString(path)
++                    assertFalse(
++                        "Wear namespace reference in $path",
++                        content.contains("io.github.yingqiu0871.evolune.wear")
++                    )
++                }
++        }
++    }
++
++    @Test
++    fun `RoomDoseEventRepository uses the neutral recent dose policy`() {
++        val source = Files.readString(
++            Path.of("src/main/java/io/github/yingqiu0871/evolune/data/repository/RoomDoseEventRepository.kt")
++        )
++        assertTrue(source.contains("import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector"))
++        assertTrue(source.contains("RecentRecordedDoseSelector.select("))
++        assertFalse(source.contains("WearAppRecentDoseSelector"))
++    }
++
++    @Test
++    fun `recent dose policy is pure and Wear-free`() {
++        val source = Files.readString(
++            Path.of("src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt")
++        )
++        assertTrue(source.contains("package io.github.yingqiu0871.evolune.core.dataapi"))
++        val imports = source.lines().filter { it.startsWith("import ") }
++        assertEquals(
++            listOf(
++                "import io.github.yingqiu0871.evolune.core.model.DoseEvent",
++                "import io.github.yingqiu0871.evolune.core.model.DoseEventStatus"
++            ),
++            imports
++        )
++    }
++
++    @Test
++    fun `old Wear-owned selector symbol is gone from production sources`() {
++        val sourceRoot = Path.of("src/main/java")
++        Files.walk(sourceRoot).use { paths ->
++            paths.filter { it.toString().endsWith(".kt") }
++                .forEach { path ->
++                    assertFalse(
++                        "WearAppRecentDoseSelector still present in $path",
++                        Files.readString(path).contains("WearAppRecentDoseSelector")
++                    )
++                }
++        }
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+index 6e6aa1c..6d1dd68 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/phasef/PhaseFTestFixtures.kt
+@@ -15,7 +15,7 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmResult
+ import io.github.yingqiu0871.evolune.experience.wear.WearAppUndoResult
+ import io.github.yingqiu0871.evolune.pk.Route
+-import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
++import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
+ import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.flowOf
+ import java.time.Instant
+@@ -175,7 +175,7 @@ internal class PhaseFRepository(
+         val target = events.firstOrNull { it.id == eventId }
+             ?: return LatestDoseDeleteResult.EventNotFound
+         if (target.revision != eventRevision) return LatestDoseDeleteResult.EventChanged
+-        val recent = WearAppRecentDoseSelector.select(events)
++        val recent = RecentRecordedDoseSelector.select(events)
+         if (recent?.id != eventId || recent.revision != eventRevision) {
+             return LatestDoseDeleteResult.NotLatest
+         }
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt
+index 9cbc1c6..cd6b132 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/wear/WearAppSnapshotBuilderTest.kt
+@@ -1,5 +1,6 @@
+ package io.github.yingqiu0871.evolune.wear
+ 
++import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
+ import io.github.yingqiu0871.evolune.core.model.DoseEvent
+ import io.github.yingqiu0871.evolune.core.model.DoseEventSource
+ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+@@ -42,8 +43,8 @@ class WearAppSnapshotBuilderTest {
+         assertEquals(latest.id, first.recentDose?.eventId)
+         assertEquals(latest.revision, first.recentDose?.eventRevision)
+         assertEquals(first.recentDose, reversed.recentDose)
+-        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(older, latest)))
+-        assertEquals(latest, WearAppRecentDoseSelector.select(listOf(latest, older)))
++        assertEquals(latest, RecentRecordedDoseSelector.select(listOf(older, latest)))
++        assertEquals(latest, RecentRecordedDoseSelector.select(listOf(latest, older)))
+     }
+ 
+     @Test

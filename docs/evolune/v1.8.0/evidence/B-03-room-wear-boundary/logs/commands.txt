@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 B-03 — LOGS: COMMANDS
+====================================
+
+focused command:
+  .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilderTest" --tests "io.github.yingqiu0871.evolune.phasef.PhaseFConsistencyTest" --tests "io.github.yingqiu0871.evolune.data.repository.RoomRepositoryWearBoundaryTest" --tests "io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" --tests "io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" --rerun-tasks
+  result: BUILD SUCCESSFUL; 5 suites / 50 tests / 0 failures / 0 errors / 0 skipped
+
+full JVM command (canonical tracked-LF):
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+  result: BUILD SUCCESSFUL; 184 suites / 1691 tests / 0 failures / 0 errors / 0 skipped
+
+raw logs: kept outside the repository in the executor session; counts above are
+re-derived from the JUnit XML result files.

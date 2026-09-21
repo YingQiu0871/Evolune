@@ -1,0 +1,26 @@
+EVOLUNE v1.8.0 B-03 — DEPENDENCY BEFORE / AFTER
+===============================================
+
+BEFORE (parent 2ce0d05):
+  data.repository.RoomDoseEventRepository
+      -> import io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector
+  wear.WearAppSnapshotBuilder
+      -> WearAppRecentDoseSelector (same package, implicit)
+  tests: RepositoryFakes, PhaseFTestFixtures, WearAppSnapshotBuilderTest
+
+AFTER (B-03):
+  core.dataapi.RecentRecordedDoseSelector        (neutral owner, internal)
+      ^                                   ^
+      |                                   |
+  data.repository.RoomDoseEventRepository   wear.WearAppSnapshotBuilder
+      (import core.dataapi.RecentRecordedDoseSelector at line 9;
+       call at line 213)                      (import at line 3;
+                                               calls at lines 49 and 137)
+
+Required direction achieved:
+  neutral policy <- repository
+  neutral policy <- Wear
+NOT repository -> Wear policy.
+
+Old qualified name `io.github.yingqiu0871.evolune.wear.WearAppRecentDoseSelector`
+has ZERO remaining production or test references.

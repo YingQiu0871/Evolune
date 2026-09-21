@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 B-03 — NEUTRAL OWNER DECISION
+============================================
+
+Chosen owner: io.github.yingqiu0871.evolune.core.dataapi
+File: app/src/main/java/io/github/yingqiu0871/evolune/core/dataapi/RecentRecordedDoseSelector.kt
+
+Why this is architecturally correct:
+- core.dataapi already owns the repository contract whose documented semantics
+  this rule defines: DoseEventRepository.deleteLatestRecordedIfRevisionMatches
+  ("Atomically validates the authoritative Wear recent dose and deletes it if
+  exact"). The selector is the shared qualification/ordering rule behind that
+  contract, not a Wear implementation detail.
+- It is the narrowest EXISTING neutral package that matches the semantics:
+  core.model owns plain domain types only; core.dataapi is the shared
+  contract/policy layer between consumers and the Room implementation; both
+  data.repository and wear already depend on core.dataapi, so no new
+  dependency direction is introduced for either consumer.
+- No new module was invented; the move is package-level inside :app.
+- experience-core was rejected: it is a separate JVM module and cannot see
+  app's core.model.DoseEvent; it is not a valid destination for this rule.
+
+Rename justification (per slice rule 7):
+- The symbol was renamed WearAppRecentDoseSelector -> RecentRecordedDoseSelector.
+- The old name advertised Wear ownership; after relocation to a neutral data
+  API policy package the WearApp prefix would be misleading ownership — the
+  exact defect class this slice removes.
+- Only direct consumers/tests were updated; function names, signatures and
+  behavior are unchanged.
+
+Visibility: object remains `internal` (module-private); no public API change.

@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 B-03 — BEHAVIOR FREEZE
+=====================================
+
+Selector semantics (byte-for-byte body, only package/name/KDoc changed):
+- recentOrder = compareBy(occurredAt, id.toString())
+- eligible(events) = events.filter(::isEligible)
+- select(events) = events.asSequence().filter(::isEligible).maxWithOrNull(recentOrder)
+- isEligible(event) = status == RECORDED
+    && occurredAt.toEpochMilliOrNull()?.let { it > 0L } == true
+    && doseMG.isFinite()
+    && doseMG >= 0.0
+No predicate, ordering, tie-break, window, null/fallback, legacy, duplicate or
+completion decision changed.
+
+RoomDoseEventRepository delta (only wiring):
+- line 9 import added; line 16 wear import removed.
+- line 213 call site renamed.
+No query, transaction, Flow, mapping, write, date/time, completion semantics or
+interface change.
+
+WearAppSnapshotBuilder delta (only wiring):
+- import added; lines 48/49 and 136/137 call sites renamed.
+No protocol, revision, UUID, Tile, undo, action, snapshot format, payload or
+legacy-path change.
+
+Test relocation: no dedicated selector test file existed; the three consumer
+test files were updated in place (imports/call sites only). No assertion was
+rewritten; coverage unchanged.

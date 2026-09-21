@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune.wear
 
+import io.github.yingqiu0871.evolune.core.dataapi.RecentRecordedDoseSelector
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
@@ -45,7 +46,7 @@ internal object WearAppSnapshotBuilder {
                     plan.doseMG >= 0.0
             }
             .sortedBy { it.id.toString() }
-        val recordedEvents = WearAppRecentDoseSelector.eligible(events)
+        val recordedEvents = RecentRecordedDoseSelector.eligible(events)
 
         val schedules = enabledPlans.map(MedicationPlan::toMedicationSchedule)
         val occurrences = MedicationOccurrenceGenerator.generate(
@@ -133,7 +134,7 @@ internal object WearAppSnapshotBuilder {
             }
             .toList()
 
-        val recentDose = WearAppRecentDoseSelector
+        val recentDose = RecentRecordedDoseSelector
             .select(recordedEvents)
             ?.toWearAppRecentDose(plans)
 

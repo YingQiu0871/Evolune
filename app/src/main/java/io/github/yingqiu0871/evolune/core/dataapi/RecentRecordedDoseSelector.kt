@@ -1,10 +1,18 @@
-package io.github.yingqiu0871.evolune.wear
+package io.github.yingqiu0871.evolune.core.dataapi
 
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 
-/** The single authoritative qualification and ordering rule for Wear recent dose. */
-internal object WearAppRecentDoseSelector {
+/**
+ * The single authoritative qualification and ordering rule for the most recent
+ * recorded dose.
+ *
+ * Shared neutral policy: the Room repository uses it to enforce the
+ * [DoseEventRepository.deleteLatestRecordedIfRevisionMatches] contract, and the
+ * Wear snapshot builder uses it to derive the recent dose. It depends on
+ * `core.model` only.
+ */
+internal object RecentRecordedDoseSelector {
     private val recentOrder = compareBy<DoseEvent>(
         { it.occurredAt },
         { it.id.toString() }
