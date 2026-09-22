@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 C-01 — REFLECTION / STRING AUDIT
+===============================================
+
+Searches across app/src/main, wear/src, experience-core/src:
+
+- Class.forName / loadClass( / ServiceLoader:
+    ZERO matches in production sources.
+- Fully-qualified string "io.github.yingqiu0871.evolune.data.DoseEventRepository":
+    only WearProductionBypassBoundaryTest.kt:21 (forbidden-import assertion).
+- Fully-qualified string "io.github.yingqiu0871.evolune.data.MedicationPlanRepository":
+    only WearProductionBypassBoundaryTest.kt:22 (forbidden-import assertion).
+- Token strings "data.DoseEventRepository" / "data.MedicationPlanRepository":
+    only Batch6ReceiverStaticBoundaryTest.kt:30-31 (forbidden-token assertions).
+- backup/import codecs, migration maps, preferences, protocol payloads:
+    no reference to either class name.
+- Docs (informational): v1.7 baseline audit P2-4 and phase-f known-limitations
+    list both files as dead legacy facades — consistent with deletion.
+
+No persisted or protocol compatibility depends on either symbol.

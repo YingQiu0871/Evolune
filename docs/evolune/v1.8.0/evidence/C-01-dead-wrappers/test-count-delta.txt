@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 C-01 — TEST-COUNT DELTA
+======================================
+
+Baseline (A-06 accepted): 1695 tests
+  app 1434 (154 suites) / experience-core 171 / wear 90
+
+C-01 observed:            1695 tests
+  app 1434 (154 suites) / experience-core 171 / wear 90
+
+Delta: 0 suites, 0 tests, 0 failures/errors/skips.
+
+Explanation: the two deleted wrappers had no dedicated test suites; no test
+exercised them; the tests that reference their names are forbidden-token
+absence guards and were kept unchanged. No obsolete test was removed, so there
+is no decrease to explain. No new tests were added (deletion-only slice).
+
+Inherited B-02 CRLF P3 (unchanged, NOT fixed by instruction):
+  HistoryLazyEntryArchitectureTest embeds "\n" in a needle; a pristine autocrlf
+  checkout fails it; the canonical tracked-LF run passes. Recorded as an
+  inherited P3; no B-02 file was touched.

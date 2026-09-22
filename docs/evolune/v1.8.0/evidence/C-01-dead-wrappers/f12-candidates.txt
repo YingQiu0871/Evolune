@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 C-01 — F12 CANDIDATES (RECOVERED FROM THE v1.8 AUDIT)
+=====================================================================
+
+Source of record (outside the repository):
+  D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+  Section: "F12 — Two unused legacy repository wrapper classes remain in
+  production" (severity P3, dead-code ambiguity) and section 11
+  "DEAD / LEGACY CODE FINDINGS": "SAFE TO REMOVE: only the two old data
+  repository wrappers in F12, subject to compile/reference recheck at
+  implementation head."
+
+Exact candidates (two, as audited):
+
+C1. io.github.yingqiu0871.evolune.data.DoseEventRepository
+    file: app/src/main/java/io/github/yingqiu0871/evolune/data/DoseEventRepository.kt
+    type: class (legacy repository wrapper/facade)
+    ctor: DoseEventRepository(private val dao: DoseEventDao)
+    forwards to: DoseEventDao + DoseEventEntity.toDoseEvent()/fromDoseEvent()
+    originally retained: pre-core.dataapi legacy repository surface; docs list
+      it as a dead legacy facade (v1.7 baseline audit P2-4; phase-f
+      known-limitations item 6)
+    historic callers: none documented at v1.8 audit time
+
+C2. io.github.yingqiu0871.evolune.data.MedicationPlanRepository
+    file: app/src/main/java/io/github/yingqiu0871/evolune/data/MedicationPlanRepository.kt
+    type: class (legacy repository wrapper/facade)
+    ctor: MedicationPlanRepository(private val dao: MedicationPlanDao)
+    forwards to: MedicationPlanDao + MedicationPlanEntity conversions
+    originally retained: same legacy surface
+    historic callers: none documented at v1.8 audit time
+
+Audit constraints carried into C-01:
+- remove the two files ONLY; do not cascade into converters/DAOs/migrations;
+- core.dataapi interfaces and data.repository.Room* implementations MUST remain;
+- keep the forbidden-import guards that reference the old qualified names;
+- re-run reachability at the implementation head before deleting.
+
+No candidate list was invented from generic "unused" search results.

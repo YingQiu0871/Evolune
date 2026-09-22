@@ -1,0 +1,47 @@
+EVOLUNE v1.8.0 C-01 — DELETION DECISIONS
+=========================================
+
+Candidate | Production refs | Test refs | Framework refs | String/reflection
+| Public/persisted contract | Decision
+
+C1 data.DoseEventRepository
+  production: definition only
+  tests: 2 forbidden-string guards only
+  framework: none
+  reflection/string: none (guards are absence assertions)
+  contract: app-module class, not persisted/serialized, superseded by
+    core.dataapi + RoomDoseEventRepository
+  -> DELETE — VERIFIED DEAD
+
+C2 data.MedicationPlanRepository
+  production: definition only
+  tests: 2 forbidden-string guards only
+  framework: none
+  reflection/string: none
+  contract: app-module class, not persisted/serialized, superseded by
+    core.dataapi + RoomMedicationPlanRepository
+  -> DELETE — VERIFIED DEAD
+
+Hard deletion requirements (all true for C1 and C2):
+A zero production callers .............. yes
+B zero AndroidManifest references ...... yes
+C zero XML/resource references ......... yes
+D zero reflection/string registration .. yes
+E zero serialization/persisted-name .... yes
+F zero Compose preview/entry use ....... yes
+G zero navigation route requirement .... yes
+H zero JNI/native/service/provider/receiver entry role .. yes
+I zero public API / frozen contract obligation .......... app-module class,
+  superseded; audit-approved removal; no external artifact
+J no test requires the symbol as a contract surface ..... yes (absence guards only)
+K replacement path is already the sole production path .. yes
+  (ProductionRepositoryProvider -> Room* behind core.dataapi)
+
+Explicitly NOT deleted / NOT changed:
+- core.dataapi.DoseEventRepository / MedicationPlanRepository interfaces (KEEP)
+- data.repository.RoomDoseEventRepository / RoomMedicationPlanRepository (KEEP)
+- DAOs, entities, converters, migrations, schemas (KEEP — no cascade)
+- WearProductionBypassBoundaryTest / Batch6ReceiverStaticBoundaryTest guards
+  (KEEP unchanged)
+- Other dead legacy facades mentioned historically (MahiroJsonFormat,
+  WidgetUtils) are OUT OF C-01 SCOPE.

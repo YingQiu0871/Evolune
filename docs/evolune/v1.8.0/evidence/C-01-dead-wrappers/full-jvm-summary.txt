@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 C-01 — CANONICAL TRACKED-LF FULL JVM REGRESSION
+=============================================================
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Canonical tracked-LF procedure (inherited from B-02/B-03):
+  three byte-sensitive files temporarily materialized as their tracked LF blob
+  bytes, raw Windows checkout bytes restored afterwards:
+    app/src/test/resources/phase-e/golden-canonical.json
+    app/src/test/resources/phase-e/golden-canonical.csv
+    app/src/main/java/.../navigation/AppNavigation.kt
+
+Accepted result:
+  app:             154 suites / 1434 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           185 suites / 1695 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Baseline: 1695 tests (A-06 accepted total). C-01 deletes no tests and adds no
+tests -> zero test-count delta, as expected for a pure dead-code deletion.
+
+Inherited B-02 CRLF P3 remains unfixed by instruction (see test-count-delta.txt
+and the packet); the canonical procedure above is the accepted gate.

@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 C-01 — LOGS: TRACKED-LF PROCEDURE
+================================================
+
+Fresh worktree checkout uses core.autocrlf=true; tracked blobs are LF.
+
+Byte-sensitive files for the canonical full gate:
+  app/src/test/resources/phase-e/golden-canonical.json  (raw 3656 B CRLF -> LF 3531 B)
+  app/src/test/resources/phase-e/golden-canonical.csv   (raw 1773 B CRLF -> LF 1763 B)
+  app/src/main/java/.../navigation/AppNavigation.kt     (raw 70686 B CRLF -> LF 69129 B)
+
+Procedure:
+1. save raw checkout bytes
+2. write tracked LF blob bytes (git cat-file blob HEAD:<path>)
+3. run the full JVM regression
+4. restore the saved raw checkout bytes
+5. git status clean
+
+Inherited B-02 P3: HistoryLazyEntryArchitectureTest literal "\n" sensitivity is
+NOT fixed in C-01 (by instruction). Canonical tracked-LF is the accepted gate.

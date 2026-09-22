@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 C-01 — LOGS: COMMANDS
+====================================
+
+compile gate:
+  .\gradlew.bat :app:compileDebugKotlin :app:compileDebugUnitTestKotlin :wear:compileDebugKotlin :experience-core:compileKotlin
+  -> BUILD SUCCESSFUL (1m 10s; rerun up-to-date 3s)
+
+focused tests:
+  .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest" --tests "io.github.yingqiu0871.evolune.reminder.Batch6ReceiverStaticBoundaryTest" --tests "io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest" --tests "io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest" --tests "io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest" --rerun-tasks
+  -> BUILD SUCCESSFUL; 5 suites / 35 tests / 0 failures / 0 errors / 0 skipped
+
+full JVM (canonical tracked-LF):
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+  -> BUILD SUCCESSFUL; 185 suites / 1695 tests / 0 failures / 0 errors / 0 skipped
+
+raw logs kept outside the repository; counts re-derived from JUnit XML.

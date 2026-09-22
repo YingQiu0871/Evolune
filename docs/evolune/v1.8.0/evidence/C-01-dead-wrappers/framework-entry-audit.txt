@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 C-01 — FRAMEWORK ENTRY-POINT AUDIT
+==================================================
+
+Both candidates inspected for framework-discovered roles BEFORE deletion:
+
+- annotations present: NONE. Neither file contains @Composable, @Preview,
+  @JvmStatic, @JvmName, @Keep, @Serializable, @Parcelize, Room annotations,
+  Hilt/DI annotations, or any other retention annotation.
+- base types: plain Kotlin classes (no Activity, Service, ContentProvider,
+  BroadcastReceiver, Worker, TileService, Glance/AppWidget, Wear Tile).
+- AndroidManifest.xml (app + wear): no reference to either class.
+- resources/XML/navigation: no reference.
+- ProGuard/R8 rules: no keep rule mentioning either class.
+- app module type: com.android.application (no exported library surface).
+
+Conclusion: neither candidate is a hidden compile-time or manifest entry point.

@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 C-01 — CHANGED FILES
+===================================
+
+Deleted (the only source changes):
+  D app/src/main/java/io/github/yingqiu0871/evolune/data/DoseEventRepository.kt
+  D app/src/main/java/io/github/yingqiu0871/evolune/data/MedicationPlanRepository.kt
+
+Deleted production symbols:
+  io.github.yingqiu0871.evolune.data.DoseEventRepository (class)
+  io.github.yingqiu0871.evolune.data.MedicationPlanRepository (class)
+
+No other file changed:
+- no import cleanup was needed (no file imported the deleted classes)
+- no test was deleted or modified (guards are absence assertions and stay)
+- no architecture guard was modified
+- no build/version/docs-outside-evidence change
+- APK/AAB not involved
+
+Evidence added: docs/evolune/v1.8.0/evidence/C-01-dead-wrappers/ (16 files +
+MANIFEST.sha256).

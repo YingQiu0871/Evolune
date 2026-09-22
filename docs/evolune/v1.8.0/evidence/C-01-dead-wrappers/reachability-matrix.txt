@@ -1,0 +1,52 @@
+EVOLUNE v1.8.0 C-01 — REACHABILITY MATRIX AT 4014af39 (A-06 HEAD)
+=================================================================
+
+Searches performed against ALL source sets:
+  app/src/main, app/src/test, app/src/androidTest, wear/src,
+  experience-core/src, resources, AndroidManifest.xml, ProGuard/R8,
+  navigation/XML, docs (informational).
+
+C1 — io.github.yingqiu0871.evolune.data.DoseEventRepository
+  production Kotlin/Java:
+    definition only: data/DoseEventRepository.kt:12
+    construction:   NONE
+    imports:        NONE (data/repository uses core.dataapi.DoseEventRepository)
+    type references:NONE
+  tests:
+    WearProductionBypassBoundaryTest.kt:21 — forbidden-import STRING
+    Batch6ReceiverStaticBoundaryTest.kt:30 — forbidden-token STRING
+    no constructor/type use anywhere
+  manifest / res / xml / proguard / navigation: NONE
+  reflection / string registration: NONE (no Class.forName/loadClass/ServiceLoader)
+  serialization / persisted names: NONE
+  Compose preview / entry role: NONE (plain class, no annotations)
+  public API: public class in an Android application module; no published
+    library artifact; no external consumer contract in-repo or documented
+  replacement path: data.repository.RoomDoseEventRepository behind
+    core.dataapi.DoseEventRepository is the sole production path
+    (ProductionRepositoryProvider.kt:14)
+
+C2 — io.github.yingqiu0871.evolune.data.MedicationPlanRepository
+  production Kotlin/Java:
+    definition only: data/MedicationPlanRepository.kt:10
+    construction:   NONE
+    imports:        NONE (data/repository uses core.dataapi.MedicationPlanRepository)
+    type references:NONE
+  tests:
+    WearProductionBypassBoundaryTest.kt:22 — forbidden-import STRING
+    Batch6ReceiverStaticBoundaryTest.kt:31 — forbidden-token STRING
+    no constructor/type use anywhere
+  manifest / res / xml / proguard / navigation: NONE
+  reflection / string registration: NONE
+  serialization / persisted names: NONE
+  Compose preview / entry role: NONE
+  public API: same application-module rationale as C1
+  replacement path: data.repository.RoomMedicationPlanRepository behind
+    core.dataapi.MedicationPlanRepository (ProductionRepositoryProvider.kt:15)
+
+Same-package (io.github.yingqiu0871.evolune.data) simple-name usage:
+  ZERO in main and test source sets (checked file by file).
+
+Note: both guards above are ABSENCE assertions (they ban the old names); they
+do not require the classes to exist, so they keep working after deletion and
+were intentionally left unchanged per the F12 audit instruction.

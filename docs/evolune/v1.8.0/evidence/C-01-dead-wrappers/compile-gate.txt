@@ -1,0 +1,11 @@
+EVOLUNE v1.8.0 C-01 — COMPILE GATE
+==================================
+
+Command:
+  .\gradlew.bat :app:compileDebugKotlin :app:compileDebugUnitTestKotlin :wear:compileDebugKotlin :experience-core:compileKotlin
+
+Result: BUILD SUCCESSFUL in 1m 10s (29 actionable tasks: 29 executed)
+Warnings only (pre-existing unnecessary non-null assertions in
+TimelineProjectionBuilderTest, unrelated to C-01); no errors.
+
+Re-run (up-to-date): BUILD SUCCESSFUL in 3s.

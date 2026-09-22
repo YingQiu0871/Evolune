@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 C-01 — FOCUSED TESTS
+==================================
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest
+    --tests io.github.yingqiu0871.evolune.wear.WearProductionBypassBoundaryTest
+    --tests io.github.yingqiu0871.evolune.reminder.Batch6ReceiverStaticBoundaryTest
+    --tests io.github.yingqiu0871.evolune.core.dataapi.RepositoryContractTest
+    --tests io.github.yingqiu0871.evolune.application.RecordDoseEventActionTest
+    --tests io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest
+    --rerun-tasks
+
+Result (JUnit XML):
+  WearProductionBypassBoundaryTest:   tests=3  failures=0 errors=0 skipped=0
+  Batch6ReceiverStaticBoundaryTest:   tests=1  failures=0 errors=0 skipped=0
+  RepositoryContractTest:             tests=3  failures=0 errors=0 skipped=0
+  RecordDoseEventActionTest:          tests=17 failures=0 errors=0 skipped=0
+  PortableArchitectureGuardTest:      tests=11 failures=0 errors=0 skipped=0
+  TOTAL: 5 suites / 35 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The two deleted wrappers had no dedicated tests (no selector/wrapper suite
+existed); the guards that mention their names are absence assertions and were
+run unchanged. Live-delegate coverage is provided by the repository contract,
+action and portable-guard suites above.

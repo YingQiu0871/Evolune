@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 C-01 — FROZEN CONTRACT AUDIT
+===========================================
+
+git diff --name-only 4014af395d1a6cf53993bb3392a39f97f038dfbe (full repo):
+  app/src/main/java/io/github/yingqiu0871/evolune/data/DoseEventRepository.kt      (deleted)
+  app/src/main/java/io/github/yingqiu0871/evolune/data/MedicationPlanRepository.kt (deleted)
+
+Exactly the two approved F12 deletions. Zero diff to everything else:
+
+- core.dataapi.DoseEventRepository / MedicationPlanRepository interfaces: intact
+- data.repository.RoomDoseEventRepository / RoomMedicationPlanRepository: intact
+- ProductionRepositoryProvider, DAOs, entities, converters, migrations, schemas:
+  byte-identical
+- backup/import codecs, preferences, Wear protocol, Widget paths, Health
+  Connect, Drive, navigation: untouched
+- predecessor slices A-01/A-02/B-01/B-02/B-03/D-01/A-03E/A-03/A-04/A-05E/A-05/
+  A-06 (Settings cancellation, RecentRecordedDoseSelector, History lazy entry,
+  ScheduleBoundaryTracker, Home lifecycle, ComposeDiagnostics, PK calculations):
+  byte-identical
+- build files / version: unchanged (1.7.4 / 101_070_400 / 1_101_070_400)
+- architecture guards that mention the deleted names: unchanged (absence
+  assertions, not F10-style spelling freezes)

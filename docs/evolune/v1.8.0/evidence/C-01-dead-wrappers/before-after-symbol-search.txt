@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 C-01 — BEFORE/AFTER SYMBOL SEARCH
+=================================================
+
+BEFORE deletion (at 4014af39):
+  production: only the two definitions existed
+    data/DoseEventRepository.kt:12 class DoseEventRepository(...)
+    data/MedicationPlanRepository.kt:10 class MedicationPlanRepository(...)
+  test strings (kept):
+    WearProductionBypassBoundaryTest.kt:21-22 (forbidden imports)
+    Batch6ReceiverStaticBoundaryTest.kt:30-31 (forbidden tokens)
+
+AFTER deletion:
+  git grep "io.github.yingqiu0871.evolune.data.DoseEventRepository" app wear experience-core
+    -> only WearProductionBypassBoundaryTest.kt:21 (absence guard string)
+  git grep "io.github.yingqiu0871.evolune.data.MedicationPlanRepository" app wear experience-core
+    -> only WearProductionBypassBoundaryTest.kt:22 (absence guard string)
+  production result: ZERO.
+
+Delegate/live implementation still has its callers:
+  ProductionRepositoryProvider.kt:14 RoomDoseEventRepository(database)
+  ProductionRepositoryProvider.kt:15 RoomMedicationPlanRepository(database)
+  (behind core.dataapi interfaces; unchanged)
+
+No live caller was rewritten from wrapper -> delegate to manufacture zero
+callers. The wrappers were already dead before C-01.
