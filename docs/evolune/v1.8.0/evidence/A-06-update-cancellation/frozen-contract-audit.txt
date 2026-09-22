@@ -1,0 +1,24 @@
+A-06 frozen-contract audit
+
+The only production source changed is:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
+
+The only test source changed is:
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/SettingsUpdateCheckTest.kt
+
+Unchanged predecessor surfaces:
+  A-01, A-02, B-01, B-02, B-03, D-01, A-03E, A-03, A-04, A-05E, A-05
+  RecentRecordedDoseSelector
+  History lazy-entry implementation and guard
+  ScheduleBoundaryTracker and Home lifecycle paths
+  ComposeDiagnostics
+  Room/Wear boundaries
+  UpdateChecker endpoint/API and version comparison semantics
+
+No networking stack, lifecycle owner, dispatcher choice, navigation, repository,
+DAO, Room schema/query, PK, or persisted/public contract changed.
+
+Version identity remains:
+  versionName 1.7.4
+  phone versionCode 101070400
+  Wear versionCode 1101070400

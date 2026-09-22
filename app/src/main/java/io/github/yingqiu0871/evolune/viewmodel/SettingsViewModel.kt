@@ -15,8 +15,10 @@ import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncCoordinator
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncEnableResult
+import io.github.yingqiu0871.evolune.utils.ReleaseInfo
 import io.github.yingqiu0871.evolune.utils.UpdateChecker
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +52,15 @@ sealed class UpdateCheckResult {
 class SettingsViewModel(
     private val settingsDataStore: SettingsStore,
     private val healthConnectWeightProvider: HealthConnectWeightProvider,
-    operationScope: CoroutineScope? = null
+    operationScope: CoroutineScope? = null,
+    private val fetchLatestRelease: suspend () -> ReleaseInfo? = {
+        withContext(Dispatchers.IO) {
+            UpdateChecker.fetchLatestRelease()
+        }
+    },
+    private val logUpdateCheckFailure: (Throwable) -> Unit = { error ->
+        Log.w(TAG, "Update check failed", error)
+    }
 ) : ViewModel() {
 
     companion object {
@@ -239,9 +249,7 @@ class SettingsViewModel(
     private suspend fun performUpdateCheck(versionName: String) {
         _updateCheckResult.value = UpdateCheckResult.Checking
         try {
-            val release = withContext(Dispatchers.IO) {
-                UpdateChecker.fetchLatestRelease()
-            }
+            val release = fetchLatestRelease()
             val isDebug = versionName.contains("debug", ignoreCase = true)
             _updateCheckResult.value = when {
                 release == null -> UpdateCheckResult.Error
@@ -251,8 +259,10 @@ class SettingsViewModel(
                     UpdateCheckResult.DebugBuild(release.tagName, release.releaseUrl)
                 else -> UpdateCheckResult.UpToDate
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            Log.w(TAG, "Update check failed", e)
+            logUpdateCheckFailure(e)
             _updateCheckResult.value = UpdateCheckResult.Error
         }
     }

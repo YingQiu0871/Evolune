@@ -1,0 +1,11 @@
+A-06 focused JVM regression
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.SettingsUpdateCheckTest --rerun-tasks
+
+Result:
+  1 suite / 4 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Covered cancellation propagation, ordinary IOException failure mapping,
+newer-release success, and matching-release UpToDate behavior.

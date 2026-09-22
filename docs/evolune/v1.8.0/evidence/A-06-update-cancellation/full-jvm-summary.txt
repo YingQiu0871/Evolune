@@ -1,0 +1,30 @@
+A-06 canonical tracked-LF full JVM regression
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Accepted result:
+  app:             154 suites / 1434 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           185 suites / 1695 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+B-03 baseline was 1,691 tests. A-06 adds four focused update-check tests.
+
+Canonical test-environment normalization:
+  - golden-canonical.json and golden-canonical.csv were temporarily materialized
+    as their tracked Git LF blob bytes;
+  - the inherited B-02 LF-sensitive AppNavigation.kt source guard was also
+    temporarily materialized as its tracked LF blob bytes;
+  - all three raw Windows checkout byte sequences were restored in finally;
+  - restored JSON SHA-256: 3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3;
+  - restored CSV SHA-256: dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495;
+  - restored AppNavigation.kt SHA-256: 2091b4c8a30693582a0eef514d8513553a008942c358c8a5aaf56828b08306b3;
+  - all three restoration checks were True.
+
+Raw checkout distinction:
+  The unnormalized Windows checkout is not the accepted A-06 full regression
+  gate because the inherited B-02 guard fails on its literal LF assertion.
+  The raw failure is preserved in logs/full-jvm-raw-checkout.txt. The accepted
+  gate is the canonical tracked-LF run in logs/full-jvm-canonical.txt.

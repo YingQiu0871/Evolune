@@ -1,0 +1,14 @@
+Cancellation behavior before A-06
+
+Parent catch:
+  } catch (e: Exception) {
+      Log.w(TAG, "Update check failed", e)
+      _updateCheckResult.value = UpdateCheckResult.Error
+  }
+
+The broad catch intercepted CancellationException after the update-check
+request path and converted it into Error. The parent therefore did not preserve
+the cancellation contract at the SettingsViewModel boundary.
+
+The parent source has no CancellationException-first catch and no cancellation
+specific test for this update-check coroutine.

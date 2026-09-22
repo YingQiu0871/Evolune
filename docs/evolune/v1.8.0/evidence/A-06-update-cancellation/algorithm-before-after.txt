@@ -1,0 +1,19 @@
+A-06 update-check algorithm before and after
+
+Before:
+  Checking
+    -> withContext(Dispatchers.IO) { UpdateChecker.fetchLatestRelease() }
+    -> success/version mapping
+    -> catch (e: Exception)
+    -> log + Error, including CancellationException
+
+After:
+  Checking
+    -> fetchLatestRelease() using the same default IO-backed seam
+    -> unchanged success/version mapping
+    -> catch (CancellationException) { throw e }
+    -> catch (Exception) { existing log + Error behavior }
+
+The only semantic change is cancellation classification. The endpoint, request,
+response parsing, version comparison, result states, and owner scope remain the
+same. There is no finally block and no retry/backoff path.

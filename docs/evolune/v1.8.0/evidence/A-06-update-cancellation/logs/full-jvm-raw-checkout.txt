@@ -1,0 +1,206 @@
+EVOLUNE v1.8.0 A-06 canonical tracked-LF full JVM run
+PARENT=
+61683281d9e2a5ea7b0a1cf2e3a4d290df5e9fa3
+COMMAND=.\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+FIXTURE_NORMALIZATION=temporary tracked Git LF blob bytes
+RAW_BEFORE_JSON_SHA=
+3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3
+RAW_BEFORE_CSV_SHA=
+dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495
+TRACKED_JSON_SHA=
+dd466f92a94ddef5be7bc213495d26a94e04aea5a85ce9d7e1d93f7051668af8
+TRACKED_CSV_SHA=
+0734a95c9081d168606ffc6d48175f8437ff734e59ec329076f739e825c04957
+RUN_BEGIN=
+2026-09-21T23:58:09.7553965Z
+
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:compileDebugNavigationResources
+> Task :app:mapDebugSourceSetPaths
+> Task :app:javaPreCompileDebug
+> Task :app:checkDebugAarMetadata
+> Task :app:generateDebugRFile
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:mergeDebugResources
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebugUnitTest
+> Task :experience-core:processTestResources NO-SOURCE
+> Task :wear:preBuild UP-TO-DATE
+> Task :wear:preDebugBuild UP-TO-DATE
+> Task :wear:generateDebugResources
+> Task :wear:packageDebugResources
+> Task :wear:processDebugNavigationResources
+> Task :wear:javaPreCompileDebug
+> Task :wear:parseDebugLocalResources
+> Task :wear:checkDebugAarMetadata
+> Task :wear:compileDebugNavigationResources
+> Task :wear:generateDebugRFile
+> Task :wear:mapDebugSourceSetPaths
+> Task :experience-core:compileTestKotlin
+> Task :experience-core:compileTestJava NO-SOURCE
+> Task :experience-core:testClasses UP-TO-DATE
+> Task :wear:mergeDebugResources
+
+> Task :wear:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:109:57 'constructor(): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/wear/src/main/java/io/github/yingqiu0871/evolune/wear/DoseTileService.kt:110:34 'fun setResourceId(p0: String): LayoutElementBuilders.Image.Builder' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:326:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/wear/src/main/java/io/github/yingqiu0871/evolune/wear/WearAppActivity.kt:327:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+
+> Task :experience-core:test
+> Task :wear:compileDebugJavaWithJavac NO-SOURCE
+> Task :wear:createDebugCompatibleScreenManifests
+> Task :wear:extractDeepLinksDebug
+> Task :wear:processDebugMainManifest
+> Task :wear:processDebugManifest
+> Task :wear:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:processDebugManifestForPackage
+> Task :wear:javaPreCompileDebugUnitTest
+> Task :wear:processDebugJavaRes
+> Task :wear:processDebugManifestForPackage
+> Task :app:kspDebugKotlin
+> Task :app:processDebugResources
+> Task :wear:processDebugResources
+> Task :wear:bundleDebugClassesToRuntimeJar
+> Task :wear:bundleDebugClassesToCompileJar
+> Task :wear:compileDebugUnitTestKotlin
+> Task :wear:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :wear:processDebugUnitTestJavaRes
+> Task :wear:testDebugUnitTest
+
+> Task :app:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1338:56 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1392:37 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1393:41 'val Icons.Outlined.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/components/MedicationRecordBottomSheet.kt:932:9 'fun ButtonGroup(modifier: Modifier = ..., expandedRatio: Float = ..., horizontalArrangement: Arrangement.Horizontal = ..., content: ComposableFunction1<ButtonGroupScope, Unit>): Unit' is deprecated. Please use the overload with overflowIndicator parameter. This overload will create a composable that is cut off if there are too many items to fit on the screen neatly.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:31:27 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:43:62 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:45:73 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:47:66 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:79:29 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:81:51 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:85:27 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:kspDebugUnitTestKotlin
+
+> Task :app:compileDebugUnitTestKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:93:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:94:93 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:94:121 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:94:146 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:139:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:143:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:144:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:145:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:175:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:176:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:177:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:192:82 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:192:110 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:192:135 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:82 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:110 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryCrossDatePresentationTest.kt:202:135 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:191:39 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:192:36 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:193:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:207:43 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:208:40 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:295:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryPresentationTest.kt:296:34 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryDayUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt:77:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt:78:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryQuickRecordInferredTest.kt:79:33 Unnecessary non-null assertion (!!) on a non-null receiver of type 'HistoryActualTimeUiModel'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/HistoryUndoProjectionTest.kt:152:20 Check for instance is always 'true'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/insights/InsightsViewModelTest.kt:677:42 Unnecessary non-null assertion (!!) on a non-null receiver of type 'MedicationInsightsSummary'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:182:46 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:185:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineRecordedIntake'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:186:54 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineRecordedIntake'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:187:66 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineRecordedIntake'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:188:67 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:198:46 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:199:67 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:209:45 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineRecordedIntake'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:210:66 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineRecordedIntake'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:219:67 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:228:39 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/src/test/java/io/github/yingqiu0871/evolune/history/timeline/TimelineProjectionBuilderTest.kt:241:39 Unnecessary non-null assertion (!!) on a non-null receiver of type 'TimelineScheduleContext'.
+
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+
+> Task :app:testDebugUnitTest
+
+HistoryLazyEntryArchitectureTest > History entry creates exactly one Activity-owned ViewModel FAILED
+    java.lang.AssertionError at HistoryLazyEntryArchitectureTest.kt:47
+
+1434 tests completed, 1 failed
+
+> Task :app:testDebugUnitTest FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testDebugUnitTest'.
+> There were failing tests. See the report at: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-a06/app/build/reports/tests/testDebugUnitTest/index.html
+
+* Try:
+> Run with --scan to generate a Build Scan (powered by Develocity).
+
+BUILD FAILED in 48s
+54 actionable tasks: 54 executed
+
+RUN_EXIT=1 RUN_END=2026-09-21T23:58:58.8404201Z RESTORED_JSON_SHA=3fc9490b7034c19e79e5e4e1e11f283f135b23cbeaa46e3a8451dd620142e1b3 RESTORED_CSV_SHA=dd3a58399eeeab2f240907c259a8dd9733fd90dea7c58477717cee1da6973495 RESTORED_JSON_MATCH=True RESTORED_CSV_MATCH=True

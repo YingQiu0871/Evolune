@@ -1,0 +1,15 @@
+A-06 committed paths
+
+Production:
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt
+
+Tests:
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/SettingsUpdateCheckTest.kt
+
+Evidence:
+  docs/evolune/v1.8.0/evidence/A-06-update-cancellation/**
+
+The B-02 CRLF P3 was encountered and is inherited, not fixed here. The raw
+Windows checkout fails only at the pre-existing literal-LF assertion in
+HistoryLazyEntryArchitectureTest; canonical evidence temporarily normalizes
+AppNavigation.kt and restores it afterward.

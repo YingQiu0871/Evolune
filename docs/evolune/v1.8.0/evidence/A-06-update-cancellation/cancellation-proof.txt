@@ -1,0 +1,13 @@
+Cancellation proof
+
+SettingsUpdateCheckTest.cancellationPropagatesWithoutPublishingFailure passed.
+
+The test injects a deterministic CancellationException into the launched
+update-check coroutine and verifies:
+  - the update fetch was invoked;
+  - the result remains Checking rather than becoming Error;
+  - the owning SupervisorJob remains active, so cancellation did not become an
+    ordinary failure or cancel the owner.
+
+The production path catches CancellationException before Exception and rethrows
+immediately. No logger callback or failure-state mutation runs on cancellation.

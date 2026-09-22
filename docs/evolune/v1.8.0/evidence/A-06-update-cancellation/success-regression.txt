@@ -1,0 +1,9 @@
+Success behavior preservation
+
+SettingsUpdateCheckTest passed both representative success mappings:
+  - v1.7.5 against current 1.7.4 -> UpdateCheckResult.UpdateAvailable with
+    the same tag and release URL;
+  - v1.7.4 against current 1.7.4 -> UpdateCheckResult.UpToDate.
+
+UpdateChecker.isNewerVersion, endpoint/API, response parsing, debug-build
+branch, result wording, and state bookkeeping were not changed.

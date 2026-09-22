@@ -1,0 +1,10 @@
+Ordinary failure preservation
+
+SettingsUpdateCheckTest.ordinaryFailureStillPublishesError passed with an
+injected IOException. The existing ordinary-failure behavior remains:
+  - the default logger callback receives the failure;
+  - UpdateCheckResult becomes Error.
+
+The JVM test injects a no-op logger only to avoid Android's unmocked Log.w in
+the local unit-test runtime. Production still uses the same Log.w call by
+default. No failure path is swallowed or redesigned.

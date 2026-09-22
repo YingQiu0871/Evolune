@@ -1,0 +1,17 @@
+A-06 baseline and F09 confirmation
+
+The exact B-03 parent is 61683281d9e2a5ea7b0a1cf2e3a4d290df5e9fa3.
+Its accepted JVM baseline is 1,691 tests.
+
+Parent source path:
+  SettingsViewModel.checkForUpdates/triggerAutoCheckOnStartup launch the
+  performUpdateCheck coroutine. performUpdateCheck first publishes Checking,
+  calls withContext(Dispatchers.IO) { UpdateChecker.fetchLatestRelease() },
+  maps the response, then catches broad Exception.
+
+The parent catch logged the exception and published UpdateCheckResult.Error.
+Because kotlinx.coroutines.CancellationException is an Exception, cancellation
+could be converted into an ordinary update failure.
+
+No finally block exists in this path. There is no separate cancellation cleanup
+or retry behavior to change.
