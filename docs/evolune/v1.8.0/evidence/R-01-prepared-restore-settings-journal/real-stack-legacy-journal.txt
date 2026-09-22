@@ -1,0 +1,11 @@
+REAL STACK — HISTORICAL FIVE-FIELD JOURNAL
+
+Focused Android real-stack coverage used literal historical JSON, not the new writer.
+
+Cases:
+- five-field colorTheme=DYNAMIC -> canonical DYNAMIC/null;
+- five-field colorTheme=BUILTIN -> canonical PRESET/LEGACY_BUILTIN.
+
+Both PREPARED journals recovered exact expected Room and settings state and were deleted after verification.
+
+Result: 2 legacy-journal tests passed, 0 failures, 0 errors, 0 skipped.

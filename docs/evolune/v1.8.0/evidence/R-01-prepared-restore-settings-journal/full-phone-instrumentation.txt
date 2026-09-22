@@ -1,0 +1,16 @@
+FULL PHONE INSTRUMENTATION
+
+Command:
+.\gradlew.bat :app:connectedDebugAndroidTest --rerun-tasks
+
+Device: Pixel_7 API35 (AVD), emulator-5554.
+Gradle result: BUILD SUCCESSFUL.
+
+Executed XML testcases: 396
+Classes: 75
+Pre-existing skipped testcases: 5
+Gradle total cases reported: 401
+Failures: 0
+Errors: 0
+
+The five skips are unrelated pre-existing device/migration/layout skips. No R-01 test failed or errored. The full raw output is logs/full-phone-instrumentation.txt.

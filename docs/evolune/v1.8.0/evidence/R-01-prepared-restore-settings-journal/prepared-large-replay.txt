@@ -1,0 +1,12 @@
+PREPARED LARGE PROCESS-RESTART REPLAY
+
+Target: candidate debug package io.github.yingqiu0871.evolune.debug, MainActivity, Pixel_7 API35.
+Fixture: 502,766 UTF-8 bytes; 20 plans; 60 scheduled slots; 2,000 dose events; current seven-field PRESET/MONET_AMBER settings.
+
+Five cold starts completed. Every run:
+- returned PASS;
+- reported journal=ABSENT after startup;
+- reported recovery_failure=False;
+- returned the candidate MainActivity as current focus.
+
+Raw per-run output is logs/process-restart-large.txt. This is a stress replay of the real startup path; it does not replace the unfiltered full instrumentation suite.

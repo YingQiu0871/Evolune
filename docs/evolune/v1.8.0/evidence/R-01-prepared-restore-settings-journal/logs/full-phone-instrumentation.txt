@@ -1,0 +1,250 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :experience-core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :experience-core:processResources NO-SOURCE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:parseDebugLocalResources
+> Task :app:javaPreCompileDebug
+> Task :app:compileDebugNavigationResources
+> Task :app:generateDebugRFile
+> Task :app:mapDebugSourceSetPaths
+> Task :app:checkDebugAarMetadata
+> Task :experience-core:compileKotlin
+> Task :experience-core:compileJava NO-SOURCE
+> Task :experience-core:classes UP-TO-DATE
+> Task :experience-core:jar
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:mergeDebugResources
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:preDebugAndroidTestBuild SKIPPED
+> Task :app:generateDebugAndroidTestResources
+> Task :app:packageDebugAndroidTestResources
+> Task :app:processDebugAndroidTestNavigationResources
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:javaPreCompileDebugAndroidTest
+> Task :app:parseDebugAndroidTestLocalResources
+> Task :app:mergeDebugAssets
+> Task :app:compressDebugAssets
+> Task :app:generateDebugAndroidTestRFile
+> Task :app:desugarDebugFileDependencies
+> Task :app:mergeDebugJniLibFolders
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:generateDebugAndroidTestAssets UP-TO-DATE
+> Task :app:mergeDebugNativeLibs
+> Task :app:checkDebugDuplicateClasses
+> Task :app:mergeDebugAndroidTestAssets
+
+> Task :app:stripDebugDebugSymbols
+Unable to strip the following libraries, packaging them as they are: libandroidx.graphics.path.so, libdatastore_shared_counter.so. Run with --info option to learn more.
+
+> Task :app:desugarDebugAndroidTestFileDependencies
+> Task :app:compressDebugAndroidTestAssets
+> Task :app:checkDebugAndroidTestDuplicateClasses
+> Task :app:checkDebugAndroidTestAarMetadata
+> Task :app:compileDebugAndroidTestNavigationResources
+> Task :app:mapDebugAndroidTestSourceSetPaths
+> Task :app:mergeLibDexDebugAndroidTest
+> Task :app:mergeLibDexDebug
+> Task :app:processDebugAndroidTestManifest
+> Task :app:mergeDebugAndroidTestJniLibFolders
+> Task :app:mergeDebugAndroidTestNativeLibs NO-SOURCE
+> Task :app:stripDebugAndroidTestDebugSymbols NO-SOURCE
+> Task :app:validateSigningDebugAndroidTest
+> Task :app:mergeDebugAndroidTestResources
+> Task :app:writeDebugAndroidTestSigningConfigVersions
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeExtDexDebugAndroidTest
+> Task :app:processDebugAndroidTestResources
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+> Task :app:mergeExtDexDebug
+
+> Task :app:compileDebugKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1338:56 'val Icons.Filled.ArrowBack: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowBack.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1392:37 'val Icons.Filled.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt:1393:41 'val Icons.Outlined.List: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.List.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/components/MedicationRecordBottomSheet.kt:932:9 'fun ButtonGroup(modifier: Modifier = ..., expandedRatio: Float = ..., horizontalArrangement: Arrangement.Horizontal = ..., content: ComposableFunction1<ButtonGroupScope, Unit>): Unit' is deprecated. Please use the overload with overflowIndicator parameter. This overload will create a composable that is cut off if there are too many items to fit on the screen neatly.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:31:27 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:43:62 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:45:73 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsPresentation.kt:47:66 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:79:29 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:81:51 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelinePresentation.kt:85:27 This annotation is currently applied to the value parameter only, but in the future it will also be applied to field.
+- To opt in to applying to both value parameter and field, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:mergeDebugJavaResource
+> Task :app:dexBuilderDebug
+> Task :app:mergeProjectDexDebug
+> Task :app:packageDebug
+> Task :app:createDebugApkListingFileRedirect
+> Task :app:kspDebugAndroidTestKotlin
+
+> Task :app:compileDebugAndroidTestKotlin
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseMigrationMatrixTest.kt:521:43 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseMigrationMatrixTest.kt:538:25 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseMigrationMatrixTest.kt:562:43 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseMigrationMatrixTest.kt:567:25 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseV2BaselineTest.kt:124:43 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/AppDatabaseV2BaselineTest.kt:129:25 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/migration/contract/AppDatabaseMigrationContractTest.kt:427:43 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/data/migration/contract/AppDatabaseMigrationContractTest.kt:432:25 The corresponding parameter in the supertype 'Callback' is named 'db'. This may cause problems when calling this function with named arguments.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/diagnostics/ComposeDiagnosticsTest.kt:19:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt:59:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/HistorySavedStateFactoryTest.kt:149:43 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/insights/InsightsSavedStateFactoryTest.kt:131:43 'fun get(p0: String!): Any?' is deprecated. Deprecated in Java.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/history/insights/InsightsSurfaceLifecycleTest.kt:38:23 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/components/ContextualAuthorizationDialogTest.kt:14:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/AuthorizationGuidanceTest.kt:27:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/ColorRoleConformanceTest.kt:43:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DataImportExportScreenTest.kt:29:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/DisclosuresScreenTest.kt:24:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialNavigationTest.kt:31:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FeatureTutorialScreenTest.kt:24:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/FoldableNavigationLayoutTest.kt:29:23 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HealthConnectSyncScreenTest.kt:24:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryCalendarGeometryTest.kt:40:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryNavigationTest.kt:40:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryRefreshDeviceTest.kt:49:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryScreenTest.kt:70:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HistoryVisualEvidenceTest.kt:56:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/HomeClockLifecycleTest.kt:55:23 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/MedicationPlansScreenTest.kt:66:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/MedicationRecordsScreenTest.kt:70:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/OnboardingFlowScreenTest.kt:26:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/RealAppImeFrameProbeTest.kt:48:23 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsCategoryScreenTest.kt:30:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SettingsPaletteSelectorTest.kt:27:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SliceCSettingsSmokeTest.kt:43:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupNavigationTest.kt:31:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/SyncAndBackupScreenTest.kt:25:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsNavigationTest.kt:35:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsReleaseGateTest.kt:40:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/insights/InsightsScreenTest.kt:78:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveNavigationTest.kt:35:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveScreenTest.kt:58:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineAccessibilityTest.kt:54:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineFontScaleTest.kt:42:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineGeometryTest.kt:36:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineLifecycleTest.kt:38:23 'fun <reified A : ComponentActivity> createAndroidComposeRule(effectContext: CoroutineContext = ...): AndroidComposeTestRule<ActivityScenarioRule<A>, A>' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createAndroidComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineNavigationTest.kt:47:23 'fun createEmptyComposeRule(effectContext: CoroutineContext = ...): ComposeTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createEmptyComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineScreenTest.kt:42:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+w: file:///D:/Evolune-Workspace/worktrees/Evolune-v1.8.0-r01/app/src/androidTest/java/io/github/yingqiu0871/evolune/ui/screens/timeline/TimelineVisualEvidenceTest.kt:31:23 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+
+> Task :app:compileDebugAndroidTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugAndroidTestJavaRes
+> Task :app:mergeDebugAndroidTestJavaResource
+> Task :app:dexBuilderDebugAndroidTest
+> Task :app:mergeProjectDexDebugAndroidTest
+> Task :app:packageDebugAndroidTest
+> Task :app:createDebugAndroidTestApkListingFileRedirect
+Starting 396 tests on Pixel_7(AVD) - 15
+Pixel_7(AVD) - 15 Tests 10/396 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 11/396 completed. (0 skipped) (0 failed)
+> Task :app:connectedDebugAndroidTest
+
+Pixel_7(AVD) - 15 Tests 31/396 completed. (0 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 75/396 completed. (0 skipped) (0 failed)
+
+io.github.yingqiu0871.evolune.data.migration.contract.RepairToolOutputMigrationTest > repairedV2CopyMigratesAndProductionRepositoriesReadIt[Pixel_7(AVD) - 15] [33mSKIPPED [0m
+Pixel_7(AVD) - 15 Tests 80/396 completed. (1 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 102/396 completed. (1 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 141/396 completed. (1 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 145/396 completed. (1 skipped) (0 failed)
+
+io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest > verifyV15State[Pixel_7(AVD) - 15] [33mSKIPPED [0m
+
+io.github.yingqiu0871.evolune.release.V15InPlaceUpgradeDeviceTest > prepareV14State[Pixel_7(AVD) - 15] [33mSKIPPED [0m
+Pixel_7(AVD) - 15 Tests 165/396 completed. (3 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 171/396 completed. (3 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 176/396 completed. (3 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 181/396 completed. (3 skipped) (0 failed)
+
+io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest > expandedRailAndSharedTopBarKeepStableGeometry[Pixel_7(AVD) - 15] [33mSKIPPED [0m
+
+io.github.yingqiu0871.evolune.ui.screens.FoldableNavigationLayoutTest > topLevelTitleRemainsCenteredThroughoutPageTransition[Pixel_7(AVD) - 15] [33mSKIPPED [0m
+Pixel_7(AVD) - 15 Tests 187/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 196/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 200/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 207/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 214/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 222/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 224/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 228/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 233/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 239/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 242/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 244/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 246/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 249/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 250/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 254/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 259/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 263/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 267/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 271/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 277/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 281/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 288/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 296/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 304/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 312/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 320/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 328/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 334/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 340/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 346/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 352/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 356/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 363/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 370/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 378/396 completed. (5 skipped) (0 failed)
+Pixel_7(AVD) - 15 Tests 383/396 completed. (5 skipped) (0 failed)
+Finished 401 tests on Pixel_7(AVD) - 15
+
+BUILD SUCCESSFUL in 9m 14s
+69 actionable tasks: 69 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html

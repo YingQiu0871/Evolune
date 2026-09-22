@@ -1,0 +1,12 @@
+PREPARED SMALL PROCESS-RESTART REPLAY
+
+Target: candidate debug package io.github.yingqiu0871.evolune.debug, MainActivity, Pixel_7 API35.
+Fixture: valid historical five-field DYNAMIC PREPARED journal.
+
+Five cold starts completed. Every run:
+- returned PASS;
+- reported journal=ABSENT after startup;
+- reported recovery_failure=False;
+- returned the candidate MainActivity as current focus.
+
+Raw per-run output is logs/process-restart-small.txt.

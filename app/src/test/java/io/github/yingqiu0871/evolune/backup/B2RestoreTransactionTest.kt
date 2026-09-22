@@ -296,7 +296,7 @@ class B2RestoreTransactionTest {
         medicationPlans = emptyList(),
         scheduledDoseSlots = emptyList(),
         doseEvents = emptyList(),
-        settings = BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM")
+        settings = BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
     )
 
     private fun targetPayload() = EvoluneBackupPayloadV1(

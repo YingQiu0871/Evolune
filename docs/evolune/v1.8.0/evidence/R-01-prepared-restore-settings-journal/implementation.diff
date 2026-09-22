@@ -1,0 +1,494 @@
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2PreparedRestoreSettingsCompatibilityTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2PreparedRestoreSettingsCompatibilityTest.kt
+new file mode 100644
+index 0000000..7baa400
+--- /dev/null
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2PreparedRestoreSettingsCompatibilityTest.kt
+@@ -0,0 +1,189 @@
++package io.github.yingqiu0871.evolune.backup
++
++import android.content.Context
++import androidx.room.Room
++import androidx.test.ext.junit.runners.AndroidJUnit4
++import androidx.test.platform.app.InstrumentationRegistry
++import io.github.yingqiu0871.evolune.data.AppDatabase
++import io.github.yingqiu0871.evolune.data.RoomRestorePersistence
++import io.github.yingqiu0871.evolune.data.SettingsDataStore
++import kotlinx.coroutines.flow.first
++import kotlinx.coroutines.runBlocking
++import org.junit.After
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Before
++import org.junit.Test
++import org.junit.runner.RunWith
++import java.io.File
++import java.nio.charset.StandardCharsets
++
++@RunWith(AndroidJUnit4::class)
++class B2PreparedRestoreSettingsCompatibilityTest {
++    private lateinit var context: Context
++    private lateinit var database: AppDatabase
++    private lateinit var settings: SettingsDataStore
++    private lateinit var persistence: RoomRestorePersistence
++    private lateinit var journal: FileRestoreJournalStore
++    private lateinit var originalSettings: io.github.yingqiu0871.evolune.data.UserSettings
++
++    @Before
++    fun setUp() = runBlocking {
++        context = InstrumentationRegistry.getInstrumentation().targetContext
++        database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
++        settings = SettingsDataStore(context)
++        persistence = RoomRestorePersistence(database, settings, settings)
++        journal = FileRestoreJournalStore(context)
++        originalSettings = settings.userSettings.first()
++        journal.delete()
++    }
++
++    @After
++    fun tearDown() = runBlocking {
++        journal.delete()
++        settings.replaceSettings(originalSettings)
++        database.close()
++    }
++
++    @Test
++    fun `current dynamic journal recovers through real Room and DataStore`() = runBlocking {
++        recoverCurrent(
++            BackupSettingsV1(60.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
++        )
++    }
++
++    @Test
++    fun `current legacy builtin journal recovers through real Room and DataStore`() = runBlocking {
++        recoverCurrent(
++            BackupSettingsV1(
++                62.5,
++                "DARK",
++                "BUILTIN",
++                false,
++                "HOUR_24",
++                "PRESET",
++                "LEGACY_BUILTIN"
++            )
++        )
++    }
++
++    @Test
++    fun `current named preset journal recovers without collapsing preset identity`() = runBlocking {
++        recoverCurrent(
++            BackupSettingsV1(
++                62.5,
++                "DARK",
++                "BUILTIN",
++                false,
++                "HOUR_24",
++                "PRESET",
++                "MONET_AMBER"
++            )
++        )
++    }
++
++    @Test
++    fun `legacy dynamic five-field journal recovers and maps to canonical dynamic`() = runBlocking {
++        recoverLegacy("DYNAMIC", BackupSettingsV1(60.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null))
++    }
++
++    @Test
++    fun `legacy builtin five-field journal recovers and maps to legacy builtin preset`() = runBlocking {
++        recoverLegacy(
++            "BUILTIN",
++            BackupSettingsV1(60.0, "SYSTEM", "BUILTIN", true, "SYSTEM", "PRESET", "LEGACY_BUILTIN")
++        )
++    }
++
++    private suspend fun recoverCurrent(beforeSettings: BackupSettingsV1) {
++        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList())
++        seed(beforeRoom, beforeSettings)
++        journal.write(
++            RestoreJournal(
++                formatVersion = 1,
++                operationId = OPERATION_ID,
++                createdAt = CREATED_AT,
++                phase = RestoreJournalPhase.PREPARED,
++                beforeRoom = beforeRoom,
++                beforeSettings = beforeSettings
++            )
++        )
++        mutate()
++
++        val result = RestoreTransaction(persistence, journal).recoverInterruptedRestoreIfNeeded()
++
++        assertEquals(RestoreRecoveryResult.Recovered, result)
++        assertEquals(beforeRoom, persistence.readRoomState())
++        assertEquals(beforeSettings, persistence.readSettings())
++        assertEquals(RestoreJournalReadResult.Missing, journal.read())
++    }
++
++    private suspend fun recoverLegacy(colorTheme: String, expectedSettings: BackupSettingsV1) {
++        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList())
++        seed(beforeRoom, expectedSettings)
++        writeLegacyJournal(colorTheme)
++        mutate()
++
++        val result = RestoreTransaction(persistence, journal).recoverInterruptedRestoreIfNeeded()
++
++        assertEquals(RestoreRecoveryResult.Recovered, result)
++        assertEquals(beforeRoom, persistence.readRoomState())
++        assertEquals(expectedSettings, persistence.readSettings())
++        assertEquals(RestoreJournalReadResult.Missing, journal.read())
++    }
++
++    private suspend fun seed(beforeRoom: RestoreRoomState, beforeSettings: BackupSettingsV1) {
++        persistence.replaceRoom(beforeRoom)
++        assertTrue(persistence.replaceSettings(beforeSettings))
++        assertEquals(beforeRoom, persistence.readRoomState())
++        assertEquals(beforeSettings, persistence.readSettings())
++    }
++
++    private suspend fun mutate() {
++        persistence.replaceRoom(
++            RestoreRoomState(
++                medicationPlans = listOf(
++                    BackupMedicationPlanV1(
++                        id = PLAN_ID,
++                        name = "Interrupted target",
++                        route = "INJECTION",
++                        ester = "EV",
++                        doseMG = 2.0,
++                        scheduleType = "WEEKLY",
++                        daysOfWeek = listOf(1, 3),
++                        intervalDays = 1,
++                        isEnabled = true,
++                        extras = emptyMap(),
++                        createdAt = CREATED_AT
++                    )
++                ),
++                scheduledDoseSlots = emptyList(),
++                doseEvents = emptyList()
++            )
++        )
++        assertTrue(
++            persistence.replaceSettings(
++                BackupSettingsV1(55.0, "DARK", "DYNAMIC", false, "HOUR_24", "DYNAMIC", null)
++            )
++        )
++    }
++
++    private fun writeLegacyJournal(colorTheme: String) {
++        val file = File(context.noBackupFilesDir, JOURNAL_FILE_NAME)
++        File(file.path + ".bak").delete()
++        file.writeText(
++            "{\"formatVersion\":1,\"operationId\":\"$OPERATION_ID\",\"createdAt\":\"$CREATED_AT\"," +
++                "\"phase\":\"PREPARED\",\"beforeRoom\":{\"medicationPlans\":[],\"scheduledDoseSlots\":[]," +
++                "\"doseEvents\":[]},\"beforeSettings\":{\"bodyWeightKg\":60.0,\"themeMode\":\"SYSTEM\"," +
++                "\"colorTheme\":\"$colorTheme\",\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\"}}",
++            StandardCharsets.UTF_8
++        )
++    }
++
++    private companion object {
++        const val JOURNAL_FILE_NAME = "evolune_restore_journal.json"
++        const val OPERATION_ID = "00000000-0000-4000-8000-000000000101"
++        const val CREATED_AT = "2026-08-23T12:34:56Z"
++        const val PLAN_ID = "00000000-0000-4000-8000-000000000201"
++    }
++}
+diff --git a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+index 53d702b..2f9961c 100644
+--- a/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
++++ b/app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+@@ -111 +111 @@ class B2RoomRestorePersistenceTest {
+-            BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM")
++            BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournal.kt b/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournal.kt
+index c23dd95..45acf46 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournal.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournal.kt
+@@ -4,0 +5,3 @@ import androidx.core.util.AtomicFile
++import io.github.yingqiu0871.evolune.data.ColorTheme
++import io.github.yingqiu0871.evolune.data.ThemeColorSource
++import io.github.yingqiu0871.evolune.data.ThemePresetSelection
+@@ -87 +90,3 @@ private data class RestoreSettingsWire(
+-    val timeFormat: String
++    val timeFormat: String,
++    val themeColorSource: String? = null,
++    val themePresetId: String? = null
+@@ -117 +122 @@ internal object RestoreJournalCodec {
+-            !settings.hasExactKeys("bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat")
++            settings.keys != LEGACY_SETTINGS_KEYS && settings.keys != CURRENT_SETTINGS_KEYS
+@@ -120,0 +126 @@ internal object RestoreJournalCodec {
++        val legacySettings = settings.keys == LEGACY_SETTINGS_KEYS
+@@ -137,0 +144,3 @@ internal object RestoreJournalCodec {
++        if (!legacySettings && wire.beforeSettings.themeColorSource == null) {
++            return corrupt()
++        }
+@@ -160 +169 @@ internal object RestoreJournalCodec {
+-        val payload = wire.toPayload()
++        val payload = wire.toPayload(legacySettings)
+@@ -209 +218 @@ internal object RestoreJournalCodec {
+-    private fun RestoreJournalWire.toPayload(): EvoluneBackupPayloadV1 =
++    private fun RestoreJournalWire.toPayload(legacySettings: Boolean): EvoluneBackupPayloadV1 =
+@@ -214 +223 @@ internal object RestoreJournalCodec {
+-            settings = beforeSettings.toPayload()
++            settings = beforeSettings.toPayload(legacySettings)
+@@ -244 +253,7 @@ internal object RestoreJournalCodec {
+-        bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat
++        bodyWeightKg = bodyWeightKg,
++        themeMode = themeMode,
++        colorTheme = colorTheme,
++        autoCheckUpdates = autoCheckUpdates,
++        timeFormat = timeFormat,
++        themeColorSource = themeColorSource,
++        themePresetId = themePresetId
+@@ -247,2 +262,35 @@ internal object RestoreJournalCodec {
+-    private fun RestoreSettingsWire.toPayload() = BackupSettingsV1(
+-        bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat
++    private fun RestoreSettingsWire.toPayload(legacySettings: Boolean): BackupSettingsV1 {
++        val canonicalSource = if (legacySettings) {
++            when (colorTheme) {
++                ColorTheme.DYNAMIC.name -> ThemeColorSource.DYNAMIC.name
++                ColorTheme.BUILTIN.name -> ThemeColorSource.PRESET.name
++                else -> null
++            }
++        } else {
++            themeColorSource
++        }
++        val canonicalPresetId = if (legacySettings) {
++            if (colorTheme == ColorTheme.BUILTIN.name) {
++                ThemePresetSelection.LEGACY_BUILTIN_ID
++            } else {
++                null
++            }
++        } else {
++            themePresetId
++        }
++        return BackupSettingsV1(
++            bodyWeightKg = bodyWeightKg,
++            themeMode = themeMode,
++            colorTheme = colorTheme,
++            autoCheckUpdates = autoCheckUpdates,
++            timeFormat = timeFormat,
++            themeColorSource = canonicalSource,
++            themePresetId = canonicalPresetId
++        )
++    }
++
++    private val LEGACY_SETTINGS_KEYS = setOf(
++        "bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat"
++    )
++    private val CURRENT_SETTINGS_KEYS = LEGACY_SETTINGS_KEYS + setOf(
++        "themeColorSource", "themePresetId"
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournalFidelityTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournalFidelityTest.kt
+new file mode 100644
+index 0000000..7de8db3
+--- /dev/null
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournalFidelityTest.kt
+@@ -0,0 +1,201 @@
++package io.github.yingqiu0871.evolune.backup
++
++import org.junit.Assert.assertEquals
++import org.junit.Assert.assertTrue
++import org.junit.Test
++
++class B2RestoreJournalFidelityTest {
++    @Test
++    fun `prepared recovery preserves canonical dynamic settings through journal`() {
++        val before = BackupSettingsV1(
++            bodyWeightKg = 60.0,
++            themeMode = "SYSTEM",
++            colorTheme = "DYNAMIC",
++            autoCheckUpdates = true,
++            timeFormat = "SYSTEM",
++            themeColorSource = "DYNAMIC",
++            themePresetId = null
++        )
++        val persistence = DataStoreLikePersistence(
++            room = RestoreRoomState(emptyList(), emptyList(), emptyList()),
++            settings = BackupSettingsV1(55.0, "DARK", "BUILTIN", false, "HOUR_24", "PRESET", "LEGACY_BUILTIN")
++        )
++        val journal = EncodingJournalStore()
++        journal.current = RestoreJournal(
++            1,
++            OPERATION_ID,
++            CREATED_AT,
++            RestoreJournalPhase.PREPARED,
++            RestoreRoomState(emptyList(), emptyList(), emptyList()),
++            before
++        )
++
++        val result = kotlinx.coroutines.runBlocking {
++            RestoreTransaction(persistence, journal).recoverInterruptedRestoreIfNeeded()
++        }
++
++        assertEquals(RestoreRecoveryResult.Recovered, result)
++        assertEquals(before, persistence.settings)
++        assertTrue(journal.deleted)
++    }
++
++    @Test
++    fun `prepared recovery preserves canonical legacy builtin settings through journal`() {
++        assertPreparedRecoveryRestores(
++            BackupSettingsV1(
++                62.5,
++                "DARK",
++                "BUILTIN",
++                false,
++                "HOUR_24",
++                "PRESET",
++                "LEGACY_BUILTIN"
++            )
++        )
++    }
++
++    @Test
++    fun `prepared recovery preserves canonical named preset through journal`() {
++        assertPreparedRecoveryRestores(
++            BackupSettingsV1(
++                62.5,
++                "DARK",
++                "BUILTIN",
++                false,
++                "HOUR_24",
++                "PRESET",
++                "MONET_AMBER"
++            )
++        )
++    }
++
++    @Test
++    fun `legacy five-field dynamic journal decodes to canonical dynamic settings`() {
++        val settings = decodeLegacySettings("DYNAMIC")
++
++        assertEquals(
++            BackupSettingsV1(60.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null),
++            settings
++        )
++    }
++
++    @Test
++    fun `legacy five-field builtin journal decodes to canonical legacy builtin settings`() {
++        val settings = decodeLegacySettings("BUILTIN")
++
++        assertEquals(
++            BackupSettingsV1(60.0, "SYSTEM", "BUILTIN", true, "SYSTEM", "PRESET", "LEGACY_BUILTIN"),
++            settings
++        )
++    }
++
++    @Test
++    fun `malformed current and legacy theme identities fail closed`() {
++        assertCorrupt(currentSettingsJson("UNKNOWN", "null"))
++        assertCorrupt(currentSettingsJson("DYNAMIC", "\"LEGACY_BUILTIN\""))
++        assertCorrupt(currentSettingsJson("PRESET", "null"))
++        assertCorrupt(currentSettingsJson("PRESET", "\"NOT_A_PRESET\""))
++        assertCorrupt(legacySettingsJson("UNKNOWN"))
++    }
++
++    private fun assertPreparedRecoveryRestores(before: BackupSettingsV1) {
++        val persistence = DataStoreLikePersistence(
++            room = RestoreRoomState(emptyList(), emptyList(), emptyList()),
++            settings = BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
++        )
++        val journal = EncodingJournalStore()
++        journal.current = RestoreJournal(
++            1,
++            OPERATION_ID,
++            CREATED_AT,
++            RestoreJournalPhase.PREPARED,
++            RestoreRoomState(emptyList(), emptyList(), emptyList()),
++            before
++        )
++
++        val result = kotlinx.coroutines.runBlocking {
++            RestoreTransaction(persistence, journal).recoverInterruptedRestoreIfNeeded()
++        }
++
++        assertEquals(RestoreRecoveryResult.Recovered, result)
++        assertEquals(before, persistence.settings)
++        assertTrue(journal.deleted)
++    }
++
++    private fun decodeLegacySettings(colorTheme: String): BackupSettingsV1 {
++        val text = legacySettingsJson(colorTheme)
++        return (RestoreJournalCodec.decode(text) as RestoreJournalDecodeResult.Success)
++            .journal.beforeSettings
++    }
++
++    private fun assertCorrupt(text: String) {
++        val result = RestoreJournalCodec.decode(text)
++        assertEquals(
++            RestoreErrorCode.RECOVERY_JOURNAL_CORRUPT,
++            (result as RestoreJournalDecodeResult.Failure).error.code
++        )
++    }
++
++    private fun currentSettingsJson(source: String, presetJson: String): String = journalText(
++        "{\"bodyWeightKg\":60.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"BUILTIN\"," +
++            "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\",\"themeColorSource\":\"$source\"," +
++            "\"themePresetId\":$presetJson}"
++    )
++
++    private fun legacySettingsJson(colorTheme: String): String = journalText(
++        "{\"bodyWeightKg\":60.0,\"themeMode\":\"SYSTEM\",\"colorTheme\":\"$colorTheme\"," +
++            "\"autoCheckUpdates\":true,\"timeFormat\":\"SYSTEM\"}"
++    )
++
++    private fun journalText(settingsJson: String): String =
++        "{\"formatVersion\":1,\"operationId\":\"$OPERATION_ID\",\"createdAt\":\"$CREATED_AT\"," +
++            "\"phase\":\"PREPARED\",\"beforeRoom\":{\"medicationPlans\":[],\"scheduledDoseSlots\":[]," +
++            "\"doseEvents\":[]},\"beforeSettings\":$settingsJson}"
++
++    private class DataStoreLikePersistence(
++        var room: RestoreRoomState,
++        var settings: BackupSettingsV1
++    ) : RestorePersistence {
++        override suspend fun readRoomState(): RestoreRoomState = room
++
++        override suspend fun replaceRoom(state: RestoreRoomState) {
++            room = state
++        }
++
++        override suspend fun readSettings(): BackupSettingsV1 = settings
++
++        override suspend fun replaceSettings(settings: BackupSettingsV1): Boolean {
++            this.settings = settings.toUserSettings().toBackupSettings()
++            return true
++        }
++    }
++
++    private class EncodingJournalStore : RestoreJournalStore {
++        var current: RestoreJournal? = null
++            set(value) {
++                field = value?.let {
++                    (RestoreJournalCodec.decode(RestoreJournalCodec.encode(it))
++                        as RestoreJournalDecodeResult.Success).journal
++                }
++            }
++        var deleted = false
++
++        override suspend fun read(): RestoreJournalReadResult =
++            current?.let { RestoreJournalReadResult.Found(it) }
++                ?: RestoreJournalReadResult.Missing
++
++        override suspend fun write(journal: RestoreJournal) {
++            current = journal
++        }
++
++        override suspend fun delete() {
++            deleted = true
++            current = null
++        }
++    }
++
++    private companion object {
++        const val OPERATION_ID = "00000000-0000-4000-8000-000000000100"
++        const val CREATED_AT = "2026-08-23T12:34:56Z"
++    }
++}
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreTransactionTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreTransactionTest.kt
+index d96ea87..91b46ad 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreTransactionTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreTransactionTest.kt
+@@ -299 +299 @@ class B2RestoreTransactionTest {
+-        settings = BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM")
++        settings = BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)

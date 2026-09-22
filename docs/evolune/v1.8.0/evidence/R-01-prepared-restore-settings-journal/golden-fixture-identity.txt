@@ -1,0 +1,16 @@
+PORTABLE GOLDEN FIXTURE IDENTITY
+
+Parent and candidate committed blobs are identical:
+app/src/test/resources/phase-e/golden-canonical.json
+PARENT_BLOB=e453c5d35647b2bc5b10a361b7615d5be604c163
+HEAD_BLOB=e453c5d35647b2bc5b10a361b7615d5be604c163
+
+app/src/test/resources/phase-e/golden-canonical.csv
+PARENT_BLOB=17307ce7a2f041f10e8c4918ac331abec7e3614f
+HEAD_BLOB=17307ce7a2f041f10e8c4918ac331abec7e3614f
+
+There is zero committed fixture delta. In the raw Windows checkout the JSON is 3,656 bytes with CR=125/LF=125 and the CSV is 1,773 bytes with CR=10/LF=10. For the accepted full-JVM gate, only their tracked Git LF blob bytes were temporarily materialized, then the raw candidate bytes were restored exactly.
+
+Raw reproduction logs:
+logs/raw-golden-parent.txt
+logs/raw-golden-candidate.txt

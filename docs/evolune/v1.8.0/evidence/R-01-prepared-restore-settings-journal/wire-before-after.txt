@@ -1,0 +1,15 @@
+WIRE CONTRACT BEFORE / AFTER
+
+Parent wire (before):
+RestoreSettingsWire = bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat.
+
+R-01 current wire (after):
+RestoreSettingsWire = bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat, themeColorSource, themePresetId.
+The two canonical fields are optional only for decoding the historical five-field shape; the current seven-field shape must carry a non-null themeColorSource. The new writer always populates both canonical fields, including explicit null themePresetId for DYNAMIC.
+
+Current examples:
+DYNAMIC: colorTheme=DYNAMIC, themeColorSource=DYNAMIC, themePresetId=null.
+Legacy built-in: colorTheme=BUILTIN, themeColorSource=PRESET, themePresetId=LEGACY_BUILTIN.
+Named preset: colorTheme=BUILTIN, themeColorSource=PRESET, themePresetId=MONET_AMBER.
+
+The exact settings key set is enforced. Unknown, incomplete, incompatible, or malformed objects fail closed as corrupt recovery journals.

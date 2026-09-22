@@ -1,0 +1,17 @@
+FULL JVM REGRESSION — ACCEPTED CANONICAL TRACKED-LF GATE
+
+Command:
+.\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+The raw Windows checkout has two inherited portable golden-byte failures in PortableGoldenFixtureTest: canonical JSON bytes and canonical CSV bytes. They reproduce on both the exact parent and the R-01 candidate. The raw checkout is not the accepted full regression gate.
+
+For the repository-compatible regression run, the two golden fixtures were temporarily materialized to their tracked Git LF blob bytes. The inherited AppNavigation.kt CRLF checkout byte mismatch was normalized in the same temporary test-environment step because it affects the same full-JVM canonical resource run. No production or test source was committed with these temporary bytes; all three paths were restored exactly from candidate HEAD after the run.
+
+Accepted canonical tracked-LF result:
+MODULE=app SUITES=155 TESTS=1440 FAILURES=0 ERRORS=0 SKIPPED=0
+MODULE=experience-core SUITES=20 TESTS=171 FAILURES=0 ERRORS=0 SKIPPED=0
+MODULE=wear SUITES=11 TESTS=90 FAILURES=0 ERRORS=0 SKIPPED=0
+TOTAL SUITES=186 TESTS=1701 FAILURES=0 ERRORS=0 SKIPPED=0
+
+Result: 1,701 / 1,701 PASS, 0 failures, 0 errors, 0 skipped.
+Raw command output: logs/full-jvm-canonical.txt.

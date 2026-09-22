@@ -1,0 +1,13 @@
+FOCUSED ANDROID REAL-STACK REGRESSION
+
+Command:
+.\gradlew.bat :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.backup.B2RoomRestorePersistenceTest,io.github.yingqiu0871.evolune.backup.B2PreparedRestoreSettingsCompatibilityTest --rerun-tasks
+
+Device: Pixel_7 API35 (AVD)
+Classes: 2
+Tests: 9
+Failures: 0
+Errors: 0
+Skipped: 0
+
+The nine tests include the five R-01 PREPARED settings compatibility cases and the existing Room restore-persistence coverage. All passed against real Room, SettingsDataStore, FileRestoreJournalStore, and RestoreTransaction paths.

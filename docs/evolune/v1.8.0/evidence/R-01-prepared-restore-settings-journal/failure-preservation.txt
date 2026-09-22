@@ -1,0 +1,8 @@
+FAILURE PRESERVATION
+
+B2RestoreTransaction strict recovery behavior remains unchanged:
+replaceRoom -> replaceSettings -> verify Room -> verify settings -> delete journal -> Recovered.
+
+The transaction still fails closed for corrupt/unsupported journals and still preserves a journal when a PREPARED recovery verification cannot establish exact state. The R-01 change is limited to journal settings wire decode/encode and compatibility tests; B2RestoreTransaction.kt has no implementation delta.
+
+The focused JVM transaction suite passed all 13 tests, including failure and preservation cases.

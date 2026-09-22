@@ -1,0 +1,12 @@
+REAL STACK — CURRENT SEVEN-FIELD JOURNAL
+
+Focused Android command selected the R-01 real-stack compatibility tests on Pixel_7 API35.
+
+Coverage:
+- current DYNAMIC / null preset;
+- current PRESET / LEGACY_BUILTIN;
+- current PRESET / MONET_AMBER.
+
+The tests used real FileRestoreJournalStore, RoomRestorePersistence, Room, and SettingsDataStore. Each PREPARED journal recovered exact Room and canonical settings state and was deleted after verification.
+
+Result: 3 current-journal tests passed, 0 failures, 0 errors, 0 skipped.

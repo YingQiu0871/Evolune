@@ -1,0 +1,10 @@
+PROCESS RESTART PROOF
+
+The corrected emulator harness used the installed candidate debug package and the declared component:
+io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity
+
+Small PREPARED replay: 5/5 PASS.
+Large PREPARED replay: 5/5 PASS.
+Second cold start after journal consumption with no journal present: PASS, journal ABSENT, recovery_failure=False, candidate MainActivity focused.
+
+The raw Windows-shell harness was corrected to use the debug package, declared activity, and app-owned noBackupFilesDir. The final logs contain only the corrected runs.

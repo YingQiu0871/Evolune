@@ -1,0 +1,13 @@
+RED / GREEN REGRESSION
+
+Exact parent:
+8fc62a196ef7d4e0d61a56fd19e6658b6c707f5e
+Focused fidelity contract on the exact parent, under the same Windows checkout conditions:
+5 tests completed, 5 failed, 0 errors, 0 skipped.
+The failures were the settings-fidelity assertions for the parent five-field journal behavior.
+
+Candidate after the codec repair:
+B2RestoreJournalFidelityTest: 6 tests completed, 0 failures, 0 errors, 0 skipped.
+Focused R-01 JVM set: 67 tests completed, 0 failures, 0 errors, 0 skipped.
+
+This evidence separates the historical parent defect from the accepted canonical-LF full regression gate. The raw Windows checkout retains the repository's known inherited portable-golden line-ending issue; that issue is not reported as the accepted full regression result.

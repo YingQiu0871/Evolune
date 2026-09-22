@@ -1,0 +1,10 @@
+ROOT CAUSE AND BOUNDARY
+
+The PREPARED journal is the rollback source for interrupted restore. SettingsDataStore persists canonical source/preset fields and projects colorTheme for compatibility. The parent journal wire omitted the canonical fields. On replay, real SettingsDataStore therefore returned a canonical object different from journal.beforeSettings; B2RestoreTransaction's strict equality gate correctly classified the replay as RECOVERY_REQUIRED and preserved the journal.
+
+R-01 repairs ownership at the journal codec boundary only:
+- the current seven-field shape is written and decoded with exact canonical values;
+- the historical five-field shape is recognized by exact key set and mapped deterministically;
+- malformed or unknown values remain fail-closed;
+- no top-level format-version bump is introduced;
+- B2RestoreTransaction ordering and strict full-object verification remain unchanged.

@@ -1,0 +1,12 @@
+PARENT DEFECT PROOF
+
+Parent under test:
+8fc62a196ef7d4e0d61a56fd19e6658b6c707f5e
+
+The parent RestoreSettingsWire serialized only these five beforeSettings fields:
+bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat.
+The canonical BackupSettingsV1/UserSettings contract also carries themeColorSource and themePresetId. Therefore a current canonical PREPARED journal decoded through the parent loses the canonical source/preset identity before strict settings verification.
+
+Reproduction on the exact parent checkout used the same Windows checkout conditions and the R-01 fidelity test contract. The focused parent run completed 5 tests with 5 failures: all five current/legacy recovery-fidelity cases failed at the settings identity assertion. This is the unmodified parent behavior.
+
+The candidate red-to-green proof is summarized in red-green-regression.txt. The candidate adds the sixth malformed-input case; the final focused fidelity class is 6 tests, 0 failures, 0 errors, 0 skipped.

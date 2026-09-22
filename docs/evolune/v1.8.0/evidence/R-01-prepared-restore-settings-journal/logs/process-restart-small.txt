@@ -1,0 +1,6 @@
+R-01 PREPARED SMALL PROCESS-RESTART REPLAY / candidate debug package / Pixel_7 API35
+run=1 result=PASS journal=ABSENT recovery_failure=False TotalTime: 1666 focus=  mCurrentFocus=Window{9151bcf u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=2 result=PASS journal=ABSENT recovery_failure=False TotalTime: 2149 focus=  mCurrentFocus=Window{a947974 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=3 result=PASS journal=ABSENT recovery_failure=False TotalTime: 2177 focus=  mCurrentFocus=Window{18f3e42 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=4 result=PASS journal=ABSENT recovery_failure=False TotalTime: 2368 focus=  mCurrentFocus=Window{f97d4e6 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=5 result=PASS journal=ABSENT recovery_failure=False TotalTime: 2234 focus=  mCurrentFocus=Window{e08abbd u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}

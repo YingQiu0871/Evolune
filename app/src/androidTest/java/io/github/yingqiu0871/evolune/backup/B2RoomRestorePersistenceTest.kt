@@ -108,7 +108,7 @@ class B2RoomRestorePersistenceTest {
             "2026-08-23T12:34:56Z",
             RestoreJournalPhase.PREPARED,
             RestoreRoomState(emptyList(), emptyList(), emptyList()),
-            BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM")
+            BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
         )
 
         store.delete()

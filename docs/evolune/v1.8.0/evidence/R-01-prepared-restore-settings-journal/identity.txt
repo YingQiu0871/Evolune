@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 R-01 — PREPARED restore settings journal fidelity
+
+Approved predecessor / exact parent:
+8fc62a196ef7d4e0d61a56fd19e6658b6c707f5e
+
+Worktree:
+D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-r01
+Branch:
+feature/v1.8.0-r01-prepared-restore-settings
+
+Scope:
+Repair the PREPARED crash-recovery journal wire contract so canonical themeColorSource and themePresetId survive journal encode/decode and real startup recovery. Accept the historical five-field beforeSettings object with the specified compatibility mapping. Preserve strict full-object verification, startup sequencing, journal phases, and backup format/version semantics.
+
+Implementation and evidence are intended to be one non-amended child commit of the exact parent. The final 40-character commit is recorded in the external review packet after commit creation.
+
+No push, tag, release, or production startup/transaction redesign is in scope.

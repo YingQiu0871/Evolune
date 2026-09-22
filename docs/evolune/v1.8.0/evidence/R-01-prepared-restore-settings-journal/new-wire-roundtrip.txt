@@ -1,0 +1,10 @@
+CURRENT WIRE ROUND-TRIP
+
+The JVM fidelity suite exercises actual RestoreJournalCodec encode/decode through an encoding journal store and a DataStore-like canonicalizing persistence.
+
+Covered current settings identities:
+1. DYNAMIC with null preset.
+2. PRESET with LEGACY_BUILTIN.
+3. PRESET with named MONET_AMBER.
+
+Each case preserves exact BackupSettingsV1 equality after PREPARED recovery. The same suite verifies malformed current/legacy identity cases fail closed. The real Android suite repeats the three current identities through real FileRestoreJournalStore, RoomRestorePersistence, Room, and SettingsDataStore.

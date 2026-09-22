@@ -1,0 +1,2 @@
+R-01 SECOND COLD START / no PREPARED journal / candidate debug package / Pixel_7 API35
+result=PASS journal=ABSENT recovery_failure=False TotalTime=2274 focus=mCurrentFocus=Window{d85d6d9 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}

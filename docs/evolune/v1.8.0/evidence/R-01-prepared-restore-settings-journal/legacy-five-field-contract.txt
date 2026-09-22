@@ -1,0 +1,14 @@
+LEGACY FIVE-FIELD COMPATIBILITY CONTRACT
+
+Historical beforeSettings key set:
+bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat.
+
+Required mapping:
+colorTheme=DYNAMIC -> themeColorSource=DYNAMIC, themePresetId=null.
+colorTheme=BUILTIN -> themeColorSource=PRESET, themePresetId=LEGACY_BUILTIN.
+
+Legacy detection is exact-key-set based. It does not change the journal format version. Legacy unknown colorTheme values do not receive a fallback; the resulting null canonical source is rejected by normal payload validation. A legacy object with extra, missing, null-incompatible, or malformed fields is rejected.
+
+Android real-stack coverage:
+- literal five-field DYNAMIC journal: recovered and journal deleted;
+- literal five-field BUILTIN journal: recovered and journal deleted.

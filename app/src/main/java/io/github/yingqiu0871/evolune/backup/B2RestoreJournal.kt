@@ -2,6 +2,9 @@ package io.github.yingqiu0871.evolune.backup
 
 import android.content.Context
 import androidx.core.util.AtomicFile
+import io.github.yingqiu0871.evolune.data.ColorTheme
+import io.github.yingqiu0871.evolune.data.ThemeColorSource
+import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -84,7 +87,9 @@ private data class RestoreSettingsWire(
     val themeMode: String,
     val colorTheme: String,
     val autoCheckUpdates: Boolean,
-    val timeFormat: String
+    val timeFormat: String,
+    val themeColorSource: String? = null,
+    val themePresetId: String? = null
 )
 
 internal sealed interface RestoreJournalDecodeResult {
@@ -114,10 +119,11 @@ internal object RestoreJournalCodec {
         val room = root["beforeRoom"] as? JsonObject ?: return corrupt()
         val settings = root["beforeSettings"] as? JsonObject ?: return corrupt()
         if (!room.hasExactKeys("medicationPlans", "scheduledDoseSlots", "doseEvents") ||
-            !settings.hasExactKeys("bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat")
+            settings.keys != LEGACY_SETTINGS_KEYS && settings.keys != CURRENT_SETTINGS_KEYS
         ) {
             return corrupt()
         }
+        val legacySettings = settings.keys == LEGACY_SETTINGS_KEYS
         if (!room["medicationPlans"].hasExactArrayObjectKeys(
                 "id", "name", "route", "ester", "doseMG", "scheduleType",
                 "daysOfWeek", "intervalDays", "isEnabled", "extras", "createdAt"
@@ -133,6 +139,9 @@ internal object RestoreJournalCodec {
         val wire = try {
             json.decodeFromString<RestoreJournalWire>(text)
         } catch (_: Exception) {
+            return corrupt()
+        }
+        if (!legacySettings && wire.beforeSettings.themeColorSource == null) {
             return corrupt()
         }
 
@@ -157,7 +166,7 @@ internal object RestoreJournalCodec {
             )
         }
 
-        val payload = wire.toPayload()
+        val payload = wire.toPayload(legacySettings)
         return when (val validation = EvoluneBackupCodec().validate(payload)) {
             is BackupValidationResult.Valid -> RestoreJournalDecodeResult.Success(
                 RestoreJournal(
@@ -206,12 +215,12 @@ internal object RestoreJournalCodec {
         )
     }
 
-    private fun RestoreJournalWire.toPayload(): EvoluneBackupPayloadV1 =
+    private fun RestoreJournalWire.toPayload(legacySettings: Boolean): EvoluneBackupPayloadV1 =
         EvoluneBackupPayloadV1(
             medicationPlans = beforeRoom.medicationPlans.map { it.toPayload() },
             scheduledDoseSlots = beforeRoom.scheduledDoseSlots.map { it.toPayload() },
             doseEvents = beforeRoom.doseEvents.map { it.toPayload() },
-            settings = beforeSettings.toPayload()
+            settings = beforeSettings.toPayload(legacySettings)
         )
 
     private fun BackupMedicationPlanV1.toWire() = RestorePlanWire(
@@ -241,11 +250,50 @@ internal object RestoreJournalCodec {
     )
 
     private fun BackupSettingsV1.toWire() = RestoreSettingsWire(
-        bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat
+        bodyWeightKg = bodyWeightKg,
+        themeMode = themeMode,
+        colorTheme = colorTheme,
+        autoCheckUpdates = autoCheckUpdates,
+        timeFormat = timeFormat,
+        themeColorSource = themeColorSource,
+        themePresetId = themePresetId
     )
 
-    private fun RestoreSettingsWire.toPayload() = BackupSettingsV1(
-        bodyWeightKg, themeMode, colorTheme, autoCheckUpdates, timeFormat
+    private fun RestoreSettingsWire.toPayload(legacySettings: Boolean): BackupSettingsV1 {
+        val canonicalSource = if (legacySettings) {
+            when (colorTheme) {
+                ColorTheme.DYNAMIC.name -> ThemeColorSource.DYNAMIC.name
+                ColorTheme.BUILTIN.name -> ThemeColorSource.PRESET.name
+                else -> null
+            }
+        } else {
+            themeColorSource
+        }
+        val canonicalPresetId = if (legacySettings) {
+            if (colorTheme == ColorTheme.BUILTIN.name) {
+                ThemePresetSelection.LEGACY_BUILTIN_ID
+            } else {
+                null
+            }
+        } else {
+            themePresetId
+        }
+        return BackupSettingsV1(
+            bodyWeightKg = bodyWeightKg,
+            themeMode = themeMode,
+            colorTheme = colorTheme,
+            autoCheckUpdates = autoCheckUpdates,
+            timeFormat = timeFormat,
+            themeColorSource = canonicalSource,
+            themePresetId = canonicalPresetId
+        )
+    }
+
+    private val LEGACY_SETTINGS_KEYS = setOf(
+        "bodyWeightKg", "themeMode", "colorTheme", "autoCheckUpdates", "timeFormat"
+    )
+    private val CURRENT_SETTINGS_KEYS = LEGACY_SETTINGS_KEYS + setOf(
+        "themeColorSource", "themePresetId"
     )
 }
 

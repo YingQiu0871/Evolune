@@ -1,0 +1,10 @@
+FROZEN CONTRACT AUDIT
+
+Verified unchanged against exact parent 8fc62a196ef7d4e0d61a56fd19e6658b6c707f5e:
+- B2RestoreTransaction.kt;
+- MainActivity.kt and startup recovery orchestration;
+- full backup codec/schema/version contract;
+- journal phase ordering and strict exact-object verification;
+- no application version/versionCode or release metadata change.
+
+The implementation delta is confined to B2RestoreJournal.kt. Test deltas add the current/legacy fidelity contract and update two inherited journal fixtures to the now-current seven-field shape. The changed-files list and binary diff are authoritative.

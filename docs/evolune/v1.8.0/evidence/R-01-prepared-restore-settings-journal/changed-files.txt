@@ -1,0 +1,14 @@
+R-01 CHANGED FILES
+
+Production:
+app/src/main/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournal.kt
+
+JVM tests:
+app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreJournalFidelityTest.kt
+app/src/test/java/io/github/yingqiu0871/evolune/backup/B2RestoreTransactionTest.kt
+
+Android tests:
+app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2PreparedRestoreSettingsCompatibilityTest.kt
+app/src/androidTest/java/io/github/yingqiu0871/evolune/backup/B2RoomRestorePersistenceTest.kt
+
+Unchanged transaction/startup/backup production files are intentionally absent from the implementation delta.

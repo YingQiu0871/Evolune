@@ -1,0 +1,7 @@
+R-01 PREPARED LARGE PROCESS-RESTART REPLAY / candidate debug package / Pixel_7 API35
+fixture_bytes=502766 plans=20 slots=60 events=2000
+run=1 result=PASS journal=ABSENT recovery_failure=False TotalTime=3427 focus=mCurrentFocus=Window{a02c250 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=2 result=PASS journal=ABSENT recovery_failure=False TotalTime=3196 focus=mCurrentFocus=Window{7ce6306 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=3 result=PASS journal=ABSENT recovery_failure=False TotalTime=3252 focus=mCurrentFocus=Window{7dabf0e u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=4 result=PASS journal=ABSENT recovery_failure=False TotalTime=3059 focus=mCurrentFocus=Window{653ea33 u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}
+run=5 result=PASS journal=ABSENT recovery_failure=False TotalTime=3124 focus=mCurrentFocus=Window{81ccafc u0 io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity}

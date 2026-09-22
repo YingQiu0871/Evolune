@@ -1,0 +1,17 @@
+FOCUSED JVM REGRESSION
+
+Command:
+.\gradlew.bat :app:testDebugUnitTest --tests B2RestoreTransactionTest --tests B2RestoreJournalFidelityTest --tests BackupThemeSchemaV2Test --tests EvoluneBackupCodecTest --tests BackupRestoreCoordinatorTest --rerun-tasks
+
+Suites/classes: 5
+Tests: 67
+Failures: 0
+Errors: 0
+Skipped: 0
+
+Per class:
+B2RestoreJournalFidelityTest 6/6 PASS
+B2RestoreTransactionTest 13/13 PASS
+BackupRestoreCoordinatorTest 19/19 PASS
+BackupThemeSchemaV2Test 10/10 PASS
+EvoluneBackupCodecTest 19/19 PASS
