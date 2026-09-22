@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 D-02 — PROJECTION FREQUENCY MATRIX
+
+Trigger                                  Read/projection behavior
+-------                                  -------------------------
+Home-only cold start                     No History ViewModel request and no History read.
+First History entry                      Activity-owned VM is created; init performs one load.
+First onSurfaceShown                     Marks first show; does not add a second load.
+Select another day, same month           State-only selection; no repository read or matcher.
+Show previous month                       Cancels/guards prior work and loads the new month.
+Show next month                           Same; rejected when the next month is in the future.
+Retry                                    Reloads the visible month once.
+History tab return                       Activity VM is reused; onSurfaceShown refreshes the
+                                         visible month, so identical raw data is projected again.
+Background -> foreground while active    onAppForegrounded refreshes the visible month once.
+Configuration/activity recreation        New Activity owner creates a fresh VM and initial load;
+                                         saved month/date may restore selection, not projection cache.
+Plan edit or dose event elsewhere        No History Flow collector automatically projects it;
+                                         refresh occurs on an explicit load, re-entry, or foreground.
+Clock tick                               No History clock collector and no per-second History load.
+
+Necessary vs redundant:
+  A changed month, retry, foreground, or explicit re-entry refresh has a valid freshness reason.
+  Re-entry/foreground with byte-equivalent plan/event inputs deterministically repeats the full
+  read and projection because no input-equivalence cache exists. This is a characterization,
+  not an authorization to memoize: Activity lifetime, data freshness, display zone, now,
+  cancellation, and saved selection all remain correctness inputs.
+
+Compose frequency is separate: any emitted HistoryUiState change causes HistoryPresentation
+to be recomputed when its complete state key changes. Selecting a day recomputes UI mapping but
+does not re-run the data projection.

@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 D-02 — RANGE AND SCALE BOUNDS
+
+Normal History range:
+  - Current month: day 1 through today, inclusive.
+  - Past month: day 1 through that month’s last day, inclusive.
+  - Future month: rejected by HistoryViewModel.showNextMonth.
+  - Range source context: one occurrence-generation calendar day on each side; instant event
+    channel uses two calendar days on each side.
+  - A month load replaces loadedDays; old month entries are not accumulated in ViewModel state.
+  - HistoryReadService MAX_RANGE_DAYS is 3,660 days, but normal UI navigation issues one
+    month-sized read, not a 10-year read.
+
+Supported architectural scale:
+  The source exposes no product policy that caps the number of enabled plans or slots per day
+  below the normal domain collections. Therefore O is driven by enabled plan/slot density and
+  the month/context window. A 31-day month with one daily slot across P enabled plans yields
+  approximately 31P occurrences before context edge effects.
+
+Characterization fixture scale:
+  one daily slot per plan, January 2025, 31 days, exact slot/date events:
+  1 plan -> 31 occurrences/events
+  10 plans -> 310 occurrences/events
+  100 plans -> 3,100 occurrences/events
+
+These are deterministic synthetic bounds, not representative user distributions. The
+all-history retrospective path can scale with retained historical events and a generated
+context spanning the consumed data, but it is a separate entry path and is not used to claim
+normal monthly History range cost.
+
+No long-term imported-history population claim and no Android performance claim is made.

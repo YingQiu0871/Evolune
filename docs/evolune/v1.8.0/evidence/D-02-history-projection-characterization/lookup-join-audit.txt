@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 D-02 — LOOKUP / JOIN AUDIT
+
+Plan/event join result:
+  There is no per-event linear plan lookup in HistoryReadService or HistoricalProjectionBuilder.
+  Plans are converted to MedicationSchedule values once per read, occurrences are generated
+  from those schedules, and RecordedMedicationEvent carries its own match key/local-date/slot
+  data. No associateBy(planId) is rebuilt inside a per-event projection loop.
+
+Authoritative event-channel join:
+  unionAuthoritativeEvents creates one LinkedHashMap<UUID, DoseEvent> across the two database
+  channels. This is a single average O(E) deduplication/index pass and preserves first-seen
+  channel order while checking duplicate content equality.
+
+Actual nested lookup:
+  MedicationOccurrenceMatcher.assign repeatedly scans the full occurrence list with
+  occurrences.filter inside each event phase. Phase 3 also performs events.any { occurrence }
+  to preserve the original null-slot candidate evidence. This is the M02 CPU candidate; it is
+  not a plan lookup and cannot be removed by merely adding a plan map.
+
+No evidence supports a new cache or a change to matching precedence in D-02.

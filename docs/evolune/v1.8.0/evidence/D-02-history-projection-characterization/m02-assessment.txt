@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-02 — M02 ASSESSMENT
+
+Primary classification:
+M02 CONFIRMED — DEVICE PROFILING REQUIRED BEFORE IMPLEMENTATION
+
+Basis:
+  1. A-00’s M02 placement claim is confirmed in current source: post-suspend mapping,
+     occurrence generation, union, matching, projection and grouping run in the History
+     ViewModel caller context, with no explicit Default boundary.
+  2. The current production helper path has a deterministic nested matcher scan. The disposable
+     probe produced equal results at 31, 310 and 3,100 occurrences and repeated the full helper
+     call for identical inputs; source-derived phase-one visits were 961, 96,100 and 9,610,000.
+  3. The normal UI range is bounded to one month and the code has no device trace, Android
+     profiler sample, frame-time measurement, or representative user-distribution evidence.
+     Therefore materiality and user-visible impact are not established.
+
+Decision consequence:
+  Do not implement a cache, index, dispatcher move, sort removal, or matcher rewrite in D-02.
+  A future implementation decision requires device profiling that separates Room query time,
+  repository/entity conversion, occurrence generation, matcher/projection, and Compose/UI work
+  at realistic plan/event densities. It must compare exact result content and preserve all
+  correctness invariants in test-contract-audit.txt.
+
+Non-findings / separation:
+  This is not a cold-start History defect after B-02; not Home chart/clock work; not
+  retrospective PK simulation work; not a Room index recommendation; and not a claim that
+  every History refresh is redundant. Re-entry/foreground refreshes are intentional freshness
+  triggers even though identical inputs repeat the projection.
+
+No future implementation contract is supplied because classification B does not authorize an
+optimization proposal.

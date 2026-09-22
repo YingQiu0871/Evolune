@@ -1,0 +1,21 @@
+EVOLUNE v1.8.0 D-02 — ZERO-DELTA GATE
+
+Required comparison:
+  git diff 37fab9dcfaa6d7a856530530d37896d123f5fa3d..HEAD -- app/src/main app/src/test app/src/androidTest wear experience-core
+
+Result before evidence commit:
+  EMPTY.
+
+Disposable probe:
+  Created only under experience-core/src/test/kotlin for the focused production-seam run;
+  removed before staging. Final repository source/test scope contains no D-02 probe file.
+
+Protected files deliberately untouched:
+  HistoryViewModel.kt
+  HistoryReadService.kt
+  HistoryRangeSource.kt
+  AppNavigation.kt
+  HistoryLazyEntryArchitectureTest.kt
+  all app/src/main, app/src/test, app/src/androidTest, wear, and experience-core bytes.
+
+This slice is evidence-only. The only intended commit paths are the D-02 evidence directory.

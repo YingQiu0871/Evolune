@@ -1,0 +1,35 @@
+EVOLUNE v1.8.0 D-02 — RECOVERED M02 AUDIT SOURCE
+
+Authoritative source:
+  D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+  SHA-256 122B3407C42E8AB49D34384BDD4D0436E53B0247F0C5EE65EFFE24E9EE452F61
+
+The following is the exact M02 finding text from the authoritative A-00 report,
+preserved verbatim:
+
+M02 — History projection and mapping CPU on the caller
+Severity/area: P2 candidate; Main-thread CPU outside retrospective engine.
+Files/functions: AP/history/HistoryReadService.kt:62–123,135,261;
+AP/history/HistoryViewModel.kt:152; AP/data/repository/RoomDoseEventRepository.kt:31.
+Behavior/evidence: after suspending repository calls, occurrence generation,
+union and projection execute on caller context. History VM default is Main;
+Flow entity-to-domain map also follows collection context, not automatically the
+Room query executor. This is proven placement, not proof of material latency.
+Action: time query vs conversion vs projection separately for a month at 100,
+1k and 10k total historical events and varied plan density. If CPU dominates,
+inject a Default boundary around pure work while keeping reads/identity order.
+Risk/tests: moderate; exact projection equality, persisted localDate + instant
+union, duplicate IDs, midnight/DST, concurrent reads and generation cancellation.
+Executor/size/dependencies: DeepSeek V4.1 Flash evidence, small; conditional Luna
+implementation small/medium. F01 handles the retrospective path independently;
+F06 removes unnecessary entry work but does not eliminate visible History cost.
+
+The same A-00 report classifies “M02 history CPU” as a P2 candidate requiring evidence,
+assigns D-06 to “M02 projection/mapping timing on realistic sizes,” and requires query vs
+mapping vs generation/projection timing with result-content preservation. D-02 follows that
+scope. It does not broaden M02 into chart work (M01), startup restore (M03), cancellation
+(M04), or Room query/index work (M05).
+
+Why measurement-only:
+  The audit proved caller placement statically but explicitly did not prove material
+  latency. It therefore required a bounded characterization before any implementation.

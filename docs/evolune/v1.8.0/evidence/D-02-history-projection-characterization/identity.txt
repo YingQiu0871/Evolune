@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 D-02 — IDENTITY
+
+Purpose: evidence-only characterization of the original A-00 M02 History projection CPU candidate.
+
+Repository worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d02
+Branch:
+  feature/v1.8.0-d02-history-projection-characterization
+Approved C-01 parent / D-02 starting HEAD:
+  37fab9dcfaa6d7a856530530d37896d123f5fa3d
+Parent of approved C-01:
+  4014af395d1a6cf53993bb3392a39f97f038dfbe
+
+The worktree was clean before characterization. No production source, committed test,
+Room schema, Gradle file, version file, navigation file, HistoryLazyEntryArchitectureTest,
+or B-02 implementation byte was changed. One disposable experience-core JVM probe was
+materialized, executed against production projection helpers, and removed before evidence
+staging.
+
+The evidence commit is a child of the exact starting HEAD above. Its exact full identity is
+recorded in the outside review packet because it did not exist when this file was authored.
+
+Version identity observed from build.gradle.kts:
+  versionName = 1.7.4
+  phone versionCode = 101070400
+  Wear versionCode = 1101070400
+
+No host timing was used. No Android frame-time, battery, jank, or latency claim is made.

@@ -1,0 +1,37 @@
+EVOLUNE v1.8.0 D-02 — DISPOSABLE PRODUCTION-SEAM PROBE
+
+Probe file:
+  experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/
+  D02HistoryProjectionProbeTest.kt
+Status:
+  disposable file removed before evidence staging; no probe source is committed.
+
+The probe called the actual production seams:
+  MedicationOccurrenceGenerator.generate (fixture construction)
+  HistoricalProjectionBuilder.derive
+  HistoricalReadModel.range
+
+Fixture:
+  UTC; 2025-01-01T00:00:00Z through 2025-02-01T00:00:00Z; one enabled daily 08:00 slot
+  per synthetic plan; one exact slot/date RecordedMedicationEvent per occurrence; now at
+  2025-02-01T00:00:00Z. Each size was derived twice from the same immutable inputs.
+
+Captured production-helper output:
+  D02_PROBE label=small plans=1 occurrences=31 events=31 entries=31 days=31 repeatedResultEqual=true
+  D02_PROBE label=medium plans=10 occurrences=310 events=310 entries=310 days=31 repeatedResultEqual=true
+  D02_PROBE label=large plans=100 occurrences=3100 events=3100 entries=3100 days=31 repeatedResultEqual=true
+
+JVM result:
+  1 disposable test passed; 0 failures; 0 errors; 0 skipped.
+  The second identical production-helper call returned an equal projection at every scale.
+  This demonstrates deterministic repeated work, not a hidden reuse mechanism.
+
+Operation counts:
+  The source-level exact-slot/date branch performs one full occurrences.filter scan for each
+  exact event in matcher phase 1. Thus the fixture has E*O candidate-iteration shape:
+  31*31 = 961; 310*310 = 96,100; 3,100*3,100 = 9,610,000 occurrence visits in that
+  phase before the later linear/sort/check passes. These are source-derived loop counts for
+  this fixture, not profiler-instrumented CPU samples.
+
+No host timing was retained. The probe does not establish Android frame time, battery cost,
+or user-visible jank. Device profiling remains required before implementation.

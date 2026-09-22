@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-02 — SORT / GROUP AUDIT
+
+Sorts proved by source:
+  1. MedicationOccurrenceGenerator returns occurrences.sortedWith(OCCURRENCE_ORDER).
+  2. MedicationOccurrencePresentation.deriveWithMatches defensively sorts occurrences again.
+  3. Matcher event phases sort eligible events by occurredAt/event UUID.
+  4. Matcher phase-three/four candidate groups sort competing candidates by event time/UUID.
+  5. HistoricalProjectionBuilder sorts historical entries by displayDate, sortInstant, sortKey.
+  6. HistoricalProjectionBuilder sorts future context by scheduledAt/occurrence id.
+  7. HistoricalReadModel.range groupBy/filterKeys/toSortedMap creates ascending day order.
+
+The second occurrence sort is visible and potentially redundant when the generator is the
+caller, but deriveWithMatches is a public shared seam that accepts arbitrary occurrence-list
+order. Removing it would need a contract proof across Timeline/Insights/retrospective callers;
+D-02 does not authorize that change.
+
+Grouping:
+  HistoricalReadModel.range groups projection entries by displayDate, clips the requested
+  inclusive range, and sorts the resulting date keys. It does not re-run matching or reorder
+  entries within a day; entries retain the projection order established by the historical sort.
+
+Correctness constraints:
+  occurrence/event phase precedence, ambiguity behavior, displayed-date attribution, stable
+  tie breakers, day order, and matched-before-unrecorded-before-unmatched ordering are frozen.

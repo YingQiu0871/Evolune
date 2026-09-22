@@ -1,0 +1,33 @@
+EVOLUNE v1.8.0 D-02 — TEST CONTRACT AUDIT
+
+Existing contracts constraining any future History projection change:
+  HistoryViewModelTest — initial/current/past month selection, cancellation/generation,
+    refresh and saved-state behavior.
+  HistoryReadServiceTest — range read, event completeness, matched/unrecorded/unmatched output.
+  HistoryReadServiceExtremeZoneTest — display-zone/date attribution and instant/localDate union.
+  HistoryReadServiceOccurrenceChunkingTest — padded occurrence context and chunk boundaries.
+  HistoryReadServicePersistedDateTest — persisted localDate completeness.
+  HistoryFutureOccurrenceContractTest — future occurrences excluded from History entries.
+  HistoryPresentationTest / HistoryCrossDatePresentationTest / HistoryPresentationWordingTest —
+    ordering, date/time presentation, provenance and wording.
+  HistoryRefreshTest / HistoryReadZeroWriteTest / HistoryUndoProjectionTest — refresh, no-write
+    reads, and mutation/projection consistency.
+  TimelineProjectionBuilderTest / TimelineRangeCoordinatorTest / TimelineViewModelTest —
+    shared HistoryRangeSource consumers and range lifecycle semantics.
+  experience-core MedicationOccurrencePresentationTest — four-phase matching and ambiguity.
+  experience-core MedicationOccurrenceGeneratorTest / LimitTest — occurrence generation.
+  experience-core HistoricalProjectionIntakeTest / FutureOccurrenceTest / ProvenanceTest —
+    projection completeness, temporal horizon, and displayed-date provenance.
+  experience-core HistoricalReadModelTest / FutureOccurrenceTest — grouping and range behavior.
+
+The inherited HistoryLazyEntryArchitectureTest remains a B-02 architecture guard. On the raw
+Windows checkout its literal-LF source needle is known to fail against CRLF materialization;
+D-02 deliberately did not modify that test or AppNavigation. It is recorded separately from
+the green behavior/projection run.
+
+Frozen correctness contract for any future optimization:
+  preserve item ordering, day grouping, selected-date behavior, month navigation, current-day
+  horizon, recorded/skipped/unrecorded status semantics, legacy/unmatched event visibility,
+  persisted-localDate plus instant-channel union, duplicate/conflicting ID rejection,
+  display-zone/DST attribution, timeline shared-read semantics, retrospective all-history
+  semantics, cancellation/generation tokens, and no writes from History reads.

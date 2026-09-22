@@ -1,0 +1,61 @@
+EVOLUNE v1.8.0 D-02 — PROJECTION STAGES
+
+1. Repository/plan conversion
+   Input: one Flow emission of all medication plans, P plans.
+   Output: P MedicationSchedule values.
+   Work: observeAll().first().map { it.toMedicationSchedule() }.
+   Context: collection/caller context after the suspend resumes.
+   Allocation: mapped schedule list plus schedule/slot domain values as required by the mapper.
+   Reuse: not cached across History loads.
+
+2. Occurrence generation
+   Input: enabled schedules, padded occurrence window, display ZoneId.
+   Output: O MedicationOccurrence values, sorted by scheduled instant and stable identity.
+   Work: schedule/day/slot expansion followed by OCCURRENCE_ORDER sort.
+   Context: caller context after the plan Flow read.
+   Allocation: mutable occurrence accumulator, one occurrence per generated slot, sorted copy.
+   Reuse: not cached across History loads.
+
+3. Dual-channel event conversion and union
+   Input: persisted-localDate event list A and instant-window event list B.
+   Output: U RecordedMedicationEvent values, one per authoritative event id.
+   Work: mapper conversion in repositories, then LinkedHashMap<UUID, DoseEvent> union and
+   mapper conversion in unionAuthoritativeEvents.
+   Context: repository query work is Room-owned; caller-side mapping/union resumes on caller.
+   Allocation: channel lists, concatenated list, UUID map, output recorded-event list.
+   Reuse: no cross-load reuse.
+
+4. Shared matcher / presentation
+   Input: O occurrences, U recorded events, now, policy.
+   Output: O MedicationTimelineItem values plus match map.
+   Work: defensive occurrence sort, four ordered matching phases, status/action derivation.
+   Context: caller context; no explicit Default or IO boundary.
+   Allocation: sorted occurrence list, result map, consumed sets, candidate lists/maps/groups,
+   timeline-item list.
+   Reuse: one invocation per successful read; repeated refreshes invoke it again.
+
+5. Historical projection decoration
+   Input: presentation items and match map.
+   Output: R historical entries and F future-occurrence context values.
+   Work: one pass over items, one pass over unmatched events, two deterministic sorts,
+   completeness checks.
+   Context: same caller context.
+   Allocation: entry and future mutable lists, matched-event UUID set, sorted lists, check sets.
+   Reuse: no cross-load memoization.
+
+6. Range/day read model
+   Input: projection entries R, inclusive start/end dates.
+   Output: D HistoricalDay values with entries grouped by display date.
+   Work: groupBy displayDate, range filter, sorted map, day mapping.
+   Context: same caller context.
+   Allocation: grouping map, filtered/sorted map, day objects and day entry-list references.
+   Reuse: ViewModel replaces loadedDays on each successful load.
+
+7. UI presentation
+   Input: HistoryUiState, selected date, display zone.
+   Output: HistoryMonthUiModel, calendar cells, selected-day UI entries.
+   Work: calendar loop over month days and mapping of the selected day’s entries.
+   Context: Compose execution on the UI thread.
+   Reuse: remember(state) reuses only while the complete immutable state is equal.
+
+No stage in this list performs a second matcher or DAO read inside Compose.

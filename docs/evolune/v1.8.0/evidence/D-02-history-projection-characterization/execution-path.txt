@@ -1,0 +1,42 @@
+EVOLUNE v1.8.0 D-02 — CURRENT HISTORY EXECUTION PATH
+
+Actual first-entry path:
+
+MainActivity.onCreate
+  -> MainFeatureServices.create(...) after startup restore/recovery
+  -> setContent captures the Activity-owned stable HistoryViewModelFactory
+  -> AppNavigation receives that factory; it does not request HistoryViewModel at root
+  -> composable(Screen.HISTORY.route) selects the Activity as ViewModelStoreOwner
+  -> viewModel(factory = historyViewModelFactory) creates the retained HistoryViewModel
+  -> HistoryViewModel.init() calls loadMonth(current visible month)
+  -> scope.launch, where scope defaults to viewModelScope
+  -> HistoryRangeSource.read(...)
+  -> HistoryReadService.readRange(...)
+  -> medicationPlans.observeAll().first(), plan-to-schedule mapping
+  -> MedicationOccurrenceGenerator.generate(...) over the padded occurrence context
+  -> doseEvents.findRecordedLocalDateBetween(...) and findOccurredBetween(...)
+  -> unionAuthoritativeEvents(...) deduplicates by authoritative event UUID
+  -> HistoricalProjectionBuilder.derive(...)
+  -> MedicationOccurrencePresentation.deriveWithMatches(...)
+  -> four-phase MedicationOccurrenceMatcher.assign(...)
+  -> HistoricalProjectionBuilder adds matched, unrecorded, future-context, and unmatched entries
+  -> HistoricalReadModel.range(...) groups entries by display date and clips to requested month
+  -> HistoryViewModel stores range.days.associateBy { it.date } in loadedDays
+  -> HistoryScreen collects uiState
+  -> HistoryScreenContent remembers HistoryPresentation.present(state)
+  -> LazyColumn renders calendar, selected-day rows, and entry cards.
+
+Source anchors:
+  MainActivity.kt:155-169, 171-314
+  MainFeatureServices.kt:26-83
+  AppNavigation.kt:952-973
+  HistoryViewModel.kt:52-60, 124-170
+  HistoryReadService.kt:62-124
+  HistoricalProjection.kt:204-285
+  HistoricalReadModel.kt:61-80
+  HistoryScreen.kt:112-159, 166-219
+
+The normal History path is one visible month per request. The HistoryReadService all-history
+readAllAvailable path is a separate retrospective-PK capability sharing the same reader and
+projection builder; it is not invoked by the History destination and is not folded into the
+normal monthly History cost claim.

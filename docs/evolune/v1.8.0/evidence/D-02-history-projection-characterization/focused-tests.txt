@@ -1,0 +1,45 @@
+EVOLUNE v1.8.0 D-02 — FOCUSED TEST RESULTS
+
+Disposable production-seam probe:
+  Task: :experience-core:test --tests io.github.yingqiu0871.evolune.experience.D02HistoryProjectionProbeTest --rerun-tasks
+  Suites: 1
+  Tests: 1
+  Passed: 1
+  Failures: 0
+  Errors: 0
+  Skipped: 0
+  Source removed after the run.
+
+Focused app behavior/projection/lifecycle set:
+  Task: :app:testDebugUnitTest --rerun-tasks with 15 explicit History/Timeline classes
+  Suites: 15
+  Tests: 195
+  Failures: 0
+  Errors: 0
+  Skipped: 0
+
+Focused experience-core contract set:
+  Task: :experience-core:test --rerun-tasks with 8 explicit matcher/generator/projection/read-model classes
+  Suites: 8
+  Tests: 87
+  Failures: 0
+  Errors: 0
+  Skipped: 0
+
+Combined green focused evidence:
+  Suites: 24
+  Tests: 283
+  Failures: 0
+  Errors: 0
+  Skipped: 0
+
+Inherited B-02 guard audit:
+  A separate raw Windows run selected HistoryLazyEntryArchitectureTest and reported 199 total
+  tests with exactly 1 failure, the known literal-LF source-needle assertion in that guard.
+  D-02 did not normalize or change AppNavigation/Test bytes and did not present this raw
+  checkout failure as green D-02 evidence. The remaining 195 app tests above passed unchanged.
+
+Full JVM policy:
+  D-02 changes no source/test bytes. The inherited canonical C-01 regression remains 1,695 /
+  1,695 passed: app 1,434, experience-core 171, wear 90; 185 suites total; 0 failures,
+  0 errors, 0 skipped. No ceremonial full rerun was claimed for this evidence-only slice.

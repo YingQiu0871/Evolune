@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-02 — CHANGED-FILES BOUNDARY
+
+Intended committed paths:
+  docs/evolune/v1.8.0/evidence/D-02-history-projection-characterization/**
+
+Production source changes: 0
+Committed test changes: 0
+Android-test changes: 0
+Wear changes: 0
+experience-core production/test bytes changed: 0
+Gradle/dependency/schema/version changes: 0
+
+Disposable-only path, removed before commit:
+  experience-core/src/test/kotlin/io/github/yingqiu0871/evolune/experience/D02HistoryProjectionProbeTest.kt
+
+The evidence follow-up must contain no path outside the D-02 evidence directory.

@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-02 — COMPOSE BOUNDARY
+
+Before StateFlow publication:
+  HistoryViewModel/HistoryReadService perform repository conversion, occurrence generation,
+  matching, historical projection, range grouping, and loadedDays replacement.
+
+Inside Compose but memoized by complete state:
+  HistoryScreenContent uses remember(state) { HistoryPresentation.present(state) }.
+  That builds the month model, calendar cells, and selected-day entry UI models. A changed
+  selected date therefore remaps the selected day and calendar, but does not re-read or re-run
+  the History matcher.
+
+Inside LazyColumn/item rendering:
+  HistoryEntryCard renders already-built HistoryEntryUiModel values. It invokes text formatting
+  for dose/time/schedule strings during composition of the visible item. No DAO, repository,
+  matcher, occurrence generator, or historical grouping is called from the item.
+
+On every recomposition:
+  The whole HistoryPresentation call is not unconditional: remember(state) reuses the model
+  while the immutable HistoryUiState key is equal. Ordinary recomposition alone does not call
+  the History load effect because LaunchedEffect(Unit) is stable and the lifecycle observer is
+  installed by DisposableEffect(lifecycleOwner).
+
+M02 scope remains the pre-render History projection CPU. UI text formatting and draw/layout
+  cost are separate measurements and must not be claimed as M02 evidence.

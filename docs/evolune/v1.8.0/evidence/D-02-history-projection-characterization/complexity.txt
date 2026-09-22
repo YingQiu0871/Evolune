@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 D-02 — SOURCE-LEVEL COMPLEXITY
+
+Symbols:
+  P = plans; W = padded calendar days; S = total slots across enabled plans;
+  O = generated occurrences; E = recorded events after channel union;
+  R = historical entries; F = future-occurrence context; D = populated display days.
+
+Occurrence generation:
+  O(W * S) expansion work, followed by O(O log O) deterministic sort.
+
+Dual-channel conversion/union:
+  O(E_A + E_B) mapping and average O(E_A + E_B) UUID-map union. The input list
+  is bounded by the requested month plus context windows, not all retained history.
+
+Matcher:
+  Each of the four phases filters occurrences for candidate matching. The general source
+  bound is O(E * O) matching work plus event sorts and candidate grouping/sorts. This is not
+  an invented nested lookup: MedicationOccurrenceMatcher.assign contains occurrences.filter
+  inside phase event loops and phase-three events.any over occurrences.
+  On the exact-slot/date probe fixture every event is eligible for phase one, so the scan
+  shape is deterministically E * O comparisons before the linear status projection. With
+  E = O = N, that branch is quadratic in N.
+
+Projection decoration:
+  O(O + E) passes for horizon split, unmatched-event retention, and completeness checks,
+  plus O(R log R) historical-entry sort and O(F log F) future-context sort.
+
+Range/day model:
+  O(R) groupBy/filter/map work plus O(D log D) sorted date keys.
+
+Compose presentation:
+  O(daysInMonth) calendar-cell construction plus O(selected-day entries) mapping. The
+  selected-day mapping is not the full projection and is not a second matcher.
+
+The strongest avoidable-looking shape is the matcher’s nested scan; the source does not
+establish a safe key-index rewrite without preserving four-phase precedence, ambiguity,
+consumption, local-date rules, and event ordering. Device profiling is required before any
+change.

@@ -1,0 +1,29 @@
+EVOLUNE v1.8.0 D-02 — ALLOCATION AUDIT
+
+Per successful monthly load, source-visible allocations include:
+  - plan-to-schedule mapped list;
+  - occurrence accumulator, occurrence objects, and sorted occurrence copy;
+  - two repository result lists and entity/domain mapper outputs;
+  - concatenated dual-channel event list, LinkedHashMap UUID index, and recorded-event list;
+  - matcher result map, consumed occurrence/event sets, phase candidate lists, grouped maps,
+    and timeline items;
+  - HistoricalProjection entry/future lists, matched-event set, sorted output lists, and
+    completeness-check collections;
+  - HistoricalReadModel grouping/filter/sorted-map and HistoricalDay objects;
+  - ViewModel loadedDays map replacing the prior map.
+
+Deterministic count facts from the source:
+  - one generated MedicationOccurrence per generated schedule slot in the window;
+  - one RecordedMedicationEvent object per mapped authoritative event;
+  - one HistoricalEntry per matched/unrecorded occurrence or unmatched event;
+  - one FutureOccurrenceContext per unmatched occurrence strictly after now;
+  - one HistoricalDay per populated display date in the returned range;
+  - one UI entry model per entry on the selected day when HistoryPresentation runs.
+
+No heap-size estimate is made. No allocation profiler was run. The source proves temporary
+collections and replacement semantics, but not their Android heap cost or frame impact.
+
+Formatting boundary:
+  HistoryPresentation creates timestamp presentation models; actual text formatters are built
+  from DateTimeFormatter patterns by HistoryFormatting during entry-card rendering. That is
+  Compose/UI work and is not counted as the HistoryReadService projection cost.

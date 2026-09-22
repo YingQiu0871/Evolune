@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 D-02 — DISPATCHER / MAIN-THREAD AUDIT
+
+HistoryViewModel chooses operationScope when injected by a test; production uses
+viewModelScope. loadMonth launches the read coroutine but has no withContext(Default),
+withContext(IO), flowOn, or dedicated projection dispatcher.
+
+HistoryReadService.readRange suspends for Room/repository operations. The repositories do
+not add a caller-visible withContext boundary in their read methods; runStorageOperation is
+only exception translation. Room owns the actual database query executor for DAO operations.
+After each suspend returns, caller-side list mapping, occurrence generation, channel union,
+matcher, projection, grouping, and ViewModel state publication continue in the coroutine
+caller context.
+
+The plan Flow uses observeAll().first().map { ... }. The repository Flow maps entity lists in
+the downstream collector context; it is not automatically moved to the Room query executor.
+This is the exact M02 placement claim: Room query execution is not being called a Main-thread
+SQLite block claim, but the post-query conversion/projection is caller-context CPU.
+
+Production caller context:
+  HistoryViewModel -> viewModelScope -> Android lifecycle ViewModelScope Main.immediate default.
+
+Answer to M02 hard questions:
+  A. Yes. O(N) transforms and the matcher’s nested scans execute after the read on the
+     ViewModel caller context; the deterministic probe exercises the same pure seam.
+  B. No explicit Default/IO move exists around pure History projection.
+  C. Room query work can be executor-owned, but downstream Flow mapping and code after each
+     suspend resume in the collecting caller context.
+  D. HistoryPresentation mapping is before rendering but is invoked from Compose and keyed by
+     complete state; timestamp text formatting itself is inside entry-card composition.
+
+This proves placement and scaling shape, not device materiality. No implementation is
+authorized by this evidence.
