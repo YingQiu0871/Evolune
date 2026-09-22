@@ -1,0 +1,18 @@
+EVOLUNE v1.8.0 D-03 — ZERO DELTA
+================================
+
+After removing all disposable instrumentation and restoring the original source
+bytes:
+
+  git diff c85e8809f268557c62dff1390479cb2c56aedbde..HEAD -- \
+    app/src/main app/src/test app/src/androidTest wear experience-core
+  -> EMPTY
+
+  git status --porcelain -> clean (before adding the evidence directory)
+
+Temporary artifacts created and fully removed:
+- D03Trace log markers in MainActivity.kt and B2RestoreTransaction.kt
+  (originals restored byte-exactly from saved copies)
+- app/src/androidTest/.../d03/D03FixtureWriterTest.kt (deleted)
+
+No production or committed test source delta exists in this commit.

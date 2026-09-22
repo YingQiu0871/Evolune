@@ -1,0 +1,39 @@
+EVOLUNE v1.8.0 D-03 — PREPARED PATH (MEASURED, REAL STACK)
+==========================================================
+
+Exact recovery order (source): see restore-state-machine.txt state 3.
+
+Measured behavior on the real Room + DataStore stack (emulator, real
+RestoreTransaction + RoomRestorePersistence + FileRestoreJournalStore):
+
+  result = Failure:RECOVERY_REQUIRED in ALL 10 measured runs
+  (prepared_small x5, prepared_large x5).
+
+Diagnostic attribution (D03Diag, prepared_small):
+  - journal decoded settings = BackupSettingsV1(60.0, SYSTEM, DYNAMIC, true,
+    SYSTEM, themeColorSource=null, themePresetId=null)
+  - after replaceSettings + read-back =
+    BackupSettingsV1(60.0, SYSTEM, DYNAMIC, true, SYSTEM,
+    themeColorSource=DYNAMIC, themePresetId=null)
+  - settingsEqual=false, roomEqual=true
+
+Root cause (source): the journal wire (B2RestoreJournal RestoreSettingsWire)
+persists only the 5 legacy settings fields; the v1.7.2 canonical
+themeColorSource/themePresetId fields are dropped on encode. The startup
+recovery post-check `readSettings() == journal.beforeSettings` therefore can
+never pass on the real stack, because SettingsDataStore.replaceSettings()
+writes the canonical fields and readSettings() returns them non-null.
+
+Consequence: PREPARED startup recovery performs the rollback (Room verified
+equal; settings replaced with the semantically identical canonical form), then
+fails verification, returns RECOVERY_REQUIRED, and leaves the PREPARED journal
+in place. MainActivity logs "Startup restore recovery required" and calls
+finish(); no first frame is produced; the next startup repeats the same
+failure until the journal is removed externally.
+
+Timing (cold starts, T1->T2 read+parse / T3->T4 rollback+failed verification):
+  prepared_small: T1->T2 = 137/141/137/137/134 ms; T3->T4 = 197/170/190/186/167 ms
+  prepared_large: T1->T2 = 610/613/698/790/610 ms; T3->T4 = 365/404/374/373/380 ms
+
+Note: this is a measured behavior characterization of the current gate, not a
+performance argument; no production behavior was changed by D-03.

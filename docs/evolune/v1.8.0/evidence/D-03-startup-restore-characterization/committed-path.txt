@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-03 — COMMITTED PATH
+====================================
+
+Startup recovery for a valid COMMITTED journal:
+
+1. FileRestoreJournalStore.read: full AtomicFile read + UTF-8 decode + strict
+   JSON parse of the COMPLETE journal (payload included) -> Found(COMMITTED).
+2. recoverLocked: journalStore.delete() -> AtomicFile.delete (main + .bak).
+3. Recovered. Database NOT read. Settings NOT read. No backup/temp inspection.
+
+Size sensitivity: the only size-dependent operation is step 1 (journal read +
+parse). The cleanup itself is constant (~1-2 ms measured).
+
+Measured (emulator, in-process 5 reps, real stack):
+  committed_small (journal 16,340 B): 103.68 / 13.11 / 12.46 / 9.35 / 10.78 ms
+  committed_large (journal 512,926 B): 339.30 / 112.29 / 103.00 / 91.47 / 90.50 ms
+Measured (cold starts, T1->T2 read+parse / T3->T4 cleanup):
+  committed_small: T1->T2 = 151/166/162/199/153 ms; cleanup = 1-2 ms
+  committed_large: T1->T2 = 701/779/812/836/782 ms; cleanup = 1-2 ms
+
+Classification: file-size dependent (journal payload parse), NOT
+file-count-of-other-artifacts dependent, NOT database-size dependent.

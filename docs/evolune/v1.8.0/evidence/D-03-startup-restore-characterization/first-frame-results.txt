@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-03 — FIRST-FRAME RESULTS
+=========================================
+
+Method: am start -W TotalTime (process start -> initial display) for each cold
+start; gate duration measured in-process via T1->T5 markers.
+
+Does the gate delay the first frame by approximately its duration?
+YES for the non-failing scenarios: the gate runs before setContent on the
+onCreate path (runBlocking), so first frame is delayed by at least the gate
+duration (plus T5->T6 work).
+
+  scenario          TotalTime median   gate median   gate share
+  no_journal        2165 ms            19 ms         ~0.9 %
+  committed_small   2143 ms            165 ms        ~7.7 %
+  committed_large   2718 ms            786 ms        ~29 %
+  prepared_small    no first frame (finish; T1->T4 ~324 ms)
+  prepared_large    no first frame (finish; T1->T4 ~991 ms)
+
+Raw cold-start runs (all 5 per scenario) are recorded in
+logs/cold-start-runs.txt; no run was excluded.
+
+Observation: in the COMMITTED-large stress scenario the whole first-frame delay
+increase (~550 ms vs small) is explained by the journal read+parse inside the
+gate; no other component changed.

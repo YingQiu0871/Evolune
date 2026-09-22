@@ -1,0 +1,37 @@
+EVOLUNE v1.8.0 D-03 — STARTUP EXECUTION PATH
+============================================
+
+Traced from current HEAD (c85e8809) source:
+
+MainActivity.onCreate:
+  1. enableEdgeToEdge(); super.onCreate
+  2. isExistingInstallation probe (database file OR settings DataStore file exists)
+  3. SettingsDataStore(applicationContext)
+  4. recoverInterruptedRestoreAtStartup(context, settingsDataStore)   <-- THE GATE
+       - runBlocking(Dispatchers.IO)
+       - constructs RestoreTransaction(
+           persistence = RoomRestorePersistence(
+               database = AppDatabase.getDatabase(context),   <-- Room open happens here
+               settingsStore, atomicSettingsStore),
+           journalStore = FileRestoreJournalStore(context))
+       - recoverInterruptedRestoreIfNeeded()
+  5. on Failure: Log.e("EvoluneRestore", ...) + finish() + return  (no UI)
+  6. ProductionRepositoryProvider.get(applicationContext)
+  7. createRestorePersistence(...), GoogleAuthorizationGateway,
+     GoogleDriveBackupProvider, packageInfo, ReminderManager,
+     PostRestoreCoordinator, BackupRestoreCoordinator
+  8. AndroidHealthConnectWeightProvider, SettingsViewModel, OnboardingViewModel
+  9. MainFeatureServices.create(...)   (B-01 Activity-owned graph)
+ 10. setContent { ... theme, HRTViewModel, MedicationPlanViewModel, Wear sync ... }
+ 11. first frame
+
+Ordering invariant: the restore gate (step 4) strictly precedes every normal
+consumer (steps 6-11): repository construction, Room reads/writes, settings
+consumers, reminder rescheduling, widget updates, Wear publication,
+Health Connect, backup/restore surfaces and all Compose/ViewModel consumers.
+
+Room timing: AppDatabase.getDatabase(context) is called INSIDE the gate
+(step 4). Room object construction alone is not proof of a full scan; the
+no-journal path only performs the two file-existence checks plus lazy DB open
+(see no-journal-path.txt), and the measured cold-start T1->T2 for no_journal is
+14-17 ms including that open.

@@ -1,0 +1,47 @@
+EVOLUNE v1.8.0 D-03 — RESTORE STATE MACHINE
+===========================================
+
+Source: B2RestoreTransaction.recoverLocked / recoverPrepared,
+        FileRestoreJournalStore, B2RestoreJournal codec.
+
+Journal location: Context.noBackupFilesDir/evolune_restore_journal.json
+  (AtomicFile; .bak used only during a failed write, never committed normally).
+
+read() classification (FileRestoreJournalStore.read):
+  - if neither main file nor .bak exists -> Missing (two file-existence checks)
+  - else AtomicFile.readFully -> UTF-8 -> strict JSON decode (exact keys,
+    formatVersion == 1) -> Found(journal) or Failure(code)
+
+States and startup behavior:
+
+1. MISSING (no journal)
+   recoverLocked -> NothingToRecover. No database access, no settings access,
+   no parsing, no deletion. (The DB object is constructed in the gate but no
+   Room query is issued.)
+
+2. FOUND: COMMITTED (durable success point)
+   recoverLocked -> journalStore.delete() -> Recovered.
+   Validation: none beyond decode. Database: NOT read. Settings: NOT read.
+   Backup/temp files: NOT inspected. Deletion: AtomicFile.delete (main + .bak).
+   Failure: delete error -> JOURNAL_CLEANUP_FAILED.
+
+3. FOUND: PREPARED (crash during restore)
+   recoverPrepared(journal):
+     a. persistence.replaceRoom(journal.beforeRoom)
+        (one Room transaction: delete events -> slots -> plans, reinsert)
+     b. persistence.replaceSettings(journal.beforeSettings)
+        (one DataStore edit; false -> throw)
+     c. check(readRoomState().canonical() == journal.beforeRoom.canonical())
+     d. check(readSettings() == journal.beforeSettings)
+     e. journalStore.delete()
+     -> Recovered
+   Any failure (including a failed check) -> RECOVERY_REQUIRED Failure;
+   the journal is NOT deleted in the failure path.
+
+4. FOUND: decode Failure
+   RECOVERY_JOURNAL_CORRUPT / UNSUPPORTED_JOURNAL_VERSION / RECOVERY_REQUIRED
+   (mapped by asRecoveryFailure). No rollback attempted; journal preserved.
+
+5. Any unexpected throwable during read -> RECOVERY_JOURNAL_CORRUPT Failure.
+
+MainActivity reaction: any Failure -> Log.e + finish() (no UI, no consumers).

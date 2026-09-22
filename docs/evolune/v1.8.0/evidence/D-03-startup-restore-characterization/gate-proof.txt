@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-03 — SYNCHRONOUS GATE PROOF
+============================================
+
+Source evidence (current HEAD):
+
+A. runBlocking is executed from MainActivity.onCreate's caller:
+   data/RestoreStartupRecovery.kt:15-25
+   internal fun recoverInterruptedRestoreAtStartup(...): RestoreRecoveryResult =
+       runBlocking(Dispatchers.IO) { RestoreTransaction(...).recoverInterruptedRestoreIfNeeded() }
+   called from MainActivity.onCreate (startup-path.txt step 4).
+
+B. The caller remains blocked until recovery completes:
+   runBlocking returns only after the transaction coroutine finishes; onCreate
+   continues only after the returned RestoreRecoveryResult is inspected.
+
+C. Recovery work switches to Dispatchers.IO:
+   - runBlocking(Dispatchers.IO) runs the transaction body on IO.
+   - FileRestoreJournalStore.read/write/delete use withContext(Dispatchers.IO).
+   - RoomRestorePersistence uses Room's own transaction/IO execution.
+
+D. runBlocking synchronously waits for that IO work (B + C).
+
+E. setContent and normal consumers cannot continue before recovery returns:
+   MainActivity only reaches ProductionRepositoryProvider / MainFeatureServices /
+   setContent after the gate returns; on Failure it calls finish() and returns.
+
+Measured confirmation (emulator cold starts, D03Trace markers):
+  T1-gate-enter -> T5-gate-exit present before T6-setContent in every
+  non-failing scenario; PREPARED failure shows T1..T4 with no T5/T6.
+
+A-D = YES, E = NO, as expected. No source behavior differs.

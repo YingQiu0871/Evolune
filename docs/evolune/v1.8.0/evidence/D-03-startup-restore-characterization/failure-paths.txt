@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 D-03 — FAILURE / CORRUPTION PATHS
+================================================
+
+From source (B2RestoreTransaction + MainActivity):
+
+- missing referenced backup (PREPARED rollback): replaceRoom throws ->
+  RECOVERY_REQUIRED; journal preserved; app finishes.
+- corrupt journal: read -> Failure(RECOVERY_JOURNAL_CORRUPT) ->
+  RestoreRecoveryResult.Failure; no rollback; journal preserved; app finishes.
+- unsupported journal version: UNSUPPORTED_JOURNAL_VERSION; same fail-closed.
+- invalid checksum/hash: the journal has no checksum field; strict JSON shape +
+  version are the only integrity checks; malformed -> corrupt path.
+- invalid settings backup: replaceSettings false or throw -> RECOVERY_REQUIRED
+  (PREPARED) / SETTINGS_RESTORE_FAILED (interactive restore); journal preserved.
+- database restore failure during recovery: replaceRoom throws ->
+  RECOVERY_REQUIRED; journal preserved.
+- verification failure: `check` throws -> RECOVERY_REQUIRED; journal preserved.
+  THIS IS THE CURRENT REAL-STACK PREPARED BEHAVIOR (see prepared-path.txt).
+- I/O exception during read: caught -> RECOVERY_JOURNAL_CORRUPT (or Missing for
+  FileNotFoundException); fail-closed.
+
+Startup behavior in all failure cases: MainActivity logs
+"Startup restore recovery required", calls finish(), returns; no degraded mode,
+no retry, no error UI. Artifacts (journal, .bak) are preserved for diagnosis.
+
+These are correctness constraints for any future async-gate design; D-03 did
+not modify any behavior.

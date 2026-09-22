@@ -1,0 +1,43 @@
+EVOLUNE v1.8.0 D-03 — RAW COLD-START RUNS
+=========================================
+
+Method: write scenario fixture -> force-stop -> logcat -c ->
+am start -W -> capture TotalTime/WaitTime -> logcat D03Trace (uptimeMillis).
+
+S1 no_journal (5 runs):
+REP1 total=3028 wait=3034 trace: T1-gate-enter 1168255 | T2-classified=Missing 1168271 | T4-noop 1168271 | T5-gate-exit 1168276 | T6-setContent 1168473
+REP2 total=2252 wait=2264 trace: T1-gate-enter 1176763 | T2-classified=Missing 1176780 | T4-noop 1176781 | T5-gate-exit 1176783 | T6-setContent 1176919
+REP3 total=2165 wait=2170 trace: T1-gate-enter 1184308 | T2-classified=Missing 1184323 | T4-noop 1184323 | T5-gate-exit 1184324 | T6-setContent 1184480
+REP4 total=2160 wait=2163 trace: T1-gate-enter 1191695 | T2-classified=Missing 1191712 | T4-noop 1191712 | T5-gate-exit 1191714 | T6-setContent 1191848
+REP5 total=2082 wait=2085 trace: T1-gate-enter 1199057 | T2-classified=Missing 1199071 | T4-noop 1199071 | T5-gate-exit 1199076 | T6-setContent 1199222
+
+S2 committed_small (5 runs):
+REP1 total=2143 wait=2145 trace: T1-gate-enter 1218648 | T2-classified=Found:COMMITTED 1218799 | T3-committed-cleanup 1218800 | T4-recovery-end 1218801 | T5-gate-exit 1218802 | T6-setContent 1218924
+REP2 total=2220 wait=2225 trace: T1-gate-enter 1226146 | T2-classified=Found:COMMITTED 1226312 | T3-committed-cleanup 1226313 | T4-recovery-end 1226314 | T5-gate-exit 1226316 | T6-setContent 1226454
+REP3 total=2269 wait=2275 trace: T1-gate-enter 1233669 | T2-classified=Found:COMMITTED 1233831 | T3-committed-cleanup 1233832 | T4-recovery-end 1233833 | T5-gate-exit 1233834 | T6-setContent 1233972
+REP4 total=2115 wait=2120 trace: T1-gate-enter 1240916 | T2-classified=Found:COMMITTED 1241115 | T3-committed-cleanup 1241116 | T4-recovery-end 1241117 | T5-gate-exit 1241117 | T6-setContent 1241248
+REP5 total=2109 wait=2114 trace: T1-gate-enter 1248264 | T2-classified=Found:COMMITTED 1248417 | T3-committed-cleanup 1248418 | T4-recovery-end 1248419 | T5-gate-exit 1248420 | T6-setContent 1248557
+
+S3 committed_large (5 runs):
+REP1 total=2718 wait=2721 trace: T1-gate-enter 1255960 | T2-classified=Found:COMMITTED 1256661 | T3-committed-cleanup 1256662 | T4-recovery-end 1256663 | T5-gate-exit 1256664 | T6-setContent 1256788
+REP2 total=2783 wait=2787 trace: T1-gate-enter 1264243 | T2-classified=Found:COMMITTED 1265022 | T3-committed-cleanup 1265023 | T4-recovery-end 1265024 | T5-gate-exit 1265025 | T6-setContent 1265169
+REP3 total=2756 wait=2759 trace: T1-gate-enter 1272838 | T2-classified=Found:COMMITTED 1273650 | T3-committed-cleanup 1273651 | T4-recovery-end 1273652 | T5-gate-exit 1273653 | T6-setContent 1273794
+REP4 total=2708 wait=2709 trace: T1-gate-enter 1281140 | T2-classified=Found:COMMITTED 1281976 | T3-committed-cleanup 1281977 | T4-recovery-end 1281977 | T5-gate-exit 1281978 | T6-setContent 1282111
+REP5 total=2654 wait=2655 trace: T1-gate-enter 1289280 | T2-classified=Found:COMMITTED 1290062 | T3-committed-cleanup 1290064 | T4-recovery-end 1290066 | T5-gate-exit 1290066 | T6-setContent 1290181
+
+S4 prepared_small (5 runs; activity finishes; EvoluneRestore error):
+REP1 status=ok (no TotalTime) trace: T1-gate-enter 1309100 | T2-classified=Found:PREPARED 1309237 | T3-prepared-rollback 1309237 | T4-recovery-end 1309434 err=Startup restore recovery required
+REP2 status=ok (no TotalTime) trace: T1-gate-enter 1315020 | T2-classified=Found:PREPARED 1315161 | T3-prepared-rollback 1315161 | T4-recovery-end 1315331 err=Startup restore recovery required
+REP3 status=ok (no TotalTime) trace: T1-gate-enter 1320714 | T2-classified=Found:PREPARED 1320851 | T3-prepared-rollback 1320851 | T4-recovery-end 1321041 err=Startup restore recovery required
+REP4 status=ok (no TotalTime) trace: T1-gate-enter 1326407 | T2-classified=Found:PREPARED 1326544 | T3-prepared-rollback 1326545 | T4-recovery-end 1326731 err=Startup restore recovery required
+REP5 status=ok (no TotalTime) trace: T1-gate-enter 1332086 | T2-classified=Found:PREPARED 1332220 | T3-prepared-rollback 1332220 | T4-recovery-end 1332387 err=Startup restore recovery required
+
+S5 prepared_large (5 runs; activity finishes; EvoluneRestore error):
+REP1 status=ok (no TotalTime) trace: T1-gate-enter 1338069 | T2-classified=Found:PREPARED 1338679 | T3-prepared-rollback 1338679 | T4-recovery-end 1339044 err=Startup restore recovery required
+REP2 status=ok (no TotalTime) trace: T1-gate-enter 1344689 | T2-classified=Found:PREPARED 1345302 | T3-prepared-rollback 1345302 | T4-recovery-end 1345706 err=Startup restore recovery required
+REP3 status=ok (no TotalTime) trace: T1-gate-enter 1351316 | T2-classified=Found:PREPARED 1352014 | T3-prepared-rollback 1352014 | T4-recovery-end 1352388 err=Startup restore recovery required
+REP4 status=ok (no TotalTime) trace: T1-gate-enter 1358122 | T2-classified=Found:PREPARED 1358912 | T3-prepared-rollback 1358912 | T4-recovery-end 1359285 err=Startup restore recovery required
+REP5 status=ok (no TotalTime) trace: T1-gate-enter 1365053 | T2-classified=Found:PREPARED 1365663 | T3-prepared-rollback 1365664 | T4-recovery-end 1366044 err=Startup restore recovery required
+
+T4 values in PREPARED runs include the failed settings post-verification; the
+journal remains PREPARED (not deleted), so every subsequent startup repeats.

@@ -1,0 +1,34 @@
+EVOLUNE v1.8.0 D-03 — TRACE SEPARATION
+======================================
+
+Separated components (cold start, medians):
+
+A. Activity/process startup overhead before the gate:
+   not separately instrumented; TotalTime includes it. The gate markers start
+   at T1 inside onCreate.
+
+B. Synchronous wait caused by the restore gate: T1 -> T5.
+   no_journal ~19 ms; committed_small ~165 ms; committed_large ~786 ms;
+   prepared_small ~324 ms to T4 (then finish); prepared_large ~991 ms to T4.
+
+C. Journal read/classification: T1 -> T2 (includes lazy Room open on first
+   cold start). no_journal ~16 ms; committed_small ~162 ms; committed_large
+   ~782 ms; prepared_small ~137 ms; prepared_large ~610 ms.
+
+D. File/settings operations:
+   COMMITTED cleanup (T3->T4) = 1-2 ms (AtomicFile.delete).
+   PREPARED settings rollback is inside T3->T4 (one DataStore edit).
+
+E. Room/database restore/verification:
+   inside T3->T4: prepared_small ~186 ms, prepared_large ~374 ms
+   (replaceRoom transaction + replaceSettings + failed post-verification).
+   No-journal/COMMITTED: no Room query at all.
+
+F. Post-gate Compose/consumer startup: T5 -> T6 = 118-200 ms
+   (repository graph, ViewModels, MainFeatureServices creation).
+
+G. First frame: T6 -> first frame is the remainder of TotalTime; the gate's
+   contribution to first-frame delay equals component B exactly (runBlocking
+   precedes setContent).
+
+No single aggregate "startup time" is reported without this separation.

@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 D-03 — IDENTITY
+==============================
+
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d03
+Branch: feature/v1.8.0-d03-startup-restore-characterization
+Parent (approved predecessor): c85e8809f268557c62dff1390479cb2c56aedbde
+  (D-02 CLOSED / FROZEN final head)
+Worktree at start: clean; created from exactly the parent commit.
+
+Slice: M03 — synchronous startup restore gate duration (evidence only).
+No production or committed test changes; disposable instrumentation and
+temporary trace markers were removed before the evidence commit.
+
+Version remains 1.7.4 / Phone 101_070_400 / Wear 1_101_070_400 (no bump).

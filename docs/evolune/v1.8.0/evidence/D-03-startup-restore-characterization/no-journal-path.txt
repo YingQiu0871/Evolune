@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-03 — NO-JOURNAL PATH
+=====================================
+
+Exact work performed when no journal exists:
+
+1. MainActivity: isExistingInstallation probe (file existence only, before the
+   gate; not part of the gate).
+2. Gate: SettingsDataStore construction; AppDatabase.getDatabase(context)
+   (Room open, lazy initialization); RestoreTransaction construction;
+   FileRestoreJournalStore construction.
+3. FileRestoreJournalStore.read:
+   - File.exists() on evolune_restore_journal.json
+   - File.exists() on evolune_restore_journal.json.bak
+   - both false -> Missing (no file read, no parse, no checksum)
+4. recoverLocked -> NothingToRecover.
+5. No Room query, no DataStore read/write, no deletion, no settings snapshot,
+   no JSON parsing, no checksum work.
+
+Measured (emulator, in-process 5 reps, real stack):
+  gateMs = 7.35 / 1.46 / 0.98 / 0.99 / 0.87  (first rep includes cold DB open)
+Measured (emulator cold starts, T1->T2 incl. cold DB open + existence checks):
+  14-17 ms; T2->T5 ~1-5 ms; total gate T1->T5 = 16-21 ms.
+
+The no-journal path does NOT scan the database; the only DB cost is opening the
+database object, which is also required by every later consumer.

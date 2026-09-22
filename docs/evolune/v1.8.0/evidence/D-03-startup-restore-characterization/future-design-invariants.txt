@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 D-03 — FUTURE DESIGN INVARIANTS (RECORDED, NOT IMPLEMENTED)
+==========================================================================
+
+Requirements recorded for a FUTURE design review (no async shell, loading
+screen, splash gate, deferred ViewModel creation, background recovery, new
+scope/mutex/persistence state was implemented in D-03):
+
+1. restore recovery starts exactly once
+2. normal consumers remain inaccessible until gate success
+3. zero normal repository/settings writes before gate success
+4. PREPARED rollback order unchanged (Room, then settings, then verification)
+5. COMMITTED cleanup unchanged (delete only)
+6. missing-journal semantics unchanged (two existence checks, no DB read)
+7. process death during recovery remains recoverable (journal preserved)
+8. journal/settings/Room crash points remain safe
+9. failure produces an explicit blocked/error UI (not finish() with no UI)
+10. no duplicate repository/service graphs
+11. no restored data observed before verification
+12. no fire-and-forget recovery
+
+Additional finding to resolve BEFORE any async redesign (correctness, separate
+from M03): PREPARED startup recovery currently fails closed on the real stack
+because the journal settings wire does not carry the v1.7.2 canonical theme
+fields (prepared-path.txt). Any future gate design must keep the current
+correctness semantics while this is addressed by a separate, authorized slice.
+
+No implementation architecture was chosen; only requirements were recorded.

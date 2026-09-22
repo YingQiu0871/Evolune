@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-03 — FREQUENCY / EXPOSURE (STRUCTURAL ONLY)
+============================================================
+
+No field incidence rates are claimed. Structural classification from the
+protocol/source:
+
+NO JOURNAL — normal/common path
+  Every startup where no restore was interrupted. This is the overwhelmingly
+  common case in normal use (no data needed, no counting invented).
+
+COMMITTED leftover journal — recovery-only path
+  A restore completed successfully (durable COMMITTED point) but the process
+  died before the final journal deletion, or the deletion itself failed
+  (RestoreResult.Success(cleanupPending = true)). Requires a crash/kill in a
+  very narrow window after the commit write.
+
+PREPARED journal — crash/interruption path
+  The process died (or lost power) between the PREPARED journal write and the
+  COMMITTED write, i.e. during the Room/settings replacement of an interactive
+  restore. Requires an interrupted restore.
+
+Corrupt/unsupported journal — exceptional path
+  Journal file damaged or produced by a newer version; fail-closed.
+
+No frequency estimates were derived from these categories.

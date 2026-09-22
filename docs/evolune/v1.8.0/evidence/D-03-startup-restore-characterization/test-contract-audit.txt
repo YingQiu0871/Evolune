@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-03 — TEST-CONTRACT AUDIT
+=========================================
+
+Existing tests covering the recovery contracts (must stay green for any future
+design; none were modified by D-03):
+
+JVM (app/src/test):
+- backup/B2RestoreTransactionTest (13 tests)
+    restore journal phases, rollback failure -> prepared journal repair,
+    prepared startup recovery restores before state, committed startup
+    recovery keeps target and only cleans journal, corrupt/future journals
+    fail closed, journal codec truncation/future-version/unknown-field
+    rejection, mutex serialization.
+- backup/BackupRestoreCoordinatorTest (19), backup/EvoluneBackupCodecTest (19),
+    backup/BackupThemeSchemaV2Test (10), cloud.google.* (28)
+    codec/validation/coordinator and Drive contracts.
+- application/RepositoryFakes + action tests exercise the restore-facing
+  repository behaviour used by the coordinator.
+
+Android (app/src/androidTest, run on the D-03 emulator):
+- backup/B2RoomRestorePersistenceTest (4 tests, OK)
+    Room replacement preserves all v3 fields and dangling event slot; trigger
+    failure rolls back the whole replacement transaction; settings replacement
+    uses one atomic call and preserves every field (including the v1.7.2
+    canonical theme representation); journal store uses no-backup files and
+    fails closed on truncation.
+
+Note: the JVM tests use a FakeRestorePersistence that stores BackupSettingsV1
+verbatim, so they do NOT exercise the real-stack settings canonicalization that
+makes PREPARED verification fail (prepared-path.txt). This is the test gap the
+D-03 measurement exposed; no test was changed.

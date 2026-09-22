@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 D-03 — FOCUSED TESTS
+==================================
+
+JVM (app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.backup.*"):
+  B2RestoreTransactionTest:              13 tests, 0 failures/errors/skips
+  BackupRestoreCoordinatorTest:          19 tests, 0 failures/errors/skips
+  BackupThemeSchemaV2Test:               10 tests, 0 failures/errors/skips
+  EvoluneBackupCodecTest:                19 tests, 0 failures/errors/skips
+  GoogleDriveBackupProviderTest:         24 tests, 0 failures/errors/skips
+  GoogleDriveRestGatewayTest:             4 tests, 0 failures/errors/skips
+  TOTAL: 6 suites / 89 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+Android (emulator-5554, existing test, not modified):
+  B2RoomRestorePersistenceTest: OK (4 tests)
+
+No test was modified or deleted by D-03. Because source/test bytes end
+identical to the parent, the inherited canonical full JVM baseline
+1695 / 1695 (C-01) remains valid; no ceremonial full rerun was performed.

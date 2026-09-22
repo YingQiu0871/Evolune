@@ -1,0 +1,35 @@
+EVOLUNE v1.8.0 D-03 — STARTUP TIMINGS
+=====================================
+
+A. In-process gate duration (real stack, 5 reps each, ms):
+   scenario          rep1    rep2    rep3    rep4    rep5    result
+   no_journal        7.35    1.46    0.98    0.99    0.87    NothingToRecover
+   committed_small 103.68   13.11   12.46    9.35   10.78    Recovered
+   committed_large 339.30  112.29  103.00   91.47   90.50    Recovered
+   prepared_small  158.15   32.75   28.95   26.26   29.38    Failure:RECOVERY_REQUIRED
+   prepared_large  503.39  306.75  293.76  274.26  320.67    Failure:RECOVERY_REQUIRED
+   (rep1 includes first-time DB open / class loading; reps 2-5 are steady state.)
+
+B. Cold-start runs (am start -W, 5 reps each):
+   scenario          TotalTime (ms)                gate T1->T5 (ms)   T2->T4
+   no_journal        3028/2252/2165/2160/2082      21/20/16/19/19     <=5
+   committed_small   2143/2220/2269/2115/2109      154/170/165/201/156 1-2
+   committed_large   2718/2783/2756/2708/2654      704/782/815/838/786 1-2
+   prepared_small    (no TotalTime; activity finishes)
+                      T1->T4 = 334/311/327/324/301 (no T5/T6)
+   prepared_large    (no TotalTime; activity finishes)
+                      T1->T4 = 975/1017/1072/1163/991 (no T5/T6)
+
+C. Gate share of cold start (median):
+   no_journal        ~19 ms / ~2.16 s  ~= 0.9 %
+   committed_small   ~165 ms / ~2.15 s ~= 7.7 %
+   committed_large   ~786 ms / ~2.72 s ~= 29 %
+   prepared_*        n/a (fail-closed, no first frame)
+
+D. Cold-start decomposition (medians):
+   no_journal:       T1->T2 16 ms (DB open + existence checks), T2->T5 3 ms,
+                     T5->T6 ~150 ms, T6->frame = remainder of TotalTime
+   committed_small:  T1->T2 162 ms (journal read+parse), cleanup ~1 ms
+   committed_large:  T1->T2 782 ms (journal read+parse), cleanup ~1 ms
+   prepared_small:   T1->T2 137 ms, T3->T4 186 ms (rollback + failed verify)
+   prepared_large:   T1->T2 610 ms, T3->T4 374 ms

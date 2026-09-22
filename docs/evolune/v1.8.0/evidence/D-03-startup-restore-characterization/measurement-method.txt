@@ -1,0 +1,36 @@
+EVOLUNE v1.8.0 D-03 — MEASUREMENT METHOD
+========================================
+
+Environment: Pixel_7 AVD (emulator-5554), Android 15 / API 35, userdebug.
+Build: debug APK (io.github.yingqiu0871.evolune.debug) from parent c85e8809
+with DISPOSABLE instrumentation only (removed before the evidence commit):
+  - temporary log markers (D03Trace) in MainActivity.onCreate and
+    B2RestoreTransaction.recoverLocked (T1/T2/T3/T4/T5/T6,
+    SystemClock.elapsedRealtime())
+  - temporary androidTest fixture writer / in-process gate meter
+    (D03FixtureWriterTest, removed)
+No production code, test source or resource in the committed tree was changed;
+zero-delta verified (zero-delta.txt).
+
+In-process measurement:
+  am instrument -w -e d03scenario <S> -e class ...#measureGate
+  each repetition: rewrite scenario fixture, then
+  System.nanoTime() around recoverInterruptedRestoreAtStartup(context, settings)
+  -> gateMs; result classification logged.
+
+Cold-start measurement (5 measured repetitions per scenario):
+  1. am instrument ...#writeScenario (establish scenario state)
+  2. adb shell am force-stop io.github.yingqiu0871.evolune.debug
+  3. adb logcat -c
+  4. adb shell am start -W -n io.github.yingqiu0871.evolune.debug/io.github.yingqiu0871.evolune.MainActivity
+     -> TotalTime (process start -> initial display), WaitTime
+  5. adb logcat -d -s D03Trace:I -> T1..T6 uptime markers
+No debugger; same build type for all runs; no cherry-picking (all 5 runs
+recorded per scenario). Raw captures: logs/in-process-measurements.txt,
+logs/cold-start-runs.txt.
+
+Trace markers:
+  T1 gate-enter | T2 journal classified | T3 recovery op begin |
+  T4 recovery op end | T5 gate-exit | T6 setContent called.
+  First frame is taken from am start -W TotalTime (Android initial-display
+  metric), not from logcat ordering.

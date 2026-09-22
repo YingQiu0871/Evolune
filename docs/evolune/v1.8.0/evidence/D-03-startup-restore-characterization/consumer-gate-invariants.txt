@@ -1,0 +1,23 @@
+EVOLUNE v1.8.0 D-03 — CONSUMER-GATE INVARIANTS
+==============================================
+
+Invariant: RECOVERY COMPLETE BEFORE NORMAL CONSUMER ACCESS.
+
+Source evidence (startup-path.txt ordering):
+- Every normal consumer is created strictly after the gate returns:
+  ProductionRepositoryProvider, RoomRestorePersistence, Drive/Google gateway,
+  ReminderManager, PostRestoreCoordinator, BackupRestoreCoordinator,
+  HealthConnectWeightProvider, SettingsViewModel, OnboardingViewModel,
+  MainFeatureServices (repositories/readers/factories), setContent and all
+  Compose/ViewModel consumers.
+- On recovery Failure, MainActivity finishes before creating any consumer.
+
+Zero normal writes before gate success:
+- No repository/settings write occurs before the gate: the gate is the first
+  operation that touches Room (AppDatabase.getDatabase) or DataStore.
+- SettingsDataStore is constructed before the gate but performs no write; its
+  first read/write happens later (settings consumers after the gate).
+- The only pre-gate filesystem probe is isExistingInstallation (exists()).
+
+For any future async shell this remains the hard invariant (see
+future-design-invariants.txt item 3).

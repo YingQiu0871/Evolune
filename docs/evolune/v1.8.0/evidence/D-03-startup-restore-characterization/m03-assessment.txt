@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 D-03 — M03 ASSESSMENT
+====================================
+
+Measured facts (emulator Pixel_7 API 35, real stack):
+
+Normal path (NO JOURNAL):
+  gate = 16-21 ms cold-start (T1->T5); ~1 ms steady in-process;
+  ~0.9 % of a ~2.16 s cold start to first frame.
+  -> NOT material.
+
+COMMITTED leftover journal (recovery-only path):
+  small journal (16 KB): gate ~150-200 ms (~7.7 % of startup)
+  large stress journal (513 KB): gate ~700-840 ms (~29 % of startup)
+  cost is dominated by the journal read + strict JSON parse inside the gate;
+  cleanup itself is ~1 ms and constant.
+  -> material only for large journals; recovery-only exposure.
+
+PREPARED journal (crash/interruption path):
+  currently fails closed on the real stack: rollback completes (Room verified),
+  then settings verification fails because the journal wire drops the v1.7.2
+  canonical theme fields -> RECOVERY_REQUIRED, journal preserved,
+  MainActivity.finish(), NO first frame, repeated on every startup.
+  -> correctness finding, not a latency finding; an async shell would not fix it.
+
+Assessment against the M03 decision options:
+  A (async design justified): not supported for the normal path; the recovery
+    paths alone are crash-only exposure.
+  C (gate cost not material): true for the normal path, but the COMMITTED
+    recovery cost is genuinely size-dependent and material for large journals,
+    and the PREPARED fail-closed behavior is a real defect.
+  B (device profiling required): profiling was performed; no longer applicable.
+  D (partially confirmed / architect decision required): BEST FIT — the
+    measurements are genuinely mixed: common-path cost negligible, recovery-only
+    paths material and size-dependent, plus a fail-closed PREPARED correctness
+    finding that must be handled separately before any gate redesign.
+
+Selected: D. No implementation is authorized by D-03; requirements were
+recorded for a separate future design review (future-design-invariants.txt).

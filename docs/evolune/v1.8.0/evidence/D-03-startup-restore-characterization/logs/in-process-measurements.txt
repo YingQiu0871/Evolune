@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 D-03 — RAW IN-PROCESS GATE MEASUREMENTS
+=======================================================
+
+Captured from logcat tag D03Measure (emulator-5554, real stack).
+Each repetition rewrote the scenario fixture, then measured
+System.nanoTime() around recoverInterruptedRestoreAtStartup.
+
+09-22 22:13:44.805 I D03Measure: scenario=no_journal rep=1 gateMs=7.3499 result=NothingToRecover
+09-22 22:13:44.849 I D03Measure: scenario=no_journal rep=2 gateMs=1.4631 result=NothingToRecover
+09-22 22:13:44.874 I D03Measure: scenario=no_journal rep=3 gateMs=0.9836 result=NothingToRecover
+09-22 22:13:44.905 I D03Measure: scenario=no_journal rep=4 gateMs=0.9857 result=NothingToRecover
+09-22 22:13:44.933 I D03Measure: scenario=no_journal rep=5 gateMs=0.8737 result=NothingToRecover
+09-22 22:13:57.911 I D03Measure: scenario=committed_small rep=1 gateMs=103.6776 result=Recovered
+09-22 22:13:57.988 I D03Measure: scenario=committed_small rep=2 gateMs=13.1113 result=Recovered
+09-22 22:13:58.042 I D03Measure: scenario=committed_small rep=3 gateMs=12.4608 result=Recovered
+09-22 22:13:58.086 I D03Measure: scenario=committed_small rep=4 gateMs=9.3454 result=Recovered
+09-22 22:13:58.128 I D03Measure: scenario=committed_small rep=5 gateMs=10.7834 result=Recovered
+09-22 22:14:00.128 I D03Measure: scenario=committed_large rep=1 gateMs=339.2965 result=Recovered
+09-22 22:14:00.661 I D03Measure: scenario=committed_large rep=2 gateMs=112.2861 result=Recovered
+09-22 22:14:01.023 I D03Measure: scenario=committed_large rep=3 gateMs=103.0008 result=Recovered
+09-22 22:14:01.383 I D03Measure: scenario=committed_large rep=4 gateMs=91.4688 result=Recovered
+09-22 22:14:01.721 I D03Measure: scenario=committed_large rep=5 gateMs=90.5025 result=Recovered
+09-22 22:14:03.206 I D03Measure: scenario=prepared_small rep=1 gateMs=158.1535 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:03.273 I D03Measure: scenario=prepared_small rep=2 gateMs=32.7476 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:03.336 I D03Measure: scenario=prepared_small rep=3 gateMs=28.9509 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:03.392 I D03Measure: scenario=prepared_small rep=4 gateMs=26.2643 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:03.451 I D03Measure: scenario=prepared_small rep=5 gateMs=29.3792 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:05.588 I D03Measure: scenario=prepared_large rep=1 gateMs=503.3883 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:06.257 I D03Measure: scenario=prepared_large rep=2 gateMs=306.7517 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:06.799 I D03Measure: scenario=prepared_large rep=3 gateMs=293.7615 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:07.323 I D03Measure: scenario=prepared_large rep=4 gateMs=274.2633 result=Failure:RECOVERY_REQUIRED
+09-22 22:14:07.944 I D03Measure: scenario=prepared_large rep=5 gateMs=320.6711 result=Failure:RECOVERY_REQUIRED
+
+Fixture stats (D03Stats):
+  committed_small journalBytes=16340 bakBytes=0 dbBytes=57344 plans=2 slots=4 events=60
+  committed_large journalBytes=512926 bakBytes=0 dbBytes=446464 plans=20 slots=60 events=2000
+  prepared_small  journalBytes=16339 bakBytes=0 dbBytes=446464 plans=2 slots=4 events=60
+  prepared_large  journalBytes=512925 bakBytes=0 dbBytes=446464 plans=20 slots=60 events=2000

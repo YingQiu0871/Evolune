@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-03 — FIXTURE DEFINITIONS
+=========================================
+
+Fixtures derived from the supported Evolune backup/restore semantics
+(BackupMedicationPlanV1 / BackupScheduledDoseSlotV1 / BackupDoseEventV1 /
+BackupSettingsV1), seeded through the real RoomRestorePersistence and
+SettingsDataStore, and journals written through the real
+FileRestoreJournalStore (same wire as production).
+
+SMALL (REPRESENTATIVE/ROUTINE, deterministic):
+  plans=2, slots=4, events=60
+  journal bytes=16,340  DB bytes=57,344  .bak bytes=0
+  settings: 60.0 kg / SYSTEM / DYNAMIC / autoCheckUpdates=true / SYSTEM
+
+LARGE (SYNTHETIC STRESS, not claimed representative):
+  plans=20, slots=60, events=2000
+  journal bytes=512,926  DB bytes=446,464  .bak bytes=0
+
+Scenarios:
+  S1 no_journal        small DB state, no journal file (normal startup)
+  S2 committed_small   valid COMMITTED journal, small payload
+  S3 committed_large   valid COMMITTED journal, large payload
+  S4 prepared_small    valid PREPARED journal whose beforeRoom equals the
+                       seeded DB state; beforeSettings = readSettings()
+  S5 prepared_large    same with the large fixture
+
+The PREPARED journal is written exactly like the production restore path
+(beforeRoom = readRoomState(), beforeSettings = readSettings()); the journal
+wire then drops the canonical theme fields exactly as in production, which is
+why the measured PREPARED verification behavior is the real production
+behavior (prepared-path.txt).

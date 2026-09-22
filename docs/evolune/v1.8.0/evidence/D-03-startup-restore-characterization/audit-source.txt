@@ -1,0 +1,29 @@
+EVOLUNE v1.8.0 D-03 — M03 AUDIT SOURCE
+======================================
+
+Authoritative report:
+  D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+  SHA-256: 122b3407c42e8ab49d34384bdd4d0436e53b0247f0c5ee65effe24e9ee452f61
+  bytes: 61,495
+
+M03 wording (verbatim):
+
+  M03 — Synchronous startup restore gate duration
+  Severity/area: P2 candidate; startup latency, data-integrity-sensitive.
+  Files/functions: AP/MainActivity.kt:94–107;
+  AP/data/RestoreStartupRecovery.kt:17;
+  AP/backup/B2RestoreJournal.kt:257–260; B2RestoreTransaction.kt recovery path.
+  Behavior/evidence: runBlocking(IO) blocks onCreate's caller while journal recovery
+  runs on IO. Missing journal checks file and .bak existence; Room object construction
+  alone is not proof a database is opened or fully scanned. PREPARED requires
+  rollback/verification, COMMITTED cleanup. Recovery must precede normal consumers.
+  Action: measure no-journal, COMMITTED and PREPARED small/large recovery from process
+  start to recovery completion and first frame. If significant, design a gated
+  startup shell; never simply move recovery after consumers or fire-and-forget.
+  Risk/tests: HIGH if changed; crash injection at journal/settings/Room stages,
+  upgrade/restore rollback, zero normal writes before gate succeeds, failure UI.
+  Executor/size/dependencies: DeepSeek V4.1 Flash evidence, small; any async gate
+  would be a separately reviewed GPT-5.6 Luna design, not committed in ordinary
+  hygiene. MEASUREMENT REQUIRED; keep current correctness gate meanwhile.
+
+D-03 scope is exactly this finding; nothing was broadened.

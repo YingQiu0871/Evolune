@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 D-03 — DEVICE / EMULATOR ENVIRONMENT
+===================================================
+
+Emulator: Pixel_7 AVD (emulator-5554)
+  model: sdk_gphone64_x86_64
+  Android 15 / API 35
+  fingerprint: google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+Build under test: debug (io.github.yingqiu0871.evolune.debug), versionName
+  1.7.4-debug, versionCode 101070400 (debug suffix), built from parent c85e8809
+  with disposable instrumentation only.
+The physical Pixel 11 Pro was NOT used.
+Host: Windows, adb + am instrument/am start -W; no debugger attached.
