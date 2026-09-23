@@ -1,0 +1,28 @@
+D-06 FINAL SUMMARY
+==================
+
+Starting HEAD:
+  a6e3428a1873cb179287d1bb7bc28a8d9a4a3544
+Implementation commit:
+  51b263b318279058cdec139357b078174090353a
+Implementation parent:
+  a6e3428a1873cb179287d1bb7bc28a8d9a4a3544
+
+Acceptance facts:
+  * cooperative cancellation observed inside obsolete SimulationEngine work;
+  * C successor engine-start mean 5.0734 ms, max 10.159 ms;
+  * D-05 C baseline mean 704.005 ms; improvement 99.279%;
+  * D-05 80% ceiling: 140.801 ms; D-06 result passes;
+  * C final publication mean 792.9577 ms and every row published once;
+  * peak concurrency exactly 1;
+  * engine-on-Main 0/60 rows;
+  * publication on Main 60/60 rows;
+  * obsolete C calls cancelled 120/120 and completed 0/120;
+  * focused JVM: 38/38 pass;
+  * canonical full JVM: 1704/1704 pass, 0 failures/errors/skips;
+  * raw checkout failures are documented separately and are not the gate;
+  * final raw checkout bytes restored after normalization.
+
+The D-06 M04 latency/resource acceptance gate passes.
+
+APPROVE V1.8.0 D-06 — M04 COOPERATIVE CANCELLATION IMPLEMENTED

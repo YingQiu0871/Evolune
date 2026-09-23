@@ -1,0 +1,17 @@
+D-06 CHANGED FILES / SCOPE AUDIT
+================================
+
+Implementation commit 51b263b318279058cdec139357b078174090353a contains only:
+  app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/pk/SimulationEngineTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+  app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt
+
+Evidence-only scope:
+  docs/evolune/v1.8.0/evidence/D-06-m04-cooperative-cancellation/**
+
+The temporary Android measurement harness was never committed under
+app/src/androidTest. No Retrospective source/test, dispatcher topology,
+publication guard, schema, version, dependency, release, push, or tag change
+was made.

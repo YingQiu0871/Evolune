@@ -1,0 +1,24 @@
+D-06 THREAD / MAIN SANITY
+=========================
+
+Source: raw/d06-m04-device.log, independently summarized in
+measurements/recomputed-statistics.txt.
+
+Clean A rows:
+  engineOnMain: 0/30
+  peak concurrency: 1 in every row
+  publication thread: main in every row
+  engine thread: DefaultDispatcher-worker-3 in the recorded run
+
+Realistic C rows:
+  engineOnMain: 0/30
+  peak concurrency: 1 in every row
+  publication thread: main in every row
+  obsolete calls cancelled inside engine: 4 in every row
+  obsolete calls completing normally: 0 in every row
+  final call completed: 30/30
+  final publication: 30/30
+  final engine threads: DefaultDispatcher-worker-2 / DefaultDispatcher-worker-3
+
+The one-engine peak confirms the existing serialized collectLatest topology;
+the improvement comes from terminating obsolete work, not parallel engines.

@@ -1,0 +1,16 @@
+D-06 NUMERICAL EQUIVALENCE
+==========================
+
+SimulationEngineTest retains the fixed representative output contract:
+  AUC: 23285.499354395688
+  representative concentration samples remain exact to the existing 1e-9
+  assertions.
+
+The new explicit no-op test runs the same representative event set once with
+the default constructor behavior and once with cancellationCheck = {} and
+asserts the complete SimulationResult objects equal bit-for-bit through the
+data-class equality.
+
+The cancellation implementation does not alter the numerical step body or
+publication mapping. Completed successor runs therefore use the unchanged
+engine calculation; only superseded runs terminate before producing a result.

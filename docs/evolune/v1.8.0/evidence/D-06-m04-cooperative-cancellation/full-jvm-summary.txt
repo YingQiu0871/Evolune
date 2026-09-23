@@ -1,0 +1,50 @@
+D-06 FULL JVM REGRESSION SUMMARY
+================================
+
+Two byte modes are intentionally recorded separately.
+
+A. Raw Windows checkout
+------------------------
+
+The raw checkout reproduces the known environment-sensitive failures:
+  * PortableGoldenFixtureTest canonical JSON byte assertion
+  * PortableGoldenFixtureTest canonical CSV byte assertion
+
+The same raw checkout also reproduces the pre-existing CRLF-sensitive
+HistoryLazyEntryArchitectureTest assertion because its source needle embeds a
+LF-only string while AppNavigation.kt is materialized as CRLF. This is the
+same tracked-LF normalization issue documented by earlier v1.8.0 slices.
+
+The focused raw reproduction ran 7 tests and reported exactly 3 failures:
+the two portable golden-byte assertions and that known architecture assertion.
+The raw full attempt reached 1443 app tests and reported the same three
+environment-byte failures. Raw checkout is not the accepted regression gate.
+
+Raw evidence:
+  raw/raw-checkout-focused.log
+
+B. Canonical tracked-LF regression gate
+----------------------------------------
+
+Before the accepted run, the following files were temporarily materialized
+from their tracked Git LF blobs, with exact raw backups restored afterward:
+  app/src/test/resources/phase-e/golden-canonical.json
+  app/src/test/resources/phase-e/golden-canonical.csv
+  app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test \
+    :wear:testDebugUnitTest --rerun-tasks
+
+Canonical result:
+  app:            1443 / 1443 PASS
+  experience-core: 171 / 171 PASS
+  wear:             90 / 90 PASS
+  TOTAL:         1704 / 1704 PASS
+  failures: 0
+  errors: 0
+  skipped: 0
+  Gradle exit: 0
+
+The full canonical run is the accepted D-06 JVM gate. Its raw output is
+preserved at raw/full-jvm-canonical.log.

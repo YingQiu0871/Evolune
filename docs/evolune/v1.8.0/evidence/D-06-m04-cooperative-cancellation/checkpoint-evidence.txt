@@ -1,0 +1,24 @@
+D-06 CHECKPOINT EVIDENCE
+=======================
+
+Deterministic engine test:
+  SimulationEngineTest.cancellation checkpoint propagates before a complete result exists
+  cancellationCheck throws CancellationException on checkpoint 5 of 1441
+  observed checkpoints: 5
+  returned SimulationResult: none
+  exception: CancellationException("deterministic test cancellation")
+
+Actual Home orchestration JVM test:
+  HRTViewModelTest.home supersession cancels inside engine and publishes only the successor
+  A enters SimulationEngine, the test supersedes it, and the engine callback
+  observes owner cancellation before A completes.
+  B starts afterward and publishes exactly once.
+  obsolete A completion count: 0
+  successor completion count: 1
+  cancellation-as-error state: absent
+  engine thread: dedicated non-main test dispatcher
+
+Device burst evidence:
+  30 clean rows and 30 realistic 200 ms burst rows were recorded.
+  Every C row recorded four obsolete calls cancelled inside the engine, zero
+  obsolete completions, one completed final call, and one final publication.

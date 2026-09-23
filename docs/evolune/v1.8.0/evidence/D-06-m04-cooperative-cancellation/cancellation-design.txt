@@ -1,0 +1,26 @@
+D-06 CANCELLATION DESIGN
+========================
+
+Production change is limited to the existing synchronous engine/calculator
+seam.
+
+1. SimulationEngine accepts an optional pure-Kotlin cancellationCheck callback
+   whose default is an empty lambda. The engine has no coroutine, Android,
+   dispatcher, lifecycle, executor, or thread-pool dependency.
+2. The callback is invoked at the start of each outer time-step iteration,
+   before that step reads models or appends output. This is a stable loop
+   boundary with at most one step of engine work between checks.
+3. A callback exception, including kotlinx.coroutines.CancellationException
+   supplied by the owner, propagates normally. No partial SimulationResult is
+   returned from a cancelled run.
+4. DefaultPkSimulationCalculator captures the Home calculation coroutine
+   context and passes ownerContext.ensureActive() through both baseline and
+   full SimulationEngine runs.
+5. Existing callers retain the no-op engine behavior. Retrospective was not
+   changed and therefore continues to use the default no-op path.
+6. No publication guard, generation identifier, debounce, throttle, parallel
+   engine, or stale-publication behavior was added.
+
+The completed numerical loop is unchanged; only the optional check executes
+before a step. The fixed representative output and explicit no-op comparison
+are retained in SimulationEngineTest.

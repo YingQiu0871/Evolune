@@ -1,0 +1,326 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt b/app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
+index 28c6947..db9de52 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
+@@ -139,7 +139,14 @@ class SimulationEngine(
+     bodyWeightKG: Double,
+     private val startTimeH: Double,
+     private val endTimeH: Double,
+-    private val numberOfSteps: Int
++    private val numberOfSteps: Int,
++    /**
++     * Called at the start of each stable outer simulation step.
++     *
++     * The default is intentionally a no-op so callers that do not own a
++     * cancellable operation retain the same synchronous behavior and output.
++     */
++    private val cancellationCheck: () -> Unit = {}
+ ) {
+     private val precomputedModels: List<PrecomputedEventModel>
+     private val plasmaVolumeML: Double
+@@ -172,6 +179,7 @@ class SimulationEngine(
+         var auc = 0.0
+ 
+         for (i in 0 until numberOfSteps) {
++            cancellationCheck()
+             val t = startTimeH + i * stepSize
+             var totalAmountMG = 0.0
+ 
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+index 014d2de..7f42309 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+@@ -36,28 +36,35 @@ internal fun interface PkSimulationRunner {
+         bodyWeightKG: Double,
+         startTimeH: Double,
+         endTimeH: Double,
+-        numberOfSteps: Int
++        numberOfSteps: Int,
++        cancellationCheck: () -> Unit
+     ): SimulationResult
+ }
+ 
+ private val defaultPkSimulationRunner = PkSimulationRunner { events, bodyWeightKG, startTimeH,
+-    endTimeH, numberOfSteps ->
++    endTimeH, numberOfSteps, cancellationCheck ->
+     SimulationEngine(
+         events = events,
+         bodyWeightKG = bodyWeightKG,
+         startTimeH = startTimeH,
+         endTimeH = endTimeH,
+-        numberOfSteps = numberOfSteps
++        numberOfSteps = numberOfSteps,
++        cancellationCheck = cancellationCheck
+     ).run()
+ }
+ 
+ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
+-    override suspend fun calculate(input: PkSimulationInput): PKState =
+-        calculate(input, defaultPkSimulationRunner)
++    override suspend fun calculate(input: PkSimulationInput): PKState {
++        val ownerContext = currentCoroutineContext()
++        return calculate(input, defaultPkSimulationRunner) {
++            ownerContext.ensureActive()
++        }
++    }
+ 
+     internal suspend fun calculate(
+         input: PkSimulationInput,
+-        simulationRunner: PkSimulationRunner
++        simulationRunner: PkSimulationRunner,
++        cancellationCheck: () -> Unit = {}
+     ): PKState {
+         val historicalEvents = DomainDoseEventToPkAdapter.adapt(
+             input.historicalDoseEvents.filter { event ->
+@@ -100,7 +107,8 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
+                 bodyWeightKG = input.bodyWeightKG,
+                 startTimeH = startTimeH,
+                 endTimeH = endTimeH,
+-                numberOfSteps = numberOfSteps
++                numberOfSteps = numberOfSteps,
++                cancellationCheck = cancellationCheck
+             )
+         } else {
+             null
+@@ -115,7 +123,8 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
+                 bodyWeightKG = input.bodyWeightKG,
+                 startTimeH = startTimeH,
+                 endTimeH = endTimeH,
+-                numberOfSteps = numberOfSteps
++                numberOfSteps = numberOfSteps,
++                cancellationCheck = cancellationCheck
+             )
+         } else {
+             null
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/pk/SimulationEngineTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/pk/SimulationEngineTest.kt
+index 00cc847..7df188a 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/pk/SimulationEngineTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/pk/SimulationEngineTest.kt
+@@ -1,5 +1,6 @@
+ package io.github.yingqiu0871.evolune.pk
+ 
++import kotlinx.coroutines.CancellationException
+ import org.junit.Assert.*
+ import org.junit.Test
+ 
+@@ -55,6 +56,72 @@ class SimulationEngineTest {
+         assertEquals(0.792625624558463, result.concentration(124.0)!!, 1e-9)
+     }
+ 
++    @Test
++    fun `explicit no-op cancellation hook preserves representative output`() {
++        val events = listOf(
++            DoseEvent(
++                route = Route.ORAL,
++                timeH = 100.0,
++                doseMG = 2.0,
++                ester = Ester.E2
++            ),
++            DoseEvent(
++                route = Route.INJECTION,
++                timeH = 124.0,
++                doseMG = 5.0,
++                ester = Ester.EV
++            )
++        )
++        val baseline = SimulationEngine(
++            events = events,
++            bodyWeightKG = 55.0,
++            startTimeH = 76.0,
++            endTimeH = 196.0,
++            numberOfSteps = 1_441
++        ).run()
++        val explicitNoOp = SimulationEngine(
++            events = events,
++            bodyWeightKG = 55.0,
++            startTimeH = 76.0,
++            endTimeH = 196.0,
++            numberOfSteps = 1_441,
++            cancellationCheck = {}
++        ).run()
++
++        assertEquals(baseline, explicitNoOp)
++    }
++
++    @Test
++    fun `cancellation checkpoint propagates before a complete result exists`() {
++        var checkpoints = 0
++
++        val thrown = assertThrows(CancellationException::class.java) {
++            SimulationEngine(
++                events = listOf(
++                    DoseEvent(
++                        route = Route.ORAL,
++                        timeH = 100.0,
++                        doseMG = 2.0,
++                        ester = Ester.E2
++                    )
++                ),
++                bodyWeightKG = bodyWeight,
++                startTimeH = 76.0,
++                endTimeH = 196.0,
++                numberOfSteps = 1_441,
++                cancellationCheck = {
++                    checkpoints += 1
++                    if (checkpoints == 5) {
++                        throw CancellationException("deterministic test cancellation")
++                    }
++                }
++            ).run()
++        }
++
++        assertEquals("deterministic test cancellation", thrown.message)
++        assertEquals(5, checkpoints)
++    }
++
+     @Test
+     fun testEmptyEventList() {
+         val result = SimulationEngine.runSimulation(
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+index 613580c..615dff5 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModelTest.kt
+@@ -21,6 +21,7 @@ import io.github.yingqiu0871.evolune.core.model.ScheduleType
+ import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
+ import io.github.yingqiu0871.evolune.pk.Ester
+ import io.github.yingqiu0871.evolune.pk.Route
++import io.github.yingqiu0871.evolune.pk.SimulationEngine
+ import kotlinx.coroutines.CancellationException
+ import kotlinx.coroutines.CompletableDeferred
+ import kotlinx.coroutines.CoroutineScope
+@@ -28,13 +29,17 @@ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.SupervisorJob
+ import kotlinx.coroutines.asCoroutineDispatcher
+ import kotlinx.coroutines.cancel
++import kotlinx.coroutines.currentCoroutineContext
+ import kotlinx.coroutines.delay
++import kotlinx.coroutines.ensureActive
+ import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.collect
+ import kotlinx.coroutines.flow.filter
+ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.flow.flowOf
+ import kotlinx.coroutines.awaitCancellation
++import kotlinx.coroutines.launch
+ import kotlinx.coroutines.runBlocking
+ import kotlinx.coroutines.withTimeout
+ import kotlinx.serialization.json.Json
+@@ -55,6 +60,8 @@ import java.time.ZoneOffset
+ import java.util.ArrayDeque
+ import java.util.UUID
+ import java.util.concurrent.Executors
++import java.util.concurrent.CountDownLatch
++import java.util.concurrent.TimeUnit
+ import java.util.concurrent.atomic.AtomicInteger
+ 
+ class HRTViewModelTest {
+@@ -168,6 +175,94 @@ class HRTViewModelTest {
+         }
+     }
+ 
++    @Test
++    fun `home supersession cancels inside engine and publishes only the successor`() = runBlocking {
++        val repository = FakeDoseEventRepository().apply {
++            pkEvents = listOf(event())
++        }
++        val firstEngineEntered = CompletableDeferred<Unit>()
++        val firstCancelled = CompletableDeferred<Unit>()
++        val releaseFirstCheckpoint = CountDownLatch(1)
++        val successorPublished = CompletableDeferred<Unit>()
++        val runnerCalls = AtomicInteger()
++        val completedCalls = AtomicInteger()
++        val publishedResults = AtomicInteger()
++        val runnerThreads = mutableListOf<String>()
++        val executor = Executors.newSingleThreadExecutor { runnable ->
++            Thread(runnable, "d06-home-engine")
++        }
++        val dispatcher = executor.asCoroutineDispatcher()
++        val runner = PkSimulationRunner { events, weight, start, end, steps, ownerCheck ->
++            val ordinal = runnerCalls.incrementAndGet()
++            synchronized(runnerThreads) { runnerThreads += Thread.currentThread().name }
++            try {
++                SimulationEngine(
++                    events = events,
++                    bodyWeightKG = weight,
++                    startTimeH = start,
++                    endTimeH = end,
++                    numberOfSteps = steps,
++                    cancellationCheck = {
++                        if (ordinal == 1 && !firstEngineEntered.isCompleted) {
++                            firstEngineEntered.complete(Unit)
++                            assertTrue(
++                                releaseFirstCheckpoint.await(5, TimeUnit.SECONDS)
++                            )
++                        }
++                        ownerCheck()
++                    }
++                ).run().also { completedCalls.incrementAndGet() }
++            } catch (error: CancellationException) {
++                if (ordinal == 1) {
++                    firstCancelled.complete(Unit)
++                }
++                throw error
++            }
++        }
++        val calculator = PkSimulationCalculator { input ->
++            val ownerContext = currentCoroutineContext()
++            DefaultPkSimulationCalculator.calculate(input, runner) {
++                ownerContext.ensureActive()
++            }
++        }
++        val fixture = fixture(
++            repository = repository,
++            simulationDispatcher = dispatcher,
++            simulationCalculator = calculator
++        )
++        val publicationJob = launch {
++            fixture.viewModel.pkState.collect { state ->
++                if (!state.isSimulating && state.simulationResult != null && state.error == null) {
++                    publishedResults.incrementAndGet()
++                    successorPublished.complete(Unit)
++                }
++            }
++        }
++        try {
++            withTimeout(5_000L) { firstEngineEntered.await() }
++            fixture.viewModel.runSimulation()
++            releaseFirstCheckpoint.countDown()
++
++            withTimeout(5_000L) {
++                firstCancelled.await()
++                successorPublished.await()
++            }
++
++            assertEquals(2, runnerCalls.get())
++            assertEquals(1, completedCalls.get())
++            assertEquals(1, publishedResults.get())
++            assertEquals(2, runnerThreads.size)
++            assertTrue(runnerThreads.all { it.startsWith("d06-home-engine") })
++            assertNull(fixture.viewModel.pkState.value.error)
++            assertTrue(!fixture.viewModel.pkState.value.isSimulating)
++        } finally {
++            publicationJob.cancel()
++            fixture.close()
++            dispatcher.close()
++            executor.shutdownNow()
++        }
++    }
++
+     @Test
+     fun `create session survives validation and storage failure without changing identity`() {
+         var nextId = 1L
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt
+index 57ecfa4..6e70b70 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculatorTest.kt
+@@ -178,7 +178,8 @@ class PkSimulationCalculatorTest {
+             bodyWeightKG: Double,
+             startTimeH: Double,
+             endTimeH: Double,
+-            numberOfSteps: Int
++            numberOfSteps: Int,
++            cancellationCheck: () -> Unit
+         ): SimulationResult {
+             calls += Call(events, bodyWeightKG, startTimeH, endTimeH, numberOfSteps)
+             return SimulationResult(

@@ -1,0 +1,24 @@
+D-06 STARTING STATE
+===================
+
+Accepted D-05 HEAD before implementation:
+  a6e3428a1873cb179287d1bb7bc28a8d9a4a3544
+
+Product baseline:
+  057011b83d74277af9045acf417499f941f95a0c
+
+Active worktree:
+  feature/v1.8.0-d06-m04-cooperative-cancellation
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d06
+
+Starting worktree was clean. The frozen D-05 measurement worktree was not
+modified.
+
+The raw Windows checkout materialized these tracked LF-sensitive blobs with
+the following byte sizes:
+  golden-canonical.json: raw 3656, tracked LF blob 3531
+  golden-canonical.csv:  raw 1773, tracked LF blob 1763
+  AppNavigation.kt:      raw 70686, tracked LF blob 69129
+
+Implementation commit created from the accepted starting state:
+  51b263b318279058cdec139357b078174090353a

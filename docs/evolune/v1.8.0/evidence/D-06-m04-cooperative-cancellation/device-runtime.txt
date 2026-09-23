@@ -1,0 +1,23 @@
+D-06 DEVICE RUNTIME
+===================
+
+Device:
+  model: Pixel_7(AVD)
+  product: sdk_gphone64_x86_64
+  Android: 15
+  API: 35
+
+Command:
+  .\gradlew.bat :app:connectedDebugAndroidTest \
+    -Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.d06.D06M04CooperativeCancellationTest \
+    --rerun-tasks
+
+Instrumentation result:
+  2 tests PASS
+  cleanReference: 30/30 valid repetitions
+  realisticProductionBurst: 30/30 valid repetitions
+  failures: 0
+
+The measurement class was temporary. Its exact source copy is preserved at
+raw/D06M04CooperativeCancellationTest.kt and it was removed from
+app/src/androidTest before the implementation/evidence commits.

@@ -1,0 +1,22 @@
+D-06 FOCUSED TEST SUMMARY
+=========================
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest \
+    --tests io.github.yingqiu0871.evolune.pk.SimulationEngineTest \
+    --tests io.github.yingqiu0871.evolune.viewmodel.PkSimulationCalculatorTest \
+    --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest \
+    --rerun-tasks
+
+Result:
+  38 tests PASS
+  0 failures
+  0 errors
+  0 skipped
+
+Breakdown:
+  SimulationEngineTest: 15
+  PkSimulationCalculatorTest: 3
+  HRTViewModelTest: 20
+
+Raw output: raw/focused-tests.log
