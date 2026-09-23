@@ -139,7 +139,14 @@ class SimulationEngine(
     bodyWeightKG: Double,
     private val startTimeH: Double,
     private val endTimeH: Double,
-    private val numberOfSteps: Int
+    private val numberOfSteps: Int,
+    /**
+     * Called at the start of each stable outer simulation step.
+     *
+     * The default is intentionally a no-op so callers that do not own a
+     * cancellable operation retain the same synchronous behavior and output.
+     */
+    private val cancellationCheck: () -> Unit = {}
 ) {
     private val precomputedModels: List<PrecomputedEventModel>
     private val plasmaVolumeML: Double
@@ -172,6 +179,7 @@ class SimulationEngine(
         var auc = 0.0
 
         for (i in 0 until numberOfSteps) {
+            cancellationCheck()
             val t = startTimeH + i * stepSize
             var totalAmountMG = 0.0
 

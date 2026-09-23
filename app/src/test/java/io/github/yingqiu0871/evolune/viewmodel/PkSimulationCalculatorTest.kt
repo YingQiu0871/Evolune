@@ -178,7 +178,8 @@ class PkSimulationCalculatorTest {
             bodyWeightKG: Double,
             startTimeH: Double,
             endTimeH: Double,
-            numberOfSteps: Int
+            numberOfSteps: Int,
+            cancellationCheck: () -> Unit
         ): SimulationResult {
             calls += Call(events, bodyWeightKG, startTimeH, endTimeH, numberOfSteps)
             return SimulationResult(

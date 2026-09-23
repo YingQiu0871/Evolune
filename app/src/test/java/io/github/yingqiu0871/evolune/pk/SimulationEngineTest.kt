@@ -1,5 +1,6 @@
 package io.github.yingqiu0871.evolune.pk
 
+import kotlinx.coroutines.CancellationException
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -53,6 +54,72 @@ class SimulationEngineTest {
             assertEquals(expectedSamples[sampleIndex], result.concPGmL[resultIndex], 1e-9)
         }
         assertEquals(0.792625624558463, result.concentration(124.0)!!, 1e-9)
+    }
+
+    @Test
+    fun `explicit no-op cancellation hook preserves representative output`() {
+        val events = listOf(
+            DoseEvent(
+                route = Route.ORAL,
+                timeH = 100.0,
+                doseMG = 2.0,
+                ester = Ester.E2
+            ),
+            DoseEvent(
+                route = Route.INJECTION,
+                timeH = 124.0,
+                doseMG = 5.0,
+                ester = Ester.EV
+            )
+        )
+        val baseline = SimulationEngine(
+            events = events,
+            bodyWeightKG = 55.0,
+            startTimeH = 76.0,
+            endTimeH = 196.0,
+            numberOfSteps = 1_441
+        ).run()
+        val explicitNoOp = SimulationEngine(
+            events = events,
+            bodyWeightKG = 55.0,
+            startTimeH = 76.0,
+            endTimeH = 196.0,
+            numberOfSteps = 1_441,
+            cancellationCheck = {}
+        ).run()
+
+        assertEquals(baseline, explicitNoOp)
+    }
+
+    @Test
+    fun `cancellation checkpoint propagates before a complete result exists`() {
+        var checkpoints = 0
+
+        val thrown = assertThrows(CancellationException::class.java) {
+            SimulationEngine(
+                events = listOf(
+                    DoseEvent(
+                        route = Route.ORAL,
+                        timeH = 100.0,
+                        doseMG = 2.0,
+                        ester = Ester.E2
+                    )
+                ),
+                bodyWeightKG = bodyWeight,
+                startTimeH = 76.0,
+                endTimeH = 196.0,
+                numberOfSteps = 1_441,
+                cancellationCheck = {
+                    checkpoints += 1
+                    if (checkpoints == 5) {
+                        throw CancellationException("deterministic test cancellation")
+                    }
+                }
+            ).run()
+        }
+
+        assertEquals("deterministic test cancellation", thrown.message)
+        assertEquals(5, checkpoints)
     }
 
     @Test

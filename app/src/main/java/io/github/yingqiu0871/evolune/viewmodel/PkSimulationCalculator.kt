@@ -36,28 +36,35 @@ internal fun interface PkSimulationRunner {
         bodyWeightKG: Double,
         startTimeH: Double,
         endTimeH: Double,
-        numberOfSteps: Int
+        numberOfSteps: Int,
+        cancellationCheck: () -> Unit
     ): SimulationResult
 }
 
 private val defaultPkSimulationRunner = PkSimulationRunner { events, bodyWeightKG, startTimeH,
-    endTimeH, numberOfSteps ->
+    endTimeH, numberOfSteps, cancellationCheck ->
     SimulationEngine(
         events = events,
         bodyWeightKG = bodyWeightKG,
         startTimeH = startTimeH,
         endTimeH = endTimeH,
-        numberOfSteps = numberOfSteps
+        numberOfSteps = numberOfSteps,
+        cancellationCheck = cancellationCheck
     ).run()
 }
 
 internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
-    override suspend fun calculate(input: PkSimulationInput): PKState =
-        calculate(input, defaultPkSimulationRunner)
+    override suspend fun calculate(input: PkSimulationInput): PKState {
+        val ownerContext = currentCoroutineContext()
+        return calculate(input, defaultPkSimulationRunner) {
+            ownerContext.ensureActive()
+        }
+    }
 
     internal suspend fun calculate(
         input: PkSimulationInput,
-        simulationRunner: PkSimulationRunner
+        simulationRunner: PkSimulationRunner,
+        cancellationCheck: () -> Unit = {}
     ): PKState {
         val historicalEvents = DomainDoseEventToPkAdapter.adapt(
             input.historicalDoseEvents.filter { event ->
@@ -100,7 +107,8 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
                 bodyWeightKG = input.bodyWeightKG,
                 startTimeH = startTimeH,
                 endTimeH = endTimeH,
-                numberOfSteps = numberOfSteps
+                numberOfSteps = numberOfSteps,
+                cancellationCheck = cancellationCheck
             )
         } else {
             null
@@ -115,7 +123,8 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
                 bodyWeightKG = input.bodyWeightKG,
                 startTimeH = startTimeH,
                 endTimeH = endTimeH,
-                numberOfSteps = numberOfSteps
+                numberOfSteps = numberOfSteps,
+                cancellationCheck = cancellationCheck
             )
         } else {
             null

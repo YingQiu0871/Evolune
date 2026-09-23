@@ -21,6 +21,7 @@ import io.github.yingqiu0871.evolune.core.model.ScheduleType
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
+import io.github.yingqiu0871.evolune.pk.SimulationEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -28,13 +29,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -55,6 +60,8 @@ import java.time.ZoneOffset
 import java.util.ArrayDeque
 import java.util.UUID
 import java.util.concurrent.Executors
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 class HRTViewModelTest {
@@ -162,6 +169,94 @@ class HRTViewModelTest {
             assertEquals(2.0, latest.currentConcentration!!, 0.0)
             assertEquals(2, calls.get())
         } finally {
+            fixture.close()
+            dispatcher.close()
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun `home supersession cancels inside engine and publishes only the successor`() = runBlocking {
+        val repository = FakeDoseEventRepository().apply {
+            pkEvents = listOf(event())
+        }
+        val firstEngineEntered = CompletableDeferred<Unit>()
+        val firstCancelled = CompletableDeferred<Unit>()
+        val releaseFirstCheckpoint = CountDownLatch(1)
+        val successorPublished = CompletableDeferred<Unit>()
+        val runnerCalls = AtomicInteger()
+        val completedCalls = AtomicInteger()
+        val publishedResults = AtomicInteger()
+        val runnerThreads = mutableListOf<String>()
+        val executor = Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "d06-home-engine")
+        }
+        val dispatcher = executor.asCoroutineDispatcher()
+        val runner = PkSimulationRunner { events, weight, start, end, steps, ownerCheck ->
+            val ordinal = runnerCalls.incrementAndGet()
+            synchronized(runnerThreads) { runnerThreads += Thread.currentThread().name }
+            try {
+                SimulationEngine(
+                    events = events,
+                    bodyWeightKG = weight,
+                    startTimeH = start,
+                    endTimeH = end,
+                    numberOfSteps = steps,
+                    cancellationCheck = {
+                        if (ordinal == 1 && !firstEngineEntered.isCompleted) {
+                            firstEngineEntered.complete(Unit)
+                            assertTrue(
+                                releaseFirstCheckpoint.await(5, TimeUnit.SECONDS)
+                            )
+                        }
+                        ownerCheck()
+                    }
+                ).run().also { completedCalls.incrementAndGet() }
+            } catch (error: CancellationException) {
+                if (ordinal == 1) {
+                    firstCancelled.complete(Unit)
+                }
+                throw error
+            }
+        }
+        val calculator = PkSimulationCalculator { input ->
+            val ownerContext = currentCoroutineContext()
+            DefaultPkSimulationCalculator.calculate(input, runner) {
+                ownerContext.ensureActive()
+            }
+        }
+        val fixture = fixture(
+            repository = repository,
+            simulationDispatcher = dispatcher,
+            simulationCalculator = calculator
+        )
+        val publicationJob = launch {
+            fixture.viewModel.pkState.collect { state ->
+                if (!state.isSimulating && state.simulationResult != null && state.error == null) {
+                    publishedResults.incrementAndGet()
+                    successorPublished.complete(Unit)
+                }
+            }
+        }
+        try {
+            withTimeout(5_000L) { firstEngineEntered.await() }
+            fixture.viewModel.runSimulation()
+            releaseFirstCheckpoint.countDown()
+
+            withTimeout(5_000L) {
+                firstCancelled.await()
+                successorPublished.await()
+            }
+
+            assertEquals(2, runnerCalls.get())
+            assertEquals(1, completedCalls.get())
+            assertEquals(1, publishedResults.get())
+            assertEquals(2, runnerThreads.size)
+            assertTrue(runnerThreads.all { it.startsWith("d06-home-engine") })
+            assertNull(fixture.viewModel.pkState.value.error)
+            assertTrue(!fixture.viewModel.pkState.value.isSimulating)
+        } finally {
+            publicationJob.cancel()
             fixture.close()
             dispatcher.close()
             executor.shutdownNow()
