@@ -1,0 +1,14 @@
+D-04R SOURCE ZERO-DELTA AUDIT
+
+Temporary Android harness source was removed before the evidence-only commit.
+
+Required command:
+git diff 5a6f65ddecc625dbf2afdc0ed847db441304f541..HEAD -- app/src/main app/src/test app/src/androidTest wear experience-core
+
+Expected and verified result at final HEAD: empty output.
+
+The D-04R commit contains evidence documentation only under:
+docs/evolune/v1.8.0/evidence/D-04R-home-dispatcher-fidelity/
+
+No production code, product JVM test, Android test, wear source/test, or experience-core
+source/test was committed by D-04R.

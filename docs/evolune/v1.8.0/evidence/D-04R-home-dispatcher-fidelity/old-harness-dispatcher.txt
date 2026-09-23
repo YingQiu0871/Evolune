@@ -1,0 +1,19 @@
+OLD D-04 HARNESS DISPATCHER TOPOLOGY
+
+The committed D-04 temporary harness constructed Home HRTViewModel with:
+  operationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+  simulationDispatcher = Dispatchers.Default
+
+Therefore its outer collectLatest operation scope and its inner simulation context had the
+same effective Default dispatcher. The harness did not execute the production Main.immediate
+caller -> Dispatchers.Default simulation -> Main publication-return path.
+
+The old controller also released the superseded generation before invoking SimulationEngine.run
+inside its runner. Its T2 therefore was not a proof that the engine was already executing when
+supersession occurred. The old repeated trace is valid as a Default-to-Default control artifact,
+but not as production Home dispatcher evidence.
+
+Source references at the D-04 parent:
+  docs/evolune/v1.8.0/evidence/D-04-m04-engine-cancellation-characterization/logs/temporary-measurement-harness.kt
+  scope construction near lines 127-137
+  HomeController release-before-engine path near lines 351-377

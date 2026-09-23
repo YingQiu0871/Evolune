@@ -1,0 +1,10 @@
+NUMERICAL EQUIVALENCE
+
+Every final generation was compared with a clean DefaultPkSimulationCalculator calculation using
+the same captured PkSimulationInput.
+
+Production: 10/10 final states numerically and structurally equal to clean reference.
+Default-to-Default control: 10/10 final states numerically and structurally equal to clean reference.
+
+No numerical difference was used to classify stale publication. Classification used actual
+SimulationResult identity observed through the real pkState StateFlow.

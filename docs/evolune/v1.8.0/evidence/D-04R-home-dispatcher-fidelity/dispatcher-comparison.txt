@@ -1,0 +1,14 @@
+DISPATCHER COMPARISON
+
+Dimension                       Old D-04 harness                  D-04R production case
+-----------------------------  --------------------------------  --------------------------------
+Outer HRT operation scope      SupervisorJob + Default            lifecycle viewModelScope
+Caller / collector dispatcher  Default                            Android Main.immediate
+Simulation dispatcher          Default                            Default
+Effective boundary             Default -> Default                 Main -> Default -> Main
+T2 while engine is executing   Not proved; release preceded run    Yes; T1<T2<T3 in 30/30 cases
+Publication observation        Default-scope collector             actual pkState collector on Main
+Correctness status             non-production control only         accepted production evidence
+
+Control result: 24 stale publications in 30 superseded generations.
+Production result: 0 stale publications in 30 superseded generations.

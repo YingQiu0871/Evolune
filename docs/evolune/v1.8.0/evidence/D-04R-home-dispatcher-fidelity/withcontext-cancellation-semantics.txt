@@ -1,0 +1,21 @@
+WITHCONTEXT CANCELLATION SEMANTICS
+
+Resolved runtime dependency: kotlinx-coroutines-android 1.9.0 (Gradle dependency insight,
+debugRuntimeClasspath; the resolved graph also selects the 1.9.0 coroutines BOM).
+
+Official semantics consulted:
+https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/with-context.html
+
+Case A — different continuation interceptor:
+withContext dispatches to the requested dispatcher and dispatches the result back to the
+original context. The return dispatch is cancellable with prompt cancellation: if the original
+context is cancelled before its dispatcher starts the return, the result is discarded and a
+CancellationException is delivered instead of returning the value.
+
+Case B — same continuation interceptor:
+when the requested and original contexts have the same continuation interceptor, the exit may
+skip a dispatch. The same prompt return-dispatch proof does not apply; cancellation can race
+with the non-dispatched return.
+
+D-04R does not infer a production fix from this distinction and does not add speculative
+ensureActive or dispatcher changes. It measures the actual production and control topologies.

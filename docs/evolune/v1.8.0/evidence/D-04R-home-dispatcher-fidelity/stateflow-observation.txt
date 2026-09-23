@@ -1,0 +1,25 @@
+STATEFLOW PUBLICATION OBSERVATION
+
+The observer collected the actual HRTViewModel.pkState StateFlow from a CoroutineScope using
+Dispatchers.Main.immediate. A stale publication was counted only when all conditions held:
+  1. the generation was superseded;
+  2. T2 < T3;
+  3. the collector observed that generation's exact SimulationResult identity;
+  4. the observation occurred after T2.
+
+Production matrix:
+  repetitions: 10
+  generations: 40 total; 30 superseded, 10 final
+  T1<T2<T3: 30/30
+  stale publications: 0/30
+  final publications on Main: 10/10
+  calculator cancellation before HRT publication for superseded generations: 30/30
+
+Default-to-Default control:
+  repetitions: 10
+  generations: 40 total; 30 superseded, 10 final
+  T1<T2<T3: 30/30
+  stale publications: 24/30
+  final publications on Main: 10/10
+
+The control is evidence of the old harness artifact, not production correctness evidence.

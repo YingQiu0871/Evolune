@@ -1,0 +1,14 @@
+TIMING MODEL
+
+For every generation:
+  T0 = calculator generation begins on the simulation path
+  T1 = runner enters the actual SimulationEngine.run work on Dispatchers.Default
+  T2 = Main.immediate runSimulation() executes for the successor
+  T3 = the incumbent SimulationEngine.run returns
+
+The required supersession order is T1 < T2 < T3. The production matrix achieved this for all
+30 superseded generations (10 repetitions x G1-G3). The control matrix also achieved it for all
+30 superseded generations.
+
+The final generation has no T2 by design and publishes on the Main looper. Timestamps and thread
+identities are preserved in production-runs.csv and default-default-control.csv.

@@ -1,0 +1,18 @@
+PRODUCTION-FIDELITY HARNESS
+
+The temporary instrumented harness used only existing seams:
+  - HRTViewModel's existing PkSimulationCalculator seam
+  - PkSimulationRunner around the existing SimulationEngine
+  - the actual HRTViewModel.runSimulation()/simulationRefresh path
+  - the actual HRTViewModel.pkState StateFlow
+
+The production case left operationScope unset. It used simulationDispatcher=Dispatchers.Default,
+real Android Main.immediate viewModelScope ownership, and a Main.immediate collector of pkState.
+The runner recorded the actual engine thread and used a scheduled Main runSimulation() call while
+SimulationEngine.run() was already executing. No release gate preceded engine entry.
+
+Each repetition used 512 recorded ORAL E2 events and four generations: G1 -> G2 -> G3 -> G4.
+G1, G2, and G3 each scheduled the next run from Main after T1; G4 was the final publication.
+Ten production repetitions and ten clearly labeled Default-to-Default controls were completed.
+
+The temporary source file was deleted before the evidence-only commit.

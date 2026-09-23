@@ -1,0 +1,20 @@
+D-04R CORRECTION ASSESSMENT
+
+Prior D-04 conclusion:
+  Home repeatedly accepted stale publication after supersession; M04 was confirmed.
+
+Correction:
+  The prior Home result came from a Default-to-Default harness and a release-before-engine
+  ordering. It did not exercise production Main.immediate -> Default -> Main semantics.
+
+Production-fidelity result:
+  On Android API 35, with actual viewModelScope/Main.immediate ownership, actual Default engine
+  work, actual Main runSimulation() supersession, and actual Main pkState observation, 0/30
+  superseded generations produced stale HRT publication. All 30 satisfied T1<T2<T3. The old
+  Default-to-Default control produced 24/30 stale publications.
+
+Decision:
+  The old Home stale-publication claim is rejected as a dispatcher artifact. M04 engine
+  cancellation latency remains separate and is not fixed by this evidence-only correction.
+
+HOME STALE PUBLICATION REJECTED — OLD HARNESS DISPATCHER ARTIFACT

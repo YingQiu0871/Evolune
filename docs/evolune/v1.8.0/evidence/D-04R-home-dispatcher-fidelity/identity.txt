@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 — D-04R HOME SUPERSESSION DISPATCHER-FIDELITY CORRECTION
+
+Evidence-only correction of the prior D-04 M04 Home supersession characterization.
+
+D-04 evidence head / D-04R parent: 5a6f65ddecc625dbf2afdc0ed847db441304f541
+Exact active source baseline under D-04: 057011b83d74277af9045acf417499f941f95a0c
+D-04R branch: feature/v1.8.0-d04r-dispatcher-fidelity
+D-04R worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d04r
+
+Scope: re-test the old Home stale-publication claim with the actual production dispatcher
+topology. No production source, product test, Home hardening, SimulationEngine change, or
+retrospective change was made. The temporary Android harness was removed before commit.
+
+The old D-04 conclusion is treated as a hypothesis for this correction. The accepted D-04R
+outcome is recorded in d04-correction-assessment.txt and the review packet.

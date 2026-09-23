@@ -1,0 +1,19 @@
+PRODUCTION HOME DISPATCHER TOPOLOGY
+
+HRTViewModel's constructor defaults operationScope to null and resolves:
+  private val scope = operationScope ?: viewModelScope
+
+Production Home therefore uses AndroidX lifecycle viewModelScope, whose dispatcher is
+Dispatchers.Main.immediate on the instrumented Android runtime. The production simulation
+dispatcher remains Dispatchers.Default.
+
+Actual path exercised by D-04R:
+  Main.immediate collector / runSimulation()
+    -> collectLatest calculation on the ViewModel scope
+    -> withContext(Dispatchers.Default)
+    -> DefaultPkSimulationCalculator / SimulationEngine on Default
+    -> return through withContext to Main
+    -> HRTViewModel._pkState publication on Main
+
+No operationScope was injected in the production case. The Default-to-Default case is retained
+only as a labeled non-production control.

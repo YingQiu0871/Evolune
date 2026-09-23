@@ -1,0 +1,17 @@
+FOCUSED JVM REGRESSION
+
+Command:
+.\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.viewmodel.PkSimulationCalculatorTest --tests io.github.yingqiu0871.evolune.pk.SimulationEngineTest --tests io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest --tests io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest --rerun-tasks
+
+Result: 45/45 pass; 0 failures; 0 errors; 0 skipped.
+
+Suite counts:
+  HRTViewModelTest: 19/19
+  PkSimulationCalculatorTest: 3/3
+  SimulationEngineTest: 13/13
+  RetrospectivePkGuardTest: 3/3
+  RetrospectiveArchitectureGuardTest: 7/7
+
+The canonical D-04 full-JVM result remains 1,701/1,701 because D-04R leaves all production
+and committed test source bytes unchanged. A full-JVM rerun was not required for this evidence
+correction; the focused source-path regression passed after temporary harness removal.
