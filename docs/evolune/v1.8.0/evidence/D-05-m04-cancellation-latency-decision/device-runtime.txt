@@ -1,0 +1,21 @@
+D-05 DEVICE AND COMMAND METADATA
+
+Measurement date: 2026-09-23.
+Device: Pixel_7(AVD)
+ro.product.model: sdk_gphone64_x86_64
+ro.build.version.release: 15
+ro.build.version.sdk: 35
+
+Compile command:
+  .\gradlew.bat :app:compileDebugAndroidTestKotlin --rerun-tasks
+
+Measurement command:
+  .\gradlew.bat :app:connectedDebugAndroidTest '-Pandroid.testInstrumentationRunnerArguments.class=io.github.yingqiu0871.evolune.d05.D05M04CancellationLatencyTest' --rerun-tasks
+
+Measurement result:
+  Finished 4 tests on Pixel_7(AVD) - 15
+  BUILD SUCCESSFUL
+  0 failed, 0 skipped.
+
+Monotonic timestamps use System.nanoTime on the device. Raw event log preserves the tagged
+event stream; result CSV preserves the derived per-run fields in nanoseconds.

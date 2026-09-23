@@ -1,0 +1,47 @@
+D-05 MEASUREMENT DESIGN
+
+Harness:
+  raw/D05M04CancellationLatencyTest.kt
+
+The temporary harness constructs the real HRTViewModel, supplies only fake repositories
+and a fixed clock, and wraps the existing PkSimulationCalculator seam around the real
+DefaultPkSimulationCalculator and SimulationEngine. The operation scope is
+CoroutineScope(Dispatchers.Main.immediate + SupervisorJob()), matching the production
+caller-side topology. No engine hold or artificial release gate is used after the first
+instrumentation setup gate; the first gate is released before any measurement input is
+submitted so the collector is attached.
+
+Per-request timestamps are monotonic System.nanoTime values. The raw result CSV records:
+
+  request submitted       submit event on Main before runSimulation
+  body launched           calculator body on Default
+  engine entered          SimulationEngine runner entry
+  supersession requested  submit event for the successor request
+  engine returned         SimulationEngine runner return
+  calculator returned     calculator body return on Default
+  publication observed    PKState result observed by the Main StateFlow collector
+
+The production publication assignment is the private _pkState.value write at
+HRTViewModel.kt:395. Because D-05 forbids production edits, a separate publication-attempt
+hook is not added; the collector timestamp is the direct observable timestamp of that
+Main-side state write. Every result row has exactly one publication event.
+
+Each engine body is assigned the latest submitted request identity when its body starts.
+Submitted requests that never start are counted as skipped/coalesced. activeAtFinalSubmission
+is sampled inside the Main-side submission callback, before the final request is submitted;
+it is not reconstructed after draining. peakConcurrency is updated at engine entry and
+decremented at engine return.
+
+Groups:
+
+  A: 30 clean one-request runs.
+  B: 45 runs, 15 each at 20 ms early, 275 ms middle, and 425 ms late while the
+     incumbent engine was still running.
+  C: 30 runs of the discovered manual refresh callback burst: initial request plus
+     four repeated callbacks at 200 ms intervals; the last callback is final.
+  D: 30 runs of initial request plus 20 callbacks at 10 ms intervals, explicitly
+     labelled non-normal stress.
+
+The final-request fields are compared against A. Statistics are independently recomputed
+from raw/d05-m04-results.csv using recompute.ps1. Units in the CSV are nanoseconds; summary
+tables report milliseconds except concurrency/counts.

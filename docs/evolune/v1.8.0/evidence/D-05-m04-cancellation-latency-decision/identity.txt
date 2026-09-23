@@ -1,0 +1,21 @@
+D-05 EVIDENCE IDENTITY
+
+Starting D-05 HEAD:
+655ff2880485eb75300104c6a98cb057b0f72b05
+
+Exact parent:
+5a6f65ddecc625dbf2afdc0ed847db441304f541
+
+Accepted product baseline:
+057011b83d74277af9045acf417499f941f95a0c
+
+Starting subject:
+docs(v1.8.0): correct D-04 dispatcher fidelity
+
+Starting worktree:
+clean before temporary harness materialization.
+
+Measurement date:
+2026-09-23, Europe/Paris.
+
+The D-04R evidence directory and files were not modified.

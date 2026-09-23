@@ -1,0 +1,18 @@
+D-05 MAIN-THREAD SANITY
+
+Corrected result rows: 135.
+
+Engine execution on Main: 0/135 rows. Every engine thread was a DefaultDispatcher worker.
+Final publication observed on Main: 135/135 rows.
+Peak engine concurrency: 1/135 rows exceeded one; all rows were exactly one.
+Publication events per result row: 1/135 rows had more than one; all rows had exactly one.
+
+This confirms only the M04 boundary needed here:
+
+  the non-cooperative engine body is off Main;
+  obsolete work does not become synchronous Main work;
+  final accepted publication returns to Main.
+
+D-04R correctness remains accepted and frozen: continued engine computation is not treated as
+evidence of stale publication, and the one-publication observation here does not replace or
+reopen the D-04R stale-publication conclusion.

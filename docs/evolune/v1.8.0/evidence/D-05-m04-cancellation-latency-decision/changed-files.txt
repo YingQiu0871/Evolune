@@ -1,0 +1,25 @@
+D-05 EVIDENCE-ONLY CHANGED FILES
+
+Allowed repository scope:
+docs/evolune/v1.8.0/evidence/D-05-m04-cancellation-latency-decision/
+
+Contents:
+  README.md
+  identity.txt
+  trigger-model.txt
+  measurement-design.txt
+  full-jvm-summary.txt
+  main-thread-sanity.txt
+  device-runtime.txt
+  recompute.ps1
+  rerun-audit.txt
+  decision.md
+  gate-status.txt
+  changed-files.txt
+  raw/d05-m04-corrected-events.log
+  raw/d05-m04-results.csv
+  raw/D05M04CancellationLatencyTest.kt
+  MANIFEST.sha256
+
+No production code, committed JVM test, committed Android test, wear source/test,
+experience-core source/test, D-04 evidence, or D-04R evidence was changed.

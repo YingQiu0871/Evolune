@@ -1,0 +1,30 @@
+D-05 REGRESSION AND ZERO-DELTA GATES
+
+Temporary harness:
+  compiled successfully with :app:compileDebugAndroidTestKotlin.
+  corrected Android measurement: 4 tests, 0 failed, 0 skipped; 135/135 result rows valid.
+  temporary source removed from app/src/androidTest before finalization.
+
+Fresh focused JVM command after harness removal:
+  .\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.viewmodel.PkSimulationCalculatorTest --tests io.github.yingqiu0871.evolune.pk.SimulationEngineTest --tests io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest --tests io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveArchitectureGuardTest --rerun-tasks
+
+Focused result: 45/45 pass; 0 failures; 0 errors; 0 skipped.
+  HRTViewModelTest: 19/19
+  PkSimulationCalculatorTest: 3/3
+  SimulationEngineTest: 13/13
+  RetrospectivePkGuardTest: 3/3
+  RetrospectiveArchitectureGuardTest: 7/7
+
+Inherited canonical full-JVM gate:
+  1,701/1,701 pass; 0 failures; 0 errors; 0 skipped.
+  Inheritance is valid because the D-05 protected source/test diff is empty.
+
+Protected diff checks after temporary harness removal:
+  git diff 057011b83d74277af9045acf417499f941f95a0c..HEAD -- app/src/main app/src/test app/src/androidTest wear experience-core
+  Result: empty.
+
+  git diff 655ff2880485eb75300104c6a98cb057b0f72b05..HEAD -- app/src/main app/src/test app/src/androidTest wear experience-core
+  Result: empty.
+
+D-04R evidence remains byte-identical and no retrospective/frozen prior-phase material was
+modified. The only intended D-05 changes are under the new D-05 evidence directory.

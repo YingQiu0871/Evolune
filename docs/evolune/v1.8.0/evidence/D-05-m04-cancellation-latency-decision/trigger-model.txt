@@ -1,0 +1,43 @@
+D-05 PRODUCTION TRIGGER MODEL
+
+Source inspected at the starting HEAD:
+
+1. Initial Home load: HRTViewModel.kt:209-218 combines eventUpdates,
+   enabledPlanUpdates, bodyWeightFlow, and simulationRefresh. The initial replayed
+   values produce the first SimulationTrigger.
+
+2. Manual refresh: HomeScreen.kt:77 passes { viewModel.runSimulation() } into the
+   content; the top-bar refresh IconButton is HomeScreen.kt:135-139 and calls the
+   callback. Repeated taps can therefore submit repeated refresh generations.
+
+3. Error retry: HomeScreen.kt:195-197 uses the same onRefresh callback.
+
+4. Schedule boundary: HomeScreen.kt:117-120 samples currentTimeH and calls the
+   view-model boundary observer. HRTViewModel.kt:360-373 calls runSimulation only
+   when ScheduleBoundaryTracker reports a crossing.
+
+5. Flow-driven changes: HRTViewModel.kt:143-161 observes dose events and enabled
+   plans. HRTViewModel.kt:518 maps SettingsDataStore.userSettings.bodyWeight into
+   bodyWeightFlow, so body-weight changes can also change the combined trigger.
+
+6. Existing request policy: HRTViewModel.kt:211-218 uses distinctUntilChanged on the
+   complete trigger and collectLatest for the owning coroutine. There is no debounce,
+   throttle, actor, explicit latest-wins queue, or engine cancellation checkpoint.
+   runSimulation at HRTViewModel.kt:376-378 increments MutableStateFlow refresh, so
+   each manual call is a distinct trigger.
+
+7. Dispatcher ownership: HRTViewModel.kt:121-137 owns work from the view-model scope;
+   HRTViewModel.kt:392-395 executes the calculator inside simulationDispatcher, whose
+   production default is Dispatchers.Default, then writes PKState after the suspended
+   return. Home publishes through the Main-owned StateFlow collector.
+
+There are no other production Home call sites for HRTViewModel.runSimulation. The
+SimulationEngine calls found in PKExample.kt are examples, not Home trigger paths.
+
+Cadence classification:
+
+Group C used five total manual-refresh callback submissions (the initial Home trigger
+plus four repeated refresh callbacks) at 200 ms intervals. This is the realistic rapid
+callback burst for the discovered refresh/retry entry point. It is not presented as a
+product SLA or a universal user-behavior distribution. Group D used 10 ms intervals and
+is explicitly non-normal stress.

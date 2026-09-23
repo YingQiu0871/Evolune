@@ -1,0 +1,16 @@
+D-05 RERUN AUDIT
+
+The first 135-row run completed successfully, but its derived activeAtFinalSubmission field
+was reconstructed after the scenario drained and therefore reported zero even when an obsolete
+engine was active at the final submission. It was not used for the decision.
+
+The harness was corrected to sample active engine count inside the Main-side submission callback
+before runSimulation. The complete A/B/C/D matrix was rerun with the same 135-row design.
+
+The accepted raw evidence is the corrected run only:
+  raw/d05-m04-corrected-events.log
+  raw/d05-m04-results.csv
+
+The corrected run independently verifies activeAtFinalSubmission = 1 for every B/C/D row,
+peakConcurrency = 1 for every row, valid = true for every row, engineOnMain = false for every
+row, and exactly one publication event per row.
