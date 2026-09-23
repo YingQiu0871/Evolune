@@ -1,0 +1,23 @@
+D-08 inherited full-JVM baseline
+
+D-08 made no protected production or test source change. The accepted starting
+HEAD is the D-06 evidence follow-up whose canonical tracked-LF full JVM gate
+passed:
+
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test
+  :wear:testDebugUnitTest --rerun-tasks
+
+Inherited canonical result:
+  app:              151 suites / 1443 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:   20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:              11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:            182 suites / 1704 tests / 0 failures / 0 errors / 0 skipped
+  BUILD SUCCESSFUL
+
+The accepted raw Windows checkout has the known fixture/LF environment issue;
+the canonical tracked-LF run is the accepted full-JVM gate. D-08 did not rerun
+the full suite ceremonially: the protected diff from the accepted baseline is
+empty, and the temporary measurement harness was deleted before focused
+regression. The inherited raw log remains byte-identical at:
+  docs/evolune/v1.8.0/evidence/D-06-m04-cooperative-cancellation/
+    raw/full-jvm-canonical.log

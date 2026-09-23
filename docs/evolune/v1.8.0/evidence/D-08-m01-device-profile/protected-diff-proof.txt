@@ -1,0 +1,15 @@
+D-08 protected-diff proof
+
+The D-08 checkout was created directly at the accepted baseline:
+  git diff --name-status 7af0e520db4dfeebe0081b4d0488f67b340f9a48 --
+    app/src/main app/src/test app/src/androidTest wear experience-core
+  => EMPTY before evidence staging
+
+The temporary Android measurement harness was removed with no replacement.
+After removal, the same protected diff remained EMPTY. The final evidence-only
+commit changes only:
+  docs/evolune/v1.8.0/evidence/D-08-m01-device-profile/**
+
+The accepted source blob identities in baseline-state.txt were rechecked after
+measurement. No production source, committed test, version file, or prior D-*
+evidence directory changed.

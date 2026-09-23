@@ -1,0 +1,16 @@
+D-08 focused regression after temporary harness removal
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests
+  io.github.yingqiu0871.evolune.ui.components.ConcentrationChartGeometryTest
+  --tests io.github.yingqiu0871.evolune.ui.components.ConcentrationChartLayoutTest
+  --rerun-tasks
+
+Fresh result:
+  ConcentrationChartGeometryTest: 8/8 PASS
+  ConcentrationChartLayoutTest: 3/3 PASS
+  TOTAL: 11/11 PASS
+  failures 0 / errors 0 / skipped 0
+  BUILD SUCCESSFUL
+
+The disposable D08 instrumentation source was absent before this run.

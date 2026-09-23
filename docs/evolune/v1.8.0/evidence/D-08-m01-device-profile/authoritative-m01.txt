@@ -1,0 +1,34 @@
+Recovered authoritative M01 definition
+
+Source:
+  D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+  SHA-256:
+  122B3407C42E8AB49D34384BDD4D0436E53B0247F0C5EE65EFFE24E9EE452F61
+
+The following scope is preserved verbatim from the audit:
+
+M01 — Chart redraw and interpolation cost
+Severity/area: P2 candidate; UI performance, not a confirmed jank finding.
+Files/functions: AP/ui/components/ConcentrationChart.kt:143,193,204,349,392–560;
+AP/ui/screens/HomeScreen.kt:356 and calculateConcentrationAtTime:695.
+Behavior/evidence: Canvas reads clock state in draw, rebuilding paths/scanning
+series on invalidation. Visible Y scale and label measurement execute on chart
+composition (e.g. gestures); current card linearly scans for concentration each
+second. Home and chart have different endpoint behavior from the engine's binary-
+search helper. Cost depends on points, device and viewport.
+Downside: potential avoidable frame work; no measured dropped frames.
+Action: trace 60 seconds idle and pan/zoom on 1k/8,641/larger supported series;
+separate composition, draw and allocation counts. Only if significant, cache
+immutable geometry by series, viewport, size, density and style, keeping moving
+time/fork overlays separate. An interpolation helper must retain null outside-
+range, empty/malformed handling and duplicate-time behavior.
+Risk/tests: moderate geometry/interaction risk; cursor/pan/zoom, forecast split,
+baseline overlay, endpoints and rendering equivalence. Do not downsample math.
+Executor/size/dependencies: DeepSeek V4.1 Flash evidence, small; any later
+cache-design GPT-5.6 Luna, scope determined by evidence; F11 useful first.
+MEASUREMENT REQUIRED before optional optimization; no blanket
+remember/derivedStateOf patch.
+
+Scope check:
+  The recovered wording materially matches chart redraw and interpolation cost.
+  D-08 does not broaden M01.

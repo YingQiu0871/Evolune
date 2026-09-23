@@ -1,0 +1,21 @@
+D-08 device metadata
+
+Target:
+  Pixel_7(AVD)
+  serial emulator-5554
+  ro.boot.qemu.avd_name = Pixel_7
+  ro.product.model = sdk_gphone64_x86_64
+  Android 15
+  API level 35
+
+Host / build:
+  Windows checkout
+  candidate HEAD 7af0e520db4dfeebe0081b4d0488f67b340f9a48
+  debug package built from the accepted baseline; no version change
+
+Instrumentation:
+  one disposable AndroidJUnit4 test:
+  io.github.yingqiu0871.evolune.d08.D08M01DeviceProfileTest
+
+The harness was deleted before final source/test verification. The device was
+used only for measurement; no production source or committed test was changed.

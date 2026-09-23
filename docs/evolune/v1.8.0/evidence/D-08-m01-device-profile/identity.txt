@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 — D-08 M01 device performance profile and decision
+
+Role:
+  Performance evidence / decision engineer
+
+Authoritative starting HEAD:
+  7af0e520db4dfeebe0081b4d0488f67b340f9a48
+
+Exact parent:
+  51b263b318279058cdec139357b078174090353a
+
+Branch / worktree:
+  feature/v1.8.0-d08-m01-device-profile
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d08
+
+Scope:
+  Evidence-only device profiling and one M01 decision. No M01
+  optimization, chart cache, interpolation helper, dispatcher movement,
+  coroutine restructuring, downsampling, sampling, UI behavior change,
+  version change, tag, push, or release action is included.
+
+Temporary measurement:
+  A disposable Android instrumentation harness exercised the existing
+  ConcentrationChart composable and the existing private Home interpolation
+  helper. It was removed before regression, evidence staging, and commit.
+
+Protected predecessor evidence was not edited.

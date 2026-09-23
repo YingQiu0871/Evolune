@@ -1,0 +1,52 @@
+M01 production path and trigger model
+
+1. HomeScreen.kt:58 collects HRTViewModel.currentTimeH with
+   collectAsStateWithLifecycle. HomeScreen.kt:117-120 reads that state from
+   snapshotFlow and calls the schedule-boundary observer once per clock tick.
+   The retained schedule provider is a separate A-03/A-05 path; it is not
+   counted as M01 chart optimization work.
+
+2. HomeScreen.kt:368-375 reads currentTimeHState.value in
+   CurrentConcentrationRealtimeCard and calls the exact private
+   calculateConcentrationAtTime helper. The helper performs minOrNull and
+   maxOrNull full scans, then a forward interpolation scan. It runs on the
+   composition/UI path when the one-second clock is active.
+
+3. HomeScreen.kt:386-414 passes the same simulation result, baseline result,
+   clock State and fork state to ConcentrationChart. ConcentrationChart.kt:349
+   reads currentTimeHState.value inside Canvas draw, preserving the established
+   draw-only invalidation boundary. A clock tick therefore does not inherently
+   recompose the chart content.
+
+4. ConcentrationChart.kt:142-228 performs composition-time range, visible-scale
+   and label geometry work. ConcentrationChart.kt:231-347 handles pan/zoom and
+   point-selection gestures. ConcentrationChart.kt:392-568 rebuilds fork,
+   baseline, primary, dose-marker and current-marker paths on an invalidated
+   draw. No immutable geometry cache is present.
+
+5. The PK simulation result is produced by the existing Home ViewModel
+   calculation boundary on Dispatchers.Default. M01 begins after publication:
+   current-card interpolation and chart composition/draw are UI work. A clock
+   tick does not rerun the PK engine; a new simulation result from plan/event/
+   refresh changes can recompose the chart and reset its viewport.
+
+Input and trigger model:
+  * Normal product simulation: 30-day window at 12 points/hour, therefore
+    720 * 12 + 1 = 8,641 points.
+  * Representative M01 workload: primary and baseline series of 8,641 points,
+    as produced when Home has a planned and an unplanned curve.
+  * The largest normal product size is still 8,641 because the production
+    calculator fixes the 30-day / 12-points-per-hour window.
+  * 1,000 points are a smaller supported lower-size fixture; 17,281 points are
+    clearly labelled synthetic stress, not a normal product dataset.
+  * Initial screen entry composes the chart when a simulation result exists.
+    One-second clock ticks drive the current card and Canvas draw. Pan/zoom
+    changes viewport state and composition-time visible-scale/label work.
+    Vertical Home scrolling is not treated as a chart recomputation trigger.
+
+Existing behavior:
+  * rememberTextMeasurer and remembered viewport/scale state already exist.
+  * There is no retained path/geometry memoization for the immutable series.
+  * Fork-point interpolation, duplicate-time guards, endpoint behavior and the
+    binary-search SimulationResult.concentration contract are distinct and were
+    not changed by D-08.

@@ -1,0 +1,35 @@
+D-08 zero-change baseline
+
+HEAD before profiling:
+  7af0e520db4dfeebe0081b4d0488f67b340f9a48
+  docs(v1.8.0): record D-06 cooperative cancellation evidence
+
+HEAD parent:
+  51b263b318279058cdec139357b078174090353a
+  feat(v1.8.0): add cooperative Home simulation cancellation
+
+Initial worktree:
+  clean
+
+M04:
+  CLOSED / FROZEN. D-04R, D-05, D-06 and the D-07 final-freeze baseline
+  were not modified or reopened.
+
+Version identity, unchanged:
+  versionName 1.7.4
+  Phone versionCode 101070400
+  Wear versionCode 1101070400
+
+Relevant accepted HEAD blob identities:
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HomeScreen.kt
+    328cf9f956a9411a749220557f6ca73af86b652e
+  app/src/main/java/io/github/yingqiu0871/evolune/ui/components/ConcentrationChart.kt
+    0ef05e580e2cb1b6d20ffb8e037eb615b2ff1883
+  app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt
+    7f42309384e4847bb4b65f0316ca96d2b956e36a
+  app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt
+    db9de52d34251bac559f1ed9751795c110f99ddd
+  build.gradle.kts
+    03b0d4d54415bdc26041df4b824bac2f8084b762
+
+No M01 implementation delta exists relative to the accepted baseline.

@@ -1,0 +1,29 @@
+D-08 measurement methodology
+
+The temporary harness hosted the existing public ConcentrationChart composable
+inside one real ComponentActivity on Pixel_7/API35. It supplied the production
+chart shape: primary and baseline series, fork point, five dose markers, the
+real chart modifier, and mutable current-time State. It did not reimplement the
+renderer.
+
+The exact existing private HomeScreen interpolation helper was invoked by
+reflection so the measured current-card path was the production helper itself.
+Interpolation samples ran on the Compose UI thread. Chart tick samples recorded
+elapsed wall time from a State mutation through Compose idle and UI-thread CPU
+time across the same interval.
+
+Dataset / repetition matrix:
+  small-1000: 1,000 points, interpolation n=60, warm chart n=30
+  representative-8641: 8,641 points, interpolation n=60, warm chart n=30,
+    one-Hz idle n=60, pan n=20, zoom n=20
+  synthetic-large-17281: 17,281 points, interpolation n=60, warm chart n=30
+
+The representative idle phase slept 1,000 ms between State changes for 60
+ticks. Pan and zoom used 200 ms touch-injection delays; their wall values are
+interaction workload measurements and are not claimed as pure chart latency.
+
+FrameMetricsAggregator captured total, draw and command frame histograms over
+the hosted profile. Runtime GC count/time were sampled at dataset boundaries.
+The raw log contains every sample and the frame histograms. The independently
+recomputed report uses the raw SAMPLE lines, sorted values, arithmetic mean,
+lower middle median, and ceil(0.95*n)-1 percentile index.

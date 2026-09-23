@@ -1,0 +1,36 @@
+D-08 Main-thread and frame analysis
+
+Representative 8,641-point current-card interpolation, exact production
+helper on the UI thread:
+  wall n=60  min 0.2042 ms  max 0.3615 ms  mean 0.2232 ms
+  median 0.2095 ms  p95 0.2840 ms
+  CPU  n=60  min 0.0000 ms  max 0.3323 ms  mean 0.0566 ms
+  median 0.0000 ms  p95 0.2467 ms
+
+Representative 8,641-point chart:
+  warm UI CPU n=30: min 15.4614, max 54.3202, mean 26.0153,
+    median 23.4481, p95 49.6929 ms
+  one-Hz idle UI CPU n=60: min 17.0259, max 44.6778, mean 22.0344,
+    median 20.5558, p95 30.5994 ms
+  one-Hz idle wall n=60: min 61.3975, max 110.8285, mean 69.8796,
+    median 64.0991, p95 94.3330 ms
+
+The chart tick wall/CPU interval includes Compose synchronization and is not a
+direct Canvas-only timer. FrameMetricsAggregator separates that overhead:
+  total: 194 frames; 186 over 16 ms; 106 over 33 ms
+  draw: 194 frames; 2 over 16 ms; 0 over 33 ms
+  command: 194 frames; 0 over 16 ms; 0 over 33 ms
+
+The total-frame histogram includes Activity/test scheduling, dataset swaps and
+gesture injection. The draw histogram is the relevant chart-render signal and
+is predominantly 5–10 ms; its two >16 ms buckets and zero >33 ms buckets do not
+show a meaningful chart-induced jank problem. Gesture wall means are 119.1856
+ms for pan and 71.7340 ms for zoom, but include the deliberate 200 ms touch
+injection delays and are not presented as user-visible latency.
+
+Allocation/GC signal:
+  GC count/time was 0/0 before the small fixture, 20/379 ms after the
+  representative phase, and 26/495 ms after the synthetic phase. These are
+  boundary readings that include composition, dataset replacement, and gesture
+  activity; they do not isolate per-tick chart allocation. They therefore do
+  not establish a significant production resource symptom.

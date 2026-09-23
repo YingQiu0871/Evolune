@@ -1,0 +1,14 @@
+D-08 changed-files disposition
+
+Committed delta:
+  docs/evolune/v1.8.0/evidence/D-08-m01-device-profile/** only
+
+Temporary, uncommitted measurement file:
+  app/src/androidTest/java/io/github/yingqiu0871/evolune/d08/
+    D08M01DeviceProfileTest.kt
+  created only for the Pixel 7 profile, then deleted before focused regression.
+
+Production source changes: none.
+Committed test changes: none.
+Prior D-* evidence changes: none.
+Version/release changes: none.

@@ -1,0 +1,26 @@
+D-08 scaling analysis
+
+Source-level classification:
+  The Home interpolation helper is O(N): two full range scans plus a forward
+  scan to the target segment. Chart draw loops also traverse the primary and,
+  when present, baseline series. This is the previously known computational
+  shape, not a new implementation claim.
+
+Device observations:
+  Interpolation wall/CPU timings were sub-millisecond at the 8,641-point
+  production size and remained below 1.2 ms p95 wall and 1.1 ms p95 CPU for
+  the 1,000-point fixture. The 17,281-point synthetic fixture remained below
+  0.6 ms p95 wall and 0.5 ms p95 CPU in the measured run. The three points are
+  noisy and do not justify an asymptotic slope from device timing alone.
+
+  Chart warm UI CPU means were 27.7108 ms (1,000), 26.0153 ms (8,641), and
+  21.4488 ms (17,281). Warm wall means were 69.8522, 73.4755 and 68.6965 ms.
+  The lack of monotonic growth and the stable draw histogram show that these
+  values are dominated by fixed Compose/test-frame overhead rather than a
+  demonstrated super-linear production failure.
+
+Classification:
+  Source work is linear scan work. The device-level chart timing is dominated
+  by fixed harness/frame overhead and cannot be reliably classified as a
+  production scaling failure from these three points. The only normal product
+  size, 8,641 points, shows no credible frame-budget escalation.

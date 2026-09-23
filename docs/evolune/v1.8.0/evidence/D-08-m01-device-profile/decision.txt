@@ -1,0 +1,33 @@
+D-08 final M01 decision
+
+Previously known computational cost:
+  A-05E proved deterministic O(N) Home interpolation and per-tick chart draw
+  scans, including the normal 8,641-point grid. It deliberately did not claim
+  Android jank, frame loss, battery cost, or user-visible latency.
+
+New device-level evidence:
+  On Pixel_7/API35, the exact Home interpolation helper stayed below 0.3 ms
+  p95 wall and 0.25 ms p95 UI CPU at the representative production size. The
+  draw-phase frame histogram had 2/194 frames over 16 ms and 0/194 over 33 ms;
+  command work had 0/194 over 16 ms. The synthetic 17,281-point profile did not
+  reveal a credible worsening frame signature.
+
+User-visible impact:
+  No meaningful Main-thread blocking, chart-induced missed-frame pattern,
+  visible chart lag, load-time regression, or interaction-latency conclusion
+  was established. The measured gesture wall values include deliberate test
+  injection delays and are not user-latency claims.
+
+Scaling risk:
+  The source remains linear scan work, but device timings are dominated by
+  fixed Compose/test-frame overhead and are not a reliable realistic
+  super-linear failure signal. The normal product path is capped at 8,641
+  points and has no demonstrated frame-budget escalation.
+
+Decision:
+  A — M01 CLOSED / NO IMPLEMENTATION JUSTIFIED.
+  No separate M01 optimization slice is authorized by D-08. Reopen only with
+  new production-faithful evidence showing a concrete user-visible or resource
+  symptom.
+
+APPROVE V1.8.0 D-08 — M01 CLOSED / NO IMPLEMENTATION JUSTIFIED
