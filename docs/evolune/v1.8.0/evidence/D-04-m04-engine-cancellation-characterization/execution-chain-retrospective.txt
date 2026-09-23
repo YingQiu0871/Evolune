@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-04 retrospective execution chain
+
+1. RetrospectivePkViewModel.selectRange() updates the selected range and calls startLoad()
+   (RetrospectivePkViewModel.kt:103-111).
+2. startLoad() increments generation, cancels loadJob, clears the old result, and launches the new
+   load (RetrospectivePkViewModel.kt:141-158).
+3. The load invokes the three-read RetrospectivePkSurfaceCoordinator path. Cancellation is
+   rethrown at each read boundary (RetrospectivePkSurfaceCoordinator.kt:72-125).
+4. Read 1 reaches RetrospectivePkService.estimate(), which invokes the curve runner and checks
+   currentCoroutineContext().ensureActive() immediately after engine return (RetrospectivePkService.kt:119-127).
+5. The ViewModel catches cancellation, prevents an old result from publishing, and independently
+   gates every publication with token == generation (RetrospectivePkViewModel.kt:223-253).
+
+Characterization consequence: the repeated and single-supersession retrospective fixtures observed
+T3 followed by T4 suppression on every incumbent generation; no stale or partial curve publication
+was observed.

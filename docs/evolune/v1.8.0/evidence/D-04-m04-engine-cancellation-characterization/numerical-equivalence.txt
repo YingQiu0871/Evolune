@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 D-04 numerical equivalence
+
+Every one of the 12 base CSV rows has numerical_equivalence=PASS.
+
+For each Home cell, the final generation PKState was compared with a clean
+DefaultPkSimulationCalculator calculation using the same final PkSimulationInput.
+
+For each retrospective cell, the final generation RetrospectivePkResult.Available was compared
+with a clean RetrospectivePkService calculation using the same final request and fixed history.
+
+The repeated stress trace also completed the successor publication path for all three G0->G1->G2
+->G3 repetitions per path. No partial or divergent successor result was observed.

@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-04 full JVM regression summary
+
+Authoritative baseline: 057011b83d74277af9045acf417499f941f95a0c
+
+Accepted gate procedure:
+1. Materialize tracked Git LF bytes for:
+   app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+   app/src/test/resources/phase-e/golden-canonical.csv
+   app/src/test/resources/phase-e/golden-canonical.json
+2. Run:
+   .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+3. Restore those three paths from HEAD and verify the worktree.
+
+Canonical tracked-LF result:
+- app:testDebugUnitTest: 1,440/1,440 pass; 0 failures; 0 errors; 0 skipped.
+- experience-core:test: 171/171 pass; 0 failures; 0 errors; 0 skipped.
+- wear:testDebugUnitTest: 90/90 pass; 0 failures; 0 errors; 0 skipped.
+- TOTAL: 1,701/1,701 pass; 0 failures; 0 errors; 0 skipped.
+
+The raw console transcript is logs/full-jvm-raw.log. The canonical run is the accepted regression
+gate. The inherited raw Windows checkout is reported separately in logs/raw-windows-portable-golden.xml:
+PortableGoldenFixtureTest ran 3 tests with exactly 2 failures (canonical JSON bytes and canonical CSV
+bytes), zero errors, and zero skipped. That raw checkout result is not described as the accepted
+full regression gate.

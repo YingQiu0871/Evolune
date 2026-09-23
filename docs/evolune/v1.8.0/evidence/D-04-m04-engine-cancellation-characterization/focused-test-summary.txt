@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 D-04 focused regression summary
+
+Command:
+.\gradlew.bat :app:testDebugUnitTest --tests io.github.yingqiu0871.evolune.viewmodel.HRTViewModelTest --tests io.github.yingqiu0871.evolune.viewmodel.PkSimulationCalculatorTest --tests io.github.yingqiu0871.evolune.pk.SimulationEngineTest --tests io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelTest --tests io.github.yingqiu0871.evolune.history.pk.RetrospectivePkServiceTest --tests io.github.yingqiu0871.evolune.history.pk.RetrospectivePkGuardTest --rerun-tasks
+
+Suite counts:
+- HRTViewModelTest: 19 pass, 0 failures, 0 errors, 0 skipped.
+- PkSimulationCalculatorTest: 3 pass, 0 failures, 0 errors, 0 skipped.
+- SimulationEngineTest: 13 pass, 0 failures, 0 errors, 0 skipped.
+- RetrospectivePkViewModelTest: 27 pass, 0 failures, 0 errors, 0 skipped.
+- RetrospectivePkServiceTest: 43 pass, 0 failures, 0 errors, 0 skipped.
+- RetrospectivePkGuardTest: 3 pass, 0 failures, 0 errors, 0 skipped.
+
+Focused total: 108/108 pass, 0 failures, 0 errors, 0 skipped.

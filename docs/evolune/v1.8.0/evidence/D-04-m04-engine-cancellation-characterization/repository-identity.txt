@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 D-04 repository identity
+
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d04
+Characterization branch: feature/v1.8.0-d04-m04-engine-cancellation-characterization
+Authoritative active baseline HEAD: 057011b83d74277af9045acf417499f941f95a0c
+Authoritative active baseline parent: 8fc62a196ef7d4e0d61a56fd19e6658b6c707f5e
+Expected predecessor branch: feature/v1.8.0-r01-prepared-restore-settings-previous
+Forbidden alternate inspected and excluded: 8ea392a3cbc25e06d62eecc9359d4a7c0938ff98
+
+Baseline subject: fix(v1.8.0): preserve prepared restore settings fidelity
+Baseline was clean before the temporary harness was added.
+The temporary harness and scratch outputs were removed before evidence packaging.
+No production or product-test path is part of the D-04 characterization delta.

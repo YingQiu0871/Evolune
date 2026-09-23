@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 D-04 zero-delta audit
+
+Temporary characterization source was removed before this evidence-only commit.
+
+Required protected-path check:
+git diff 057011b83d74277af9045acf417499f941f95a0c...HEAD -- app/src/main app/src/test app/src/androidTest wear experience-core
+
+Expected and verified result at final HEAD: empty output.
+
+The only committed D-04 delta is under:
+docs/evolune/v1.8.0/evidence/D-04-m04-engine-cancellation-characterization/
+
+No production code, product test, Android test, wear source/test, or experience-core source/test was
+added or modified by D-04.

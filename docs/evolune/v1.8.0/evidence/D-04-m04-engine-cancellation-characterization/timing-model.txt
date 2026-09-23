@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 D-04 timing model
+
+All durations are differences of monotonic System.nanoTime() readings and are recorded in ns.
+
+T0 = generation accepted and measured work begins.
+T1 = incumbent enters the complete engine invocation.
+T2 = supersession is issued while the incumbent engine invocation is in flight.
+T3 = incumbent engine invocation returns.
+T4 = first legal observed post-engine boundary rejects/cancels/supersedes the old generation and
+     prevents it from publishing.
+T5 = successor/current generation publishes its accepted final result.
+
+Required ordering for every incumbent: T0 < T1 < T2 < T3. Retrospective additionally records
+T3 <= T4. Home's existing assignment boundary has no independent rejection callback when the
+incumbent returns normally; its suppression duration and post-engine suppression overhead are
+therefore recorded as the single frozen textual sentinel `NOT_OBSERVABLE`. The sentinel is not a
+zero and is not a failed measurement.
+
+The exact per-row values are in raw-measurements.csv. The repeated G0->G1->G2->G3 traces, including
+publication classifications, are in repeated-supersession.txt.

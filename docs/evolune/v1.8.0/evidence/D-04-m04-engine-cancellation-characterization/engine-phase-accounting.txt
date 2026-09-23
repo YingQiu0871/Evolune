@@ -1,0 +1,23 @@
+EVOLUNE v1.8.0 D-04 engine-phase accounting
+
+Base CSV: 12 rows total, one per repetition across four cells per path.
+
+HOME:
+- 6 normal/stress incumbent rows entered the engine before T2 and finished after T2.
+- 6/6 base rows reached the HRT assignment boundary after supersession; the StateFlow observer did
+  not retain every short-lived normal-cell stale value before the successor replaced it, so the CSV
+  accepted flag remains 0 for those rows.
+- The repeated stress trace provides the direct publication proof: 9/9 superseded Home generations
+  report publication_attempt=ACCEPTED_STALE_AT_HRT_ASSIGNMENT and publication_accepted=true.
+- No engine invocation started after T2; current-generation complete-run count is 0 for each base
+  incumbent row because the row describes the old generation.
+
+RETROSPECTIVE:
+- 6/6 base incumbent rows finished after T2 at the measured engine boundary.
+- 6/6 base rows observed T4 suppression; old-run-finished-after-T2 count is 0 because the service
+  post-engine cancellation boundary was reached before normal curve publication.
+- Current-generation complete-run count is 1 for every row; no obsolete generation was accepted.
+
+The unchanged SimulationEngine itself is synchronous and blocking. The characterization measures
+the surrounding cancellation/publication ownership; it does not claim that the engine loop is
+cooperative.

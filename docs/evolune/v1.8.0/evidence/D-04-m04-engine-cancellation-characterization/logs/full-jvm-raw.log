@@ -1,0 +1,25 @@
+**********************
+PowerShell transcript start
+Start time: 20260923115740
+Username: 人面不知何处去\1
+RunAs User: 人面不知何处去\1
+Configuration Name:
+Machine: 人面不知何处去 (Microsoft Windows NT 10.0.26200.0)
+Host Application: C:\Users\1\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell\pwsh.dll -Command try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}
+$repo='D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d04'; $log=Join-Path $repo 'docs\evolune\v1.8.0\evidence\D-04-m04-engine-cancellation-characterization\logs\full-jvm-raw.log'; cmd.exe /d /c "git -c safe.directory=$repo -C $repo cat-file blob HEAD:app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt > $repo\app\src\main\java\io\github\yingqiu0871\evolune\navigation\AppNavigation.kt"; cmd.exe /d /c "git -c safe.directory=$repo -C $repo cat-file blob HEAD:app/src/test/resources/phase-e/golden-canonical.csv > $repo\app\src\test\resources\phase-e\golden-canonical.csv"; cmd.exe /d /c "git -c safe.directory=$repo -C $repo cat-file blob HEAD:app/src/test/resources/phase-e/golden-canonical.json > $repo\app\src\test\resources\phase-e\golden-canonical.json"; Start-Transcript -LiteralPath $log -Force | Out-Null; try { & .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks; $code=$LASTEXITCODE } finally { Stop-Transcript | Out-Null; git -c safe.directory=$repo -C $repo restore --source=HEAD --worktree -- app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt app/src/test/resources/phase-e/golden-canonical.csv app/src/test/resources/phase-e/golden-canonical.json }; exit $code
+Process ID: 8868
+PSVersion: 7.6.5
+PSEdition: Core
+GitCommitId: 7.6.5
+OS: Microsoft Windows 10.0.26200
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+
+**********************
+PowerShell transcript end
+End time: 20260923115813
+**********************

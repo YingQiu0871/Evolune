@@ -1,0 +1,35 @@
+EVOLUNE v1.8.0 D-04 source-path audit
+
+Authoritative source snapshot: 057011b83d74277af9045acf417499f941f95a0c
+
+Home chain:
+- app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/HRTViewModel.kt:182 simulationRefresh.
+- HRTViewModel.kt:209-219 combines event/plan/body-weight/refresh inputs and uses collectLatest.
+- HRTViewModel.kt:376-378 increments simulationRefresh from runSimulation().
+- HRTViewModel.kt:380-403 builds the input, runs the calculator on simulationDispatcher, assigns
+  _pkState at line 395, and rethrows CancellationException at lines 396-397.
+- app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/PkSimulationCalculator.kt:29-41
+  defines the calculator and PkSimulationRunner seams.
+- PkSimulationCalculator.kt:58-134 performs the baseline/full runner calls and ensureActive gates
+  at lines 82, 108, and 123 before returning PKState.
+- app/src/main/java/io/github/yingqiu0871/evolune/pk/SimulationEngine.kt:137-195 is the blocking
+  engine invocation; SimulationEngine.run() has no in-loop coroutine cancellation check.
+
+Retrospective chain:
+- app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkViewModel.kt:85-86
+  owns loadJob and generation.
+- RetrospectivePkViewModel.kt:107-111 changes range and starts a new load.
+- RetrospectivePkViewModel.kt:141-158 increments generation, cancels loadJob, captures the new
+  window/zone, and launches the load.
+- RetrospectivePkViewModel.kt:195-222 publishes the coordinator outcome and rethrows cancellation
+  at lines 223-224.
+- RetrospectivePkViewModel.kt:246-253 performs the generation-token publication check; line 251
+  returns when token != generation.
+- app/src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectivePkSurfaceCoordinator.kt:72-142
+  performs the sequential estimate/read-2/read-3 path and rethrows cancellation at lines 87, 105,
+  and 121.
+- app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkService.kt:40-158
+  executes the estimate, invokes the curve runner at lines 120-126, and checks cancellation at line
+  127 before constructing the result.
+- app/src/main/java/io/github/yingqiu0871/evolune/history/pk/RetrospectivePkModels.kt:398-421
+  defines the curve-runner seam and unchanged default SimulationEngine runner.

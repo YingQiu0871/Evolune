@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 — D-04 / M04 verdict
+
+M04 CONFIRMED — SEPARATE IMPLEMENTATION REVIEW REQUIRED
+
+Basis:
+- Home repeated stress: 9/9 superseded incumbent generations reached and were directly observed
+  accepted at the HRT publication boundary after T2.
+- Home normal/stress base CSV: 12/12 superseded incumbents reached the assignment boundary after T2.
+- Retrospective normal/stress: 12/12 base rows reached measured T4 suppression; repeated traces
+  show all 9 old generations cancelled/suppressed before accepted publication.
+- Partial publications: 0.
+- Numerical equivalence: 12/12 PASS.
+- Focused unchanged tests: 108/108 PASS.
+- Canonical tracked-LF full JVM: 1,701/1,701 PASS.
+
+This characterization does not authorize implementation work. Any fix requires a separate review and
+implementation decision.

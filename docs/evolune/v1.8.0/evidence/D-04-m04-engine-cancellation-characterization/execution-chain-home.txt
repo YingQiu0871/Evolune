@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 D-04 Home execution chain
+
+1. HRTViewModel.init combines its upstream flows with simulationRefresh and enters collectLatest
+   (HRTViewModel.kt:209-219).
+2. runSimulation() increments simulationRefresh (HRTViewModel.kt:376-378).
+3. calculateAndPublish() constructs PkSimulationInput, enters simulationDispatcher, and invokes
+   simulationCalculator.calculate(input) (HRTViewModel.kt:380-394).
+4. DefaultPkSimulationCalculator adapts events, calls the injected PkSimulationRunner, performs its
+   post-run ensureActive(), and builds PKState (PkSimulationCalculator.kt:58-134).
+5. The runner invokes the unchanged blocking SimulationEngine.run() (SimulationEngine.kt:137-195).
+6. On return, HRTViewModel assigns result.copy(...) to _pkState (HRTViewModel.kt:395). The static
+   assignment has no generation token of its own.
+
+Characterization consequence: the existing collectLatest cancellation and calculator ensureActive
+gates do not prevent the measured Home incumbent from reaching the HRT assignment boundary after
+T2 in the controlled in-flight fixture. The repeated stress trace directly observed the stale
+simulation result in StateFlow publication for all 9 superseded Home generations measured there.

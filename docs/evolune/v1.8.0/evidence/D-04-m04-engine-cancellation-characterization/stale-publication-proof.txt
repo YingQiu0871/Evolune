@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-04 stale/partial publication proof
+
+Home direct proof:
+- Every base HOME row has stale_publication_attempts=1 after T2<T3.
+- The repeated stress trace directly observes the published StateFlow identity for every old Home
+  generation: 9/9 old generations are classified ACCEPTED_STALE_AT_HRT_ASSIGNMENT with
+  publication_accepted=true.
+- The final G3 generation in each repeated trace publishes normally. This is not a claim that the
+  final result is stale; it is the accepted successor reference.
+
+Retrospective direct proof:
+- Every base RETROSPECTIVE row records T3 and T4 with T3 <= T4, cancellation=true in the repeated
+  trace, and no accepted stale publication.
+- The source-level generation token check at RetrospectivePkViewModel.kt:246-253 independently
+  rejects token != generation, so a late old result cannot overwrite the current UI state.
+
+Partial publication:
+- partial_publications=0 for all 12 CSV rows.
+- The final successor result was available and numerically equivalent in every row.
+
+The raw Windows golden-byte failures are unrelated to this publication proof and are not counted as
+the accepted D-04 full regression gate.

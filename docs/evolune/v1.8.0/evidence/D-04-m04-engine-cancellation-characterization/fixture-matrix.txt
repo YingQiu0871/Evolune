@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 D-04 fixture matrix
+
+Fixture cells, three repetitions each:
+- HOME / normal: 16 deterministic dose events, fixed clock 2026-01-02T03:04:05.678Z.
+- HOME / stress: 512 deterministic dose events, same fixed clock.
+- RETROSPECTIVE / normal: 16 deterministic historical entries, fixed clock 2026-09-16T12:00:00Z.
+- RETROSPECTIVE / stress: 512 deterministic historical entries, same fixed clock.
+
+Each normal/stress cell executes G0 incumbent -> G1 successor. A separate repeated stress trace
+executes G0 -> G1 -> G2 -> G3 for HOME and RETROSPECTIVE, three repetitions per path.
+
+Supersession is issued from a dedicated executor after the runner seam reports T1 and the temporary
+harness holds the superseded engine call at that existing seam until the new generation is issued.
+The harness then releases the unchanged SimulationEngine call and records the first legal observed
+post-engine boundary. No production scheduler, engine, or publication code was instrumented.
