@@ -1,0 +1,286 @@
+package io.github.yingqiu0871.evolune.history
+
+import io.github.yingqiu0871.evolune.application.FakeDoseEventRepository
+import io.github.yingqiu0871.evolune.application.FakeMedicationPlanRepository
+import io.github.yingqiu0871.evolune.core.model.DoseEvent
+import io.github.yingqiu0871.evolune.core.model.DoseEventSource
+import io.github.yingqiu0871.evolune.core.model.MedicationPlan
+import io.github.yingqiu0871.evolune.core.model.ScheduleType
+import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
+import io.github.yingqiu0871.evolune.pk.Ester
+import io.github.yingqiu0871.evolune.pk.Route
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.util.UUID
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
+
+/**
+ * D-10/M02: the post-query pure-CPU History tail (union, projection, grouping)
+ * runs through the injected projection dispatcher, without changing the
+ * observable result, duplicate/conflict semantics or cancellation behavior.
+ */
+class HistoryReadServiceProjectionDispatcherTest {
+
+    private val zone: ZoneId = ZoneId.of("America/New_York")
+    private val day: LocalDate = LocalDate.of(2025, 3, 9) // US DST spring-forward day
+
+    // ---------------------------------------------------------------- fixtures
+
+    private fun plan(): MedicationPlan {
+        val id = UUID(0L, 900L)
+        return MedicationPlan(
+            id = id,
+            name = "D-10 fixture plan",
+            route = Route.ORAL,
+            ester = Ester.E2,
+            doseMG = 2.0,
+            scheduleType = ScheduleType.DAILY,
+            slots = listOf(
+                ScheduledDoseSlot(
+                    id = UUID(1L, 1L),
+                    planId = id,
+                    localTime = LocalTime.of(8, 0),
+                    position = 0
+                )
+            ),
+            daysOfWeek = setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY),
+            intervalDays = 1,
+            isEnabled = true,
+            extras = emptyMap(),
+            createdAt = Instant.parse("2025-01-01T00:00:00Z")
+        )
+    }
+
+    private fun event(
+        id: UUID,
+        occurredAt: Instant,
+        localDate: LocalDate?,
+        zoneId: ZoneId?,
+        doseMG: Double = 2.0
+    ): DoseEvent = DoseEvent(
+        id = id,
+        route = Route.ORAL,
+        occurredAt = occurredAt,
+        zoneId = zoneId,
+        localDate = localDate,
+        doseMG = doseMG,
+        ester = Ester.E2,
+        extras = emptyMap(),
+        slotId = null,
+        source = DoseEventSource.MANUAL,
+        status = io.github.yingqiu0871.evolune.core.model.DoseEventStatus.RECORDED,
+        revision = 1L
+    )
+
+    /** Both channels see rows; a legacy null-localDate row and a DST/midnight row. */
+    private fun fixtureEvents(): List<DoseEvent> = listOf(
+        // matched on the plan day through the persisted date + instant channels
+        event(UUID(7L, 1L), Instant.parse("2025-03-09T13:00:00Z"), day, zone),
+        // delayed reminder: persisted date is the planned day, instant far outside
+        event(UUID(7L, 2L), Instant.parse("2025-03-07T01:30:00Z"), day, zone),
+        // legacy row with null persisted date, instant at 23:30 local the previous day
+        event(UUID(7L, 3L), Instant.parse("2025-03-09T04:30:00Z"), null, null),
+        // instant-only row on the day itself
+        event(UUID(7L, 4L), Instant.parse("2025-03-09T18:00:00Z"), null, null)
+    )
+
+    private fun service(
+        events: FakeDoseEventRepository,
+        dispatcher: CoroutineDispatcher
+    ): HistoryReadService = HistoryReadService(
+        medicationPlans = FakeMedicationPlanRepository(listOf(plan())),
+        doseEvents = events,
+        projectionDispatcher = dispatcher
+    )
+
+    private fun read(service: HistoryReadService) = runBlocking {
+        service.readRange(
+            startDate = day.minusDays(1),
+            endDate = day.plusDays(1),
+            displayZone = zone,
+            now = Instant.parse("2025-03-12T12:00:00Z")
+        )
+    }
+
+    // ---------------------------------------------------------------- A: ownership
+
+    private class RecordingDispatcher : CoroutineDispatcher() {
+        private val executor: ExecutorService =
+            Executors.newSingleThreadExecutor { runnable ->
+                Thread(runnable, "d10-projection-test").apply { isDaemon = true }
+            }
+        val executions = CopyOnWriteArrayList<String>()
+        var dispatchCount = 0
+            private set
+
+        override fun dispatch(context: CoroutineContext, block: Runnable) {
+            dispatchCount += 1
+            executor.execute {
+                executions.add(Thread.currentThread().name)
+                block.run()
+            }
+        }
+
+        fun shutdown() {
+            executor.shutdown()
+        }
+    }
+
+    @Test
+    fun `pure tail is dispatched through the injected projection dispatcher`() {
+        val dispatcher = RecordingDispatcher()
+        try {
+            val range = read(service(FakeDoseEventRepository(fixtureEvents()), dispatcher))
+
+            assertTrue("tail must be dispatched", dispatcher.dispatchCount >= 1)
+            assertEquals(
+                "every dispatched tail block must execute on the worker thread",
+                listOf("d10-projection-test"),
+                dispatcher.executions.toList()
+            )
+            assertTrue("result must still be produced", range.days.isNotEmpty())
+        } finally {
+            dispatcher.shutdown()
+        }
+    }
+
+    // ------------------------------------------------- B/C/D: exact result equality
+
+    @Test
+    fun `dispatcher-backed result is exactly equal to the inline reference result`() {
+        val inline = read(service(FakeDoseEventRepository(fixtureEvents()), Dispatchers.Unconfined))
+        val dispatcher = RecordingDispatcher()
+        try {
+            val moved = read(service(FakeDoseEventRepository(fixtureEvents()), dispatcher))
+            assertEquals("full HistoryRange equality (dates, entries, order, counts)", inline, moved)
+            assertEquals(inline.days.map { it.date }, moved.days.map { it.date })
+            assertEquals(
+                inline.days.flatMap { it.entries }.map { it.displayDate },
+                moved.days.flatMap { it.entries }.map { it.displayDate }
+            )
+        } finally {
+            dispatcher.shutdown()
+        }
+    }
+
+    @Test
+    fun `duplicate rows across both channels reach the projection exactly once`() {
+        val events = FakeDoseEventRepository(fixtureEvents())
+        val dispatcher = RecordingDispatcher()
+        try {
+            val range = read(service(events, dispatcher))
+            // both fakes return the full list for both channels; union must dedup
+            val renderedEventIds = range.days.flatMap { it.entries }.mapNotNull { entry ->
+                when (entry) {
+                    is io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence ->
+                        entry.event.eventId
+                    is io.github.yingqiu0871.evolune.experience.UnmatchedHistoricalIntake ->
+                        entry.event.eventId
+                    else -> null
+                }
+            }
+            assertEquals(
+                "each authoritative event id must appear exactly once",
+                renderedEventIds.size,
+                renderedEventIds.toSet().size
+            )
+            assertEquals(
+                "all four fixture events must be represented",
+                fixtureEvents().map { it.id }.toSet(),
+                renderedEventIds.toSet()
+            )
+            assertEquals(1, range.days.first { it.date == day }.recordedCount)
+            assertTrue("persisted-date channel ran", events.lastLocalDateRange != null)
+            assertTrue("instant channel ran", events.lastRange != null)
+        } finally {
+            dispatcher.shutdown()
+        }
+    }
+
+    @Test
+    fun `conflicting duplicate ids still fail fast through the worker boundary`() {
+        val events = FakeDoseEventRepository(fixtureEvents())
+        events.rangeEvents = listOf(event(UUID(7L, 1L), Instant.parse("2025-03-09T13:00:00Z"), day, zone, doseMG = 9.0))
+        events.localDateRangeEvents = listOf(event(UUID(7L, 1L), Instant.parse("2025-03-09T13:00:00Z"), day, zone))
+        val dispatcher = RecordingDispatcher()
+        try {
+            try {
+                read(service(events, dispatcher))
+                fail("expected conflicting-channel failure")
+            } catch (expected: IllegalStateException) {
+                assertTrue(
+                    "conflict must be reported, not silently resolved",
+                    expected.message.orEmpty().contains("conflicting rows")
+                )
+            }
+        } finally {
+            dispatcher.shutdown()
+        }
+    }
+
+    // ---------------------------------------------------------------- E: cancellation
+
+    @Test
+    fun `cancellation while the tail is queued still terminates the load as cancellation`() = runBlocking {
+        withTimeout(15_000) {
+            val gate = java.util.concurrent.CountDownLatch(1)
+            val tailQueued = java.util.concurrent.CountDownLatch(1)
+            val executor = Executors.newSingleThreadExecutor { runnable ->
+                Thread(runnable, "d10-gated-tail").apply { isDaemon = true }
+            }
+            val gated = object : CoroutineDispatcher() {
+                override fun dispatch(context: CoroutineContext, block: Runnable) {
+                    executor.execute {
+                        tailQueued.countDown()
+                        gate.await() // hold the queued tail until the test releases it
+                        block.run()
+                    }
+                }
+            }
+            try {
+                val service = service(FakeDoseEventRepository(fixtureEvents()), gated)
+                var completed = false
+                val job = launch {
+                    service.readRange(
+                        day.minusDays(1),
+                        day.plusDays(1),
+                        zone,
+                        Instant.parse("2025-03-12T12:00:00Z")
+                    )
+                    completed = true
+                }
+                yield()
+                assertTrue(
+                    "tail must be queued on the worker dispatcher",
+                    tailQueued.await(5, java.util.concurrent.TimeUnit.SECONDS)
+                )
+                job.cancel()
+                gate.countDown()
+                job.join()
+                assertTrue("cancelled load must end as cancellation", job.isCancelled)
+                assertFalse("cancelled load must not publish a result", completed)
+            } finally {
+                gate.countDown()
+                executor.shutdown()
+            }
+        }
+    }
+}

@@ -16,7 +16,10 @@ import io.github.yingqiu0871.evolune.experience.OccurrenceGenerationWindow
 import io.github.yingqiu0871.evolune.experience.RecordedMedicationEvent
 import io.github.yingqiu0871.evolune.experience.UnmatchedHistoricalIntake
 import io.github.yingqiu0871.evolune.experience.UnrecordedHistoricalOccurrence
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -57,7 +60,13 @@ import java.util.UUID
  */
 class HistoryReadService(
     private val medicationPlans: MedicationPlanRepository,
-    private val doseEvents: DoseEventRepository
+    private val doseEvents: DoseEventRepository,
+    /**
+     * D-10/M02: worker dispatcher for the post-query pure-CPU History tail
+     * (union/deduplication, projection/matching, range grouping). Room keeps
+     * its own query executor; the ViewModel keeps Main publication ownership.
+     */
+    private val projectionDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : AllAvailableHistorySource {
     suspend fun readRange(
         startDate: LocalDate,
@@ -110,17 +119,24 @@ class HistoryReadService(
             eventQueryStart,
             eventQueryEndExclusive
         )
-        val recordedEvents = unionAuthoritativeEvents(persistedDateEvents, instantContextEvents)
 
-        val projection = HistoricalProjectionBuilder.derive(
-            occurrences = occurrences,
-            events = recordedEvents,
-            now = now,
-            displayZone = displayZone,
-            policy = policy
-        )
+        // D-10/M02: the post-query pure-CPU History tail runs on the injected
+        // worker dispatcher. Inputs (occurrences, both channel results, query
+        // window, now, zone, policy) are stable captured values; queries keep
+        // their original placement and executor ownership.
+        return withContext(projectionDispatcher) {
+            val recordedEvents = unionAuthoritativeEvents(persistedDateEvents, instantContextEvents)
 
-        return HistoricalReadModel.range(projection, startDate, endDate)
+            val projection = HistoricalProjectionBuilder.derive(
+                occurrences = occurrences,
+                events = recordedEvents,
+                now = now,
+                displayZone = displayZone,
+                policy = policy
+            )
+
+            HistoricalReadModel.range(projection, startDate, endDate)
+        }
     }
 
     /**

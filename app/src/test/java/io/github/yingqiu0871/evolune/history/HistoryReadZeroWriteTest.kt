@@ -23,7 +23,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -128,7 +130,7 @@ class HistoryReadZeroWriteTest {
         events: DoseEventRepository
     ): HistoryViewModel {
         val service = HistoryReadService(plans, events)
-        return HistoryViewModel(
+        val viewModel = HistoryViewModel(
             rangeSource = HistoryRangeSource { start, end, zone, instant ->
                 service.readRange(start, end, zone, instant)
             },
@@ -136,6 +138,16 @@ class HistoryReadZeroWriteTest {
             displayZone = { utc },
             operationScope = scope
         )
+        // D-10: the post-query pure-CPU tail now runs on its worker dispatcher, so
+        // the initial load is genuinely asynchronous even under an unconfined
+        // operation scope. Await it before a test asserts the loaded state; the
+        // read/write counts and their meanings are unchanged.
+        runBlocking {
+            withTimeout(5_000) {
+                viewModel.uiState.first { it.loadedMonth != null }
+            }
+        }
+        return viewModel
     }
 
     private fun recordedEvent(): DoseEvent = DoseEvent(
