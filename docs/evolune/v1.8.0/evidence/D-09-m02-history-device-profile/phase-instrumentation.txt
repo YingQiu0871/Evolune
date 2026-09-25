@@ -1,0 +1,33 @@
+EVOLUNE v1.8.0 D-09 — PHASE INSTRUMENTATION DEFINITION
+======================================================
+
+Temporary markers (removed before the evidence commit; exact bytes restored):
+- HistoryReadService.readRange: P1 plans query, P2 occurrence generation,
+  P3 channel A (persisted localDate), P4 channel B (instant range), P5 union,
+  P6 projection (matcher/derive), P7 range grouping, P0/P8 readRange span.
+- HistoryViewModel.loadMonth: P-1 load start (Main), P9 uiState publication (Main).
+Every marker logged: System.nanoTime() and (on phase ends)
+android.os.Debug.threadCpuTimeNanos() for the current thread plus the phase's
+output cardinality (plans/occurrences/rows/union/entries/days).
+
+Harness (temporary androidTest, deleted before the evidence commit):
+- real Room repositories (RoomDoseEventRepository, RoomMedicationPlanRepository)
+  over the real AppDatabase;
+- real HistoryReadService;
+- real HistoryViewModel with viewModelScope (Main.immediate) and NO operationScope;
+- fixed clock 2026-09-15T12:00:00Z UTC;
+- scenarios: first entry (fresh VM per repetition), month change
+  (showPreviousMonth), reentry/foreground refresh (onAppForegrounded);
+- fixtures seeded through RoomRestorePersistence.replaceRoom.
+No production algorithm was reimplemented; only the real seams were wrapped.
+
+Repetitions: n=30 per representative scenario (after warm-up); n=10 for the
+10k synthetic stress (runtime reason: ~0.6-0.8 s per load; 30 reps would add no
+decision value beyond the 10 measured, all recorded).
+
+Known harness limitation (documented, not hidden): the month-100/month-1000 raw
+logs were captured with the first harness revision whose run-row completion
+counter reset incorrectly; the per-load PHASE markers are complete and valid
+(exactly 2 full P-1..P9 load sequences per repetition, verified), and the
+analysis uses the phase markers, not the run-row counter. All other scenarios
+were re-captured with the corrected harness.

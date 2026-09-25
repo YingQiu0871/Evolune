@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-09 — D-02 PREDECESSOR FINDINGS (PRESERVED)
+===========================================================
+
+D-02 evidence: docs/evolune/v1.8.0/evidence/D-02-history-projection-characterization/
+D-02 classification (accepted): M02 CONFIRMED — DEVICE PROFILING REQUIRED BEFORE
+IMPLEMENTATION. Implementation NOT AUTHORIZED at that time.
+
+Accepted facts carried into D-09 (not re-derived):
+- production History path already reconstructed;
+- Home cold startup performs no History read after the B-02 lazy-entry work;
+- first History entry performs one initial load;
+- day selection alone does not redo data projection;
+- month change / retry / foreground / re-entry may intentionally reload;
+- re-entry reuses the Activity-owned ViewModel but refreshes data;
+- no one-second History recomputation exists;
+- caller-context CPU work is real (placement proven);
+- deterministic scaling was established (nested matcher amplification);
+- device-level materiality was NOT established;
+- implementation remained NOT AUTHORIZED.
+
+D-09 is the missing Android-device gate. D-02 conclusions are frozen and were
+not re-tested as if new; D-09 measures the device materiality that D-02 lacked.

@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 D-09 — PREDECESSOR EVIDENCE FREEZE
+=================================================
+
+Prior D-* evidence directories were not modified by D-09:
+  git diff d39acc5..HEAD -- docs/evolune/v1.8.0/evidence \
+    -- . ':(exclude)docs/evolune/v1.8.0/evidence/D-09-m02-history-device-profile'
+  -> EMPTY
+
+Specifically preserved byte-identical: D-01, D-02 (M02 predecessor), D-03,
+D-04, D-04R, D-05, D-06, D-08 (M01 predecessor), R-01, and the A-*/B-*/C-01
+evidence sets.
+
+M01 = CLOSED (D-08 decision) and M04 = CLOSED / FROZEN: neither was reopened,
+re-measured or reinterpreted by D-09.

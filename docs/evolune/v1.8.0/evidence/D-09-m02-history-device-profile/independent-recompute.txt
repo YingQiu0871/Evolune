@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-09 — INDEPENDENT STATISTICS RECOMPUTATION
+==========================================================
+
+Independent recompute path:
+  raw device logs (raw/*.txt)
+  -> raw/recompute-analysis.ps1 (separate script; no reuse of harness code)
+  -> per-load rows: raw-history-profile.csv
+  -> distributions: raw/phase-statistics.txt
+
+Recompute method:
+- parse each raw log line for the D09Phase markers;
+- group P-1..P9 sequences into loads; for month/reentry take the second load
+  (the measured refresh/month-change), for first take the single load;
+- wall = (end_ns - start_ns) / 1e6; CPU = (cpu_end - cpu_start) / 1e6 using the
+  cumulative Debug.threadCpuTimeNanos samples at consecutive phase boundaries;
+- statistics: min, arithmetic mean, lower middle median, ceil(0.95*n)-1
+  percentile index, max (same convention as D-08).
+
+Recompute results (medians, ms): see query-cpu-separation.txt / aggregates;
+the per-load CSV has 250 rows total: 30x4 (first) + 30x2 (month) + 30x2
+(reentry) + 10 (stress) = 250 measured loads.
+
+Spot check by hand (first|1000|3, rep 2): projection wall from the raw log
+= (t(P6e) - t(P6s))/1e6 and CPU delta from the two cpu= samples; both match the
+CSV row within rounding. No row was excluded from the statistics.

@@ -1,0 +1,37 @@
+EVOLUNE v1.8.0 D-09 — FIXTURE DEFINITIONS
+=========================================
+
+Seeded deterministically through RoomRestorePersistence.replaceRoom into the
+real Room v3 database (plans + slots + events), then read through the real
+production repositories.
+
+Event cardinality (visible month: 2026-08-01..2026-09-15, persisted localDate
+= event date, occurredAt UTC, ORAL E2 2.0 mg, RECORDED):
+  SMALL  ~100 events   (exact 100)
+  MEDIUM ~1000 events  (exact 1000)
+  LARGE  ~10000 events (exact 10000)  -> SYNTHETIC STRESS, not representative of
+         normal user behavior (≈22 events/day in one month window)
+
+Plan density (daily schedule, 2 slots/plan at 08:00 and 20:00, enabled):
+  low:   1 plan   (2 slots)
+  mid:   3 plans  (6 slots)
+  high:  8 plans  (16 slots)
+
+Matrix actually measured:
+  first entry:   100/mid, 1000/low, 1000/mid, 1000/high
+  month change:  100/mid, 1000/mid
+  reentry:       100/mid, 1000/mid
+  stress:        10000/mid (n=10)
+
+Occurrences generated per load: 1 plan -> 34; 3 plans -> 102; 8 plans -> 272
+(over the occurrence context window: 17 days for the current-month first load;
+34 days for the full previous-month load; measured `occurrences` values match).
+
+Observed fixture sizes: main DB file 1,572,864 B for all three seeds (WAL not
+included in this figure); events/plans/slots counts as above.
+
+Notes:
+- The MEDIUM fixture (1000 events in one month) is the audit's "1k" case; it is
+  denser than a 2-4 doses/day user's month (~60-120 events). SMALL (~100) is
+  closest to a routine month.
+- The LARGE case is explicitly synthetic stress.

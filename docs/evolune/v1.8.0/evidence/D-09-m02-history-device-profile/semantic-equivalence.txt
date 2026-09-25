@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-09 — SEMANTIC EQUIVALENCE
+==========================================
+
+The temporary markers do not alter logic (logging only). Content checks:
+
+1. Per-repetition result consistency: the loaded range content for the same
+   fixture/scenario was identical across all repetitions. The harness recorded
+   a content hash (total entries x 1000 + loaded day count) for every measured
+   load; all repetitions produced the same value:
+     first/100/mid:      117015   (117 entries, 15 days)  x30
+     first/1000/mid:     455015   (455 entries, 15 days)  x30
+     first/1000/low:     362015   (362 entries, 15 days)  x30
+     first/1000/high:    610015   (610 entries, 15 days)  x30
+     first/10000/mid:   3782015   (3782 entries, 15 days) x10
+   month-100/month-1000 phase logs show a full second load per repetition with
+   days=31 (previous month) and entries 272 / 924 respectively (consistent).
+   reentry loads match the first-entry content (117015 / 455015).
+2. Cardinality consistency with the domain: occurrences 34/102/198/272 and
+   channel rows/union/entries scale exactly as the fixture predicts
+   (raw-history-profile.csv columns).
+3. Existing correctness contracts are covered by the focused suites
+   (history read/service, matcher/projection, duplicate/conflict, date/DST,
+   generation/cancellation, lazy entry) and all pass under the canonical
+   tracked-LF procedure: 39 suites / 458 tests / 0 failures (focused-
+   regression.txt).
+4. No measurement shortcut changed the production algorithm: all measured work
+   executed the real HistoryReadService/HistoryViewModel code paths.
+
+Preserved contracts (no change in D-09): persisted localDate channel, instant
+range channel, UUID deduplication, duplicate/conflict behaviour, medication/
+occurrence matching, display-date grouping, ordering, midnight/DST semantics.

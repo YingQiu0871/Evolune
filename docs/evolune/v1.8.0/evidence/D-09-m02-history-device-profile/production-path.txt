@@ -1,0 +1,33 @@
+EVOLUNE v1.8.0 D-09 — PRODUCTION PATH (CURRENT HEAD) AND EXECUTION CONTEXT
+=========================================================================
+
+Path (verified in source at d39acc5; D-06/D-08 did not alter History):
+  History destination
+  -> HistoryViewModel (viewModelScope = Main.immediate; operationScope unset)
+  -> rangeSource.read = HistoryReadService.readRange
+  -> medicationPlans.observeAll().first() (Room DAO @Query, suspending)
+  -> occurrence generation (MedicationOccurrenceGenerator)
+  -> doseEvents.findRecordedLocalDateBetween (Room DAO, suspending)
+  -> doseEvents.findOccurredBetween (Room DAO, suspending)
+  -> unionAuthoritativeEvents (UUID dedup)
+  -> HistoricalProjectionBuilder.derive (matcher/projection)
+  -> HistoricalReadModel.range (display-date grouping)
+  -> ViewModel uiState publication (Main)
+  -> Compose presentation/rendering (Main)
+
+Execution context per phase (measured; thread recorded by markers):
+  1. Room DAO queries: Room executor; caller suspends (Main is free)
+     - repository `runStorageOperation` wraps the DAO call; the entity->domain
+       mapping runs on the caller after the DAO returns
+  2. repository entity -> domain conversion: caller (Main), inside P1/P3/P4 CPU
+  3. occurrence generation (P2): caller (Main)
+  4. event union / dedup (P5): caller (Main)
+  5. matcher + historical projection (P6): caller (Main)
+  6. range grouping (P7): caller (Main)
+  7. ViewModel publication (P9): Main
+  8. Compose presentation/render: Main (not separately instrumented; the
+     measured main-thread occupation already includes the publication delay)
+
+Instrumented phases (temporary markers, removed before commit):
+  P1 plans query | P2 generation | P3 channel A | P4 channel B | P5 union |
+  P6 projection | P7 grouping | P0..P8 readRange span | P-1..P9 ViewModel load span.

@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-09 — DEVICE / ENVIRONMENT RECORD
+=================================================
+
+Device: Pixel_7 AVD (emulator-5554)
+  model: sdk_gphone64_x86_64 (Android 15 / API 35)
+  ABI: x86_64 (host: Windows PC)
+  build: debug APK (io.github.yingqiu0871.evolune.debug) built from d39acc5
+         with disposable phase markers only
+  runtime: ART, same process for instrumentation and target
+  CPU: Runtime.getRuntime().availableProcessors() = 4
+  Battery/thermal: emulator (no thermal throttling observed)
+
+Continuity: the same Pixel 7 API 35 AVD family used by D-08 was used here.
+Emulator limitation (recorded, not hidden): AVD CPU speed and memory bandwidth
+are host-dependent; absolute latencies are not directly generalizable to all
+physical phones. The phase structure (what runs on Main) and the scaling
+relationships are structural and device-independent.
+
+Method: production-fidelity harness in androidTest (deleted before commit):
+  real Room repositories + real HistoryReadService + real HistoryViewModel
+  (viewModelScope Main.immediate, no operationScope, fixed clock
+  2026-09-15T12:00:00Z UTC). No production algorithm was reimplemented.

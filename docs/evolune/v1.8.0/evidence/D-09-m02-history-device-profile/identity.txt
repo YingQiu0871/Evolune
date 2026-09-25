@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 D-09 — IDENTITY
+==============================
+
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d09
+Branch: feature/v1.8.0-d09-m02-history-device-profile
+Authoritative starting HEAD: d39acc5450d5057084f234ee54c6ef4d5f38ad15
+  (D-08 APPROVE, M01 CLOSED; D-08 head = current product baseline)
+Worktree at start: clean.
+
+Slice: M02 — History projection and mapping CPU on the caller.
+Type: evidence-only device profile and decision.
+No production or committed test source delta; temporary phase markers and the
+temporary harness were fully removed before the evidence commit.
+
+M01 remains CLOSED. M04 remains CLOSED / FROZEN. Neither was reopened.
+
+Version remains 1.7.4 / Phone 101_070_400 / Wear 1_101_070_400 (no bump).

@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 D-09 — AUTHORITATIVE M02 AUDIT TEXT
+==================================================
+
+Source: D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+SHA-256: 122b3407c42e8ab49d34384bdd4d0436e53b0247f0c5ee65effe24e9ee452f61
+
+M02 wording (verbatim):
+
+  M02 — History projection and mapping CPU on the caller
+  Severity/area: P2 candidate; Main-thread CPU outside retrospective engine.
+  Files/functions: AP/history/HistoryReadService.kt:62–123,135,261;
+  AP/history/HistoryViewModel.kt:152; AP/data/repository/RoomDoseEventRepository.kt:31.
+  Behavior/evidence: after suspending repository calls, occurrence generation,
+  union and projection execute on caller context. History VM default is Main;
+  Flow entity-to-domain map also follows collection context, not automatically the
+  Room query executor. This is proven placement, not proof of material latency.
+  Action: time query vs conversion vs projection separately for a month at 100,
+  1k and 10k total historical events and varied plan density. If CPU dominates,
+  inject a Default boundary around pure work while keeping reads/identity order.
+  Risk/tests: moderate; exact projection equality, persisted localDate + instant
+  union, duplicate IDs, midnight/DST, concurrent reads and generation cancellation.
+  Executor/size/dependencies: DeepSeek V4.1 Flash evidence, small; conditional Luna
+  implementation small/medium. F01 handles the retrospective path independently;
+  F06 removes unnecessary entry work but does not eliminate visible History cost.
+
+D-09 scope is exactly this finding; nothing was broadened. M01/M03/M04/M05 were
+not touched (M03 remains NOT AUTHORIZED; M05 unchanged).

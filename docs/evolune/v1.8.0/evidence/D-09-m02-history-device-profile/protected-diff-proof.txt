@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 D-09 — PROTECTED DIFF PROOF
+==========================================
+
+git diff d39acc5450d5057084f234ee54c6ef4d5f38ad15..HEAD -- \
+  app/src/main app/src/test app/src/androidTest wear experience-core
+-> EMPTY
+
+Temporary artifacts created and fully removed:
+- phase markers in app/src/main/.../history/HistoryReadService.kt
+  (9 marker lines) and .../history/HistoryViewModel.kt (2 marker lines):
+  originals restored byte-exactly from saved copies;
+- app/src/androidTest/.../d09/D09HistoryHarnessTest.kt: deleted.
+
+git status --porcelain -> clean before adding the evidence directory.
+No committed production/test source delta exists in this commit.

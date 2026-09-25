@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 D-09 — MAIN-THREAD MATERIALITY
+=============================================
+
+Required question: during representative History loads, how much uninterrupted
+or cumulatively significant Main-thread work is introduced by
+conversion/generation/union/matcher/projection?
+
+Measured (medians; full distributions in raw/phase-statistics.txt):
+
+  scenario|size|plans   total Main CPU   longest contiguous Main block   load wall
+  first|100|3                11.1 ms            7.2 ms (P5->P7)            17.0 ms
+  first|1000|1               25.5 ms           23.0 ms                    38.1 ms
+  first|1000|3               52.4 ms           51.5 ms                    67.5 ms
+  first|1000|8              121.2 ms          125.1 ms                   150.6 ms
+  first|10000|3             414.4 ms          556.4 ms                   631.4 ms
+  month|100|3                24.8 ms           21.8 ms                    37.7 ms
+  month|1000|3              154.2 ms          186.6 ms                   212.3 ms
+  reentry|100|3               8.7 ms            8.0 ms                    18.1 ms
+  reentry|1000|3             46.7 ms           55.3 ms                    72.4 ms
+
+The longest contiguous Main-thread interval is the union->projection->grouping
+run (P5 start -> P7 end); it is a single uninterrupted CPU block because no
+suspension occurs between the last Room query and the end of readRange.
+
+Frame-budget context (inference, clearly labeled): a 51-125 ms contiguous Main
+block cannot render at 60 Hz (16.7 ms budget) and will drop ~3-7 frames if it
+occurs during visible UI (History entry transition, month change). This is an
+inference from measured Main-thread occupation; no frame counters were captured
+in D-09 and no "jank" claim is made beyond the measured Main blocking.
+
+Totals are dominated by the projection; queries do not block Main (they suspend).
+SMALL (100 events) is under one frame budget and not material.

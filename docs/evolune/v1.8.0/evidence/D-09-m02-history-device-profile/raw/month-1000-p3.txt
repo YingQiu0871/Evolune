@@ -1,0 +1,1110 @@
+I/D09Phase( 4284): P-1 vm-load-start t=1553743590892 thread=main
+I/D09Phase( 4284): P0 range-enter t=1553744804092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1553745128092
+I/D09Phase( 4284): P1 plans-query-end t=1553817031792 cpu=715071615 plans=3
+I/D09Phase( 4284): P2 generation-start t=1553817391992
+I/D09Phase( 4284): P2 generation-end t=1553834310792 cpu=730487612 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1553834479092
+I/D09Phase( 4284): P3 channelA-end t=1553848889492 cpu=735033526 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1553849015492
+I/D09Phase( 4284): P4 channelB-end t=1553862255792 cpu=738769932 rows=362
+I/D09Phase( 4284): P5 union-start t=1553862417492
+I/D09Phase( 4284): P5 union-end t=1553865018092 cpu=741374137 union=362
+I/D09Phase( 4284): P6 projection-start t=1553865140892
+I/D09Phase( 4284): P6 projection-end t=1554013191992 cpu=889041280 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1554013346592
+I/D09Phase( 4284): P7 grouping-end t=1554014894292 cpu=890581407 days=15
+I/D09Phase( 4284): P8 range-exit t=1554015095892
+I/D09Phase( 4284): P9 vm-publish t=1554015356892 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1573747786592 thread=main
+I/D09Phase( 4284): P0 range-enter t=1573747934992 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1573748103792
+I/D09Phase( 4284): P1 plans-query-end t=1573752338292 cpu=1667625847 plans=3
+I/D09Phase( 4284): P2 generation-start t=1573752568992
+I/D09Phase( 4284): P2 generation-end t=1573761873192 cpu=1673881229 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1573762150892
+I/D09Phase( 4284): P3 channelA-end t=1573782437992 cpu=1678399789 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1573782697592
+I/D09Phase( 4284): P4 channelB-end t=1573798181592 cpu=1682799446 rows=726
+I/D09Phase( 4284): P5 union-start t=1573798435692
+I/D09Phase( 4284): P5 union-end t=1573806019792 cpu=1687377137 union=726
+I/D09Phase( 4284): P6 projection-start t=1573806213892
+I/D09Phase( 4284): P6 projection-end t=1573971940192 cpu=1835660816 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1573972268092
+I/D09Phase( 4284): P7 grouping-end t=1573972795292 cpu=1836261278 days=31
+I/D09Phase( 4284): P8 range-exit t=1573972879992
+I/D09Phase( 4284): P9 vm-publish t=1573973185892 thread=main days=31
+scenario=month,events=1000,plans=3,rep=0,completed=false,elapsedMs=50004.1884,maxMainGapMs=175.39,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1603753913792 thread=main
+I/D09Phase( 4284): P0 range-enter t=1603754028992 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1603754110192
+I/D09Phase( 4284): P1 plans-query-end t=1603758528692 cpu=2820965724 plans=3
+I/D09Phase( 4284): P2 generation-start t=1603759214492
+I/D09Phase( 4284): P2 generation-end t=1603764438992 cpu=2823690957 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1603764784592
+I/D09Phase( 4284): P3 channelA-end t=1603772451492 cpu=2826045925 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1603772600092
+I/D09Phase( 4284): P4 channelB-end t=1603779754692 cpu=2828015617 rows=362
+I/D09Phase( 4284): P5 union-start t=1603779970992
+I/D09Phase( 4284): P5 union-end t=1603780884592 cpu=2829004607 union=362
+I/D09Phase( 4284): P6 projection-start t=1603780974892
+I/D09Phase( 4284): P6 projection-end t=1603830023392 cpu=2870536285 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1603830179092
+I/D09Phase( 4284): P7 grouping-end t=1603830306492 cpu=2870747963 days=15
+I/D09Phase( 4284): P8 range-exit t=1603830365892
+I/D09Phase( 4284): P9 vm-publish t=1603830547292 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1623755542892 thread=main
+I/D09Phase( 4284): P0 range-enter t=1623755653292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1623755733992
+I/D09Phase( 4284): P1 plans-query-end t=1623761261492 cpu=3568524043 plans=3
+I/D09Phase( 4284): P2 generation-start t=1623761398492
+I/D09Phase( 4284): P2 generation-end t=1623765839992 cpu=3572207543 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1623765940892
+I/D09Phase( 4284): P3 channelA-end t=1623777722492 cpu=3575797857 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1623777895592
+I/D09Phase( 4284): P4 channelB-end t=1623787798592 cpu=3579309680 rows=726
+I/D09Phase( 4284): P5 union-start t=1623787963592
+I/D09Phase( 4284): P5 union-end t=1623789852992 cpu=3581283710 union=726
+I/D09Phase( 4284): P6 projection-start t=1623789977592
+I/D09Phase( 4284): P6 projection-end t=1623954423692 cpu=3728032805 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1623954587392
+I/D09Phase( 4284): P7 grouping-end t=1623954778792 cpu=3728305127 days=31
+I/D09Phase( 4284): P8 range-exit t=1623954905192
+I/D09Phase( 4284): P9 vm-publish t=1623955157692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=1,completed=false,elapsedMs=50003.3979,maxMainGapMs=169.7912,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1653761786492 thread=main
+I/D09Phase( 4284): P0 range-enter t=1653762169492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1653762309392
+I/D09Phase( 4284): P1 plans-query-end t=1653766077492 cpu=4705207073 plans=3
+I/D09Phase( 4284): P2 generation-start t=1653766288092
+I/D09Phase( 4284): P2 generation-end t=1653770598192 cpu=4707800507 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1653770729492
+I/D09Phase( 4284): P3 channelA-end t=1653775429992 cpu=4709568240 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1653775561092
+I/D09Phase( 4284): P4 channelB-end t=1653780514992 cpu=4711271759 rows=362
+I/D09Phase( 4284): P5 union-start t=1653780875792
+I/D09Phase( 4284): P5 union-end t=1653781712792 cpu=4712785329 union=362
+I/D09Phase( 4284): P6 projection-start t=1653782277192
+I/D09Phase( 4284): P6 projection-end t=1653828682892 cpu=4753279824 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1653828919792
+I/D09Phase( 4284): P7 grouping-end t=1653829264792 cpu=4753610750 days=15
+I/D09Phase( 4284): P8 range-exit t=1653829372292
+I/D09Phase( 4284): P9 vm-publish t=1653829635592 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1673763450692 thread=main
+I/D09Phase( 4284): P0 range-enter t=1673763600192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1673763660192
+I/D09Phase( 4284): P1 plans-query-end t=1673768253892 cpu=5394424738 plans=3
+I/D09Phase( 4284): P2 generation-start t=1673768367992
+I/D09Phase( 4284): P2 generation-end t=1673775065492 cpu=5398746922 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1673775263592
+I/D09Phase( 4284): P3 channelA-end t=1673783345092 cpu=5401529970 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1673783424992
+I/D09Phase( 4284): P4 channelB-end t=1673793275892 cpu=5404080479 rows=726
+I/D09Phase( 4284): P5 union-start t=1673793358092
+I/D09Phase( 4284): P5 union-end t=1673794865892 cpu=5405662004 union=726
+I/D09Phase( 4284): P6 projection-start t=1673795019592
+I/D09Phase( 4284): P6 projection-end t=1673952359792 cpu=5545107159 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1673952457892
+I/D09Phase( 4284): P7 grouping-end t=1673952586292 cpu=5545331907 days=31
+I/D09Phase( 4284): P8 range-exit t=1673952636392
+I/D09Phase( 4284): P9 vm-publish t=1673952803592 thread=main days=31
+scenario=month,events=1000,plans=3,rep=2,completed=false,elapsedMs=50004.0056,maxMainGapMs=162.302,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1703768536192 thread=main
+I/D09Phase( 4284): P0 range-enter t=1703768612092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1703768675992
+I/D09Phase( 4284): P1 plans-query-end t=1703772555092 cpu=6617576881 plans=3
+I/D09Phase( 4284): P2 generation-start t=1703772823292
+I/D09Phase( 4284): P2 generation-end t=1703775058492 cpu=6619699449 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1703775250992
+I/D09Phase( 4284): P3 channelA-end t=1703780202292 cpu=6621664076 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1703780594292
+I/D09Phase( 4284): P4 channelB-end t=1703785263892 cpu=6623700595 rows=362
+I/D09Phase( 4284): P5 union-start t=1703785339092
+I/D09Phase( 4284): P5 union-end t=1703785866692 cpu=6624302274 union=362
+I/D09Phase( 4284): P6 projection-start t=1703785919592
+I/D09Phase( 4284): P6 projection-end t=1703834516092 cpu=6666015157 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1703834693992
+I/D09Phase( 4284): P7 grouping-end t=1703834878792 cpu=6666314461 days=15
+I/D09Phase( 4284): P8 range-exit t=1703834967392
+I/D09Phase( 4284): P9 vm-publish t=1703835161892 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1723769752892 thread=main
+I/D09Phase( 4284): P0 range-enter t=1723769862592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1723769921592
+I/D09Phase( 4284): P1 plans-query-end t=1723775522792 cpu=7396022163 plans=3
+I/D09Phase( 4284): P2 generation-start t=1723775730292
+I/D09Phase( 4284): P2 generation-end t=1723779765792 cpu=7399600516 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1723779855692
+I/D09Phase( 4284): P3 channelA-end t=1723789035692 cpu=7402909647 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1723789282492
+I/D09Phase( 4284): P4 channelB-end t=1723797971792 cpu=7406556427 rows=726
+I/D09Phase( 4284): P5 union-start t=1723798199392
+I/D09Phase( 4284): P5 union-end t=1723799485492 cpu=7407933579 union=726
+I/D09Phase( 4284): P6 projection-start t=1723799601692
+I/D09Phase( 4284): P6 projection-end t=1723954028492 cpu=7543467390 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1723954212192
+I/D09Phase( 4284): P7 grouping-end t=1723954362692 cpu=7543723861 days=31
+I/D09Phase( 4284): P8 range-exit t=1723954422892
+I/D09Phase( 4284): P9 vm-publish t=1723954601592 thread=main days=31
+scenario=month,events=1000,plans=3,rep=3,completed=false,elapsedMs=50002.8098,maxMainGapMs=159.0069,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1753773472792 thread=main
+I/D09Phase( 4284): P0 range-enter t=1753773626292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1753773695392
+I/D09Phase( 4284): P1 plans-query-end t=1753778498792 cpu=8557700229 plans=3
+I/D09Phase( 4284): P2 generation-start t=1753778656192
+I/D09Phase( 4284): P2 generation-end t=1753781960592 cpu=8560272161 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1753782314592
+I/D09Phase( 4284): P3 channelA-end t=1753786425192 cpu=8561646023 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1753786493392
+I/D09Phase( 4284): P4 channelB-end t=1753791046292 cpu=8563288698 rows=362
+I/D09Phase( 4284): P5 union-start t=1753791149192
+I/D09Phase( 4284): P5 union-end t=1753791666492 cpu=8563905649 union=362
+I/D09Phase( 4284): P6 projection-start t=1753791734192
+I/D09Phase( 4284): P6 projection-end t=1753841861492 cpu=8606914096 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1753842252192
+I/D09Phase( 4284): P7 grouping-end t=1753842496192 cpu=8607231922 days=15
+I/D09Phase( 4284): P8 range-exit t=1753842601292
+I/D09Phase( 4284): P9 vm-publish t=1753842862592 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1773775713992 thread=main
+I/D09Phase( 4284): P0 range-enter t=1773775822492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1773775885692
+I/D09Phase( 4284): P1 plans-query-end t=1773779477292 cpu=9280518578 plans=3
+I/D09Phase( 4284): P2 generation-start t=1773779685392
+I/D09Phase( 4284): P2 generation-end t=1773783652992 cpu=9284437379 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1773783767492
+I/D09Phase( 4284): P3 channelA-end t=1773791977092 cpu=9287734280 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1773792109592
+I/D09Phase( 4284): P4 channelB-end t=1773800637092 cpu=9291082494 rows=726
+I/D09Phase( 4284): P5 union-start t=1773801141092
+I/D09Phase( 4284): P5 union-end t=1773802135792 cpu=9292499937 union=726
+I/D09Phase( 4284): P6 projection-start t=1773802280792
+I/D09Phase( 4284): P6 projection-end t=1773951491892 cpu=9426295406 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1773951666992
+I/D09Phase( 4284): P7 grouping-end t=1773951874992 cpu=9426590671 days=31
+I/D09Phase( 4284): P8 range-exit t=1773951994792
+I/D09Phase( 4284): P9 vm-publish t=1773952167692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=4,completed=false,elapsedMs=50009.6445,maxMainGapMs=151.1371,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1803800949992 thread=main
+I/D09Phase( 4284): P0 range-enter t=1803801084292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1803801340792
+I/D09Phase( 4284): P1 plans-query-end t=1803805332092 cpu=10448224992 plans=3
+I/D09Phase( 4284): P2 generation-start t=1803805602892
+I/D09Phase( 4284): P2 generation-end t=1803808308692 cpu=10450719148 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1803808569992
+I/D09Phase( 4284): P3 channelA-end t=1803813353392 cpu=10452356562 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1803813500392
+I/D09Phase( 4284): P4 channelB-end t=1803819050892 cpu=10453791809 rows=362
+I/D09Phase( 4284): P5 union-start t=1803819126392
+I/D09Phase( 4284): P5 union-end t=1803819760792 cpu=10454501447 union=362
+I/D09Phase( 4284): P6 projection-start t=1803819853292
+I/D09Phase( 4284): P6 projection-end t=1803874725892 cpu=10490945315 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1803874932392
+I/D09Phase( 4284): P7 grouping-end t=1803875169992 cpu=10490945315 days=15
+I/D09Phase( 4284): P8 range-exit t=1803875244292
+I/D09Phase( 4284): P9 vm-publish t=1803875458392 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1823814357192 thread=main
+I/D09Phase( 4284): P0 range-enter t=1823814627192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1823814940792
+I/D09Phase( 4284): P1 plans-query-end t=1823818487192 cpu=10665259541 plans=3
+I/D09Phase( 4284): P2 generation-start t=1823818776992
+I/D09Phase( 4284): P2 generation-end t=1823822346892 cpu=10668692014 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1823822511992
+I/D09Phase( 4284): P3 channelA-end t=1823830655492 cpu=10670782696 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1823830845292
+I/D09Phase( 4284): P4 channelB-end t=1823844089992 cpu=10673246554 rows=726
+I/D09Phase( 4284): P5 union-start t=1823844566092
+I/D09Phase( 4284): P5 union-end t=1823845334992 cpu=10674116626 union=726
+I/D09Phase( 4284): P6 projection-start t=1823845498992
+I/D09Phase( 4284): P6 projection-end t=1824042664892 cpu=10829234077 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1824042982492
+I/D09Phase( 4284): P7 grouping-end t=1824043251792 cpu=10829234077 days=31
+I/D09Phase( 4284): P8 range-exit t=1824043364292
+I/D09Phase( 4284): P9 vm-publish t=1824043607192 thread=main days=31
+scenario=month,events=1000,plans=3,rep=5,completed=false,elapsedMs=50023.4431,maxMainGapMs=199.398,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1853840930692 thread=main
+I/D09Phase( 4284): P0 range-enter t=1853841113292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1853841419792
+I/D09Phase( 4284): P1 plans-query-end t=1853844377492 cpu=11085082427 plans=3
+I/D09Phase( 4284): P2 generation-start t=1853844609492
+I/D09Phase( 4284): P2 generation-end t=1853847206792 cpu=11087064699 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1853847268892
+I/D09Phase( 4284): P3 channelA-end t=1853851580492 cpu=11088753287 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1853851655392
+I/D09Phase( 4284): P4 channelB-end t=1853856502692 cpu=11090623909 rows=362
+I/D09Phase( 4284): P5 union-start t=1853856643492
+I/D09Phase( 4284): P5 union-end t=1853857212292 cpu=11091263162 union=362
+I/D09Phase( 4284): P6 projection-start t=1853857313392
+I/D09Phase( 4284): P6 projection-end t=1853910188592 cpu=11127501673 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1853910430892
+I/D09Phase( 4284): P7 grouping-end t=1853910644392 cpu=11127766186 days=15
+I/D09Phase( 4284): P8 range-exit t=1853910812592
+I/D09Phase( 4284): P9 vm-publish t=1853910986692 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1873856940392 thread=main
+I/D09Phase( 4284): P0 range-enter t=1873857101392 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1873857201392
+I/D09Phase( 4284): P1 plans-query-end t=1873863891292 cpu=11302232443 plans=3
+I/D09Phase( 4284): P2 generation-start t=1873864208992
+I/D09Phase( 4284): P2 generation-end t=1873868232092 cpu=11306266717 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1873868313392
+I/D09Phase( 4284): P3 channelA-end t=1873875954892 cpu=11308213057 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1873876045792
+I/D09Phase( 4284): P4 channelB-end t=1873883981392 cpu=11311449083 rows=726
+I/D09Phase( 4284): P5 union-start t=1873884069692
+I/D09Phase( 4284): P5 union-end t=1873885504292 cpu=11312971997 union=726
+I/D09Phase( 4284): P6 projection-start t=1873885577592
+I/D09Phase( 4284): P6 projection-end t=1874076221092 cpu=11465242573 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1874076471592
+I/D09Phase( 4284): P7 grouping-end t=1874076699892 cpu=11465525025 days=31
+I/D09Phase( 4284): P8 range-exit t=1874076825292
+I/D09Phase( 4284): P9 vm-publish t=1874077030192 thread=main days=31
+scenario=month,events=1000,plans=3,rep=6,completed=false,elapsedMs=50021.1956,maxMainGapMs=189.1428,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1903878904192 thread=main
+I/D09Phase( 4284): P0 range-enter t=1903879001992 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1903879083192
+I/D09Phase( 4284): P1 plans-query-end t=1903882250392 cpu=11726874459 plans=3
+I/D09Phase( 4284): P2 generation-start t=1903882431392
+I/D09Phase( 4284): P2 generation-end t=1903884881092 cpu=11729348977 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1903885065592
+I/D09Phase( 4284): P3 channelA-end t=1903888674092 cpu=11730347238 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1903888823892
+I/D09Phase( 4284): P4 channelB-end t=1903892568392 cpu=11730830986 rows=362
+I/D09Phase( 4284): P5 union-start t=1903892711192
+I/D09Phase( 4284): P5 union-end t=1903893834292 cpu=11732781639 union=362
+I/D09Phase( 4284): P6 projection-start t=1903894081792
+I/D09Phase( 4284): P6 projection-end t=1903946814992 cpu=11774196543 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1903947035792
+I/D09Phase( 4284): P7 grouping-end t=1903947351092 cpu=11774196543 days=15
+I/D09Phase( 4284): P8 range-exit t=1903947420592
+I/D09Phase( 4284): P9 vm-publish t=1903947611692 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1923884594392 thread=main
+I/D09Phase( 4284): P0 range-enter t=1923884900492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1923885155192
+I/D09Phase( 4284): P1 plans-query-end t=1923887838192 cpu=11940500859 plans=3
+I/D09Phase( 4284): P2 generation-start t=1923888176292
+I/D09Phase( 4284): P2 generation-end t=1923891767892 cpu=11944091937 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1923891913592
+I/D09Phase( 4284): P3 channelA-end t=1923899569792 cpu=11947337849 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1923899741492
+I/D09Phase( 4284): P4 channelB-end t=1923911347992 cpu=11950508358 rows=726
+I/D09Phase( 4284): P5 union-start t=1923911610192
+I/D09Phase( 4284): P5 union-end t=1923913219692 cpu=11952272212 union=726
+I/D09Phase( 4284): P6 projection-start t=1923913520392
+I/D09Phase( 4284): P6 projection-end t=1924097883192 cpu=12090839769 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1924098117592
+I/D09Phase( 4284): P7 grouping-end t=1924098292492 cpu=12090839769 days=31
+I/D09Phase( 4284): P8 range-exit t=1924098347592
+I/D09Phase( 4284): P9 vm-publish t=1924098470592 thread=main days=31
+scenario=month,events=1000,plans=3,rep=7,completed=false,elapsedMs=50019.7251,maxMainGapMs=183.238,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=1953915894192 thread=main
+I/D09Phase( 4284): P0 range-enter t=1953916114492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1953916255092
+I/D09Phase( 4284): P1 plans-query-end t=1953918896892 cpu=12346511475 plans=3
+I/D09Phase( 4284): P2 generation-start t=1953919108192
+I/D09Phase( 4284): P2 generation-end t=1953921893592 cpu=12349424179 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=1953922059392
+I/D09Phase( 4284): P3 channelA-end t=1953925699792 cpu=12350432719 rows=340
+I/D09Phase( 4284): P4 channelB-start t=1953925839192
+I/D09Phase( 4284): P4 channelB-end t=1953929671992 cpu=12351846145 rows=362
+I/D09Phase( 4284): P5 union-start t=1953929840892
+I/D09Phase( 4284): P5 union-end t=1953930492692 cpu=12352502158 union=362
+I/D09Phase( 4284): P6 projection-start t=1953930611692
+I/D09Phase( 4284): P6 projection-end t=1953986520692 cpu=12398428690 entries=455
+I/D09Phase( 4284): P7 grouping-start t=1953986773792
+I/D09Phase( 4284): P7 grouping-end t=1953986983392 cpu=12398779020 days=15
+I/D09Phase( 4284): P8 range-exit t=1953987122692
+I/D09Phase( 4284): P9 vm-publish t=1953987364992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=1973924180792 thread=main
+I/D09Phase( 4284): P0 range-enter t=1973924442792 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=1973924570592
+I/D09Phase( 4284): P1 plans-query-end t=1973926879492 cpu=12569732748 plans=3
+I/D09Phase( 4284): P2 generation-start t=1973927252092
+I/D09Phase( 4284): P2 generation-end t=1973931119092 cpu=12573021860 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=1973931188792
+I/D09Phase( 4284): P3 channelA-end t=1973936610692 cpu=12573021860 rows=704
+I/D09Phase( 4284): P4 channelB-start t=1973936678992
+I/D09Phase( 4284): P4 channelB-end t=1973945348992 cpu=12581126259 rows=726
+I/D09Phase( 4284): P5 union-start t=1973945919792
+I/D09Phase( 4284): P5 union-end t=1973947286492 cpu=12582733462 union=726
+I/D09Phase( 4284): P6 projection-start t=1973947414492
+I/D09Phase( 4284): P6 projection-end t=1974166739292 cpu=12756008444 entries=924
+I/D09Phase( 4284): P7 grouping-start t=1974166958392
+I/D09Phase( 4284): P7 grouping-end t=1974167374592 cpu=12756447349 days=31
+I/D09Phase( 4284): P8 range-exit t=1974167635892
+I/D09Phase( 4284): P9 vm-publish t=1974168031392 thread=main days=31
+scenario=month,events=1000,plans=3,rep=8,completed=false,elapsedMs=50022.1414,maxMainGapMs=213.6019,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2003939334992 thread=main
+I/D09Phase( 4284): P0 range-enter t=2003939512592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2003939716892
+I/D09Phase( 4284): P1 plans-query-end t=2003942721992 cpu=12999058825 plans=3
+I/D09Phase( 4284): P2 generation-start t=2003942852692
+I/D09Phase( 4284): P2 generation-end t=2003946349292 cpu=13002252826 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2003946426692
+I/D09Phase( 4284): P3 channelA-end t=2003952143992 cpu=13003781481 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2003952291992
+I/D09Phase( 4284): P4 channelB-end t=2003956889292 cpu=13005045119 rows=362
+I/D09Phase( 4284): P5 union-start t=2003957040092
+I/D09Phase( 4284): P5 union-end t=2003957509192 cpu=13005587073 union=362
+I/D09Phase( 4284): P6 projection-start t=2003957611692
+I/D09Phase( 4284): P6 projection-end t=2004019140592 cpu=13052093791 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2004019328392
+I/D09Phase( 4284): P7 grouping-end t=2004019591492 cpu=13052445881 days=15
+I/D09Phase( 4284): P8 range-exit t=2004019685692
+I/D09Phase( 4284): P9 vm-publish t=2004019839192 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2023951988592 thread=main
+I/D09Phase( 4284): P0 range-enter t=2023952215092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2023952321492
+I/D09Phase( 4284): P1 plans-query-end t=2023958589192 cpu=13226838793 plans=3
+I/D09Phase( 4284): P2 generation-start t=2023958711992
+I/D09Phase( 4284): P2 generation-end t=2023962491492 cpu=13230140742 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2023962567092
+I/D09Phase( 4284): P3 channelA-end t=2023970754792 cpu=13232350423 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2023970957792
+I/D09Phase( 4284): P4 channelB-end t=2023980843492 cpu=13235718357 rows=726
+I/D09Phase( 4284): P5 union-start t=2023981068892
+I/D09Phase( 4284): P5 union-end t=2023981920292 cpu=13236665485 union=726
+I/D09Phase( 4284): P6 projection-start t=2023982508192
+I/D09Phase( 4284): P6 projection-end t=2024169004892 cpu=13371271982 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2024169214592
+I/D09Phase( 4284): P7 grouping-end t=2024169464692 cpu=13376417445 days=31
+I/D09Phase( 4284): P8 range-exit t=2024169583892
+I/D09Phase( 4284): P9 vm-publish t=2024169735492 thread=main days=31
+scenario=month,events=1000,plans=3,rep=9,completed=false,elapsedMs=50018.5407,maxMainGapMs=187.5216,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2053974587792 thread=main
+I/D09Phase( 4284): P0 range-enter t=2053974735092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2053974828292
+I/D09Phase( 4284): P1 plans-query-end t=2053978795292 cpu=13624940059 plans=3
+I/D09Phase( 4284): P2 generation-start t=2053978971792
+I/D09Phase( 4284): P2 generation-end t=2053981370992 cpu=13627436443 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2053981523892
+I/D09Phase( 4284): P3 channelA-end t=2053984937092 cpu=13628408393 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2053985082092
+I/D09Phase( 4284): P4 channelB-end t=2053989290092 cpu=13629657975 rows=362
+I/D09Phase( 4284): P5 union-start t=2053989516592
+I/D09Phase( 4284): P5 union-end t=2053990914492 cpu=13631206262 union=362
+I/D09Phase( 4284): P6 projection-start t=2053991041892
+I/D09Phase( 4284): P6 projection-end t=2054048435392 cpu=13676393058 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2054048984092
+I/D09Phase( 4284): P7 grouping-end t=2054049149392 cpu=13676709326 days=15
+I/D09Phase( 4284): P8 range-exit t=2054049239492
+I/D09Phase( 4284): P9 vm-publish t=2054049394692 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2073981141492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2073981376892 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2073981482292
+I/D09Phase( 4284): P1 plans-query-end t=2073985181692 cpu=13843379705 plans=3
+I/D09Phase( 4284): P2 generation-start t=2073985264292
+I/D09Phase( 4284): P2 generation-end t=2073989422492 cpu=13847058181 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2073989566492
+I/D09Phase( 4284): P3 channelA-end t=2073995295792 cpu=13847335833 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2073995433192
+I/D09Phase( 4284): P4 channelB-end t=2074002991792 cpu=13848129578 rows=726
+I/D09Phase( 4284): P5 union-start t=2074003094992
+I/D09Phase( 4284): P5 union-end t=2074004387892 cpu=13848129578 union=726
+I/D09Phase( 4284): P6 projection-start t=2074004497092
+I/D09Phase( 4284): P6 projection-end t=2074199150992 cpu=13992734063 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2074199519892
+I/D09Phase( 4284): P7 grouping-end t=2074199789492 cpu=13992734063 days=31
+I/D09Phase( 4284): P8 range-exit t=2074200240492
+I/D09Phase( 4284): P9 vm-publish t=2074200637792 thread=main days=31
+scenario=month,events=1000,plans=3,rep=10,completed=false,elapsedMs=50018.1187,maxMainGapMs=188.1276,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2103993397592 thread=main
+I/D09Phase( 4284): P0 range-enter t=2103993560892 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2103993676792
+I/D09Phase( 4284): P1 plans-query-end t=2103995663792 cpu=14261402243 plans=3
+I/D09Phase( 4284): P2 generation-start t=2103996023292
+I/D09Phase( 4284): P2 generation-end t=2103998084492 cpu=14263469202 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2103998200892
+I/D09Phase( 4284): P3 channelA-end t=2104001884392 cpu=14264450762 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2104002018592
+I/D09Phase( 4284): P4 channelB-end t=2104005484392 cpu=14265440303 rows=362
+I/D09Phase( 4284): P5 union-start t=2104005616492
+I/D09Phase( 4284): P5 union-end t=2104006048092 cpu=14265940334 union=362
+I/D09Phase( 4284): P6 projection-start t=2104006141492
+I/D09Phase( 4284): P6 projection-end t=2104064507492 cpu=14306724756 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2104064709692
+I/D09Phase( 4284): P7 grouping-end t=2104064934592 cpu=14306724756 days=15
+I/D09Phase( 4284): P8 range-exit t=2104064998792
+I/D09Phase( 4284): P9 vm-publish t=2104065119992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2123997306892 thread=main
+I/D09Phase( 4284): P0 range-enter t=2123997512092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2123997703692
+I/D09Phase( 4284): P1 plans-query-end t=2124001181892 cpu=14481694229 plans=3
+I/D09Phase( 4284): P2 generation-start t=2124001256792
+I/D09Phase( 4284): P2 generation-end t=2124005265592 cpu=14485332037 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2124005419892
+I/D09Phase( 4284): P3 channelA-end t=2124012201992 cpu=14487067870 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2124012274592
+I/D09Phase( 4284): P4 channelB-end t=2124020161892 cpu=14490387587 rows=726
+I/D09Phase( 4284): P5 union-start t=2124020253392
+I/D09Phase( 4284): P5 union-end t=2124021552292 cpu=14491777981 union=726
+I/D09Phase( 4284): P6 projection-start t=2124021626092
+I/D09Phase( 4284): P6 projection-end t=2124205618692 cpu=14633587225 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2124205854892
+I/D09Phase( 4284): P7 grouping-end t=2124206020192 cpu=14633786452 days=31
+I/D09Phase( 4284): P8 range-exit t=2124206127992
+I/D09Phase( 4284): P9 vm-publish t=2124206340692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=11,completed=false,elapsedMs=50017.9207,maxMainGapMs=177.1552,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2154012426192 thread=main
+I/D09Phase( 4284): P0 range-enter t=2154012521292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2154012596492
+I/D09Phase( 4284): P1 plans-query-end t=2154014782492 cpu=14885126419 plans=3
+I/D09Phase( 4284): P2 generation-start t=2154015041192
+I/D09Phase( 4284): P2 generation-end t=2154016803992 cpu=14886946598 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2154016904292
+I/D09Phase( 4284): P3 channelA-end t=2154020285892 cpu=14887925288 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2154020409692
+I/D09Phase( 4284): P4 channelB-end t=2154023506292 cpu=14888992406 rows=362
+I/D09Phase( 4284): P5 union-start t=2154023637592
+I/D09Phase( 4284): P5 union-end t=2154023981892 cpu=14889436152 union=362
+I/D09Phase( 4284): P6 projection-start t=2154024036592
+I/D09Phase( 4284): P6 projection-end t=2154077650992 cpu=14936979739 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2154077853092
+I/D09Phase( 4284): P7 grouping-end t=2154077949792 cpu=14937114492 days=15
+I/D09Phase( 4284): P8 range-exit t=2154078214092
+I/D09Phase( 4284): P9 vm-publish t=2154078508492 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2174023217492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2174023437192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2174023734892
+I/D09Phase( 4284): P1 plans-query-end t=2174027224092 cpu=15108404568 plans=3
+I/D09Phase( 4284): P2 generation-start t=2174027406592
+I/D09Phase( 4284): P2 generation-end t=2174030550492 cpu=15111625852 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2174030695392
+I/D09Phase( 4284): P3 channelA-end t=2174036995292 cpu=15113374936 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2174037133392
+I/D09Phase( 4284): P4 channelB-end t=2174045250692 cpu=15115314126 rows=726
+I/D09Phase( 4284): P5 union-start t=2174045327492
+I/D09Phase( 4284): P5 union-end t=2174046732092 cpu=15116717657 union=726
+I/D09Phase( 4284): P6 projection-start t=2174046843792
+I/D09Phase( 4284): P6 projection-end t=2174235206592 cpu=15264103336 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2174235421892
+I/D09Phase( 4284): P7 grouping-end t=2174235645892 cpu=15264103336 days=31
+I/D09Phase( 4284): P8 range-exit t=2174235721792
+I/D09Phase( 4284): P9 vm-publish t=2174235911792 thread=main days=31
+scenario=month,events=1000,plans=3,rep=12,completed=false,elapsedMs=50018.5522,maxMainGapMs=182.8131,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2204032560392 thread=main
+I/D09Phase( 4284): P0 range-enter t=2204032712792 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2204032826492
+I/D09Phase( 4284): P1 plans-query-end t=2204035274592 cpu=15525038576 plans=3
+I/D09Phase( 4284): P2 generation-start t=2204035443792
+I/D09Phase( 4284): P2 generation-end t=2204037353492 cpu=15527069622 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2204037420492
+I/D09Phase( 4284): P3 channelA-end t=2204040571992 cpu=15527999337 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2204040640192
+I/D09Phase( 4284): P4 channelB-end t=2204043735192 cpu=15529004480 rows=362
+I/D09Phase( 4284): P5 union-start t=2204043831992
+I/D09Phase( 4284): P5 union-end t=2204044267692 cpu=15529536594 union=362
+I/D09Phase( 4284): P6 projection-start t=2204044370492
+I/D09Phase( 4284): P6 projection-end t=2204097309092 cpu=15571767045 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2204097619992
+I/D09Phase( 4284): P7 grouping-end t=2204097817792 cpu=15571767045 days=15
+I/D09Phase( 4284): P8 range-exit t=2204097927992
+I/D09Phase( 4284): P9 vm-publish t=2204098112092 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2224033732792 thread=main
+I/D09Phase( 4284): P0 range-enter t=2224033940292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2224036733392
+I/D09Phase( 4284): P1 plans-query-end t=2224039760992 cpu=16004700062 plans=3
+I/D09Phase( 4284): P2 generation-start t=2224040020992
+I/D09Phase( 4284): P2 generation-end t=2224043258992 cpu=16008012163 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2224043396792
+I/D09Phase( 4284): P3 channelA-end t=2224051790192 cpu=16010848030 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2224051968392
+I/D09Phase( 4284): P4 channelB-end t=2224060964492 cpu=16014339317 rows=726
+I/D09Phase( 4284): P5 union-start t=2224061238892
+I/D09Phase( 4284): P5 union-end t=2224062761792 cpu=16015983512 union=726
+I/D09Phase( 4284): P6 projection-start t=2224062933792
+I/D09Phase( 4284): P6 projection-end t=2224252527292 cpu=16186053720 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2224252896992
+I/D09Phase( 4284): P7 grouping-end t=2224253383492 cpu=16187111730 days=31
+I/D09Phase( 4284): P8 range-exit t=2224253642892
+I/D09Phase( 4284): P9 vm-publish t=2224253968692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=13,completed=false,elapsedMs=50005.3111,maxMainGapMs=195.6484,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2254041400792 thread=main
+I/D09Phase( 4284): P0 range-enter t=2254041575992 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2254041652992
+I/D09Phase( 4284): P1 plans-query-end t=2254044023492 cpu=17341400445 plans=3
+I/D09Phase( 4284): P2 generation-start t=2254044164392
+I/D09Phase( 4284): P2 generation-end t=2254046043292 cpu=17343342297 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2254046169492
+I/D09Phase( 4284): P3 channelA-end t=2254050033992 cpu=17344574619 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2254050213992
+I/D09Phase( 4284): P4 channelB-end t=2254053739492 cpu=17345765097 rows=362
+I/D09Phase( 4284): P5 union-start t=2254053870692
+I/D09Phase( 4284): P5 union-end t=2254054210792 cpu=17346192292 union=362
+I/D09Phase( 4284): P6 projection-start t=2254054333192
+I/D09Phase( 4284): P6 projection-end t=2254112466692 cpu=17397450089 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2254112606192
+I/D09Phase( 4284): P7 grouping-end t=2254112699592 cpu=17397681358 days=15
+I/D09Phase( 4284): P8 range-exit t=2254112781692
+I/D09Phase( 4284): P9 vm-publish t=2254113079892 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2274042619492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2274042840492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2274042981592
+I/D09Phase( 4284): P1 plans-query-end t=2274045094492 cpu=18210637228 plans=3
+I/D09Phase( 4284): P2 generation-start t=2274045235292
+I/D09Phase( 4284): P2 generation-end t=2274051170392 cpu=18216056917 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2274051372692
+I/D09Phase( 4284): P3 channelA-end t=2274058758592 cpu=18219192123 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2274058956192
+I/D09Phase( 4284): P4 channelB-end t=2274067164692 cpu=18223020382 rows=726
+I/D09Phase( 4284): P5 union-start t=2274067268592
+I/D09Phase( 4284): P5 union-end t=2274068202492 cpu=18224058867 union=726
+I/D09Phase( 4284): P6 projection-start t=2274068299192
+I/D09Phase( 4284): P6 projection-end t=2274259923992 cpu=18394178619 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2274260187292
+I/D09Phase( 4284): P7 grouping-end t=2274260401392 cpu=18394467532 days=31
+I/D09Phase( 4284): P8 range-exit t=2274260519292
+I/D09Phase( 4284): P9 vm-publish t=2274260718792 thread=main days=31
+scenario=month,events=1000,plans=3,rep=14,completed=false,elapsedMs=50003.5562,maxMainGapMs=191.8097,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2304049621992 thread=main
+I/D09Phase( 4284): P0 range-enter t=2304049733192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2304049818692
+I/D09Phase( 4284): P1 plans-query-end t=2304052492592 cpu=19545550862 plans=3
+I/D09Phase( 4284): P2 generation-start t=2304052560192
+I/D09Phase( 4284): P2 generation-end t=2304054401992 cpu=19547460048 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2304054501792
+I/D09Phase( 4284): P3 channelA-end t=2304059400192 cpu=19548756804 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2304059573592
+I/D09Phase( 4284): P4 channelB-end t=2304063676092 cpu=19549879597 rows=362
+I/D09Phase( 4284): P5 union-start t=2304063812492
+I/D09Phase( 4284): P5 union-end t=2304064161192 cpu=19550291151 union=362
+I/D09Phase( 4284): P6 projection-start t=2304064300592
+I/D09Phase( 4284): P6 projection-end t=2304119431592 cpu=19600139685 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2304119642392
+I/D09Phase( 4284): P7 grouping-end t=2304119824992 cpu=19600432079 days=15
+I/D09Phase( 4284): P8 range-exit t=2304119953292
+I/D09Phase( 4284): P9 vm-publish t=2304120155992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2324051731492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2324051960492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2324052122092
+I/D09Phase( 4284): P1 plans-query-end t=2324055693892 cpu=20320358923 plans=3
+I/D09Phase( 4284): P2 generation-start t=2324055760092
+I/D09Phase( 4284): P2 generation-end t=2324059489892 cpu=20324037330 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2324059616792
+I/D09Phase( 4284): P3 channelA-end t=2324071229592 cpu=20328124382 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2324071422292
+I/D09Phase( 4284): P4 channelB-end t=2324078825492 cpu=20330443530 rows=726
+I/D09Phase( 4284): P5 union-start t=2324079048592
+I/D09Phase( 4284): P5 union-end t=2324079908192 cpu=20331422990 union=726
+I/D09Phase( 4284): P6 projection-start t=2324080039292
+I/D09Phase( 4284): P6 projection-end t=2324270283592 cpu=20502389173 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2324270483492
+I/D09Phase( 4284): P7 grouping-end t=2324270594592 cpu=20502637575 days=31
+I/D09Phase( 4284): P8 range-exit t=2324270674992
+I/D09Phase( 4284): P9 vm-publish t=2324270796992 thread=main days=31
+scenario=month,events=1000,plans=3,rep=15,completed=false,elapsedMs=50004.119,maxMainGapMs=191.42,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2354054681692 thread=main
+I/D09Phase( 4284): P0 range-enter t=2354054816592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2354054908192
+I/D09Phase( 4284): P1 plans-query-end t=2354057173592 cpu=21669018648 plans=3
+I/D09Phase( 4284): P2 generation-start t=2354057679392
+I/D09Phase( 4284): P2 generation-end t=2354060631792 cpu=21671883431 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2354060785592
+I/D09Phase( 4284): P3 channelA-end t=2354064818192 cpu=21673636427 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2354064988992
+I/D09Phase( 4284): P4 channelB-end t=2354069243792 cpu=21675360262 rows=362
+I/D09Phase( 4284): P5 union-start t=2354069402792
+I/D09Phase( 4284): P5 union-end t=2354069707392 cpu=21675759925 union=362
+I/D09Phase( 4284): P6 projection-start t=2354069760992
+I/D09Phase( 4284): P6 projection-end t=2354130378192 cpu=21728382702 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2354130716792
+I/D09Phase( 4284): P7 grouping-end t=2354131023392 cpu=21728776334 days=15
+I/D09Phase( 4284): P8 range-exit t=2354131181492
+I/D09Phase( 4284): P9 vm-publish t=2354131369492 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2374055485892 thread=main
+I/D09Phase( 4284): P0 range-enter t=2374055591592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2374055652892
+I/D09Phase( 4284): P1 plans-query-end t=2374059995992 cpu=22541216404 plans=3
+I/D09Phase( 4284): P2 generation-start t=2374060167092
+I/D09Phase( 4284): P2 generation-end t=2374065104492 cpu=22545581692 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2374065273892
+I/D09Phase( 4284): P3 channelA-end t=2374072206492 cpu=22548127109 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2374072450892
+I/D09Phase( 4284): P4 channelB-end t=2374080544692 cpu=22551984030 rows=726
+I/D09Phase( 4284): P5 union-start t=2374080688492
+I/D09Phase( 4284): P5 union-end t=2374081336692 cpu=22552716550 union=726
+I/D09Phase( 4284): P6 projection-start t=2374081446292
+I/D09Phase( 4284): P6 projection-end t=2374279634092 cpu=22730746349 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2374279827792
+I/D09Phase( 4284): P7 grouping-end t=2374280261492 cpu=22731212493 days=31
+I/D09Phase( 4284): P8 range-exit t=2374280396192
+I/D09Phase( 4284): P9 vm-publish t=2374280851892 thread=main days=31
+scenario=month,events=1000,plans=3,rep=16,completed=false,elapsedMs=50002.1357,maxMainGapMs=201.2151,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2404060304592 thread=main
+I/D09Phase( 4284): P0 range-enter t=2404060477492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2404060668992
+I/D09Phase( 4284): P1 plans-query-end t=2404063643392 cpu=23886511103 plans=3
+I/D09Phase( 4284): P2 generation-start t=2404063801692
+I/D09Phase( 4284): P2 generation-end t=2404065868392 cpu=23888610472 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2404066011292
+I/D09Phase( 4284): P3 channelA-end t=2404069862392 cpu=23890429251 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2404070056792
+I/D09Phase( 4284): P4 channelB-end t=2404073346292 cpu=23891806213 rows=362
+I/D09Phase( 4284): P5 union-start t=2404073493892
+I/D09Phase( 4284): P5 union-end t=2404073866392 cpu=23892219156 union=362
+I/D09Phase( 4284): P6 projection-start t=2404073981092
+I/D09Phase( 4284): P6 projection-end t=2404130269992 cpu=23940736024 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2404130528292
+I/D09Phase( 4284): P7 grouping-end t=2404130663292 cpu=23940964833 days=15
+I/D09Phase( 4284): P8 range-exit t=2404130729192
+I/D09Phase( 4284): P9 vm-publish t=2404130985192 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2424062825092 thread=main
+I/D09Phase( 4284): P0 range-enter t=2424063034192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2424063298392
+I/D09Phase( 4284): P1 plans-query-end t=2424066225592 cpu=24745163888 plans=3
+I/D09Phase( 4284): P2 generation-start t=2424066344092
+I/D09Phase( 4284): P2 generation-end t=2424071812292 cpu=24749978760 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2424071890092
+I/D09Phase( 4284): P3 channelA-end t=2424078380892 cpu=24752309572 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2424078605692
+I/D09Phase( 4284): P4 channelB-end t=2424085634492 cpu=24755069737 rows=726
+I/D09Phase( 4284): P5 union-start t=2424086182292
+I/D09Phase( 4284): P5 union-end t=2424087092492 cpu=24756408378 union=726
+I/D09Phase( 4284): P6 projection-start t=2424087305892
+I/D09Phase( 4284): P6 projection-end t=2424293069892 cpu=24939624856 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2424296095292
+I/D09Phase( 4284): P7 grouping-end t=2424297164992 cpu=24940974676 days=31
+I/D09Phase( 4284): P8 range-exit t=2424297375492
+I/D09Phase( 4284): P9 vm-publish t=2424298230292 thread=main days=31
+scenario=month,events=1000,plans=3,rep=17,completed=false,elapsedMs=50005.2049,maxMainGapMs=214.4185,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2454067298292 thread=main
+I/D09Phase( 4284): P0 range-enter t=2454067411292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2454067658592
+I/D09Phase( 4284): P1 plans-query-end t=2454071980992 cpu=26241410753 plans=3
+I/D09Phase( 4284): P2 generation-start t=2454072152092
+I/D09Phase( 4284): P2 generation-end t=2454074580492 cpu=26243906164 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2454074975092
+I/D09Phase( 4284): P3 channelA-end t=2454080222792 cpu=26245789608 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2454080486992
+I/D09Phase( 4284): P4 channelB-end t=2454084545892 cpu=26247370704 rows=362
+I/D09Phase( 4284): P5 union-start t=2454084691392
+I/D09Phase( 4284): P5 union-end t=2454085154692 cpu=26247908658 union=362
+I/D09Phase( 4284): P6 projection-start t=2454085302292
+I/D09Phase( 4284): P6 projection-end t=2454145482592 cpu=26301564762 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2454145602892
+I/D09Phase( 4284): P7 grouping-end t=2454145713292 cpu=26301793611 days=15
+I/D09Phase( 4284): P8 range-exit t=2454145778892
+I/D09Phase( 4284): P9 vm-publish t=2454145961892 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2474068512092 thread=main
+I/D09Phase( 4284): P0 range-enter t=2474068640192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2474068769792
+I/D09Phase( 4284): P1 plans-query-end t=2474076259592 cpu=27073769171 plans=3
+I/D09Phase( 4284): P2 generation-start t=2474076580692
+I/D09Phase( 4284): P2 generation-end t=2474082365292 cpu=27079336940 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2474082544392
+I/D09Phase( 4284): P3 channelA-end t=2474090267092 cpu=27082455696 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2474090479692
+I/D09Phase( 4284): P4 channelB-end t=2474100015692 cpu=27086340892 rows=726
+I/D09Phase( 4284): P5 union-start t=2474100202692
+I/D09Phase( 4284): P5 union-end t=2474101070892 cpu=27087268168 union=726
+I/D09Phase( 4284): P6 projection-start t=2474101200192
+I/D09Phase( 4284): P6 projection-end t=2474300355692 cpu=27267839121 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2474300994092
+I/D09Phase( 4284): P7 grouping-end t=2474301183292 cpu=27268446573 days=31
+I/D09Phase( 4284): P8 range-exit t=2474301266392
+I/D09Phase( 4284): P9 vm-publish t=2474301488692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=18,completed=false,elapsedMs=50017.008,maxMainGapMs=203.9925,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2504085251292 thread=main
+I/D09Phase( 4284): P0 range-enter t=2504085438892 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2504085519992
+I/D09Phase( 4284): P1 plans-query-end t=2504089062992 cpu=28455599559 plans=3
+I/D09Phase( 4284): P2 generation-start t=2504089330792
+I/D09Phase( 4284): P2 generation-end t=2504091622892 cpu=28457844991 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2504091758992
+I/D09Phase( 4284): P3 channelA-end t=2504095688392 cpu=28458893188 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2504095817992
+I/D09Phase( 4284): P4 channelB-end t=2504100043692 cpu=28460220716 rows=362
+I/D09Phase( 4284): P5 union-start t=2504100297792
+I/D09Phase( 4284): P5 union-end t=2504100718992 cpu=28460893701 union=362
+I/D09Phase( 4284): P6 projection-start t=2504100832292
+I/D09Phase( 4284): P6 projection-end t=2504147426992 cpu=28503209890 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2504147650692
+I/D09Phase( 4284): P7 grouping-end t=2504147776092 cpu=28503484973 days=15
+I/D09Phase( 4284): P8 range-exit t=2504147845392
+I/D09Phase( 4284): P9 vm-publish t=2504148369192 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2524086966292 thread=main
+I/D09Phase( 4284): P0 range-enter t=2524087085192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2524087143692
+I/D09Phase( 4284): P1 plans-query-end t=2524090675692 cpu=29139728607 plans=3
+I/D09Phase( 4284): P2 generation-start t=2524091333492
+I/D09Phase( 4284): P2 generation-end t=2524094511192 cpu=29143225296 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2524094620892
+I/D09Phase( 4284): P3 channelA-end t=2524101072692 cpu=29145302261 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2524101258792
+I/D09Phase( 4284): P4 channelB-end t=2524107541392 cpu=29147981971 rows=726
+I/D09Phase( 4284): P5 union-start t=2524107750692
+I/D09Phase( 4284): P5 union-end t=2524108438692 cpu=29148788276 union=726
+I/D09Phase( 4284): P6 projection-start t=2524108571392
+I/D09Phase( 4284): P6 projection-end t=2524270319192 cpu=29292955705 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2524270506292
+I/D09Phase( 4284): P7 grouping-end t=2524270666392 cpu=29293221997 days=31
+I/D09Phase( 4284): P8 range-exit t=2524270785392
+I/D09Phase( 4284): P9 vm-publish t=2524270929692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=19,completed=false,elapsedMs=50004.1459,maxMainGapMs=164.273,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2554090758492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2554091071392 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2554091247092
+I/D09Phase( 4284): P1 plans-query-end t=2554094123692 cpu=30321039416 plans=3
+I/D09Phase( 4284): P2 generation-start t=2554094332092
+I/D09Phase( 4284): P2 generation-end t=2554096014392 cpu=30322834873 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2554096144792
+I/D09Phase( 4284): P3 channelA-end t=2554099368992 cpu=30323959545 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2554099477992
+I/D09Phase( 4284): P4 channelB-end t=2554102387492 cpu=30325054584 rows=362
+I/D09Phase( 4284): P5 union-start t=2554102508192
+I/D09Phase( 4284): P5 union-end t=2554102895992 cpu=30325521212 union=362
+I/D09Phase( 4284): P6 projection-start t=2554103022692
+I/D09Phase( 4284): P6 projection-end t=2554144613192 cpu=30362058000 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2554144790092
+I/D09Phase( 4284): P7 grouping-end t=2554144963692 cpu=30362650938 days=15
+I/D09Phase( 4284): P8 range-exit t=2554145250392
+I/D09Phase( 4284): P9 vm-publish t=2554145457892 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2574093307892 thread=main
+I/D09Phase( 4284): P0 range-enter t=2574093498292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2574093582192
+I/D09Phase( 4284): P1 plans-query-end t=2574095623392 cpu=31135005490 plans=3
+I/D09Phase( 4284): P2 generation-start t=2574095731292
+I/D09Phase( 4284): P2 generation-end t=2574098941192 cpu=31138287574 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2574099194992
+I/D09Phase( 4284): P3 channelA-end t=2574105013592 cpu=31140624374 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2574105580892
+I/D09Phase( 4284): P4 channelB-end t=2574112023492 cpu=31143118156 rows=726
+I/D09Phase( 4284): P5 union-start t=2574112172892
+I/D09Phase( 4284): P5 union-end t=2574113028792 cpu=31144082479 union=726
+I/D09Phase( 4284): P6 projection-start t=2574113147592
+I/D09Phase( 4284): P6 projection-end t=2574277631192 cpu=31289694689 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2574277813592
+I/D09Phase( 4284): P7 grouping-end t=2574278024992 cpu=31289995753 days=31
+I/D09Phase( 4284): P8 range-exit t=2574278144592
+I/D09Phase( 4284): P9 vm-publish t=2574278333992 thread=main days=31
+scenario=month,events=1000,plans=3,rep=20,completed=false,elapsedMs=50004.1255,maxMainGapMs=166.6193,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2604097586092 thread=main
+I/D09Phase( 4284): P0 range-enter t=2604097671192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2604097734792
+I/D09Phase( 4284): P1 plans-query-end t=2604099477392 cpu=32461053062 plans=3
+I/D09Phase( 4284): P2 generation-start t=2604099568192
+I/D09Phase( 4284): P2 generation-end t=2604101992692 cpu=32463288250 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2604102109092
+I/D09Phase( 4284): P3 channelA-end t=2604105347192 cpu=32464481863 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2604105472592
+I/D09Phase( 4284): P4 channelB-end t=2604108814192 cpu=32465973915 rows=362
+I/D09Phase( 4284): P5 union-start t=2604108919892
+I/D09Phase( 4284): P5 union-end t=2604109461492 cpu=32466618408 union=362
+I/D09Phase( 4284): P6 projection-start t=2604109527592
+I/D09Phase( 4284): P6 projection-end t=2604155074892 cpu=32506579703 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2604155269792
+I/D09Phase( 4284): P7 grouping-end t=2604155390892 cpu=32506800362 days=15
+I/D09Phase( 4284): P8 range-exit t=2604155625592
+I/D09Phase( 4284): P9 vm-publish t=2604155895992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2624099160192 thread=main
+I/D09Phase( 4284): P0 range-enter t=2624099273692 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2624099335892
+I/D09Phase( 4284): P1 plans-query-end t=2624101872792 cpu=33314645833 plans=3
+I/D09Phase( 4284): P2 generation-start t=2624101960692
+I/D09Phase( 4284): P2 generation-end t=2624105125992 cpu=33317794119 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2624105236792
+I/D09Phase( 4284): P3 channelA-end t=2624110738992 cpu=33319774950 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2624110825692
+I/D09Phase( 4284): P4 channelB-end t=2624116109592 cpu=33321488979 rows=726
+I/D09Phase( 4284): P5 union-start t=2624116183492
+I/D09Phase( 4284): P5 union-end t=2624116802692 cpu=33322174297 union=726
+I/D09Phase( 4284): P6 projection-start t=2624116867292
+I/D09Phase( 4284): P6 projection-end t=2624279066992 cpu=33463518081 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2624279178692
+I/D09Phase( 4284): P7 grouping-end t=2624279277992 cpu=33463724898 days=31
+I/D09Phase( 4284): P8 range-exit t=2624279330292
+I/D09Phase( 4284): P9 vm-publish t=2624279463492 thread=main days=31
+scenario=month,events=1000,plans=3,rep=21,completed=false,elapsedMs=50003.2074,maxMainGapMs=162.7368,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2654105014292 thread=main
+I/D09Phase( 4284): P0 range-enter t=2654105163592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2654105280792
+I/D09Phase( 4284): P1 plans-query-end t=2654107334392 cpu=34618816795 plans=3
+I/D09Phase( 4284): P2 generation-start t=2654107462192
+I/D09Phase( 4284): P2 generation-end t=2654109212192 cpu=34620647394 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2654109819692
+I/D09Phase( 4284): P3 channelA-end t=2654113606892 cpu=34621986544 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2654113748192
+I/D09Phase( 4284): P4 channelB-end t=2654117114692 cpu=34623630403 rows=362
+I/D09Phase( 4284): P5 union-start t=2654117365092
+I/D09Phase( 4284): P5 union-end t=2654117745092 cpu=34624135845 union=362
+I/D09Phase( 4284): P6 projection-start t=2654117898392
+I/D09Phase( 4284): P6 projection-end t=2654162623792 cpu=34663445684 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2654162825292
+I/D09Phase( 4284): P7 grouping-end t=2654162986492 cpu=34663721548 days=15
+I/D09Phase( 4284): P8 range-exit t=2654163109492
+I/D09Phase( 4284): P9 vm-publish t=2654163424792 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2674105920792 thread=main
+I/D09Phase( 4284): P0 range-enter t=2674106125392 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2674106331192
+I/D09Phase( 4284): P1 plans-query-end t=2674108521392 cpu=35467764468 plans=3
+I/D09Phase( 4284): P2 generation-start t=2674108751392
+I/D09Phase( 4284): P2 generation-end t=2674113771692 cpu=35472717823 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2674113849192
+I/D09Phase( 4284): P3 channelA-end t=2674120549992 cpu=35475532364 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2674120866992
+I/D09Phase( 4284): P4 channelB-end t=2674128158192 cpu=35478823982 rows=726
+I/D09Phase( 4284): P5 union-start t=2674128468792
+I/D09Phase( 4284): P5 union-end t=2674129961292 cpu=35480490131 union=726
+I/D09Phase( 4284): P6 projection-start t=2674130119992
+I/D09Phase( 4284): P6 projection-end t=2674314642392 cpu=35646899656 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2674314854492
+I/D09Phase( 4284): P7 grouping-end t=2674315078092 cpu=35647222832 days=31
+I/D09Phase( 4284): P8 range-exit t=2674315185292
+I/D09Phase( 4284): P9 vm-publish t=2674315421292 thread=main days=31
+scenario=month,events=1000,plans=3,rep=22,completed=false,elapsedMs=50003.1846,maxMainGapMs=187.3698,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2704108797392 thread=main
+I/D09Phase( 4284): P0 range-enter t=2704108932992 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2704108995792
+I/D09Phase( 4284): P1 plans-query-end t=2704110818592 cpu=36720820278 plans=3
+I/D09Phase( 4284): P2 generation-start t=2704110939292
+I/D09Phase( 4284): P2 generation-end t=2704113348992 cpu=36723243822 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2704113471092
+I/D09Phase( 4284): P3 channelA-end t=2704121101692 cpu=36725042110 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2704121682792
+I/D09Phase( 4284): P4 channelB-end t=2704126593892 cpu=36726897031 rows=362
+I/D09Phase( 4284): P5 union-start t=2704126706592
+I/D09Phase( 4284): P5 union-end t=2704127105792 cpu=36727365469 union=362
+I/D09Phase( 4284): P6 projection-start t=2704127210192
+I/D09Phase( 4284): P6 projection-end t=2704176394392 cpu=36767253102 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2704176568092
+I/D09Phase( 4284): P7 grouping-end t=2704176716792 cpu=36767507343 days=15
+I/D09Phase( 4284): P8 range-exit t=2704176787192
+I/D09Phase( 4284): P9 vm-publish t=2704176906492 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2724110533092 thread=main
+I/D09Phase( 4284): P0 range-enter t=2724110630192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2724110689292
+I/D09Phase( 4284): P1 plans-query-end t=2724113546392 cpu=37453672451 plans=3
+I/D09Phase( 4284): P2 generation-start t=2724113682192
+I/D09Phase( 4284): P2 generation-end t=2724116605092 cpu=37456684018 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2724116693492
+I/D09Phase( 4284): P3 channelA-end t=2724122289492 cpu=37458613591 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2724122444692
+I/D09Phase( 4284): P4 channelB-end t=2724128620792 cpu=37461164601 rows=726
+I/D09Phase( 4284): P5 union-start t=2724128763392
+I/D09Phase( 4284): P5 union-end t=2724129911592 cpu=37462406740 union=726
+I/D09Phase( 4284): P6 projection-start t=2724130055092
+I/D09Phase( 4284): P6 projection-end t=2724280006392 cpu=37596811919 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2724280191592
+I/D09Phase( 4284): P7 grouping-end t=2724280305892 cpu=37597043558 days=31
+I/D09Phase( 4284): P8 range-exit t=2724280382692
+I/D09Phase( 4284): P9 vm-publish t=2724280530492 thread=main days=31
+scenario=month,events=1000,plans=3,rep=23,completed=false,elapsedMs=50002.5819,maxMainGapMs=151.2375,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2754114304792 thread=main
+I/D09Phase( 4284): P0 range-enter t=2754114516792 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2754114579892
+I/D09Phase( 4284): P1 plans-query-end t=2754116574592 cpu=38595194964 plans=3
+I/D09Phase( 4284): P2 generation-start t=2754116698992
+I/D09Phase( 4284): P2 generation-end t=2754118352492 cpu=38596880062 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2754118453392
+I/D09Phase( 4284): P3 channelA-end t=2754121769392 cpu=38598097491 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2754121850692
+I/D09Phase( 4284): P4 channelB-end t=2754124748192 cpu=38599076161 rows=362
+I/D09Phase( 4284): P5 union-start t=2754124815692
+I/D09Phase( 4284): P5 union-end t=2754125085992 cpu=38599413488 union=362
+I/D09Phase( 4284): P6 projection-start t=2754125137892
+I/D09Phase( 4284): P6 projection-end t=2754170752292 cpu=38640568344 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2754170941692
+I/D09Phase( 4284): P7 grouping-end t=2754171151692 cpu=38640828475 days=15
+I/D09Phase( 4284): P8 range-exit t=2754171296192
+I/D09Phase( 4284): P9 vm-publish t=2754171561792 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2774115509892 thread=main
+I/D09Phase( 4284): P0 range-enter t=2774115614192 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2774115672992
+I/D09Phase( 4284): P1 plans-query-end t=2774117928792 cpu=39340345945 plans=3
+I/D09Phase( 4284): P2 generation-start t=2774118032192
+I/D09Phase( 4284): P2 generation-end t=2774123056392 cpu=39345220492 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2774123174292
+I/D09Phase( 4284): P3 channelA-end t=2774130989892 cpu=39347214173 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2774131196692
+I/D09Phase( 4284): P4 channelB-end t=2774136165192 cpu=39349061971 rows=726
+I/D09Phase( 4284): P5 union-start t=2774136326792
+I/D09Phase( 4284): P5 union-end t=2774137034492 cpu=39349740472 union=726
+I/D09Phase( 4284): P6 projection-start t=2774137123192
+I/D09Phase( 4284): P6 projection-end t=2774288392592 cpu=39484488464 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2774288505492
+I/D09Phase( 4284): P7 grouping-end t=2774288606492 cpu=39484488464 days=31
+I/D09Phase( 4284): P8 range-exit t=2774288659092
+I/D09Phase( 4284): P9 vm-publish t=2774288783892 thread=main days=31
+scenario=month,events=1000,plans=3,rep=24,completed=false,elapsedMs=50002.3855,maxMainGapMs=151.9322,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2804120215492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2804120302292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2804120944692
+I/D09Phase( 4284): P1 plans-query-end t=2804123534792 cpu=40568257108 plans=3
+I/D09Phase( 4284): P2 generation-start t=2804123691592
+I/D09Phase( 4284): P2 generation-end t=2804125803992 cpu=40570390002 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2804125955492
+I/D09Phase( 4284): P3 channelA-end t=2804129350892 cpu=40571846406 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2804129496292
+I/D09Phase( 4284): P4 channelB-end t=2804133348092 cpu=40573049705 rows=362
+I/D09Phase( 4284): P5 union-start t=2804133536192
+I/D09Phase( 4284): P5 union-end t=2804133832392 cpu=40573425126 union=362
+I/D09Phase( 4284): P6 projection-start t=2804133988992
+I/D09Phase( 4284): P6 projection-end t=2804178566692 cpu=40614018852 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2804178809092
+I/D09Phase( 4284): P7 grouping-end t=2804178899492 cpu=40614199347 days=15
+I/D09Phase( 4284): P8 range-exit t=2804178958592
+I/D09Phase( 4284): P9 vm-publish t=2804179083992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2824121567992 thread=main
+I/D09Phase( 4284): P0 range-enter t=2824121670792 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2824121728992
+I/D09Phase( 4284): P1 plans-query-end t=2824124447392 cpu=41277352710 plans=3
+I/D09Phase( 4284): P2 generation-start t=2824124582892
+I/D09Phase( 4284): P2 generation-end t=2824127979092 cpu=41280726107 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2824128095292
+I/D09Phase( 4284): P3 channelA-end t=2824137263592 cpu=41282824961 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2824137434792
+I/D09Phase( 4284): P4 channelB-end t=2824142990692 cpu=41285607415 rows=726
+I/D09Phase( 4284): P5 union-start t=2824143141292
+I/D09Phase( 4284): P5 union-end t=2824143652392 cpu=41286188202 union=726
+I/D09Phase( 4284): P6 projection-start t=2824143761592
+I/D09Phase( 4284): P6 projection-end t=2824296717892 cpu=41422916599 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2824297098392
+I/D09Phase( 4284): P7 grouping-end t=2824297217492 cpu=41423185741 days=31
+I/D09Phase( 4284): P8 range-exit t=2824297277692
+I/D09Phase( 4284): P9 vm-publish t=2824297416692 thread=main days=31
+scenario=month,events=1000,plans=3,rep=25,completed=false,elapsedMs=50002.4676,maxMainGapMs=153.4004,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2854125053492 thread=main
+I/D09Phase( 4284): P0 range-enter t=2854125242692 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2854125320692
+I/D09Phase( 4284): P1 plans-query-end t=2854127462292 cpu=42573167256 plans=3
+I/D09Phase( 4284): P2 generation-start t=2854127580192
+I/D09Phase( 4284): P2 generation-end t=2854129470092 cpu=42575129440 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2854129589892
+I/D09Phase( 4284): P3 channelA-end t=2854132480992 cpu=42576244761 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2854132641092
+I/D09Phase( 4284): P4 channelB-end t=2854135988092 cpu=42577469523 rows=362
+I/D09Phase( 4284): P5 union-start t=2854136114292
+I/D09Phase( 4284): P5 union-end t=2854136498092 cpu=42577883993 union=362
+I/D09Phase( 4284): P6 projection-start t=2854136591192
+I/D09Phase( 4284): P6 projection-end t=2854176956992 cpu=42614612410 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2854177159292
+I/D09Phase( 4284): P7 grouping-end t=2854177258292 cpu=42614612410 days=15
+I/D09Phase( 4284): P8 range-exit t=2854177343792
+I/D09Phase( 4284): P9 vm-publish t=2854177521192 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2874126118292 thread=main
+I/D09Phase( 4284): P0 range-enter t=2874126301092 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2874126414192
+I/D09Phase( 4284): P1 plans-query-end t=2874128566992 cpu=43366061015 plans=3
+I/D09Phase( 4284): P2 generation-start t=2874128632292
+I/D09Phase( 4284): P2 generation-end t=2874133401892 cpu=43370736798 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2874133605392
+I/D09Phase( 4284): P3 channelA-end t=2874141350292 cpu=43373042426 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2874141530592
+I/D09Phase( 4284): P4 channelB-end t=2874147394092 cpu=43374909448 rows=726
+I/D09Phase( 4284): P5 union-start t=2874147504292
+I/D09Phase( 4284): P5 union-end t=2874148045292 cpu=43375487897 union=726
+I/D09Phase( 4284): P6 projection-start t=2874148100092
+I/D09Phase( 4284): P6 projection-end t=2874301819692 cpu=43514289639 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2874302129692
+I/D09Phase( 4284): P7 grouping-end t=2874302250792 cpu=43514548551 days=31
+I/D09Phase( 4284): P8 range-exit t=2874302392792
+I/D09Phase( 4284): P9 vm-publish t=2874302577792 thread=main days=31
+scenario=month,events=1000,plans=3,rep=26,completed=false,elapsedMs=50010.0123,maxMainGapMs=153.9215,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2904136263592 thread=main
+I/D09Phase( 4284): P0 range-enter t=2904136495892 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2904136698092
+I/D09Phase( 4284): P1 plans-query-end t=2904138665492 cpu=44301078217 plans=3
+I/D09Phase( 4284): P2 generation-start t=2904138848792
+I/D09Phase( 4284): P2 generation-end t=2904140662492 cpu=44302775517 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2904140781292
+I/D09Phase( 4284): P3 channelA-end t=2904143981992 cpu=44303785350 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2904144153792
+I/D09Phase( 4284): P4 channelB-end t=2904147361992 cpu=44304453408 rows=362
+I/D09Phase( 4284): P5 union-start t=2904147510992
+I/D09Phase( 4284): P5 union-end t=2904147817892 cpu=44304453408 union=362
+I/D09Phase( 4284): P6 projection-start t=2904147927392
+I/D09Phase( 4284): P6 projection-end t=2904191637092 cpu=44340437119 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2904191922692
+I/D09Phase( 4284): P7 grouping-end t=2904192140592 cpu=44340437119 days=15
+I/D09Phase( 4284): P8 range-exit t=2904192201292
+I/D09Phase( 4284): P9 vm-publish t=2904192344992 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2924149950592 thread=main
+I/D09Phase( 4284): P0 range-enter t=2924150178892 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2924150246192
+I/D09Phase( 4284): P1 plans-query-end t=2924152810392 cpu=44523793224 plans=3
+I/D09Phase( 4284): P2 generation-start t=2924152892292
+I/D09Phase( 4284): P2 generation-end t=2924156009692 cpu=44526991676 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2924156081292
+I/D09Phase( 4284): P3 channelA-end t=2924168463792 cpu=44529545965 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2924168653392
+I/D09Phase( 4284): P4 channelB-end t=2924175449892 cpu=44531463411 rows=726
+I/D09Phase( 4284): P5 union-start t=2924175542992
+I/D09Phase( 4284): P5 union-end t=2924176297092 cpu=44532257747 union=726
+I/D09Phase( 4284): P6 projection-start t=2924176476592
+I/D09Phase( 4284): P6 projection-end t=2924395270292 cpu=44681164755 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2924395497592
+I/D09Phase( 4284): P7 grouping-end t=2924395758392 cpu=44681305316 days=31
+I/D09Phase( 4284): P8 range-exit t=2924395877292
+I/D09Phase( 4284): P9 vm-publish t=2924396037892 thread=main days=31
+scenario=month,events=1000,plans=3,rep=27,completed=false,elapsedMs=50025.4297,maxMainGapMs=214.9328,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=2954163248392 thread=main
+I/D09Phase( 4284): P0 range-enter t=2954163342492 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2954163424292
+I/D09Phase( 4284): P1 plans-query-end t=2954165363292 cpu=44946289265 plans=3
+I/D09Phase( 4284): P2 generation-start t=2954165505592
+I/D09Phase( 4284): P2 generation-end t=2954167218192 cpu=44948090062 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=2954167333692
+I/D09Phase( 4284): P3 channelA-end t=2954170338792 cpu=44949147470 rows=340
+I/D09Phase( 4284): P4 channelB-start t=2954170529692
+I/D09Phase( 4284): P4 channelB-end t=2954173438992 cpu=44950210926 rows=362
+I/D09Phase( 4284): P5 union-start t=2954173562992
+I/D09Phase( 4284): P5 union-end t=2954173901192 cpu=44950626641 union=362
+I/D09Phase( 4284): P6 projection-start t=2954174003792
+I/D09Phase( 4284): P6 projection-end t=2954233369392 cpu=44992554813 entries=455
+I/D09Phase( 4284): P7 grouping-start t=2954233468792
+I/D09Phase( 4284): P7 grouping-end t=2954233557092 cpu=44992740569 days=15
+I/D09Phase( 4284): P8 range-exit t=2954233609092
+I/D09Phase( 4284): P9 vm-publish t=2954233726092 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=2974176713992 thread=main
+I/D09Phase( 4284): P0 range-enter t=2974176819592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=2974176879092
+I/D09Phase( 4284): P1 plans-query-end t=2974180233792 cpu=45178758671 plans=3
+I/D09Phase( 4284): P2 generation-start t=2974180425892
+I/D09Phase( 4284): P2 generation-end t=2974184186292 cpu=45181816493 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=2974184308892
+I/D09Phase( 4284): P3 channelA-end t=2974189329992 cpu=45181980787 rows=704
+I/D09Phase( 4284): P4 channelB-start t=2974189411292
+I/D09Phase( 4284): P4 channelB-end t=2974196422692 cpu=45188074715 rows=726
+I/D09Phase( 4284): P5 union-start t=2974196569792
+I/D09Phase( 4284): P5 union-end t=2974197185192 cpu=45188764622 union=726
+I/D09Phase( 4284): P6 projection-start t=2974197255692
+I/D09Phase( 4284): P6 projection-end t=2974387915592 cpu=45318560911 entries=924
+I/D09Phase( 4284): P7 grouping-start t=2974388128292
+I/D09Phase( 4284): P7 grouping-end t=2974388370992 cpu=45318560911 days=31
+I/D09Phase( 4284): P8 range-exit t=2974388437492
+I/D09Phase( 4284): P9 vm-publish t=2974388579792 thread=main days=31
+scenario=month,events=1000,plans=3,rep=28,completed=false,elapsedMs=50018.6874,maxMainGapMs=181.2094,contentHash=0
+I/D09Phase( 4284): P-1 vm-load-start t=3004183649792 thread=main
+I/D09Phase( 4284): P0 range-enter t=3004183762592 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=3004183849292
+I/D09Phase( 4284): P1 plans-query-end t=3004186003892 cpu=45595967469 plans=3
+I/D09Phase( 4284): P2 generation-start t=3004186138492
+I/D09Phase( 4284): P2 generation-end t=3004188446992 cpu=45598342333 occurrences=102
+I/D09Phase( 4284): P3 channelA-start t=3004188588792
+I/D09Phase( 4284): P3 channelA-end t=3004191357992 cpu=45599344465 rows=340
+I/D09Phase( 4284): P4 channelB-start t=3004191473392
+I/D09Phase( 4284): P4 channelB-end t=3004194196092 cpu=45600308604 rows=362
+I/D09Phase( 4284): P5 union-start t=3004194327192
+I/D09Phase( 4284): P5 union-end t=3004194836392 cpu=45600888621 union=362
+I/D09Phase( 4284): P6 projection-start t=3004195010192
+I/D09Phase( 4284): P6 projection-end t=3004245737592 cpu=45643526899 entries=455
+I/D09Phase( 4284): P7 grouping-start t=3004245862992
+I/D09Phase( 4284): P7 grouping-end t=3004245981092 cpu=45643766228 days=15
+I/D09Phase( 4284): P8 range-exit t=3004246050992
+I/D09Phase( 4284): P9 vm-publish t=3004246184492 thread=main days=15
+I/D09Phase( 4284): P-1 vm-load-start t=3024188491992 thread=main
+I/D09Phase( 4284): P0 range-enter t=3024188698292 thread=main
+I/D09Phase( 4284): P1 plans-query-start t=3024188840392
+I/D09Phase( 4284): P1 plans-query-end t=3024190804092 cpu=45822019291 plans=3
+I/D09Phase( 4284): P2 generation-start t=3024190919892
+I/D09Phase( 4284): P2 generation-end t=3024194017692 cpu=45825114596 occurrences=198
+I/D09Phase( 4284): P3 channelA-start t=3024194127792
+I/D09Phase( 4284): P3 channelA-end t=3024199315492 cpu=45825371097 rows=704
+I/D09Phase( 4284): P4 channelB-start t=3024199476292
+I/D09Phase( 4284): P4 channelB-end t=3024205411792 cpu=45827324132 rows=726
+I/D09Phase( 4284): P5 union-start t=3024205589492
+I/D09Phase( 4284): P5 union-end t=3024206195392 cpu=45828044961 union=726
+I/D09Phase( 4284): P6 projection-start t=3024206325592
+I/D09Phase( 4284): P6 projection-end t=3024386176492 cpu=45960784512 entries=924
+I/D09Phase( 4284): P7 grouping-start t=3024386376292
+I/D09Phase( 4284): P7 grouping-end t=3024386819492 cpu=45961032725 days=31
+I/D09Phase( 4284): P8 range-exit t=3024386948992
+I/D09Phase( 4284): P9 vm-publish t=3024387161092 thread=main days=31
+scenario=month,events=1000,plans=3,rep=29,completed=false,elapsedMs=50013.273,maxMainGapMs=168.4904,contentHash=0

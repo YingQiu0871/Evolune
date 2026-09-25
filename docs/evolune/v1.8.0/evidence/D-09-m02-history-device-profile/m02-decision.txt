@@ -1,0 +1,64 @@
+EVOLUNE v1.8.0 D-09 — M02 DECISION
+==================================
+
+Measured on Pixel_7 AVD API 35 (4 workers), production-fidelity harness,
+real Room + real HistoryReadService + real HistoryViewModel (Main.immediate):
+
+- Placement (already proven by D-02, re-confirmed): entity->domain mapping,
+  occurrence generation, union, matcher/projection and grouping all execute on
+  the caller/Main thread; Room queries suspend off Main.
+- Cost at representative scale (medians):
+    SMALL  100 events/mid:  projection CPU 6.2 ms,  total Main CPU 11.1 ms,
+                            contiguous Main 7.2 ms  -> negligible
+    MEDIUM 1000 events/mid: projection CPU 44.3 ms, total Main CPU 52.4 ms,
+                            contiguous Main 51.5 ms -> material
+    MEDIUM 1000/low:        projection CPU 19.3 ms, total Main CPU 25.5 ms,
+                            contiguous Main 23.0 ms
+    MEDIUM 1000/high:       projection CPU 108.8 ms, total 121.2 ms,
+                            contiguous Main 125.1 ms
+    month change 1000/mid:  projection CPU 145.1 ms, total 154.2 ms,
+                            contiguous Main 186.6 ms -> material
+    reentry   1000/mid:     projection CPU 40.5 ms,  total 46.7 ms,
+                            contiguous Main 55.3 ms
+    10k stress (synthetic): projection CPU 385.3 ms, total 414.4 ms,
+                            contiguous Main 556.4 ms
+- The projection is the dominant component at every scale >= MEDIUM (76-94% of
+  Main CPU); queries are never the dominant component and never block Main.
+- The blocking is a single contiguous Main interval (no suspension between the
+  last query and the end of the projection/grouping); 51-187 ms blocks cannot
+  render 60 Hz frames while running (frame-budget inference, not a frame count).
+- Emulator caveat: absolute values are host-dependent; the structure and the
+  scaling relationship are not.
+
+Decision: M02 IMPLEMENTATION SLICE REQUIRED (classification B).
+
+Reasoning: at the audit's MEDIUM case (1k events) with mid plan density the
+caller-context pure CPU reaches 44-52 ms, and 145-186 ms on a full-month load;
+that is meaningful Main-thread blocking and materially delayed History
+publication, dominated by the matcher/projection, in code the audit already
+identified as a pure-CPU section. SMALL (~routine) is negligible, so the slice
+is bounded and can be treated as lower urgency than correctness work, but the
+measured MEDIUM boundary is a real production-relevant CPU problem.
+
+Narrowest follow-on intervention (do NOT implement in D-09):
+  Move ONLY the proven pure-CPU section behind a Default dispatcher boundary
+  inside HistoryReadService.readRange:
+    - occurrence generation (P2), and
+    - the post-query tail: union (P5) + projection (P6) + range grouping (P7).
+  The post-query tail is the material part (86-94% of Main CPU at MEDIUM+);
+  generation is small at MEDIUM (0.8-7.7 ms) and may be included for
+  consistency.
+  Must preserve: Room query placement/order (channels A/B unchanged), input
+  capture (window/zone/policy/now), exact result identity/order/content,
+  ViewModel publication ownership (Main), generation-token cancellation
+  semantics, and the existing three-read/refresh behaviour. No caching,
+  memoization, matcher change, sort change, query change, schema change, or
+  refresh-frequency change.
+  Validation for that slice: exact History result equality vs the pre-change
+  implementation on the same fixtures (all scales/densities), the existing
+  focused History suites, and a repeat of this profile to confirm the Main
+  block moved while total wall time stays bounded.
+
+Not in scope and not authorized by D-09: any M01/M03/M04/M05 work, any
+architecture change beyond the narrow boundary above, and any UI/presentation
+change.

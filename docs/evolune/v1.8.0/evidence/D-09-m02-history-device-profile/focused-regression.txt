@@ -1,0 +1,42 @@
+EVOLUNE v1.8.0 D-09 — FOCUSED REGRESSION
+========================================
+
+Command (canonical tracked-LF procedure for the two golden fixtures plus the
+B-02-sensitive AppNavigation.kt; raw checkout bytes restored afterwards):
+  .\gradlew.bat :app:testDebugUnitTest
+    --tests "io.github.yingqiu0871.evolune.history.*"
+    --tests io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest
+    --tests io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest
+    --rerun-tasks
+
+Result: BUILD SUCCESSFUL; 39 suites / 458 tests / 0 failures / 0 errors /
+0 skipped.
+
+Coverage of the required areas (existing suites, unmodified) — actual 39 suites:
+- History read/service: HistoryReadServiceTest, HistoryReadServiceAllAvailableTest,
+  HistoryReadServicePersistedDateTest, HistoryReadServiceExtremeZoneTest,
+  HistoryReadServiceOccurrenceChunkingTest, HistoryReadZeroWriteTest.
+- History ViewModel/refresh: HistoryViewModelTest, HistoryRefreshTest,
+  HistoryUndoProjectionTest.
+- Presentation/date boundaries: HistoryPresentationTest,
+  HistoryCrossDatePresentationTest, HistoryFutureOccurrenceContractTest,
+  HistoryPresentationWordingTest, HistoryQuickRecordInferredTest.
+- Insights surface (same read-model family): InsightsViewModelTest,
+  InsightsViewModelIntegrationTest, InsightsRangeResolverTest,
+  InsightsRangeSelectionInitTest, InsightsOrchestrationGuardTest.
+- Timeline (date/DST/ordering/grouping): TimelineProjectionBuilderTest,
+  TimelineRangeCoordinatorTest, TimelineOrderingGeneratorParityTest,
+  TimelineRangePurityTest, TimelineViewModelTest,
+  TimelineArchitectureGuardTest, TimelineRangeArchitectureGuardTest.
+- Retrospective PK (same History layer): RetrospectivePkServiceTest,
+  RetrospectivePkExtractorTest, RetrospectivePkPatchPreprocessorTest,
+  RetrospectivePkGuardTest, RetrospectivePkZeroWriteTest,
+  RetrospectivePkViewModelTest, RetrospectiveMarkerDerivationTest,
+  RetrospectiveArchitectureGuardTest, RetrospectivePolicyInvariantTest,
+  RetrospectiveStringsParityTest, RetrospectiveWordingGuardTest.
+- Lazy entry guard: HistoryLazyEntryArchitectureTest.
+- Portable golden fixture: PortableGoldenFixtureTest.
+
+Inherited canonical baseline: source/test bytes end identical to d39acc5, so
+the inherited 1704/1704 canonical full JVM remains valid; no ceremonial full
+rerun was performed.

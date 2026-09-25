@@ -1,0 +1,26 @@
+EVOLUNE v1.8.0 D-09 — FRAME / UI EVIDENCE
+=========================================
+
+No full-UI frame capture was performed in D-09 (the harness drove the real
+ViewModel/service, not the History screen). The equivalent evidence recorded is
+the Main-thread occupation itself:
+
+- The longest contiguous Main-thread interval per load is measured directly
+  (union start -> grouping end), because no suspension occurs in that region:
+    first 1k/mid: 51.5 ms median (p95 ~82 ms)
+    month 1k/mid: 186.6 ms median (p95 ~221 ms)
+    first 1k/high: 125.1 ms median
+    10k stress: 556.4 ms median
+- The aggregate Main CPU per load is measured via Debug.threadCpuTimeNanos:
+    52.4 ms (1k/mid), 154.2 ms (month 1k/mid), 121.2 ms (1k/high), 414.4 ms (10k).
+
+Interpretation limits (explicit):
+- A suspended Room query does NOT block Main; query wall time is excluded from
+  the Main-blocking numbers above.
+- The Main block delays the ViewModel's own publication (P9 follows P8 on Main)
+  and any frame rendering on the same thread during that interval. This is a
+  thread-occupation fact, not a measured dropped-frame count.
+- Ordinary scheduling noise (2-8 ms variation between repetitions) is far below
+  the observed contiguous blocks (51-557 ms medians), so the signal is not noise.
+- No "jank" classification is made beyond: "a 51-125+ ms contiguous Main block
+  cannot render 60 Hz frames while it runs" (frame-budget arithmetic).
