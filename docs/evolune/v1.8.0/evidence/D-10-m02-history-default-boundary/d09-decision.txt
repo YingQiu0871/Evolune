@@ -1,0 +1,23 @@
+EVOLUNE v1.8.0 D-10 — AUTHORITATIVE D-09 DECISION AND BASELINES
+===============================================================
+
+D-09 packet: D:\Evolune-Workspace\review-packets\v180-d09-m02-history-device-profile.txt
+D-09 evidence: docs/evolune/v1.8.0/evidence/D-09-m02-history-device-profile/
+Final line: APPROVE V1.8.0 D-09 — M02 IMPLEMENTATION SLICE REQUIRED.
+
+Accepted D-09 device baselines (Pixel_7 AVD API 35, medians):
+  first entry 1000/3: queryWall 12.0 | mappingCpu 3.8 | pureCpu 48.3 |
+    totalMain 52.4 | projection 44.3 | contiguous Main 51.5 | vmWall 67.5
+  month change 1000/3: queryWall 18.0 | mappingCpu 5.3 | pureCpu 149.4 |
+    totalMain 154.2 | projection 145.1 | contiguous Main 186.6 | vmWall 212.3
+  first entry 1000/8: pureCpu 117.1 | projection 108.8 | contiguous Main 125.1
+  (small control 100/3: projection 6.2 | totalMain 11.1 | contiguous Main 7.2)
+  10k stress: projection 385.3 | totalMain 414.4 | contiguous Main 556.4
+
+D-09 narrowest follow-on specified: move only the proven pure-CPU section
+behind a Default boundary inside HistoryReadService.readRange — the post-query
+tail (union + projection + grouping), optionally occurrence generation —
+preserving query placement/order, input capture, exact result identity/order,
+ViewModel publication ownership and generation-token cancellation semantics.
+
+D-10 implements exactly that; no additional optimization was combined.

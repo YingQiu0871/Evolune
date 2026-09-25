@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 D-10 — FRESH CANONICAL JVM REGRESSION
+====================================================
+
+Command (canonical tracked-LF procedure: phase-e golden fixtures + the
+B-02-sensitive AppNavigation.kt materialized as tracked LF bytes for the run,
+raw checkout bytes restored afterwards):
+  .\gradlew.bat :app:testDebugUnitTest :experience-core:test :wear:testDebugUnitTest --rerun-tasks
+
+Result: BUILD SUCCESSFUL
+  app:             156 suites / 1448 tests / 0 failures / 0 errors / 0 skipped
+  experience-core:  20 suites /  171 tests / 0 failures / 0 errors / 0 skipped
+  wear:             11 suites /   90 tests / 0 failures / 0 errors / 0 skipped
+  TOTAL:           187 suites / 1709 tests / 0 failures / 0 errors / 0 skipped
+
+Delta vs the inherited D-09 baseline (1704): +5 tests, all new D-10 tests
+(HistoryReadServiceProjectionDispatcherTest). One existing test timing
+assumption was updated (HistoryReadZeroWriteTest initial-load await) without
+changing its assertions: reads > 0 and writes == 0.
+
+Focused areas all included and green: HistoryReadService (readRange channels,
+persisted date, extreme zone, chunking, all-available), HistoryViewModel and
+refresh/generation, projection/read-model (CoreHistory + Timeline
+ProjectionBuilder), matching/duplicate/conflict, date/DST (Timeline range,
+cross-date), Insights, Retrospective PK (service/viewmodel/guards),
+MainFeatureServices ownership, History lazy-entry guard, portable golden
+fixture.
+
+Known raw-checkout artifacts (unchanged): on the raw CRLF checkout,
+PortableGoldenFixtureTest and HistoryLazyEntryArchitectureTest fail for the
+inherited B-02/B-03 byte-sensitive-checkout reasons and pass under the
+canonical tracked-LF procedure; this is the established gate, not a new
+regression.

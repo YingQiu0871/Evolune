@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 D-10 — PREDECESSOR FREEZE PROOF
+==============================================
+
+Prior evidence directories (D-01..D-09, R-01, A-*/B-*/C-01) were not modified:
+  git diff 541dbfc HEAD -- docs/evolune/v1.8.0/evidence \
+    ':(exclude)docs/evolune/v1.8.0/evidence/D-10-m02-history-default-boundary'
+  -> EMPTY
+
+Frozen decisions not reopened: M01 CLOSED (D-08), M04 CLOSED/FROZEN (D-05/D-06),
+D-04R Home stale-publication decision, M03 startup async redesign (NOT
+AUTHORIZED), M05 (separate).
+
+No amend of any accepted predecessor commit; D-09 evidence byte-identical.

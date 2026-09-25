@@ -1,0 +1,60 @@
+EVOLUNE v1.8.0 D-10 — D-09 VS D-10 COMPARISON (RECOMPUTED)
+===========================================================
+
+All values are medians from the committed raw logs; D-09 values are from
+docs/evolune/v1.8.0/evidence/D-09-m02-history-device-profile/raw (unchanged).
+
+Metric legend:
+  totalMain  = caller/Main CPU during the load (D-09: mapping+pure; D-10:
+               generation+mapping+query overhead; D-10 tail runs on the worker)
+  projection = projection CPU (D-09: Main; D-10: worker thread)
+  contigMain = longest contiguous Main block attributable to the post-query
+               pure tail (D-09: union->grouping on Main; D-10: dispatch only)
+  tailThreads = tail-on-Main rows / total measured rows
+  vmWall     = ViewModel load wall (P-1 -> P9)
+
+scenario        metric        D-09       D-10       change
+first 1000/3    totalMain      52.4 ms     5.4 ms    -47.0 ms
+                projection     44.3 ms    43.9 ms     same work, worker thread
+                contigMain     51.5 ms     0.3 ms    eliminated (dispatch only)
+                tailOnMain     30/30       0/30
+                vmWall         67.5 ms    76.0 ms    +8.5 ms (dispatch/hand-off)
+month 1000/3    totalMain     154.2 ms     8.6 ms    -145.6 ms
+                projection    145.1 ms   149.9 ms     same work, worker thread
+                contigMain    186.6 ms     0.4 ms    eliminated
+                tailOnMain     30/30       0/30
+                vmWall        212.3 ms   218.6 ms    +6.3 ms
+first 1000/8    totalMain     121.2 ms    11.8 ms    -109.4 ms
+                projection    108.8 ms   104.4 ms     same work, worker thread
+                contigMain    125.1 ms     0.4 ms    eliminated
+                tailOnMain     30/30       0/30
+                vmWall        150.6 ms   170.2 ms    +19.6 ms
+first 100/3     totalMain      11.1 ms     4.1 ms    -7.0 ms
+                projection      6.2 ms     3.5 ms
+                contigMain      7.2 ms     0.3 ms    eliminated
+                vmWall         17.0 ms    19.0 ms    +2.0 ms
+reentry 1000/3  totalMain      46.7 ms     5.3 ms    -41.4 ms
+                projection     40.5 ms    40.4 ms
+                contigMain     55.3 ms     0.3 ms    eliminated
+                vmWall         72.4 ms    73.4 ms    +1.0 ms
+10k stress      totalMain     414.4 ms    21.2 ms    -393.2 ms
+                projection    385.3 ms   408.1 ms     same work, worker thread
+                contigMain    556.4 ms     0.6 ms    eliminated
+                vmWall        631.4 ms   615.4 ms    -16.0 ms
+
+Acceptance gate (§16):
+1. tail off Main in all valid representative rows: PASS (0/160 tailOnMain)
+2. D-09 contiguous Main block attributable to union/projection/grouping
+   disappears: PASS (dispatch 0.3-0.6 ms + publication 0.5-1.0 ms remain)
+3. no equivalent new long synchronous Main block: PASS — remaining Main work is
+   generation+mapping (2.9-21.2 ms median across scales; 21.2 ms at 10k stress)
+   plus the unchanged small plans read; nothing new and long was introduced
+4. exact result semantics unchanged: PASS (unit exact equality; device content
+   hashes identical for all comparable scenarios; 1709/1709 JVM green)
+5. publication remains Main-owned: PASS (P9 thread=main in all loads)
+
+Wall-time tradeoff (reported, not concealed): the worker hand-off adds
++1 to +20 ms to end-to-end load wall at representative scales (the same
+projection work now crosses a dispatch boundary); the stress case is slightly
+faster in this sample. No material regression; the total wall remains within
+~+13% at the worst representative point (first 1000/8) while Main is freed.

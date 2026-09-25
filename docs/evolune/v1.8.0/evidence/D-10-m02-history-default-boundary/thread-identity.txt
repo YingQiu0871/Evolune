@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-10 — THREAD IDENTITY EVIDENCE (DEVICE)
+=======================================================
+
+Per-load thread identities (all 160 measured loads):
+
+  Phase group                                   Thread observed           Count
+  P1 plans read end                             main                      160/160
+  P2 occurrence generation end                  main                      160/160
+  P3 channel A (persisted localDate) end        main                      160/160
+  P4 channel B (instant) end                    main                      160/160
+  P5 union start / end                          DefaultDispatcher-worker-1 160/160 (isMain=false)
+  P6 projection end                             DefaultDispatcher-worker-1 160/160
+  P7 grouping end                               DefaultDispatcher-worker-1 160/160
+  P8 range exit                                 DefaultDispatcher-worker-1 160/160
+  P9 ViewModel publication                      main                      160/160
+
+  pure-tail-on-Main rows: 0   (target: pure-tail-on-Main = 0)
+
+Interpretation:
+- Room queries still suspend on Room's executor and resume on the caller
+  (Main) to do only the small entity->domain mapping (unchanged ownership).
+- The whole post-query pure CPU tail (union, projection/matching, grouping)
+  now runs on Dispatchers.Default ("DefaultDispatcher-worker-1" on this
+  4-worker emulator) in every load.
+- Publication remains Main-owned.

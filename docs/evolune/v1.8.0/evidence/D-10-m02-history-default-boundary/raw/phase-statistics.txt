@@ -1,0 +1,62 @@
+D-10 phase statistics (ms). n = measured loads per scenario; min / mean / median / p95 / max.
+
+== first|100|3 n=30 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 2.94 / 4.71 / 4.116 / 5.518 / 20.641
+worker projection CPU: 2.027 / 5.292 / 3.461 / 13.414 / 24.791
+worker grouping CPU: 0 / 0.213 / 0 / 1.247 / 1.32
+worker tail wall (union->exit): 5.504 / 8.563 / 6.835 / 14.433 / 32.036
+vm load wall (P-1->P9): 14.508 / 23.958 / 19.046 / 28.126 / 146.626
+dispatch gap (last query end -> worker start): 0.234 / 0.488 / 0.312 / 1.04 / 3.518
+publication (worker exit -> Main publish): 0.307 / 0.604 / 0.519 / 1.2 / 2.334
+tail threads: DefaultDispatcher-worker-1
+
+== first|1000|3 n=30 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 3.25 / 6.173 / 5.377 / 8.262 / 23.952
+worker projection CPU: 27.847 / 45.039 / 43.93 / 58.635 / 96.379
+worker grouping CPU: 0 / 0.355 / 0.284 / 1.18 / 1.791
+worker tail wall (union->exit): 40.323 / 61.082 / 57.814 / 93.803 / 104.622
+vm load wall (P-1->P9): 60.598 / 82.62 / 75.952 / 117.224 / 231.594
+dispatch gap (last query end -> worker start): 0.254 / 0.472 / 0.338 / 0.696 / 3.572
+publication (worker exit -> Main publish): 0.355 / 0.772 / 0.478 / 2.273 / 3.852
+tail threads: DefaultDispatcher-worker-1
+
+== first|1000|8 n=30 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 5.81 / 12.047 / 11.82 / 17.803 / 30.818
+worker projection CPU: 91.179 / 108.111 / 104.37 / 123.069 / 147.941
+worker grouping CPU: 0 / 0.52 / 0.325 / 2.692 / 2.89
+worker tail wall (union->exit): 106.001 / 142.178 / 142.248 / 161.651 / 162.794
+vm load wall (P-1->P9): 145.214 / 175.171 / 170.22 / 193.545 / 296.654
+dispatch gap (last query end -> worker start): 0.228 / 0.555 / 0.447 / 0.955 / 2.868
+publication (worker exit -> Main publish): 0.335 / 0.761 / 0.574 / 1.742 / 2.311
+tail threads: DefaultDispatcher-worker-1
+
+== first|10000|3 n=10 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 7.776 / 23.292 / 21.237 / 53.58 / 53.58
+worker projection CPU: 395.011 / 416.742 / 408.134 / 471.462 / 471.462
+worker grouping CPU: 0 / 1.909 / 0.989 / 10.499 / 10.499
+worker tail wall (union->exit): 518.151 / 540.423 / 534.489 / 589.303 / 589.303
+vm load wall (P-1->P9): 588.032 / 633.243 / 615.411 / 810.655 / 810.655
+dispatch gap (last query end -> worker start): 0.416 / 0.886 / 0.641 / 3.326 / 3.326
+publication (worker exit -> Main publish): 0.422 / 0.779 / 0.765 / 1.341 / 1.341
+tail threads: DefaultDispatcher-worker-1
+
+== month|1000|3 n=30 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 6.064 / 8.894 / 8.62 / 12.546 / 12.989
+worker projection CPU: 117.68 / 149.526 / 149.861 / 161.344 / 162.728
+worker grouping CPU: 0 / 0.483 / 0.314 / 1.122 / 4.491
+worker tail wall (union->exit): 153.327 / 191.648 / 191.878 / 206.972 / 213.226
+vm load wall (P-1->P9): 187.998 / 218.772 / 218.572 / 242.385 / 242.798
+dispatch gap (last query end -> worker start): 0.236 / 0.693 / 0.374 / 2.151 / 7.702
+publication (worker exit -> Main publish): 0.342 / 0.693 / 0.504 / 1.65 / 3.852
+tail threads: DefaultDispatcher-worker-1
+
+== reentry|1000|3 n=30 tailOnMain=0 ==
+main CPU (generation+mapping+query overhead): 0.787 / 5.431 / 5.29 / 8.024 / 11.245
+worker projection CPU: 32.456 / 41.577 / 40.384 / 49.515 / 56.201
+worker grouping CPU: 0 / 0.51 / 0.34 / 3.293 / 4.188
+worker tail wall (union->exit): 41.11 / 56.928 / 55.569 / 67.046 / 78.18
+vm load wall (P-1->P9): 62.376 / 74.539 / 73.432 / 86.385 / 98.726
+dispatch gap (last query end -> worker start): 0.236 / 0.355 / 0.328 / 0.76 / 0.782
+publication (worker exit -> Main publish): 0.567 / 1.167 / 1.028 / 2.266 / 2.688
+tail threads: DefaultDispatcher-worker-1
+

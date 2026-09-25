@@ -1,0 +1,35 @@
+EVOLUNE v1.8.0 D-10 — SEMANTIC EQUALITY
+=======================================
+
+Unit level:
+- Exact `HistoricalRange` equality between the inline (Unconfined) reference
+  path and the worker-dispatcher path on a fixture that exercises both
+  channels, a delayed reminder (persisted date far from occurredAt), a legacy
+  null-localDate row crossing midnight, and a DST spring-forward day
+  (America/New_York 2025-03-09).
+- Duplicate/conflict semantics asserted unchanged (dedup to exactly one
+  projection input per event id; conflicting duplicate rows still fail fast).
+- All existing History read/projection/date/DST suites remain green (fresh
+  canonical JVM run, 1709/1709).
+
+Device level (same fixture definitions as D-09, real Room + service + ViewModel):
+- Range content hash (loaded entries x 1000 + day count) compared between the
+  D-09 (pre-boundary) and D-10 (post-boundary) raw device logs:
+    first 100/3:    D-09 117015   D-10 117015   identical
+    first 1000/3:   D-09 405015   D-10 405015   identical
+    first 1000/8:   D-09 550015   D-10 550015   identical
+    reentry 1000/3: D-09 405015   D-10 405015   identical
+    first 10000/3:  D-09 3342015  D-10 3342015  identical
+    month 1000/3:   D-09 not captured (0: D-09 harness run-row counter bug,
+                    documented in D-09 evidence); D-10 868031 consistent across
+                    all 30 repetitions and matching the D-09 phase-log
+                    cardinalities (projection entries 924, days 31).
+- Duplicate rows across both channels are present in every load (the fake/
+  production channels both serve the same table; union dedup ran on the worker)
+  and the loaded cardinalities match the D-09 values exactly.
+
+Documentation discrepancy note (D-09 evidence, prose only): D-09's
+semantic-equivalence.txt lists the first/1000/high content hash as 610015; the
+authoritative D-09 raw log value is 550015 (610 was the projection `entries`
+count, not the range-loaded count). D-10 comparison uses the raw-log values.
+D-09 is frozen and not modified.

@@ -1,0 +1,570 @@
+I/D10Phase( 6151): P-1 vm-load-start t=12535826449792 thread=main
+I/D10Phase( 6151): P0 range-enter t=12535827451992 thread=main
+I/D10Phase( 6151): P1 plans-start t=12535827862292
+I/D10Phase( 6151): P1 plans-end t=12535900804592 cpu=433152301 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12535901187092
+I/D10Phase( 6151): P2 generation-end t=12535927258692 cpu=456088442 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12535927511592
+I/D10Phase( 6151): P3 channelA-end t=12535945245592 cpu=460518755 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12535945466192
+I/D10Phase( 6151): P4 channelB-end t=12535959558792 cpu=463970088 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12535962426592 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12535965574492 cpu=4055556 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12535965710992
+I/D10Phase( 6151): P6 projection-end t=12536120380992 cpu=151996928 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12536120575192
+I/D10Phase( 6151): P7 grouping-end t=12536121726792 cpu=152863521 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12536122502192 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12536123103692 thread=main days=15
+scenario=first,events=1000,plans=8,rep=0,completed=true,invalidReason=,elapsedMs=296.6924,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12536124789592 thread=main
+I/D10Phase( 6151): P0 range-enter t=12536124897892 thread=main
+I/D10Phase( 6151): P1 plans-start t=12536124964692
+I/D10Phase( 6151): P1 plans-end t=12536130116492 cpu=468870958 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12536130259692
+I/D10Phase( 6151): P2 generation-end t=12536138391392 cpu=476540548 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12536138532792
+I/D10Phase( 6151): P3 channelA-end t=12536150066592 cpu=478682942 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12536150197492
+I/D10Phase( 6151): P4 channelB-end t=12536162953992 cpu=481194819 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12536163562792 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12536166262292 cpu=155988287 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12536166398692
+I/D10Phase( 6151): P6 projection-end t=12536269014992 cpu=247303982 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12536269232792
+I/D10Phase( 6151): P7 grouping-end t=12536269503392 cpu=247723127 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12536269563792 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12536270003092 thread=main days=15
+scenario=first,events=1000,plans=8,rep=1,completed=true,invalidReason=,elapsedMs=145.1312,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12536270628092 thread=main
+I/D10Phase( 6151): P0 range-enter t=12536271029492 thread=main
+I/D10Phase( 6151): P1 plans-start t=12536271281592
+I/D10Phase( 6151): P1 plans-end t=12536274616092 cpu=484297274 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12536274750092
+I/D10Phase( 6151): P2 generation-end t=12536295621992 cpu=494828561 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12536295976792
+I/D10Phase( 6151): P3 channelA-end t=12536308821292 cpu=498642490 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12536309038692
+I/D10Phase( 6151): P4 channelB-end t=12536317409392 cpu=501312269 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12536317832792 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12536319044592 cpu=249167645 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12536319180092
+I/D10Phase( 6151): P6 projection-end t=12536463439492 cpu=371290694 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12536463550392
+I/D10Phase( 6151): P7 grouping-end t=12536463766792 cpu=371290694 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12536463820892 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12536464173092 thread=main days=15
+scenario=first,events=1000,plans=8,rep=2,completed=true,invalidReason=,elapsedMs=193.6103,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12536464863892 thread=main
+I/D10Phase( 6151): P0 range-enter t=12536464965992 thread=main
+I/D10Phase( 6151): P1 plans-start t=12536465034192
+I/D10Phase( 6151): P1 plans-end t=12536469449192 cpu=503357766 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12536469628192
+I/D10Phase( 6151): P2 generation-end t=12536483295792 cpu=513467254 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12536483486992
+I/D10Phase( 6151): P3 channelA-end t=12536490129192 cpu=515374850 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12536490204092
+I/D10Phase( 6151): P4 channelB-end t=12536496670392 cpu=517698390 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12536496912192 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12536498711092 cpu=373075971 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12536498861092
+I/D10Phase( 6151): P6 projection-end t=12536645516092 cpu=491125315 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12536645714192
+I/D10Phase( 6151): P7 grouping-end t=12536646033292 cpu=491125315 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12536646142292 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12536646477292 thread=main days=15
+scenario=first,events=1000,plans=8,rep=3,completed=true,invalidReason=,elapsedMs=181.5935,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12536647084092 thread=main
+I/D10Phase( 6151): P0 range-enter t=12536647153492 thread=main
+I/D10Phase( 6151): P1 plans-start t=12536647215592
+I/D10Phase( 6151): P1 plans-end t=12536651234192 cpu=520356347 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12536651307892
+I/D10Phase( 6151): P2 generation-end t=12536659240992 cpu=528033350 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12536659396692
+I/D10Phase( 6151): P3 channelA-end t=12536665344192 cpu=530035764 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12536665486592
+I/D10Phase( 6151): P4 channelB-end t=12536672246392 cpu=532290419 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12536673043292 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12536674447992 cpu=492770376 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12536674602392
+I/D10Phase( 6151): P6 projection-end t=12536835208192 cpu=612490072 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12536835396792
+I/D10Phase( 6151): P7 grouping-end t=12536835726992 cpu=612490072 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12536835836792 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12536836187092 thread=main days=15
+scenario=first,events=1000,plans=8,rep=4,completed=true,invalidReason=,elapsedMs=189.1726,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12536836851392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12536836926092 thread=main
+I/D10Phase( 6151): P1 plans-start t=12536836996092
+I/D10Phase( 6151): P1 plans-end t=12536840012292 cpu=535004899 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12536840077992
+I/D10Phase( 6151): P2 generation-end t=12536847296092 cpu=541219404 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12536847440592
+I/D10Phase( 6151): P3 channelA-end t=12536852949192 cpu=543976603 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12536853080592
+I/D10Phase( 6151): P4 channelB-end t=12536859466692 cpu=546944277 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12536859774692 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12536861644792 cpu=614481473 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12536861760992
+I/D10Phase( 6151): P6 projection-end t=12537002361392 cpu=729215065 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537002647892
+I/D10Phase( 6151): P7 grouping-end t=12537002928792 cpu=729612650 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537003018692 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12537003438492 thread=main days=15
+scenario=first,events=1000,plans=8,rep=5,completed=true,invalidReason=,elapsedMs=166.8227,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12537004328392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537004441392 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537004530292
+I/D10Phase( 6151): P1 plans-end t=12537008281692 cpu=549856074 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537008359592
+I/D10Phase( 6151): P2 generation-end t=12537017799092 cpu=559233122 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537018004892
+I/D10Phase( 6151): P3 channelA-end t=12537023897392 cpu=561131357 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537024032392
+I/D10Phase( 6151): P4 channelB-end t=12537031141492 cpu=565950538 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537031594092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537032809392 cpu=730910306 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537032896792
+I/D10Phase( 6151): P6 projection-end t=12537176917892 cpu=840209475 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537177108292
+I/D10Phase( 6151): P7 grouping-end t=12537177365992 cpu=843099379 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537177456492 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=6,completed=true,invalidReason=,elapsedMs=173.7244,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12537178617092 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12537178796092 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537178918392 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537179037292
+I/D10Phase( 6151): P1 plans-end t=12537182314192 cpu=568563751 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537182441792
+I/D10Phase( 6151): P2 generation-end t=12537192185592 cpu=578249910 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537192332592
+I/D10Phase( 6151): P3 channelA-end t=12537201625792 cpu=580855987 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537201807492
+I/D10Phase( 6151): P4 channelB-end t=12537206397392 cpu=582573927 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537206771392 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537207467192 cpu=844002153 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537207525492
+I/D10Phase( 6151): P6 projection-end t=12537346193292 cpu=946724827 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537346404392
+I/D10Phase( 6151): P7 grouping-end t=12537346727092 cpu=949416921 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537346835592 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=7,completed=true,invalidReason=,elapsedMs=168.7824,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12537347854992 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12537348036392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537348122692 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537348273192
+I/D10Phase( 6151): P1 plans-end t=12537351557992 cpu=585062291 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537351720492
+I/D10Phase( 6151): P2 generation-end t=12537359412992 cpu=592735824 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537359576592
+I/D10Phase( 6151): P3 channelA-end t=12537364754392 cpu=594802393 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537364890192
+I/D10Phase( 6151): P4 channelB-end t=12537379342192 cpu=596889323 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537379837392 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537380608992 cpu=950427228 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537380672492
+I/D10Phase( 6151): P6 projection-end t=12537524517392 cpu=1054987033 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537524782092
+I/D10Phase( 6151): P7 grouping-end t=12537525139292 cpu=1056151303 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537525272992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12537525691692 thread=main days=15
+scenario=first,events=1000,plans=8,rep=8,completed=true,invalidReason=,elapsedMs=178.4263,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12537526682792 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537526776592 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537526918992
+I/D10Phase( 6151): P1 plans-end t=12537531405292 cpu=600122487 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537531522992
+I/D10Phase( 6151): P2 generation-end t=12537542802492 cpu=605100986 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537543091392
+I/D10Phase( 6151): P3 channelA-end t=12537552495292 cpu=607005044 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537552607092
+I/D10Phase( 6151): P4 channelB-end t=12537558899292 cpu=608699483 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537559673792 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537561104192 cpu=1058470622 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537561246792
+I/D10Phase( 6151): P6 projection-end t=12537716464092 cpu=1173497450 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537716664392
+I/D10Phase( 6151): P7 grouping-end t=12537717383892 cpu=1174249850 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537717696092 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=9,completed=true,invalidReason=,elapsedMs=191.5849,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12537718887792 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12537719118992 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537719225592 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537719389192
+I/D10Phase( 6151): P1 plans-end t=12537722662092 cpu=611604911 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537722845792
+I/D10Phase( 6151): P2 generation-end t=12537733422492 cpu=622263040 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537734047692
+I/D10Phase( 6151): P3 channelA-end t=12537743972892 cpu=625820823 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537744378292
+I/D10Phase( 6151): P4 channelB-end t=12537750692292 cpu=628187476 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537751253192 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537752077592 cpu=1175616804 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537752180492
+I/D10Phase( 6151): P6 projection-end t=12537889737492 cpu=1277221547 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12537889942992
+I/D10Phase( 6151): P7 grouping-end t=12537890156692 cpu=1277221547 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12537890248592 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=10,completed=true,invalidReason=,elapsedMs=172.0219,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12537891447992 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12537891656992 thread=main
+I/D10Phase( 6151): P0 range-enter t=12537891792992 thread=main
+I/D10Phase( 6151): P1 plans-start t=12537891955492
+I/D10Phase( 6151): P1 plans-end t=12537895885692 cpu=631153189 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12537896020492
+I/D10Phase( 6151): P2 generation-end t=12537905578692 cpu=640021215 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12537905748192
+I/D10Phase( 6151): P3 channelA-end t=12537911646192 cpu=640021215 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12537911832892
+I/D10Phase( 6151): P4 channelB-end t=12537927812092 cpu=648956431 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12537928443992 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12537929690292 cpu=1278027726 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12537929839892
+I/D10Phase( 6151): P6 projection-end t=12538074455992 cpu=1378815569 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538074557492
+I/D10Phase( 6151): P7 grouping-end t=12538074785992 cpu=1379143946 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538074850792 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12538075466492 thread=main days=15
+scenario=first,events=1000,plans=8,rep=11,completed=true,invalidReason=,elapsedMs=184.2982,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12538076121892 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538076351192 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538076485392
+I/D10Phase( 6151): P1 plans-end t=12538079544692 cpu=651942610 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538079676892
+I/D10Phase( 6151): P2 generation-end t=12538091616892 cpu=662064999 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538091851292
+I/D10Phase( 6151): P3 channelA-end t=12538096779192 cpu=663981506 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538096933492
+I/D10Phase( 6151): P4 channelB-end t=12538102199292 cpu=666631117 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538102564092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538103632292 cpu=1380473995 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538103774092
+I/D10Phase( 6151): P6 projection-end t=12538254697792 cpu=1498331573 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538254929492
+I/D10Phase( 6151): P7 grouping-end t=12538255492992 cpu=1498653389 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538255607392 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12538256196592 thread=main days=15
+scenario=first,events=1000,plans=8,rep=12,completed=true,invalidReason=,elapsedMs=180.1927,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12538256931892 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538257049792 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538257161392
+I/D10Phase( 6151): P1 plans-end t=12538261738192 cpu=669868315 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538261890392
+I/D10Phase( 6151): P2 generation-end t=12538269712392 cpu=674030148 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538269869492
+I/D10Phase( 6151): P3 channelA-end t=12538275320792 cpu=676393372 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538275470492
+I/D10Phase( 6151): P4 channelB-end t=12538283355192 cpu=678666509 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538283732592 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538284986692 cpu=1500350573 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538285113592
+I/D10Phase( 6151): P6 projection-end t=12538414416592 cpu=1610475938 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538414622992
+I/D10Phase( 6151): P7 grouping-end t=12538414852792 cpu=1610850107 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538414938992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12538415327392 thread=main days=15
+scenario=first,events=1000,plans=8,rep=13,completed=true,invalidReason=,elapsedMs=158.4417,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12538415893392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538416001092 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538416223492
+I/D10Phase( 6151): P1 plans-end t=12538419678192 cpu=681274472 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538419779292
+I/D10Phase( 6151): P2 generation-end t=12538426924192 cpu=686638754 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538427074192
+I/D10Phase( 6151): P3 channelA-end t=12538435128592 cpu=689355316 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538435359292
+I/D10Phase( 6151): P4 channelB-end t=12538441441492 cpu=691914046 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538441835392 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538442956792 cpu=1612230130 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538443114292
+I/D10Phase( 6151): P6 projection-end t=12538583493792 cpu=1720227567 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538583729992
+I/D10Phase( 6151): P7 grouping-end t=12538584116792 cpu=1720698656 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538584204992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12538584607792 thread=main days=15
+scenario=first,events=1000,plans=8,rep=14,completed=true,invalidReason=,elapsedMs=168.9494,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12538585442692 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538585736092 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538586170392
+I/D10Phase( 6151): P1 plans-end t=12538589467092 cpu=695271369 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538589588892
+I/D10Phase( 6151): P2 generation-end t=12538596508392 cpu=699927743 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538596654492
+I/D10Phase( 6151): P3 channelA-end t=12538601669392 cpu=704509978 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538601824892
+I/D10Phase( 6151): P4 channelB-end t=12538609681192 cpu=707084498 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538610044692 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538610886592 cpu=1721928806 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538610945592
+I/D10Phase( 6151): P6 projection-end t=12538748169892 cpu=1844215725 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538748357792
+I/D10Phase( 6151): P7 grouping-end t=12538748648192 cpu=1844628518 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538748758392 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=15,completed=true,invalidReason=,elapsedMs=163.8576,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12538749813492 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12538749993392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538750076492 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538750286392
+I/D10Phase( 6151): P1 plans-end t=12538753374492 cpu=709719853 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538753515892
+I/D10Phase( 6151): P2 generation-end t=12538761600492 cpu=716332604 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538761748592
+I/D10Phase( 6151): P3 channelA-end t=12538765749992 cpu=717756391 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538765898392
+I/D10Phase( 6151): P4 channelB-end t=12538770195892 cpu=719277174 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538770576092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538771871692 cpu=1846317358 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538771995292
+I/D10Phase( 6151): P6 projection-end t=12538905563192 cpu=1937797454 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12538905774092
+I/D10Phase( 6151): P7 grouping-end t=12538906168992 cpu=1938030930 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12538906239392 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12538906749892 thread=main days=15
+scenario=first,events=1000,plans=8,rep=16,completed=true,invalidReason=,elapsedMs=157.0936,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12538907637492 thread=main
+I/D10Phase( 6151): P0 range-enter t=12538907754292 thread=main
+I/D10Phase( 6151): P1 plans-start t=12538907849592
+I/D10Phase( 6151): P1 plans-end t=12538912252092 cpu=722188501 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12538912434792
+I/D10Phase( 6151): P2 generation-end t=12538919568892 cpu=725148217 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12538919742492
+I/D10Phase( 6151): P3 channelA-end t=12538929242892 cpu=726917432 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12538929354292
+I/D10Phase( 6151): P4 channelB-end t=12538935269192 cpu=729201000 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12538935605892 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12538936460292 cpu=1938946985 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12538936611492
+I/D10Phase( 6151): P6 projection-end t=12539078714192 cpu=2038530699 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539078822992
+I/D10Phase( 6151): P7 grouping-end t=12539078930892 cpu=2038530699 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539078984992 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=17,completed=true,invalidReason=,elapsedMs=172.296,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12539080081892 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12539080452192 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539080556092 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539080678392
+I/D10Phase( 6151): P1 plans-end t=12539084279492 cpu=731939976 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539084376792
+I/D10Phase( 6151): P2 generation-end t=12539090695592 cpu=734929173 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539090783592
+I/D10Phase( 6151): P3 channelA-end t=12539096067592 cpu=737034506 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539096416692
+I/D10Phase( 6151): P4 channelB-end t=12539105110092 cpu=739648109 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539105587592 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539106465292 cpu=2039458825 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539106532692
+I/D10Phase( 6151): P6 projection-end t=12539266612292 cpu=2159624723 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539266835092
+I/D10Phase( 6151): P7 grouping-end t=12539267078192 cpu=2160003216 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539267238592 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=18,completed=true,invalidReason=,elapsedMs=188.1496,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12539269549492 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12539269709592 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539269813692 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539270024092
+I/D10Phase( 6151): P1 plans-end t=12539273145992 cpu=742518876 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539273298592
+I/D10Phase( 6151): P2 generation-end t=12539299621592 cpu=751719979 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539299810292
+I/D10Phase( 6151): P3 channelA-end t=12539304589692 cpu=753584462 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539304764392
+I/D10Phase( 6151): P4 channelB-end t=12539308916592 cpu=755254950 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539309389092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539310395492 cpu=2161817043 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539310505292
+I/D10Phase( 6151): P6 projection-end t=12539448302392 cpu=2264477955 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539448599592
+I/D10Phase( 6151): P7 grouping-end t=12539448727892 cpu=2264681552 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539448798992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12539449358892 thread=main days=15
+scenario=first,events=1000,plans=8,rep=19,completed=true,invalidReason=,elapsedMs=180.1085,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12539449857292 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539449992892 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539450061992
+I/D10Phase( 6151): P1 plans-end t=12539453087792 cpu=757841672 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539453563892
+I/D10Phase( 6151): P2 generation-end t=12539459970892 cpu=760941659 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539460062592
+I/D10Phase( 6151): P3 channelA-end t=12539463786992 cpu=761980024 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539463934092
+I/D10Phase( 6151): P4 channelB-end t=12539467861292 cpu=763651911 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539468282092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539469304592 cpu=2266048725 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539469486792
+I/D10Phase( 6151): P6 projection-end t=12539597713492 cpu=2370227816 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539597911592
+I/D10Phase( 6151): P7 grouping-end t=12539598148892 cpu=2370562684 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539598235192 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12539598680192 thread=main days=15
+scenario=first,events=1000,plans=8,rep=20,completed=true,invalidReason=,elapsedMs=148.8575,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12539599221092 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539599293892 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539599353992
+I/D10Phase( 6151): P1 plans-end t=12539602515392 cpu=765918997 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539602663592
+I/D10Phase( 6151): P2 generation-end t=12539610248692 cpu=773519037 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539610436392
+I/D10Phase( 6151): P3 channelA-end t=12539615242792 cpu=774876988 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539615508192
+I/D10Phase( 6151): P4 channelB-end t=12539621912692 cpu=777371012 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539622867692 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539626757792 cpu=2373397118 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539626932692
+I/D10Phase( 6151): P6 projection-end t=12539760175292 cpu=2467720552 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539760392192
+I/D10Phase( 6151): P7 grouping-end t=12539760633192 cpu=2467720552 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539760738692 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12539761192292 thread=main days=15
+scenario=first,events=1000,plans=8,rep=21,completed=true,invalidReason=,elapsedMs=162.023,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12539761826292 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539761917792 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539761980292
+I/D10Phase( 6151): P1 plans-end t=12539766389992 cpu=779893868 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539766465792
+I/D10Phase( 6151): P2 generation-end t=12539772490492 cpu=782863024 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539772568692
+I/D10Phase( 6151): P3 channelA-end t=12539776777692 cpu=784274950 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539776859492
+I/D10Phase( 6151): P4 channelB-end t=12539782362092 cpu=787066256 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539783101292 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539784218192 cpu=2469009418 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539784354092
+I/D10Phase( 6151): P6 projection-end t=12539928683792 cpu=2592078755 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12539928879592
+I/D10Phase( 6151): P7 grouping-end t=12539929048592 cpu=2592546995 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12539929109192 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12539929530692 thread=main days=15
+scenario=first,events=1000,plans=8,rep=22,completed=true,invalidReason=,elapsedMs=167.773,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12539930120392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12539930287592 thread=main
+I/D10Phase( 6151): P1 plans-start t=12539930438892
+I/D10Phase( 6151): P1 plans-end t=12539933658092 cpu=790391909 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12539933830792
+I/D10Phase( 6151): P2 generation-end t=12539940794692 cpu=797266784 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12539940927892
+I/D10Phase( 6151): P3 channelA-end t=12539945409792 cpu=798688461 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12539945547092
+I/D10Phase( 6151): P4 channelB-end t=12539949758992 cpu=800130209 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12539949987092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12539950656392 cpu=2593264954 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12539950728492
+I/D10Phase( 6151): P6 projection-end t=12540089233892 cpu=2702958495 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540089438192
+I/D10Phase( 6151): P7 grouping-end t=12540089648992 cpu=2702958495 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540089713492 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12540090689992 thread=main days=15
+scenario=first,events=1000,plans=8,rep=23,completed=true,invalidReason=,elapsedMs=160.5957,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12540093867792 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540094314392 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540094410792
+I/D10Phase( 6151): P1 plans-end t=12540102339292 cpu=804555817 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540102694892
+I/D10Phase( 6151): P2 generation-end t=12540114504492 cpu=812571001 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540114689192
+I/D10Phase( 6151): P3 channelA-end t=12540119421592 cpu=814007061 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540119574992
+I/D10Phase( 6151): P4 channelB-end t=12540123382992 cpu=815277634 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540123857192 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540124729892 cpu=2703947285 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540124793292
+I/D10Phase( 6151): P6 projection-end t=12540261372292 cpu=2795126604 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540261605292
+I/D10Phase( 6151): P7 grouping-end t=12540261874192 cpu=2795126604 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540261948992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12540262588292 thread=main days=15
+scenario=first,events=1000,plans=8,rep=24,completed=true,invalidReason=,elapsedMs=169.5476,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12540263784892 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540265761892 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540265828592
+I/D10Phase( 6151): P1 plans-end t=12540272387292 cpu=818446414 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540272573792
+I/D10Phase( 6151): P2 generation-end t=12540281011592 cpu=825893539 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540281175392
+I/D10Phase( 6151): P3 channelA-end t=12540286525092 cpu=828370092 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540286677792
+I/D10Phase( 6151): P4 channelB-end t=12540295202192 cpu=830776999 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540295526092 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540297196392 cpu=2796956399 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540297276792
+I/D10Phase( 6151): P6 projection-end t=12540431050192 cpu=2897346190 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540431261992
+I/D10Phase( 6151): P7 grouping-end t=12540431475892 cpu=2899970484 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540431589992 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12540432094892 thread=main days=15
+scenario=first,events=1000,plans=8,rep=25,completed=true,invalidReason=,elapsedMs=166.8312,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12540434399592 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540434479792 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540434646492
+I/D10Phase( 6151): P1 plans-end t=12540439969992 cpu=833334838 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540440107592
+I/D10Phase( 6151): P2 generation-end t=12540451412792 cpu=841834012 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540451583292
+I/D10Phase( 6151): P3 channelA-end t=12540459340592 cpu=844352428 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540459523892
+I/D10Phase( 6151): P4 channelB-end t=12540464542292 cpu=846449870 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540464951892 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540466302592 cpu=2901435395 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540466421892
+I/D10Phase( 6151): P6 projection-end t=12540598943092 cpu=3004425987 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540599163592
+I/D10Phase( 6151): P7 grouping-end t=12540599314192 cpu=3004425987 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540599419592 thread=DefaultDispatcher-worker-1
+I/D10Phase( 6151): P9 vm-publish t=12540599877792 thread=main days=15
+scenario=first,events=1000,plans=8,rep=26,completed=true,invalidReason=,elapsedMs=167.3002,contentHash=550015
+I/D10Phase( 6151): P-1 vm-load-start t=12540601046492 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540601441892 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540601701692
+I/D10Phase( 6151): P1 plans-end t=12540613324092 cpu=849658764 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540613456192
+I/D10Phase( 6151): P2 generation-end t=12540620783192 cpu=854345081 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540621108092
+I/D10Phase( 6151): P3 channelA-end t=12540625451192 cpu=855897708 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540625653692
+I/D10Phase( 6151): P4 channelB-end t=12540630396192 cpu=858011413 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540630837292 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540631406492 cpu=3005006574 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540631524992
+I/D10Phase( 6151): P6 projection-end t=12540773501792 cpu=3105669476 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540773684192
+I/D10Phase( 6151): P7 grouping-end t=12540773916992 cpu=3105946149 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540774018092 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=27,completed=true,invalidReason=,elapsedMs=173.0502,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12540775179492 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12540775351392 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540775539092 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540775640192
+I/D10Phase( 6151): P1 plans-end t=12540781248192 cpu=860534560 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540781558692
+I/D10Phase( 6151): P2 generation-end t=12540788378192 cpu=865182003 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540788534992
+I/D10Phase( 6151): P3 channelA-end t=12540794098692 cpu=866419724 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540794230092
+I/D10Phase( 6151): P4 channelB-end t=12540803135892 cpu=867565708 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540803594292 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540804286792 cpu=3106964703 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540804348492
+I/D10Phase( 6151): P6 projection-end t=12540945173592 cpu=3202136189 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12540945406992
+I/D10Phase( 6151): P7 grouping-end t=12540945589392 cpu=3202136189 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12540945719892 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=28,completed=true,invalidReason=,elapsedMs=171.3307,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12540946732192 thread=main days=15
+I/D10Phase( 6151): P-1 vm-load-start t=12540947218092 thread=main
+I/D10Phase( 6151): P0 range-enter t=12540947489392 thread=main
+I/D10Phase( 6151): P1 plans-start t=12540947566692
+I/D10Phase( 6151): P1 plans-end t=12540954542092 cpu=870137750 thread=main plans=8
+I/D10Phase( 6151): P2 generation-start t=12540954723692
+I/D10Phase( 6151): P2 generation-end t=12540962366992 cpu=876988910 thread=main occurrences=272
+I/D10Phase( 6151): P3 channelA-start t=12540962510092
+I/D10Phase( 6151): P3 channelA-end t=12540967156692 cpu=878305609 thread=main rows=340
+I/D10Phase( 6151): P4 channelB-start t=12540967325592
+I/D10Phase( 6151): P4 channelB-end t=12540971146692 cpu=879598186 thread=main rows=362
+I/D10Phase( 6151): P5 union-start t=12540971648992 thread=DefaultDispatcher-worker-1 isMain=false
+I/D10Phase( 6151): P5 union-end t=12540972283792 cpu=3202989968 thread=DefaultDispatcher-worker-1 union=362
+I/D10Phase( 6151): P6 projection-start t=12540972341592
+I/D10Phase( 6151): P6 projection-end t=12541101348492 cpu=3304625370 thread=DefaultDispatcher-worker-1 entries=610
+I/D10Phase( 6151): P7 grouping-start t=12541101597792
+I/D10Phase( 6151): P7 grouping-end t=12541101885192 cpu=3304625370 thread=DefaultDispatcher-worker-1 days=15
+I/D10Phase( 6151): P8 range-exit t=12541101959492 thread=DefaultDispatcher-worker-1
+scenario=first,events=1000,plans=8,rep=29,completed=true,invalidReason=,elapsedMs=155.3966,contentHash=550015
+I/D10Phase( 6151): P9 vm-publish t=12541103700992 thread=main days=15

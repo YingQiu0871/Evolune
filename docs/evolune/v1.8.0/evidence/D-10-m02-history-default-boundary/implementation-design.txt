@@ -1,0 +1,50 @@
+EVOLUNE v1.8.0 D-10 — IMPLEMENTATION DESIGN
+===========================================
+
+File: app/src/main/java/io/github/yingqiu0871/evolune/history/HistoryReadService.kt
+
+1. Constructor seam (default parameter, no call-site churn):
+     class HistoryReadService(
+         private val medicationPlans: MedicationPlanRepository,
+         private val doseEvents: DoseEventRepository,
+         private val projectionDispatcher: CoroutineDispatcher = Dispatchers.Default
+     )
+   Production default = Dispatchers.Default. No Android dependency, no new
+   executor/thread pool, no global scope.
+
+2. Boundary: after BOTH event-channel reads complete, only the post-query pure
+   CPU tail moves:
+     return withContext(projectionDispatcher) {
+         val recordedEvents = unionAuthoritativeEvents(persistedDateEvents, instantContextEvents)
+         val projection = HistoricalProjectionBuilder.derive(...)
+         HistoricalReadModel.range(projection, startDate, endDate)
+     }
+   Occurrence generation was NOT moved in this first implementation (D-09 shows
+   projection is the dominant cost; the boundary is coherent without it). It
+   remains on the caller exactly as before.
+
+3. Query placement frozen: plans read, occurrence generation inputs, channel A
+   (persisted localDate) and channel B (instant) stay in their original order
+   and on their original executors (Room owns its query executor). No
+   `Main -> Default -> Room -> Default` nesting was introduced; the change is
+   `existing reads -> Default pure CPU tail`.
+
+4. Input capture: occurrences, both channel result lists, startDate/endDate,
+   now, displayZone, policy are all captured values passed into the block; no
+   mutable ViewModel/UI state is read inside the worker.
+
+5. Cancellation: plain structured `withContext`; no detached work, no
+   fire-and-forget, no async, no swallowed CancellationException, no new
+   generation IDs or stale guards inside the service. ViewModel loadJob
+   cancellation/token semantics are unchanged.
+
+6. Semantics: union/UUID dedup, conflict fail-fast (check), matching, display
+   dates, grouping and ordering are byte-for-byte the same code; only the
+   execution thread changed.
+
+Implementation diff: implementation.diff (3 files, +325/-11):
+  - HistoryReadService.kt: constructor seam + boundary (26 insertions, 10 deletions)
+  - HistoryReadServiceProjectionDispatcherTest.kt (new, 4 dispatcher/equality/
+    duplicate/conflict/cancellation tests)
+  - HistoryReadZeroWriteTest.kt: initial-load await (timing assumption invalidated
+    by the now-asynchronous tail; read/write semantics unchanged)

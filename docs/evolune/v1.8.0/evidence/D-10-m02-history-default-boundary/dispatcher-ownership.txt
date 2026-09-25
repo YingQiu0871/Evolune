@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-10 — DISPATCHER OWNERSHIP PROOF
+================================================
+
+A. Unit (structural seam), HistoryReadServiceProjectionDispatcherTest:
+   - `pure tail is dispatched through the injected projection dispatcher`:
+     a RecordingDispatcher (named worker thread) receives the tail dispatch
+     (dispatchCount >= 1) and every dispatched block executes on
+     "d10-projection-test" — the tail runs through the supplied dispatcher.
+   - `dispatcher-backed result is exactly equal to the inline reference result`:
+     inline (Dispatchers.Unconfined) vs worker path produce exactly equal
+     HistoricalRange objects.
+   - `duplicate rows across both channels reach the projection exactly once`.
+   - `conflicting duplicate ids still fail fast through the worker boundary`.
+   - `cancellation while the tail is queued still terminates the load as
+     cancellation` (queued tail + cancel -> CancellationException; no result).
+
+B. Device (Pixel_7 AVD API 35), temporary phase markers with thread identity:
+   - Query/generation phases (P1 plans, P2 generation, P3 channel A,
+     P4 channel B) report thread=main in every measured load — unchanged.
+   - Pure tail (P5 union start .. P8 range exit) reports
+     thread=DefaultDispatcher-worker-1, isMain=false in ALL 160 measured
+     loads (6 scenarios: 30+30+30+30+30 representative + 10 stress).
+     tailOnMain = 0.
+   - Publication (P9) reports thread=main in every load — Main-owned.
+   Raw: raw-d10-profile.csv, raw/*.txt; aggregates: raw/phase-statistics.txt.

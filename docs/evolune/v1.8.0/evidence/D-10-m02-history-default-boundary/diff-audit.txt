@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 D-10 — DIFF AUDIT
+================================
+
+Implementation commit b00078f vs parent 541dbfc (implementation.diff,
+3 files, +325/-11; SHA-256 in MANIFEST):
+
+1. app/src/main/java/.../history/HistoryReadService.kt (+26/-10):
+   - imports: kotlinx.coroutines.CoroutineDispatcher, Dispatchers, withContext;
+   - constructor: `projectionDispatcher: CoroutineDispatcher = Dispatchers.Default`
+     (default parameter, no call-site churn);
+   - readRange tail wrapped in `withContext(projectionDispatcher)` (union ->
+     projection -> HistoricalReadModel.range).
+   No API change, no behavior change other than the execution thread.
+
+2. app/src/test/java/.../history/HistoryReadServiceProjectionDispatcherTest.kt
+   (new, +286): dispatcher ownership, exact equality vs inline reference,
+   duplicate/conflict, queued-tail cancellation.
+
+3. app/src/test/java/.../history/HistoryReadZeroWriteTest.kt (+13/-1):
+   initial-load await in the shared helper (the tail is now dispatched, so the
+   initial load is no longer synchronous under an unconfined operation scope);
+   assertions unchanged.
+
+Explicitly NOT changed: DAO/entity/Room schema, repositories, matcher/domain
+models (experience-core untouched), grouping representation, ViewModel
+behavior/publication, UI/Compose, MainFeatureServices wiring, retrospective
+path (readAllAvailable), M01/M03/M04/M05 areas, version/build files.
+
+git diff 541dbfc b00078f --name-only = the three files above only.
+Fresh recomputation of implementation.diff is byte-identical (verified).

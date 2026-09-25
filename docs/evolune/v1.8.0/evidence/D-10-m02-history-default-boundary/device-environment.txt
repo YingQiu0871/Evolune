@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-10 — DEVICE ENVIRONMENT AND METHOD
+===================================================
+
+Device: Pixel_7 AVD (emulator-5554), Android 15 / API 35, x86_64,
+availableProcessors=4 (same environment as D-08/D-09).
+Build: debug APK (io.github.yingqiu0871.evolune.debug) built from the
+implementation commit b00078f with disposable phase markers only.
+
+Harness (temporary androidTest, deleted before the evidence commit): same
+production-fidelity shape as D-09 — real Room repositories, real
+HistoryReadService (default projection dispatcher = Dispatchers.Default), real
+HistoryViewModel with viewModelScope (Main.immediate), fixed clock
+2026-09-15T12:00:00Z UTC, fixtures seeded through
+RoomRestorePersistence.replaceRoom. Phase markers (P0..P9) record
+System.nanoTime, caller CPU (Debug.threadCpuTimeNanos) and THREAD IDENTITY.
+
+Fixtures: identical to D-09 (events/plans/slots, same distribution over
+2026-08-01..2026-09-15, same plan densities).
+Scenarios/repetitions: first 100/3, first 1000/3, first 1000/8, month 1000/3,
+reentry 1000/3 with n=30 each; first 10000/3 (synthetic stress) n=10.
+All runs bounded (publication waits with timeouts; main actions bounded).
+
+Raw logs: raw/*.txt (LF-normalized, BOM-free; line counts preserved);
+per-load profile CSV: raw-d10-profile.csv; aggregates: raw/phase-statistics.txt.

@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-10 — CANCELLATION / GENERATION REGRESSION
+==========================================================
+
+New narrow tests (HistoryReadServiceProjectionDispatcherTest):
+- `cancellation while the tail is queued still terminates the load as
+  cancellation`: the tail is held queued on the injected dispatcher, the load
+  job is cancelled, then released; the load ends as cancellation
+  (job.isCancelled), no result is published, and no application error is
+  produced. Structured withContext cancellation only; no detached work, no
+  CancellationException swallowing, no generation IDs inside the service.
+
+Existing supersession/generation coverage (unchanged, green in the fresh
+canonical JVM run):
+- HistoryViewModelTest / HistoryRefreshTest: month change cancels the in-flight
+  request, generation token prevents a stale response replacing a newer month,
+  refresh/rollback paths.
+- HistoryReadZeroWriteTest: refresh/retry read again and never write (initial
+  load now awaited explicitly since the tail is genuinely asynchronous).
+- HistoryFutureOccurrenceContractTest / HistoryCrossDatePresentationTest /
+  HistoryReadServicePersistedDateTest / HistoryReadServiceExtremeZoneTest:
+  channels, dates, DST/midnight contracts preserved.
+
+No new stale-result guard and no matcher cooperative checkpoint was added
+(explicitly out of D-10 scope).

@@ -1,0 +1,40 @@
+EVOLUNE v1.8.0 D-10 — CALL-SITE IMPACT AUDIT
+===========================================
+
+HistoryReadService construction sites (production):
+  - MainFeatureServices.kt:50 (single shared Activity-owned instance)
+  Construction sites (tests):
+  - HistoryReadZeroWriteTest.kt:78, HistorySavedStateFactoryTest.kt:131,
+    InsightsSavedStateFactoryTest.kt:114, InsightsZeroWriteDeviceTest.kt:58,
+    HistoryCrossDatePresentationTest.kt:246/257,
+    HistoryFutureOccurrenceContractTest.kt:65/95/126/148,
+    HistoryQuickRecordInferredTest.kt:99, HistoryReadServiceAllAvailableTest.kt,
+    HistoryReadServiceExtremeZoneTest.kt.
+  All use the 2-argument constructor; the new parameter is defaulted, so no
+  call-site churn. Only the new dispatcher tests pass it explicitly.
+
+readRange consumers (production):
+  - History: MainFeatureServices wires `HistoryRangeSource { ... readRange ... }`
+    into HistoryViewModelFactory (line 54-63).
+  - Timeline: MainFeatureServices line 74 `rangeSource = historyRangeSource`
+    (TimelineRangeCoordinator calls the same HistoryRangeSource.read).
+  - Insights: InsightsViewModel.kt:381 calls
+    `historyReadService.readRange(startDate, endDate, zone, now)` directly.
+  - Retrospective coordinator: uses the HistoryRangeSource for Read 3
+    (RetrospectivePkSurfaceCoordinator.kt:115).
+  All consumers call readRange from Main-owned coroutines and await the result;
+  the observable contract (same HistoricalRange identity/order, same errors,
+  same cancellation) is preserved. Insights/Timeline/retrospective behavior
+  changes only in which thread runs the post-query pure CPU; their own
+  publication/reconciliation logic is untouched.
+
+readAllAvailable (retrospective PK path) is NOT touched: it does not use
+projectionDispatcher, and A-01 dispatcher ownership remains exactly as frozen.
+
+B-01 shared-service identity preserved: still one HistoryReadService instance in
+MainFeatureServices; no duplicate service was introduced.
+
+Architecture guards run and green: HistoryLazyEntryArchitectureTest,
+TimelineArchitectureGuardTest, TimelineRangeArchitectureGuardTest,
+RetrospectiveArchitectureGuardTest, InsightsOrchestrationGuardTest,
+MainFeatureServices tests (in the fresh canonical JVM run).

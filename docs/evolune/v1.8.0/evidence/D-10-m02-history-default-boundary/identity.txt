@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-10 — IDENTITY / STARTING STATE
+===============================================
+
+Authoritative starting HEAD (D-09 evidence commit): 541dbfc5a90ee6e97c3935eefbda3ed3f8a4783f
+  parent: d39acc5450d5057084f234ee54c6ef4d5f38ad15 (D-08 / M01 CLOSED)
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d09
+Branch: feature/v1.8.0-d09-m02-history-device-profile
+Worktree at start: clean.
+
+D-09 verdict (accepted): APPROVE V1.8.0 D-09 — M02 IMPLEMENTATION SLICE REQUIRED.
+D-09 is CLOSED / FROZEN as measurement evidence.
+
+Frozen and not reopened: M01 CLOSED (D-08), M04 CLOSED/FROZEN, D-04R Home
+stale-publication decision, M03 startup async redesign NOT AUTHORIZED,
+M05 separate.
+
+Implementation commit (one):
+  b00078fe88c93262206e8218a77e57011c0803fd
+  "perf(history): move post-query pure CPU tail off caller", parent 541dbfc.
+Evidence commit (one, this package): docs/evidence only.
+
+Version remains 1.7.4 / Phone 101_070_400 / Wear 1_101_070_400.
