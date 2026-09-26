@@ -1,0 +1,31 @@
+EVOLUNE v1.8.0 D-16 — VERSION FORMULA (INDEPENDENTLY DERIVED FROM SOURCE)
+=========================================================================
+
+Source: root build.gradle.kts at cfe1b8b (verified before editing):
+  val evoluneVersionName by extra("1.7.4")
+  val evoluneVersionMajor = 1
+  val evoluneVersionMinor = 7
+  val evoluneVersionPatch = 4
+  val evoluneVersionRevision = 0
+  val evoluneReleaseOrdinal =
+      evoluneVersionMajor * 1_000_000 +
+          evoluneVersionMinor * 10_000 +
+          evoluneVersionPatch * 100 +
+          evoluneVersionRevision
+  val evolunePhoneVersionCode by extra(100_000_000 + evoluneReleaseOrdinal)
+  val evoluneWearVersionCode by extra(1_100_000_000 + evoluneReleaseOrdinal)
+
+Derivation for v1.8.0 (major=1, minor=8, patch=0, revision=0):
+  ordinal = 1*1_000_000 + 8*10_000 + 0*100 + 0 = 1_080_000
+  Phone   = 100_000_000 + 1_080_000 = 101_080_000
+  Wear    = 1_100_000_000 + 1_080_000 = 1_101_080_000
+
+Monotonicity versus released v1.7.4:
+  Phone 101_070_400 -> 101_080_000  (increased)
+  Wear  1_101_070_400 -> 1_101_080_000  (increased)
+
+Namespace/version bounds (unchanged validation rules):
+  Phone in [100_000_000, 1_000_000_000)
+  Wear in [1_100_000_000, 2_000_000_000)
+  Both <= maximumPlayVersionCode (2_100_000_000)
+  Both > priorV1VersionCode (10_060)

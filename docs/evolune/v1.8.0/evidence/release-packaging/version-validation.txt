@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-16 — VERSION VALIDATION
+========================================
+
+Command:
+  .\gradlew.bat validateEvoluneIdentityAndVersioning
+
+Result: BUILD SUCCESSFUL in 8s (1 actionable task: 1 executed).
+Raw dedicated log: logs/validation-task.log.
+
+The validation task was not weakened: it still asserts applicationId, wear
+namespace, debug suffix, exact versionName, distinct/in-range/bounded version
+codes and the exact expected Phone/Wear codes. Committed expected constants
+after execution (root build.gradle.kts):
+  check(evoluneVersionName == "1.8.0")
+  check(phoneCode == 101_080_000)
+  check(wearCode == 1_101_080_000)

@@ -1,0 +1,22 @@
+EVOLUNE v1.8.0 D-16 — CLEAN SIGNED RELEASE BUILD
+================================================
+
+Signing preflight (before editing; presence only, no secrets printed):
+  EVOLUNE_KEYSTORE_PATH present=True, keystore exists/readable
+  EVOLUNE_KEY_ALIAS present=True
+  EVOLUNE_KEYSTORE_PASSWORD present=True
+  EVOLUNE_KEY_PASSWORD present=True
+  Release tasks fail hard when credentials are missing (app/build.gradle.kts
+  gradle.taskGraph.whenReady guard) — no debug fallback possible.
+
+Command (from the committed version-bump tree, clean worktree):
+  .\gradlew.bat :app:clean :wear:clean :app:assembleRelease :wear:assembleRelease
+
+Result: BUILD SUCCESSFUL in 2m 53s (97 actionable tasks: 95 executed,
+2 up-to-date). Genuine release tasks (assembleRelease + R8/minify where
+configured + packageRelease + signing validation); no debug fallback; no
+unsigned artifact. Full raw log: logs/release-build.log.
+
+Artifacts:
+  app\build\outputs\apk\release\app-release.apk    6,313,112 bytes
+  wear\build\outputs\apk\release\wear-release.apk  2,604,764 bytes

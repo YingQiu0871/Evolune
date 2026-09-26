@@ -1,0 +1,32 @@
+EVOLUNE v1.8.0 D-16 — BUILD-TO-TREE PROVENANCE
+==============================================
+
+Build invocation (release, signed):
+  .\gradlew.bat :app:clean :wear:clean :app:assembleRelease :wear:assembleRelease
+  -> BUILD SUCCESSFUL in 2m 53s; raw log logs/release-build.log
+
+Build tree:
+  - Worktree clean at build time (verified before the build; only the version
+    bump and docs/evidence were pending, and docs/evidence are not build
+    inputs).
+  - Build-affecting delta vs parent cfe1b8b is exactly root build.gradle.kts
+    (version identity); verified empty diff for app/src/main, app/src/test,
+    app/src/androidTest, wear/src, experience-core, app/schemas, gradle, and
+    all module/config build files.
+  - The staged (to-be-committed) build.gradle.kts blob is
+    c1aec91b5fb8d2bebb844f3b8d9142d496534cca (index blob; worktree file
+    bytes=2191, sha256=238b735925c0957057094b7708e9a74f2d9a753cf50aabc088907247e1aa3384).
+    The APKs were built from this exact version-bumped tree.
+  - No source/config mutation occurred after the build: the only later changes
+    are this evidence directory and the external candidate staging (which do
+    not affect build inputs). The packaging commit's build.gradle.kts blob is
+    identical to the blob used for the build.
+
+Artifacts bound to that tree:
+  app-release.apk   -> Evolune-Phone-v1.8.0.apk  6,313,112 B  b77cb794…
+  wear-release.apk  -> Evolune-Wear-v1.8.0.apk   2,604,764 B  dffffa34…
+
+Note: the packaging commit SHA (the single commit whose parent is
+cfe1b8bbebf5d78fb961b22e3708afecf64e5a76 and whose tree contains these exact
+blobs) is recorded in the external review packet; this file cannot contain its
+own commit hash.

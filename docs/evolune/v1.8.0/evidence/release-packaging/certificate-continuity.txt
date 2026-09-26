@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 D-16 — CERTIFICATE CONTINUITY (HARD GATE)
+========================================================
+
+Independent inspection (apksigner verify --print-certs, build-tools 36.1.0):
+
+  Phone v1.8.0 candidate : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+  Wear  v1.8.0 candidate : b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+  Released v1.7.4 candidate (independently inspected at
+  D:\Evolune-Workspace\release-candidates\v1.7.4\Evolune-Phone-v1.7.4.apk):
+                            b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Phone == Wear == released v1.7.4 cert. Exact match; no resigning performed.

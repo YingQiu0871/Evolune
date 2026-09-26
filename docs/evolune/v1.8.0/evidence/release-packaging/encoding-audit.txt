@@ -1,0 +1,14 @@
+EVOLUNE v1.8.0 D-16 — ENCODING AUDIT
+====================================
+
+Scope: every file in this evidence directory (recursive), MANIFEST.sha256
+generated after this audit.
+
+Text evidence: valid UTF-8, no UTF-8 BOM, no UTF-16 BOM, no NUL, CR=0
+(LF only). Raw build/validation logs are native Gradle captures normalized to
+LF during evidence assembly (line counts preserved; bytes otherwise verbatim).
+
+Binary: screenshots/*.png are PNG payloads, exempt from text encoding rules,
+hashed in MANIFEST.sha256.
+
+Result: PASS.

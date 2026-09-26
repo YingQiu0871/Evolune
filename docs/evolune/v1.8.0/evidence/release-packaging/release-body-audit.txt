@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 D-16 — RELEASE BODY AUDIT
+========================================
+
+File: D:\Evolune-Workspace\release-candidates\v1.8.0\RELEASE_BODY-v1.8.0.md
+  (2,183 bytes; SHA-256 16516c1b41abbb3d34ea237267854fa45ba44f0def7d0b848821a3371cea6bab)
+
+Checks:
+  - Chinese first, English second: YES
+  - user-facing wording: YES (no internal process language: no P0/P1/P2,
+    no D-* / M0* slice codes, no reviewer names, no evidence paths, no harness
+    details, no commit hashes)
+  - claims derived from accepted v1.8.0 changes only: History loading/month
+    switching responsiveness, lighter Home/History refresh, retrospective PK
+    computation moved off the UI thread, lifecycle/resource behavior, safer
+    interrupted-restore recovery (R-01), reliable update-check cancellation,
+    internal architecture/maintenance
+  - no false claims: no zero-jank, no instant loading, no battery claims, no
+    database-index optimization, no async startup, no changed PK formulas, no
+    new clinical accuracy, no undelivered features
+  - does not state or imply that v1.8.0 is already published
+  - artifact list corresponds to the intended three public release assets:
+    Evolune-Phone-v1.8.0.apk, Evolune-Wear-v1.8.0.apk, SHA256SUMS.txt
+  - RELEASE_BODY is NOT a release asset (not to be uploaded as a fourth asset)
+  - upgrade note references v1.7.4 -> v1.8.0 in-place upgrade (consistent with
+    released predecessor)
+
+Result: PASS.

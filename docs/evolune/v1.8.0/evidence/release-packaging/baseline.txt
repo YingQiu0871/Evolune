@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 D-16 — BASELINE
+==============================
+
+Parent (frozen product baseline): cfe1b8bbebf5d78fb961b22e3708afecf64e5a76
+  - M02 History pure-CPU Default boundary (D-10 implementation + D-11 freeze),
+  - M04 cooperative Home simulation cancellation (D-06 + D-07 freeze),
+  - M03 synchronous startup gate retained, R-01 PREPARED restore settings
+    fidelity fix, M01/M05 closed by device evidence,
+  - canonical JVM gate 1709/1709 (source/test delta zero since).
+
+Released predecessor: v1.7.4 (tag v1.7.4, GitHub Release published 2026-09-20,
+  3 assets; certificate b9b6b955…; candidates kept externally at
+  D:\Evolune-Workspace\release-candidates\v1.7.4\).

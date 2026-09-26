@@ -1,0 +1,12 @@
+EVOLUNE v1.8.0 D-16 — CANDIDATE DIRECTORY
+=========================================
+
+D:\Evolune-Workspace\release-candidates\v1.8.0\ contains exactly:
+
+  Evolune-Phone-v1.8.0.apk   6,313,112 B
+  Evolune-Wear-v1.8.0.apk    2,604,764 B
+  SHA256SUMS.txt             181 B
+  RELEASE_BODY-v1.8.0.md     2,183 B
+
+No extra APK; no AAB (not required by the current release contract); no stale
+v1.7.x artifact; no duplicate candidate. APKs are not committed to Git.

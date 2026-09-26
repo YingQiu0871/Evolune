@@ -332,7 +332,16 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   证书 `b9b6b955…`；冻结资产 `243049b5…` / `93a6980f…`；evidence
   `docs/evolune/v1.7.4/evidence/packaging/`；release notes
   `docs/evolune/v1.7.4/V174_RELEASE_NOTES.md`）。
-  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.7.4 发布执行。
+- **v1.8.0 · 全局卫生程序 — CLOSED / FROZEN**（F01–F12、M01–M05、R-01 PREPARED restore
+  修复、D-04R、各 A/B/C/D 切片；独立审批 D-15：
+  `APPROVE V1.8.0 D-15 — GLOBAL HYGIENE CLOSED / READY FOR RELEASE PREPARATION`；产品实现
+  冻结于 `cfe1b8bbebf5d78fb961b22e3708afecf64e5a76`）。
+- **v1.8.0 · 打包候选 — CANDIDATE / REVIEW PENDING**（版本 1.8.0 / Phone 101080000 /
+  Wear 1101080000；证书 `b9b6b955…` 连续；packaging evidence
+  `docs/evolune/v1.8.0/evidence/release-packaging/`）。
+- **v1.7.4 发布 — RELEASED**（annotated tag `v1.7.4` @ `d734283…`；GitHub Release
+  https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.4，3 资产，发布后字节校验 2/2）。
+  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.8.0 发布执行。
 
 ## Historical and future milestones
 

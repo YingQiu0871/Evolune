@@ -1,0 +1,24 @@
+EVOLUNE v1.8.0 D-16 — VERSION DIFF
+==================================
+
+Only root build.gradle.kts changed for version identity (plus status docs and
+this evidence directory):
+
+  -val evoluneVersionName by extra("1.7.4")
+  +val evoluneVersionName by extra("1.8.0")
+  -val evoluneVersionMinor = 7
+  +val evoluneVersionMinor = 8
+  -val evoluneVersionPatch = 4
+  +val evoluneVersionPatch = 0
+   val evoluneVersionRevision = 0            (unchanged)
+  -check(evoluneVersionName == "1.7.4")
+  +check(evoluneVersionName == "1.8.0")
+  -check(phoneCode == 101_070_400)
+  +check(phoneCode == 101_080_000)
+  -check(wearCode == 1_101_070_400)
+  +check(wearCode == 1_101_080_000)
+
+No duplicate version source was introduced; formula, applicationId, namespace,
+debug suffix, compileSdk/targetSdk/minSdk, signing config, build types, R8,
+packaging, dependencies, repositories, AGP/Kotlin/Room/Compose versions are all
+unchanged. The binary diff is packaging.diff (see MANIFEST for hash).

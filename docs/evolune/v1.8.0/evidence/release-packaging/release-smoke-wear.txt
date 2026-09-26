@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 D-16 — WEAR RELEASE SMOKE (SIGNED RELEASE APK)
+============================================================
+
+Device: Wear_OS_Large_Round AVD (emulator-5556). Installed artifact: the
+SIGNED RELEASE Evolune-Wear-v1.8.0.apk (not a debug APK).
+
+1. AVD booted (sys.boot_completed=1); first-boot overlays dismissed
+   (wake + tap), app relaunched to claim focus
+2. adb install -r -> Success
+3. dumpsys package io.github.yingqiu0871.evolune
+     versionCode=1101080000 minSdk=30 targetSdk=36
+     versionName=1.8.0
+4. am start WearAppActivity -> mCurrentFocus =
+     io.github.yingqiu0871.evolune/io.github.yingqiu0871.evolune.wear.WearAppActivity
+   (screenshot screenshots/release-wear-launch.png shows the real Wear surface)
+5. logcat (last 1500 lines): no evolune FATAL EXCEPTION / no ANR in (clean)
+6. AVD shut down
+
+Result: PASS — signed Wear release candidate installs, launches with
+WearAppActivity focused and renders the real UI; no crash/ANR.

@@ -1,0 +1,15 @@
+EVOLUNE v1.8.0 D-16 — CHANGED FILES (PACKAGING COMMIT)
+=====================================================
+
+Committed delta vs parent cfe1b8bbebf5d78fb961b22e3708afecf64e5a76:
+
+  M build.gradle.kts                                  (version identity only)
+  M TODO.MD                                           (status: v1.8.0 packaging candidate)
+  M docs/evolune/CURRENT_STATUS.md                    (status)
+  M docs/evolune/ROADMAP.md                           (status)
+  A docs/evolune/v1.8.0/evidence/release-packaging/** (this packaging evidence)
+
+No production Kotlin/Java change; no test behavior change; no resource/UI
+change; no schema/migration change; no dependency change; no APK binary
+committed. Candidate APKs live outside the repository at
+D:\Evolune-Workspace\release-candidates\v1.8.0\.

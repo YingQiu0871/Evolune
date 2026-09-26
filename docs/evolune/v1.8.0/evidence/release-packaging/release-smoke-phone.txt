@@ -1,0 +1,27 @@
+EVOLUNE v1.8.0 D-16 — PHONE RELEASE SMOKE (SIGNED RELEASE APK)
+==============================================================
+
+Device: Pixel_7 AVD (emulator-5554), Android 15 / API 35 (disposable; the
+physical device was not used). Installed artifact: the SIGNED RELEASE
+Evolune-Phone-v1.8.0.apk (not a debug APK).
+
+1. adb install -r -> Success
+2. dumpsys package io.github.yingqiu0871.evolune
+     versionCode=101080000 minSdk=31 targetSdk=36
+     versionName=1.8.0
+3. Cold launch MainActivity -> app content composed (Home visible)
+4. History entered (screenshot release-phone-history.png)
+5. Month navigation exercised (previous month; screenshot
+   release-phone-history-prevmonth.png)
+6. History -> 用药洞察 (Insights) opened -> Back -> History
+   (screenshot release-phone-insights.png)
+7. History -> 用药时间线 (Timeline) opened -> Back -> History
+8. Settings -> 关于 (About) opened -> Back -> Settings
+   (screenshot release-phone-about.png)
+9. Ordinary no-journal startup: no EvoluneRestore recovery failure in logcat
+   (empty match set) — R-01 release-build sanity
+10. logcat (last 2500 lines): no evolune FATAL EXCEPTION / no ANR in (clean)
+
+Result: PASS — signed release Phone candidate installs, launches, navigates
+(forward + Back), History month navigation works, and no crash/ANR occurs.
+Screenshots: screenshots/release-phone-*.png.

@@ -1,0 +1,18 @@
+EVOLUNE v1.8.0 D-16 — FROZEN PRODUCT AUDIT
+==========================================
+
+git diff cfe1b8b..HEAD (after committing the version bump) over:
+  app/src/main, app/src/test, app/src/androidTest, app/src/main/res,
+  wear/src, experience-core, app/schemas, gradle (dependency catalog),
+  app/build.gradle.kts, settings.gradle.kts, gradle.properties, proguard files
+-> EMPTY (only root build.gradle.kts version identity + docs/evidence changed).
+
+Preserved and explicitly verified (zero diff):
+  - M02 History pure-CPU Default boundary (HistoryReadService.kt untouched),
+  - M04 cooperative cancellation (SimulationEngine.kt / PkSimulationCalculator.kt),
+  - R-01 PREPARED restore settings fidelity fix (B2RestoreJournal.kt),
+  - ScheduleBoundaryTracker, lifecycle Home clock, RecentRecordedDoseSelector,
+  - Widget / Wear behavior, Health Connect / Drive / navigation contracts,
+  - Room schema v3 and migrations (app/schemas untouched).
+
+No frozen item was reopened; no opportunistic source cleanup.

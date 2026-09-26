@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-16 — RELEASE PACKAGING CANDIDATE — IDENTITY
+=============================================================
+
+Exact parent: cfe1b8bbebf5d78fb961b22e3708afecf64e5a76
+  (D-13 evidence HEAD; independently accepted by D-15:
+   APPROVE V1.8.0 D-15 — GLOBAL HYGIENE CLOSED / READY FOR RELEASE PREPARATION)
+Worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d13
+Branch: feature/v1.8.0-d13-m05-room-index-experiment
+Worktree at start: clean; staged area empty; no untracked artifact;
+  no local v1.8.0 tag; no remote v1.8.0 tag; no existing v1.8.0 GitHub Release.
+Version at start: 1.7.4 / Phone 101070400 / Wear 1101070400.
+
+D-15 baseline frozen: F01–F12, M01–M05, R-01 PREPARED restore fix, D-04R and
+all accepted A/B/C/D slices are closed; no product behavior was reopened.
+D-16 is packaging/version/evidence-only; actual publication (tag/push/GitHub
+Release) remains a later separately authorized step.

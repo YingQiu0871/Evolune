@@ -1,0 +1,17 @@
+EVOLUNE v1.8.0 D-16 — WEAR APK METADATA
+=======================================
+
+Candidate: D:\Evolune-Workspace\release-candidates\v1.8.0\Evolune-Wear-v1.8.0.apk
+  (built from wear\build\outputs\apk\release\wear-release.apk)
+
+package name    : io.github.yingqiu0871.evolune
+versionName     : 1.8.0
+versionCode     : 1101080000
+minSdkVersion   : 30
+targetSdkVersion: 36
+size (bytes)    : 2,604,764
+SHA-256         : dffffa34ee9bd91fb6ab5d8a8eaa51cf8fa76dcea64112e4f4c39a0a7c115d1a
+signer cert SHA-256:
+  b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+
+Tools: aapt2 dump badging, apksigner verify --print-certs (build-tools 36.1.0).

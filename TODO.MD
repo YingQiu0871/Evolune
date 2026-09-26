@@ -326,7 +326,18 @@
       release 构建 + Phone/Wear signed-release smoke；evidence
       `docs/evolune/v1.7.4/evidence/packaging/`；release notes
       `docs/evolune/v1.7.4/V174_RELEASE_NOTES.md`）。
-- [ ] NEXT：**v1.7.4 发布执行**（final docs commit → annotated tag v1.7.4 → push →
+- [x] v1.7.4 发布 — **RELEASED**（annotated tag `v1.7.4` @
+      `d73428364670ceb691cbe90547bd34fe9acd272f`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.4，3 资产，发布后字节校验 2/2）。
+- [x] v1.8.0 全局卫生程序 — **CLOSED / FROZEN**（F01–F12、M01–M05、R-01 PREPARED restore
+      修复、D-04R、各 A/B/C/D 切片；独立审批 D-15：
+      `APPROVE V1.8.0 D-15 — GLOBAL HYGIENE CLOSED / READY FOR RELEASE PREPARATION`；
+      产品实现冻结于 `cfe1b8bbebf5d78fb961b22e3708afecf64e5a76`）。
+- [x] v1.8.0 打包候选（版本 1.8.0 / Phone 101080000 / Wear 1101080000）— **CANDIDATE /
+      REVIEW PENDING**（`chore(release): prepare v1.8.0 packaging`；证书 `b9b6b955…` 连续；
+      候选资产与校验值见 `D:\Evolune-Workspace\release-candidates\v1.8.0\`；packaging evidence
+      `docs/evolune/v1.8.0/evidence/release-packaging/`）。
+- [ ] NEXT：**v1.8.0 发布执行**（final docs commit → annotated tag v1.8.0 → push →
       GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，

@@ -1,0 +1,16 @@
+EVOLUNE v1.8.0 D-16 — ARTIFACT HASHES
+=====================================
+
+Staged external candidates: D:\Evolune-Workspace\release-candidates\v1.8.0\
+
+  Evolune-Phone-v1.8.0.apk  6,313,112 B
+    b77cb794d85d8c1f7b49c09b94344effa40f21556c6acceeccbe29db0c63138a
+  Evolune-Wear-v1.8.0.apk   2,604,764 B
+    dffffa34ee9bd91fb6ab5d8a8eaa51cf8fa76dcea64112e4f4c39a0a7c115d1a
+  SHA256SUMS.txt            181 B
+    7093bbc47f859ec5db9dc04b5c97d60ae5e50461ab48682d7a871fb64d900dd3
+  RELEASE_BODY-v1.8.0.md    2,183 B
+    16516c1b41abbb3d34ea237267854fa45ba44f0def7d0b848821a3371cea6bab
+
+Candidate bytes are the clean-build outputs copied 1:1 from the packaging build;
+hashes recomputed from the staged bytes.
