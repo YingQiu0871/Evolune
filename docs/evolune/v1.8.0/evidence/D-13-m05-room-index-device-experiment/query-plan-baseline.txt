@@ -1,0 +1,25 @@
+EVOLUNE v1.8.0 D-13 — BASELINE EXPLAIN QUERY PLANS (actual Android SQLite)
+==========================================================================
+
+Captured with EXPLAIN QUERY PLAN on the real Room/SQLite stack
+(SQLite 3.44.3, WAL). Format: "detail" rows of the plan table.
+Raw source: raw/d13-device-run.log D13_PLAN lines (all card/set combinations
+committed; this file summarizes BASELINE).
+
+BASELINE (no secondary date/time indexes) — identical plan shape at
+cardinality 100 / 1000 / 10000 (stress), all seven inventoried queries:
+
+  localDateRange:    SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  occurredAtRange:   SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  recent20:          SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  allHistory:        SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  observeAll:        SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  recentTimeH:       SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+  timeHRange:        SCAN dose_events || USE TEMP B-TREE FOR ORDER BY
+
+This reproduces the audit's external SQLite 3.50.4 plan shape (SCAN + temp
+B-tree for every time/date filter/order query) on the actual supported Android
+stack — the plan-shape part of M05 is confirmed on-device.
+
+No covering index exists at baseline; the id PRIMARY KEY autoindex
+(sqlite_autoindex_dose_events_1) is the only index present.

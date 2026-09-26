@@ -1,0 +1,44 @@
+EVOLUNE v1.8.0 D-13 — EXPERIMENTAL INDEX SETS / EXACT SQL
+=========================================================
+
+All candidate indexes were created ONLY inside the disposable experimental
+database (SupportSQLiteDatabase.execSQL). No @Index annotation, no Room version
+bump, no migration, no exported-schema change, no DAO SQL change anywhere.
+
+Exact SQL executed by the harness:
+
+SET A (persisted-localDate history path):
+  CREATE INDEX `idx_d13_localdate`
+    ON `dose_events` (`localDate`, `occurredAtEpochMillis`, `id`)
+
+SET B (occurredAt range / all-history path):
+  CREATE INDEX `idx_d13_occurred`
+    ON `dose_events` (`occurredAtEpochMillis`, `id`)
+
+SET C (combined minimal set, if both A and B justified):
+  CREATE INDEX `idx_d13_localdate`
+    ON `dose_events` (`localDate`, `occurredAtEpochMillis`, `id`)
+  CREATE INDEX `idx_d13_occurred`
+    ON `dose_events` (`occurredAtEpochMillis`, `id`)
+
+SET C3 (direction-specific recent-20 evaluation — explicit third-index probe):
+  SET C plus:
+  CREATE INDEX `idx_d13_occurred_desc`
+    ON `dose_events` (`occurredAtEpochMillis` DESC, `id` ASC)
+
+Derivation from the exact SQL (not generic advice):
+- localDate query: WHERE localDate IS NOT NULL AND range + ORDER BY localDate,
+  occurredAt, id -> equality-free range on the leading column with the full
+  ORDER BY embedded -> (localDate, occurredAtEpochMillis, id) can both filter
+  and satisfy the sort.
+- occurredAt range query: WHERE occurredAt >= :s AND < :e + ORDER BY occurredAt,
+  id -> (occurredAtEpochMillis, id) filters and satisfies the sort.
+- all-history query: single inclusive upper bound + same ORDER BY -> same B
+  index supports it.
+- recent-20 / observeAll: ORDER BY occurredAt DESC, id ASC (mixed direction) ->
+  the ASC B index covers the keys but SQLite reports "USE TEMP B-TREE FOR RIGHT
+  PART OF ORDER BY"; a direction-specific (occurredAt DESC, id ASC) index was
+  explicitly evaluated (SET C3) rather than silently added.
+- Legacy timeH queries intentionally receive NO candidate index: timeH is a
+  derived legacy column; adding an index there was out of M05 scope and the
+  audit finding names localDate/occurredAt only.

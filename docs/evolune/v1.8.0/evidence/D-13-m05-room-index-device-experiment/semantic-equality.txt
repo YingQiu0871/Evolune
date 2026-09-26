@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 D-13 — SEMANTIC EQUALITY EVIDENCE
+================================================
+
+Method: for every cardinality, the BASELINE set stores SHA-256 digests of the
+exact result rows (all columns, in returned order) for four reference queries;
+every candidate set (A/B/C/C3) at the SAME cardinality recomputes the digests
+and must match EXACTLY (same rows, same contents, same order, same bounds,
+same null behavior). Fixture re-seeding is deterministic (stable ids/timestamps)
+so row content is identical across sets by construction; any digest mismatch
+would indicate a semantic difference, not fixture noise.
+
+Reference queries (medium windows + recent20 + allHistory mid):
+  localDateRange  2025-01-05..2025-01-25 inclusive (null-localDate excluded)
+  occurredAtRange [day4, day20) half-open
+  recent20        ORDER BY occurredAt DESC, id ASC LIMIT 20
+  allHistory      occurredAt <= day15 inclusive
+
+Results (raw-semantic-digests.txt, final committed run):
+  card=100:   BASE reference stored; A equal; B equal; C equal; C3 equal
+  card=1000:  BASE reference stored; A equal; B equal; C equal; C3 equal
+  card=10000: BASE reference stored; A equal; B equal; C equal; C3 equal
+  -> 12/12 candidate comparisons PASS; 0 mismatches.
+
+Semantics preserved across every candidate set:
+  - localDate inclusive bounds + IS NOT NULL exclusion: digest equal.
+  - occurredAt half-open bounds: digest equal.
+  - recent-20 mixed-direction ordering (occurredAt DESC, id ASC): digest equal
+    (SET C3 changes only HOW the order is produced, not the order itself).
+  - id tie-breaking and display-row contents: digest equal.
+  - Conflicting-duplicate fail-fast semantics: production service semantics
+    are unchanged (the union/check code was never modified in D-13; the D-10
+    HistoryReadServiceProjectionDispatcherTest conflict test remains green in
+    the focused regression).
+
+Additional unit-level guarantee: the D-10 exact HistoricalRange equality test
+(dispatcher-backed vs inline) and the persisted-date/extreme-zone/chunking
+suites all passed in the post-cleanup focused regression — the shipped query
+semantics the indexes would have to preserve are pinned by existing tests.

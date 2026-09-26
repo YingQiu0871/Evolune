@@ -1,0 +1,47 @@
+EVOLUNE v1.8.0 D-13 — INDEXED EXPLAIN QUERY PLANS (actual Android SQLite)
+=========================================================================
+
+Captured per candidate set at every cardinality; raw lines are committed
+(raw/d13-device-run.log D13_PLAN lines). Summary of the plan changes:
+
+SET A (idx_d13_localdate (localDate, occurredAtEpochMillis, id)):
+  localDateRange:  SEARCH dose_events USING INDEX idx_d13_localdate
+                   (localDate>? AND localDate<?)
+                   -> table scan ELIMINATED; temp B-tree ELIMINATED (the
+                   composite index satisfies the full ORDER BY; no sort).
+                   The IS NOT NULL predicate is applied via the index range.
+  all other six queries: unchanged SCAN + temp B-tree (index ignored by
+                   the planner, correctly — no benefit for them).
+
+SET B (idx_d13_occurred (occurredAtEpochMillis, id)):
+  occurredAtRange: SEARCH dose_events USING INDEX idx_d13_occurred
+                   (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+                   -> scan ELIMINATED; sort ELIMINATED.
+  allHistory:      SEARCH dose_events USING INDEX idx_d13_occurred
+                   (occurredAtEpochMillis<?) -> scan ELIMINATED; sort ELIMINATED.
+  recent20:        SCAN dose_events USING INDEX idx_d13_occurred ||
+                   USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+                   -> scan AVOIDED via index order; the mixed direction
+                   (occurredAt DESC, id ASC) still requires a partial sort.
+  observeAll:      same partial-sort shape as recent20.
+  localDateRange / recentTimeH / timeHRange: unchanged (index ignored).
+
+SET C (A + B): union of the SET A and SET B plan effects; no new plan
+  behaviors beyond those two.
+
+SET C3 (C + idx_d13_occurred_desc (occurredAtEpochMillis DESC, id ASC)):
+  recent20:        SCAN dose_events USING INDEX idx_d13_occurred_desc
+                   -> partial sort ELIMINATED as well (full index order).
+  observeAll:      SCAN dose_events USING INDEX idx_d13_occurred_desc
+                   -> partial sort ELIMINATED.
+  everything else: identical to SET C.
+
+Planner-behavior findings:
+- The candidate indexes are NOT ignored: each drives its intended query.
+- Covering behavior is irrelevant here: every production query is SELECT *;
+  the indexes filter/order, then the row is fetched by primary key — no
+  covering-index claim is made or needed.
+- recent20's residual sort under B is small (LIMIT 20 over an index scan);
+  C3 removes it but adds a third index for a measurable-yet-tiny gain
+  (see read-latency-comparison.txt).
+- Legacy timeH queries keep their SCAN under every set (out of M05 scope).

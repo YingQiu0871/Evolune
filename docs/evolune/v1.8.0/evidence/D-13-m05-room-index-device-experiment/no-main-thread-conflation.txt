@@ -1,0 +1,19 @@
+EVOLUNE v1.8.0 D-13 — NO MAIN-THREAD CONFLATION
+===============================================
+
+The benchmark measures SQLite/Room-executor wall time for the queries
+themselves. Room owns query execution (its own executor); the Production
+History path no longer performs post-query projection CPU on Main
+(D-10/M02 CLOSED / FROZEN: Main caller -> existing suspend reads -> Default
+pure CPU -> resume -> Main publication, with P1-P4 thread=main 160/160 and
+P9 main 160/160).
+
+Therefore:
+- A 0.2-1.7 ms query time in this evidence is NOT a "0.2-1.7 ms Main-thread
+  block". The M02 separation already moved the post-query pure CPU tail off
+  Main; the queries run on Room's executor exactly as before.
+- M05 is database/query EFFICIENCY (plan shape, scan cost, write overhead),
+  not Main-thread responsiveness.
+- D-13 does not reopen M02 and introduces no dispatcher/publication change.
+- Home PK fallback queries (getEventsAfterOccurredAt/getRecentEventsByOccurredAt)
+  are likewise Room-executor work inside the existing HRTViewModel topology.

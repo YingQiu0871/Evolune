@@ -1,0 +1,105 @@
+D13_PLAN card=100,set=BASELINE,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=BASELINE,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=100,set=A,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=A,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=B,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=B,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=100,set=B,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=100,set=B,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=100,set=B,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=100,set=B,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=B,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=C,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=100,set=C,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=100,set=C,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=100,set=C,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=100,set=C,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=100,set=C,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=C,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=C3,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=100,set=C3,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=100,set=C3,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=100,set=C3,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=100,set=C3,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=100,set=C3,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=100,set=C3,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=BASELINE,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=1000,set=A,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=A,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=B,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=B,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=B,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=1000,set=B,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=B,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=1000,set=B,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=B,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=C,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=1000,set=C,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=C,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=1000,set=C,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=C,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=1000,set=C,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=C,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=C3,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=1000,set=C3,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=C3,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=1000,set=C3,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=1000,set=C3,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=1000,set=C3,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=1000,set=C3,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=BASELINE,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=10000,set=A,query=occurredAtRange,plan=3; 0; 0; SCAN dose_events || 27; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=recent20,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=allHistory,plan=3; 0; 0; SCAN dose_events || 25; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=observeAll,plan=3; 0; 0; SCAN dose_events || 23; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=A,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=B,query=localDateRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=B,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=B,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=10000,set=B,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=B,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=10000,set=B,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=B,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=C,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=10000,set=C,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=C,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 39; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=10000,set=C,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=C,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred || 32; 0; 0; USE TEMP B-TREE FOR RIGHT PART OF ORDER BY
+D13_PLAN card=10000,set=C,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=C,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=C3,query=localDateRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_localdate (localDate>? AND localDate<?)
+D13_PLAN card=10000,set=C3,query=occurredAtRange,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis>? AND occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=C3,query=recent20,plan=5; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=10000,set=C3,query=allHistory,plan=4; 0; 0; SEARCH dose_events USING INDEX idx_d13_occurred (occurredAtEpochMillis<?)
+D13_PLAN card=10000,set=C3,query=observeAll,plan=4; 0; 0; SCAN dose_events USING INDEX idx_d13_occurred_desc
+D13_PLAN card=10000,set=C3,query=recentTimeH,plan=4; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY
+D13_PLAN card=10000,set=C3,query=timeHRange,plan=3; 0; 0; SCAN dose_events || 29; 0; 0; USE TEMP B-TREE FOR ORDER BY

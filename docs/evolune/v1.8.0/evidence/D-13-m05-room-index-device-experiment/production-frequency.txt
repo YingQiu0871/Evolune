@@ -1,0 +1,53 @@
+EVOLUNE v1.8.0 D-13 — PRODUCTION FREQUENCY / EXPOSURE ANALYSIS (from source)
+============================================================================
+
+1. getEventsByLocalDateRange (History channel A)
+   Callers: RoomDoseEventRepository.findRecordedLocalDateBetween ->
+   HistoryReadService.readRange. Triggers: History first entry, month change,
+   retry/refresh, foreground refresh, Home->History re-entry, Timeline range
+   reads, InsightsViewModel.readRange, retrospective coordinator Read 3.
+   Frequency: explicit user/navigation-triggered loads (a few per session);
+   NOT per-tick. Multiple loads per History session are possible (month swipe).
+
+2. getEventsByOccurredAtRange (History channel B)
+   Callers: RoomDoseEventRepository.findOccurredBetween -> readRange. Same
+   triggers as channel A (every History/Timeline/Insights/retrospective-range
+   load runs both channels). Frequency: same as (1).
+
+3. getRecentEventsByOccurredAt (recent-20)
+   Callers: RoomDoseEventRepository PK fallback when fewer than
+   PK_MINIMUM_DOSE_EVENTS rows fall in the Home PK window (recent-dose
+   fallback for Home concentration), plus latest-dose selection paths.
+   Frequency: per Home PK load when the window is sparse — i.e., for new
+   users / sparse history; bounded to LIMIT rows.
+
+4. getEventsUpToOccurredAt (all-history)
+   Caller: HistoryReadService.readAllAvailable -> retrospective PK Read 1/2.
+   Frequency: retrospective surface entry / refresh only. Reads every row
+   up to the bound — the only unbounded-row-count query in the set.
+
+5. getEventsAfterOccurredAt (Home PK window)
+   Caller: RoomDoseEventRepository PK window for Home concentration.
+   Frequency: every Home PK load/refresh (explicit loads, not per-tick).
+
+6. observeAllForRepository / getAllEventsForLatestDose / getAllEventsForRestore
+   Frequency: observeAll is the repository Flow — emits on every dose-event
+   write and at collection start (Home/History collectors, Wear sync).
+   getAllEventsForRestore runs on backup/restore screens. Full-table sort each
+   time, but row count equals the whole table.
+
+7. Legacy timeH paths (getRecentEvents/getEventsByTimeRange/getEventsAfter)
+   Callers: widget update paths (WidgetWork) and legacy code paths.
+   Frequency: widget update cadence; bounded windows.
+
+Realistic user cardinality (product behavior): dose tracking records a handful
+of events per day at most (typical 1-6). 100 rows ≈ 1-3 months of active use;
+1000 rows ≈ 1-3 years; 10000 rows ≈ 10+ years of heavy history — beyond
+plausible normal use for a dose tracker. 10k is therefore STRESS and is not
+allowed to decide implementation alone (section 8/20 of the charter).
+
+Exposure conclusion: the M05 queries are frequently triggered, but each
+trigger is a discrete user-visible load whose dominant cost is the
+projection CPU already measured (D-09: 40-150 ms worker CPU) and already
+off-Main (D-10/M02 CLOSED). Query wall time must be compared against that
+budget, not against an invented SLA.

@@ -1,0 +1,41 @@
+EVOLUNE v1.8.0 D-13 — FOCUSED REGRESSION (after harness removal)
+================================================================
+
+The temporary instrumentation harness was removed before staging
+(app/src/androidTest/.../d13/ deleted; source preserved under raw/ for audit).
+
+Fresh focused JVM regression over the Room/query-adjacent surfaces:
+
+Command:
+  .\gradlew.bat :app:testDebugUnitTest --tests "io.github.yingqiu0871.evolune.data.*"
+    --tests "io.github.yingqiu0871.evolune.history.HistoryReadService*" --rerun-tasks
+
+Result: BUILD SUCCESSFUL; 19 suites / 166 tests / 0 failures / 0 errors /
+0 skipped. Suites:
+  data.mapper.DoseEventEntityMapperTest            11
+  data.mapper.ExtraKeyMapperTest                    7
+  data.mapper.MedicationPlanEntityMapperTest       20
+  data.mapper.PersistenceInstantMapperTest          3
+  data.mapper.ScheduleTypeMapperTest                2
+  data.mapper.V3PersistenceMapperTest              10
+  data.migration.contract.MigrationPersistenceContractTest 6
+  data.migration.LegacyAggregatePreflightTest       5
+  data.migration.LegacyPlanTimeParserTest          23
+  data.migration.LegacyStorageClassTest             5
+  data.migration.MigrationPrimitivesTest           15
+  data.repository.RoomRepositoryWearBoundaryTest    4
+  data.ThemeStateDerivationTest                     9
+  history.HistoryReadServiceAllAvailableTest       12
+  history.HistoryReadServiceExtremeZoneTest         7
+  history.HistoryReadServiceOccurrenceChunkingTest  3
+  history.HistoryReadServicePersistedDateTest       8
+  history.HistoryReadServiceProjectionDispatcherTest 5
+  history.HistoryReadServiceTest                   11
+
+All Room schema/migration, repository-boundary, and History read-service
+contracts (including the D-10 dispatcher boundary, persisted-date channel,
+extreme-zone attribution, occurrence chunking, all-available semantics) remain
+green after the experiment and harness cleanup.
+
+Full JVM: inherited 1709/1709 remains valid because the committed
+source/test/Room-schema delta is EMPTY (zero-delta.txt).

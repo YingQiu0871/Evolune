@@ -1,0 +1,36 @@
+EVOLUNE v1.8.0 D-13 — FIXTURE SPECIFICATION
+===========================================
+
+Deterministic fixture generator (identical for every card/set; harness source
+preserved in raw/D13M05RoomIndexExperimentTest.kt):
+
+- Rows: exactly `count` per cardinality (100 / 1000 / 10000).
+- Shape: 2 events per local day at fixed hours 08:00 and 20:00 UTC; localDate
+  advances one calendar day per 2 rows (yyyy-MM-dd strings, ISO-8601, years
+  2025+). Repeated same-day events exercise the ORDER BY tie path
+  (occurredAtEpochMillis then id).
+- null-localDate ratio: EXACTLY 5% (every 20th row, i % 20 == 19) — legacy
+  rows with localDate = NULL, zoneId = NULL, source = LEGACY; all other rows
+  have zoneId = UTC and source = MANUAL.
+- IDs: UUID(0L, 100000 + seedBase * 1_000_000 + i) — stable across reruns.
+- occurredAtEpochMillis: dayIndex * 86_400_000 + hour * 3_600_000 (distinct
+  values; ordering deterministic; no duplicates by construction, matching
+  the recording flow which stamps distinct action instants).
+- Stable IDs across sets: the same seedBase=1 fixture is re-seeded for every
+  read set, so row content is byte-identical across BASELINE/A/B/C/C3 —
+  prerequisite for the digest equality check.
+- Selectivity windows measured (relative to the fixture span):
+    narrow  localDate 2025-01-05..2025-01-06 (4 rows at every cardinality)
+    medium  localDate 2025-01-05..2025-01-20 (30 rows)
+    wide    localDate 2025-01-05..2025-03-05 (~2 months span)
+    empty   localDate 2099-01-01..2099-01-02 (0 rows)
+    narrow/medium/wide occurredAt windows at 2/16/61 calendar-day spans
+    recent20: full-table LIMIT 20
+    allHistory: upper bound at day 15 (inclusive)
+- Per measurement: 5 warm-up runs then 30 timed repetitions; min/max/mean/
+  median/p95 reported (nearest-rank p95).
+- First-run invalid attempt (UUID bind ClassCastException) was repaired in
+  the harness BEFORE any valid data was recorded; the committed raw log is
+  the complete clean final run. A prior successful run existed before the
+  semantic-reference redesign; its file was superseded by the final run and
+  only the final run is committed (run history in watchdog-discipline.txt).

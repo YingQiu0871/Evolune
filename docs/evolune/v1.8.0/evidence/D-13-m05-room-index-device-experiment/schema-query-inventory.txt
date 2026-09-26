@@ -1,0 +1,57 @@
+EVOLUNE v1.8.0 D-13 — CURRENT SCHEMA / QUERY INVENTORY (verbatim from HEAD)
+===========================================================================
+
+Schema (app/schemas/io.github.yingqiu0871.evolune.data.AppDatabase/3.json,
+verbatim CREATE TABLE):
+  CREATE TABLE IF NOT EXISTS `dose_events` (`id` TEXT NOT NULL, `route` TEXT NOT NULL,
+  `timeH` REAL NOT NULL, `doseMG` REAL NOT NULL, `ester` TEXT NOT NULL, `extras` TEXT
+  NOT NULL, `occurredAtEpochMillis` INTEGER NOT NULL DEFAULT 0, `zoneId` TEXT,
+  `localDate` TEXT, `slotId` TEXT, `source` TEXT NOT NULL DEFAULT 'LEGACY', `status`
+  TEXT NOT NULL DEFAULT 'RECORDED', `revision` INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY(`id`))
+Secondary indexes on dose_events: NONE (primary-key autoindex only).
+medication_plans / scheduled_dose_slots are out of M05 scope.
+
+Production DAO SQL inventory (DoseEventDao.kt verbatim, M05-relevant):
+
+1. getEventsByLocalDateRange (persisted localDate inclusive range; History
+   channel A):
+     SELECT * FROM dose_events
+     WHERE localDate IS NOT NULL
+         AND localDate >= :startInclusive
+         AND localDate <= :endInclusive
+     ORDER BY localDate ASC, occurredAtEpochMillis ASC, id ASC
+
+2. getEventsByOccurredAtRange (occurredAt half-open range; History channel B):
+     SELECT * FROM dose_events
+     WHERE occurredAtEpochMillis >= :startInclusive
+         AND occurredAtEpochMillis < :endExclusive
+     ORDER BY occurredAtEpochMillis ASC, id ASC
+
+3. getRecentEventsByOccurredAt (recent-20 ordering):
+     SELECT * FROM dose_events
+     ORDER BY occurredAtEpochMillis DESC, id ASC
+     LIMIT :limit
+
+4. getEventsUpToOccurredAt (all-history upper bound; retrospective PK only):
+     SELECT * FROM dose_events
+     WHERE occurredAtEpochMillis <= :endInclusive
+     ORDER BY occurredAtEpochMillis ASC, id ASC
+
+5. getEventsAfterOccurredAt (Home PK fallback window; same sort keys):
+     SELECT * FROM dose_events
+     WHERE occurredAtEpochMillis >= :startInclusive
+     ORDER BY occurredAtEpochMillis ASC, id ASC
+
+6. observeAllForRepository / getAllEventsForLatestDose / getAllEventsForRestore
+   (full-table ordering on the same keys; repository Flow + latest-dose/restore):
+     SELECT * FROM dose_events ORDER BY occurredAtEpochMillis DESC, id ASC
+
+7. Legacy timeH paths (widget/legacy callers; same scan shape):
+     SELECT * FROM dose_events ORDER BY timeH DESC LIMIT :limit
+     SELECT * FROM dose_events WHERE timeH >= :startTimeH AND timeH <= :endTimeH
+       ORDER BY timeH ASC
+
+No DAO SQL was rewritten for the experiment; the benchmark executes these exact
+statements (verbatim strings in the harness) through the real Room/SQLite stack.
+The two History channels remain two separate queries (never merged).

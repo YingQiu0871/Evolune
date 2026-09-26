@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 D-13 — INDEX-BUILD / MIGRATION-RELEVANCE EVIDENCE
+================================================================
+
+Raw lines: index-build-timings.txt (two independent measurement series).
+
+Index creation over a POPULATED database (migration-time relevance — how long
+a future schema migration would spend creating the indexes over existing data):
+
+  card=100:    idx_d13_localdate 0.14 ms; idx_d13_occurred 0.10 ms
+  card=1000:   idx_d13_localdate 1.36 ms; idx_d13_occurred 0.40 ms
+  card=10000:  idx_d13_localdate 11.56 ms; idx_d13_occurred 11.26 ms
+
+Per-set CREATE timing during the read-set loop (fresh after seeding):
+
+  card=100:    A 0.23 | B 0.23 | C 0.14+0.10 | C3 +0.15 ms
+  card=1000:   A 1.27 | B 1.15 | C 8.82+1.33* | C3 +0.27 ms
+  card=10000:  A 19.87 | B 12.39 | C 17.87+13.31 | C3 +10.65 ms
+  (* the 8.82 ms C value at card=1000 is a one-off scheduling spike; the
+  dedicated build series measured 1.36 ms for the identical index.)
+
+Assessment:
+- Migration-time index creation is trivial at realistic cardinality (<2 ms at
+  1k rows) and modest even at 10k stress (<25 ms total). Index-BUILD cost is
+  therefore NOT the deciding factor for or against a shipped index.
+- The decisive write-side costs are the ongoing per-write/bulk/restore
+  overheads (write-cost-experiment.txt) plus schema/migration identity risk
+  (version bump, restore compatibility, upgrade paths) — rated HIGH in the
+  authoritative audit.
+- Storage growth (+66% at 1k rows) is likewise an ongoing cost, not a
+  migration-time one.

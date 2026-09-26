@@ -1,0 +1,28 @@
+EVOLUNE v1.8.0 D-13 — IDENTITY
+==============================
+
+Slice: D-13 M05 Room query / index device experiment (evidence-only isolated
+experiment; no schema/index/migration/production change).
+
+Starting HEAD (accepted D-10 evidence):
+  a3263268f27d5d73314e4eabbaac8c4490518698
+Branch:
+  feature/v1.8.0-d13-m05-room-index-experiment
+Worktree:
+  D:\Evolune-Workspace\worktrees\Evolune-v1.8.0-d13
+
+Accepted predecessor state:
+  M01 = CLOSED (D-08), M02 = CLOSED / FROZEN (D-11 over D-10),
+  M03 = CLOSED / FROZEN, M04 = CLOSED / FROZEN (D-05/D-06/D-07),
+  M05 = OPEN / MEASUREMENT REQUIRED
+Canonical JVM baseline: 1709/1709 (inherited; committed source/test delta = 0).
+
+Experiment date: 2026-09-26
+Device: Pixel_7(AVD) emulator-5554, sdk_gphone64_x86_64, Android 15 / API 35.
+
+Disposition recorded in m05-decision.txt:
+  M05 CLOSED / NO INDEX IMPLEMENTATION JUSTIFIED (classification A).
+
+No push, tag, release, version bump, amend, or production/test/schema change.
+The temporary instrumentation harness was removed before staging; its exact
+source is preserved under raw/D13M05RoomIndexExperimentTest.kt for audit.

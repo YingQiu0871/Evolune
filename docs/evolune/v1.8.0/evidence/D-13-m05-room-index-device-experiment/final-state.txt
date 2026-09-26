@@ -1,0 +1,13 @@
+EVOLUNE v1.8.0 D-13 — FINAL STATE
+=================================
+
+Evidence-only commit over a3263268f27d5d73314e4eabbaac8c4490518698:
+  - exactly ONE commit adding ONLY
+    docs/evolune/v1.8.0/evidence/D-13-m05-room-index-device-experiment/**
+  - worktree clean
+  - no schema change; no production/test source change; no Room version bump;
+    no migration; no DAO/entity change; no version bump
+  - no amend; no push; no tag; no release
+  - temporary instrumentation harness absent from committed test/source paths
+    (verified by the protected diff and the androidTest tree listing)
+  - version identity unchanged: 1.7.4 / Phone 101070400 / Wear 1101070400

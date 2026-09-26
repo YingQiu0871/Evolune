@@ -1,0 +1,63 @@
+EVOLUNE v1.8.0 D-13 — INDEPENDENT RECOMPUTATION
+===============================================
+
+All summary statistics in this package were independently recomputed from the
+committed raw lines (raw/d13-device-run.log → raw-read-timings.txt /
+raw-write-timings.txt / index-build-timings.txt) with PowerShell parsing of the
+key=value rows; no precomputed summary was trusted.
+
+Recomputation method:
+- median: for n=30 samples, lower-middle of the sorted array (committed
+  values also reproducible within ±0.05 ms under alternative even-n
+  conventions; all conclusions unaffected).
+- p95: nearest-rank (ceil(0.95×30) = 29th sorted value).
+- Percentage improvement: (1 − bestIndexedMedian / baselineMedian) × 100.
+
+Best-index-set summary (recomputed, medians/p95 ms):
+
+card=100 (n=30 each):
+  LD narrow  BASE 0.0892/0.1131  best C  0.0722 (19.1%)
+  LD medium  BASE 0.2490/0.4720  best C3 0.1447 (41.9%)
+  LD wide    BASE 0.5689/0.6839  best C  0.3257 (42.7%)
+  LD empty   BASE 0.0853/0.0892  best C3 0.0599 (29.8%)
+  OA narrow  BASE 0.1104/0.1185  best C3 0.0725 (34.3%)
+  OA medium  BASE 0.2261/0.5139  best C3 0.1500 (33.7%)
+  OA wide    BASE 0.4454/0.5508  best C3 0.3414 (23.3%)
+  R20 all    BASE 0.1483/0.3289  best C3 0.1130 (23.8%)
+  AH mid     BASE 0.1794/0.2673  best C3 0.1441 (19.7%)
+
+card=1000:
+  LD narrow  BASE 0.1031/0.1460  best C3 0.0704 (31.7%)
+  LD medium  BASE 0.1772/0.2287  best A  0.1419 (19.9%)
+  LD wide    BASE 0.7504/0.7920  best C3 0.4289 (42.8%)
+  LD empty   BASE 0.1312/0.1891  best A  0.0588 (55.2%)
+  OA narrow  BASE 0.1780/0.2065  best C3 0.0706 (60.3%)
+  OA medium  BASE 0.3110/0.3552  best B  0.1483 (52.3%)
+  OA wide    BASE 0.7769/0.8139  best C  0.4233 (45.5%)
+  R20 all    BASE 0.2961/0.4389  best C  0.1188 (59.9%)
+  AH mid     BASE 0.1719/0.5146  best C  0.1396 (18.8%)
+
+card=10000 (STRESS):
+  LD narrow  BASE 0.4175/0.4671  best C  0.0697 (83.3%)
+  LD medium  BASE 0.5143/0.7781  best A  0.1439 (72.0%)
+  LD wide    BASE 0.8435/1.9223  best C  0.4183 (50.4%)
+  LD empty   BASE 0.3205/0.7171  best C  0.0582 (81.8%)
+  OA narrow  BASE 0.4764/0.9253  best C3 0.0710 (85.1%)
+  OA medium  BASE 0.5792/0.6672  best C  0.1508 (74.0%)
+  OA wide    BASE 0.9773/2.8971  best B  0.4400 (55.0%)
+  R20 all    BASE 1.7310/2.6521  best C3 0.1127 (93.5%)
+  AH mid     BASE 0.4969/0.7423  best C3 0.1475 (70.3%)
+
+Cross-checks performed:
+- 135 D13_ROW lines = 3 cards × 5 sets × 9 measured query/selectivity cells.
+- Every row n=30 with rows-count consistency across sets (e.g., LD medium
+  rows=30 at every set/card; OA wide rows=122 at card 1000 in all sets).
+- Plan lines: 105 D13_PLAN lines = 3 cards × 5 sets × 7 queries.
+- Write lines: 30 = 3 cards × 2 sets × 5 operations.
+- Index-build lines: 18 (15 in-readset + 3 dedicated).
+- Semantic digest lines: 15 per-card/set comparisons (12 candidate PASS +
+  3 BASELINE reference-stored).
+
+The committed device log is the complete single final run (309 lines from
+D13_ENV to D13_PHASE complete), captured via run-as from the instrumentation
+process after the run finished.

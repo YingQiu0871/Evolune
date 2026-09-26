@@ -1,0 +1,16 @@
+D13_SEMREF {localDateRange=c24ba697af05a6dca793d875b52c261cbc55be34e4b00d9ad05f46a15b753498, occurredAtRange=68d747e01ef4edbd894f6d2d9a131d591d4e7ef5a6e5743d758ed62e3ed5e6c9, recent20=7a8fb8ebe1af1d350be99a5bbb44c99c75e2f49dbaa6d1fc31a22b8b3ee98d07, allHistory=7c24c259900c0723d6f014da7e27e4f36bd72f81f26eff5f8c555b3e559cef39}
+D13_SEM card=100,set=BASELINE,equal=true,reference=stored
+D13_SEM card=100,set=A,equal=true,mismatch=
+D13_SEM card=100,set=B,equal=true,mismatch=
+D13_SEM card=100,set=C,equal=true,mismatch=
+D13_SEM card=100,set=C3,equal=true,mismatch=
+D13_SEM card=1000,set=BASELINE,equal=true,reference=stored
+D13_SEM card=1000,set=A,equal=true,mismatch=
+D13_SEM card=1000,set=B,equal=true,mismatch=
+D13_SEM card=1000,set=C,equal=true,mismatch=
+D13_SEM card=1000,set=C3,equal=true,mismatch=
+D13_SEM card=10000,set=BASELINE,equal=true,reference=stored
+D13_SEM card=10000,set=A,equal=true,mismatch=
+D13_SEM card=10000,set=B,equal=true,mismatch=
+D13_SEM card=10000,set=C,equal=true,mismatch=
+D13_SEM card=10000,set=C3,equal=true,mismatch=

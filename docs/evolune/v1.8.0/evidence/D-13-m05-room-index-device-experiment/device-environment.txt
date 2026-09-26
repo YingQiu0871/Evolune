@@ -1,0 +1,20 @@
+EVOLUNE v1.8.0 D-13 — DEVICE / SOFTWARE ENVIRONMENT (observed)
+==============================================================
+
+Recorded by the harness at run start (raw/d13-device-run.log line 1):
+  D13_ENV sqlite=3.44.3 room=2.8.4 journal=wal model=sdk_gphone64_x86_64
+  api=35 abi=x86_64 build=debug device=Pixel_7(AVD)
+
+- Device: Pixel_7 AVD (emulator-5554), sdk_gphone64_x86_64 / emu64xa,
+  Android 15 / API 35, ABI x86_64 — same AVD as D-05/D-06/D-09/D-10 slices.
+- SQLite (device, via the app's real stack): 3.44.3 (PRAGMA sqlite_version).
+- Room: 2.8.4 (gradle/libs.versions.toml room=2.8.4; production dependencies
+  unchanged).
+- Journal mode: WAL (PRAGMA journal_mode observed on the probe database).
+- Build type: debug (applicationIdSuffix .debug), same as prior device slices.
+- Database: disposable file-backed Room database in the instrumentation cache
+  dir (d13-probe.db), schema version 3 exactly as shipped; experimental indexes
+  created/dropped via SupportSQLiteDatabase.execSQL only.
+- Execution: real Room/SQLite stack through SupportSQLiteDatabase.query with
+  the verbatim production DAO SQL strings; no SQLite rewrite, no in-memory
+  shortcut, no SQL text change.

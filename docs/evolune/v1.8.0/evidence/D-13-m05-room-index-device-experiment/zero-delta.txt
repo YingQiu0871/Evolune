@@ -1,0 +1,38 @@
+EVOLUNE v1.8.0 D-13 — ZERO-DELTA PROOF
+======================================
+
+Charter gates before finalization (all PASS):
+
+1. Temporary harness removed:
+     app/src/androidTest/java/io/github/yingqiu0871/evolune/d13/ DELETED before
+     staging. Harness source preserved verbatim at
+     raw/D13M05RoomIndexExperimentTest.kt for audit only.
+
+2. Production source delta = EMPTY:
+     git diff a326326..HEAD -- app/src/main  -> EMPTY
+
+3. Committed test delta = EMPTY:
+     git diff a326326..HEAD -- app/src/test app/src/androidTest wear
+     experience-core -> EMPTY (only the D-13 evidence directory is added).
+
+4. Room schema delta = EMPTY:
+     app/schemas/** untouched (no exported-schema change, no version bump).
+
+5. Migration delta = EMPTY:
+     no Migration added/modified anywhere.
+
+6. DAO/entity delta = EMPTY:
+     DoseEventDao.kt / DoseEventEntity.kt untouched.
+
+7. Prior D-* evidence delta = EMPTY:
+     git diff a326326..HEAD -- docs/evolune/v1.8.0/evidence
+     ':(exclude)docs/evolune/v1.8.0/evidence/D-13-m05-room-index-device-experiment'
+     -> EMPTY.
+
+8. Candidate indexes existed ONLY in the disposable experimental database
+   (created via SupportSQLiteDatabase.execSQL inside the instrumentation
+   process, deleted with the probe DB file). No @Index annotation, no Room
+   version bump, no migration, no exported-schema modification, no DAO SQL
+   modification ever touched the repository.
+
+Inherited canonical JVM 1709/1709 therefore remains the accepted gate.

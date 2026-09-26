@@ -1,0 +1,49 @@
+EVOLUNE v1.8.0 D-13 — WRITE-COST EXPERIMENT (mandatory)
+=======================================================
+
+Raw lines: raw-write-timings.txt. Compare BASELINE vs SET C (both candidate
+indexes). All values from the real Room/SQLite stack; single-op rows are
+30-repetition medians/p95.
+
+=== BULK INSERT (single transaction, N rows) ===============================
+
+  card=100:    BASE 3 ms      C 3 ms      (+0%)
+  card=1000:   BASE 37 ms     C 45 ms     (+22%)
+  card=10000:  BASE 382 ms    C 461 ms    (+21%)
+
+=== SINGLE INSERT (30 reps; representative user write cadence) =============
+
+  card=100:    median 0.0633 -> 0.0670 (+6%); p95 0.2104 -> 3.8624*
+  card=1000:   median 0.0859 -> 0.0690 (unchanged); p95 0.1540 -> 0.6897*
+  card=10000:  median 0.0648 -> 0.0986 (+52% but still 0.10 ms); p95 0.2306 -> 1.2971*
+  * p95 spikes are WAL checkpoint/page-alloc jitter on the emulator; medians
+    stay at 0.06-0.10 ms. The steady-state single-write cost with indexes is
+    +0.01-0.03 ms per event.
+
+=== DELETE (30 single-row deletes) =========================================
+
+  card=100:    median 0.0586 -> 0.0605 (unchanged); p95 0.5721 -> 0.7415
+  card=1000:   median 0.0590 -> 0.0640 (unchanged); p95 0.5820 -> 0.6722
+  card=10000:  median 0.0612 -> 0.0830 (+36%, absolute +0.02 ms); p95 0.9207 -> 1.2796
+
+=== RESTORE-LIKE REPLACE (DELETE all + INSERT all, one transaction) ========
+
+  card=100:    BASE 4.72 ms   C 5.30 ms   (+12%)
+  card=1000:   BASE 63.67 ms  C 63.97 ms  (+0.5%)
+  card=10000:  BASE 486.93 ms C 505.08 ms (+3.7%)
+
+=== STORAGE (database file size after data + indexes) ======================
+
+  card=100:    73,728 -> 98,304 bytes   (+33%)
+  card=1000:   204,800 -> 339,968 bytes (+66%)
+  card=10000:  1,556,480 -> 2,867,200 bytes (+84%; +1.31 MB for ~10k rows)
+
+=== CONCLUSION =============================================================
+
+Indexes are NOT free: bulk restore/insert cost rises ~21-22% at 1k/10k, the
+database file grows ~66% at 1k rows (~135 KB), and per-write cost rises
+slightly (medians <= 0.03 ms; p95 noise visible on the emulator). At the
+representative scale the write penalty is small in absolute terms but is
+incurred on EVERY event write, restore, and backup/restore flow, while the
+read benefit it purchases is 0.03-0.35 ms on Room-executor queries that are
+already sub-millisecond. No "indexes are free" claim is made or possible.

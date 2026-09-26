@@ -1,0 +1,30 @@
+EVOLUNE v1.8.0 D-13 — AUTHORITATIVE M05 FINDING (verbatim)
+==========================================================
+
+Source: D:\Evolune-Workspace\review-packets\v180-codebase-hygiene-audit.txt
+(SHA-256 122B3407C42E8AB49D34384BDD4D0436E53B0247F0C5EE65EFFE24E9EE452F61)
+
+M05 — Unindexed time/date queries
+Severity/area: P2 candidate; Room query performance; schema freeze applies.
+Files: AP/data/DoseEventEntity.kt:16; DoseEventDao.kt:18–85;
+app/schemas/io.github.yingqiu0871.evolune.data.AppDatabase/3.json.
+Behavior/evidence: only id primary-key index; no declared localDate or occurredAt
+secondary index. Range/history/recent queries filter/order on those columns.
+External SQLite 3.50.4 in-memory EXPLAIN using the exported CREATE TABLE produced:
+  localDate inclusive range/order: SCAN dose_events; USE TEMP B-TREE FOR ORDER BY
+  occurredAt half-open range/order: SCAN dose_events; USE TEMP B-TREE FOR ORDER BY
+  occurredAt DESC,id ASC LIMIT 20: SCAN dose_events; USE TEMP B-TREE FOR ORDER BY
+This was an empty-schema plan check, NOT Android Room timing or a populated
+representative benchmark. Row estimates/cost fields are not measured latency.
+Action: use actual supported Android SQLite with synthetic 100/1k/10k rows,
+representative null-localDate mix and selectivity. Compare read latency/query
+plans plus insertion/deletion/restore overhead with candidate indexes only in
+an isolated experiment. Decide from expected user cardinality and frequency.
+Risk/tests: HIGH for any shipped index: migration/version identity, restore,
+upgrade and write cost. Preserve date/instant two-channel query semantics.
+Executor/size/dependencies: DeepSeek V4.1 Flash evidence, small; no implementation
+slice authorized. Any schema proposal needs separate review/approval. PROVEN plan
+shape, MEASUREMENT REQUIRED for user impact and index benefit.
+
+D-13 executes exactly that action. The prior external plan check is plan-shape
+evidence only; this experiment measured the actual Android Room/SQLite stack.

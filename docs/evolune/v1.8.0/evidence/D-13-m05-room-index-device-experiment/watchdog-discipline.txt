@@ -1,0 +1,37 @@
+EVOLUNE v1.8.0 D-13 — WATCHDOG / INTERRUPTION DISCIPLINE
+========================================================
+
+Charter requirement: bounded watchdogs, immediate persistence, invalid-marking,
+no partial output presented as valid, no full-matrix restart after one failure.
+
+Implementation (harness, raw/D13M05RoomIndexExperimentTest.kt):
+- Every read-set and write-cost scenario ran under a 240 s Timer watchdog that
+  FIRST appends `valid=false,reason=timeout` to the results file and THEN halts
+  the process (Runtime.halt(97)). A hung AVD therefore cannot silently consume
+  the run; the invalid marker is already durable before the halt.
+- Results are persisted line-by-line immediately after every scenario completes
+  (both to app-external and app-internal files). Previously persisted lines
+  survive any later interruption.
+- No scenario in the committed final run timed out: zero valid=false lines.
+  The full matrix (3 cards × 5 sets + index builds + write matrix) completed
+  in one clean 8.7 s instrumented run.
+
+Run history (honest record):
+1. Run A (connectedDebugAndroidTest): FAILED at harness start —
+   ClassCastException (UUID bound as String in the insert helper). No D13_*
+   rows had been recorded; the defect was in the disposable harness only and
+   was fixed before any valid data existed.
+2. Run B (instrumentation via gradle, ~40 s): completed all scenarios, but its
+   per-cardinality semantic references were the card-1000 digests, so
+   card=100/10000 sets legitimately mismatched recent20 (different fixture
+   size) — a harness-DESIGN flaw, not a semantic failure. The logcat buffer
+   also rotated before a full capture. This run produced no committed
+   evidence.
+3. Run C (final; manual adb install + am instrument + run-as pull):
+   harness redesigned so BASELINE digests become the per-cardinality
+   reference; dual-persisted results; complete logcat-safe capture.
+   309 result lines, all scenarios ok, all semantic comparisons PASS.
+   raw/d13-device-run.log is exactly this run.
+
+Rerun-only-invalid discipline: no matrix restart was needed for the final
+run; the two earlier invalid attempts never contributed committed data.

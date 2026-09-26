@@ -1,0 +1,23 @@
+EVOLUNE v1.8.0 D-13 — PREDECESSOR FREEZE
+========================================
+
+Prior accepted evidence is byte-identical to the starting HEAD
+a3263268f27d5d73314e4eabbaac8c4490518698:
+
+  git diff a326326..HEAD
+    ':(exclude)docs/evolune/v1.8.0/evidence/D-13-m05-room-index-device-experiment'
+  -> EMPTY (source, tests, schemas, gradle, and all prior evidence).
+
+Specifically frozen and not reopened:
+  - D-09 M02 device profile evidence (frozen measurement baseline).
+  - D-10 M02 Default-boundary implementation + evidence (M02 CLOSED/FROZEN
+    via D-11 review) — including HistoryReadService.kt.
+  - D-08 / M01 decision evidence.
+  - D-07 / M04 freeze and D-06 M04 cooperative-cancellation implementation
+    (SimulationEngine.kt / PkSimulationCalculator.kt untouched).
+  - D-04R Home stale-publication disposition.
+  - D-05 M04 measurement decision.
+  - All A-*/B-*/C-01 slices and their evidence directories.
+
+No M01/M03/M04/M05 semantic is changed by D-13; M05 remains the only finding
+acted upon, and D-13 acts only by MEASURING it.
