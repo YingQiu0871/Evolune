@@ -77,7 +77,10 @@ class HistoryLazyEntryArchitectureTest {
         .substringAfter("composable(Screen.HISTORY.route) { entry ->")
         .substringBefore("composable(INSIGHTS_ROUTE)")
 
-    private fun source(relativePath: String): String = Files.readString(Path.of(relativePath))
+    private fun source(relativePath: String): String =
+        Files.readString(Path.of(relativePath))
+            .replace("\r\n", "\n")
+            .replace('\r', '\n')
 
     private fun String.count(needle: String): Int = windowed(needle.length, 1).count { it == needle }
 }

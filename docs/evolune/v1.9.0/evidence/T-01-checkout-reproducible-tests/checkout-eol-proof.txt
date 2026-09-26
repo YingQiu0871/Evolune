@@ -1,0 +1,21 @@
+# T-01 fresh-worktree checkout EOL proof (candidate tree)
+worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-t01-proof (detached @ 51a839a + candidate index blobs)
+core.autocrlf: file:C:/Program Files/Git/etc/gitconfig	true
+
+== git check-attr -a ==
+app/src/test/resources/phase-e/golden-canonical.json: text: set
+app/src/test/resources/phase-e/golden-canonical.json: eol: lf
+app/src/test/resources/phase-e/golden-canonical.csv: text: set
+app/src/test/resources/phase-e/golden-canonical.csv: eol: lf
+
+== git ls-files --eol ==
+i/lf    w/crlf  attr/                 	.gitattributes
+i/lf    w/crlf  attr/                 	app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+i/lf    w/lf    attr/text eol=lf      	app/src/test/resources/phase-e/golden-canonical.csv
+i/lf    w/lf    attr/text eol=lf      	app/src/test/resources/phase-e/golden-canonical.json
+
+== disk byte identity (raw checkout, no materialization) ==
+  .gitattributes bytes=131 cr=2 lf=2 sha256=7d69cc3460273980337f52b115989c4c7be1ed43a3265cf6d7eed8b7961a4ae4
+  app\src\test\resources\phase-e\golden-canonical.json bytes=3531 cr=0 lf=125 sha256=dd466f92a94ddef5be7bc213495d26a94e04aea5a85ce9d7e1d93f7051668af8
+  app\src\test\resources\phase-e\golden-canonical.csv bytes=1763 cr=0 lf=10 sha256=0734a95c9081d168606ffc6d48175f8437ff734e59ec329076f739e825c04957
+  app\src\main\java\io\github\yingqiu0871\evolune\navigation\AppNavigation.kt bytes=70686 cr=1557 lf=1557 sha256=2091b4c8a30693582a0eef514d8513553a008942c358c8a5aaf56828b08306b3

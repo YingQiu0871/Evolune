@@ -1,0 +1,13 @@
+Golden fixture blob identity (checked before and after the change):
+BEFORE — baseline 51a839a (tracked blob == index == worktree-clean basis):
+  app/src/test/resources/phase-e/golden-canonical.json
+    blob=e453c5d35647b2bc5b10a361b7615d5be604c163 bytes=3531 sha256=dd466f92a94ddef5be7bc213495d26a94e04aea5a85ce9d7e1d93f7051668af8 cr=0 lf=125 LF-terminated
+  app/src/test/resources/phase-e/golden-canonical.csv
+    blob=17307ce7a2f041f10e8c4918ac331abec7e3614f bytes=1763 sha256=0734a95c9081d168606ffc6d48175f8437ff734e59ec329076f739e825c04957 cr=0 lf=10 LF-terminated
+AFTER — candidate staged blobs (post-edit, pre-commit):
+  app/src/test/resources/phase-e/golden-canonical.json
+    blob=e453c5d35647b2bc5b10a361b7615d5be604c163 (identical)
+  app/src/test/resources/phase-e/golden-canonical.csv
+    blob=17307ce7a2f041f10e8c4918ac331abec7e3614f (identical)
+Post-commit verification via git ls-tree HEAD recorded in the round packet: identical.
+The .gitattributes addition changes checkout policy only; golden content delta = none.

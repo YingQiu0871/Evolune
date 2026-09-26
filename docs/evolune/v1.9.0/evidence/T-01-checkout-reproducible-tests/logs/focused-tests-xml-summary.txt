@@ -1,0 +1,14 @@
+# Focused tests from raw core.autocrlf=true checkout (no materialization)
+filters: io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest, io.github.yingqiu0871.evolune.export.*
+  io.github.yingqiu0871.evolune.export.PortableArchitectureGuardTest tests=11 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableCrossFormatTest tests=5 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableCsvCodecTest tests=10 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableExportServiceTest tests=12 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest tests=3 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableImportServiceTest tests=13 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableJsonCodecTest tests=10 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableJsonStrictDecoderTest tests=15 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableRangesTest tests=5 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.export.PortableStringsParityTest tests=4 failures=0 errors=0 skipped=0
+  io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest tests=4 failures=0 errors=0 skipped=0
+TOTAL suites=11 tests=92 failures=0 errors=0 skipped=0

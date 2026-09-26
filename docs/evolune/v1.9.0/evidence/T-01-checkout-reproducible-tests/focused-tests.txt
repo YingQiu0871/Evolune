@@ -1,0 +1,10 @@
+Focused suites from the raw core.autocrlf=true candidate checkout (no canonical-LF materialization):
+filters: io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest
+         io.github.yingqiu0871.evolune.export.*   (all adjacent codec/export/import/guard suites)
+RESULT: 11 suites / 92 tests / 0 failures / 0 errors / 0 skipped
+  (HistoryLazyEntryArchitectureTest 4; PortableGoldenFixtureTest 3; PortableArchitectureGuardTest 11;
+   PortableCsvCodecTest 10; PortableJsonCodecTest 10; PortableJsonStrictDecoderTest 15;
+   PortableRangesTest 5; PortableStringsParityTest 4; PortableExportServiceTest 12;
+   PortableImportServiceTest 13; PortableCrossFormatTest 5)
+log: logs/focused-run-raw.log; XML recount: logs/focused-tests-xml-summary.txt
+Baseline contrast (same filters minus export.*): 3 failures on pristine 51a839a — see finding-reconstruction.txt.

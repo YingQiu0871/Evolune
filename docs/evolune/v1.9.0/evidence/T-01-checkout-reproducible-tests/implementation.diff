@@ -1,0 +1,24 @@
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..cba709e
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,2 @@
++app/src/test/resources/phase-e/golden-canonical.json text eol=lf
++app/src/test/resources/phase-e/golden-canonical.csv text eol=lf
+diff --git a/app/src/test/java/io/github/yingqiu0871/evolune/navigation/HistoryLazyEntryArchitectureTest.kt b/app/src/test/java/io/github/yingqiu0871/evolune/navigation/HistoryLazyEntryArchitectureTest.kt
+index f530c84..8b9d5d0 100644
+--- a/app/src/test/java/io/github/yingqiu0871/evolune/navigation/HistoryLazyEntryArchitectureTest.kt
++++ b/app/src/test/java/io/github/yingqiu0871/evolune/navigation/HistoryLazyEntryArchitectureTest.kt
+@@ -77,7 +77,10 @@ class HistoryLazyEntryArchitectureTest {
+         .substringAfter("composable(Screen.HISTORY.route) { entry ->")
+         .substringBefore("composable(INSIGHTS_ROUTE)")
+ 
+-    private fun source(relativePath: String): String = Files.readString(Path.of(relativePath))
++    private fun source(relativePath: String): String =
++        Files.readString(Path.of(relativePath))
++            .replace("\r\n", "\n")
++            .replace('\r', '\n')
+ 
+     private fun String.count(needle: String): Int = windowed(needle.length, 1).count { it == needle }
+ }

@@ -1,0 +1,15 @@
+diff --git a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+index 1ab7d36..de135fa 100644
+--- a/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
++++ b/app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+@@ -954,8 +954,8 @@ fun AppNavigation(
+                 // ViewModel is not requested until this destination is actually entered.
+                 val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
+                 val historyViewModel: HistoryViewModel = viewModel(
+-                    viewModelStoreOwner = owner,
+-                    factory = historyViewModelFactory
++                    viewModelStoreOwner = entry,
++                    factory = null
+                 )
+                 HistoryScreen(
+                     viewModel = historyViewModel,

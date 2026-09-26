@@ -1,0 +1,15 @@
+T-01 — SOURCE-SPELLING / TEXT-READ issue (fails on CRLF checkout):
+- HistoryLazyEntryArchitectureTest needles embed LF inside string literals
+  (e.g. "HistoryScreen(\n                    viewModel = historyViewModel"); a CRLF
+  checkout of AppNavigation.kt makes contains() fail although product semantics are unchanged.
+- Baseline reconstruction (fresh detached @51a839a, core.autocrlf=true, no materialization):
+    7 tests completed, 3 failed — BUILD FAILED
+      PortableGoldenFixtureTest > the canonical JSON byte fixture is reproduced exactly FAILED
+      PortableGoldenFixtureTest > the canonical CSV byte fixture is reproduced exactly FAILED
+      HistoryLazyEntryArchitectureTest > History entry creates exactly one Activity-owned ViewModel FAILED
+  logs: logs/baseline-failure-raw.log, logs/baseline-failure-xml-summary.txt
+T-02 — CANONICAL-BYTE CONTRACT issue (checkout bytes not deterministic):
+- Tracked blobs are LF canonical (json e453c5d3 3531 B lf=125; csv 17307ce7 1763 B lf=10)
+  but with core.autocrlf=true and no .gitattributes the checkout materializes CRLF
+  (3656 / 1773 B), so PortableGoldenFixtureTest's exact contentEquals(codec LF bytes, fixture
+  bytes) fails on a fresh Windows checkout.

@@ -1,0 +1,12 @@
+Frozen product audit vs 51a839a (zero product delta):
+git diff --name-status 51a839a -- <frozen paths>  =>  empty
+frozen paths checked: app/src/main, app/src/androidTest, wear/src, experience-core/src/main,
+                      app/schemas, gradle/libs.versions.toml, build.gradle.kts, settings.gradle.kts,
+                      app/build.gradle.kts, experience-core/build.gradle.kts, wear/build.gradle.kts, gradle.properties
+Version/release freeze (unchanged; root build.gradle.kts):
+  evoluneVersionName      = "1.8.0"
+  evolunePhoneVersionCode = 100_000_000 + evoluneReleaseOrdinal  (=> 101080000)
+  evoluneWearVersionCode  = 1_100_000_000 + evoluneReleaseOrdinal (=> 1101080000)
+  root also pins: check(evoluneVersionName == "1.8.0")
+Expected substantive delta (only): root .gitattributes, HistoryLazyEntryArchitectureTest.kt, T-01 evidence directory.
+No version bump, no tag, no publish, no push to main.

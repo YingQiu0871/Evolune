@@ -1,0 +1,7 @@
+# Evidence encoding audit (T-01)
+# Rule: UTF-8, no BOM, LF line endings (CR=0), no NUL bytes.
+# Raw console capture logs were converted CRLF->LF during evidence finalization (text-only; no semantic change).
+files=24
+System.Object[]
+violations=0
+# encoding-audit.txt itself follows the same rule (self-excluded from the enumeration above).

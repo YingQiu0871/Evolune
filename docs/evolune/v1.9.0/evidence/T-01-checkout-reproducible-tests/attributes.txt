@@ -1,0 +1,18 @@
+Attribute proof (candidate worktree, staged index state):
+$ git check-attr -a -- app/src/test/resources/phase-e/golden-canonical.json app/src/test/resources/phase-e/golden-canonical.csv
+app/src/test/resources/phase-e/golden-canonical.json: text: set
+app/src/test/resources/phase-e/golden-canonical.json: eol: lf
+app/src/test/resources/phase-e/golden-canonical.csv: text: set
+app/src/test/resources/phase-e/golden-canonical.csv: eol: lf
+$ git ls-files --eol -- .gitattributes <fixtures> AppNavigation.kt
+i/lf    w/lf    attr/                 .gitattributes
+i/lf    w/crlf  attr/                 app/src/main/java/io/github/yingqiu0871/evolune/navigation/AppNavigation.kt
+i/lf    w/crlf  attr/text eol=lf      app/src/test/resources/phase-e/golden-canonical.csv
+i/lf    w/crlf  attr/text eol=lf      app/src/test/resources/phase-e/golden-canonical.json
+Notes:
+- rules are exactly two path-scoped lines (root .gitattributes blob cba709e3205cfd21148f2eac3b95f09872b65849, 129 B LF);
+  no *.kt/*.json/*.csv/* text=auto broad rules; no repository-wide normalization.
+- worktree files currently w/crlf only because they were checked out before the rule;
+  fresh checkout is proven LF in logs/checkout-eol-proof.txt (delete+checkout simulation).
+- .gitattributes itself is materialized CRLF at checkout under autocrlf and still parses (same log).
+- AppNavigation.kt carries no attribute and stays CRLF (expected, accepted).

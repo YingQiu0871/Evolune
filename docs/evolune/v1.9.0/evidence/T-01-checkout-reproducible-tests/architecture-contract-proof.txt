@@ -1,0 +1,22 @@
+T-01 — architecture assertion strength preserved (test-side read normalization only):
+- The single implementation change in the test is the source-read seam:
+    private fun source(relativePath: String): String =
+        Files.readString(Path.of(relativePath))
+            .replace("\r\n", "\n")
+            .replace('\r', '\n')
+  No assertion was deleted, weakened, or replaced; all four tests and their needles
+  are otherwise byte-identical to blob f530c845d3f78fb593674b26693260764bfd4bbf.
+- Preserved contract inventory (History destination ownership / lazy entry):
+    1) cold root wiring does not request HistoryViewModel (MainActivity forbidden spelling + stable factory)
+    2) History entry creates exactly one Activity-owned ViewModel (count + owner + factory + HistoryScreen call shape)
+    3) root recomposition carries the provider without invoking it
+    4) History re-entry preserves the existing Activity ViewModel owner (owner discipline)
+- Negative contract proof (disposable copy of the candidate worktree, uncommitted mutation):
+    reintroduced forbidden shape in the History destination:
+      viewModelStoreOwner = owner  ->  viewModelStoreOwner = entry
+      factory = historyViewModelFactory  ->  factory = null
+    compiled, then: HistoryLazyEntryArchitectureTest "History entry creates exactly one
+    Activity-owned ViewModel" FAILED and "History re-entry preserves the existing Activity
+    ViewModel owner" FAILED (4 tests completed, 2 failed); restore via git checkout -> green.
+  logs: logs/negative-contract-run.log, logs/negative-contract-mutation.diff, logs/negative-contract-restore-run.log
+- Normalization occurs ONLY on test source text; production sources remain untouched (see frozen-product-audit.txt).

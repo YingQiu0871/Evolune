@@ -1,0 +1,5 @@
+# Raw Windows full JVM XML recount (fresh core.autocrlf=true checkout, no canonical-LF materialization)
+  app suites=156 tests=1448 failures=0 errors=0 skipped=0
+  experience-core suites=20 tests=171 failures=0 errors=0 skipped=0
+  wear suites=11 tests=90 failures=0 errors=0 skipped=0
+TOTAL suites=187 tests=1709 failures=0 errors=0 skipped=0
