@@ -1,0 +1,14 @@
+EVOLUNE v1.9.0 D-02 — GOVERNED BOUNDED CONFIG CLEANUP — IDENTITY
+branch:      feature/v1.9.0-d02-governed-config-cleanup
+worktree:    D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d02-governed
+HEAD:        284909ae037bd23e1c2a4ab692fc8ffb9c736a3c (start)
+parent:      d7fd1e732c4c487e99d033df2794b907aa63240b
+tree:        ea216cc861b6c88ac7c2cbd846e2ffb2090bf8ec
+status:      clean at start; edited paths during round: app/build.gradle.kts,
+             gradle/libs.versions.toml, app/proguard-rules.pro (implementation)
+origin/main: 2fe04ee9ffc2651f89b8dc8513c1b39141054648 (unchanged)
+v1.9 tags:   none (local and remote)
+quarantined branch tips (untouched, verified):
+  fc364e64bcfc62a3d9daa2636a80d2561935e96a
+  5ad1070c42dfa5deca7083beb7087f6b0068d572
+intended commit subject: chore(v1.9.0): apply governed dependency cleanup

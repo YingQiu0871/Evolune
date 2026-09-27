@@ -1,0 +1,11 @@
+WEAR RELEASE APK METADATA (candidate)
+path (worktree-relative): wear/build/outputs/apk/release/wear-release.apk
+file size:    2604764 bytes
+SHA-256:      9ed0f306a9fb1b82df5c49e34d9dbc6042be72cba20d447536a7590bbff7e803
+  (provenance/identity only; NOT a cross-build equality gate)
+apkanalyzer apk summary: io.github.yingqiu0871.evolune	1101080000	1.8.0
+package: io.github.yingqiu0871.evolune; versionName 1.8.0; versionCode 1101080000
+minSdk: 30; targetSdk: 36
+signer certificate SHA-256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+Build: :wear:clean :wear:assembleRelease exit 0; packageRelease + validateSigningRelease executed.
+Wear graph/configuration is unaffected by the App-specific cleanup (no Wear build file changed).

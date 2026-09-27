@@ -1,0 +1,7 @@
+WORKMANAGER KEEP-RULE HARD FREEZE
+Captured WorkManager InputMerger block (comment + two -keep rules) before and after the edit:
+  before: 368 bytes, sha256 e54e9e1f62bb115beb56a3d4776b3886fc1c137a0013028cbf55930e65841b14
+  after:  368 bytes, sha256 e54e9e1f62bb115beb56a3d4776b3886fc1c137a0013028cbf55930e65841b14
+  byte-identical: TRUE
+No WorkManager rule was removed, weakened or reformatted. The only proguard change is the
+removal of the Glance/ActionCallback block and its separator (see proguard-diff.txt).

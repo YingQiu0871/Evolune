@@ -1,0 +1,66 @@
+Changed paths vs 284909a (candidate state):
+  M app/build.gradle.kts
+  M gradle/libs.versions.toml
+  M app/proguard-rules.pro
+  (untracked) docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/**
+
+Full status snapshot (porcelain -uall):
+ M app/build.gradle.kts
+ M app/proguard-rules.pro
+ M gradle/libs.versions.toml
+?? _d02g/app-aapt2-raw.txt
+?? _d02g/app-apk-summary-raw.txt
+?? _d02g/app-apksigner-raw.txt
+?? _d02g/app-build-diff.txt
+?? _d02g/catalog-diff.txt
+?? _d02g/exit-states.txt
+?? _d02g/implementation.diff
+?? _d02g/proguard-diff.txt
+?? _d02g/ui-history.xml
+?? _d02g/ui-history2.xml
+?? _d02g/ui-home.xml
+?? _d02g/ui-retro.xml
+?? _d02g/ui-settings.xml
+?? _d02g/ui-timeline.xml
+?? _d02g/wear-aapt2-raw.txt
+?? _d02g/wear-apk-summary-raw.txt
+?? _d02g/wear-apksigner-raw.txt
+?? "_d02g/widget-android-1-TEST-Pixel_7(AVD) - 15-_app-.xml"
+?? _d02g/widget-android-1.txt
+?? "_d02g/widget-android-2-TEST-Pixel_7(AVD) - 15-_app-.xml"
+?? _d02g/widget-android-2.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-build-diff.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-release-build.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/catalog-diff.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/dex-class-audit.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/frozen-predecessor-audit.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/glance-resolution.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/graphics-path-apk-inventory.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/graphics-path-resolution.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/identity.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/implementation.diff
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/lineage-authority.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/app-release-build-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/dex-packages-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/exit-states.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/full-jvm-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/glance-insight-candidate-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graph-candidate-normalized.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graph-candidate-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graphicspath-insight-candidate-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/inventory-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/validation-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/wear-release-build-raw.txt
+?? "docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-1-TEST-Pixel_7(AVD) - 15-_app-.xml"
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-1-raw.txt
+?? "docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-2-TEST-Pixel_7(AVD) - 15-_app-.xml"
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-2-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-jvm-raw.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/product-zero-delta.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/proguard-diff.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/quarantine-proof.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/raw-windows-full-jvm.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/validation.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/wear-release-build.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/widget-jvm.txt
+?? docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/workmanager-freeze.txt

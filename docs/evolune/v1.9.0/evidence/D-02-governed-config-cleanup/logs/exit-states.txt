@@ -1,0 +1,20 @@
+:app:dependencies --configuration releaseRuntimeClasspath | exit=0 | 2026-09-27T22:55:20Z | raw=logs/graph-candidate-raw.txt | normalized=graph-before-after.txt
+:app:dependencyInsight --dependency androidx.graphics:graphics-path | exit=0 | 2026-09-27T22:55:27Z | raw=logs/graphicspath-insight-candidate-raw.txt | normalized=graphics-path-resolution.txt
+:app:dependencyInsight --dependency androidx.glance | exit=0 | 2026-09-27T22:55:32Z | raw=logs/glance-insight-candidate-raw.txt | normalized=glance-resolution.txt
+validateEvoluneIdentityAndVersioning | exit=0 | 2026-09-27T22:55:35Z | raw=logs/validation-raw.txt | normalized=validation.txt
+full JVM (3 modules, --rerun-tasks) | exit=0 | 2026-09-27T22:55:50Z | raw=logs/full-jvm-raw.txt | normalized=raw-windows-full-jvm.txt
+widget JVM selection | exit=0 | 2026-09-27T22:56:38Z | raw=logs/widget-jvm-raw.txt | normalized=widget-jvm.txt
+full JVM XML recount: app 156/1448, ec 20/171, wear 11/90, TOTAL 187/1709 0/0/0 | 2026-09-27T22:55:50Z
+widget JVM XML recount: suites=8 tests=82 failures=0 errors=0 skipped=0 | 2026-09-27T22:56:38Z
+connectedDebugAndroidTest WidgetRemoteViewsTest | exit=0 | 2026-09-27T22:56:53Z | raw=_d02g/widget-android-1.txt | normalized=widget-android.txt
+connectedDebugAndroidTest ReceiverWidgetProductionCutoverTest | exit=0 | 2026-09-27T22:57:28Z | raw=_d02g/widget-android-2.txt | normalized=widget-android.txt
+:app:clean :app:assembleRelease | exit=0 | 2026-09-27T22:57:54Z | raw=logs/app-release-build-raw.txt | normalized=app-release-build.txt
+:wear:clean :wear:assembleRelease | exit=0 | 2026-09-27T22:59:38Z | raw=logs/wear-release-build-raw.txt | normalized=wear-release-build.txt
+apkanalyzer apk summary (app) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=app-apk-metadata.txt
+aapt2 dump badging (app) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=app-apk-metadata.txt
+apksigner verify (app) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=app-apk-metadata.txt
+apkanalyzer apk summary (wear) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=wear-apk-metadata.txt
+aapt2 dump badging (wear) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=wear-apk-metadata.txt
+apksigner verify (wear) | exit=0 | 2026-09-27T23:00:20Z | raw=transient | normalized=wear-apk-metadata.txt
+python d01_apk_inventory.py (app) | exit=0 | 2026-09-27T23:00:25Z | raw=logs/inventory-raw.txt | normalized=graphics-path-apk-inventory.txt
+apkanalyzer dex packages (app) | exit=0 | 2026-09-27T23:00:25Z | raw=logs/dex-packages-raw.txt | normalized=dex-class-audit.txt

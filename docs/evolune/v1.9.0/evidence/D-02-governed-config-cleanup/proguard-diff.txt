@@ -1,0 +1,31 @@
+diff --git a/app/proguard-rules.pro b/app/proguard-rules.pro
+index ea995c9..572c486 100644
+--- a/app/proguard-rules.pro
++++ b/app/proguard-rules.pro
+@@ -30,25 +30,3 @@
+ -keep class androidx.work.OverwritingInputMerger {
+ 	public <init>();
+ }
+-
+-# Glance callback actions are instantiated reflectively from class name.
+--keep class * implements androidx.glance.appwidget.action.ActionCallback {
+-	public <init>();
+-}
+-
+-# Explicit keep for widget action callbacks used by actionRunCallback<T>().
+--keep class io.github.yingqiu0871.evolune.widget.StartConfirmAction {
+-	public <init>();
+-}
+--keep class io.github.yingqiu0871.evolune.widget.ConfirmDoseAction {
+-	public <init>();
+-}
+--keep class io.github.yingqiu0871.evolune.widget.CancelConfirmAction {
+-	public <init>();
+-}
+-
+-# Future-proof: keep all widget package callback implementations and class names.
+--keep class io.github.yingqiu0871.evolune.widget.** implements androidx.glance.appwidget.action.ActionCallback {
+-	public <init>();
+-}
+--keepnames class io.github.yingqiu0871.evolune.widget.** implements androidx.glance.appwidget.action.ActionCallback
+\ No newline at end of file

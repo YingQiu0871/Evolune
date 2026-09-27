@@ -1,0 +1,11 @@
+PRODUCT SEMANTIC ZERO-DELTA (vs governed authority 284909a)
+git diff --name-status 284909a  => exactly:
+  M app/build.gradle.kts
+  M app/proguard-rules.pro
+  M gradle/libs.versions.toml
+Zero delta under: app/src/main, app/src/test, app/src/androidTest, wear/src,
+experience-core/src, schemas, resources, manifests, version metadata, signing config,
+Widget implementation, Wear implementation.
+The only behavior-affecting change is the authorized Gradle dependency-resolution effect of
+removing the redundant direct graphics-path declaration (1.1.0 -> 1.0.1).
+No Kotlin/product source change exists.

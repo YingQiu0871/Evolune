@@ -1,0 +1,4 @@
+ANDROID WIDGET INSTRUMENTATION (Pixel_7 API35, emulator-5554) — candidate debug build
+WidgetRemoteViewsTest:               12 tests / 0 failures / 0 errors  (raw logs/widget-android-1-raw.txt; XML logs/widget-android-1-*.xml)
+ReceiverWidgetProductionCutoverTest:  9 tests / 0 failures / 0 errors  (raw logs/widget-android-2-raw.txt; XML logs/widget-android-2-*.xml)
+Total: 21/21 green. This satisfies the device-integration gate that D-01 deferred to D-02.

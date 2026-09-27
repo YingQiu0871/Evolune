@@ -1,0 +1,8 @@
+R8 / MISSING-CLASS AUDIT — candidate App release build (logs/app-release-build-raw.txt)
+Search: glance | ActionCallback | StartConfirmAction | ConfirmDoseAction | CancelConfirmAction | Missing class | Warning
+Matches = 2, both pre-existing Gradle option notices:
+  WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+  WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+=> No cleanup-induced Glance warning; no ActionCallback missing-class warning; no missing obsolete
+callback class failure; R8/minify completed (Task :app:minifyReleaseWithR8 executed, exit 0).
+Wear release build also completed exit 0 (logs/wear-release-build-raw.txt).

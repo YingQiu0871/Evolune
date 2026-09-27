@@ -1,0 +1,10 @@
+APP RELEASE APK METADATA (candidate)
+path (worktree-relative): app/build/outputs/apk/release/app-release.apk
+file size:    6313112 bytes
+SHA-256:      d2d6f7e786141c4c73474c97ecd8f4bc719ac1ab4e513fe51a9c15cfe96f9cb6
+  (provenance/identity only; NOT a cross-build equality gate)
+apkanalyzer apk summary: io.github.yingqiu0871.evolune	101080000	1.8.0
+package: io.github.yingqiu0871.evolune; versionName 1.8.0; versionCode 101080000
+minSdk: 31; targetSdk: 36
+signer certificate SHA-256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+Build: :app:clean :app:assembleRelease exit 0; minifyReleaseWithR8 + packageRelease + validateSigningRelease executed.

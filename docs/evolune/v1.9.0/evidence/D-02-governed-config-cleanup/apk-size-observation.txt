@@ -1,0 +1,7 @@
+APK SIZE OBSERVATION (factual; NO packaging-removal claim)
+App  candidate: 6,313,112 bytes. Governed D-01 B0 baseline APK: 6,313,112 bytes. Delta = 0.
+Wear candidate: 2,604,764 bytes (matches the released v1.8.0 Wear APK size, 2,604,764 bytes).
+The graphics-path native libraries REMAIN packaged (see graphics-path-apk-inventory.txt); the
+entry-level comparison is authoritative for interpretation. This cleanup is configuration
+hygiene only: no size optimization, no native-footprint reduction and no performance claim is
+made or implied.

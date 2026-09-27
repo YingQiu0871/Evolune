@@ -1,0 +1,48 @@
+# EVIDENCE ENCODING AUDIT (D-02 governed)
+# Governed text evidence: UTF-8 without BOM, LF (CR=0, NUL=0).
+# RAW (tool-emitted, exempt): logs/*-raw.txt and Gradle test-result XML under logs/.
+# encoding-audit.txt is excluded from its own enumeration; its own bytes are verified after write (cr=0, bom=False).
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/apk-size-observation.txt | bytes=539 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-apk-metadata.txt | bytes=667 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-build-diff.txt | bytes=567 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-release-build.txt | bytes=8508 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/app-smoke.txt | bytes=978 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/catalog-diff.txt | bytes=1449 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/changed-files.txt | bytes=4031 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/dex-class-audit.txt | bytes=2286779 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/frozen-predecessor-audit.txt | bytes=853 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/glance-resolution.txt | bytes=985 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/graph-before-after.txt | bytes=1500 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/graphics-path-apk-inventory.txt | bytes=13268 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/graphics-path-resolution.txt | bytes=128088 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/identity.txt | bytes=834 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/implementation.diff | bytes=3156 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/lineage-authority.txt | bytes=1323 cr=0 nul=0 bom=False utf8=True | OK
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/app-release-build-raw.txt | bytes=8596 cr=88 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/dex-packages-raw.txt | bytes=2341740 cr=55497 nul=0 bom=False utf8=True | raw (exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/exit-states.txt | bytes=2588 cr=0 nul=0 bom=False utf8=True | OK
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/full-jvm-raw.txt | bytes=20441 cr=142 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/glance-insight-candidate-raw.txt | bytes=581 cr=11 nul=0 bom=False utf8=True | raw (exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graph-candidate-normalized.txt | bytes=72432 cr=0 nul=0 bom=False utf8=True | OK
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graph-candidate-raw.txt | bytes=73395 cr=963 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/graphicspath-insight-candidate-raw.txt | bytes=127618 cr=623 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/inventory-raw.txt | bytes=12674 cr=272 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/validation-raw.txt | bytes=499 cr=10 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/wear-release-build-raw.txt | bytes=3859 cr=74 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-1-raw.txt | bytes=66620 cr=149 nul=33309 bom=False utf8=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-1-TEST-Pixel_7(AVD) - 15-_app-.xml | bytes=2408 cr=19 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-2-raw.txt | bytes=9488 cr=95 nul=4743 bom=False utf8=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-android-2-TEST-Pixel_7(AVD) - 15-_app-.xml | bytes=2214 cr=16 nul=0 bom=False utf8=True | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/logs/widget-jvm-raw.txt | bytes=2251 cr=46 nul=0 bom=False utf8=True | raw (exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/product-zero-delta.txt | bytes=598 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/proguard-diff.txt | bytes=1140 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/quarantine-proof.txt | bytes=831 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/r8-audit.txt | bytes=701 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/raw-windows-full-jvm.txt | bytes=21047 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/validation.txt | bytes=758 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/wear-apk-metadata.txt | bytes=749 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/wear-release-build.txt | bytes=3785 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/widget-android.txt | bytes=458 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/widget-jvm.txt | bytes=2523 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/workmanager-freeze.txt | bytes=512 cr=0 nul=0 bom=False utf8=True | OK
+GOVERNED violations=0

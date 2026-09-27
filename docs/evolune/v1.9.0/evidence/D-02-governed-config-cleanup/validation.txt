@@ -1,0 +1,16 @@
+
+> Configure project :app
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :validateEvoluneIdentityAndVersioning
+
+BUILD SUCCESSFUL in 3s
+1 actionable task: 1 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html
+===== GOVERNED ADDENDUM =====
+validateEvoluneIdentityAndVersioning: BUILD SUCCESSFUL, exit 0.
+Version freeze re-checked: versionName 1.8.0 / Phone 101080000 / Wear 1101080000 (root pin
+check(evoluneVersionName == "1.8.0") still enforced). No validation-task weakening.
