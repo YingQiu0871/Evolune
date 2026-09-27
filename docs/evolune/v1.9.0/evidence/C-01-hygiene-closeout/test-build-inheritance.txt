@@ -1,0 +1,15 @@
+TEST / BUILD EVIDENCE INHERITANCE (no ceremonial reruns in C-01)
+C-01 is docs/evidence-only and the product/config/test bytes are byte-identical to the accepted
+D-02 candidate tree (see frozen-contracts.txt / product-tree-freeze.txt). Therefore the
+authoritative D-02 gate results remain bound to the unchanged bytes:
+  raw Windows full JVM:  187 suites / 1709 tests / 0 failures / 0 errors / 0 skipped
+  widget JVM:            8 suites / 82 tests / 0/0/0
+  Android instrumentation (Pixel_7 API35): WidgetRemoteViewsTest 12/12;
+                         ReceiverWidgetProductionCutoverTest 9/9
+  graphics-sensitive App smoke: PASS (cold launch, Home+chart, History, Timeline, Retro PK, Settings;
+                         logcat free of FATAL/ANR/UnsatisfiedLinkError/ClassNotFound/NoClassDefFound)
+  signed App release:    PASS (6,313,112 B; R8 + validateSigningRelease green)
+  signed Wear release:   PASS (2,604,764 B; validateSigningRelease green)
+  R8:                    PASS (no cleanup-induced Glance/ActionCallback/missing-class warning)
+Because no executable/config/test byte changed in C-01, these results are inherited as-is and
+were NOT rerun for ceremony.

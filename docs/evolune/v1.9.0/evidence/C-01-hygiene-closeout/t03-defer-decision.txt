@@ -1,0 +1,18 @@
+T-03 — DEFER DECISION (read-only reinspection performed; NO test modified)
+Read-only findings at 7797b6c:
+  JVM test suites: 0 Thread.sleep sites (no relevant sleep problem in JVM tests).
+  Device (androidTest) sites = 9, matching the A-00 inventory:
+    HistoryNavigationTest.kt:137            Thread.sleep(NAV_CLICK_THROTTLE_MS + 100L)  [throttle contract]
+    HistoryRefreshDeviceTest.kt:144         Thread.sleep(NAV_CLICK_THROTTLE_MS + 100L)  [throttle contract]
+    SliceCSettingsSmokeTest.kt:90/95/104    Thread.sleep(400)                        [UI settle]
+    SliceCSettingsSmokeTest.kt:113          Thread.sleep(300)                        [UI settle]
+    TimelineNavigationTest.kt:202           Thread.sleep(200)                        [UI settle]
+    TimelineNavigationTest.kt:262           Thread.sleep(50)                         [UI settle]
+    WearTileEmulatorPreviewTest.kt:104      Thread.sleep(750L)                       [tile preview settle]
+DECISION: T-03 = DEFERRED / NO V1.9 CHANGE JUSTIFIED
+Reasoning:
+  - the JVM suite has no relevant sleep problem;
+  - deliberate timing-contract sleeps (navigation throttle) remain intentional and documented;
+  - screenshot/device settling sleeps are environment-oriented;
+  - no current flakiness evidence justifies replacement, and mechanically removing sleeps is prohibited.
+No fresh concrete flakiness evidence was found, so the closeout continues.

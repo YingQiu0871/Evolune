@@ -1,0 +1,20 @@
+Changed paths vs 7797b6c (C-01 candidate state):
+  (untracked) docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/**   (this evidence root)
+No executable/config/test path changed (zero product delta).
+
+Full status snapshot (porcelain -uall):
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/a00-finding-ledger.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/authoritative-lineage.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/d01-governed-proof-closure.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/d02-governed-implementation-closure.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/e01-defer-decision.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/frozen-contracts.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/identity.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/p0-p3-ledger.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/product-tree-freeze.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/quarantine-ledger.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/release-readiness.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/t01-t02-closure.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/t03-defer-decision.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/test-build-inheritance.txt
+?? docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/version-state.txt

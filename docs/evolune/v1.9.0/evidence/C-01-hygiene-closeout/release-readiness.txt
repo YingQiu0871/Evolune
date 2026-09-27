@@ -1,0 +1,12 @@
+RELEASE-READINESS DECISION
+  V1.9.0 HYGIENE / IMPLEMENTATION PHASE = CLOSED / FROZEN
+  FUNCTIONAL TREE = READY FOR VERSION / RELEASE PACKAGING
+Basis: every REQUIRED A-00 finding is closed (T-01, T-02, H-01, H-02); only the optional
+E-01 and T-03 items remain explicitly deferred; P0/P1/P2 = 0; the functional/config tree is
+frozen at 9beb4039119788d14c7019271aa80a3cd444b624; version is still 1.8.0.
+This decision is NOT publication authorization: it authorizes only the next
+packaging-planning stage (version bump + release packaging) to be proposed separately.
+Status-document note (§17): the repository has no established v1.9 phase-closeout status
+document; CURRENT_STATUS.md / TODO.MD / ROADMAP.md remain release-closure surfaces and were
+deliberately NOT modified (packaging not started; no speculative roadmap churn). This closeout
+ledger is the authoritative record.

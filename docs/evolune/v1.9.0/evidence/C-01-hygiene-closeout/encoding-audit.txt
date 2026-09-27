@@ -1,0 +1,20 @@
+# EVIDENCE ENCODING AUDIT (C-01 closeout)
+# Governed text: UTF-8 without BOM, LF (CR=0, NUL=0).
+# encoding-audit.txt is excluded from its own enumeration; its own bytes are verified after write (cr=0, bom=False).
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/a00-finding-ledger.txt | bytes=2895 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/authoritative-lineage.txt | bytes=691 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/changed-files.txt | bytes=1401 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/d01-governed-proof-closure.txt | bytes=601 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/d02-governed-implementation-closure.txt | bytes=922 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/e01-defer-decision.txt | bytes=1468 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/frozen-contracts.txt | bytes=941 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/identity.txt | bytes=589 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/p0-p3-ledger.txt | bytes=1645 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/product-tree-freeze.txt | bytes=382 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/quarantine-ledger.txt | bytes=471 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/release-readiness.txt | bytes=875 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/t01-t02-closure.txt | bytes=804 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/t03-defer-decision.txt | bytes=1415 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/test-build-inheritance.txt | bytes=1167 cr=0 nul=0 bom=False utf8=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/C-01-hygiene-closeout/version-state.txt | bytes=311 cr=0 nul=0 bom=False utf8=True | OK
+GOVERNED violations=0

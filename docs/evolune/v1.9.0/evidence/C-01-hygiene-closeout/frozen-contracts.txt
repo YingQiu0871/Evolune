@@ -1,0 +1,11 @@
+FROZEN CONTRACT AUDIT — C-01 changes ZERO bytes in every predecessor surface
+Verified at the C-01 worktree (git diff vs 7797b6c = empty for all of the following):
+  - T-01 implementation/evidence: .gitattributes, HistoryLazyEntryArchitectureTest.kt, phase-e fixtures
+  - D-01 plan: docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md
+  - D-01 governed evidence: docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/**
+  - D-02 implementation/config: app/build.gradle.kts, gradle/libs.versions.toml, app/proguard-rules.pro
+  - D-02 governed evidence: docs/evolune/v1.9.0/evidence/D-02-governed-config-cleanup/**
+  - v1.8 product contracts: phase-e golden fixtures, AppNavigation.kt
+  - full product/config tree: zero delta under app/, wear/, experience-core/, gradle/,
+    *.gradle.kts (product byte identity with the frozen D-02 tree)
+C-01 delta is exactly this new evidence root (docs/evidence-only).

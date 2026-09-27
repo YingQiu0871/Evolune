@@ -1,0 +1,12 @@
+T-01 / T-02 CLOSURE
+Authoritative implementation: 2fe04ee9ffc2651f89b8dc8513c1b39141054648
+Independent review verdict:   APPROVE V1.9.0 T-01 — CHECKOUT REPRODUCIBILITY CLOSED / FROZEN
+Frozen facts:
+  T-01 = CLOSED / FROZEN — CRLF SOURCE-READ TEST SENSITIVITY RESOLVED
+  T-02 = CLOSED / FROZEN — CANONICAL GOLDEN CHECKOUT DETERMINISM RESOLVED
+  Raw-Windows JVM contract established: a fresh ordinary Windows checkout runs the full JVM gate
+  without canonical-LF materialization (187 suites / 1709 tests / 0/0/0 at the T-01 slice).
+Frozen artifacts (verified unchanged by C-01):
+  root .gitattributes; HistoryLazyEntryArchitectureTest.kt;
+  phase-e golden-canonical.json (blob e453c5d35647b2bc5b10a361b7615d5be604c163);
+  phase-e golden-canonical.csv (blob 17307ce7a2f041f10e8c4918ac331abec7e3614f).

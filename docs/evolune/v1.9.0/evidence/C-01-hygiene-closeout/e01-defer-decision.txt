@@ -1,0 +1,20 @@
+E-01 — DEFER DECISION (read-only reinspection performed; NO code modified)
+Read-only findings at 7797b6c:
+  - the four parallel lifecycle bridges still exist with an identical documented contract shape:
+      HistoryScreen.kt (inline: LaunchedEffect(Unit) { viewModel.onSurfaceShown() } + LifecycleEventObserver)
+      history/insights/InsightsSurfaceLifecycle.kt
+      ui/screens/retrospective/RetrospectiveSurfaceLifecycle.kt
+      ui/screens/timeline/TimelineSurfaceLifecycle.kt
+  - each bridge renders nothing, defines no layout/colour/copy, and implements the same
+    "keyed effect on composition entry + ON_STOP->ON_START foreground refresh with a was-stopped bit"
+    contract; comments explicitly state the single-mechanism intent.
+  - no leak, no correctness defect and no behavioral divergence was found in the current sources;
+    the existing semantics are already covered by the established JVM/instrumentation gates.
+DECISION: E-01 = DEFERRED / NO V1.9 IMPLEMENTATION JUSTIFIED
+Reasoning (concrete):
+  - the duplication is maintainability-only; duplication itself is NOT labelled a defect;
+  - existing semantics are already tested and frozen;
+  - no leak/correctness defect was established;
+  - changing lifecycle plumbing after the current full integration gates would add refactor risk
+    without a demonstrated v1.9 user-facing or correctness benefit.
+No NEW concrete correctness evidence was found, so the closeout continues (no STOP condition).
