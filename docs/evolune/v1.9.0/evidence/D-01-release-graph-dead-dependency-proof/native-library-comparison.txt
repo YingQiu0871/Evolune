@@ -1,0 +1,62 @@
+NATIVE-LIBRARY / PACKAGING COMPARISON — B0 vs H01-A vs H02-B (plan §10.2.1)
+Method: governed inventories rows 17/18/19 produced by the frozen helper
+scripts/d01_apk_inventory.py over each freshly built release APK. Each inventory has
+272 lines (270 unique entry names; two duplicate names exist: res/Lr.xml x2, res/Xn.xml x2).
+
+Whole-APK totals (recorded; per §10.2.1 NOT causal evidence by itself):
+  B0    6,313,112 bytes (sha256 c1c0a3a4c49a30a0865d38341825ea77d44d5c12039f267056b7eee845d7fc0b)
+  H01-A 6,313,112 bytes (sha256 ada8774da2674557b116ea8893e6521b21d4d5cdcfa1c1b9ce6201beea84685f)  delta = 0
+  H02-B 6,313,112 bytes (sha256 4729713a49ed70dd32bf3c08c97e47f1c7a57867eeae32111e5cd4ef5638c897)  delta = 0
+Sum of per-entry compressed sizes: B0 6,209,099; H01-A 6,210,839 (delta +1,740); H02-B 6,209,099 (delta 0).
+
+lib/** entry SET comparison (plan §10.2.1 item 4):
+  B0 lib entries = 8; H01-A = 8; H02-B = 8. Presence differences: B0<->H01-A = 0, B0<->H02-B = 0.
+  The complete lib/** path set is identical in all three APKs:
+    lib/arm64-v8a/libandroidx.graphics.path.so
+    lib/armeabi-v7a/libandroidx.graphics.path.so
+    lib/x86/libandroidx.graphics.path.so
+    lib/x86_64/libandroidx.graphics.path.so
+    lib/arm64-v8a/libdatastore_shared_counter.so
+    lib/armeabi-v7a/libdatastore_shared_counter.so
+    lib/x86/libdatastore_shared_counter.so
+    lib/x86_64/libdatastore_shared_counter.so
+
+graphics-path entries per ABI (crc32 / compressed / uncompressed):
+  ABI           B0                          H01-A                       H02-B
+  arm64-v8a     923d1bdf 9952 9952           9734baa0 10096 10096          923d1bdf 9952 9952
+  armeabi-v7a   23e639df 7224 7224           9a714d3a 7252 7252            23e639df 7224 7224
+  x86           307b8afe 8312 8312           3d9afc66 9284 9284            307b8afe 8312 8312
+  x86_64        b7b842d1 10104 10104         81bd88ae 10760 10760          b7b842d1 10104 10104
+  (plus META-INF/androidx.graphics_graphics-path.version: B0 45c2cf0d 8 6; H01-A e4659929 8 6; H02-B 45c2cf0d 8 6)
+
+H01-A vs B0 per-entry differences (complete list; all other entries identical):
+  ~ assets/dexopt/baseline.prof                     content changed (size unchanged 5691)
+  ~ lib/arm64-v8a/libandroidx.graphics.path.so      +144 bytes
+  ~ lib/armeabi-v7a/libandroidx.graphics.path.so    +28 bytes
+  ~ lib/x86/libandroidx.graphics.path.so            +972 bytes
+  ~ lib/x86_64/libandroidx.graphics.path.so         +656 bytes
+  ~ classes.dex                                     -60 bytes
+  ~ META-INF/androidx.graphics_graphics-path.version content changed (size unchanged 8/6)
+H02-B vs B0 per-entry differences: NONE (0 of 270 unique entries differ).
+
+Attribution (plan §10.2.1):
+1. The native-library entry-set difference is EMPTY and no unrelated lib/** entry changed
+   presence, so the observed packaging effect is attributable to the frozen mutation:
+   the graphics-path native library REMAINS PACKAGED after the direct-declaration removal
+   (proposition D), and packaging removal is NOT DEMONSTRATED (proposition E absent).
+2. Total APK size delta is zero WITH changed graphics-path entry content. Per §10.2.1 this
+   requires an explicit, independently justified deterministic explanation to avoid class G:
+   (i) the graph evidence (h01a-graphicspath-insight.txt) shows a deterministic version
+       resolution change: with the direct declaration removed, the resolved artifact is
+       androidx.graphics:graphics-path:1.0.1 supplied transitively by
+       androidx.compose.ui:ui-graphics-android (the direct declaration previously pinned 1.1.0);
+   (ii) the seven changed entries are exactly the entries that artifact-version change
+       deterministically affects (4 native libraries + version marker + compiled code/profile);
+   (iii) the whole-APK byte size is not a causal observable here: the APKs store these entries
+       uncompressed and are zip-aligned; all three APKs verify 4-byte alignment
+       (`zipalign -c -v 4` exit 0; transient captures _raw/zipalign-b0.txt,
+       _raw/zipalign-h01a.txt, _raw/zipalign-h02b.txt), so per-entry size changes are absorbed
+       by alignment padding while the per-entry compressed-size sum actually changed (+1,740).
+   Total size is therefore recorded but never used to establish or refute the packaging effect.
+3. Classification consequence: NOT class G; the outcome supports the §11 combination
+   A + B + D + build-OK (direct declaration redundant; native library still packaged).

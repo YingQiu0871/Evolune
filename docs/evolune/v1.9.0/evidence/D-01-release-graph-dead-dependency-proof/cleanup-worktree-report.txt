@@ -1,0 +1,22 @@
+# DISPOSABLE WORKTREE CLEANUP REPORT (plan §22)
+
+Pre-cleanup disposable worktrees (all created from 2fe04ee9ffc2651f89b8dc8513c1b39141054648):
+  D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01-b0          2fe04ee (detached HEAD)
+  D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01-h01a        2fe04ee (detached HEAD)
+  D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01-h02b        2fe04ee (detached HEAD)
+removed Evolune-v1.9.0-d01-b0 : git worktree remove --force (long-path rmdir fallback used=True) ; path exists after removal=False
+removed Evolune-v1.9.0-d01-h01a : git worktree remove --force (long-path rmdir fallback used=True) ; path exists after removal=False
+removed Evolune-v1.9.0-d01-h02b : git worktree remove --force (long-path rmdir fallback used=True) ; path exists after removal=False
+
+Post-cleanup verification:
+  git worktree list contains no B0/H01-A/H02-B entries: OK
+  remaining v1.9 worktrees:
+    D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01             fc364e6 [feature/v1.9.0-d01-dead-dependency-proof]
+    D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01-execution   d7fd1e7 [feature/v1.9.0-d01-governed-proof-execution]
+    D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d01-plan        d7fd1e7 [feature/v1.9.0-d01-governed-proof-plan]
+    D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-d02             5ad1070 [feature/v1.9.0-d02-dead-config-cleanup]
+    D:/Evolune-Workspace/worktrees/Evolune-v1.9.0-t01             2fe04ee [feature/v1.9.0-t01-checkout-reproducibility]
+  execution branch/worktree retained: feature/v1.9.0-d01-governed-proof-execution @ d7fd1e7
+  plan branch/worktree untouched: feature/v1.9.0-d01-governed-proof-plan @ d7fd1e7
+  excluded fc364e6 branch untouched: feature/v1.9.0-d01-dead-dependency-proof @ fc364e6
+  blocked D-02 branch untouched: feature/v1.9.0-d02-dead-config-cleanup @ 5ad1070

@@ -1,0 +1,15 @@
+AUTHORITY INPUTS (plan §1)
+A1 accepted/frozen corrected D-01 opening preflight:
+   V1.9.0 D-01 READ-ONLY OPENING PREFLIGHT — ACCEPTED / FROZEN AS PLAN INPUT
+   (independent re-review after Owner A′ narrow correction)
+A2 owner decision: A′ — EXCLUDE AND REPRODUCE
+A3 A-00 audit (repository-external):
+   D:\Evolune-Workspace\review-packets\v190-a00-post-v180-audit.txt
+   size 21159 B
+   SHA-256 728ab05f0526342a29ee40c47d65099ea12fc10bebc47cd43ae76f072b6c88ca
+   (re-verified during this execution: size and SHA-256 match exactly)
+A4 governance predecessor (immutable baseline):
+   2fe04ee9ffc2651f89b8dc8513c1b39141054648
+   tree fad10191910964c3cfa3659022d9781f7c09a4c2
+A5 tracked repository content at A4 is the only permitted source-of-record for static facts.
+No later D-01 or D-02 execution material is source authority.

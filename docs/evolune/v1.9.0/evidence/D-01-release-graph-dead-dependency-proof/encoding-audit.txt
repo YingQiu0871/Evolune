@@ -1,0 +1,61 @@
+# EVIDENCE ENCODING AUDIT (plan §18; round prompt §44)
+# Governed text evidence must be UTF-8 without BOM with LF line endings (CR=0, NUL=0).
+# RAW logs retain the exact bytes emitted by the tool and are EXEMPT from forced normalization;
+# their detected encoding/line-ending state is recorded below (RAW vs GOVERNED distinguished).
+# encoding-audit.txt is EXCLUDED from its own enumeration and is independently verified after write:
+#   its own bytes are checked post-write (cr=0, bom=False, LF-only, valid UTF-8) — see packet.
+# Manifest coverage count is recorded by MANIFEST.sha256 itself.
+
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/authority-inputs.txt | bytes=835 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-apk-metadata.txt | bytes=909 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-dex-targets.txt | bytes=2286243 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-glance-classpath.txt | bytes=570 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-graphicspath-insight.txt | bytes=127159 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-jvm-tests.txt | bytes=18421 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-native-library-inventory.txt | bytes=12400 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-release-build.txt | bytes=8681 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/baseline-release-graph.txt | bytes=72381 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/cleanup-worktree-report.txt | bytes=1852 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/excluded-sources.txt | bytes=1314 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/final-contradiction-boundary-audit.txt | bytes=3874 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-apk-metadata.txt | bytes=931 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-graphicspath-insight.txt | bytes=126995 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-jvm-tests.txt | bytes=18093 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-mutation.diff | bytes=567 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-native-library-inventory.txt | bytes=12402 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-release-build.txt | bytes=8464 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h01a-release-graph.txt | bytes=72249 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-apk-metadata.txt | bytes=925 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-dex-targets.txt | bytes=2286243 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-glance-classpath.txt | bytes=570 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-mutation.diff | bytes=2589 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-native-library-inventory.txt | bytes=12400 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-release-build.txt | bytes=8464 cr=0 nul=0 bom=False utf8=True ascii=True | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02b-widget-jvm-tests.txt | bytes=2828 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/h02-rule-evaluation.txt | bytes=3549 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/identity.txt | bytes=1318 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-dex-packages-raw.txt | bytes=2341740 cr=55497 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-graphicspath-insight-raw.txt | bytes=127787 cr=628 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-jvm-tests-raw.txt | bytes=17849 cr=102 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-native-library-inventory-raw.txt | bytes=12672 cr=272 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-release-build-raw.txt | bytes=8770 cr=89 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/baseline-release-graph-raw.txt | bytes=73345 cr=964 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/exit-states.txt | bytes=7981 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h01a-graphicspath-insight-raw.txt | bytes=127618 cr=623 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h01a-jvm-tests-raw.txt | bytes=17917 cr=102 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h01a-native-library-inventory-raw.txt | bytes=12674 cr=272 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h01a-release-build-raw.txt | bytes=8552 cr=88 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h01a-release-graph-raw.txt | bytes=73211 cr=962 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h02b-dex-packages-raw.txt | bytes=2341740 cr=55497 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h02b-native-library-inventory-raw.txt | bytes=12672 cr=272 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h02b-release-build-raw.txt | bytes=8552 cr=88 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  RAW | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/logs/h02b-widget-jvm-tests-raw.txt | bytes=2251 cr=46 nul=0 bom=False utf8=True ascii=True | raw (exempt from LF normalization)
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/native-library-comparison.txt | bytes=4501 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/result-decision-matrix.txt | bytes=2856 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/scripts/d01_apk_inventory.py | bytes=1052 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/scripts/d01_canonicalize_text.py | bytes=1591 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/static-finding-reconstruction.txt | bytes=1613 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/toolchain-environment.txt | bytes=2038 cr=0 nul=0 bom=False utf8=True ascii=False | OK
+
+GOVERNED violations=0 (expected 0)
+Total enumerated (excluding encoding-audit.txt and MANIFEST.sha256)=50

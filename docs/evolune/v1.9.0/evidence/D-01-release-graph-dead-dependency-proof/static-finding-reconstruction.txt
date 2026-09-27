@@ -1,0 +1,24 @@
+FROZEN STATIC FACTS CARRIED FORWARD (plan §5.1 / §5.2; restated only)
+H-01:
+  version catalog version key   graphicsPath = "1.1.0" (gradle/libs.versions.toml)
+  version catalog alias         androidx-graphics-path = androidx.graphics:graphics-path
+  direct declaration            implementation(libs.androidx.graphics.path) (app/build.gradle.kts)
+  direct consuming module       :app only
+  direct production source use  NO
+  direct test use               NO
+H-02:
+  catalog version key           glance = "1.2.0-rc01"
+  unused aliases                androidx-glance-appwidget, androidx-glance-material3
+  Gradle consuming references   0
+  tracked source classes absent StartConfirmAction, ConfirmDoseAction, CancelConfirmAction
+  tracked ActionCallback impls  0
+  Glance-targeted ProGuard rules app/proguard-rules.pro: ActionCallback wildcard keep, three
+                                explicit named-class keeps, package-wildcard keep + keepnames,
+                                plus the three Glance comment headers attached to them
+Fresh read-only verification performed during this execution (B0 worktree at 2fe04ee):
+  - the only tracked references to the targets are the proguard rule lines and the two
+    catalog alias lines (no source/tests/other build files).
+  - no androidx.glance references exist outside those proguard/toml lines.
+NOT frozen (reproduced by this execution, never inherited): the actual resolved release
+runtime graph; transitive persistence of graphics-path; native-library packaging result;
+APK-size effect; Glance classpath absence; Glance DEX absence; Glance keep-rule no-op.

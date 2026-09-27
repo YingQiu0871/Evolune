@@ -1,0 +1,38 @@
+RESULT DECISION MATRIX (plan §23) — observed dimensions from this governed execution
+(plan §23.2 mapping recorded as the observed result class; the mapping MUST NOT be applied as
+authorization until an independent D-01 result review accepts this evidence and D-01 closes.)
+
+Independent dimensions:
+  H01_DIRECT_DECLARATION_REMOVABLE      = YES
+      (H01-A mutation applied exactly: single line deleted; diff h01a-mutation.diff; release build exit 0)
+  H01_ARTIFACT_AFTER_DIRECT_REMOVAL     = PRESENT_TRANSITIVELY
+      (h01a-graphicspath-insight.txt: androidx.graphics:graphics-path:1.0.1 via
+       androidx.compose.ui:ui-graphics-android; no direct releaseRuntimeClasspath edge)
+  H01_NATIVE_LIBRARY_AFTER_DIRECT_REMOVAL = PRESENT
+      (native-library-comparison.txt: 4 lib/<abi>/libandroidx.graphics.path.so entries remain)
+  H01_BUILD_GATE                        = PASS   (exit 0; signed release)
+  H01_TEST_SMOKE_GATE                   = PASS   (:app:testDebugUnitTest 156/1448/0/0/0)
+  H02_ALIAS_UNUSED_STATIC               = YES    (frozen static fact, re-verified)
+  H02_TARGET_CLASSPATH_STATUS           = ABSENT (baseline + H02-B glance insight)
+  H02_TARGET_DEX_STATUS                 = ABSENT (baseline + H02-B DEX dumps; identical dumps)
+  H02_KEEP_RULE_EFFECT                  = NOOP_PER_SECTION_10_4 (h02-rule-evaluation.txt)
+  H02_BUILD_GATE                        = PASS   (exit 0; R8 clean for targets)
+  H02_WIDGET_SMOKE_GATE                 = NOT_RUN (device smoke deferred per plan §13.3;
+                                                   widget JVM gate PASS: 8 suites / 82 tests)
+  PROOF_INTEGRITY                       = VALID  (no contradictions; mutation boundaries exact;
+                                                   no excluded material; see final-contradiction-boundary-audit.txt)
+  EVIDENCE_MANIFEST_INTEGRITY           = VALID  (verified at MANIFEST generation per plan §20/§43)
+
+Observed top-level result classes (per frozen §23.2 mapping; NOT an authorization):
+  PROVEN_ELIGIBLE_FOR_SPECIFIED_D02_CLEANUP — "H-01 direct-declaration cleanup"
+      (YES + build PASS + test PASS + PROOF_INTEGRITY VALID + MANIFEST VALID)
+  NOT_PROVEN / KEEP_CURRENT_CONFIG — "H-01 packaging-removal claim"
+      (requires artifact ABSENT + native library ABSENT; both are PRESENT)
+  PROVEN_ELIGIBLE_FOR_SPECIFIED_D02_CLEANUP — "H-02 Glance catalog cleanup"
+      (H02-S YES + build PASS + integrity VALID)
+  PROVEN_ELIGIBLE_FOR_SPECIFIED_D02_CLEANUP — "H-02 Glance ProGuard/R8 cleanup"
+      (H02-S YES + DEX ABSENT + NOOP + build PASS + integrity VALID)
+
+Explicit non-collapse: DIRECT-DECLARATION REDUNDANCY is reported with PACKAGING REMOVAL NOT
+DEMONSTRATED. The two conclusions are not merged. No APK-size claim is made: all three APKs are
+6,313,112 bytes; the per-entry evidence is the authoritative comparison.

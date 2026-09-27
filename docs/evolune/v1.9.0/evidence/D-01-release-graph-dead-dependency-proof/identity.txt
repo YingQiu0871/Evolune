@@ -1,0 +1,20 @@
+EVOLUNE v1.9.0 D-01 — GOVERNED PROOF EXECUTION — IDENTITY
+
+Governance predecessor / execution baseline:
+  commit: 2fe04ee9ffc2651f89b8dc8513c1b39141054648
+  tree:   fad10191910964c3cfa3659022d9781f7c09a4c2 (verified from Git)
+Normative plan document:
+  commit: d7fd1e732c4c487e99d033df2794b907aa63240b (parent 2fe04ee9ffc2651f89b8dc8513c1b39141054648)
+  path:   docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md
+  blob:   2826345973aea924c999bee54f702503fb3b0a4b
+  approval: APPROVE V1.9.0 D-01 EVIDENCE / PROOF PLAN — FROZEN / EXECUTION AUTHORIZED
+Governed execution lineage:
+  branch:   feature/v1.9.0-d01-governed-proof-execution
+  worktree: D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-execution
+  start commit: d7fd1e732c4c487e99d033df2794b907aa63240b (tree a663f0392523530a4ba7e36cca916327717b48ca)
+Disposable proof worktrees (all created from exactly 2fe04ee9ffc2651f89b8dc8513c1b39141054648):
+  B0    D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-b0    (pristine, no mutation)
+  H01-A D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-h01a  (single-line declaration deletion)
+  H02-B D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-h02b  (Glance catalog + ProGuard removal)
+Governed evidence root:
+  docs/evolune/v1.9.0/evidence/D-01-release-graph-dead-dependency-proof/

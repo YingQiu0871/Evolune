@@ -1,0 +1,24 @@
+TOOLCHAIN / ENVIRONMENT RECORD (plan §15; no secrets)
+OS:                       Microsoft Windows NT 10.0.26200.0 (Windows 11), architecture AMD64
+Gradle wrapper:           gradle-9.2.1-bin (distributionSha256Sum 72f44c9f8ebcb1af43838f45ee5c4aa9c5444898b3468ab3f4af7b6076c5bc3f)
+Gradle launcher JVM:      17.0.19 (Eclipse Adoptium 17.0.19+10)
+Gradle daemon JVM:        compatible with Java 21, any vendor (gradle/gradle-daemon-jvm.properties)
+AGP version:              9.0.1 (repository version catalog)
+Android SDK location:     C:\Users\1\AppData\Local\Android\Sdk
+build-tools used:         36.0.0 (aapt2, apksigner, zipalign)
+apkanalyzer:              C:\Users\1\AppData\Local\Android\Sdk\cmdline-tools\latest\bin\apkanalyzer.bat
+Python:                   3.14.6
+Git core.autocrlf:        true (system: C:/Program Files/Git/etc/gitconfig; repo-local unset)
+Worktrees (role -> commit / tree / absolute path):
+  governed execution -> d7fd1e732c4c487e99d033df2794b907aa63240b / a663f0392523530a4ba7e36cca916327717b48ca / D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-execution
+  B0                 -> 2fe04ee9ffc2651f89b8dc8513c1b39141054648 / fad10191910964c3cfa3659022d9781f7c09a4c2 / D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-b0
+  H01-A              -> 2fe04ee9ffc2651f89b8dc8513c1b39141054648 / fad10191910964c3cfa3659022d9781f7c09a4c2 / D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-h01a
+  H02-B              -> 2fe04ee9ffc2651f89b8dc8513c1b39141054648 / fad10191910964c3cfa3659022d9781f7c09a4c2 / D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-d01-h02b
+Signing variables (names only; values never captured):
+  EVOLUNE_KEYSTORE_PATH     PRESENT
+  EVOLUNE_KEYSTORE_PASSWORD PRESENT
+  EVOLUNE_KEY_ALIAS         PRESENT
+  EVOLUNE_KEY_PASSWORD      PRESENT
+  keystore file existed:    YES (EVOLUNE_KEYSTORE_PATH pointed to an existing file)
+Raw capture form: commands were captured with cmd.exe file redirection (byte-exact tool output).
+Raw logs are kept in the exact form emitted; normalized copies are UTF-8/no-BOM/LF.

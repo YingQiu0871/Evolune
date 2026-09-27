@@ -1,0 +1,13 @@
+H02-B RELEASE APK METADATA (Glance catalog + ProGuard removals)
+APK path (in H02-B disposable worktree): app/build/outputs/apk/release/app-release.apk
+file size:    6313112 bytes
+file SHA-256: 4729713a49ed70dd32bf3c08c97e47f1c7a57867eeae32111e5cd4ef5638c897
+  (identity/provenance metadata only; per plan §14 this is NOT a byte-reproducibility gate)
+apkanalyzer apk summary: io.github.yingqiu0871.evolune	101080000	1.8.0
+aapt2 badging: package name='io.github.yingqiu0871.evolune' versionCode='101080000' versionName='1.8.0'
+minSdkVersion: 31
+targetSdkVersion: 36
+signer certificate SHA-256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+Build: .\gradlew.bat :app:clean :app:assembleRelease — exit 0 (raw log logs/h02b-release-build-raw.txt)
+Transient raw captures consumed into this file (not governed rows):
+  _raw/h02b-apk-summary-raw.txt, _raw/h02b-aapt2-badging-raw.txt, _raw/h02b-apksigner-raw.txt
