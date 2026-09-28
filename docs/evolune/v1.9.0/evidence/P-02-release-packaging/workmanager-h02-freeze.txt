@@ -1,0 +1,9 @@
+WORKMANAGER / H-02 FREEZE CHECK (P-02a source tree)
+app/proguard-rules.pro retains:
+  -keep class * extends androidx.work.InputMerger { public <init>(); }
+  -keep class androidx.work.OverwritingInputMerger { public <init>(); }
+  (block bytes unchanged from the governed D-02 state; sha256 e54e9e1f...)
+Glance catalog aliases: absent (removed in D-02; no build-script references).
+Stale Glance/ActionCallback ProGuard keeps: absent (removed in D-02).
+No release-packaging modification altered any of these (P-02b is evidence-only; P-02a changed
+only version values).

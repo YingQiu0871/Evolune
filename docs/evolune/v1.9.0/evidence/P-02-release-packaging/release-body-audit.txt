@@ -1,0 +1,10 @@
+RELEASE BODY AUDIT (RELEASE_BODY-v1.9.0.md, candidate-local, NOT a public asset)
+File: D:\Evolune-Workspace\release-candidates\v1.9.0\RELEASE_BODY-v1.9.0.md (1,126 bytes, LF, no BOM)
+Claims made (factual, from the accepted ledger only):
+  - checkout/test reproducibility improvements (T-01/T-02);
+  - dependency/configuration cleanup: one redundant direct declaration removed; unused Glance
+    catalog metadata and obsolete Glance/ActionCallback ProGuard keeps removed (D-02);
+  - internal maintainability/reliability; no changes to data, backup format or medication semantics.
+Forbidden claims verified ABSENT: graphics-path removal; APK size reduction; user-visible performance
+gain; E-01 lifecycle dedup completion; T-03 sleep rewrite. No "v1.9.0 released" language.
+Convention: bilingual Chinese/English sections, matching the v1.8 release-body style.

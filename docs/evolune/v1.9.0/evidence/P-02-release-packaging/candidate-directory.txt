@@ -1,0 +1,8 @@
+CANDIDATE DIRECTORY (frozen external location)
+D:\Evolune-Workspace\release-candidates\v1.9.0\
+Exact inventory (4 files, no stale entries):
+  Evolune-Phone-v1.9.0.apk  6,313,116 B
+  Evolune-Wear-v1.9.0.apk   2,604,764 B
+  SHA256SUMS.txt                   181 B
+  RELEASE_BODY-v1.9.0.md         1,126 B
+No v1.8 APK, no debug/unsigned APK, no old checksum, no extra log/screenshot/review packet.

@@ -1,0 +1,9 @@
+RELEASE SIGNING PREREQUISITE (fail-closed check; names only, no values)
+  EVOLUNE_KEYSTORE_PATH     PRESENT
+  EVOLUNE_KEYSTORE_PASSWORD PRESENT
+  EVOLUNE_KEY_ALIAS         PRESENT
+  EVOLUNE_KEY_PASSWORD      PRESENT
+  keystore file existence:  YES
+Builds verified real release signing via :app:validateSigningRelease and
+:wear:validateSigningRelease (both executed, exit 0). No debug/unsigned fallback used.
+Expected signer certificate confirmed post-build: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08.

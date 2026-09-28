@@ -1,0 +1,4 @@
+Changed paths vs 0b96d9e (P-02b candidate state):
+  (untracked) docs/evolune/v1.9.0/evidence/P-02-release-packaging/**   (this evidence root)
+
+P-02b repository delta MUST be exactly this evidence root; no version/product/config/test change.

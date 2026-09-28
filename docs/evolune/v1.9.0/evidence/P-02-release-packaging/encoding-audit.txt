@@ -1,0 +1,40 @@
+# EVIDENCE ENCODING AUDIT (P-02b)
+# GOVERNED text: UTF-8 no BOM, LF (CR=0, NUL=0). RAW logs keep tool bytes. PNG screenshots are binary evidence.
+# encoding-audit.txt is excluded from its own enumeration; verified after write (cr=0, bom=False).
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/app-apk-metadata.txt | bytes=451 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/app-release-build.txt | bytes=8769 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/artifact-copy-freeze.txt | bytes=1229 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/candidate-directory.txt | bytes=393 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/changed-files.txt | bytes=240 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/functional-equivalence.txt | bytes=1052 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/graphics-path-native-inventory.txt | bytes=13326 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/identity.txt | bytes=676 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/jvm-xml-recount.txt | bytes=419 cr=0 bom=False | OK
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/app-release-build-raw.txt | bytes=8508 cr=88 bom=False | raw (exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/exit-states.txt | bytes=3209 cr=0 bom=False | OK
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/full-jvm-raw.txt | bytes=20247 cr=143 bom=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/graphics-path-insight-raw.txt | bytes=127618 cr=623 bom=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/native-inventory-raw.txt | bytes=12674 cr=272 bom=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/validation-raw.txt | bytes=561 cr=11 bom=False | raw (exempt)
+  RAW | docs/evolune/v1.9.0/evidence/P-02-release-packaging/logs/wear-release-build-raw.txt | bytes=3827 cr=74 bom=False | raw (exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/p01-sidecar-authority.txt | bytes=492 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/p02a-version-diff.txt | bytes=1573 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/phone-release-smoke.txt | bytes=872 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/public-asset-set.txt | bytes=280 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/r8-audit.txt | bytes=562 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/raw-windows-jvm.txt | bytes=20388 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/release-body-audit.txt | bytes=856 cr=0 bom=False | OK
+  BINARY | docs/evolune/v1.9.0/evidence/P-02-release-packaging/screenshots/release-phone-about.png | bytes=189549 cr=563 bom=False | binary (PNG, exempt)
+  BINARY | docs/evolune/v1.9.0/evidence/P-02-release-packaging/screenshots/release-phone-history.png | bytes=159156 cr=508 bom=False | binary (PNG, exempt)
+  BINARY | docs/evolune/v1.9.0/evidence/P-02-release-packaging/screenshots/release-phone-history-prevmonth.png | bytes=156334 cr=513 bom=False | binary (PNG, exempt)
+  BINARY | docs/evolune/v1.9.0/evidence/P-02-release-packaging/screenshots/release-phone-home.png | bytes=148451 cr=466 bom=False | binary (PNG, exempt)
+  BINARY | docs/evolune/v1.9.0/evidence/P-02-release-packaging/screenshots/release-wear-launch.png | bytes=43256 cr=144 bom=False | binary (PNG, exempt)
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/sha256sums-verification.txt | bytes=590 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/signing-prerequisite.txt | bytes=523 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/topology-authority.txt | bytes=453 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/validation.txt | bytes=856 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/wear-apk-metadata.txt | bytes=455 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/wear-release-build.txt | bytes=4142 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/wear-release-smoke.txt | bytes=535 cr=0 bom=False | OK
+  GOVERNED | docs/evolune/v1.9.0/evidence/P-02-release-packaging/workmanager-h02-freeze.txt | bytes=565 cr=0 bom=False | OK
+GOVERNED violations=0

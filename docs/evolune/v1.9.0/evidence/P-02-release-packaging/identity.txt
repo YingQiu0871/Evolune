@@ -1,0 +1,12 @@
+EVOLUNE v1.9.0 P-02b — RELEASE PACKAGING EVIDENCE — IDENTITY
+branch:      feature/v1.9.0-p02b-packaging-evidence
+worktree:    D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-p02b
+HEAD:        0b96d9ee8f4c1497b9889c3e0042a773c8bf780e (P-02a version-only commit)
+parent:      957e82f9177205d0cea22c87b7fca1315d8eb5b5
+subject:     chore(release): prepare v1.9.0 packaging
+tree:        8267e1b899c46636092627706d16729aee0295cc
+status:      clean at start; evidence-only round
+origin/main: 2fe04ee9ffc2651f89b8dc8513c1b39141054648 (unchanged)
+v1.9.0 tag:  absent (local and remote)
+P-03:        not created
+intended commit subject: docs(v1.9.0): record release packaging evidence

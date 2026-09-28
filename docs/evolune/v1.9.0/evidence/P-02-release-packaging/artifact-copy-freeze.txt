@@ -1,0 +1,16 @@
+ARTIFACT COPY / BYTE FREEZE (source Gradle output -> candidate)
+Phone: source app/build/outputs/apk/release/app-release.apk
+       sha256 0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1 (byte size 6,313,116)
+       candidate Evolune-Phone-v1.9.0.apk
+       sha256 0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1 (byte size 6,313,116)
+       source == candidate: TRUE (byte-for-byte)
+Wear:  source wear/build/outputs/apk/release/wear-release.apk
+       sha256 78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1 (byte size 2,604,764)
+       candidate Evolune-Wear-v1.9.0.apk
+       sha256 78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1 (byte size 2,604,764)
+       source == candidate: TRUE (byte-for-byte)
+Freeze declaration: the two candidate APK byte sets are FROZEN. Any changed artifact requires a new
+packaging candidate and new review; no rebuild/re-copy may silently replace them.
+Metadata frozen per artifact (see app/wear-apk-metadata.txt):
+  Phone: io.github.yingqiu0871.evolune / 1.9.0 / 101090000 / minSdk 31 / targetSdk 36 / signer b9b6b955...
+  Wear:  io.github.yingqiu0871.evolune / 1.9.0 / 1101090000 / minSdk 30 / targetSdk 36 / signer b9b6b955...

@@ -1,0 +1,11 @@
+APP RELEASE APK METADATA (fresh v1.9.0 build)
+path: app/build/outputs/apk/release/app-release.apk
+package: io.github.yingqiu0871.evolune
+versionName: 1.9.0
+versionCode: 101090000
+minSdk: 31
+targetSdk: 36
+signer certificate SHA-256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+byte size: 6,313,116
+SHA-256: 0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1
+(provenance/identity only; not a cross-build equality gate)

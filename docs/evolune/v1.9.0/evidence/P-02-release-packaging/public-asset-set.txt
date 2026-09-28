@@ -1,0 +1,7 @@
+PUBLIC ASSET SET (intended future GitHub release assets)
+1. Evolune-Phone-v1.9.0.apk
+2. Evolune-Wear-v1.9.0.apk
+3. SHA256SUMS.txt
+PUBLIC ASSET COUNT = 3
+RELEASE_BODY-v1.9.0.md = NOT A PUBLIC ASSET / --notes-file BODY SOURCE ONLY
+No fourth asset. Publication not executed in P-02b.

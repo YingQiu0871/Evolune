@@ -1,0 +1,11 @@
+WEAR RELEASE APK METADATA (fresh v1.9.0 build)
+path: wear/build/outputs/apk/release/wear-release.apk
+package: io.github.yingqiu0871.evolune
+versionName: 1.9.0
+versionCode: 1101090000
+minSdk: 30
+targetSdk: 36
+signer certificate SHA-256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
+byte size: 2,604,764
+SHA-256: 78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1
+(provenance/identity only; not a cross-build equality gate)
