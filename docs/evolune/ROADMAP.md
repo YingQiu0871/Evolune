@@ -343,6 +343,13 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.7.4 发布 — RELEASED**（annotated tag `v1.7.4` @ `d734283…`；GitHub Release
   https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.4，3 资产，发布后字节校验 2/2）。
   **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.8.0 发布执行。
+- **v1.9.0 · 实现/卫生 — CLOSED / FROZEN**（T-01/T-02 检出可复现性；受治理的
+  H-01/H-02 依赖与配置清理；E-01/T-03 延后，非阻塞）。
+- **v1.9.0 · 打包候选 — ACCEPTED / FROZEN**（版本 1.9.0 / Phone 101090000 /
+  Wear 1101090000；P-02a @ `0b96d9ee…`；P-02b packaging evidence @ `1fc4037…`；独立评审
+  `APPROVE V1.9.0 P-02 — RELEASE PACKAGING ACCEPTED / FROZEN`；证书 `b9b6b955…` 连续；
+  release notes `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
+  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.9.0 发布执行。
 
 ## Historical and future milestones
 

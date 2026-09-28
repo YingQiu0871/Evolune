@@ -342,6 +342,19 @@
       `docs/evolune/v1.8.0/V180_RELEASE_NOTES.md`）。
 - [ ] NEXT：**v1.8.0 发布执行**（final docs commit → annotated tag v1.8.0 → push →
       GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
+- [x] v1.9.0 实现/卫生工作（T-01/T-02 检出可复现性；受治理的 H-01/H-02 依赖与配置清理）— **CLOSED / FROZEN**（T-01 @
+      `2fe04ee9ffc2651f89b8dc8513c1b39141054648`；governed D-01 证据 @
+      `284909ae037bd23e1c2a4ab692fc8ffb9c736a3c`；governed D-02 实现 @
+      `7797b6cabf9c694c84b424ec11801bc387363e61`；E-01/T-03 明确延后，非阻塞）。
+- [x] v1.9.0 打包候选（版本 1.9.0 / Phone 101090000 / Wear 1101090000）— **ACCEPTED / FROZEN**（P-02a @
+      `0b96d9ee8f4c1497b9889c3e0042a773c8bf780e`；P-02b packaging evidence @
+      `1fc40379656a0b779b1c692f90e59f3b62a88be2`；独立评审 `APPROVE V1.9.0 P-02 — RELEASE PACKAGING
+      ACCEPTED / FROZEN`；证书 `b9b6b955…` 连续；候选字节冻结于
+      `D:\Evolune-Workspace\release-candidates\v1.9.0\`；packaging evidence
+      `docs/evolune/v1.9.0/evidence/P-02-release-packaging/`；release notes
+      `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
+- [ ] NEXT：**v1.9.0 发布执行**（annotated tag v1.9.0 → push → GitHub Release 上传 3 资产 →
+      发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

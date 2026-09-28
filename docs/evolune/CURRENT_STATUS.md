@@ -404,6 +404,19 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - **Release: NOT TAGGED / NOT PUBLISHED.**
   - **NEXT:** v1.8.0 发布执行（final docs commit → annotated tag v1.8.0 → push →
     GitHub Release 上传 3 资产 → 发布字节校验）。
+  - **v1.9.0 实现/卫生工作 — CLOSED / FROZEN**（T-01/T-02 检出可复现性 @
+    `2fe04ee9ffc2651f89b8dc8513c1b39141054648`；governed D-01 证据 @
+    `284909ae037bd23e1c2a4ab692fc8ffb9c736a3c`；governed D-02 实现 @
+    `7797b6cabf9c694c84b424ec11801bc387363e61`；E-01/T-03 明确延后，非阻塞）。
+  - **v1.9.0 打包候选（版本 1.9.0 / Phone 101090000 / Wear 1101090000）— ACCEPTED /
+    FROZEN**（P-02a @ `0b96d9ee8f4c1497b9889c3e0042a773c8bf780e`；P-02b packaging
+    evidence @ `1fc40379656a0b779b1c692f90e59f3b62a88be2`；独立评审
+    `APPROVE V1.9.0 P-02 — RELEASE PACKAGING ACCEPTED / FROZEN`；证书 `b9b6b955…` 连续；
+    候选字节冻结于 `D:\Evolune-Workspace\release-candidates\v1.9.0\`；release notes
+    `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
+  - **Release: NOT TAGGED / NOT PUBLISHED.**
+  - **NEXT:** v1.9.0 发布执行（annotated tag v1.9.0 → push → GitHub Release 上传 3 资产 →
+    发布字节校验）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
