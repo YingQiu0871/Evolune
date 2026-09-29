@@ -31,3 +31,6 @@ release-signing.properties
 
 # Local debug builds
 *.apk
+
+# Release verification output
+/release-artifacts/

@@ -255,6 +255,8 @@
 | [docs/evolune/v1.9.0/V190_RELEASE_NOTES.md](../../docs/evolune/v1.9.0/V190_RELEASE_NOTES.md) | Evolune v1.9.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](../../docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) | EVOLUNE V1.9.0 — D-01 RELEASE-GRAPH DEAD-DEPENDENCY PROOF PLAN |
 | [docs/evolune/v1.9.1/V191_RELEASE_NOTES.md](../../docs/evolune/v1.9.1/V191_RELEASE_NOTES.md) | Evolune v1.9.1 正式版 / Official Release |
+| [docs/evolune/TESTING.md](../../docs/evolune/TESTING.md) | Evolune 测试环境 / Testing Environment |
+| [docs/release/RELEASE_PROCESS.md](../../docs/release/RELEASE_PROCESS.md) | Evolune 发布流程 / Release Process |
 
 证据目录（原始记录，不逐个索引）：
 

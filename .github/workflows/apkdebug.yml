@@ -36,6 +36,9 @@ jobs:
       - name: Build App Debug APK
         run: ./gradlew --no-daemon :app:assembleDebug
 
+      - name: Compile androidTest sources
+        run: ./gradlew --no-daemon :app:assembleDebugAndroidTest
+
       - name: Build Wear Debug APK
         run: ./gradlew --no-daemon :wear:assembleDebug
 

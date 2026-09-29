@@ -31,11 +31,9 @@ calculation semantics. See the [v1.9.1 release notes](v1.9.1/V191_RELEASE_NOTES.
 | Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
 | Wear | `io.github.yingqiu0871.evolune` | `1.9.1 (1101090100)` | 30 |
 
-| Asset | Size (bytes) | SHA-256 |
-|---|---:|---|
-| `Evolune-Phone-v1.9.1.apk` | 6,303,192 | `6fdcb9ed094b5d51d07fc3169546021087f01c5653616fc666b6964893c73062` |
-| `Evolune-Wear-v1.9.1.apk` | 2,604,840 | `8b7824a7dcf06185a451cd1bd52a09d37c323a2c7b2893196fc18aa930014131` |
-| `SHA256SUMS.txt` | 181 | `a4ec74ea9ea70df226928f15c2d116bd900c64b35e7097d737ee47f228abc303` |
+APK sizes and SHA-256 values are not repeated here; use the `SHA256SUMS.txt` attached to the
+[v1.9.1 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1) as the source of truth
+(policy: [Release Process](../release/RELEASE_PROCESS.md)).
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
 `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
@@ -152,7 +150,8 @@ Full details in the [v1.9.1 release notes](v1.9.1/V191_RELEASE_NOTES.md).
 - `:app:connectedDebugAndroidTest` on a local API 35 emulator (zh-CN, 1080×2400): 396 tests, 0 failures,
   0 errors, 5 condition-gated skips. With the AVD defaults (en-US, 1080×1920) 8 Insights/Timeline UI tests
   failed, and the v1.9.0 baseline failed exactly the same 8 on the same emulator (environment
-  precondition, not a regression).
+  precondition, not a regression). The standard environment is now scripted and documented in
+  [TESTING.md](TESTING.md), and an emulator CI workflow exists.
 - Signed Phone/Wear release APKs (R8) re-hashed before publication and verified with `apksigner`
   (v2, one signer, release certificate `b9b6b955…`). Only documentation changed between the build commit
   `f89d728` and the merged `main`, so the published APKs were not rebuilt.
