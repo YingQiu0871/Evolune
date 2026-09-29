@@ -1,10 +1,7 @@
-# Evolune v1.9.1（候选 / Release Candidate — 尚未发布 / NOT PUBLISHED）
+# Evolune v1.9.1 正式版 / Official Release
 
 Evolune v1.9.1 是一个纯内部的代码梳理与精简版本：经全仓库静态审计，移除已证实无人引用的死代码、未使用的资源与导入，不改变任何用户可见行为。
 Evolune v1.9.1 is an internal code-audit and slimming release: a repository-wide static audit removed code, resources and imports that are provably referenced nowhere. No user-visible behavior changes.
-
-> 本文件是候选说明，随发布打包（签名、哈希、GitHub Release）再补全“安装包 / SHA-256”部分。
-> This is a candidate note; the APK and SHA-256 sections will be added at release packaging.
 
 ## 主要更新 / Highlights
 
@@ -37,7 +34,23 @@ Evolune v1.9.1 is an internal code-audit and slimming release: a repository-wide
 - **CI 第 1 次运行（#81，`f6655c6`）失败**：3 个字符串对等性测试因误删受冻结键集约束的 4 个键而失败，其余（三个模块编译、experience-core 与 wear 测试）通过；已在 `e5e0b53` 修复。/ CI run #81 (`f6655c6`) failed three string-parity tests caused by removing four keys in frozen key sets; fixed in `e5e0b53`.
 - **CI 第 2 次运行（#82，`e5e0b53`）全部通过**：`./gradlew test`（含 app 1448 个 JVM 测试）、`:app:assembleDebug`、`:wear:assembleDebug` 与 APK 上传。/ CI run #82 (`e5e0b53`) passed in full: `./gradlew test` (including the 1,448 app JVM tests), `:app:assembleDebug`, `:wear:assembleDebug` and the APK upload.
 - **签名 Release 构建（2026-09-29，所有者本机，候选提交 f89d728 起）**：`scripts/release_verify.ps1` 以发布环境变量签名构建 Phone/Wear Release（含 R8）成功；两个 APK 的 versionName=1.9.1，versionCode 分别为 101090100 / 1101090100，包名 `io.github.yingqiu0871.evolune`，签名证书 SHA-256 均为 `b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08`，与发布身份一致。/ Signed Release build (owner machine, from candidate commit f89d728): both APKs built with R8, versionName 1.9.1, versionCode 101090100 / 1101090100, signing certificate matches the release identity.
-  - Phone `app-release.apk` SHA-256：`6fdcb9ed094b5d51d07fc3169546021087f01c5653616fc666b6964893c73062`
-  - Wear `wear-release.apk` SHA-256：`8b7824a7dcf06185a451cd1bd52a09d37c323a2c7b2893196fc18aa930014131`
-  - 注：这是候选构建哈希；若之后候选分支再有代码提交，须重新构建并更新。/ Candidate-build hashes; rebuild and update if the branch changes again.
-- **尚未覆盖**：androidTest 不在 CI 内编译/运行（需本机或模拟器）；真机/模拟器冒烟仍待打包阶段；GitHub Release 与 tag 尚未创建。/ Not covered yet: androidTest is not compiled or run in CI; device/emulator smoke remains; the GitHub Release and tag are not created.
+  - 发布前复核（2026-09-29）：重新计算两个 APK 的 SHA-256 与上面记录一致；`apksigner verify --print-certs` 显示 v2 签名、1 个签名者、证书 SHA-256 `b9b6b955…aab08`（`CN=Evolune Release`）。合并到 `main` 后相对 f89d728 仅有文档变化（构建不嵌入 git 信息），因此发布的就是这两个 APK，未重新构建。/ Pre-release re-check: both hashes recomputed and matched; apksigner shows v2, one signer, the release certificate. After merging into `main` only documentation differs from f89d728 (the build embeds no git data), so these exact APKs are published without a rebuild.
+- **androidTest（2026-09-29，本机模拟器 `evolune-r9-api35-fresh2`，Android 15 / API 35，Debug 构建）**：`:app:connectedDebugAndroidTest` 编译通过；**396 个测试，0 失败，0 错误，5 跳过**（跳过项为条件门控：V15 原地升级设备测试 2 项、仅折叠屏的布局测试 2 项、修复工具迁移测试 1 项）。该结果在系统语言 zh-CN、屏幕 1080×2400 下取得（与 v1.9.0 证据所用 Pixel 7 分辨率一致）。/ androidTest: 396 tests, 0 failures, 0 errors, 5 skipped (condition-gated), run under zh-CN at 1080×2400 (the Pixel 7 resolution used by the v1.9.0 evidence).
+  - 首次运行使用该 AVD 的默认配置（en-US、1080×1920）时有 8 个 Insights/Timeline UI 测试失败（中文日期格式断言 1 个；小屏下 lazy 列表节点不在组合范围内 7 个）。**在同一模拟器上对 v1.9.0 基线（`main` @ `37bf0f2`）运行相同 5 个测试类，失败的恰好是同样 8 个测试**，因此属于环境前提，不是 v1.9.1 回归；切换到 zh-CN + 1080×2400 后这 5 个测试类 73/73 通过，随后整套 396 个测试通过。/ A first run with the AVD defaults (en-US, 1080×1920) failed 8 Insights/Timeline UI tests; the v1.9.0 baseline on the same emulator failed exactly the same 8, so this is an environment precondition, not a regression.
+- **模拟器冒烟（2026-09-29，发布 APK 本身）/ Emulator smoke on the release APKs**：
+  - Phone（API 35 模拟器）：从已安装的 v1.2.0 发布版 `adb install -r` 覆盖升级成功（签名连续）；另做一次卸载后全新安装，冷启动 `TotalTime` 497 ms。首次引导 → 主页 / 记录 / 历史 / 方案 / 设置，以及历史下的用药洞察（统计）、回顾性 PK、用药时间线均可进入。新建用药方案（口服 EV 2 mg、每天 09:00，授予通知权限）并记录一次服药，历史日历与主页浓度随之更新。Evolune Portable JSON 导出（全部历史）→ 删除该记录 → 导入：“新增 1 条，已存在 0 条”，再次导入：“新增 0 条，已存在 1 条”，记录恢复。桌面小组件选择器列出 4 个 Evolune 小组件，添加“今日计划”并完成外观配置后正确显示本次方案与“1/1 完成”。/ Upgrade in place from v1.2.0 and a clean install both launched; all top-level tabs plus Insights, Retrospective PK and Timeline opened; created a plan and recorded a dose; Portable JSON export → delete → import restored the record and re-import was idempotent; the today-plan widget was added and showed live data.
+  - Wear（Wear OS API 35 模拟器，未与手机配对）：安装成功（versionCode 1101090100），冷启动 `TotalTime` 243 ms，显示“手机未连接”的缓存状态；4 个 Tile 与 3 个 Complication 服务均已注册，“今日计划” Tile 可添加并渲染。/ Wear installs and launches (unpaired, shows the cached disconnected state); Tiles and Complications are registered and the today-plan Tile renders.
+  - 两端 logcat 中 Evolune 进程无 `FATAL EXCEPTION`、无 ANR。/ No FATAL EXCEPTION or ANR for the Evolune process on either device.
+- **未覆盖 / Not covered**：Google Drive 加密备份与恢复（需要真实 Google 账号授权）；手机与手表配对后的数据同步与确认/撤销；真机安装。/ Google Drive encrypted backup/restore (needs a real Google account), paired Phone↔Wear sync, real-device install.
+
+## 安装包 / Downloads
+
+GitHub Release [`v1.9.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1) 附带以下 3 个资产。/ The v1.9.1 GitHub Release carries these three assets.
+
+| 资产 / Asset | 大小 / Size (bytes) | SHA-256 |
+|---|---:|---|
+| `Evolune-Phone-v1.9.1.apk` | 6,303,192 | `6fdcb9ed094b5d51d07fc3169546021087f01c5653616fc666b6964893c73062` |
+| `Evolune-Wear-v1.9.1.apk` | 2,604,840 | `8b7824a7dcf06185a451cd1bd52a09d37c323a2c7b2893196fc18aa930014131` |
+| `SHA256SUMS.txt` | 181 | `a4ec74ea9ea70df226928f15c2d116bd900c64b35e7097d737ee47f228abc303` |
+
+两个 APK 均使用持久 Evolune 发布证书签名（SHA-256 `b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08`），可从 v1.9.0 直接覆盖安装，无需卸载或清除数据。/ Both APKs are signed with the persistent Evolune release certificate and upgrade in place from v1.9.0 without clearing data.

@@ -1,6 +1,6 @@
-# 设置功能（v1.9.0）
+# 设置功能（v1.9.1）
 
-更新日期：2026-09-29，适用 v1.9.0（设置页结构自 v1.7.2 起未再变化）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+更新日期：2026-09-29，适用 v1.9.1（设置页结构自 v1.7.2 起未再变化）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
 
 ## 页面与功能
 

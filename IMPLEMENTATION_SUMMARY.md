@@ -1,6 +1,6 @@
-# Evolune Implementation Summary — through v1.9.0
+# Evolune Implementation Summary — through v1.9.1
 
-文档核对日期：2026-09-29。当前公开稳定版为 [v1.9.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)，发布于 2026-09-28，annotated tag `v1.9.0` 指向提交 `d099998c46e747b99855b7c9c56b3e1bd671a089`。v1.6.0（2026-09-10，tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`）及更早版本的盘点见[版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；v1.7–v1.9 的发布状态见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+文档核对日期：2026-09-29。当前公开稳定版为 [v1.9.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)，发布于 2026-09-29，annotated tag `v1.9.1` 指向 PR #31 在 `main` 上的合并提交；上一稳定版 v1.9.0（2026-09-28）的 annotated tag 指向提交 `d099998c46e747b99855b7c9c56b3e1bd671a089`。v1.6.0（2026-09-10，tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`）及更早版本的盘点见[版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；v1.7–v1.9 的发布状态见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
 
 ## 版本累计成果
 
@@ -20,6 +20,7 @@
 | v1.7.3 / v1.7.4 | 全屏子页面导航卡顿热修；随后恢复 220 ms 进入动效 |
 | v1.8.0 | 全局卫生：后台处理与刷新成本、生命周期约束、Home 协作式取消、被中断恢复的安全回滚 |
 | v1.9.0 | 维护：检出可复现的测试、冗余直接依赖与过期 Glance/ProGuard 配置清理 |
+| v1.9.1 | 代码梳理与精简：移除经审计确认无引用的死代码、未使用资源与导入；行为不变 |
 
 完整日期、tag 和来源见 [版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
@@ -32,7 +33,7 @@
 - Health Connect 只读前台体重，Google Drive 只做主动授权的手动加密备份；不实现实时云同步或第二用药数据库。
 - 历史投影是 History、Timeline、Insights 与回顾性 PK 的共享读模型：实际记录（`DoseEvent`）是历史权威，当前计划只是 schedule 上下文，不改写过去；未匹配事件保持可见；`ReminderSkipStore` 不会伪造长期“跳过/漏服”历史。
 - Portable JSON v1 / CSV v1 与加密备份（`.evbackup`，自 v1.7.2 起 schema v2 并兼容 v1）相互独立。
-- v1.6–v1.9 均未改 PK 数学模型；v1.9.0 无 Room schema 迁移、无备份格式变化，正式包身份与签名连续性保持不变。
+- v1.6–v1.9 均未改 PK 数学模型；v1.9.0 与 v1.9.1 均无 Room schema 迁移、无备份格式变化，正式包身份与签名连续性保持不变。
 
 ## v1.6 用户入口
 

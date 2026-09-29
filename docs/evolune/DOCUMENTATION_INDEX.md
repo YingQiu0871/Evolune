@@ -3,9 +3,9 @@
 基线 main `c7f3d266357af08b737aa4fd4015f1b1391279c3`，盘点 2026-09-12，整理完成 2026-09-13。基线 157 份 Markdown/TXT/RST；此次新增 5 份，共 162 份。下列分类用于阅读，不代表各历史结论已在当前版本重新验证。详细结论与证据缺口见[盘点报告](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
 > **v1.7–v1.9 增补（2026-09-29）：** 下文各表是 2026-09-12/13 针对 v1.6.0 的盘点快照，保持不变。
-> v1.7.0–v1.9.0 期间新增的文档见“v1.7–v1.9 文档目录”一节；当前发布状态以
+> v1.7.0–v1.9.1 期间新增的文档见“v1.7–v1.9 文档目录”一节；当前发布状态以
 > [CURRENT_STATUS](CURRENT_STATUS.md) 为准。表中“截至 v1.6.0”一类的标题是盘点时的标题，
-> 其中列出的现行说明文档已在 v1.9.0 文档统一中更新，标题以文件本身为准。
+> 其中列出的现行说明文档已在 v1.9.1 发布时更新，标题以文件本身为准。
 
 ## 本次新增
 
@@ -194,13 +194,13 @@
 
 | 路径 | 文档标题 |
 | --- | --- |
-| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.0 |
+| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.1 |
 | [MEDICATION_PLAN_FEATURE.md](../../MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
 | [PK_IMPLEMENTATION.md](../../PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
-| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.0） |
+| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
 | [QUICK_START_UI.md](../../QUICK_START_UI.md) | 当前 UI 结构速览 |
-| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.9.0） |
-| [TODO.MD](../../TODO.MD) | 后续路线（v1.9.0 已封版） |
+| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.9.1） |
+| [TODO.MD](../../TODO.MD) | 后续路线（v1.9.1 已封版） |
 | [UI_COMPONENTS.md](../../UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
@@ -254,7 +254,7 @@
 | [docs/evolune/v1.8.0/V180_RELEASE_NOTES.md](../../docs/evolune/v1.8.0/V180_RELEASE_NOTES.md) | Evolune v1.8.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V190_RELEASE_NOTES.md](../../docs/evolune/v1.9.0/V190_RELEASE_NOTES.md) | Evolune v1.9.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](../../docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) | EVOLUNE V1.9.0 — D-01 RELEASE-GRAPH DEAD-DEPENDENCY PROOF PLAN |
-| [docs/evolune/v1.9.1/V191_RELEASE_NOTES.md](../../docs/evolune/v1.9.1/V191_RELEASE_NOTES.md) | Evolune v1.9.1（候选 / Release Candidate — 尚未发布 / NOT PUBLISHED） |
+| [docs/evolune/v1.9.1/V191_RELEASE_NOTES.md](../../docs/evolune/v1.9.1/V191_RELEASE_NOTES.md) | Evolune v1.9.1 正式版 / Official Release |
 
 证据目录（原始记录，不逐个索引）：
 

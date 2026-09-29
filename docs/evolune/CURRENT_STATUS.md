@@ -3,46 +3,51 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
-Documentation reconciled on 2026-09-29 against the `v1.9.0` release commit
-`d099998c46e747b99855b7c9c56b3e1bd671a089` (tree `5e42cf2b968080e0374379e5594e03be6d89ffcf`),
-the `v1.9.0` source tag and GitHub Releases. See the [complete documentation index](DOCUMENTATION_INDEX.md)
-and the earlier [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md). This is a documentation
-reconciliation, not a new device acceptance run.
+Documentation updated on 2026-09-29 for the `v1.9.1` release (PR #31 merged into `main` with a normal
+merge commit; the annotated tag `v1.9.1` points at that merge commit). See the
+[complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
+[v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version: [`v1.9.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
-- Release date: 2026-09-28 (GitHub Release published 2026-09-28T19:17:16Z)
-- Release source: annotated tag `v1.9.0` (`386e710d878bb8e108b40d130c6092aa352862cf`) → commit
-  `d099998c46e747b99855b7c9c56b3e1bd671a089`; preserve this tag
-- Previous sealed stable release: [`v1.8.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0)
-  (2026-09-26)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.9.0 GitHub Release
+- Stable version: [`v1.9.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
+- Release date: 2026-09-29
+- Release source: annotated tag `v1.9.1` → the `main` merge commit of PR #31
+  (`feature/v1.9.1-code-hygiene`); preserve this tag
+- Previous sealed stable release: [`v1.9.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
+  (2026-09-28; annotated tag `386e710d878bb8e108b40d130c6092aa352862cf` → commit
+  `d099998c46e747b99855b7c9c56b3e1bd671a089`)
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.9.1 GitHub Release
 
-v1.9.0 is a maintenance and configuration-hygiene release: better test and checkout reproducibility
-(Windows CRLF checkouts no longer need manual line-ending materialization and the golden byte fixtures
-are deterministic at checkout), removal of one redundant direct dependency declaration (still provided
-transitively by Compose), and removal of unused Glance catalog metadata and obsolete Glance/ActionCallback
-ProGuard keep rules. There is no Room schema migration, no backup format change and no change to medication
-calculation semantics. See the [v1.9.0 release notes](v1.9.0/V190_RELEASE_NOTES.md).
+v1.9.1 is an internal code-audit and slimming release: a repository-wide static audit removed dead code,
+unused resources and unused imports that were provably referenced nowhere. No user-visible behavior
+changes. There is no Room schema migration, no backup format change and no change to medication
+calculation semantics. See the [v1.9.1 release notes](v1.9.1/V191_RELEASE_NOTES.md).
 
-## v1.9.0 Release Identity
+## v1.9.1 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.9.0 (101090000)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.9.0 (1101090000)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.9.1 (1101090100)` | 30 |
+
+| Asset | Size (bytes) | SHA-256 |
+|---|---:|---|
+| `Evolune-Phone-v1.9.1.apk` | 6,303,192 | `6fdcb9ed094b5d51d07fc3169546021087f01c5653616fc666b6964893c73062` |
+| `Evolune-Wear-v1.9.1.apk` | 2,604,840 | `8b7824a7dcf06185a451cd1bd52a09d37c323a2c7b2893196fc18aa930014131` |
+| `SHA256SUMS.txt` | 181 | `a4ec74ea9ea70df226928f15c2d116bd900c64b35e7097d737ee47f228abc303` |
+
+Both release APKs use the persistent Evolune release certificate with SHA-256
+`B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
+Debug builds use a separate `.debug` application ID suffix and signing identity.
+
+### v1.9.0 Release Identity (previous)
 
 | Asset | Size (bytes) | SHA-256 |
 |---|---:|---|
 | `Evolune-Phone-v1.9.0.apk` | 6,313,116 | `0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1` |
 | `Evolune-Wear-v1.9.0.apk` | 2,604,764 | `78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1` |
 | `SHA256SUMS.txt` | 181 | `d74e590af465e0ff620d834094de8bfacd038901127b4136dbb83d1f7f782aef` |
-
-Both release APKs use the persistent Evolune release certificate with SHA-256
-`B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
-Debug builds use a separate `.debug` application ID suffix and signing identity.
-Public download-back verification of all three assets matched the frozen bytes.
 
 ## Release Line Since v1.6
 
@@ -56,8 +61,9 @@ Public download-back verification of all three assets matched the frozen bytes.
 | `v1.7.4` | 2026-09-20 | Navigation motion refinement |
 | `v1.8.0` | 2026-09-26 | Global hygiene: performance, lifecycle, cancellation, interrupted-restore recovery |
 | `v1.9.0` | 2026-09-28 | Maintenance: checkout-reproducible tests, dependency and configuration cleanup |
+| `v1.9.1` | 2026-09-29 | Code audit and slimming: dead code, unused resources and imports removed |
 
-Dates for v1.7.x are the tag commit dates; v1.8.0 and v1.9.0 dates are the recorded GitHub Release
+Dates for v1.7.x are the tag commit dates; v1.8.0–v1.9.1 dates are the recorded GitHub Release
 publication dates. Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
@@ -82,7 +88,9 @@ from the previous one without clearing data.
 - **Reliability and performance (v1.8.0):** post-query History work and Retrospective PK moved off the caller,
   Home clock and boundary refresh follow the lifecycle, cooperative cancellation of Home simulation,
   safer recovery when a restore is interrupted, more reliable update-check cancellation.
-- **Maintenance (v1.9.0):** see Current Release above.
+- **Maintenance (v1.9.0):** checkout-reproducible tests, one redundant direct dependency declaration and
+  unused Glance catalog metadata / obsolete ProGuard keep rules removed.
+- **Code audit and slimming (v1.9.1):** see Current Release above.
 
 ## Widget Gallery Capabilities (shipped v1.6, carried forward)
 
@@ -134,6 +142,25 @@ Release dates and references are listed in the [version review](DOCUMENTATION_RE
 Because v1.0 Wear used the old application ID `io.github.yingqiu0871.evolune.wear`, that one old
 package cannot update in place to the shared v1.1+ identity. See
 [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md). This does not apply to v1.1–v1.5 upgrades.
+
+## v1.9.1 Verification Summary
+
+Full details in the [v1.9.1 release notes](v1.9.1/V191_RELEASE_NOTES.md).
+
+- CI run #82 on PR #31: `./gradlew test` (including 1,448 app JVM tests), `:app:assembleDebug` and
+  `:wear:assembleDebug` passed.
+- `:app:connectedDebugAndroidTest` on a local API 35 emulator (zh-CN, 1080×2400): 396 tests, 0 failures,
+  0 errors, 5 condition-gated skips. With the AVD defaults (en-US, 1080×1920) 8 Insights/Timeline UI tests
+  failed, and the v1.9.0 baseline failed exactly the same 8 on the same emulator (environment
+  precondition, not a regression).
+- Signed Phone/Wear release APKs (R8) re-hashed before publication and verified with `apksigner`
+  (v2, one signer, release certificate `b9b6b955…`). Only documentation changed between the build commit
+  `f89d728` and the merged `main`, so the published APKs were not rebuilt.
+- Emulator smoke on the release APKs: Phone in-place upgrade from v1.2.0 and clean install, all top-level
+  tabs plus Insights / Retrospective PK / Timeline, plan creation and dose recording, Portable JSON
+  export → import round trip (idempotent re-import), today-plan widget added; Wear install, launch and
+  today-plan Tile render. No `FATAL EXCEPTION` or ANR for Evolune on either device.
+- Not covered: Google Drive encrypted backup/restore, paired Phone↔Wear sync, real-device installation.
 
 ## v1.9.0 Verification Summary
 
@@ -494,17 +521,15 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0 于 2026-09-28 发布，恰好 3 资产
     （Phone APK / Wear APK / `SHA256SUMS.txt`），公开下载回读校验通过；normal fast-forward
     发布，无 force、无 rebase、无 tag 移动；P0/P1/P2 = 0）。
-  - **v1.9.1 代码梳理与精简 — CANDIDATE / NOT TAGGED / NOT PUBLISHED**（分支
-    `feature/v1.9.1-code-hygiene`：行为保持的死代码/未使用资源与导入清理 @ `97f915f`，version-only
-    打包提交 @ `743a22c`〔1.9.1 / Phone 101090100 / Wear 1101090100〕；无 schema、备份格式、
-    PK 数值或用药语义变化；release notes 草稿
-    [`v1.9.1/V191_RELEASE_NOTES.md`](v1.9.1/V191_RELEASE_NOTES.md)）。**CI 验证**：PR #31（草稿）第 2 次运行
-    〔#82 @ `e5e0b53`〕通过 `./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`（第 1 次运行 #81 因误删
-    受冻结的 4 个字符串键失败，已修复）；androidTest 不在 CI 内，需另行编译/运行，再由持有
-    release keystore 的所有者做签名打包与发布。
-    当前公开稳定版仍为 v1.9.0。
-  - **NEXT:** 完成 v1.9.1 的 androidTest 编译与签名打包/发布；其后无已授权的里程碑（新版本需单独立项，候选见
-    Current Limitations 与 [ROADMAP](ROADMAP.md)）。
+  - **v1.9.1 代码梳理与精简 — RELEASED**（2026-09-29；分支 `feature/v1.9.1-code-hygiene` 经 PR #31 以普通
+    merge commit 合入 `main`，annotated tag `v1.9.1` 指向该合并提交；1.9.1 / Phone 101090100 / Wear 1101090100；
+    无 schema、备份格式、PK 数值或用药语义变化；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1，3 资产；release notes
+    [`v1.9.1/V191_RELEASE_NOTES.md`](v1.9.1/V191_RELEASE_NOTES.md)）。**验证**：CI #82（`./gradlew test`、
+    `:app:assembleDebug`、`:wear:assembleDebug`）；本机 androidTest 396 项 0 失败（zh-CN、1080×2400）；发布 APK
+    哈希与证书复核一致；Phone/Wear 模拟器冒烟通过，无 FATAL/ANR。无 force、无 rebase、无 tag 移动。
+  - **NEXT:** 无已授权的后续里程碑。v1.9.1 已封版；新版本需单独立项（候选见 Current Limitations 与
+    [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图记录截至 2026-09-29 已发布的 v1.0.0–v1.9.0（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4 维护版本），并从 v1.9.0 基线向后规划；
+本路线图记录截至 2026-09-29 已发布的 v1.0.0–v1.9.1（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4、v1.9.1 维护版本），并从 v1.9.1 基线向后规划；
 当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
 [Migration Plan](MIGRATION_PLAN.md)。
 
@@ -108,9 +108,24 @@ History & Insights 版本已发布并封存；[`v1.7.0` GitHub Release](https://
 发布范围：History 与回顾性 PK 的后台处理与刷新成本、首页时钟与边界刷新的生命周期约束、
 Home 模拟的协作式取消、被中断恢复流程的安全回滚、更新检查取消处理。无 schema、备份格式或用药语义变化。
 
+### v1.9.1 — 2026-09-29
+
+当前公开稳定版本已发布并封存；[`v1.9.1` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
+绑定不可变 annotated tag `v1.9.1`（指向 PR #31 在 `main` 上的普通合并提交），包含 Phone APK、Wear APK 与
+`SHA256SUMS.txt` 三个资产。
+
+发布范围：
+
+- 行为保持的代码梳理与精简：移除经全仓库审计确认无引用的死代码、未使用资源（21 条字符串、1 个 drawable）与 103 条未使用 import。
+- 无 Room schema 迁移、无备份格式变化、用药计算语义不变；PK 数值代码、Room converter 与冻结语义代码未改。
+- 验证：CI #82（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`）、本机 androidTest 与 Phone/Wear 模拟器冒烟，详见
+  [v1.9.1 发布说明](v1.9.1/V191_RELEASE_NOTES.md)。
+
+`v1.9.1` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
+
 ### v1.9.0 — 2026-09-28
 
-当前公开稳定版本已发布并封存；[`v1.9.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
+上一公开稳定版本，已发布并封存；[`v1.9.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
 绑定不可变 `v1.9.0` tag（annotated tag `386e710d878bb8e108b40d130c6092aa352862cf`，指向提交
 `d099998c46e747b99855b7c9c56b3e1bd671a089`），恰好包含 Phone APK、Wear APK 与 `SHA256SUMS.txt` 三个资产。
 
@@ -396,10 +411,11 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.9.0 发布 — RELEASED**（2026-09-28；annotated tag `v1.9.0` = `386e710d…` → `d099998c…`；
   GitHub Release https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0，恰好 3 资产，公开下载回读校验通过；
   normal fast-forward 发布，无 force / rebase / tag 移动）。
-- **v1.9.1 · 代码梳理与精简 — CANDIDATE / NOT TAGGED / NOT PUBLISHED**（分支 `feature/v1.9.1-code-hygiene`；
-  行为保持的死代码/未使用资源与导入清理，version-only 打包提交 1.9.1 / 101090100 / 1101090100；
-  release notes 草稿 `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`；PR #31 CI 已通过〔#82〕，待 androidTest 编译与签名打包）。
-  **NEXT:** v1.9.1 的 androidTest 编译与签名打包/发布；其后无已授权的后续里程碑，新版本需单独立项。
+- **v1.9.1 · 代码梳理与精简 — RELEASED**（2026-09-29；分支 `feature/v1.9.1-code-hygiene` 经 PR #31 以普通
+  merge commit 合入 `main`；行为保持的死代码/未使用资源与导入清理，1.9.1 / 101090100 / 1101090100；
+  annotated tag `v1.9.1` → 该合并提交；GitHub Release https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1，3 资产；
+  release notes `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`；无 force / rebase / tag 移动）。
+  **NEXT:** 无已授权的后续里程碑；新版本需单独立项。
 
 ## Historical and future milestones
 
