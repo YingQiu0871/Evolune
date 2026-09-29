@@ -1037,6 +1037,7 @@ fun AppNavigation(
                         settingsViewModel.updateThemePreset(ThemePresetSelection.Preset(palette))
                     },
                     onTimeFormatChange = settingsViewModel::updateTimeFormat,
+                    onShowCpaCurveChange = settingsViewModel::updateShowCpaCurve,
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
                     onHealthConnectWeightSyncEnabledChange = { enabled ->

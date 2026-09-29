@@ -61,6 +61,7 @@ fun SettingsScreen(
     onSelectPresetSource: () -> Unit,
     onPresetPaletteChange: (PresetPalette) -> Unit,
     onTimeFormatChange: (TimeFormat) -> Unit,
+    onShowCpaCurveChange: (Boolean) -> Unit,
     onAutoCheckUpdatesChange: (Boolean) -> Unit,
     onCheckForUpdates: () -> Unit,
     onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit,
@@ -135,7 +136,8 @@ fun SettingsScreen(
                 onSelectDynamicSource = onSelectDynamicSource,
                 onSelectPresetSource = onSelectPresetSource,
                 onPresetPaletteChange = onPresetPaletteChange,
-                onTimeFormatChange = onTimeFormatChange
+                onTimeFormatChange = onTimeFormatChange,
+                onShowCpaCurveChange = onShowCpaCurveChange
             )
             SettingsSyncBackupSection(
                 settings = userSettings,
@@ -193,6 +195,7 @@ private fun SettingsScreenPreview() {
             onSelectPresetSource = {},
             onPresetPaletteChange = {},
             onTimeFormatChange = {},
+            onShowCpaCurveChange = {},
             onAutoCheckUpdatesChange = {},
             onCheckForUpdates = {},
             onHealthConnectWeightSyncEnabledChange = {},

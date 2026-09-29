@@ -9,12 +9,15 @@ import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.automirrored.outlined.ShowChart
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -41,7 +44,8 @@ internal fun SettingsAppearanceSection(
     onSelectDynamicSource: () -> Unit,
     onSelectPresetSource: () -> Unit,
     onPresetPaletteChange: (PresetPalette) -> Unit,
-    onTimeFormatChange: (TimeFormat) -> Unit
+    onTimeFormatChange: (TimeFormat) -> Unit,
+    onShowCpaCurveChange: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -62,6 +66,42 @@ internal fun SettingsAppearanceSection(
             currentFormat = settings.timeFormat,
             onFormatChange = onTimeFormatChange
         )
+        ShowCpaCurveSection(
+            showCpaCurve = settings.showCpaCurve,
+            onShowCpaCurveChange = onShowCpaCurveChange
+        )
+    }
+}
+
+/**
+ * v1.10 (S1/S8) — optional CPA estimated curve toggle. Default off; copy discloses the
+ * estimate/peak-underestimation caveat so the switch is never mistaken for a lab result.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ShowCpaCurveSection(
+    showCpaCurve: Boolean,
+    onShowCpaCurveChange: (Boolean) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        SegmentedListItem(
+            modifier = Modifier.testTag("settings-show-cpa-curve"),
+            onClick = { onShowCpaCurveChange(!showCpaCurve) },
+            shapes = ListItemDefaults.segmentedShapes(index = 0, count = 1),
+            colors = settingsListItemColors(),
+            leadingContent = {
+                Icon(imageVector = Icons.AutoMirrored.Outlined.ShowChart, contentDescription = null)
+            },
+            trailingContent = {
+                Switch(checked = showCpaCurve, onCheckedChange = onShowCpaCurveChange)
+            },
+            supportingContent = {
+                Text(stringResource(R.string.settings_show_cpa_curve_desc))
+            }
+        ) { Text(stringResource(R.string.settings_show_cpa_curve_title)) }
     }
 }
 

@@ -65,7 +65,14 @@ data class UserSettings(
     /** Sync metadata only; [bodyWeight] remains the local authority. */
     val lastHealthConnectWeightKg: Double? = null,
     /** Shared freshness barrier for HC observations and local authority writes. */
-    val lastHealthConnectWeightAdoptedAt: Instant? = null
+    val lastHealthConnectWeightAdoptedAt: Instant? = null,
+    /**
+     * v1.10 local display preference (S1/S7): shows an optional CPA estimated concentration
+     * curve on the Home chart. Default off. Never written by the backup codec, never touched
+     * by [AtomicSettingsStore.replaceSettings] (restore keeps the local value), never part of
+     * Portable JSON/CSV.
+     */
+    val showCpaCurve: Boolean = false
 )
 
 const val MAX_BODY_WEIGHT_KG = 300.0
@@ -93,6 +100,9 @@ interface SettingsStore {
     suspend fun updateHealthConnectWeightSyncEnabled(enabled: Boolean)
     suspend fun updateBodyWeightFromHealthConnect(weight: Double, adoptedAt: Instant): Boolean
     suspend fun updateHealthConnectWeightMetadata(weight: Double, adoptedAt: Instant): Boolean
+
+    /** v1.10 (S1/S7): local-only display preference, never persisted by backup/restore. */
+    suspend fun updateShowCpaCurve(enabled: Boolean)
 }
 
 /**
@@ -126,6 +136,7 @@ class SettingsDataStore(
             doublePreferencesKey("last_health_connect_weight_kg")
         private val LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY =
             stringPreferencesKey("last_health_connect_weight_adopted_at")
+        private val SHOW_CPA_CURVE_KEY = booleanPreferencesKey("show_cpa_curve")
     }
     
     /**
@@ -168,7 +179,8 @@ class SettingsDataStore(
                 preferences[HEALTH_CONNECT_WEIGHT_SYNC_ENABLED_KEY] ?: false,
             lastHealthConnectWeightKg = preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY],
             lastHealthConnectWeightAdoptedAt = preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY]
-                ?.let { value -> runCatching { Instant.parse(value) }.getOrNull() }
+                ?.let { value -> runCatching { Instant.parse(value) }.getOrNull() },
+            showCpaCurve = preferences[SHOW_CPA_CURVE_KEY] ?: false
         )
     }
     
@@ -278,6 +290,16 @@ class SettingsDataStore(
             preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY] = adoptedAt.toString()
         }
         return true
+    }
+
+    /**
+     * v1.10 (S1/S7): local-only display preference. Not part of [replaceSettings] — restore
+     * never touches it, so it always keeps the device's own value across a backup restore.
+     */
+    override suspend fun updateShowCpaCurve(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_CPA_CURVE_KEY] = enabled
+        }
     }
 
     override suspend fun replaceSettings(settings: UserSettings): Boolean {

@@ -122,6 +122,9 @@
     <string name="settings_time_format_12h_desc">始终使用12小时制</string>
     <string name="settings_time_format_24h_desc">始终使用24小时制</string>
 
+    <string name="settings_show_cpa_curve_title">显示 CPA 估算曲线</string>
+    <string name="settings_show_cpa_curve_desc">在首页浓度图叠加醋酸环丙孕酮估算浓度（ng/mL，右侧坐标轴）。模型估算，非实测；单次服药峰值可能被低估。</string>
+
     <string name="about_section_title">关于</string>
     <string name="about_website_button">Evolune 官网</string>
     <string name="about_developer_contact_button">联系开发者</string>

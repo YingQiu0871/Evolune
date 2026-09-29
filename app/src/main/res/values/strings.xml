@@ -122,6 +122,9 @@
     <string name="settings_time_format_12h_desc">始终使用12小时制</string>
     <string name="settings_time_format_24h_desc">始终使用24小时制</string>
 
+    <string name="settings_show_cpa_curve_title">显示 CPA 估算曲线</string>
+    <string name="settings_show_cpa_curve_desc">在首页浓度图叠加醋酸环丙孕酮估算浓度（ng/mL，右侧坐标轴）。模型估算，非实测；单次服药峰值可能被低估。</string>
+
     <string name="settings_import_json">导入 JSON（文件）</string>
     <string name="settings_import_json_desc">从 hrt.mahiro.uk 或本应用导出的 JSON 文件导入用药记录</string>
     <string name="settings_import_clipboard">导入 JSON（剪贴板）</string>

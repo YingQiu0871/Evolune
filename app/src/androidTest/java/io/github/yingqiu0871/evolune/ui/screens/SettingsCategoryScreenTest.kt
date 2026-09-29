@@ -222,6 +222,7 @@ class SettingsCategoryScreenTest {
         onSelectPresetSource: () -> Unit = {},
         onPresetPaletteChange: (PresetPalette) -> Unit = {},
         onTimeFormatChange: (TimeFormat) -> Unit = {},
+        onShowCpaCurveChange: (Boolean) -> Unit = {},
         onAutoCheckUpdatesChange: (Boolean) -> Unit = {},
         onCheckForUpdates: () -> Unit = {},
         onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit = {},
@@ -244,6 +245,7 @@ class SettingsCategoryScreenTest {
                     onSelectPresetSource = onSelectPresetSource,
                     onPresetPaletteChange = onPresetPaletteChange,
                     onTimeFormatChange = onTimeFormatChange,
+                    onShowCpaCurveChange = onShowCpaCurveChange,
                     onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
                     onCheckForUpdates = onCheckForUpdates,
                     onHealthConnectWeightSyncEnabledChange =
@@ -290,6 +292,7 @@ private fun SettingsScreenTestHost() {
         onSelectPresetSource = {},
         onPresetPaletteChange = {},
         onTimeFormatChange = {},
+        onShowCpaCurveChange = {},
         onAutoCheckUpdatesChange = {},
         onCheckForUpdates = {},
         onHealthConnectWeightSyncEnabledChange = {},

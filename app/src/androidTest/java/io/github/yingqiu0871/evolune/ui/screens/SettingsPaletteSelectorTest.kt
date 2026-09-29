@@ -143,6 +143,7 @@ class SettingsPaletteSelectorTest {
                     onSelectPresetSource = onSelectPresetSource,
                     onPresetPaletteChange = onPresetPaletteChange,
                     onTimeFormatChange = {},
+                    onShowCpaCurveChange = {},
                     onAutoCheckUpdatesChange = {},
                     onCheckForUpdates = {},
                     onHealthConnectWeightSyncEnabledChange = {},
