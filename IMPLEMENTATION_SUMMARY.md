@@ -1,6 +1,6 @@
-# Evolune Implementation Summary — through v1.6.0
+# Evolune Implementation Summary — through v1.9.0
 
-文档核对日期：2026-09-12。当前公开稳定版为 [v1.6.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)，发布于 2026-09-10，源码 tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`。本次盘点起点为 `main@c7f3d266357af08b737aa4fd4015f1b1391279c3`；该后续提交补充双语发布说明。
+文档核对日期：2026-09-29。当前公开稳定版为 [v1.9.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)，发布于 2026-09-28，annotated tag `v1.9.0` 指向提交 `d099998c46e747b99855b7c9c56b3e1bd671a089`。v1.6.0（2026-09-10，tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`）及更早版本的盘点见[版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；v1.7–v1.9 的发布状态见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
 
 ## 版本累计成果
 
@@ -14,6 +14,12 @@
 | v1.4.0 | 首次信任/权限引导、可重看的功能教程 |
 | v1.5.0 | 有范围和证据的稳定性/性能/清理；Energy/background 保留负责人豁免 |
 | v1.6.0 | 四个 Phone Widget、三新 Tile、旧 Tile 兼容、三 Complication、统一外观、精确跳过提醒 |
+| v1.7.0 | History & Insights：历史、月度时间线、洞察、回顾性 PK、Portable JSON v1 / CSV v1 导出与导入 |
+| v1.7.1 | 真机 UI 修正：History 层级与日历居中、回顾性 PK 图表重设计、Timeline 日期条、独立“隐私与权限”入口 |
+| v1.7.2 | 扁平设置页、Dynamic + 8 预设配色、旧主题兼容、备份 schema v2、移除 History 推断匹配解释文案 |
+| v1.7.3 / v1.7.4 | 全屏子页面导航卡顿热修；随后恢复 220 ms 进入动效 |
+| v1.8.0 | 全局卫生：后台处理与刷新成本、生命周期约束、Home 协作式取消、被中断恢复的安全回滚 |
+| v1.9.0 | 维护：检出可复现的测试、冗余直接依赖与过期 Glance/ProGuard 配置清理 |
 
 完整日期、tag 和来源见 [版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
@@ -24,7 +30,9 @@
 - UI、Widget、提醒和 Wear 动作通过应用动作与 Repository 持久化，成功后再刷新；Wear 仅保存可重建快照。
 - Mahiro JSON v1 是兼容交换格式；原生加密备份是独立的版本化格式，恢复包含预览、验证及 Room/DataStore 协调。
 - Health Connect 只读前台体重，Google Drive 只做主动授权的手动加密备份；不实现实时云同步或第二用药数据库。
-- v1.6 未改 PK 数学模型、Room schema、备份格式、正式包身份或签名连续性。
+- 历史投影是 History、Timeline、Insights 与回顾性 PK 的共享读模型：实际记录（`DoseEvent`）是历史权威，当前计划只是 schedule 上下文，不改写过去；未匹配事件保持可见；`ReminderSkipStore` 不会伪造长期“跳过/漏服”历史。
+- Portable JSON v1 / CSV v1 与加密备份（`.evbackup`，自 v1.7.2 起 schema v2 并兼容 v1）相互独立。
+- v1.6–v1.9 均未改 PK 数学模型；v1.9.0 无 Room schema 迁移、无备份格式变化，正式包身份与签名连续性保持不变。
 
 ## v1.6 用户入口
 
@@ -38,10 +46,18 @@
 
 Phone 快速确认受 `AVAILABLE` 和 action-time 复核约束；Wear 的 `UPCOMING/DUE` 兼容语义不能直接套回 Phone。布局、缓存和缺失字段均不能伪造完成状态。
 
+## v1.7–v1.9 用户入口
+
+| 展示面 | 入口 | 关键行为 |
+|---|---|---|
+| Phone | 历史（顶层）→ 用药洞察、回顾性 PK、用药时间线 | 只读；按日历日/月/7-30-90 天展示事实与模型估算，不输出依从率评分；回顾性 PK 明确标注为模型估算 |
+| Phone | 设置 → 同步与备份 → 本地数据 | Portable JSON v1（30 天/90 天/全部历史导出、增量导入）、CSV v1（仅导出）、旧版 Mahiro JSON 兼容路径 |
+| Phone | 设置 → 外观与格式 | Dynamic 或 8 个预设配色；旧内置主题兼容保留 |
+
 ## 验证与后续
 
-[最终发布门禁](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) 记录 863 JVM tests、签名与 APK 回读、Phone/Wear 保留数据覆盖安装及负责人真表验收。该数字是发布时记录，本次文档更新没有重跑 Android 构建或设备测试。
+v1.9.0 的验证记录见 [Current Status](docs/evolune/CURRENT_STATUS.md)：新检出的完整 JVM 门禁为 187 个套件、1,709 个测试、0 失败/0 错误/0 跳过（证据 `docs/evolune/v1.9.0/evidence/P-02-release-packaging/jvm-xml-recount.txt`）。[v1.6 最终发布门禁](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) 记录 863 JVM tests、签名与 APK 回读、Phone/Wear 保留数据覆盖安装及负责人真表验收。这些数字是各自发布时记录，本次文档更新没有重跑 Android 构建或设备测试。
 
 Phone 最终视觉证据包含隔离模拟器全流程和真机覆盖/实例保留，未在最终真机逐项重新新建四款 Widget。可选 AlarmManager/并发跳过压力测试仍为 P3；v1.5 耗电豁免不是实测 PASS。
 
-v1.7 CPA 仍为未开始候选；Tracked Date、个性化 PK、SQLCipher 和进一步模块拆分不属于已交付承诺。完整文档分类见 [文档索引](docs/evolune/DOCUMENTATION_INDEX.md)。
+Optional CPA PK Curve（v1.7 早期草案，未随 v1.7 发布）仍为未开始候选；Tracked Date、个性化 PK、SQLCipher 和进一步模块拆分不属于已交付承诺。完整文档分类见 [文档索引](docs/evolune/DOCUMENTATION_INDEX.md)。

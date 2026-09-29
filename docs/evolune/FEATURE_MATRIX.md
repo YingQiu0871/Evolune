@@ -1,8 +1,8 @@
 # 功能矩阵
 
-本表以已发布的 `v1.6.0` 和当前 `main` 为准。状态使用 `SHIPPED v1.x`、`PARTIAL`、`PLANNED v1.x`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以已发布的 `v1.9.0` 和当前 `main` 为准。状态使用 `SHIPPED v1.x`、`PARTIAL`、`PLANNED v1.x`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
-| 功能 | 状态 | 截至 v1.6 的实现事实 / 边界 |
+| 功能 | 状态 | 截至 v1.9 的实现事实 / 边界 |
 |---|---|---|
 | MedicationPlan | SHIPPED v1.0 | 领域模型、Room aggregate、启用状态、daily/weekly/custom schedule 均已接入生产路径 |
 | Scheduled dose slots | SHIPPED v1.0 | 稳定 UUIDv5、分钟精度 local time、权威顺序与连续 position；v2-to-v3 backfill 已实现 |
@@ -29,7 +29,16 @@
 | Stability / performance / code cleanup | SHIPPED v1.5 | 范围内稳定性、性能和清理；Energy/background 为 SKIPPED_BY_OWNER，不能宣称电池实测 PASS |
 | Phone launcher Logo scale | SHIPPED v1.5 | adaptive-icon foreground/monochrome 安全区和 launcher mask 已验收 |
 | Expanded Phone/Wear widget gallery | SHIPPED v1.6 | 四个 Phone Widget、三个新 Tile、兼容曲线 Tile 和三个 Complication，共用 Phone 派生状态边界 |
-| Optional CPA PK curve | PLANNED v1.7 | 默认关闭；开启后与 E2 在同一时间轴/图表区域显示并以图例区分，保持独立单位；实施前需独立科学与来源审查 |
+| History（按日历日） | SHIPPED v1.7; polished v1.7.1–v1.7.2 | 共享历史投影：实际记录是权威，区分计划时点与实际摄入并显示时间差；未匹配事件按真实来源显示；只读，不写入数据 |
+| Timeline（月度） | SHIPPED v1.7; date strip v1.7.1 | 已匹配 / 未记录计划 / 未匹配摄入三类行；仅呈现事实，无评分或依从性判定 |
+| Insights（7/30/90 天） | SHIPPED v1.7 | 记录次数、来源分布、身份置信度；不输出严格历史依从率、百分比或 timing 指标 |
+| Retrospective PK | SHIPPED v1.7; chart redesigned v1.7.1 | 基于所选区间权威已记录摄入的模型估算曲线；7/30/90 天区间；始终标注为估算，不是实测血药浓度 |
+| Evolune Portable JSON v1 / CSV v1 | SHIPPED v1.7 | JSON 导出（30 天/90 天/全部）与增量导入；CSV 仅导出；与加密备份相互独立 |
+| Flat Settings and app color schemes | SHIPPED v1.7.1–v1.7.2 | 设置页扁平化；Dynamic + 8 预设配色；旧内置主题兼容；备份 schema v2（兼容 v1 恢复） |
+| Navigation stability and motion | SHIPPED v1.7.3 / v1.7.4 | 全屏子页面卡顿修复；220 ms 淡入 + 0.98→1.0 缩放进入动效 |
+| Global hygiene (performance / lifecycle / cancellation / restore recovery) | SHIPPED v1.8 | 后台处理与刷新成本、Home 生命周期与协作式取消、被中断恢复的 PREPARED journal 安全回滚；无 schema/备份/语义变化 |
+| Checkout-reproducible tests and config cleanup | SHIPPED v1.9 | Windows CRLF 检出下测试确定性；移除冗余直接依赖声明与过期 Glance/ProGuard 配置；无 schema/备份/语义变化 |
+| Optional CPA PK curve | PLANNED（未立项；原 v1.7 早期草案，未随 v1.7 发布） | 默认关闭；开启后与 E2 在同一时间轴/图表区域显示并以图例区分，保持独立单位；实施前需独立科学与来源审查 |
 | User-controlled JSON migration | SHIPPED v1.0 | 文件/剪贴板兼容交换；不等同完整原生备份 |
 | Encrypted backup format | SHIPPED v1.2 | AES-256-GCM、PBKDF2-HMAC-SHA256（默认 600,000 次）、版本校验、恢复 journal；不等同 SQLCipher 数据库加密 |
 | Tracked Date | DEFERRED | 当前无实体、表或产品入口；不属于 v1.0/v1.1 已锁范围 |
@@ -40,5 +49,5 @@
 ## 版本方向
 
 - `v1.0.0` 已发布并封存；表中 `SHIPPED v1.0` 仅描述该实现。
-- `v1.1`、`v1.2.0/v1.2.2`、`v1.3.0/v1.3.1`、`v1.4.0`、`v1.5.0`、`v1.6.0` 均有公开发布；日期及证据见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。`v1.7` 仍是候选，未开始。
+- `v1.1`、`v1.2.0/v1.2.2`、`v1.3.0/v1.3.1`、`v1.4.0`、`v1.5.0`、`v1.6.0`、`v1.7.0–v1.7.4`、`v1.8.0`、`v1.9.0` 均有公开发布；v1.6 及更早的日期与证据见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)，v1.7–v1.9 见 [Current Status](CURRENT_STATUS.md) 与各版本目录的发布说明。可选 CPA 曲线仍是未立项候选。
 - `DEFERRED` 不表示承诺进入某个版本。

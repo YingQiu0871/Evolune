@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图记录截至 2026-09-12 已发布的 v1.0.0–v1.6.0（含 v1.2.2、v1.3.1 热修复），并从 v1.6.0 基线向后规划；
+本路线图记录截至 2026-09-29 已发布的 v1.0.0–v1.9.0（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4 维护版本），并从 v1.9.0 基线向后规划；
 当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
 [Migration Plan](MIGRATION_PLAN.md)。
 
@@ -66,7 +66,7 @@
 
 ### v1.6.0 — 2026-09-10
 
-当前公开稳定版本已发布并封存；[`v1.6.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
+已发布并封存；[`v1.6.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
 绑定不可变 `v1.6.0` tag，并提供同一签名身份的 Phone/Wear APK。
 
 发布范围：
@@ -78,6 +78,49 @@
 - 独立复审、签名/哈希审计、真实 Phone/Wear 保留数据覆盖安装和负责人真实手表验收。
 
 `v1.6.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
+
+### v1.7.0 — 2026-09-17
+
+History & Insights 版本已发布并封存；[`v1.7.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.0)
+绑定不可变 `v1.7.0` tag（`a8e8869b4d91d60e6afd593c1cfdb811b2c40039`）。
+
+发布范围：
+
+- History（按日历日区分计划时点与实际摄入）与月度 Timeline（已匹配 / 未记录计划 / 未匹配摄入）。
+- Insights：7/30/90 天事实性汇总，不输出严格历史依从率。
+- 回顾性 PK：基于权威已记录摄入的模型估算曲线，明确标注非实测。
+- Evolune Portable JSON v1（导出与增量导入）与 CSV v1（仅导出）。
+- 手机、Widget 与 Wear 的用药动作产生同一权威结果；无 schema 与备份格式变化。
+
+### v1.7.1–v1.7.4 — 2026-09-18 至 2026-09-20
+
+- `v1.7.1`（2026-09-18，tag `746fc0a970bf0dfb3735c9225ce662e9511514ae`）：真机 UI 修正（History 层级与日历居中、回顾性 PK 图表重设计、Timeline 日期条、独立“隐私与权限”入口）。
+- `v1.7.2`（2026-09-19，tag `f6b9134ed5c191b400a9ed23900af31ac342364d`）：设置页扁平化、应用预设配色（Dynamic + 8 个预设）、备份 schema v2、History 推断文案移除。
+- `v1.7.3`（2026-09-19，tag `bcb12d432af1e9780e66686359545e69a056da39`）：全屏子页面导航卡顿热修。
+- `v1.7.4`（2026-09-20，tag `d73428364670ceb691cbe90547bd34fe9acd272f`）：导航动效精修（220 ms 淡入 + 0.98→1.0 缩放）。
+
+### v1.8.0 — 2026-09-26
+
+全局卫生版本已发布并封存；[`v1.8.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0)
+绑定不可变 `v1.8.0` tag（annotated tag `c101c238ec1e963a61191fb82d5ffa287219e400`，指向提交
+`51a839aebadb3f516b38b69e4a96078389bdf0ea`）。
+
+发布范围：History 与回顾性 PK 的后台处理与刷新成本、首页时钟与边界刷新的生命周期约束、
+Home 模拟的协作式取消、被中断恢复流程的安全回滚、更新检查取消处理。无 schema、备份格式或用药语义变化。
+
+### v1.9.0 — 2026-09-28
+
+当前公开稳定版本已发布并封存；[`v1.9.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
+绑定不可变 `v1.9.0` tag（annotated tag `386e710d878bb8e108b40d130c6092aa352862cf`，指向提交
+`d099998c46e747b99855b7c9c56b3e1bd671a089`），恰好包含 Phone APK、Wear APK 与 `SHA256SUMS.txt` 三个资产。
+
+发布范围：
+
+- 检出可复现的测试（Windows CRLF 检出下无需手工行尾材料化；金标字节夹具确定）。
+- 移除一个冗余的直接依赖声明（仍由 Compose 传递提供）；移除未使用的 Glance 目录元数据与已过时的 Glance/ActionCallback ProGuard 保留规则。
+- 无 Room schema 迁移、无备份格式变化、用药计算语义不变；P0/P1/P2 = 0。
+
+`v1.9.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
 
 ## Completed milestones
 
@@ -342,14 +385,17 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   `b9b6b955…` 连续；release notes `docs/evolune/v1.8.0/V180_RELEASE_NOTES.md`）。
 - **v1.7.4 发布 — RELEASED**（annotated tag `v1.7.4` @ `d734283…`；GitHub Release
   https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.4，3 资产，发布后字节校验 2/2）。
-  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.8.0 发布执行。
+- **v1.8.0 发布 — RELEASED**（2026-09-26；annotated tag `v1.8.0` = `c101c238…` → `51a839a…`；
+  GitHub Release https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0，3 资产，发布后字节校验通过）。
 - **v1.9.0 · 实现/卫生 — CLOSED / FROZEN**（T-01/T-02 检出可复现性；受治理的
   H-01/H-02 依赖与配置清理；E-01/T-03 延后，非阻塞）。
 - **v1.9.0 · 打包候选 — ACCEPTED / FROZEN**（版本 1.9.0 / Phone 101090000 /
   Wear 1101090000；P-02a @ `0b96d9ee…`；P-02b packaging evidence @ `1fc4037…`；独立评审
   `APPROVE V1.9.0 P-02 — RELEASE PACKAGING ACCEPTED / FROZEN`；证书 `b9b6b955…` 连续；
   release notes `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
-  **Release: NOT TAGGED / NOT PUBLISHED.** **NEXT:** v1.9.0 发布执行。
+- **v1.9.0 发布 — RELEASED**（2026-09-28；annotated tag `v1.9.0` = `386e710d…` → `d099998c…`；
+  GitHub Release https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0，恰好 3 资产，公开下载回读校验通过；
+  normal fast-forward 发布，无 force / rebase / tag 移动）。**NEXT:** 无已授权的后续里程碑；新版本需单独立项。
 
 ## Historical and future milestones
 
@@ -530,6 +576,8 @@ Wear 最终交付：
 - 由测试隔离和构建收益驱动的 Gradle module extraction。
 - SQLCipher 或其他数据库透明加密；先完成威胁模型、迁移与密钥恢复设计。
 - 超出 v1.6 范围的更多统计、筛选和桌面/手表只读可视化。
+- v1.9.0 明确延后（无已证明收益，非阻塞）：E-01 生命周期桥接重复、T-03 设备测试 sleep；
+  历史双通道查询在无日期/时间索引下的表扫描成本；PK 输入在公开输入未暴露间隔时使用固定窗口，需专门评估后再改。
 
 ## 跨版本永久边界
 

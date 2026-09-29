@@ -3,35 +3,89 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
-Documentation reconciled on 2026-09-12 against `main@c7f3d266357af08b737aa4fd4015f1b1391279c3`,
-the `v1.6.0` source tag and GitHub Releases. See the [review](DOCUMENTATION_REVIEW_V16_2026-09-12.md)
-and [complete documentation index](DOCUMENTATION_INDEX.md). This is a documentation audit, not a new device acceptance run.
+Documentation reconciled on 2026-09-29 against the `v1.9.0` release commit
+`d099998c46e747b99855b7c9c56b3e1bd671a089` (tree `5e42cf2b968080e0374379e5594e03be6d89ffcf`),
+the `v1.9.0` source tag and GitHub Releases. See the [complete documentation index](DOCUMENTATION_INDEX.md)
+and the earlier [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md). This is a documentation
+reconciliation, not a new device acceptance run.
 
 ## Current Release
 
-- Stable version: [`v1.6.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0)
-- Release date: 2026-09-10
-- Release source: `v1.6.0` → `58ab66fc22b93630de4ea7137651b2388ff5f1a2`; preserve this tag
-- Previous sealed stable release: [`v1.5.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.5.0)
-- Release downloads: signed Phone and Wear APKs attached to the v1.6.0 GitHub Release
+- Stable version: [`v1.9.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
+- Release date: 2026-09-28 (GitHub Release published 2026-09-28T19:17:16Z)
+- Release source: annotated tag `v1.9.0` (`386e710d878bb8e108b40d130c6092aa352862cf`) → commit
+  `d099998c46e747b99855b7c9c56b3e1bd671a089`; preserve this tag
+- Previous sealed stable release: [`v1.8.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0)
+  (2026-09-26)
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.9.0 GitHub Release
 
-v1.6.0 completed the Widget Gallery milestone. The release passed independent final review, signed
-Phone/Wear artifact verification, in-place installation on a real Pixel 11 Pro and Galaxy Watch,
-and owner acceptance on the real watch. See [v1.6 Acceptance](v1.6/V16_ACCEPTANCE.md) and the
-[final release gate](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md).
+v1.9.0 is a maintenance and configuration-hygiene release: better test and checkout reproducibility
+(Windows CRLF checkouts no longer need manual line-ending materialization and the golden byte fixtures
+are deterministic at checkout), removal of one redundant direct dependency declaration (still provided
+transitively by Compose), and removal of unused Glance catalog metadata and obsolete Glance/ActionCallback
+ProGuard keep rules. There is no Room schema migration, no backup format change and no change to medication
+calculation semantics. See the [v1.9.0 release notes](v1.9.0/V190_RELEASE_NOTES.md).
 
-## v1.6.0 Release Identity
+## v1.9.0 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.6.0 (101060000)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.6.0 (1101060000)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.9.0 (101090000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.9.0 (1101090000)` | 30 |
+
+| Asset | Size (bytes) | SHA-256 |
+|---|---:|---|
+| `Evolune-Phone-v1.9.0.apk` | 6,313,116 | `0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1` |
+| `Evolune-Wear-v1.9.0.apk` | 2,604,764 | `78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1` |
+| `SHA256SUMS.txt` | 181 | `d74e590af465e0ff620d834094de8bfacd038901127b4136dbb83d1f7f782aef` |
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
-`B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08`.
+`B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
 Debug builds use a separate `.debug` application ID suffix and signing identity.
+Public download-back verification of all three assets matched the frozen bytes.
 
-## Shipped v1.6 Capabilities
+## Release Line Since v1.6
+
+| Version | Date | Theme |
+|---|---|---|
+| `v1.6.0` | 2026-09-10 | Widget Gallery (four Phone Widgets, Wear Tiles and Complications) |
+| `v1.7.0` | 2026-09-17 | History & Insights: History, Timeline, Insights, Retrospective PK, Portable JSON/CSV export |
+| `v1.7.1` | 2026-09-18 | Real-device UI polish (History hierarchy and calendar alignment, Retrospective PK chart redesign, Timeline date strip, Settings privacy entry) |
+| `v1.7.2` | 2026-09-19 | Flat Settings, app preset color schemes, backup schema v2, History wording cleanup |
+| `v1.7.3` | 2026-09-19 | Navigation stutter hotfix |
+| `v1.7.4` | 2026-09-20 | Navigation motion refinement |
+| `v1.8.0` | 2026-09-26 | Global hygiene: performance, lifecycle, cancellation, interrupted-restore recovery |
+| `v1.9.0` | 2026-09-28 | Maintenance: checkout-reproducible tests, dependency and configuration cleanup |
+
+Dates for v1.7.x are the tag commit dates; v1.8.0 and v1.9.0 dates are the recorded GitHub Release
+publication dates. Every release in this line is signed with the same certificate and upgrades in place
+from the previous one without clearing data.
+
+## Shipped Since v1.6 (v1.7–v1.9)
+
+- **History and Timeline (v1.7.0):** day-by-day medication activity that separates planned occurrences
+  from actual intake, with timing differences; a monthly Timeline of matched, unrecorded-schedule and
+  unmatched-intake rows. Facts only: no adherence scoring. Recorded intake is the historical authority;
+  the current plan is schedule context, not a rewrite of the past.
+- **Insights (v1.7.0):** 7/30/90-day factual summaries (recorded counts, source breakdown, identity
+  confidence) without strict historical adherence rates.
+- **Retrospective PK (v1.7.0, redesigned in v1.7.1):** model-estimated concentration curves over a chosen
+  historical range built from authoritative recorded intake; 7/30/90-day selector, view-only
+  decimation and tap/drag inspection. Always a model estimate, never a measured blood level.
+- **Data portability (v1.7.0):** Evolune Portable JSON v1 (export and additive import) and CSV v1
+  (export only), independent of the encrypted `.evbackup` format.
+- **Settings and appearance (v1.7.1–v1.7.2):** flattened Settings home with a standalone Privacy &
+  permissions entry, Dynamic color plus eight preset color schemes, legacy-theme continuity for
+  upgrades, and backup schema v2 that also carries theme state while still restoring v1 backups.
+- **Navigation (v1.7.3–v1.7.4):** anti-stutter chrome policy for full-screen child pages, then a settled
+  220 ms fade and 0.98→1.0 scale entrance motion.
+- **Reliability and performance (v1.8.0):** post-query History work and Retrospective PK moved off the caller,
+  Home clock and boundary refresh follow the lifecycle, cooperative cancellation of Home simulation,
+  safer recovery when a restore is interrupted, more reliable update-check cancellation.
+- **Maintenance (v1.9.0):** see Current Release above.
+
+## Widget Gallery Capabilities (shipped v1.6, carried forward)
+
 
 - Four separate Phone Widget picker entries: Evolune-今日计划、Evolune-下一次服药、
   Evolune-当前 E2 and Evolune-E2 趋势.
@@ -81,7 +135,23 @@ Because v1.0 Wear used the old application ID `io.github.yingqiu0871.evolune.wea
 package cannot update in place to the shared v1.1+ identity. See
 [Wear v1.1 Identity Migration](WEAR_V11_MIGRATION.md). This does not apply to v1.1–v1.5 upgrades.
 
-## Verification Summary
+## v1.9.0 Verification Summary
+
+Recorded in the v1.9.0 evidence under [`v1.9.0/evidence/`](v1.9.0/evidence/) and the final release
+packet; carried forward here, not rerun by this documentation reconciliation.
+
+- Fresh-checkout full JVM gate: 187 suites, 1,709 tests, 0 failures, 0 errors, 0 skipped
+  (`evidence/P-02-release-packaging/jvm-xml-recount.txt`).
+- Widget JVM coverage and Android widget instrumentation passed; signed Phone and Wear release builds
+  with R8 succeeded; bounded release smoke ran on a Pixel_7 API 35 emulator (Phone) and a Wear OS Large
+  Round emulator (Wear).
+- Published assets were downloaded back from the public release: sizes, `SHA256SUMS.txt` (2/2), package
+  identity, version codes and the signer certificate all matched the frozen candidate.
+- Independent reviews recorded P0 = 0, P1 = 0, P2 = 0. Remaining P3 items are documented and non-blocking.
+- No repository edit was made during publication; local `main`, `origin/main` and the peeled `v1.9.0`
+  tag all pointed at `d099998c46e747b99855b7c9c56b3e1bd671a089`.
+
+## Verification Summary (v1.6.0 release gate, carried forward)
 
 The following results are carried forward from the recorded release gate, not rerun by this audit.
 The final Phone evidence combines full Pixel Fold emulator flows with real Pixel in-place installation,
@@ -107,9 +177,12 @@ independently exercised on a real watch. See the [gate's per-surface matrix](v1.
 - Google Drive requires explicit authorization and manual backup/restore; background and real-time multi-device cloud synchronization are not implemented.
 - Auto Backup/device transfer intentionally excludes private app data.
 - Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
-- v1.7 Optional CPA PK Curve remains a candidate only (it is **not** part of the current v1.7
+- Optional CPA PK Curve remains a candidate only (it was **not** part of the shipped v1.7
   History & Insights program); it is default-off and requires independent scientific and source
   review before implementation or release.
+- Deferred at v1.9.0 with no demonstrated benefit: E-01 duplicated lifecycle bridges and T-03 device-test
+  sleeps. The dual-channel History query still scans without a date/time index, and the PK input keeps a
+  fixed window where the public input exposes no interval; both are design constraints to revisit deliberately.
 
 ## Provenance
 
@@ -401,9 +474,10 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - **v1.7.4 发布 — RELEASED**（annotated tag `v1.7.4` @
     `d73428364670ceb691cbe90547bd34fe9acd272f`；GitHub Release
     https://github.com/YingQiu0871/Evolune/releases/tag/v1.7.4，3 资产，发布后字节校验 2/2）。
-  - **Release: NOT TAGGED / NOT PUBLISHED.**
-  - **NEXT:** v1.8.0 发布执行（final docs commit → annotated tag v1.8.0 → push →
-    GitHub Release 上传 3 资产 → 发布字节校验）。
+  - **v1.8.0 发布 — RELEASED**（final docs commit `51a839aebadb3f516b38b69e4a96078389bdf0ea`；
+    annotated tag `v1.8.0` = `c101c238ec1e963a61191fb82d5ffa287219e400`；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0 于 2026-09-26 发布，3 资产，
+    发布后字节校验通过）。
   - **v1.9.0 实现/卫生工作 — CLOSED / FROZEN**（T-01/T-02 检出可复现性 @
     `2fe04ee9ffc2651f89b8dc8513c1b39141054648`；governed D-01 证据 @
     `284909ae037bd23e1c2a4ab692fc8ffb9c736a3c`；governed D-02 实现 @
@@ -414,9 +488,14 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `APPROVE V1.9.0 P-02 — RELEASE PACKAGING ACCEPTED / FROZEN`；证书 `b9b6b955…` 连续；
     候选字节冻结于 `D:\Evolune-Workspace\release-candidates\v1.9.0\`；release notes
     `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
-  - **Release: NOT TAGGED / NOT PUBLISHED.**
-  - **NEXT:** v1.9.0 发布执行（annotated tag v1.9.0 → push → GitHub Release 上传 3 资产 →
-    发布字节校验）。
+  - **v1.9.0 发布 — RELEASED**（final release commit `d099998c46e747b99855b7c9c56b3e1bd671a089`，
+    `docs(v1.9.0): close release candidate`；annotated tag `v1.9.0` =
+    `386e710d878bb8e108b40d130c6092aa352862cf`；GitHub Release
+    https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0 于 2026-09-28 发布，恰好 3 资产
+    （Phone APK / Wear APK / `SHA256SUMS.txt`），公开下载回读校验通过；normal fast-forward
+    发布，无 force、无 rebase、无 tag 移动；P0/P1/P2 = 0）。
+  - **NEXT:** 无已授权的后续里程碑。v1.9.0 已封版；任何新版本需单独立项（候选见 Current
+    Limitations 与 [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

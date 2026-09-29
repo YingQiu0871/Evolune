@@ -2,9 +2,9 @@
 
 ## 文档状态
 
-本文描述当前已发布的 `v1.6.0` 实现。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
+本文描述当前已发布的 `v1.9.0` 实现。当前发布、身份和限制的快速入口是 [Current Status](CURRENT_STATUS.md)；pre-v1 规划保留在 [Migration Plan](MIGRATION_PLAN.md) 中，仅作历史记录。
 
-`v1.6.0` 是当前公开稳定版本；`v1.5.0` 已封存为上一版发布。v1.6 Widget Gallery 已完成并发布。
+`v1.9.0`（2026-09-28）是当前公开稳定版本；`v1.8.0` 已封存为上一版发布。v1.6 Widget Gallery、v1.7 History & Insights、v1.8 全局卫生和 v1.9 维护清理均已完成并发布。
 
 ## 产品定位
 
@@ -12,7 +12,7 @@ Evolune 是面向个人长期记录的 Android 与 Wear OS 应用，用于管理
 
 它不是医疗器械，不提供诊断、处方或治疗建议。浓度曲线是基于输入数据和模型参数的估算，不等同于实验室检测结果。
 
-## 截至 v1.6 的核心场景
+## 核心场景（截至 v1.9）
 
 ### 建立用药方案
 
@@ -30,6 +30,14 @@ v1.0 的 source 包括 `LEGACY`、`MANUAL`、`JSON_V1`、`REMINDER`、`WIDGET` �
 
 PK 计算通过 `DomainDoseEventToPkAdapter` 将当前领域事件投影为 PK 模型输入。`occurredAt` 是业务权威时间；旧 `timeH` 只保留在 Room v2/JSON v1/PK 兼容边界，不再是核心唯一时间语义。
 
+
+### 回看历史与洞察（v1.7+）
+
+History 按日历日展示用药活动，区分计划时点与实际摄入并显示时间差；月度 Timeline 把行分为已匹配、未记录计划与未匹配摄入；Insights 给出 7/30/90 天的事实性汇总（记录次数、来源分布、身份置信度）。三者共用同一历史投影：实际记录是历史权威，当前计划只是 schedule 上下文；未匹配事件保持可见并保留真实来源；不输出依从率或评分。回顾性 PK 基于所选区间内的权威已记录摄入重建模型估算浓度曲线，始终标注为估算而非实测。
+
+### 导出与数据可携（v1.7+）
+
+Evolune Portable JSON v1 支持导出（最近 30 天/90 天/全部历史）与增量导入（完整预校验、保持稳定事件 ID、可安全重试）；CSV v1 仅支持导出。旧版 Mahiro JSON 文件/剪贴板路径继续保留，剪贴板导出带隐私确认。导出与加密备份（`.evbackup`）相互独立。
 ### 提醒和快速记录
 
 提醒继续使用 AlarmManager 与广播接收器。通知和 Widget 的记录动作通过 typed application action 与 Repository contract 完成持久化；只有接受写入后才执行 Widget 刷新、通知或提示等副作用。
@@ -70,9 +78,15 @@ Health Connect 是可选前台体重读取 adapter，读取最近 30 天的有�
 
 ## 已发布能力与边界
 
-| 功能 | 截至 v1.6 状态 |
+| 功能 | 截至 v1.9 状态 |
 |---|---|
-| 用药方案、事件、历史、提醒 | SHIPPED v1.0 |
+| 用药方案、事件、提醒 | SHIPPED v1.0 |
+| History（日历日）、Timeline（月度）、Insights（7/30/90 天）、回顾性 PK | SHIPPED v1.7；UI 修正 v1.7.1 |
+| Evolune Portable JSON v1（导出/增量导入）与 CSV v1（仅导出） | SHIPPED v1.7 |
+| 扁平设置页、Dynamic + 8 预设应用配色、备份 schema v2 | SHIPPED v1.7.2 |
+| 导航稳定性与进入动效 | SHIPPED v1.7.3 / v1.7.4 |
+| 性能/生命周期/取消/中断恢复安全回滚 | SHIPPED v1.8 |
+| 检出可复现测试与依赖/配置清理 | SHIPPED v1.9 |
 | PK 估算与图表 | SHIPPED v1.0 |
 | Mahiro JSON v1 导入导出 | SHIPPED v1.0 |
 | Room v3、schema、严格 migration | SHIPPED v1.0 |
@@ -104,6 +118,9 @@ Health Connect 是可选前台体重读取 adapter，读取最近 30 天的有�
 - `v1.4`: 首次使用引导、条款、隐私与权限说明，已发布。
 - `v1.5`: 稳定性、性能与代码清理，已发布。
 - `v1.6`: Widget Gallery，已发布。
-- `v1.7`: 可选 CPA 浓度曲线，默认关闭并需独立科学审查。
+- `v1.7`: History & Insights（历史、时间线、洞察、回顾性 PK、Portable 导出），已发布；v1.7.1–v1.7.4 为 UI/导航维护版本。
+- `v1.8`: 全局卫生（性能、生命周期、取消、中断恢复），已发布。
+- `v1.9`: 维护与配置清理，已发布并封版。
+- 可选 CPA 浓度曲线（v1.7 早期草案，未随 v1.7 发布）：仍为未立项候选，默认关闭并需独立科学审查。
 
 详见 [Roadmap](ROADMAP.md)。

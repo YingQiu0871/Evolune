@@ -1,8 +1,8 @@
 # 架构
 
-本文描述截至 v1.6.0 的生产架构（2026-09-12 文档盘点），历史兼容路径单独标注。事实依据为 v1.6.0 tagged source、当前 main 与 [Current Status](CURRENT_STATUS.md)。
+本文描述截至 v1.9.0 的生产架构（2026-09-29 更新；v1.6 基线于 2026-09-12 盘点，v1.7–v1.9 增补），历史兼容路径单独标注。事实依据为 v1.9.0 tagged source（`d099998`）、v1.6.0 盘点与 [Current Status](CURRENT_STATUS.md)。
 
-## Current v1.6 Architecture
+## Current Architecture (v1.6 baseline, extended through v1.9)
 
 ### 模块与逻辑边界
 
@@ -30,6 +30,7 @@ flowchart TD
 - `data.repository` implements the contracts using Room entities, DAOs, mappings and transactions.
 - `application` owns action orchestration and replay policies.
 - `app` remains the composition root through `ProductionRepositoryProvider` and Android entry points.
+- `history` (app package) owns the shared read side added in v1.7: `HistoryReadService`, projection/presentation models and the History, Timeline, Insights and Retrospective PK view models. Pure, Android-free projection, occurrence matching and insights aggregation live in `:experience-core`.
 
 The target dependency direction `consumer -> core.dataapi <- Room implementation` is implemented as package boundaries. Further Gradle extraction remains optional future work.
 
@@ -58,6 +59,19 @@ Room event insert distinguishes `Inserted`, `Idempotent`, `Conflict`, and `Inval
 ### Persistence before side effects
 
 Phone UI, reminder, Widget and Wear record actions converge on typed application actions and Repository contracts. An action is accepted only after Room insert/idempotency policy succeeds. Widget refresh, toast/notification work, DataItem acknowledgement and other platform effects happen afterward; side-effect failure does not reinterpret a committed record as unpersisted.
+
+### History, Insights and Retrospective PK (v1.7+)
+
+History, Timeline, Insights and Retrospective PK are read-only consumers of one shared historical projection. They never write medication data and do not change the Room schema.
+
+- **Authority.** Recorded intake (`DoseEvent`) is the historical authority; the current plan is schedule context only and cannot rewrite the past. Unmatched recorded events stay visible with their real source. `ReminderSkipStore` is short-term, non-authoritative state and cannot fabricate long-term skipped or missed history.
+- **Time semantics.** A plan's wall-clock `HH:mm` and the valid instant it represents are separate concepts; DST fall-back keeps the earlier-offset occurrence materialization. Event time remains an absolute epoch-millisecond instant.
+- **Matching.** Occurrence matching runs in bounded stages: (1) exact slot plus local date, (2) slot with a bounded one-hour adjustment, (3) null-slot bounded one-hour matching, (4) null-slot same-day legacy fallback. Every result carries provenance (exact, bounded, legacy or unmatched); cross-local-date legacy/null-slot matches are shown as inferred, never as exact. Future occurrences are classified as future context, not as missed doses.
+- **Range reads.** History reads use two channels: a persisted `localDate` range widened by one day, plus an instant window widened around the requested range. Results are unioned and deduplicated by event ID, which keeps old rows with null local dates readable without a new schema index (the cost is a table scan, recorded as a deferred item).
+- **Consumers.** Insights aggregates 7/30/90-day factual counts (no adherence rates). Retrospective PK reuses the production PK engine through the existing adapter over the recorded intake of the chosen range; it is always presented as a model estimate.
+- **Ownership and dispatch (v1.8.0).** One Activity-owned `MainFeatureServices` graph shares `HistoryReadService` across History, Timeline, Insights and Retrospective PK. Room owns its query executors; post-query History projection and Retrospective PK run on `Default`. Home simulation also runs on `Default` with cooperative cancellation, and Home clock and boundary refresh follow the lifecycle. Startup restore keeps the reviewed `runBlocking(IO)` gate.
+- **Export.** `export/` provides Evolune Portable JSON v1 (export and additive import with full prevalidation and stable event IDs) and CSV v1 (export only); it is independent of the encrypted `.evbackup` format.
+- **Theme.** `theme/palette/` is the shared palette authority for the app and Widgets (Dynamic plus eight presets, and a legacy built-in theme preserved for upgrades). Theme state is part of backup schema v2; v1 backups remain restorable.
 
 ### Widget pipeline
 
@@ -182,7 +196,21 @@ Architecture changes here should be justified by measured/tested benefit, not re
 
 Shipped: four Phone providers, three new Tiles plus the compatible legacy Tile, and three Complications reuse shared presentation/domain boundaries. The [final gate](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) records actual evidence and product scope changes.
 
-### v1.7: Optional CPA PK Curve
+### v1.7: History & Insights (completed; v1.7.1–v1.7.4 maintenance)
+
+Shipped as v1.7.0 (2026-09-17) and refined through v1.7.4. The shared historical projection, matching provenance, History/Timeline/Insights/Retrospective PK surfaces, Portable JSON/CSV export, flat Settings with app color schemes, and navigation stability/motion are implemented boundaries described in "History, Insights and Retrospective PK" above. Room schema and PK numerics were not changed.
+
+### v1.8: Global hygiene (completed)
+
+Shipped as v1.8.0 (2026-09-26): dispatcher ownership for History and Retrospective PK, empty-future reuse, lifecycle-aware Home clock, cooperative cancellation of Home simulation, Room/Wear boundary checks, and a fix so an interrupted restore no longer blocks startup (restore is journaled: prepare, write a PREPARED journal, replace Room, replace settings, verify, mark COMMITTED, delete the journal; a leftover PREPARED journal is rolled back at the next launch).
+
+### v1.9: Maintenance (completed)
+
+Shipped as v1.9.0 (2026-09-28): checkout-reproducible tests (path-scoped line-ending rules and a source-read seam so golden byte fixtures are deterministic on CRLF checkouts), removal of one redundant direct dependency declaration (still provided transitively by Compose) and of unused Glance catalog metadata and obsolete Glance/ActionCallback ProGuard rules. No schema, backup-format or medication-semantics change. Deferred with no demonstrated benefit: E-01 duplicated lifecycle bridges and T-03 device-test sleeps.
+
+### Candidate (not shipped): Optional CPA PK Curve
+
+An early v1.7 draft proposed this; it did not ship with v1.7 and is not scheduled.
 
 - independent CPA series;
 - same chart time domain/plot area;

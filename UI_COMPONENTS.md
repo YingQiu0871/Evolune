@@ -1,6 +1,6 @@
 # UI 组件清单
 
-基线：v1.6.0；2026-09-12 文档核对。
+基线：v1.9.0；2026-09-29 文档核对。
 
 本清单以当前源码为准。Phone 页面使用 Jetpack Compose；Phone 桌面 Widget 使用
 Android RemoteViews；Wear Tile 是独立的 Wear surface。Widget 不属于 Compose 组件
@@ -12,9 +12,14 @@ Android RemoteViews；Wear Tile 是独立的 Wear surface。Widget 不属于 Com
 |---|---|---|
 | Home | `ui/screens/HomeScreen.kt` | 当前 E2、历史/预测浓度图和今日摘要 |
 | Records | `ui/screens/MedicationRecordsScreen.kt` | DoseEvent 列表、新增、编辑、删除 |
+| History | `ui/screens/HistoryScreen.kt` | 日历、选中日期的事实记录、次级入口（洞察/回顾性 PK/时间线） |
+| Timeline | `ui/screens/timeline/TimelineScreen.kt` | 月度统一时间线与连续日期条（History 子页面） |
+| Insights | `ui/screens/insights/InsightsScreen.kt` | 7/30/90 天事实性汇总（History 子页面） |
+| Retrospective PK | `ui/screens/retrospective/RetrospectivePkScreen.kt` | 回顾性模型估算浓度曲线与区间选择（History 子页面） |
 | Medication Plans | `ui/screens/MedicationPlansScreen.kt` | 计划列表、启用状态和编辑入口 |
-| Settings | `ui/screens/SettingsScreen.kt` | 分类设置、同步与备份、更新、教程和帮助 |
-| Sync & Backup | `ui/screens/SyncAndBackupScreen.kt` | 本地 JSON、Health Connect 与 Google Drive 入口 |
+| Settings | `ui/screens/SettingsScreen.kt` + `ui/screens/settings/*` | 扁平设置主页：基础数据、外观与配色、同步与备份、更新、指南/隐私/教程/关于 |
+| Google Drive backup | `ui/screens/GoogleDriveBackupRestoreScreen.kt` | Google Drive 加密备份与恢复（Settings 子页面） |
+| About / Disclosures / Onboarding / Feature tutorial | `ui/screens/AboutScreen.kt`、`DisclosuresScreen.kt`、`OnboardingFlowScreen.kt`、`FeatureTutorialScreen.kt` | 关于、条款与隐私说明、首次引导、可重开的功能教程 |
 
 `navigation/Screen.kt` 定义目的地；`navigation/AppNavigation.kt` 根据窗口尺寸选择
 紧凑底部导航或中等/展开 Navigation Rail。编辑器通过 transition layer 进入和退出，
