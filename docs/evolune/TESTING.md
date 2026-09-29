@@ -38,4 +38,6 @@ environment precondition, not a regression.
   `ui.screens.insights` 和 `ui.screens.timeline` 两个包；每周日（UTC 19:00）与手动选择 `full` 时跑全部。
   报告作为 `androidtest-reports` 上传。
 
-这个模拟器任务是新增的，尚未有 CI 运行记录；首次运行后应把结果和耗时补记到这里。
+首次 CI 运行（2026-09-29，PR #32，core 范围）：环境确认为 zh-CN / 1080x2400 / API 35，92 个 insights + timeline 设备测试全部通过，
+模拟器任务总耗时约 9 分 19 秒。PR 中只改动该 workflow 或 `scripts/android_test_env.sh` 时也会触发它。
+`full` 范围（约 396 个测试）尚未在 CI 上跑过，耗时未知。
