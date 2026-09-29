@@ -398,8 +398,8 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   normal fast-forward 发布，无 force / rebase / tag 移动）。
 - **v1.9.1 · 代码梳理与精简 — CANDIDATE / NOT TAGGED / NOT PUBLISHED**（分支 `feature/v1.9.1-code-hygiene`；
   行为保持的死代码/未使用资源与导入清理，version-only 打包提交 1.9.1 / 101090100 / 1101090100；
-  release notes 草稿 `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`；待 CI 验证与签名打包）。
-  **NEXT:** v1.9.1 的 CI 验证与签名打包/发布；其后无已授权的后续里程碑，新版本需单独立项。
+  release notes 草稿 `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`；PR #31 CI 已通过〔#82〕，待 androidTest 编译与签名打包）。
+  **NEXT:** v1.9.1 的 androidTest 编译与签名打包/发布；其后无已授权的后续里程碑，新版本需单独立项。
 
 ## Historical and future milestones
 

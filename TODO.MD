@@ -367,8 +367,8 @@
       冻结语义代码未改）— **CANDIDATE / NOT TAGGED / NOT PUBLISHED**（分支
       `feature/v1.9.1-code-hygiene` @ `97f915f`，version-only 提交 `743a22c`；
       release notes 草稿 `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`）。
-- [ ] NEXT：v1.9.1 的 CI 验证（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`、
-      androidTest 编译）→ 签名打包 → 发布。其后无已授权的后续里程碑；新版本需单独立项。
+- [ ] NEXT：v1.9.1 的 androidTest 编译（CI 已通过 `./gradlew test`、`:app:assembleDebug`、
+      `:wear:assembleDebug`，PR #31 运行 #82）→ 签名打包 → 发布。其后无已授权的后续里程碑；新版本需单独立项。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

@@ -33,5 +33,7 @@ Evolune v1.9.1 is an internal code-audit and slimming release: a repository-wide
 
 ## 验证状态 / Verification status
 
-- 作者环境无法运行 Gradle/Android SDK：改动仅经静态检查（括号平衡、无悬空引用、无残留未使用 import/资源、双语字符串对等）。/ The authoring environment had no Gradle or Android SDK: changes were checked statically only.
-- **必须先通过 CI**（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`）以及 androidTest 编译，才能进入签名打包。/ CI (`./gradlew test`, `:app:assembleDebug`, `:wear:assembleDebug`) and androidTest compilation must pass before signed packaging.
+- 作者环境无法运行 Gradle/Android SDK，因此以 GitHub Actions 为验证环境（PR #31，草稿）。/ The authoring environment had no Gradle or Android SDK, so GitHub Actions on PR #31 (draft) was the verification environment.
+- **CI 第 1 次运行（#81，`f6655c6`）失败**：3 个字符串对等性测试因误删受冻结键集约束的 4 个键而失败，其余（三个模块编译、experience-core 与 wear 测试）通过；已在 `e5e0b53` 修复。/ CI run #81 (`f6655c6`) failed three string-parity tests caused by removing four keys in frozen key sets; fixed in `e5e0b53`.
+- **CI 第 2 次运行（#82，`e5e0b53`）全部通过**：`./gradlew test`（含 app 1448 个 JVM 测试）、`:app:assembleDebug`、`:wear:assembleDebug` 与 APK 上传。/ CI run #82 (`e5e0b53`) passed in full: `./gradlew test` (including the 1,448 app JVM tests), `:app:assembleDebug`, `:wear:assembleDebug` and the APK upload.
+- **尚未覆盖**：androidTest 不在 CI 内编译/运行（需本机或模拟器）；签名的 Release 构建与 R8、真机/模拟器冒烟仍待打包阶段。/ Not covered yet: androidTest is not compiled or run in CI; the signed Release build with R8 and device/emulator smoke remain for the packaging stage.

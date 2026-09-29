@@ -498,11 +498,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `feature/v1.9.1-code-hygiene`：行为保持的死代码/未使用资源与导入清理 @ `97f915f`，version-only
     打包提交 @ `743a22c`〔1.9.1 / Phone 101090100 / Wear 1101090100〕；无 schema、备份格式、
     PK 数值或用药语义变化；release notes 草稿
-    [`v1.9.1/V191_RELEASE_NOTES.md`](v1.9.1/V191_RELEASE_NOTES.md)）。**未经 CI 验证**：作者环境
-    无 Gradle/Android SDK，仅做了静态检查；须先通过 `./gradlew test`、`:app:assembleDebug`、
-    `:wear:assembleDebug` 与 androidTest 编译，再由持有 release keystore 的所有者做签名打包与发布。
+    [`v1.9.1/V191_RELEASE_NOTES.md`](v1.9.1/V191_RELEASE_NOTES.md)）。**CI 验证**：PR #31（草稿）第 2 次运行
+    〔#82 @ `e5e0b53`〕通过 `./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`（第 1 次运行 #81 因误删
+    受冻结的 4 个字符串键失败，已修复）；androidTest 不在 CI 内，需另行编译/运行，再由持有
+    release keystore 的所有者做签名打包与发布。
     当前公开稳定版仍为 v1.9.0。
-  - **NEXT:** 完成 v1.9.1 的 CI 验证与签名打包/发布；其后无已授权的里程碑（新版本需单独立项，候选见
+  - **NEXT:** 完成 v1.9.1 的 androidTest 编译与签名打包/发布；其后无已授权的里程碑（新版本需单独立项，候选见
     Current Limitations 与 [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
