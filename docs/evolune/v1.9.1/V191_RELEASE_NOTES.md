@@ -12,10 +12,11 @@ Evolune v1.9.1 is an internal code-audit and slimming release: a repository-wide
 - 移除 `Theme.kt` 中四个未使用的中/高对比度配色方案与 `ColorFamily`。/ Removed four unused medium/high contrast color schemes and `ColorFamily` from `Theme.kt`.
 - 数据层：移除遗留的 entity↔`pk` 模型映射、遗留的 `MedicationPlan.getDescription`，以及 12 个从未被调用的原始 DAO 方法（含绕过受检写入边界的 `upsertPlan`/`upsertEvent` 等）。实体与 schema 未改动。/ Data layer: removed legacy entity↔`pk` mappers, the legacy `MedicationPlan.getDescription`, and 12 never-called raw DAO methods (including `upsertPlan`/`upsertEvent`, which bypassed the checked-write boundary). Entities and schema are untouched.
 - 移除其他零引用成员：`PKState.getConcentrationLevel`、`MedicationPlanPredictor.generateFutureEventsForPlans`、`calculateWidgetConcentration`、`BackupRestoreUiState.Uploading`、`DraftIssue.SlotIdMismatch`、`SUPPORTED_THEME_COLOR_SOURCES` 及 Wear 侧五个未使用成员。/ Removed other zero-reference members (see the list above and the commit message for names).
-- 清理 103 条未使用的 import、25 条未使用的字符串（中英文成对移除，保持一致）和 1 个未使用的 drawable。/ Removed 103 unused imports, 25 unused strings (removed in both locales, parity kept) and one unused drawable.
+- 清理 103 条未使用的 import、21 条未使用的字符串（中英文成对移除，保持一致）和 1 个未使用的 drawable。/ Removed 103 unused imports, 21 unused strings (removed in both locales, parity kept) and one unused drawable.
 
 ## 有意未改动 / Intentionally untouched
 
+- `retrospective_*`（恰好 24 个）与 `insights_*`（不少于 40 个）字符串键集合受测试冻结：其中未被代码引用的 4 个键（`insights_range_heading`、`insights_range_custom_heading`、`insights_range_custom_pick`、`retrospective_loading`）予以保留。CI 首次运行时因误删它们导致 3 个字符串对等性测试失败，已恢复。/ The `retrospective_*` (exactly 24) and `insights_*` (at least 40) string key sets are frozen by tests, so four unreferenced keys were kept. The first CI run failed three string-parity tests because they had been removed; they are restored.
 - PK 数值代码（含未被引用的常量与函数）、Room `TypeConverter`、已冻结语义代码（历史匹配、回顾性 PK、Insights、备份 schema 与迁移）、`@Preview` 函数与 data class 字段。/ PK numerics (including unreferenced constants and functions), Room `TypeConverter`s, frozen semantic code (history matching, retrospective PK, Insights, backup schema and migrations), `@Preview` functions and data-class fields.
 - `androidx-graphics-path` 版本目录条目（v1.9.0 D-02 已冻结）。/ The `androidx-graphics-path` catalog entry (frozen by v1.9.0 D-02).
 

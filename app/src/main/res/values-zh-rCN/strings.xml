@@ -504,6 +504,9 @@
     <string name="insights_range_last_90">近 90 天</string>
     <string name="insights_range_current_month">本月</string>
     <string name="insights_range_custom">自定义</string>
+    <string name="insights_range_heading">%1$s – %2$s</string>
+    <string name="insights_range_custom_heading">自定义区间：%1$s – %2$s</string>
+    <string name="insights_range_custom_pick">选择日期区间</string>
     <string name="insights_range_custom_confirm">确定</string>
     <string name="insights_range_custom_cancel">取消</string>
     <string name="insights_card_recorded_intakes">记录摄入次数</string>
@@ -549,6 +552,7 @@
     <string name="retrospective_marker_schedule_context">当前方案上下文</string>
     <string name="retrospective_marker_recorded_intake">已记录摄入</string>
     <string name="retrospective_legend_entry_format">%1$s：%2$d</string>
+    <string name="retrospective_loading">加载中…</string>
     <string name="retrospective_retry">重试</string>
     <string name="retrospective_unavailable_no_eligible_intakes">此估算暂无可用的已记录摄入。</string>
     <string name="retrospective_unavailable_invalid_interval">该时间范围无法计算。</string>
