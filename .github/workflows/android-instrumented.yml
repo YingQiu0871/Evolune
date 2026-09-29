@@ -4,6 +4,11 @@ name: Android Instrumented Tests
 # Core UI classes run on every push to main and on manual dispatch; the full
 # suite runs weekly or when "full" is chosen. See docs/evolune/TESTING.md.
 on:
+  # TEMPORARY: first validation on PR #32; remove or keep after review.
+  pull_request:
+    paths:
+      - ".github/workflows/android-instrumented.yml"
+      - "scripts/android_test_env.sh"
   push:
     branches:
       - main
