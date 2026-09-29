@@ -363,7 +363,12 @@
       `386e710d878bb8e108b40d130c6092aa352862cf`；GitHub Release
       https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0，恰好 3 资产，公开下载回读校验通过；
       normal fast-forward 发布，无 force / rebase / tag 移动；P0/P1/P2 = 0）。
-- [ ] NEXT：无已授权的后续里程碑。v1.9.0 已封版；任何新版本需单独立项、独立设计与评审。
+- [x] v1.9.1 代码梳理与精简（行为保持的死代码/未使用资源与导入清理；PK 数值、Room converter、
+      冻结语义代码未改）— **CANDIDATE / NOT TAGGED / NOT PUBLISHED**（分支
+      `feature/v1.9.1-code-hygiene` @ `97f915f`，version-only 提交 `743a22c`；
+      release notes 草稿 `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`）。
+- [ ] NEXT：v1.9.1 的 CI 验证（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`、
+      androidTest 编译）→ 签名打包 → 发布。其后无已授权的后续里程碑；新版本需单独立项。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

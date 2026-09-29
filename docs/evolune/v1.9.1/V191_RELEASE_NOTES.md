@@ -1,0 +1,36 @@
+# Evolune v1.9.1（候选 / Release Candidate — 尚未发布 / NOT PUBLISHED）
+
+Evolune v1.9.1 是一个纯内部的代码梳理与精简版本：经全仓库静态审计，移除已证实无人引用的死代码、未使用的资源与导入，不改变任何用户可见行为。
+Evolune v1.9.1 is an internal code-audit and slimming release: a repository-wide static audit removed code, resources and imports that are provably referenced nowhere. No user-visible behavior changes.
+
+> 本文件是候选说明，随发布打包（签名、哈希、GitHub Release）再补全“安装包 / SHA-256”部分。
+> This is a candidate note; the APK and SHA-256 sections will be added at release packaging.
+
+## 主要更新 / Highlights
+
+- 移除未使用的文件：`pk/PKExample.kt`（println 示例）、`widget/WidgetUtils.kt`（及 `ScheduledDoseInfo`）、`ui/theme/Color.kt`（仅服务于已移除的未使用中/高对比度配色）。/ Removed unused files: the `PKExample` println demo, `WidgetUtils` (and `ScheduledDoseInfo`), and `ui/theme/Color.kt` (it only fed the removed, unused medium/high contrast schemes).
+- 移除 `Theme.kt` 中四个未使用的中/高对比度配色方案与 `ColorFamily`。/ Removed four unused medium/high contrast color schemes and `ColorFamily` from `Theme.kt`.
+- 数据层：移除遗留的 entity↔`pk` 模型映射、遗留的 `MedicationPlan.getDescription`，以及 12 个从未被调用的原始 DAO 方法（含绕过受检写入边界的 `upsertPlan`/`upsertEvent` 等）。实体与 schema 未改动。/ Data layer: removed legacy entity↔`pk` mappers, the legacy `MedicationPlan.getDescription`, and 12 never-called raw DAO methods (including `upsertPlan`/`upsertEvent`, which bypassed the checked-write boundary). Entities and schema are untouched.
+- 移除其他零引用成员：`PKState.getConcentrationLevel`、`MedicationPlanPredictor.generateFutureEventsForPlans`、`calculateWidgetConcentration`、`BackupRestoreUiState.Uploading`、`DraftIssue.SlotIdMismatch`、`SUPPORTED_THEME_COLOR_SOURCES` 及 Wear 侧五个未使用成员。/ Removed other zero-reference members (see the list above and the commit message for names).
+- 清理 103 条未使用的 import、25 条未使用的字符串（中英文成对移除，保持一致）和 1 个未使用的 drawable。/ Removed 103 unused imports, 25 unused strings (removed in both locales, parity kept) and one unused drawable.
+
+## 有意未改动 / Intentionally untouched
+
+- PK 数值代码（含未被引用的常量与函数）、Room `TypeConverter`、已冻结语义代码（历史匹配、回顾性 PK、Insights、备份 schema 与迁移）、`@Preview` 函数与 data class 字段。/ PK numerics (including unreferenced constants and functions), Room `TypeConverter`s, frozen semantic code (history matching, retrospective PK, Insights, backup schema and migrations), `@Preview` functions and data-class fields.
+- `androidx-graphics-path` 版本目录条目（v1.9.0 D-02 已冻结）。/ The `androidx-graphics-path` catalog entry (frozen by v1.9.0 D-02).
+
+## 审计中确认无问题 / Audit checks with no findings
+
+- 所有 `PendingIntent` 均带 `FLAG_IMMUTABLE`/`FLAG_MUTABLE`。/ Every `PendingIntent` sets an immutability flag.
+- 所有 suspend 上下文中的宽泛 `catch` 都对 `CancellationException` 做了处理。/ Every broad `catch` in a suspend context handles `CancellationException`.
+- 生产源码无 TODO/FIXME、`GlobalScope`、`printStackTrace`。/ No TODO/FIXME, `GlobalScope` or `printStackTrace` in production sources.
+
+## 兼容性 / Compatibility
+
+- 无 Room 数据库 schema 迁移；无备份格式变化；用药计算语义不变；应用 ID 与签名证书连续性不变。/ No Room schema migration, no backup format change, medication calculation semantics unchanged, application ID and signing continuity unchanged.
+- 版本信息：Phone `1.9.1` — versionCode `101090100`；Wear `1.9.1` — versionCode `1101090100`。/ Version: Phone `1.9.1` / `101090100`; Wear `1.9.1` / `1101090100`.
+
+## 验证状态 / Verification status
+
+- 作者环境无法运行 Gradle/Android SDK：改动仅经静态检查（括号平衡、无悬空引用、无残留未使用 import/资源、双语字符串对等）。/ The authoring environment had no Gradle or Android SDK: changes were checked statically only.
+- **必须先通过 CI**（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`）以及 androidTest 编译，才能进入签名打包。/ CI (`./gradlew test`, `:app:assembleDebug`, `:wear:assembleDebug`) and androidTest compilation must pass before signed packaging.

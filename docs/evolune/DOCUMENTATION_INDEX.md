@@ -212,7 +212,7 @@
 | [docs/evolune/WEAR_V11_MIGRATION.md](../../docs/evolune/WEAR_V11_MIGRATION.md) | Wear v1.1 Identity Migration |
 | [readme.md](../../readme.md) | Evolune（月序） |
 
-## v1.7–v1.9 文档目录（36）
+## v1.7–v1.9 文档目录（37）
 
 每个版本目录包含发布说明；v1.7 另含分阶段契约与证据记录，v1.7.2 含契约/计划/清单。`evidence/` 子目录保存原始验证证据（哈希清单、日志、截图），此处只列目录与文件数，不逐个索引。
 
@@ -254,6 +254,7 @@
 | [docs/evolune/v1.8.0/V180_RELEASE_NOTES.md](../../docs/evolune/v1.8.0/V180_RELEASE_NOTES.md) | Evolune v1.8.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V190_RELEASE_NOTES.md](../../docs/evolune/v1.9.0/V190_RELEASE_NOTES.md) | Evolune v1.9.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](../../docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) | EVOLUNE V1.9.0 — D-01 RELEASE-GRAPH DEAD-DEPENDENCY PROOF PLAN |
+| [docs/evolune/v1.9.1/V191_RELEASE_NOTES.md](../../docs/evolune/v1.9.1/V191_RELEASE_NOTES.md) | Evolune v1.9.1（候选 / Release Candidate — 尚未发布 / NOT PUBLISHED） |
 
 证据目录（原始记录，不逐个索引）：
 
