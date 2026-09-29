@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.awaitCancellation
@@ -822,6 +823,90 @@ class HRTViewModelTest {
         }
     }
 
+    @Test
+    fun `CPA setting off never publishes a CPA series even with CPA events`() = runBlocking {
+        val repository = FakeDoseEventRepository().apply {
+            observed.value = listOf(cpaEvent())
+            pkEvents = listOf(cpaEvent())
+        }
+        val fixture = fixture(
+            repository = repository,
+            simulationDispatcher = Dispatchers.Unconfined,
+            showCpaCurveFlow = flowOf(false)
+        )
+        try {
+            withTimeout(5_000L) {
+                fixture.viewModel.pkState.filter { it.currentTimeH > 0.0 }.first()
+            }
+            delay(100L)
+            assertNull(fixture.viewModel.cpaState.value)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `CPA setting on with CPA events publishes a non-null series on the E2 grid`() = runBlocking {
+        val repository = FakeDoseEventRepository().apply {
+            observed.value = listOf(cpaEvent())
+            pkEvents = listOf(cpaEvent())
+        }
+        val fixture = fixture(
+            repository = repository,
+            simulationDispatcher = Dispatchers.Unconfined,
+            showCpaCurveFlow = flowOf(true)
+        )
+        try {
+            val cpa = withTimeout(5_000L) {
+                fixture.viewModel.cpaState.filterNotNull().first()
+            }
+            assertTrue(cpa.timeH.isNotEmpty())
+            assertTrue(cpa.timeH.size >= 1000)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `E2 PKState is identical whether the CPA setting is on or off`() = runBlocking {
+        listOf(false, true).map { showCpaCurve ->
+            val repository = FakeDoseEventRepository().apply {
+                observed.value = listOf(cpaEvent())
+                pkEvents = listOf(cpaEvent())
+            }
+            val fixture = fixture(
+                repository = repository,
+                simulationDispatcher = Dispatchers.Unconfined,
+                simulationCalculator = PkSimulationCalculator { input ->
+                    PKState(currentTimeH = input.currentTimeH, currentConcentration = 42.0)
+                },
+                showCpaCurveFlow = flowOf(showCpaCurve)
+            )
+            try {
+                withTimeout(5_000L) {
+                    fixture.viewModel.pkState.filter { it.currentConcentration == 42.0 }.first()
+                }
+            } finally {
+                fixture.close()
+            }
+        }
+        Unit
+    }
+
+    private fun cpaEvent(): DoseEvent = DoseEvent(
+        id = UUID.randomUUID(),
+        route = Route.ANTIANDROGEN,
+        occurredAt = NOW.minusSeconds(3600),
+        zoneId = TEST_ZONE,
+        localDate = NOW.minusSeconds(3600).atZone(TEST_ZONE).toLocalDate(),
+        doseMG = 50.0,
+        ester = Ester.E2,
+        extras = mapOf(ExtraKey.ANTI_ANDROGEN_TYPE to 0.0),
+        source = DoseEventSource.MANUAL,
+        status = DoseEventStatus.RECORDED,
+        revision = 1L
+    )
+
     private fun fixture(
         repository: FakeDoseEventRepository,
         sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(
@@ -831,7 +916,8 @@ class HRTViewModelTest {
         ),
         simulationDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default,
         simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
-        bodyWeightFlow: Flow<Double> = flowOf(55.0)
+        bodyWeightFlow: Flow<Double> = flowOf(55.0),
+        showCpaCurveFlow: Flow<Boolean> = flowOf(false)
     ): ViewModelFixture {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         return ViewModelFixture(
@@ -843,7 +929,8 @@ class HRTViewModelTest {
                 simulationDispatcher = simulationDispatcher,
                 simulationCalculator = simulationCalculator,
                 operationScope = scope,
-                bodyWeightFlow = bodyWeightFlow
+                bodyWeightFlow = bodyWeightFlow,
+                showCpaCurveFlow = showCpaCurveFlow
             ),
             scope = scope
         )

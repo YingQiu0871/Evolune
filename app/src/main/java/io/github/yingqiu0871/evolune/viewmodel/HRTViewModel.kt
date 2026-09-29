@@ -25,12 +25,19 @@ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportRunner
+import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
+import io.github.yingqiu0871.evolune.pk.cpa.CpaSimulator
+import io.github.yingqiu0871.evolune.pk.cpa.isCpaEvent
+import io.github.yingqiu0871.evolune.pk.cpa.isCpaPlan
+import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,8 +56,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Clock
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.UUID
+import kotlin.math.ceil
+
+/** v1.10 (S4): same grid density as the E2 simulation's SIMULATION_POINTS_PER_HOUR. */
+private const val CPA_SIMULATION_POINTS_PER_HOUR = 12.0
 
 sealed class ImportResult {
     data object Idle : ImportResult()
@@ -117,6 +129,15 @@ private data class SimulationTrigger(
     val refresh: Long
 )
 
+/** v1.10 (S4/S6): recomputation trigger for the optional CPA series, gated on [showCpaCurve]. */
+private data class CpaSimulationTrigger(
+    val events: List<DoseEvent>,
+    val plans: List<MedicationPlan>,
+    val bodyWeightKG: Double,
+    val showCpaCurve: Boolean,
+    val refresh: Long
+)
+
 class HRTViewModel internal constructor(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
@@ -131,7 +152,9 @@ class HRTViewModel internal constructor(
     private val simulationDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
     operationScope: CoroutineScope? = null,
-    private val bodyWeightFlow: Flow<Double> = flowOf(55.0)
+    private val bodyWeightFlow: Flow<Double> = flowOf(55.0),
+    /** v1.10 (S1/S6): local display preference gating the optional CPA series. */
+    private val showCpaCurveFlow: Flow<Boolean> = flowOf(false)
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
     private val operationLock = Any()
@@ -181,6 +204,14 @@ class HRTViewModel internal constructor(
     private val simulationRefresh = MutableStateFlow(0L)
     private val scheduleBoundaryTracker = ScheduleBoundaryTracker()
 
+    /**
+     * v1.10 (S2/S6/S9) — optional CPA estimated concentration series for the Home chart only.
+     * `null` when the setting is off or there are no CPA events/plans. Computed on a separate
+     * path that never touches [pkState], [PKState] or [SimulationEngine] (S2).
+     */
+    private val _cpaState = MutableStateFlow<CpaSeries?>(null)
+    val cpaState: StateFlow<CpaSeries?> = _cpaState.asStateFlow()
+
     val currentTimeH: StateFlow<Double> = flow {
         while (true) {
             emit(clock.millis() / MILLIS_PER_HOUR)
@@ -214,6 +245,26 @@ class HRTViewModel internal constructor(
                 .distinctUntilChanged()
                 .collectLatest { trigger ->
                     calculateAndPublish(trigger.plans, trigger.bodyWeightKG)
+                }
+        }
+        scope.launch {
+            combine(
+                eventUpdates,
+                enabledPlanUpdates,
+                bodyWeightFlow,
+                showCpaCurveFlow,
+                simulationRefresh
+            ) { eventList, planList, weight, showCpaCurve, refresh ->
+                CpaSimulationTrigger(eventList, planList, weight, showCpaCurve, refresh)
+            }
+                .distinctUntilChanged()
+                .collectLatest { trigger ->
+                    calculateAndPublishCpa(
+                        historicalDoseEvents = trigger.events,
+                        plans = trigger.plans,
+                        bodyWeightKG = trigger.bodyWeightKG,
+                        enabled = trigger.showCpaCurve
+                    )
                 }
         }
     }
@@ -401,6 +452,72 @@ class HRTViewModel internal constructor(
         }
     }
 
+    /**
+     * v1.10 (S3/S4/S6) — computes the optional CPA estimated series on a path entirely
+     * separate from [calculateAndPublish]/[PKState]: no CPA work runs unless [enabled] is
+     * true (S6), and the result is only ever [_cpaState], never merged into [pkState] (S2).
+     */
+    private suspend fun calculateAndPublishCpa(
+        historicalDoseEvents: List<DoseEvent>,
+        plans: List<MedicationPlan>,
+        bodyWeightKG: Double,
+        enabled: Boolean
+    ) {
+        if (!enabled) {
+            _cpaState.value = null
+            return
+        }
+        try {
+            val now = clock.instant()
+            val currentTimeH = clock.millis() / MILLIS_PER_HOUR
+            val cpaHistoricalDomainEvents = historicalDoseEvents.filter { isCpaEvent(it) }
+            val cpaPlans = plans.filter { isCpaPlan(it) }
+            val historicalEvents = DomainDoseEventToPkAdapter.adapt(cpaHistoricalDomainEvents)
+            val futureEvents = if (cpaPlans.isNotEmpty()) {
+                val predicted = MedicationPlanPredictor.generateFutureEventsForDomainPlans(
+                    plans = cpaPlans,
+                    fromDateTime = LocalDateTime.ofInstant(now, ZoneId.systemDefault()),
+                    daysAhead = 15
+                )
+                MedicationPlanPredictor.filterConflictingPredictions(
+                    predictedEvents = predicted,
+                    actualEvents = historicalEvents
+                )
+            } else {
+                emptyList()
+            }
+            val allEvents = historicalEvents + futureEvents
+            if (allEvents.isEmpty()) {
+                _cpaState.value = null
+                return
+            }
+
+            val startTimeH = currentTimeH - 24.0 * 15
+            val endTimeH = currentTimeH + 24.0 * 15
+            val stepsNeeded = ceil(
+                (endTimeH - startTimeH) * CPA_SIMULATION_POINTS_PER_HOUR
+            ).toInt() + 1
+            val numberOfSteps = maxOf(stepsNeeded, 1000)
+
+            val ownerContext = currentCoroutineContext()
+            val series = withContext(simulationDispatcher) {
+                CpaSimulator.simulate(
+                    events = allEvents,
+                    bodyWeightKG = bodyWeightKG,
+                    startTimeH = startTimeH,
+                    endTimeH = endTimeH,
+                    numberOfSteps = numberOfSteps,
+                    cancellationCheck = { ownerContext.ensureActive() }
+                )
+            }
+            _cpaState.value = series
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: RuntimeException) {
+            _cpaState.value = null
+        }
+    }
+
     private fun persistCommand(command: DoseEventEditCommand) {
         when (command) {
             is DoseEventEditCommand.Create -> launchOperation(DoseEventOperation.CREATE) {
@@ -514,7 +631,8 @@ class HRTViewModelFactory(
             return HRTViewModel(
                 repository = repository,
                 medicationPlanRepository = medicationPlanRepository,
-                bodyWeightFlow = settingsDataStore.userSettings.map { it.bodyWeight }
+                bodyWeightFlow = settingsDataStore.userSettings.map { it.bodyWeight },
+                showCpaCurveFlow = settingsDataStore.userSettings.map { it.showCpaCurve }
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
