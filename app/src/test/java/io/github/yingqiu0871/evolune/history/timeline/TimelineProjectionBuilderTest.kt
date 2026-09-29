@@ -19,7 +19,6 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
-import java.util.UUID
 
 /**
  * V17-D-01 §18 — TLM1–TLM17 and TLM19–TLM25 read-model acceptance (TLM18 lives in

@@ -2,8 +2,6 @@ package io.github.yingqiu0871.evolune.pk
 
 import org.junit.Assert.*
 import org.junit.Test
-import kotlin.math.abs
-import kotlin.math.exp
 
 /**
  * 三室模型数学计算测试

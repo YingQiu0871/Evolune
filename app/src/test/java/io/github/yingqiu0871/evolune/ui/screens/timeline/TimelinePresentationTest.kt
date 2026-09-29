@@ -6,7 +6,6 @@ import io.github.yingqiu0871.evolune.experience.HistoricalEntry
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.history.HistoryFormatting
 import io.github.yingqiu0871.evolune.history.matchedEntry
-import io.github.yingqiu0871.evolune.history.testDay
 import io.github.yingqiu0871.evolune.history.testEvent
 import io.github.yingqiu0871.evolune.history.testOccurrence
 import io.github.yingqiu0871.evolune.history.timeline.TimelineDay
@@ -22,7 +21,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth

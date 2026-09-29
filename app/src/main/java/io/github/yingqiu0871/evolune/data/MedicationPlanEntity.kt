@@ -2,11 +2,6 @@ package io.github.yingqiu0871.evolune.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import io.github.yingqiu0871.evolune.pk.DoseEvent
-import io.github.yingqiu0871.evolune.pk.Ester
-import io.github.yingqiu0871.evolune.pk.Route
-import java.time.DayOfWeek
-import java.time.LocalTime
 import java.util.UUID
 
 /**
@@ -27,60 +22,4 @@ data class MedicationPlanEntity(
     val isEnabled: Boolean,
     val extras: Map<String, Double>,
     val createdAt: Long
-) {
-    /**
-     * 转换为领域模型
-     */
-    fun toMedicationPlan(): MedicationPlan {
-        val extraMap = extras.mapKeys { (key, _) ->
-            DoseEvent.ExtraKey.valueOf(key)
-        }
-
-        val times = timeOfDay.map { LocalTime.parse(it) }
-        val days = daysOfWeek.map { DayOfWeek.of(it) }.toSet()
-
-        return MedicationPlan(
-            id = id,
-            name = name,
-            route = Route.valueOf(route),
-            ester = Ester.valueOf(ester),
-            doseMG = doseMG,
-            scheduleType = MedicationPlan.ScheduleType.valueOf(scheduleType),
-            timeOfDay = times,
-            daysOfWeek = days,
-            intervalDays = intervalDays,
-            isEnabled = isEnabled,
-            extras = extraMap,
-            createdAt = createdAt
-        )
-    }
-
-    companion object {
-        /**
-         * 从领域模型创建实体
-         */
-        fun fromMedicationPlan(plan: MedicationPlan): MedicationPlanEntity {
-            val extraMap = plan.extras.mapKeys { (key, _) ->
-                key.name
-            }
-
-            val times = plan.timeOfDay.map { it.toString() }
-            val days = plan.daysOfWeek.map { it.value }.toSet()
-
-            return MedicationPlanEntity(
-                id = plan.id,
-                name = plan.name,
-                route = plan.route.name,
-                ester = plan.ester.name,
-                doseMG = plan.doseMG,
-                scheduleType = plan.scheduleType.name,
-                timeOfDay = times,
-                daysOfWeek = days,
-                intervalDays = plan.intervalDays,
-                isEnabled = plan.isEnabled,
-                extras = extraMap,
-                createdAt = plan.createdAt
-            )
-        }
-    }
-}
+)

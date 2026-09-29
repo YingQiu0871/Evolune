@@ -7,7 +7,6 @@ import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupErrorCode
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupProvider
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupResult
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Clock

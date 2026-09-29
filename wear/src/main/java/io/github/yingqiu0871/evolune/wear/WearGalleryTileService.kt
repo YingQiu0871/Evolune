@@ -30,8 +30,6 @@ import androidx.wear.tiles.RequestBuilders.ResourcesRequest
 import androidx.wear.tiles.TileBuilders.Tile
 import androidx.wear.tiles.TileService
 import com.google.common.util.concurrent.Futures
-import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
-import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence
 import java.time.ZoneId
@@ -443,15 +441,6 @@ internal fun todayPendingCount(
 ): Int = snapshot.todaySummary?.let {
     (it.totalCount - it.completedCount).coerceAtLeast(0)
 } ?: filteredOccurrences.size
-
-private fun occurrenceLabel(occurrence: WearAppUpcomingOccurrence, zoneId: ZoneId): String {
-    val status = when (occurrence.status) {
-        WearAppOccurrenceStatus.UPCOMING -> "即将"
-        WearAppOccurrenceStatus.DUE -> "待服"
-    }
-    return "$status ${occurrence.medicationName} ${formatDose(occurrence.dose)}${occurrence.doseUnit}\n" +
-        tileTimeFormatter.format(occurrence.scheduledAt.atZone(zoneId))
-}
 
 private fun formatDose(dose: Double): String =
     if (dose % 1.0 == 0.0) {

@@ -61,7 +61,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,7 +92,6 @@ import kotlinx.coroutines.withContext
 import kotlin.math.abs
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.backup.BackupRestoreUiEvent
-import io.github.yingqiu0871.evolune.backup.BackupRestoreOperation
 import io.github.yingqiu0871.evolune.backup.BackupRestoreViewModel
 import io.github.yingqiu0871.evolune.backup.cloud.CloudAuthorizationOutcome
 import io.github.yingqiu0871.evolune.application.MedicationPlanDraft
@@ -142,7 +140,6 @@ import io.github.yingqiu0871.evolune.viewmodel.DoseEventOperationState
 import io.github.yingqiu0871.evolune.viewmodel.DoseEventUiEvent
 import io.github.yingqiu0871.evolune.history.HistoryViewModel
 import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
-import io.github.yingqiu0871.evolune.viewmodel.ImportResult
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperation
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationError
 import io.github.yingqiu0871.evolune.viewmodel.MedicationPlanOperationState

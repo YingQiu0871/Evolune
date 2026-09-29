@@ -10,7 +10,6 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppRequestCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

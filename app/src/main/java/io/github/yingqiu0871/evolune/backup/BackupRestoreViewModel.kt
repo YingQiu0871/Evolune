@@ -21,7 +21,6 @@ sealed interface BackupRestoreUiState {
     data class Authorizing(val operation: BackupRestoreOperation) : BackupRestoreUiState
     data object AwaitingBackupPassphrase : BackupRestoreUiState
     data object PreparingBackup : BackupRestoreUiState
-    data object Uploading : BackupRestoreUiState
     data class BackupSuccess(val cleanupPending: Boolean) : BackupRestoreUiState
     data class LoadingBackups(val operation: BackupRestoreOperation = BackupRestoreOperation.RESTORE) :
         BackupRestoreUiState

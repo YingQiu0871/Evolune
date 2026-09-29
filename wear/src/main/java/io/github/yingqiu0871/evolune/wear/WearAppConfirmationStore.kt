@@ -47,7 +47,6 @@ internal data class WearAppPendingConfirmation(
     override val operationType = WearAppPendingOperationType.CONFIRM
     override val operationId get() = command.operationId
     val occurrenceId get() = command.occurrenceId
-    val commandCreatedAt get() = command.createdAt
     override val sourceSnapshot get() = command.sourceSnapshot
     override val awaitingAuthoritativeSnapshot: Boolean
         get() = terminalResult?.resultType == WearAppConfirmResultType.CONFIRMED ||
@@ -295,12 +294,6 @@ internal object WearAppConfirmationStore {
             preferences(context).edit().putLong(KEY_SEND_ATTEMPT, next).commit()
         ) next else null
     }
-
-    fun resultMessageCode(context: Context): io.github.yingqiu0871.evolune.experience.wear.WearAppConfirmMessageCode? =
-        decodeConfirmResult(
-            preferences(context).getString(KEY_LAST_CONFIRM_RESULT, null)
-                ?: preferences(context).getString(KEY_LAST_RESULT, null)
-        )?.messageCode
 
     @Synchronized
     fun consumeUndoResultMessageCode(context: Context): WearAppUndoMessageCode? {

@@ -1,7 +1,7 @@
-# 后续路线（v1.9.0 已封版）
+# 后续路线（v1.9.1 已封版）
 
-截至 2026-09-29，v1.0–v1.9 已发布（最新稳定版 [v1.9.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)，
-2026-09-28）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
+截至 2026-09-29，v1.0–v1.9.1 已发布（最新稳定版 [v1.9.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)，
+2026-09-29）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
 当前状态见 [CURRENT_STATUS](docs/evolune/CURRENT_STATUS.md)，完整文档索引见
 [DOCUMENTATION_INDEX](docs/evolune/DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
 [文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
@@ -363,7 +363,12 @@
       `386e710d878bb8e108b40d130c6092aa352862cf`；GitHub Release
       https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0，恰好 3 资产，公开下载回读校验通过；
       normal fast-forward 发布，无 force / rebase / tag 移动；P0/P1/P2 = 0）。
-- [ ] NEXT：无已授权的后续里程碑。v1.9.0 已封版；任何新版本需单独立项、独立设计与评审。
+- [x] v1.9.1 代码梳理与精简（行为保持的死代码/未使用资源与导入清理；PK 数值、Room converter、
+      冻结语义代码未改）— **RELEASED**（2026-09-29；分支 `feature/v1.9.1-code-hygiene` 经 PR #31 以普通
+      merge commit 合入 `main`，annotated tag `v1.9.1` 指向该合并提交；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1，3 资产；CI #82、androidTest 与模拟器冒烟见
+      `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`）。
+- [ ] NEXT：无已授权的后续里程碑。v1.9.1 已封版；任何新版本需单独立项、独立设计与评审。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both

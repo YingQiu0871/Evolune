@@ -1,10 +1,8 @@
 package io.github.yingqiu0871.evolune.data
 
-import io.github.yingqiu0871.evolune.pk.AntiAndrogen
 import io.github.yingqiu0871.evolune.pk.DoseEvent
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
-import io.github.yingqiu0871.evolune.pk.displayName as antiAndrogenDisplayName
 import java.time.DayOfWeek
 import java.time.LocalTime
 import java.util.UUID
@@ -45,55 +43,6 @@ data class MedicationPlan(
         DAILY,      // 每天
         WEEKLY,     // 每周特定几天
         CUSTOM      // 自定义间隔天数
-    }
-
-    /**
-     * 获取方案的显示描述
-     */
-    fun getDescription(): String {
-        val routeStr = when (route) {
-            Route.INJECTION -> "注射"
-            Route.ORAL -> "口服"
-            Route.SUBLINGUAL -> "舌下"
-            Route.GEL -> "凝胶"
-            Route.PATCH_APPLY -> "贴片"
-            Route.PATCH_REMOVE -> "移除贴片"
-            Route.ANTIANDROGEN -> "抗雄口服"
-        }
-
-        val scheduleStr = when (scheduleType) {
-            ScheduleType.DAILY -> "每天"
-            ScheduleType.WEEKLY -> {
-                val days = daysOfWeek.sortedBy { it.value }.joinToString("、") { dayName(it) }
-                "每周$days"
-            }
-            ScheduleType.CUSTOM -> "每${intervalDays}天"
-        }
-
-        val timeStr = timeOfDay.joinToString("、") { it.toString() }
-
-        val medicationStr = if (route == Route.ANTIANDROGEN) {
-            val aaType = extras[DoseEvent.ExtraKey.ANTI_ANDROGEN_TYPE]?.toInt()?.let {
-                AntiAndrogen.values().getOrElse(it) { AntiAndrogen.CPA }
-            } ?: AntiAndrogen.CPA
-            aaType.antiAndrogenDisplayName
-        } else {
-            ester.displayName
-        }
-
-        return "$scheduleStr $timeStr $routeStr ${doseMG}mg $medicationStr"
-    }
-
-    private fun dayName(day: DayOfWeek): String {
-        return when (day) {
-            DayOfWeek.MONDAY -> "周一"
-            DayOfWeek.TUESDAY -> "周二"
-            DayOfWeek.WEDNESDAY -> "周三"
-            DayOfWeek.THURSDAY -> "周四"
-            DayOfWeek.FRIDAY -> "周五"
-            DayOfWeek.SATURDAY -> "周六"
-            DayOfWeek.SUNDAY -> "周日"
-        }
     }
 }
 

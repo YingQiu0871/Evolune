@@ -1,6 +1,5 @@
 package io.github.yingqiu0871.evolune.widget
 
-import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.TimeFormat
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.MedicationTimelineItem

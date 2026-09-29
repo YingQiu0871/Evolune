@@ -1,6 +1,5 @@
 package io.github.yingqiu0871.evolune.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,7 +37,6 @@ import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryIdentity
 import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryObservation
 import java.time.Instant
 import java.time.ZoneId
-import kotlin.math.abs
 
 /**
  * 主页屏幕

@@ -7,7 +7,6 @@ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
 import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.experience.wear.WearAppConcentrationStatus
-import io.github.yingqiu0871.evolune.experience.wear.WearAppOccurrenceStatus
 import io.github.yingqiu0871.evolune.experience.wear.WearAppProducerIdentity
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotRules
 import io.github.yingqiu0871.evolune.experience.wear.WearAppSnapshotCodec

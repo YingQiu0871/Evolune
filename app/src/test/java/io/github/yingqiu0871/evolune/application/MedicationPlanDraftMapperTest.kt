@@ -1,9 +1,7 @@
 package io.github.yingqiu0871.evolune.application
 
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
-import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
-import io.github.yingqiu0871.evolune.core.model.ScheduledDoseSlot
 import io.github.yingqiu0871.evolune.pk.Ester
 import io.github.yingqiu0871.evolune.pk.Route
 import org.junit.Assert.assertEquals

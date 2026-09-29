@@ -17,22 +17,6 @@ data class PKState(
     val error: String? = null
 ) {
     /**
-     * 获取浓度等级描述（参考Oyama-s-HRT-Tracker医学标准）
-     */
-    fun getConcentrationLevel(): String? {
-        if (currentConcentration == null) return null
-        
-        // 浓度判定优先级顺序（参考Oyama项目）
-        return when {
-            currentConcentration > 300 -> "高于参考范围"
-            currentConcentration >= 100 && currentConcentration <= 200 -> "GAHT 目标"
-            currentConcentration >= 70 && currentConcentration <= 300 -> "女性黄体期"
-            currentConcentration >= 30 && currentConcentration < 70 -> "女性卵泡期"
-            else -> "低于参考范围"
-        }
-    }
-
-    /**
      * 获取浓度等级颜色（语义化，参考Oyama标准）
      */
     fun getConcentrationLevelColor(): ConcentrationLevel {
