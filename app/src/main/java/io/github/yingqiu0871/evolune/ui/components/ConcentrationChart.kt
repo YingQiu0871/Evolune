@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -147,6 +148,8 @@ fun ConcentrationChart(
     // 触摸交互状态
     var touchPosition by remember { mutableStateOf<Offset?>(null) }
     var selectedPoint by remember { mutableStateOf<Pair<Double, Double>?>(null) } // (time, conc)
+    var chartBoxWidthPx by remember { mutableIntStateOf(0) }
+    var tooltipWidthPx by remember { mutableIntStateOf(0) }
 
     // 数据范围
     val finiteTimes = simulationResult.timeH.asSequence().filter(Double::isFinite)
@@ -261,6 +264,7 @@ fun ConcentrationChart(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .onSizeChanged { chartBoxWidthPx = it.width }
             .semantics {
                 contentDescription = if (cpaSeries != null) {
                     chartDescriptionWithCpa
@@ -579,10 +583,16 @@ fun ConcentrationChart(
                         }
                     }
                 }
+                // Dashed so the CPA line stays distinguishable from E2 in every palette.
                 drawPath(
                     path = cpaPath,
                     color = cpaColor,
-                    style = Stroke(width = 2.5.dp.toPx())
+                    style = Stroke(
+                        width = 2.5.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(8.dp.toPx(), 5.dp.toPx())
+                        )
+                    )
                 )
             }
 
@@ -808,11 +818,22 @@ fun ConcentrationChart(
                 Surface(
                     modifier = Modifier
                         .offset {
+                            // 靠近右边缘时把信息窗翻到触点左侧，避免被裁切。
+                            val gapPx = 16.dp.toPx()
+                            val rightX = pos.x + gapPx
+                            val x = if (chartBoxWidthPx > 0 &&
+                                rightX + tooltipWidthPx > chartBoxWidthPx
+                            ) {
+                                (pos.x - gapPx - tooltipWidthPx).coerceAtLeast(0f)
+                            } else {
+                                rightX
+                            }
                             IntOffset(
-                                x = (pos.x + 16.dp.toPx()).toInt(),
+                                x = x.toInt(),
                                 y = (pos.y - 60.dp.toPx()).toInt()
                             )
                         }
+                        .onSizeChanged { tooltipWidthPx = it.width }
                         .wrapContentSize(),
                     color = surfaceColor,
                     shadowElevation = 4.dp,

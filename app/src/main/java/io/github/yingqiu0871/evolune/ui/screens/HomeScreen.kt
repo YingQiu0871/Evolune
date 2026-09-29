@@ -406,21 +406,21 @@ private fun ChartCard(
             Text(
                 text = stringResource(R.string.home_title),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = if (cpaSeries != null) 4.dp else 8.dp)
             )
 
             // v1.10 (S5/S8) — compact legend, readable as text even without color vision.
-            // The CPA entry only appears when the series is actually shown (S6/S9).
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.home_chart_legend_e2),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                if (cpaSeries != null) {
+            // Only shown with the CPA series, so the default-off card stays unchanged (S1/S6).
+            if (cpaSeries != null) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_chart_legend_e2),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Text(
                         text = stringResource(R.string.home_chart_legend_cpa),
                         style = MaterialTheme.typography.labelSmall,
