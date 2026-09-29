@@ -319,6 +319,10 @@
     <string name="ester_en">庚酸雌二醇</string>
 
     <string name="chart_no_data">暂无数据</string>
+    <string name="chart_content_description">雌二醇血药浓度曲线图</string>
+    <string name="chart_content_description_with_cpa">雌二醇血药浓度曲线图，叠加显示醋酸环丙孕酮估算浓度曲线</string>
+    <string name="home_chart_legend_e2">雌二醇 E2（pg/mL）</string>
+    <string name="home_chart_legend_cpa">CPA 估算（ng/mL）</string>
 
     <string name="unit_ug_per_day">µg/天</string>
 

@@ -27,6 +27,7 @@ import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
 import io.github.yingqiu0871.evolune.pk.SimulationResult
+import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
 import io.github.yingqiu0871.evolune.ui.components.ConcentrationChart
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
@@ -51,12 +52,14 @@ fun HomeScreen(
     showTopBar: Boolean = true
 ) {
     val pkState by viewModel.pkState.collectAsState()
+    val cpaState by viewModel.cpaState.collectAsState()
     val doseTimePoints by viewModel.doseTimePoints.collectAsState()
     val enabledPlans by viewModel.enabledPlans.collectAsState()
     val realtimeCurrentTimeState = viewModel.currentTimeH.collectAsStateWithLifecycle()
 
     HomeScreenContent(
         pkState = pkState,
+        cpaSeries = cpaState,
         doseTimePoints = doseTimePoints,
         enabledPlans = enabledPlans,
         realtimeCurrentTimeState = realtimeCurrentTimeState,
@@ -86,6 +89,7 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenContent(
     pkState: PKState,
+    cpaSeries: CpaSeries? = null,
     doseTimePoints: List<Double>,
     enabledPlans: List<MedicationPlan>,
     realtimeCurrentTimeState: State<Double>,
@@ -246,7 +250,8 @@ private fun HomeScreenContent(
                         currentTimeHState = realtimeCurrentTimeState,
                         doseTimePoints = doseTimePoints,
                         forkPointTimeHState = forkPointTimeHState,
-                        is24Hour = is24Hour
+                        is24Hour = is24Hour,
+                        cpaSeries = cpaSeries
                     )
 
                     // 浓度等级说明
@@ -387,7 +392,8 @@ private fun ChartCard(
     currentTimeHState: State<Double>,
     doseTimePoints: List<Double>,
     forkPointTimeHState: State<Double?>,
-    is24Hour: Boolean = true
+    is24Hour: Boolean = true,
+    cpaSeries: CpaSeries? = null
 ) {
     Card(
         modifier = Modifier
@@ -400,9 +406,29 @@ private fun ChartCard(
             Text(
                 text = stringResource(R.string.home_title),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 4.dp)
             )
-            
+
+            // v1.10 (S5/S8) — compact legend, readable as text even without color vision.
+            // The CPA entry only appears when the series is actually shown (S6/S9).
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_chart_legend_e2),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                if (cpaSeries != null) {
+                    Text(
+                        text = stringResource(R.string.home_chart_legend_cpa),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+
             ConcentrationChart(
                 simulationResult = simulationResult,
                 baselineSimulationResult = baselineSimulationResult,
@@ -410,6 +436,7 @@ private fun ChartCard(
                 doseTimePoints = doseTimePoints,
                 forkPointTimeHState = forkPointTimeHState,
                 is24Hour = is24Hour,
+                cpaSeries = cpaSeries,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
