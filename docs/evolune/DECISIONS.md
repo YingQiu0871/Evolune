@@ -1,7 +1,7 @@
 # 架构决策记录
 
-This file preserves historical decision context. The index below is reconciled through v1.6.0 on
-2026-09-12. Original ADR backgrounds describe their decision-time state, not current missing features.
+This file preserves historical decision context. The index below was reconciled through v1.6.0 on
+2026-09-12 and extended through v1.9.0 on 2026-09-29. Original ADR backgrounds describe their decision-time state, not current missing features.
 Current implementation is in [Architecture](ARCHITECTURE.md); release evidence is in the [version review](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current status index
@@ -14,8 +14,8 @@ Current implementation is in [Architecture](ARCHITECTURE.md); release evidence i
 | ADR-004 | Implemented in v1.2 (weight scope) | Optional foreground weight adapter shipped; medication/PHR writes remain outside scope. |
 | ADR-005 | Implemented in v1.3; extended v1.6 | Wear App protocol v1 and confirmation/undo results live in experience-core; tag 11 todaySummary is additive. Legacy transport remains separate. |
 | ADR-006 | Accepted / ongoing | Logical package boundaries are implemented; further Gradle module extraction is deferred. |
-| ADR-007 | Implemented in part / deferred | Android backup exclusions shipped in v1.0; encrypted backup shipped in v1.2; SQLCipher remains deferred. |
-| ADR-008 | Deferred | RemoteViews and the v1.1 occurrence-driven enhancement are shipped; a future Glance evaluation remains optional. |
+| ADR-007 | Implemented in part / deferred | Android backup exclusions shipped in v1.0; encrypted backup shipped in v1.2 (backup schema v2 with theme state since v1.7.2, v1 backups still restorable); SQLCipher remains deferred. |
+| ADR-008 | Deferred | RemoteViews and the v1.1 occurrence-driven enhancement are shipped; a future Glance evaluation remains optional. v1.9.0 removed unused Glance version-catalog metadata and obsolete Glance/ActionCallback ProGuard keep rules; production Widgets remain RemoteViews. |
 | ADR-009 | Implemented in v1.2 (manual backup) | Google Drive appDataFolder backup/restore is separate from JSON exchange and Wear transport; real-time cloud sync is not implemented. |
 | ADR-010 | Implemented in v1.0 | Domain, Room entity and external DTO boundaries are explicit; PK uses an adapter. |
 | ADR-011 | Deferred | Tracked Date did not enter v1.0 and has no current entity or product surface. |
@@ -28,6 +28,19 @@ Current implementation is in [Architecture](ARCHITECTURE.md); release evidence i
 | ADR-018 | Accepted / implemented in v1.0 | Public Release builds require the persistent external signing identity. |
 | ADR-019 | Accepted / implemented in v1.0 | PK permission is scoped to author-owned or authorizable rights and requires attribution. |
 | ADR-020 | Accepted / implemented in v1.0 | Publication is limited to explicitly approved refs and assets. |
+
+## Decisions since v1.6 (recorded in version documents)
+
+The v1.7–v1.9 semantic and process decisions were recorded, frozen and independently reviewed in their own version folders rather than as new numbered ADRs. Pointers:
+
+| Topic | Where it is recorded |
+|---|---|
+| Historical truth (recorded intake is authoritative; plan is schedule context; unmatched events stay visible; wall-clock time versus valid instant; DST fall-back) | [v1.7/V17_DATA_SEMANTICS.md](v1.7/V17_DATA_SEMANTICS.md) |
+| Insights semantics (factual counts only; no strict adherence rates) | [v1.7/V17_B_00_INSIGHTS_SEMANTICS.md](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) |
+| Retrospective PK semantics and surface | [v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md), [V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md](v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md) |
+| Portable export/import | [v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md](v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md) |
+| Flat Settings, app palettes, legacy theme continuity, backup schema v2 | [v1.7.2/V172_CONTRACT.md](v1.7.2/V172_CONTRACT.md) |
+| Release-graph proof before removing a dependency (v1.9.0 D-01) | [v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) |
 
 ## ADR-001：保持 Evolune 使用 MIT
 

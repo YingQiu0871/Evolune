@@ -18,24 +18,26 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ## 当前稳定版本
 
-**Evolune v1.6.0** 已于 2026-09-10 发布。请从 [Evolune v1.6.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.6.0) 下载经过签名的 Phone APK 与 Wear APK。`v1.5.0` 为上一版封存发布。
+**Evolune v1.9.0** 已于 2026-09-28 发布。请从 [Evolune v1.9.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0) 下载经过签名的 Phone APK 与 Wear APK（并附 `SHA256SUMS.txt`）。`v1.8.0` 为上一版封存发布。
 
-v1.6 Widget Gallery 已完成独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收。
+v1.9.0 是维护与配置清理版本（检出可复现的测试、冗余依赖与过期 Glance/ProGuard 配置清理）；无 Room schema 迁移、无备份格式变化，用药计算语义不变。此前 v1.6 Widget Gallery 已通过独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收；v1.7 History & Insights 与 v1.8 全局卫生亦已发布。
 
 GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 Release 使用不同的应用 ID 和签名，可同时安装，但数据不会自动互通。
 
 ## 主要功能
 
-- **用药记录**：添加、编辑和删除用药事件，并查看历史。
+- **用药记录**：添加、编辑和删除用药事件。
+- **历史、时间线与洞察**：按日历日查看计划时点与实际摄入，按月浏览时间线，查看 7/30/90 天事实性汇总；不输出依从率评分。
+- **回顾性 PK**：基于所选历史区间的已记录摄入重建模型估算浓度曲线（不是实测血药浓度）。
 - **多种给药途径**：支持肌肉注射、口服、舌下含服、透皮凝胶及贴片应用或移除。
 - **用药方案**：创建每日、每周或自定义间隔方案，并配置稳定、有序的用药时间槽。
 - **提醒与签到**：根据启用的方案安排系统通知，并可从通知快速确认本次用药。
 - **浓度趋势**：根据药物、剂量、途径、体重和历史记录计算当前浓度及未来趋势。
 - **桌面小组件**：四个独立入口显示今日计划、下一次服药、当前 E2 和 E2 趋势；支持独立外观配置、响应式布局和快速记录。
 - **Wear OS 支持**：Wear App、三个新 Tile、兼容 E2 曲线 Tile 和三个 Complication；支持确认、撤销和 occurrence 级“跳过本次”。
-- **数据导入导出**：通过文件或剪贴板导入、导出 JSON，兼容 `hrt.mahiro.uk` 数据格式。
+- **数据导入导出**：Evolune Portable JSON v1（导出与增量导入）和 CSV v1（仅导出）；并保留通过文件或剪贴板导入、导出旧版 JSON 的路径，兼容 `hrt.mahiro.uk` 数据格式。
 - **同步与备份**：可选 Health Connect 前台体重读取；原生加密备份与恢复预览；手动 Google Drive 备份/恢复。
-- **个性化设置**：支持深浅色主题、动态取色、12/24 小时制和自动检查更新。
+- **个性化设置**：扁平设置页；深浅色/OLED 主题、Dynamic 取色与 8 个预设配色、12/24 小时制和自动检查更新。
 
 生产代码由 `app` 和 `wear` 两个 Android application 模块及共享的 `experience-core` 模块组成。Phone Room/Repository 是唯一事实来源；Wear 使用版本化快照、可重建缓存和 Data Layer 动作协议。
 
@@ -43,7 +45,7 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 
 - 手机端：Android 12 及以上（`minSdk = 31`），应用 ID `io.github.yingqiu0871.evolune`
 - 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune`（Kotlin namespace `io.github.yingqiu0871.evolune.wear`）
-- v1.6.0：Phone `versionCode = 101060000`；Wear `versionCode = 1101060000`
+- v1.9.0：Phone `versionCode = 101090000`；Wear `versionCode = 1101090000`
 - 历史 v1.0.0：Phone/Wear 使用 `versionCode = 10060`；不代表当前升级目标。
 
 ## 快速上手
@@ -52,8 +54,9 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 2. 在“记录”中添加已有的用药记录。
 3. 在“方案”中创建未来计划，并按需启用提醒。
 4. 返回“主页”查看当前浓度、历史曲线和未来预测。
-5. 在“设置 → 同步与备份”中按需使用 JSON 数据交换、Health Connect 或 Google Drive 加密备份/恢复；恢复前检查预览并保管好备份口令。
-6. 在桌面小组件选择器选择四类入口；在手表添加 Tile 或编辑支持 Short Text 的表盘槽位。详见 [快速开始](../../QUICK_START_GUIDE.md)。
+5. 在“历史”中回看已记录的用药活动，并按需进入时间线、洞察或回顾性 PK。
+6. 在“设置 → 同步与备份”中按需使用 Portable JSON/CSV 导出与导入、Health Connect 或 Google Drive 加密备份/恢复；恢复前检查预览并保管好备份口令。
+7. 在桌面小组件选择器选择四类入口；在手表添加 Tile 或编辑支持 Short Text 的表盘槽位。详见 [快速开始](../../QUICK_START_GUIDE.md)。
 
 ## 本地开发构建
 
@@ -99,9 +102,10 @@ reviews/  外部审阅报告和逐项处置记录
 - Health Connect 前台体重读取和手动 Google Drive 加密备份已在 v1.2 发布；后台读取、用药写入和实时云同步不在当前范围。
 - Phone Widget Completion 与 Widget Gallery 已分别在 v1.1 和 v1.6 完成并关闭。
 - 轻量 Wear OS App、Tile/Complication Gallery 与 Data Layer 动作已进入 v1.6 稳定版本。
-- v1.2–v1.6 的已发布历史与 v1.7 候选以 [Roadmap](ROADMAP.md) 为准。
+- History & Insights（v1.7）、全局卫生（v1.8）与维护清理（v1.9）已发布并封版。
+- v1.2–v1.9 的已发布历史以 [Roadmap](ROADMAP.md) 为准；可选 CPA 曲线仍是未立项候选。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
-- 个性化 calibration/PK 2.0 截至 v1.6 仍未实现。
+- 个性化 calibration/PK 2.0 截至 v1.9 仍未实现。
 
 ## 常见问题
 

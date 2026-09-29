@@ -5,7 +5,7 @@ Phone Widget 的关系。Room v3 的表结构和迁移细节以
 [产品概览](docs/evolune/PRODUCT_OVERVIEW.md) 与 schema 导出为准；本文不改变
 数据库协议。
 
-文档核对：2026-09-12，适用 v1.6.0；核心 slots/时间语义延续 v1.0，匹配包含 v1.2.2 后的安全回退。
+文档核对：2026-09-12（v1.6.0），2026-09-29 补记至 v1.9.0；核心 slots/时间语义延续 v1.0，匹配包含 v1.2.2 后的安全回退。v1.7 起 History/Timeline/Insights/回顾性 PK 使用共享历史投影做 occurrence 匹配（精确 slot+日期 → slot ±1 小时 → null-slot ±1 小时 → null-slot 同日 legacy），并标注匹配来源；细节见 [架构](docs/evolune/ARCHITECTURE.md) 与 [V17_DATA_SEMANTICS](docs/evolune/v1.7/V17_DATA_SEMANTICS.md)。
 
 ## MedicationPlan aggregate
 

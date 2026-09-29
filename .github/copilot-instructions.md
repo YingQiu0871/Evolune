@@ -1,8 +1,10 @@
 # Copilot Instructions
 
-截至 2026-09-12，Evolune 当前公开稳定版为 v1.6.0。v1.2 的前台 Health Connect
-体重读取和手动 Google Drive 加密备份、v1.3 Wear App、v1.4 引导、v1.5 稳定性和
-v1.6 Gallery 均已发布。保持本文件简洁，以生产源码和 docs/evolune/CURRENT_STATUS.md 为准。
+截至 2026-09-29，Evolune 当前公开稳定版为 v1.9.0（tag `v1.9.0` = `d099998`）。v1.2 的前台
+Health Connect 体重读取和手动 Google Drive 加密备份、v1.3 Wear App、v1.4 引导、v1.5 稳定性、
+v1.6 Gallery、v1.7 History & Insights（History/Timeline/Insights/回顾性 PK/Portable 导出）、
+v1.8 全局卫生和 v1.9 维护清理均已发布。保持本文件简洁，以生产源码和
+docs/evolune/CURRENT_STATUS.md 为准。
 
 ## Architecture
 
@@ -21,6 +23,16 @@ v1.6 Gallery 均已发布。保持本文件简洁，以生产源码和 docs/evol
   计划、槽位和 intended scheduled local date 共同确定。
 - 精确记录匹配优先使用 slot/date；null-slot 保留原窗口优先和 v1.2.2 唯一同日回退，
   原窗口竞争事件不能被回收去匹配其他 occurrence，不能把历史事件宣传成精确关联。
+
+## Historical semantics (v1.7+)
+
+- History、Timeline、Insights 与回顾性 PK 共用历史投影（`history/`、`experience-core`）；
+  实际记录是历史权威，当前计划只是 schedule 上下文，不得重写过去。
+- 未匹配记录必须保持可见并保留真实来源；`ReminderSkipStore` 是短期、非权威状态，
+  不得据此伪造长期“跳过/漏服”历史；不输出依从率评分。
+- 计划的 wall-clock 时间与其对应的有效 instant 是两个概念，DST 回退保持较早偏移的
+  occurrence 物化；跨本地日期的 legacy/null-slot 匹配只显示为推断匹配，不称为精确匹配。
+- 回顾性 PK 与 PK 曲线始终标注为模型估算，不是实测血药浓度。
 
 ## Widget and Wear actions
 

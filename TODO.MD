@@ -1,7 +1,10 @@
-# 后续路线（v1.6.0 已封版）
+# 后续路线（v1.9.0 已封版）
 
-截至 2026-09-12，v1.0–v1.6 已发布。下文区分已完成里程碑与未授权的未来候选，
-不是把旧版本重新列入待办。完整版本及文档索引见 [文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
+截至 2026-09-29，v1.0–v1.9 已发布（最新稳定版 [v1.9.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)，
+2026-09-28）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
+当前状态见 [CURRENT_STATUS](docs/evolune/CURRENT_STATUS.md)，完整文档索引见
+[DOCUMENTATION_INDEX](docs/evolune/DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
+[文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
 ## v1.2 — Google Integration & Data Continuity（已发布）
 
@@ -44,7 +47,7 @@
 - [x] v1.6-F：下一次服药时间、当前 E2、今日完成度三种表盘信息及真实手表验收。
 - [x] v1.6-G：升级、全入口一致性、后台/性能回归、独立审阅、签名候选和真实 Phone/Wear 发布验收。
 
-## v1.7 — History & Insights program（Phase A + Phase B 已收口；Phase C：APPROVED / CLOSED）
+## v1.7 — History & Insights program（已发布 v1.7.0–v1.7.4；Phase A–F 全部 CLOSED）
 
 - [x] Phase A（历史投影 / 读模型 / UI / hardening）：A-01…A-04 全部 APPROVE，PHASE A CLOSED。
 - [x] Phase B（Insights）：B-00/B-00-R1/B-01/B-02/B-02-R1/B-03 全部 APPROVE；B-04 hardening 与
@@ -340,8 +343,10 @@
       `b9b6b955…` 连续；候选字节冻结于 `D:\Evolune-Workspace\release-candidates\v1.8.0\`；
       packaging evidence `docs/evolune/v1.8.0/evidence/release-packaging/`；release notes
       `docs/evolune/v1.8.0/V180_RELEASE_NOTES.md`）。
-- [ ] NEXT：**v1.8.0 发布执行**（final docs commit → annotated tag v1.8.0 → push →
-      GitHub Release 上传 3 资产 → 发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
+- [x] **v1.8.0 发布 — RELEASED**（2026-09-26；final docs commit
+      `51a839aebadb3f516b38b69e4a96078389bdf0ea`；annotated tag `v1.8.0` =
+      `c101c238ec1e963a61191fb82d5ffa287219e400`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.8.0，3 资产，发布后字节校验通过）。
 - [x] v1.9.0 实现/卫生工作（T-01/T-02 检出可复现性；受治理的 H-01/H-02 依赖与配置清理）— **CLOSED / FROZEN**（T-01 @
       `2fe04ee9ffc2651f89b8dc8513c1b39141054648`；governed D-01 证据 @
       `284909ae037bd23e1c2a4ab692fc8ffb9c736a3c`；governed D-02 实现 @
@@ -353,8 +358,12 @@
       `D:\Evolune-Workspace\release-candidates\v1.9.0\`；packaging evidence
       `docs/evolune/v1.9.0/evidence/P-02-release-packaging/`；release notes
       `docs/evolune/v1.9.0/V190_RELEASE_NOTES.md`）。
-- [ ] NEXT：**v1.9.0 发布执行**（annotated tag v1.9.0 → push → GitHub Release 上传 3 资产 →
-      发布字节校验）。**Release: NOT TAGGED / NOT PUBLISHED.**
+- [x] **v1.9.0 发布 — RELEASED**（2026-09-28；final release commit
+      `d099998c46e747b99855b7c9c56b3e1bd671a089`；annotated tag `v1.9.0` =
+      `386e710d878bb8e108b40d130c6092aa352862cf`；GitHub Release
+      https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0，恰好 3 资产，公开下载回读校验通过；
+      normal fast-forward 发布，无 force / rebase / tag 移动；P0/P1/P2 = 0）。
+- [ ] NEXT：无已授权的后续里程碑。v1.9.0 已封版；任何新版本需单独立项、独立设计与评审。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
@@ -369,7 +378,7 @@
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
 - [ ] `v1.7` 早期草案的 Optional CPA PK Curve 保持独立科学/来源评审门槛，不因 C-01 关闭而改变状态。
 
-## v1.7 — Optional CPA PK Curve
+## 未立项候选 — Optional CPA PK Curve（v1.7 早期草案，未随 v1.7 发布）
 
 - [ ] 在独立科学、来源和回归评估通过后，增加默认关闭且单位独立的 CPA 估算曲线。
 
@@ -380,3 +389,6 @@
 
 - Tracked Date、个性化 PK/calibration、SQLCipher 和 Gradle module extraction 仍需
   单独产品/安全/迁移决策。
+- v1.9.0 明确延后（无已证明收益，非阻塞）：E-01 生命周期桥接重复、T-03 设备测试 sleep；
+  历史双通道查询在无日期/时间索引下的表扫描成本；PK 输入在公开输入未暴露间隔时的固定窗口约束，
+  改动前需专门评估。

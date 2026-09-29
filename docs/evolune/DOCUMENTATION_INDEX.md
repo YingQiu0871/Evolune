@@ -1,6 +1,11 @@
-# 全量文档索引（截至 v1.6.0）
+# 全量文档索引（v1.6.0 盘点 + v1.7–v1.9 增补）
 
 基线 main `c7f3d266357af08b737aa4fd4015f1b1391279c3`，盘点 2026-09-12，整理完成 2026-09-13。基线 157 份 Markdown/TXT/RST；此次新增 5 份，共 162 份。下列分类用于阅读，不代表各历史结论已在当前版本重新验证。详细结论与证据缺口见[盘点报告](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
+
+> **v1.7–v1.9 增补（2026-09-29）：** 下文各表是 2026-09-12/13 针对 v1.6.0 的盘点快照，保持不变。
+> v1.7.0–v1.9.0 期间新增的文档见“v1.7–v1.9 文档目录”一节；当前发布状态以
+> [CURRENT_STATUS](CURRENT_STATUS.md) 为准。表中“截至 v1.6.0”一类的标题是盘点时的标题，
+> 其中列出的现行说明文档已在 v1.9.0 文档统一中更新，标题以文件本身为准。
 
 ## 本次新增
 
@@ -189,13 +194,13 @@
 
 | 路径 | 文档标题 |
 | --- | --- |
-| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.6.0 |
+| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.0 |
 | [MEDICATION_PLAN_FEATURE.md](../../MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
 | [PK_IMPLEMENTATION.md](../../PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
-| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.6.0） |
+| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.0） |
 | [QUICK_START_UI.md](../../QUICK_START_UI.md) | 当前 UI 结构速览 |
-| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（截至 v1.6.0） |
-| [TODO.MD](../../TODO.MD) | 后续路线（v1.6.0 已封版） |
+| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.9.0） |
+| [TODO.MD](../../TODO.MD) | 后续路线（v1.9.0 已封版） |
 | [UI_COMPONENTS.md](../../UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
@@ -206,6 +211,61 @@
 | [docs/evolune/ROADMAP.md](../../docs/evolune/ROADMAP.md) | 路线图 |
 | [docs/evolune/WEAR_V11_MIGRATION.md](../../docs/evolune/WEAR_V11_MIGRATION.md) | Wear v1.1 Identity Migration |
 | [readme.md](../../readme.md) | Evolune（月序） |
+
+## v1.7–v1.9 文档目录（36）
+
+每个版本目录包含发布说明；v1.7 另含分阶段契约与证据记录，v1.7.2 含契约/计划/清单。`evidence/` 子目录保存原始验证证据（哈希清单、日志、截图），此处只列目录与文件数，不逐个索引。
+
+| 路径 | 文档标题 |
+| --- | --- |
+| [docs/evolune/v1.7/V17_ACCEPTANCE.md](../../docs/evolune/v1.7/V17_ACCEPTANCE.md) | Evolune v1.7 — 验收标准（V17_ACCEPTANCE） |
+| [docs/evolune/v1.7/V17_A_01_HISTORICAL_PROJECTION.md](../../docs/evolune/v1.7/V17_A_01_HISTORICAL_PROJECTION.md) | V17-A-01 — Historical Projection & Match Provenance Foundation（证据记录） |
+| [docs/evolune/v1.7/V17_A_02_HISTORY_READ_MODEL.md](../../docs/evolune/v1.7/V17_A_02_HISTORY_READ_MODEL.md) | V17-A-02 — History Read Model & Date-Range Adapter（证据记录） |
+| [docs/evolune/v1.7/V17_A_03_HISTORY_UI.md](../../docs/evolune/v1.7/V17_A_03_HISTORY_UI.md) | V17-A-03 — History UI & Calendar Presentation（状态：**UI R1 FIXES APPLIED / READY FOR R1 INDEPENDENT REVIEW**） |
+| [docs/evolune/v1.7/V17_A_04_HARDENING.md](../../docs/evolune/v1.7/V17_A_04_HARDENING.md) | V17-A-04 — Phase-A Hardening & Gate Closure（工作记录 + gate matrix） |
+| [docs/evolune/v1.7/V17_BASELINE_AUDIT.md](../../docs/evolune/v1.7/V17_BASELINE_AUDIT.md) | Evolune v1.7 — 基线审计（V17_BASELINE_AUDIT） |
+| [docs/evolune/v1.7/V17_BASELINE_EVIDENCE.md](../../docs/evolune/v1.7/V17_BASELINE_EVIDENCE.md) | Evolune v1.7 — 基线证据清单（V17_BASELINE_EVIDENCE） |
+| [docs/evolune/v1.7/V17_B_00_INSIGHTS_SEMANTICS.md](../../docs/evolune/v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) | V17-B-00 — Adherence & Medication Insights — Semantics Freeze |
+| [docs/evolune/v1.7/V17_B_01_INSIGHTS_DOMAIN.md](../../docs/evolune/v1.7/V17_B_01_INSIGHTS_DOMAIN.md) | V17-B-01 — Insights Domain（read-only aggregation foundation） |
+| [docs/evolune/v1.7/V17_B_02_INSIGHTS_VIEWMODEL.md](../../docs/evolune/v1.7/V17_B_02_INSIGHTS_VIEWMODEL.md) | V17-B-02 — Insights ViewModel & Range Orchestration |
+| [docs/evolune/v1.7/V17_B_03_INSIGHTS_UI.md](../../docs/evolune/v1.7/V17_B_03_INSIGHTS_UI.md) | Evolune v1.7 — B-03 Insights UI（Range Selector, Summary Cards, Charts & Accessibility） |
+| [docs/evolune/v1.7/V17_B_04_HARDENING.md](../../docs/evolune/v1.7/V17_B_04_HARDENING.md) | Evolune v1.7 — B-04 Phase-B Hardening & Release Gate |
+| [docs/evolune/v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md](../../docs/evolune/v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md) | V17-C-00 — Retrospective PK — Semantics Contract Landing |
+| [docs/evolune/v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md](../../docs/evolune/v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md) | V17-C-01 — Retrospective PK — Implementation Specification |
+| [docs/evolune/v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md](../../docs/evolune/v1.7/V17_C_04_RETROSPECTIVE_SURFACE_CONTRACT.md) | V17-C-04 — Retrospective PK Surface & Markers — Contract |
+| [docs/evolune/v1.7/V17_C_PHASE_CLOSURE.md](../../docs/evolune/v1.7/V17_C_PHASE_CLOSURE.md) | V17-C — Phase C Closure Record（Phase C 候选收口记录） |
+| [docs/evolune/v1.7/V17_DATA_SEMANTICS.md](../../docs/evolune/v1.7/V17_DATA_SEMANTICS.md) | Evolune v1.7 — 数据语义冻结（V17_DATA_SEMANTICS） |
+| [docs/evolune/v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md](../../docs/evolune/v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md) | V17-D-01 — Timeline Read Model / Row Projection — Contract |
+| [docs/evolune/v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md](../../docs/evolune/v1.7/V17_D_03_TIMELINE_RANGE_DATE_CONTRACT.md) | V17-D-03 — Timeline Range / Date Read Orchestration — Contract |
+| [docs/evolune/v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md](../../docs/evolune/v1.7/V17_D_04_TIMELINE_UI_CONTRACT.md) | V17-D-04 — Timeline UI — Contract |
+| [docs/evolune/v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md](../../docs/evolune/v1.7/V17_D_05_ACCESSIBILITY_LOCALIZATION_CONTRACT.md) | V17-D-05 — Accessibility / Localization Hardening — Contract |
+| [docs/evolune/v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md](../../docs/evolune/v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md) | V17 Phase E — Export & Data Portability — Contract |
+| [docs/evolune/v1.7/V17_PLAN.md](../../docs/evolune/v1.7/V17_PLAN.md) | Evolune v1.7 开发计划（V17_PLAN） |
+| [docs/evolune/v1.7/V17_PRE_A_01_WEAR_SKIP.md](../../docs/evolune/v1.7/V17_PRE_A_01_WEAR_SKIP.md) | V17-PRE-A-01 — Wear Skip Reachability Fix（证据记录） |
+| [docs/evolune/v1.7/V17_RELEASE_NOTES.md](../../docs/evolune/v1.7/V17_RELEASE_NOTES.md) | Evolune v1.7.0 正式版 / Official Release |
+| [docs/evolune/v1.7/V17_SPEC.md](../../docs/evolune/v1.7/V17_SPEC.md) | Evolune v1.7 — History & Insights（V17_SPEC） |
+| [docs/evolune/v1.7.1/V171_RELEASE_NOTES.md](../../docs/evolune/v1.7.1/V171_RELEASE_NOTES.md) | Evolune v1.7.1 正式版 / Official Release |
+| [docs/evolune/v1.7.2/V172_CONTRACT.md](../../docs/evolune/v1.7.2/V172_CONTRACT.md) | Evolune v1.7.2 — Contract (Phase 0 draft, read-only audit complete) |
+| [docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md](../../docs/evolune/v1.7.2/V172_IMPLEMENTATION_PLAN.md) | Evolune v1.7.2 — Implementation Plan |
+| [docs/evolune/v1.7.2/V172_INVENTORY.md](../../docs/evolune/v1.7.2/V172_INVENTORY.md) | Evolune v1.7.2 — Repository Inventory (read-only audit) |
+| [docs/evolune/v1.7.2/V172_RELEASE_NOTES.md](../../docs/evolune/v1.7.2/V172_RELEASE_NOTES.md) | Evolune v1.7.2 正式版 / Official Release |
+| [docs/evolune/v1.7.3/V173_RELEASE_NOTES.md](../../docs/evolune/v1.7.3/V173_RELEASE_NOTES.md) | Evolune v1.7.3 正式版 / Official Release |
+| [docs/evolune/v1.7.4/V174_RELEASE_NOTES.md](../../docs/evolune/v1.7.4/V174_RELEASE_NOTES.md) | Evolune v1.7.4 正式版 / Official Release |
+| [docs/evolune/v1.8.0/V180_RELEASE_NOTES.md](../../docs/evolune/v1.8.0/V180_RELEASE_NOTES.md) | Evolune v1.8.0 正式版 / Official Release |
+| [docs/evolune/v1.9.0/V190_RELEASE_NOTES.md](../../docs/evolune/v1.9.0/V190_RELEASE_NOTES.md) | Evolune v1.9.0 正式版 / Official Release |
+| [docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](../../docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) | EVOLUNE V1.9.0 — D-01 RELEASE-GRAPH DEAD-DEPENDENCY PROOF PLAN |
+
+证据目录（原始记录，不逐个索引）：
+
+| 目录 | 文件数 |
+| --- | ---: |
+| [docs/evolune/v1.7/evidence/](../../docs/evolune/v1.7/evidence/) | 3618 |
+| [docs/evolune/v1.7.1/evidence/](../../docs/evolune/v1.7.1/evidence/) | 73 |
+| [docs/evolune/v1.7.2/evidence/](../../docs/evolune/v1.7.2/evidence/) | 211 |
+| [docs/evolune/v1.7.3/evidence/](../../docs/evolune/v1.7.3/evidence/) | 57 |
+| [docs/evolune/v1.7.4/evidence/](../../docs/evolune/v1.7.4/evidence/) | 66 |
+| [docs/evolune/v1.8.0/evidence/](../../docs/evolune/v1.8.0/evidence/) | 510 |
+| [docs/evolune/v1.9.0/evidence/](../../docs/evolune/v1.9.0/evidence/) | 179 |
 
 ## 补充范围
 
