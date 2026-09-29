@@ -1,7 +1,6 @@
 package io.github.yingqiu0871.evolune.history.insights
 
 import androidx.lifecycle.SavedStateHandle
-import io.github.yingqiu0871.evolune.experience.HistoricalDay
 import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.insights.InsightsContractViolationException

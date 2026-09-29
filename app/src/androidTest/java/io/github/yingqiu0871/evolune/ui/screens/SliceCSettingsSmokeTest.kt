@@ -22,14 +22,12 @@ import io.github.yingqiu0871.evolune.data.ThemeMode
 import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
-import io.github.yingqiu0871.evolune.theme.palette.PresetPalette
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 /**
  * v1.7.2 Slice C AVD acceptance — seeds the exact canonical LEGACY_BUILTIN state through the

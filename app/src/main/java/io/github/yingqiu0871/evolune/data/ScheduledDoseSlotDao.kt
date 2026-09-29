@@ -8,15 +8,6 @@ import java.util.UUID
 
 @Dao
 interface ScheduledDoseSlotDao {
-    @Query(
-        """
-        SELECT * FROM scheduled_dose_slots
-        WHERE planId = :planId
-        ORDER BY position ASC
-        """
-    )
-    suspend fun getSlotsForPlan(planId: UUID): List<ScheduledDoseSlotEntity>
-
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSlotsChecked(slots: List<ScheduledDoseSlotEntity>): List<Long>
 

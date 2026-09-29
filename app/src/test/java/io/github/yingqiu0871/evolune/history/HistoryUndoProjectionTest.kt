@@ -14,8 +14,6 @@ import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.presentation.toMedicationSchedule
 import io.github.yingqiu0871.evolune.experience.FutureOccurrenceContext
-import io.github.yingqiu0871.evolune.experience.HistoricalDay
-import io.github.yingqiu0871.evolune.experience.HistoricalEntry
 import io.github.yingqiu0871.evolune.experience.HistoricalProjectionBuilder
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
@@ -36,7 +34,6 @@ import io.github.yingqiu0871.evolune.viewmodel.HRTViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -47,7 +44,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.UUID
 
 /**

@@ -2,7 +2,6 @@ package io.github.yingqiu0871.evolune.experience.insights
 
 import io.github.yingqiu0871.evolune.experience.HistoricalDay
 import io.github.yingqiu0871.evolune.experience.HistoricalDisplayDateProvenance
-import io.github.yingqiu0871.evolune.experience.HistoricalEntry
 import io.github.yingqiu0871.evolune.experience.HistoricalRange
 import io.github.yingqiu0871.evolune.experience.MatchedHistoricalOccurrence
 import io.github.yingqiu0871.evolune.experience.MedicationIntakeSource

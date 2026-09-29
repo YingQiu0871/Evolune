@@ -1,6 +1,5 @@
 package io.github.yingqiu0871.evolune.pk
 
-import kotlin.math.exp
 
 /**
  * 预计算事件模型

@@ -53,9 +53,6 @@ internal data class WearComplicationTextContract(
 internal fun complicationTextContract(title: String, value: String): WearComplicationTextContract =
     WearComplicationTextContract(value, "$title：$value")
 
-internal fun complicationContentDescription(title: String, value: String): String =
-    complicationTextContract(title, value).contentDescription
-
 private fun shortText(
     context: Context,
     value: String,

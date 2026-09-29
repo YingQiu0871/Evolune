@@ -10,7 +10,6 @@ import io.github.yingqiu0871.evolune.experience.wear.WearAppTodaySummary
 import io.github.yingqiu0871.evolune.experience.wear.WearAppTodaySummaryState
 import io.github.yingqiu0871.evolune.experience.wear.WearAppUpcomingOccurrence
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant

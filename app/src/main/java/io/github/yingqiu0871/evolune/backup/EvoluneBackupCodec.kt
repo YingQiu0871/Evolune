@@ -15,8 +15,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
@@ -1078,10 +1076,6 @@ class EvoluneBackupCodec(
         val SUPPORTED_THEME_MODES = setOf("LIGHT", "DARK", "AMOLED", "SYSTEM")
         val SUPPORTED_COLOR_THEMES = setOf("DYNAMIC", "BUILTIN")
         val SUPPORTED_TIME_FORMATS = setOf("SYSTEM", "HOUR_12", "HOUR_24")
-        val SUPPORTED_THEME_COLOR_SOURCES = setOf(
-            io.github.yingqiu0871.evolune.data.ThemeColorSource.DYNAMIC.name,
-            io.github.yingqiu0871.evolune.data.ThemeColorSource.PRESET.name
-        )
         val SUPPORTED_THEME_PRESET_IDS =
             io.github.yingqiu0871.evolune.theme.palette.PresetPalette.entries.map { it.name }.toSet() +
                 io.github.yingqiu0871.evolune.data.ThemePresetSelection.LEGACY_BUILTIN_ID

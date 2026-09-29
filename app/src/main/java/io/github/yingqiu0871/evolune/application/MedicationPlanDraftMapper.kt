@@ -40,7 +40,6 @@ sealed interface DraftMappingResult<out T> {
 sealed interface DraftIssue {
     data class MissingRequiredField(val field: DraftField) : DraftIssue
     data class NonMinuteTime(val position: Int) : DraftIssue
-    data class SlotIdMismatch(val position: Int) : DraftIssue
     data class SlotIdGenerationFailure(val position: Int) : DraftIssue
     data object DomainValidationFailure : DraftIssue
 }

@@ -24,7 +24,6 @@ import io.github.yingqiu0871.evolune.reminder.reminderOccurrences
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
-import java.util.UUID
 
 internal object WearAppSnapshotBuilder {
     fun build(

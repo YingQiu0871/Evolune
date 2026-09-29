@@ -3,12 +3,8 @@
 
     <string name="settings_title">设置</string>
     <string name="settings_sync_backup_title">同步与备份</string>
-    <string name="settings_sync_backup_desc">导入导出、健康数据与云端备份</string>
     <string name="settings_basic_data_title">基础数据</string>
-    <string name="settings_basic_data_desc">体重及计算相关数据</string>
     <string name="settings_appearance_format_title">外观与格式</string>
-    <string name="settings_appearance_format_desc">主题、配色与时间显示</string>
-    <string name="settings_update_desc">自动更新、版本检查与当前版本</string>
     <string name="settings_about_title">关于</string>
     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
     <string name="settings_guide_title">指南</string>
@@ -17,22 +13,15 @@
     <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
     <string name="settings_feature_tutorial_title">功能教程</string>
     <string name="settings_feature_tutorial_desc">用药方案、记录、PK、Widget、Wear 与备份</string>
-    <string name="settings_sync_backup_local_title">本地数据</string>
-    <string name="settings_sync_backup_data_title">导入与导出数据</string>
-    <string name="settings_sync_backup_data_desc">管理本地数据文件</string>
     <string name="settings_sync_backup_health_title">健康数据</string>
     <string name="settings_sync_backup_cloud_title">云备份</string>
     <string name="settings_sync_backup_google_drive_title">Google Drive 备份与恢复</string>
-    <string name="settings_data_import_export_title">导入与导出数据</string>
 
     <string name="settings_weight_title">体重</string>
     <string name="settings_weight_desc">用于血药浓度计算</string>
     <string name="settings_weight_label">体重 (kg)</string>
     <string name="settings_weight_error">请输入有效的体重 (0–300 kg)</string>
 
-    <string name="settings_health_connect_sync_title">Health Connect 同步</string>
-    <string name="settings_health_connect_sync_desc">仅在 Evolune 前台运行时读取 Health Connect；不会在后台访问或写入健康数据</string>
-    <string name="settings_health_connect_sync_connection">连接状态</string>
     <string name="settings_health_connect_sync_items">同步项目</string>
     <string name="settings_health_connect_sync_weight">体重同步</string>
     <string name="settings_health_connect_sync_weight_desc">自动采用较新的 Health Connect 体重记录，用于血药浓度计算</string>
@@ -52,7 +41,6 @@
     <string name="settings_health_connect_sync_status_permission">需要权限</string>
     <string name="settings_health_connect_sync_status_unavailable">不可用</string>
     <string name="settings_health_connect_sync_status_update_required">需要更新</string>
-    <string name="settings_health_connect_sync_status_no_data">已连接</string>
     <string name="settings_health_connect_sync_status_error">读取失败</string>
     <string name="settings_health_connect_sync_status_disabled">已关闭</string>
     <string name="settings_health_connect_sync_status_checking">正在检查</string>
@@ -118,11 +106,7 @@
     <string name="settings_theme_mode_amoled_desc">OLED 屏幕纯黑背景</string>
     <string name="settings_theme_mode_system_desc">跟随系统设置</string>
 
-    <string name="settings_color_theme_title">颜色主题</string>
-    <string name="settings_color_theme_dynamic">动态着色</string>
-    <string name="settings_color_theme_builtin">内置配色</string>
     <string name="settings_color_theme_dynamic_desc">跟随系统动态着色 (Android 12+)</string>
-    <string name="settings_color_theme_builtin_desc">使用应用内置配色方案</string>
 
     <string name="settings_color_scheme_title">配色</string>
     <string name="settings_color_source_dynamic">跟随壁纸</string>
@@ -200,7 +184,6 @@
     <string name="contextual_google_drive_title">使用 Google Drive 备份</string>
     <string name="contextual_google_drive_message">Google Drive 仅用于你主动发起的加密备份或恢复。授权是可选的，不会自动同步；备份密码短语仍由你保管。</string>
 
-    <string name="settings_data_title">数据</string>
     <string name="settings_import_json">导入 JSON（文件）</string>
     <string name="settings_import_json_desc">从 hrt.mahiro.uk 或本应用导出的 JSON 文件导入用药记录</string>
     <string name="settings_import_clipboard">导入 JSON（剪贴板）</string>
@@ -401,8 +384,6 @@
     <string name="sublingual_tier_strict_desc">~15分钟</string>
 
     <!-- Widget strings -->
-    <string name="widget_combined_label">月序用药微件</string>
-    <string name="widget_combined_desc">显示当天用药安排和血药浓度，并按每次用药时间提供快捷记录</string>
     <string name="widget_today_plan_label">Evolune-今日计划</string>
     <string name="widget_today_plan_desc">显示今日用药计划和记录入口</string>
     <string name="widget_next_dose_label">Evolune-下一次服药</string>
@@ -441,8 +422,6 @@
     <string name="widget_config_apply">应用</string>
     <string name="widget_style_today_plan">今日计划</string>
     <string name="widget_style_next_dose">下一次服药</string>
-    <string name="widget_style_current_e2">当前 E2</string>
-    <string name="widget_style_pk_chart">E2 趋势图</string>
     <string name="widget_config_theme">显示模式</string>
     <string name="widget_config_theme_auto">自动</string>
     <string name="widget_config_theme_light">浅色</string>
@@ -525,9 +504,6 @@
     <string name="insights_range_last_90">近 90 天</string>
     <string name="insights_range_current_month">本月</string>
     <string name="insights_range_custom">自定义</string>
-    <string name="insights_range_heading">%1$s – %2$s</string>
-    <string name="insights_range_custom_heading">自定义区间：%1$s – %2$s</string>
-    <string name="insights_range_custom_pick">选择日期区间</string>
     <string name="insights_range_custom_confirm">确定</string>
     <string name="insights_range_custom_cancel">取消</string>
     <string name="insights_card_recorded_intakes">记录摄入次数</string>
@@ -573,7 +549,6 @@
     <string name="retrospective_marker_schedule_context">当前方案上下文</string>
     <string name="retrospective_marker_recorded_intake">已记录摄入</string>
     <string name="retrospective_legend_entry_format">%1$s：%2$d</string>
-    <string name="retrospective_loading">加载中…</string>
     <string name="retrospective_retry">重试</string>
     <string name="retrospective_unavailable_no_eligible_intakes">此估算暂无可用的已记录摄入。</string>
     <string name="retrospective_unavailable_invalid_interval">该时间范围无法计算。</string>

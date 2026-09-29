@@ -6,7 +6,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Instant
 
 /**
  * V17 Phase E E7.1/E7.5/E7.6 + E2.3 (bounds / zero writes) for the canonical import service

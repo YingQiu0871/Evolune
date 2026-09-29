@@ -25,7 +25,6 @@ import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportRunner
-import io.github.yingqiu0871.evolune.pk.Route
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope

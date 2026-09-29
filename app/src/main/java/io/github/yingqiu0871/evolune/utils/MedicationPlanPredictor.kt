@@ -128,15 +128,6 @@ object MedicationPlanPredictor {
         }
     }
 
-    fun generateFutureEventsForPlans(
-        plans: List<LegacyMedicationPlan>,
-        fromDateTime: LocalDateTime = LocalDateTime.now(),
-        daysAhead: Int = 15
-    ): List<DoseEvent> = plans
-        .filter { it.isEnabled }
-        .flatMap { generateFutureEvents(it, fromDateTime, daysAhead) }
-        .sortedBy { it.timeH }
-
     fun generateFutureEventsForDomainPlans(
         plans: List<DomainMedicationPlan>,
         fromDateTime: LocalDateTime = LocalDateTime.now(),

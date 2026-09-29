@@ -853,17 +853,6 @@ private fun openAppPendingIntent(context: Context): PendingIntent = PendingInten
     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 )
 
-internal suspend fun calculateWidgetConcentration(context: Context): Double? {
-    val repositories = ProductionRepositoryProvider.get(context.applicationContext)
-    return WidgetSnapshotLoader(
-        medicationPlans = repositories.medicationPlans,
-        doseEvents = repositories.doseEvents,
-        bodyWeight = {
-            SettingsDataStore(context.applicationContext).userSettings.first().bodyWeight
-        }
-    ).load().concentration
-}
-
 internal suspend fun requestEvoluneWidgetUpdate(
     context: Context,
     reason: WidgetUpdateReason,

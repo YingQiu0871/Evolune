@@ -117,9 +117,6 @@ object WearPlanStore {
         }
     }
 
-    fun getPlans(context: Context): List<WearPlan> =
-        getDashboard(context).plans
-
     fun getPresentationState(
         context: Context,
         dashboard: WearDashboard,

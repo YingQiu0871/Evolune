@@ -3,7 +3,6 @@ package io.github.yingqiu0871.evolune.ui.screens
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
