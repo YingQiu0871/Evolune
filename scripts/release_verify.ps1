@@ -1,10 +1,14 @@
 [CmdletBinding()]
 param(
-    [string]$ExpectedCertSha256 = 'b9b6b955'
+    [string]$ExpectedCertSha256 = 'b9b6b955',
+    # Defaults to evoluneVersionName in the root build.gradle.kts.
+    [string]$Version
 )
 
 # Builds signed Phone/Wear Release APKs from the four approved environment
-# variables and prints APK / certificate SHA-256 fingerprints.
+# variables, prints APK / certificate SHA-256 fingerprints, fails if the signing
+# certificate does not match the release identity, and writes the release-named
+# APK copies plus SHA256SUMS.txt that scripts/release_publish.ps1 uploads.
 # Passwords are only read by Gradle from the environment; this script never
 # echoes, logs, or writes them.
 
@@ -16,8 +20,13 @@ if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $gradle = Join-Path $repoRoot 'gradlew.bat'
+if (-not $Version) {
+    $m = Select-String -LiteralPath (Join-Path $repoRoot 'build.gradle.kts') -Pattern 'val evoluneVersionName by extra\("([^"]+)"\)'
+    if (-not $m) { throw 'Could not read evoluneVersionName from build.gradle.kts.' }
+    $Version = $m.Matches[0].Groups[1].Value
+}
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$artifactDir = Join-Path $repoRoot "release-artifacts\v1.9.1-rc\$timestamp"
+$artifactDir = Join-Path $repoRoot "release-artifacts\v$Version-rc\$timestamp"
 $reportPath = Join-Path $artifactDir 'RELEASE-VERIFY.txt'
 
 function Invoke-Native {
@@ -72,24 +81,36 @@ if ($apks.Count -ne 2) {
     throw "Expected 2 release APKs, found $($apks.Count)."
 }
 
-$lines = @("Evolune v1.9.1 release verification $timestamp")
+$lines = @("Evolune v$Version release verification $timestamp")
+$assetNames = @{ app = "Evolune-Phone-v$Version.apk"; wear = "Evolune-Wear-v$Version.apk" }
+$sums = @()
+$allMatch = $true
 foreach ($apk in $apks) {
-    Copy-Item -LiteralPath $apk.FullName -Destination $artifactDir
-    $apkHash = (Get-FileHash -LiteralPath $apk.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-    $certOutput = & $apksigner.FullName verify --print-certs $apk.FullName
-    if ($LASTEXITCODE -ne 0) { throw "apksigner verify failed: $($apk.Name)" }
+    $module = if ($apk.FullName -match '[\\/]wear[\\/]build[\\/]') { 'wear' } else { 'app' }
+    $assetName = $assetNames[$module]
+    $dest = Join-Path $artifactDir $assetName
+    Copy-Item -LiteralPath $apk.FullName -Destination $dest
+    $apkHash = (Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash.ToLowerInvariant()
+    $certOutput = & $apksigner.FullName verify --print-certs $dest
+    if ($LASTEXITCODE -ne 0) { throw "apksigner verify failed: $assetName" }
     $certLine = $certOutput | Where-Object { $_ -match 'certificate SHA-256 digest' } | Select-Object -First 1
     $certHash = ($certLine -split ':', 2)[1].Trim().ToLowerInvariant()
     $match = $certHash.StartsWith($ExpectedCertSha256.ToLowerInvariant())
+    if (-not $match) { $allMatch = $false }
+    $sums += "$apkHash  $assetName"
     $lines += ''
-    $lines += "APK: $($apk.Name)"
+    $lines += "APK: $assetName (built from $($apk.Name))"
     $lines += "  apk sha256 : $apkHash"
     $lines += "  cert sha256: $certHash"
     $lines += "  cert matches release identity prefix '$ExpectedCertSha256': $match"
     if (-not $match) { $lines += '  WARNING: signing certificate differs from the release identity.' }
 }
 
+# SHA256SUMS.txt: LF line endings, no BOM, "<hash>  <name>" per line (sha256sum format).
+[System.IO.File]::WriteAllText((Join-Path $artifactDir 'SHA256SUMS.txt'), (($sums -join "`n") + "`n"))
+
 $lines | Set-Content -LiteralPath $reportPath -Encoding UTF8
 $lines | ForEach-Object { Write-Host $_ }
 Write-Host ''
-Write-Host "Report and APK copies: $artifactDir"
+Write-Host "Report, release-named APKs and SHA256SUMS.txt: $artifactDir"
+if (-not $allMatch) { throw 'Signing certificate does not match the release identity; do not publish these APKs.' }

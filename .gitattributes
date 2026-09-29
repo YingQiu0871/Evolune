@@ -1,2 +1,5 @@
 app/src/test/resources/phase-e/golden-canonical.json text eol=lf
 app/src/test/resources/phase-e/golden-canonical.csv text eol=lf
+
+# Shell scripts run on Linux CI and must keep LF endings
+*.sh text eol=lf

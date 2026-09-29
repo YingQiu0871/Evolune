@@ -1,0 +1,82 @@
+name: Android Instrumented Tests
+
+# Runs androidTest on the standard emulator (API 35, zh-CN, 1080x2400).
+# Core UI classes run on every push to main and on manual dispatch; the full
+# suite runs weekly or when "full" is chosen. See docs/evolune/TESTING.md.
+on:
+  # Validate edits to this workflow or the environment script on the PR itself.
+  pull_request:
+    paths:
+      - ".github/workflows/android-instrumented.yml"
+      - "scripts/android_test_env.sh"
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 19 * * 0"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "core = Insights/Timeline/History UI classes, full = every androidTest"
+        type: choice
+        options:
+          - core
+          - full
+        default: core
+
+permissions:
+  contents: read
+
+jobs:
+  androidtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: zulu
+          java-version: "21"
+          cache: gradle
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Make scripts executable
+        run: chmod +x ./gradlew scripts/android_test_env.sh
+
+      - name: Decide scope
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.scope }}" = "full" ]; then
+            echo "args=" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=-Pandroid.testInstrumentationRunnerArguments.package=io.github.yingqiu0871.evolune.ui.screens.insights,io.github.yingqiu0871.evolune.ui.screens.timeline" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run androidTest on API 35 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          disable-animations: true
+          script: |
+            ./scripts/android_test_env.sh
+            ./gradlew --no-daemon :app:connectedDebugAndroidTest ${{ steps.scope.outputs.args }}
+
+      - name: Upload androidTest reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: androidtest-reports
+          path: app/build/reports/androidTests/
+          if-no-files-found: warn
