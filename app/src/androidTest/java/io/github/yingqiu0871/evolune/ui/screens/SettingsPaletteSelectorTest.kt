@@ -36,10 +36,8 @@ class SettingsPaletteSelectorTest {
 
         composeRule.onNodeWithTag("color-source-dynamic").performScrollTo().assertIsSelected()
         composeRule.onNodeWithTag("color-source-preset").assertIsNotSelected()
-        PresetPalette.entries.forEach { palette ->
-            composeRule.onNodeWithTag("palette-tile-${palette.name.lowercase()}")
-                .assertIsNotSelected()
-        }
+        // Preset tiles are only shown once the preset source is chosen.
+        composeRule.onNodeWithTag("settings-palette-grid").assertDoesNotExist()
         assertTrue(
             composeRule.onAllNodesWithTag("color-legacy-builtin-current")
                 .fetchSemanticsNodes().isEmpty()
@@ -107,7 +105,12 @@ class SettingsPaletteSelectorTest {
 
     @Test
     fun paletteInventoryIsExactlyTheEightApprovedPresets() {
-        setSettingsContent(UserSettings())
+        setSettingsContent(
+            UserSettings(
+                themeColorSource = ThemeColorSource.PRESET,
+                themePreset = ThemePresetSelection.Preset(PresetPalette.MONET_BLUE)
+            )
+        )
 
         assertEquals(8, PresetPalette.entries.size)
         PresetPalette.entries.forEach { palette ->

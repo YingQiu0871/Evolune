@@ -129,6 +129,8 @@ internal fun SettingsColorSchemeSection(
             }
         }
 
+        // The eight preset tiles only matter once the preset source is chosen.
+        if (source != ThemeColorSource.PRESET) return@Column
         val selectedPalette = (preset as? ThemePresetSelection.Preset)?.palette
         Column(
             modifier = Modifier

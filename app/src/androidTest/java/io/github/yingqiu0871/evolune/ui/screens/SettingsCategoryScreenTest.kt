@@ -95,13 +95,14 @@ class SettingsCategoryScreenTest {
         composeRule.onNodeWithTag("time-format-hour_24").performScrollTo().performClick()
         composeRule.onNodeWithTag("color-source-preset").performScrollTo().performClick()
         composeRule.onNodeWithTag("color-source-dynamic").performScrollTo().performClick()
-        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
+        // With the dynamic source active the preset tiles stay hidden.
+        composeRule.onNodeWithTag("settings-palette-grid").assertDoesNotExist()
         composeRule.runOnIdle {
             assertEquals(listOf(ThemeMode.DARK), selectedModes)
             assertEquals(listOf(TimeFormat.HOUR_24), selectedFormats)
             assertEquals(1, presetEntries.size)
             assertEquals(1, dynamicSelections.size)
-            assertEquals(listOf(PresetPalette.MONET_BLUE), paletteSelections)
+            assertEquals(emptyList<PresetPalette>(), paletteSelections)
         }
     }
 
@@ -182,7 +183,7 @@ class SettingsCategoryScreenTest {
         }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("settings-palette-grid").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-weight-input").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
     }
