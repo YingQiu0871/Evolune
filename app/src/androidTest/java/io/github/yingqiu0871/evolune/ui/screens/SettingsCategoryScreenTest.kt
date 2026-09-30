@@ -57,10 +57,11 @@ class SettingsCategoryScreenTest {
         }
 
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
-            .performScrollTo().assertIsDisplayed()
+        // Tutorial and guide now live behind 使用帮助.
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry").assertDoesNotExist()
+        composeRule.onNodeWithTag("settings-guide-entry").assertDoesNotExist()
     }
 
     @Test
@@ -153,19 +154,16 @@ class SettingsCategoryScreenTest {
     fun retainedNavigationRowsOpenTheirDestinations() {
         val opened = mutableListOf<String>()
         setSettingsContent(
-            onOpenGuide = { opened += "guide" },
+            onOpenHelp = { opened += "help" },
             onOpenPrivacy = { opened += "privacy" },
-            onOpenFeatureTutorial = { opened += "tutorial" },
             onOpenAbout = { opened += "about" }
         )
 
-        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().performClick()
+        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().performClick()
         composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
-            .performScrollTo().performClick()
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().performClick()
         composeRule.runOnIdle {
-            assertEquals(listOf("guide", "privacy", "tutorial", "about"), opened)
+            assertEquals(listOf("help", "privacy", "about"), opened)
         }
     }
 
@@ -228,9 +226,8 @@ class SettingsCategoryScreenTest {
         onCheckForUpdates: () -> Unit = {},
         onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit = {},
         onOpenGoogleDrive: () -> Unit = {},
-        onOpenGuide: () -> Unit = {},
+        onOpenHelp: () -> Unit = {},
         onOpenPrivacy: () -> Unit = {},
-        onOpenFeatureTutorial: () -> Unit = {},
         onOpenAbout: () -> Unit = {}
     ) {
         composeRule.setContent {
@@ -268,9 +265,8 @@ class SettingsCategoryScreenTest {
                     portableDialog = null,
                     onDismissPortableDialog = {},
                     onOpenGoogleDrive = onOpenGoogleDrive,
-                    onOpenGuide = onOpenGuide,
+                    onOpenHelp = onOpenHelp,
                     onOpenPrivacy = onOpenPrivacy,
-                    onOpenFeatureTutorial = onOpenFeatureTutorial,
                     onOpenAbout = onOpenAbout,
                     showTopBar = false
                 )
@@ -314,9 +310,8 @@ private fun SettingsScreenTestHost() {
         portableDialog = null,
         onDismissPortableDialog = {},
         onOpenGoogleDrive = {},
-        onOpenGuide = {},
+        onOpenHelp = {},
         onOpenPrivacy = {},
-        onOpenFeatureTutorial = {},
         onOpenAbout = {},
         showTopBar = false
     )

@@ -86,8 +86,17 @@ class SyncAndBackupNavigationTest {
 
         openRowAndReturn("settings-privacy-entry", assertTitle = R.string.disclosures_title)
         openRowAndReturn("settings-about-entry", assertTag = "settings-about-screen")
-        openRowAndReturn("settings-feature-tutorial-entry", assertTag = "feature-tutorial-step-title")
-        openRowAndReturn("settings-guide-entry", assertTitle = R.string.onboarding_title)
+        openRowAndReturn("settings-help-entry", assertTitle = R.string.settings_help_title)
+
+        // 使用帮助 links to the tutorial and the first-run guide; both return to it.
+        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().performClick()
+        openHelpRowAndReturn("settings-feature-tutorial-entry", "feature-tutorial-step-title")
+        openHelpRowAndReturn("settings-guide-entry", null)
+        pressBack()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("settings-basic-data-section")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
 
         composeRule.onNodeWithTag("app-top-title").assertTextEquals(
             context.getString(R.string.settings_title)
@@ -131,6 +140,22 @@ class SyncAndBackupNavigationTest {
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("settings-basic-data-section")
                 .fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun openHelpRowAndReturn(entryTag: String, assertTag: String?) {
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag(entryTag).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag(entryTag).performClick()
+        if (assertTag != null) {
+            composeRule.waitUntil(5_000L) {
+                composeRule.onAllNodesWithTag(assertTag).fetchSemanticsNodes().isNotEmpty()
+            }
+        }
+        pressBack()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("settings-help-screen").fetchSemanticsNodes().isNotEmpty()
         }
     }
 

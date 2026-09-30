@@ -24,6 +24,7 @@ class PrimaryNavigationChromeTest {
         assertEquals(
             setOf(
                 ABOUT_ROUTE,
+                HELP_ROUTE,
                 GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE,
                 ONBOARDING_ROUTE,
                 DISCLOSURES_ROUTE,

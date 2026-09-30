@@ -82,9 +82,8 @@ fun SettingsScreen(
     portableDialog: PortableDialogMessage?,
     onDismissPortableDialog: () -> Unit,
     onOpenGoogleDrive: () -> Unit,
-    onOpenGuide: () -> Unit,
+    onOpenHelp: () -> Unit,
     onOpenPrivacy: () -> Unit,
-    onOpenFeatureTutorial: () -> Unit,
     onOpenAbout: () -> Unit,
     showTopBar: Boolean = true
 ) {
@@ -163,9 +162,8 @@ fun SettingsScreen(
                 snackbarHostState = snackbarHostState
             )
             SettingsNavigationRowsSection(
-                onOpenGuide = onOpenGuide,
+                onOpenHelp = onOpenHelp,
                 onOpenPrivacy = onOpenPrivacy,
-                onOpenFeatureTutorial = onOpenFeatureTutorial,
                 onOpenAbout = onOpenAbout,
                 updates = {
                     SettingsUpdateSection(
@@ -217,9 +215,8 @@ private fun SettingsScreenPreview() {
             portableDialog = null,
             onDismissPortableDialog = {},
             onOpenGoogleDrive = {},
-            onOpenGuide = {},
+            onOpenHelp = {},
             onOpenPrivacy = {},
-            onOpenFeatureTutorial = {},
             onOpenAbout = {},
             showTopBar = false
         )

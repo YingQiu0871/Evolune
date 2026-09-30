@@ -167,9 +167,8 @@ class SettingsPaletteSelectorTest {
                     portableDialog = null,
                     onDismissPortableDialog = {},
                     onOpenGoogleDrive = {},
-                    onOpenGuide = {},
+                    onOpenHelp = {},
                     onOpenPrivacy = {},
-                    onOpenFeatureTutorial = {},
                     onOpenAbout = {},
                     showTopBar = false
                 )

@@ -4,13 +4,15 @@
     <string name="settings_title">设置</string>
     <string name="settings_sync_backup_title">备份与数据</string>
     <string name="settings_help_about_title">关于与帮助</string>
+    <string name="settings_help_title">使用帮助</string>
+    <string name="settings_help_desc">功能教程与首次引导</string>
     <string name="settings_legacy_group_desc">兼容 hrt.mahiro.uk 的导入导出，含剪贴板</string>
     <string name="settings_basic_data_title">血药浓度计算</string>
     <string name="settings_appearance_format_title">外观</string>
     <string name="settings_about_title">关于</string>
     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
-    <string name="settings_guide_title">指南</string>
-    <string name="settings_guide_desc">重新查看首次引导与数据边界说明</string>
+    <string name="settings_guide_title">首次引导</string>
+    <string name="settings_guide_desc">使用条款、数据边界与医疗免责声明</string>
     <string name="settings_privacy_title">隐私与权限</string>
     <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
     <string name="settings_feature_tutorial_title">功能教程</string>

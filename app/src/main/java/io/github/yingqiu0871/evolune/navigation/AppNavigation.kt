@@ -131,6 +131,7 @@ import io.github.yingqiu0871.evolune.ui.screens.GoogleDriveBackupRestoreScreen
 import io.github.yingqiu0871.evolune.ui.screens.HistoryScreen
 import io.github.yingqiu0871.evolune.ui.screens.DisclosuresScreen
 import io.github.yingqiu0871.evolune.ui.screens.FeatureTutorialScreen
+import io.github.yingqiu0871.evolune.ui.screens.HelpScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationPlansScreen
 import io.github.yingqiu0871.evolune.ui.screens.MedicationRecordsScreen
 import io.github.yingqiu0871.evolune.ui.screens.OnboardingFlowScreen
@@ -818,6 +819,7 @@ fun AppNavigation(
                     onRefresh = hrtViewModel::runSimulation,
                     titleOverride = when (currentRoute) {
                         ABOUT_ROUTE -> stringResource(R.string.settings_about_title)
+                        HELP_ROUTE -> stringResource(R.string.settings_help_title)
                         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE ->
                             stringResource(R.string.settings_google_drive_backup_restore_title)
                         ONBOARDING_ROUTE -> stringResource(R.string.onboarding_title)
@@ -1080,14 +1082,11 @@ fun AppNavigation(
                             launchSingleTop = true
                         }
                     },
-                    onOpenGuide = {
-                        navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
+                    onOpenHelp = {
+                        navController.navigate(HELP_ROUTE) { launchSingleTop = true }
                     },
                     onOpenPrivacy = {
                         navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
-                    },
-                    onOpenFeatureTutorial = {
-                        navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
                     },
                     onOpenAbout = {
                         navController.navigate(ABOUT_ROUTE) { launchSingleTop = true }
@@ -1099,6 +1098,16 @@ fun AppNavigation(
                 AboutScreen(
                     onOpenDisclosures = {
                         navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
+                    }
+                )
+            }
+            composable(HELP_ROUTE) {
+                HelpScreen(
+                    onOpenFeatureTutorial = {
+                        navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenGuide = {
+                        navController.navigate(ONBOARDING_ROUTE) { launchSingleTop = true }
                     }
                 )
             }
