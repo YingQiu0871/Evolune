@@ -3,6 +3,10 @@
 签名密码只从环境变量读取（`EVOLUNE_KEYSTORE_PATH`、`EVOLUNE_KEYSTORE_PASSWORD`、`EVOLUNE_KEY_ALIAS`、
 `EVOLUNE_KEY_PASSWORD`），脚本不会输出或写入它们。
 
+两个发布脚本都需要 PowerShell 7（`pwsh`），在 Windows PowerShell 5.1 下会直接拒绝运行（5.1 会把 `gh`、`git push`
+写到 stderr 的正常输出当成终止性错误，可能让发布中途停下）。调用方式例如
+`pwsh -NoProfile -File .\scripts\release_publish.ps1 ...`。
+
 1. **合并**：功能分支经 PR 以普通 merge commit 合入 `main`，CI（`Build Debug APK`）通过。
 2. **设备测试**：在标准 AVD 上跑 `:app:connectedDebugAndroidTest`，见 [TESTING.md](../evolune/TESTING.md)。
 3. **构建并验证**：`.\scripts\release_verify.ps1`（版本号默认取自根 `build.gradle.kts`）。它会签名构建 Phone/Wear
