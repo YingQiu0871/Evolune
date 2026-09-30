@@ -112,28 +112,18 @@ internal fun calculatePlotGeometry(
 internal fun calculateVisibleWindowYScale(
     series: List<ChartSeries>,
     visibleStartH: Double,
-    visibleEndH: Double,
-    /**
-     * Value the axis must always include (e.g. a reference band's upper edge), even when the
-     * visible data stays below it. The default 0.0 keeps the purely data-driven scale.
-     */
-    minimumIncludedValue: Double = 0.0
+    visibleEndH: Double
 ): YAxisScale {
     if (!visibleStartH.isFinite() || !visibleEndH.isFinite() || visibleEndH < visibleStartH) {
         return YAxisScale(min = 0.0, max = 1.0, tickStep = 0.2)
     }
-    val dataMax = series.asSequence()
+    val visibleMax = series.asSequence()
         .flatMap { chartSeries ->
             visibleValues(chartSeries, visibleStartH, visibleEndH).asSequence()
         }
         .filter { it.isFinite() && it >= 0.0 }
         .maxOrNull()
         ?: 0.0
-    val visibleMax = if (dataMax > 0.0 && minimumIncludedValue.isFinite()) {
-        maxOf(dataMax, minimumIncludedValue)
-    } else {
-        dataMax
-    }
 
     if (visibleMax <= 0.0) {
         return YAxisScale(min = 0.0, max = 1.0, tickStep = 0.2)

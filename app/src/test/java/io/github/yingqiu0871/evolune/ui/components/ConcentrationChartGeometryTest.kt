@@ -50,31 +50,6 @@ class ConcentrationChartGeometryTest {
     }
 
     @Test
-    fun `minimum included value keeps a reference band fully visible`() {
-        val lowData = listOf(ChartSeries(listOf(0.0, 1.0), listOf(80.0, 125.0)))
-        val highData = listOf(ChartSeries(listOf(0.0, 1.0), listOf(80.0, 400.0)))
-
-        assertEquals(150.0, calculateVisibleWindowYScale(lowData, 0.0, 1.0).max, 0.0)
-        assertEquals(
-            250.0,
-            calculateVisibleWindowYScale(lowData, 0.0, 1.0, minimumIncludedValue = 200.0).max,
-            0.0
-        )
-        // Data above the band still drives the axis.
-        assertEquals(
-            calculateVisibleWindowYScale(highData, 0.0, 1.0).max,
-            calculateVisibleWindowYScale(highData, 0.0, 1.0, minimumIncludedValue = 200.0).max,
-            0.0
-        )
-        // No data stays the empty default rather than inventing an axis.
-        assertEquals(
-            1.0,
-            calculateVisibleWindowYScale(emptyList(), 0.0, 1.0, minimumIncludedValue = 200.0).max,
-            0.0
-        )
-    }
-
-    @Test
     fun `history forecast and invalid values are combined safely`() {
         val scale = calculateVisibleWindowYScale(
             series = listOf(

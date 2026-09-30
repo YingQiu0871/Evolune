@@ -210,9 +210,7 @@ fun ConcentrationChart(
             }
         },
         visibleStartH = visibleTimeStart,
-        visibleEndH = visibleTimeEnd,
-        // 始终完整显示 GAHT 目标区间，避免区间被截断后看起来贴在图表顶部。
-        minimumIncludedValue = GAHT_TARGET_MAX_PG_ML
+        visibleEndH = visibleTimeEnd
     )
     // v1.10 (S5) — independent right-axis scale for the CPA series (ng/mL), computed only from
     // the CPA series itself; never merged with the E2 (pg/mL) scale above.
