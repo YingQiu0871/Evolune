@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -40,9 +41,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -177,6 +181,30 @@ fun HistoryScreenContent(
     onOpenTimeline: () -> Unit = {}
 ) {
     val model = remember(state) { HistoryPresentation.present(state) }
+    val listState = rememberLazyListState()
+    // 进入子页面时记下列表位置与当时的视口高度。子页面隐藏底部导航栏，返回时列表会先在更高的
+    // 视口里布局一次；入口卡片位于列表末尾，这一次布局会把滚动位置压回去。等视口恢复到离开时的
+    // 高度后，再滚回记下的位置。
+    var restoreIndex by rememberSaveable { mutableIntStateOf(-1) }
+    var restoreOffset by rememberSaveable { mutableIntStateOf(0) }
+    var restoreViewportHeight by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.viewportSize.height }
+            .collect { height ->
+                if (restoreIndex >= 0 && height == restoreViewportHeight) {
+                    listState.scrollToItem(restoreIndex, restoreOffset)
+                    restoreIndex = -1
+                }
+            }
+    }
+    val rememberPositionThen: (() -> Unit) -> () -> Unit = { open ->
+        {
+            restoreIndex = listState.firstVisibleItemIndex
+            restoreOffset = listState.firstVisibleItemScrollOffset
+            restoreViewportHeight = listState.layoutInfo.viewportSize.height
+            open()
+        }
+    }
 
     Scaffold(
         modifier = modifier.testTag("history-screen"),
@@ -198,6 +226,7 @@ fun HistoryScreenContent(
         }
     ) { innerPadding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
@@ -219,9 +248,9 @@ fun HistoryScreenContent(
                     }
                 }
             }
-            item { InsightsEntryCard(onOpenInsights) }
-            item { RetrospectivePkEntryCard(onOpenRetrospectivePk) }
-            item { TimelineEntryCard(onOpenTimeline) }
+            item { InsightsEntryCard(rememberPositionThen(onOpenInsights)) }
+            item { RetrospectivePkEntryCard(rememberPositionThen(onOpenRetrospectivePk)) }
+            item { TimelineEntryCard(rememberPositionThen(onOpenTimeline)) }
         }
     }
 }
