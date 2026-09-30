@@ -57,10 +57,11 @@ class SettingsCategoryScreenTest {
         }
 
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().assertIsDisplayed()
-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
-            .performScrollTo().assertIsDisplayed()
+        // Tutorial and guide now live behind 使用帮助.
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry").assertDoesNotExist()
+        composeRule.onNodeWithTag("settings-guide-entry").assertDoesNotExist()
     }
 
     @Test
@@ -95,13 +96,14 @@ class SettingsCategoryScreenTest {
         composeRule.onNodeWithTag("time-format-hour_24").performScrollTo().performClick()
         composeRule.onNodeWithTag("color-source-preset").performScrollTo().performClick()
         composeRule.onNodeWithTag("color-source-dynamic").performScrollTo().performClick()
-        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
+        // With the dynamic source active the preset tiles stay hidden.
+        composeRule.onNodeWithTag("settings-palette-grid").assertDoesNotExist()
         composeRule.runOnIdle {
             assertEquals(listOf(ThemeMode.DARK), selectedModes)
             assertEquals(listOf(TimeFormat.HOUR_24), selectedFormats)
             assertEquals(1, presetEntries.size)
             assertEquals(1, dynamicSelections.size)
-            assertEquals(listOf(PresetPalette.MONET_BLUE), paletteSelections)
+            assertEquals(emptyList<PresetPalette>(), paletteSelections)
         }
     }
 
@@ -152,19 +154,16 @@ class SettingsCategoryScreenTest {
     fun retainedNavigationRowsOpenTheirDestinations() {
         val opened = mutableListOf<String>()
         setSettingsContent(
-            onOpenGuide = { opened += "guide" },
+            onOpenHelp = { opened += "help" },
             onOpenPrivacy = { opened += "privacy" },
-            onOpenFeatureTutorial = { opened += "tutorial" },
             onOpenAbout = { opened += "about" }
         )
 
-        composeRule.onNodeWithTag("settings-guide-entry").performScrollTo().performClick()
+        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().performClick()
         composeRule.onNodeWithTag("settings-privacy-entry").performScrollTo().performClick()
-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
-            .performScrollTo().performClick()
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().performClick()
         composeRule.runOnIdle {
-            assertEquals(listOf("guide", "privacy", "tutorial", "about"), opened)
+            assertEquals(listOf("help", "privacy", "about"), opened)
         }
     }
 
@@ -182,7 +181,7 @@ class SettingsCategoryScreenTest {
         }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("settings-palette-grid").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-weight-input").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
     }
@@ -222,13 +221,13 @@ class SettingsCategoryScreenTest {
         onSelectPresetSource: () -> Unit = {},
         onPresetPaletteChange: (PresetPalette) -> Unit = {},
         onTimeFormatChange: (TimeFormat) -> Unit = {},
+        onShowCpaCurveChange: (Boolean) -> Unit = {},
         onAutoCheckUpdatesChange: (Boolean) -> Unit = {},
         onCheckForUpdates: () -> Unit = {},
         onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit = {},
         onOpenGoogleDrive: () -> Unit = {},
-        onOpenGuide: () -> Unit = {},
+        onOpenHelp: () -> Unit = {},
         onOpenPrivacy: () -> Unit = {},
-        onOpenFeatureTutorial: () -> Unit = {},
         onOpenAbout: () -> Unit = {}
     ) {
         composeRule.setContent {
@@ -244,6 +243,7 @@ class SettingsCategoryScreenTest {
                     onSelectPresetSource = onSelectPresetSource,
                     onPresetPaletteChange = onPresetPaletteChange,
                     onTimeFormatChange = onTimeFormatChange,
+                    onShowCpaCurveChange = onShowCpaCurveChange,
                     onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
                     onCheckForUpdates = onCheckForUpdates,
                     onHealthConnectWeightSyncEnabledChange =
@@ -265,9 +265,8 @@ class SettingsCategoryScreenTest {
                     portableDialog = null,
                     onDismissPortableDialog = {},
                     onOpenGoogleDrive = onOpenGoogleDrive,
-                    onOpenGuide = onOpenGuide,
+                    onOpenHelp = onOpenHelp,
                     onOpenPrivacy = onOpenPrivacy,
-                    onOpenFeatureTutorial = onOpenFeatureTutorial,
                     onOpenAbout = onOpenAbout,
                     showTopBar = false
                 )
@@ -290,6 +289,7 @@ private fun SettingsScreenTestHost() {
         onSelectPresetSource = {},
         onPresetPaletteChange = {},
         onTimeFormatChange = {},
+        onShowCpaCurveChange = {},
         onAutoCheckUpdatesChange = {},
         onCheckForUpdates = {},
         onHealthConnectWeightSyncEnabledChange = {},
@@ -310,9 +310,8 @@ private fun SettingsScreenTestHost() {
         portableDialog = null,
         onDismissPortableDialog = {},
         onOpenGoogleDrive = {},
-        onOpenGuide = {},
+        onOpenHelp = {},
         onOpenPrivacy = {},
-        onOpenFeatureTutorial = {},
         onOpenAbout = {},
         showTopBar = false
     )

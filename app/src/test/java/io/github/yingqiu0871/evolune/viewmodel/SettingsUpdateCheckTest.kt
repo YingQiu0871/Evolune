@@ -157,6 +157,8 @@ private object TestSettingsStore : SettingsStore {
         weight: Double,
         adoptedAt: Instant
     ): Boolean = true
+
+    override suspend fun updateShowCpaCurve(enabled: Boolean) = Unit
 }
 
 private object TestHealthConnectWeightProvider : HealthConnectWeightProvider {

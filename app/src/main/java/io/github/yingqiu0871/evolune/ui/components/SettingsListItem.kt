@@ -100,12 +100,13 @@ fun SettingsNavigationRow(
     title: String,
     description: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    position: SettingsListItemPosition = SettingsListItemPosition.SINGLE
 ) {
     SegmentedListItem(
         modifier = modifier,
         onClick = onClick,
-        shapes = stableSegmentedShapes(SettingsListItemPosition.SINGLE),
+        shapes = stableSegmentedShapes(position),
         colors = settingsListItemColors(),
         leadingContent = {
             Icon(imageVector = icon, contentDescription = null)

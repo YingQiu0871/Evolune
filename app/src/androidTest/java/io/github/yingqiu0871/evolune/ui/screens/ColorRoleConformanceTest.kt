@@ -194,7 +194,7 @@ class ColorRoleConformanceTest {
     }
 
     @Test
-    fun themeModeIconsStayVerticallyCentered() {
+    fun themeModeLabelsStayVerticallyCentered() {
         val store = SettingsDataStore(context)
         runBlocking { store.updateThemeMode(ThemeMode.SYSTEM) }
         composeRule.waitForIdle()
@@ -207,12 +207,12 @@ class ColorRoleConformanceTest {
             val itemBounds = composeRule
                 .onNodeWithTag("theme-mode-$suffix")
                 .fetchSemanticsNode().boundsInRoot
-            val iconBounds = composeRule
-                .onNodeWithTag("theme-mode-icon-$suffix", useUnmergedTree = true)
+            val labelBounds = composeRule
+                .onNodeWithTag("theme-mode-label-$suffix", useUnmergedTree = true)
                 .fetchSemanticsNode().boundsInRoot
 
-            check(abs(itemBounds.center.y - iconBounds.center.y) <= 1f) {
-                "$mode icon is not vertically centered: item=$itemBounds icon=$iconBounds"
+            check(abs(itemBounds.center.y - labelBounds.center.y) <= 1f) {
+                "$mode label is not vertically centered: item=$itemBounds label=$labelBounds"
             }
         }
     }

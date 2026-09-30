@@ -3,43 +3,50 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
-Documentation updated on 2026-09-29 for the `v1.9.1` release (PR #31 merged into `main` with a normal
-merge commit; the annotated tag `v1.9.1` points at that merge commit). See the
+Documentation updated on 2026-09-30 for the `v1.10.0` release (feature branch merged into `main` with a normal
+merge commit; the annotated tag `v1.10.0` points at that merge commit). See the
 [complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
 [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version: [`v1.9.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
-- Release date: 2026-09-29
-- Release source: annotated tag `v1.9.1` → the `main` merge commit of PR #31
-  (`feature/v1.9.1-code-hygiene`); preserve this tag
-- Previous sealed stable release: [`v1.9.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.0)
-  (2026-09-28; annotated tag `386e710d878bb8e108b40d130c6092aa352862cf` → commit
-  `d099998c46e747b99855b7c9c56b3e1bd671a089`)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.9.1 GitHub Release
+- Stable version: [`v1.10.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
+- Release date: 2026-09-30
+- Release source: annotated tag `v1.10.0` → the `main` merge commit of the `feature/v1.10-cpa-curve` PR;
+  preserve this tag
+- Previous sealed stable release: [`v1.9.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
+  (2026-09-29)
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.10.0 GitHub Release
 
-v1.9.1 is an internal code-audit and slimming release: a repository-wide static audit removed dead code,
-unused resources and unused imports that were provably referenced nowhere. No user-visible behavior
-changes. There is no Room schema migration, no backup format change and no change to medication
-calculation semantics. See the [v1.9.1 release notes](v1.9.1/V191_RELEASE_NOTES.md).
+v1.10.0 adds an optional, default-off cyproterone acetate (CPA) estimated curve on the Home chart (its own
+ng/mL right axis; E2 values, Widgets, Wear and Retrospective PK unchanged), keeps the History scroll position
+when returning from Insights / Retrospective PK / Timeline, and regroups the Settings page. There is no Room
+schema migration and no backup or Portable format change. See the
+[v1.10.0 release notes](v1.10.0/V1100_RELEASE_NOTES.md).
 
-## v1.9.1 Release Identity
+## v1.10.0 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.9.1 (1101090100)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.10.0 (101100000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.10.0 (1101100000)` | 30 |
 
 APK sizes and SHA-256 values are not repeated here; use the `SHA256SUMS.txt` attached to the
-[v1.9.1 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1) as the source of truth
+[v1.10.0 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0) as the source of truth
 (policy: [Release Process](../release/RELEASE_PROCESS.md)).
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
 `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
 Debug builds use a separate `.debug` application ID suffix and signing identity.
 
-### v1.9.0 Release Identity (previous)
+### v1.9.1 Release Identity (previous)
+
+| Target | Application ID | Version | Minimum API |
+|---|---|---:|---:|
+| Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.9.1 (1101090100)` | 30 |
+
+### v1.9.0 Release Identity (earlier)
 
 | Asset | Size (bytes) | SHA-256 |
 |---|---:|---|
@@ -60,12 +67,13 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.8.0` | 2026-09-26 | Global hygiene: performance, lifecycle, cancellation, interrupted-restore recovery |
 | `v1.9.0` | 2026-09-28 | Maintenance: checkout-reproducible tests, dependency and configuration cleanup |
 | `v1.9.1` | 2026-09-29 | Code audit and slimming: dead code, unused resources and imports removed |
+| `v1.10.0` | 2026-09-30 | Optional CPA estimated curve, History scroll-position return, Settings regrouping |
 
-Dates for v1.7.x are the tag commit dates; v1.8.0–v1.9.1 dates are the recorded GitHub Release
+Dates for v1.7.x are the tag commit dates; v1.8.0–v1.10.0 dates are the recorded GitHub Release
 publication dates. Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
-## Shipped Since v1.6 (v1.7–v1.9)
+## Shipped Since v1.6 (v1.7–v1.10)
 
 - **History and Timeline (v1.7.0):** day-by-day medication activity that separates planned occurrences
   from actual intake, with timing differences; a monthly Timeline of matched, unrecorded-schedule and
@@ -88,7 +96,8 @@ from the previous one without clearing data.
   safer recovery when a restore is interrupted, more reliable update-check cancellation.
 - **Maintenance (v1.9.0):** checkout-reproducible tests, one redundant direct dependency declaration and
   unused Glance catalog metadata / obsolete ProGuard keep rules removed.
-- **Code audit and slimming (v1.9.1):** see Current Release above.
+- **Code audit and slimming (v1.9.1):** dead code, unused resources and imports removed.
+- **CPA curve, History and Settings (v1.10.0):** see Current Release above.
 
 ## Widget Gallery Capabilities (shipped v1.6, carried forward)
 
@@ -203,9 +212,9 @@ independently exercised on a real watch. See the [gate's per-surface matrix](v1.
 - Google Drive requires explicit authorization and manual backup/restore; background and real-time multi-device cloud synchronization are not implemented.
 - Auto Backup/device transfer intentionally excludes private app data.
 - Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
-- Optional CPA PK Curve remains a candidate only (it was **not** part of the shipped v1.7
-  History & Insights program); it is default-off and requires independent scientific and source
-  review before implementation or release.
+- The optional CPA curve (v1.10.0) is a one-compartment model: it reflects exposure and steady state
+  but underestimates single-dose peaks; a two-compartment model is deferred until citable fitted
+  parameters exist. It is shown on the Home chart only (not Widgets, Wear or Retrospective PK).
 - Deferred at v1.9.0 with no demonstrated benefit: E-01 duplicated lifecycle bridges and T-03 device-test
   sleeps. The dual-channel History query still scans without a date/time index, and the PK input keeps a
   fixed window where the public input exposes no interval; both are design constraints to revisit deliberately.
@@ -527,8 +536,13 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     [`v1.9.1/V191_RELEASE_NOTES.md`](v1.9.1/V191_RELEASE_NOTES.md)）。**验证**：CI #82（`./gradlew test`、
     `:app:assembleDebug`、`:wear:assembleDebug`）；本机 androidTest 396 项 0 失败（zh-CN、1080×2400）；发布 APK
     哈希与证书复核一致；Phone/Wear 模拟器冒烟通过，无 FATAL/ANR。无 force、无 rebase、无 tag 移动。
-  - **NEXT:** 无已授权的后续里程碑。v1.9.1 已封版；新版本需单独立项（候选见 Current Limitations 与
-    [ROADMAP](ROADMAP.md)）。
+  - **v1.10.0 CPA 估算曲线 / 历史页返回位置 / 设置页重排 — RELEASED**（2026-09-30；分支
+    `feature/v1.10-cpa-curve` 经 PR 以普通 merge commit 合入 `main`，annotated tag `v1.10.0` 指向该合并提交；
+    1.10.0 / Phone 101100000 / Wear 1101100000；无 schema、备份格式或 Portable 格式变化，E2 PK 数值不变；
+    规划 [`v1.10/V110_CPA_CURVE_PLAN.md`](v1.10/V110_CPA_CURVE_PLAN.md)，release notes
+    [`v1.10.0/V1100_RELEASE_NOTES.md`](v1.10.0/V1100_RELEASE_NOTES.md)）。
+  - **NEXT:** 无已授权的后续里程碑。v1.10.0 已封版；新版本需单独立项（候选见 Current Limitations 与
+    [ROADMAP](ROADMAP.md)；半透明界面设计待评估）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续
@@ -540,7 +554,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   [`V17_B_00_INSIGHTS_SEMANTICS.md`](v1.7/V17_B_00_INSIGHTS_SEMANTICS.md) ·
   [`V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md`](v1.7/V17_C_00_RETROSPECTIVE_PK_SEMANTICS.md) ·
   [`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)）。
-- `v1.7` 早期草案中的 **Optional CPA Pharmacokinetic Curve** 不再代表 v1.7 的程序范围；
-  该候选保持 **CANDIDATE / NOT STARTED**（见下方 Current Limitations），如要推进需单独立项。
+- `v1.7` 早期草案中的 **Optional CPA Pharmacokinetic Curve** 已在 v1.10.0 以默认关闭、一室模型的形式交付
+  （见 Current Limitations 中的已知局限）。
 
 See the [Roadmap](ROADMAP.md) for the historical release sequence and future boundaries.

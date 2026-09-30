@@ -31,7 +31,10 @@ object HistoryPresentation {
         val day = if (loaded) state.loadedDays[state.selectedDate] else null
         val phase = when {
             state.failed -> HistoryDayPhase.ERROR
-            state.loading || !loaded -> HistoryDayPhase.LOADING
+            // A refresh of the already-loaded month keeps the current content until the new read
+            // lands, so the list keeps its length and scroll position (e.g. returning from a
+            // History sub-page); only a month that has never been loaded shows LOADING.
+            !loaded -> HistoryDayPhase.LOADING
             day == null || day.entries.isEmpty() -> HistoryDayPhase.EMPTY
             else -> HistoryDayPhase.CONTENT
         }

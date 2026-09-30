@@ -199,8 +199,8 @@
 | [PK_IMPLEMENTATION.md](../../PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
 | [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
 | [QUICK_START_UI.md](../../QUICK_START_UI.md) | 当前 UI 结构速览 |
-| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.9.1） |
-| [TODO.MD](../../TODO.MD) | 后续路线（v1.9.1 已封版） |
+| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
+| [TODO.MD](../../TODO.MD) | 后续路线（v1.10.0 已封版） |
 | [UI_COMPONENTS.md](../../UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
@@ -255,6 +255,9 @@
 | [docs/evolune/v1.9.0/V190_RELEASE_NOTES.md](../../docs/evolune/v1.9.0/V190_RELEASE_NOTES.md) | Evolune v1.9.0 正式版 / Official Release |
 | [docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](../../docs/evolune/v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) | EVOLUNE V1.9.0 — D-01 RELEASE-GRAPH DEAD-DEPENDENCY PROOF PLAN |
 | [docs/evolune/v1.9.1/V191_RELEASE_NOTES.md](../../docs/evolune/v1.9.1/V191_RELEASE_NOTES.md) | Evolune v1.9.1 正式版 / Official Release |
+| [docs/evolune/v1.10/V110_CPA_CURVE_PLAN.md](../../docs/evolune/v1.10/V110_CPA_CURVE_PLAN.md) | v1.10 — Optional CPA Estimated Curve: Phase 0 Audit & Implementation Plan |
+| [docs/evolune/v1.10/V110_IMPLEMENTATION_REPORT.md](../../docs/evolune/v1.10/V110_IMPLEMENTATION_REPORT.md) | v1.10 CPA curve implementation report |
+| [docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md](../../docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md) | Evolune v1.10.0 正式版 / Official Release |
 | [docs/evolune/TESTING.md](../../docs/evolune/TESTING.md) | Evolune 测试环境 / Testing Environment |
 | [docs/release/RELEASE_PROCESS.md](../../docs/release/RELEASE_PROCESS.md) | Evolune 发布流程 / Release Process |
 

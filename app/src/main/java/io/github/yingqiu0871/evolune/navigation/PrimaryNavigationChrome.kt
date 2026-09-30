@@ -17,6 +17,7 @@ internal object PrimaryNavigationChrome {
 
     val FULL_SCREEN_ROUTES: Set<String> = setOf(
         ABOUT_ROUTE,
+        HELP_ROUTE,
         GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE,
         ONBOARDING_ROUTE,
         DISCLOSURES_ROUTE,
@@ -35,6 +36,7 @@ internal object PrimaryNavigationChrome {
 }
 
 internal const val ABOUT_ROUTE = "settings_about"
+internal const val HELP_ROUTE = "settings_help"
 internal const val GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE = "google_drive_backup_restore"
 internal const val ONBOARDING_ROUTE = "onboarding"
 internal const val DISCLOSURES_ROUTE = "disclosures"

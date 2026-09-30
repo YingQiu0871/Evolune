@@ -495,6 +495,10 @@ private class FakeSettingsStore(
         )
         return true
     }
+
+    override suspend fun updateShowCpaCurve(enabled: Boolean) {
+        userSettings.value = userSettings.value.copy(showCpaCurve = enabled)
+    }
 }
 
 private class FakeHealthConnectWeightProvider : HealthConnectWeightProvider {

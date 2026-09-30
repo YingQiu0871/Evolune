@@ -1,20 +1,17 @@
-# 设置功能（v1.9.1）
+# 设置功能（v1.10.0）
 
-更新日期：2026-09-29，适用 v1.9.1（设置页结构自 v1.7.2 起未再变化）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+更新日期：2026-09-30，适用 v1.10.0（v1.10.0 按用途重新分组了设置页）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
 
 ## 页面与功能
 
-v1.7.2 起设置主页是一个可滚动的扁平页面，常用区块直接显示，不再需要逐级进入分类子页面（v1.7.1 已先单独加入“隐私与权限”入口）。自上而下依次为：
+设置主页是一个可滚动的扁平页面（v1.7.2 起），v1.10.0 起按用途分为四组，自上而下依次为：
 
 | 区块 | 已实现功能 | 边界 |
 |---|---|---|
-| 基础数据 | 手动体重（0–300 kg），用于 PK 计算 | 较新的本地/手动值受到 Health Connect freshness 保护 |
-| 外观与格式 | 夜间模式（系统默认/浅色/深色/OLED 全黑）；配色来源：跟随壁纸（Dynamic，Android 12+）或从 8 个预设调色板中选择（蓝、紫罗兰、樱花、薄荷、青绿、琥珀、中性、薰衣草）；时间制式（跟随系统/12 小时/24 小时） | 从 v1.7.1 升级的旧“内置主题”会保持原有外观并显示“兼容保留”，直到用户主动选择新配色；时间制式不改变 occurrence 身份或实际记录时间 |
-| 同步与备份 → 本地数据 | Evolune Portable JSON v1（导出，可选最近 30 天/90 天/全部历史；增量导入）、CSV v1（仅导出）；旧版 Legacy / Mahiro JSON v1 文件与剪贴板导入导出 | 导出与加密备份相互独立，不等同原生完整备份；剪贴板导出带隐私确认 |
-| 同步与备份 → Health Connect | 可选授权、前台体重读取、provider/权限/空数据/错误状态 | 不含后台 Health Connect 或用药/PHR 写入 |
-| 同步与备份 → 云备份 | Google Drive 备份与恢复：用户授权、手动加密备份、备份选择、恢复预览与校验 | 非后台/实时云同步 |
-| 更新 | 当前版本、自动检查开关与手动 GitHub Release 检查 | 不上传用药内容 |
-| 指南 / 隐私与权限 / 功能教程 / 关于 | 重新查看首次引导与数据边界、隐私数据使用与权限说明、功能教程（用药方案、记录、PK、Widget、Wear 与备份）、官网/开发者信息/版权与免责声明 | 引导状态独立于用药数据 |
+| 血药浓度计算 | 手动体重（0–300 kg），用于 PK 计算；从 Health Connect 同步体重（可选授权、前台读取、provider/权限/空数据/错误状态、管理权限入口）；显示 CPA 估算曲线（默认关闭，v1.10.0） | 较新的本地/手动值受到 Health Connect freshness 保护；不含后台 Health Connect 或用药/PHR 写入；CPA 开关是本机显示偏好，不进入备份/恢复/导出 |
+| 外观 | 夜间模式（浅色/深色/OLED 全黑/系统默认，分段按钮）；配色来源：跟随壁纸（Dynamic，Android 12+）或预设配色——8 个预设调色板（蓝、紫罗兰、樱花、薄荷、青绿、琥珀、中性、薰衣草）仅在选择预设配色后显示；时间制式（跟随系统/12 小时/24 小时，分段按钮） | 从 v1.7.1 升级的旧“内置主题”会保持原有外观并显示“兼容保留”，直到用户主动选择新配色；时间制式不改变 occurrence 身份或实际记录时间 |
+| 备份与数据 | Google Drive 备份与恢复（置顶：用户授权、手动加密备份、备份选择、恢复预览与校验）；Evolune Portable JSON v1（导出，可选最近 30 天/90 天/全部历史；增量导入）、CSV v1（仅导出）；Legacy / Mahiro JSON v1 文件与剪贴板导入导出（默认收起） | 非后台/实时云同步；导出与加密备份相互独立，不等同原生完整备份；剪贴板导出带隐私确认 |
+| 关于与帮助 | 使用帮助（功能教程；首次引导——使用条款、数据边界与医疗免责声明）、隐私与权限、自动检查更新与手动 GitHub Release 检查、当前版本、关于（官网/开发者信息/版权与免责声明） | 引导状态独立于用药数据；更新检查不上传用药内容 |
 
 Health Connect 读取最近 30 天的有效体重；provider 不可用或用户拒绝授权时，手动记录和核心功能仍可使用。Google Drive 使用 appDataFolder、上传回读验证与三个备份代次保留。原生备份使用 AES-256-GCM、PBKDF2-HMAC-SHA256（默认 600,000 次），恢复通过 journal 与事务协调 Room/DataStore；备份口令必须由用户保管。若恢复被中断，下次启动会依据 PREPARED journal 安全回滚（v1.8.0）。
 
@@ -37,7 +34,7 @@ Phone/Wear 的 Android Auto Backup 与设备迁移排除私有数据；这不等
 ## 实现入口
 
 - [SettingsScreen](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
-- [设置分区组件](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/)（基础数据、外观、配色、同步与备份、更新、导航行）
+- [设置分区组件](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/)（血药浓度计算、外观、配色、备份与数据、更新、关于与帮助）
 - [配色调色板权威](app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/)
 - [Portable 导出/导入](app/src/main/java/io/github/yingqiu0871/evolune/export/)
 - [SettingsViewModel](app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt)

@@ -71,7 +71,7 @@ internal fun SettingsColorSchemeSection(
             .testTag("settings-color-scheme-section"),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SettingsSectionHeader(title = stringResource(R.string.settings_color_scheme_title))
+        SettingsSubsectionTitle(title = stringResource(R.string.settings_color_scheme_title))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -129,6 +129,8 @@ internal fun SettingsColorSchemeSection(
             }
         }
 
+        // The eight preset tiles only matter once the preset source is chosen.
+        if (source != ThemeColorSource.PRESET) return@Column
         val selectedPalette = (preset as? ThemePresetSelection.Preset)?.palette
         Column(
             modifier = Modifier

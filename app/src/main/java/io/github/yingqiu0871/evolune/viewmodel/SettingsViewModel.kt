@@ -214,6 +214,16 @@ class SettingsViewModel(
     }
 
     /**
+     * v1.10 (S1): toggle the optional CPA estimated concentration curve on the Home chart.
+     * Local display preference only — never backed up (S7).
+     */
+    fun updateShowCpaCurve(enabled: Boolean) {
+        scope.launch {
+            settingsDataStore.updateShowCpaCurve(enabled)
+        }
+    }
+
+    /**
      * 在应用启动时，若自动检查更新已开启则执行检查
      */
     fun triggerAutoCheckOnStartup(versionName: String) {

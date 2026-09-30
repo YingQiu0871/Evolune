@@ -362,6 +362,23 @@ class HistoryPresentationTest {
     }
 
     @Test
+    fun `refreshing the loaded month keeps showing its content`() {
+        val loaded = state(
+            today = TEST_DAY,
+            selectedDate = TEST_DAY,
+            loadedDays = mapOf(
+                TEST_DAY to testDay(date = TEST_DAY, entries = listOf(matchedEntry()))
+            )
+        )
+        val settled = HistoryPresentation.present(loaded)
+        val refreshing = HistoryPresentation.present(loaded.copy(loading = true))
+
+        assertEquals(HistoryDayPhase.CONTENT, settled.phase)
+        assertEquals(settled.phase, refreshing.phase)
+        assertEquals(settled.day, refreshing.day)
+    }
+
+    @Test
     fun `dose and timestamp formatting follow the existing conventions`() {
         assertEquals("2.0 mg", HistoryFormatting.dose(2.0))
         assertEquals("5.0 mg", HistoryFormatting.dose(5.0))

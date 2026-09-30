@@ -54,9 +54,14 @@ class FeatureTutorialNavigationTest {
     fun tutorialCtasUseExistingEditorAndNavigationSurfaces() {
         composeRule.waitForIdle()
         openSettings()
-        composeRule.onNodeWithTag("settings-feature-tutorial-entry")
+        composeRule.onNodeWithTag("settings-help-entry")
             .performScrollTo()
             .performClick()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodesWithTag("settings-feature-tutorial-entry")
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("settings-feature-tutorial-entry").performClick()
 
         composeRule.onNodeWithTag("feature-tutorial-create-plan")
             .performScrollTo()
@@ -123,7 +128,7 @@ class FeatureTutorialNavigationTest {
             composeRule.onNodeWithTag("nav-bar-settings").performClick()
         }
         composeRule.waitUntil(5_000L) {
-            composeRule.onAllNodesWithTag("settings-feature-tutorial-entry")
+            composeRule.onAllNodesWithTag("settings-help-entry")
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }

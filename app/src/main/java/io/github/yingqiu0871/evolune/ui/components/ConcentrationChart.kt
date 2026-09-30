@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -27,9 +28,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
 import io.github.yingqiu0871.evolune.pk.SimulationResult
+import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -110,6 +114,9 @@ private fun createStarPath(
  * @param doseTimePoints 给药时间点列表（小时）
  * @param forkPointTimeH 分叉点时间（未来第一次计划用药时间），此时刻后主曲线转为计划曲线
  * @param modifier Modifier
+ * @param cpaSeries v1.10 (S5/S6/S9) 可选的 CPA 估算浓度曲线（ng/mL），仅在设置开启时非空；
+ *   为 null 时绘制与开启前完全一致，never影响 E2 坐标轴/主曲线。使用独立的右侧坐标轴，
+ *   永不与 E2（pg/mL）共用刻度或相加（S5）。
  */
 @Composable
 fun ConcentrationChart(
@@ -119,7 +126,8 @@ fun ConcentrationChart(
     doseTimePoints: List<Double>,
     modifier: Modifier = Modifier,
     forkPointTimeHState: State<Double?>? = null,
-    is24Hour: Boolean = true
+    is24Hour: Boolean = true,
+    cpaSeries: CpaSeries? = null
 ) {
     RecordComposeRecomposition(
         surface = "ConcentrationChart",
@@ -132,12 +140,16 @@ fun ConcentrationChart(
     val errorColor = MaterialTheme.colorScheme.error
     val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val surfaceColor = MaterialTheme.colorScheme.surface
+    // v1.10 (S5) — CPA estimated curve, distinct from primary/baseline/GAHT band colors.
+    val cpaColor = MaterialTheme.colorScheme.secondary
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
 
     // 触摸交互状态
     var touchPosition by remember { mutableStateOf<Offset?>(null) }
     var selectedPoint by remember { mutableStateOf<Pair<Double, Double>?>(null) } // (time, conc)
+    var chartBoxWidthPx by remember { mutableIntStateOf(0) }
+    var tooltipWidthPx by remember { mutableIntStateOf(0) }
 
     // 数据范围
     val finiteTimes = simulationResult.timeH.asSequence().filter(Double::isFinite)
@@ -200,6 +212,15 @@ fun ConcentrationChart(
         visibleStartH = visibleTimeStart,
         visibleEndH = visibleTimeEnd
     )
+    // v1.10 (S5) — independent right-axis scale for the CPA series (ng/mL), computed only from
+    // the CPA series itself; never merged with the E2 (pg/mL) scale above.
+    val cpaVisibleScale = cpaSeries?.let { series ->
+        calculateVisibleWindowYScale(
+            series = listOf(ChartSeries(series.timeH, series.concNgMl)),
+            visibleStartH = visibleTimeStart,
+            visibleEndH = visibleTimeEnd
+        )
+    }
     val yAxisTextStyle = TextStyle(color = onSurfaceColor, fontSize = 11.sp)
     val yAxisLabelWidthPx = visibleScale.tickValues()
         .maxOf { value ->
@@ -209,6 +230,17 @@ fun ConcentrationChart(
             ).size.width
         }
         .toFloat()
+        .let { e2Width ->
+            val cpaWidth = cpaVisibleScale?.tickValues()
+                ?.maxOf { value ->
+                    textMeasurer.measure(
+                        text = formatYAxisLabel(value, cpaVisibleScale.tickStep),
+                        style = yAxisTextStyle
+                    ).size.width
+                }
+                ?.toFloat() ?: 0f
+            maxOf(e2Width, cpaWidth)
+        }
     val labelToAxisGapPx = with(density) { 8.dp.toPx() }
     val outerMarginPx = with(density) { 8.dp.toPx() }
     val topMarginPx = with(density) { 20.dp.toPx() }
@@ -227,7 +259,20 @@ fun ConcentrationChart(
         dataYMax = visibleScale.max
     )
 
-    Box(modifier = modifier.fillMaxSize()) {
+    val chartDescription = stringResource(R.string.chart_content_description)
+    val chartDescriptionWithCpa = stringResource(R.string.chart_content_description_with_cpa)
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .onSizeChanged { chartBoxWidthPx = it.width }
+            .semantics {
+                contentDescription = if (cpaSeries != null) {
+                    chartDescriptionWithCpa
+                } else {
+                    chartDescription
+                }
+            }
+    ) {
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -518,6 +563,39 @@ fun ConcentrationChart(
                 )
             )
 
+            // v1.10 (S5/S9) — optional CPA estimated curve, drawn on its own right-axis scale
+            // (never the E2 scale above) in the secondary color. Simple continuous line: CPA
+            // has no baseline/plan-fork split like E2 in this release.
+            if (cpaSeries != null && cpaVisibleScale != null && cpaSeries.timeH.isNotEmpty()) {
+                val cpaGeometry = geometry.copy(dataYMax = cpaVisibleScale.max)
+                val cpaPath = Path()
+                var hasMovedCpa = false
+                cpaSeries.timeH.forEachIndexed { index, time ->
+                    if (time in visibleTimeStart..visibleTimeEnd) {
+                        val conc = cpaSeries.concNgMl[index]
+                        val x = cpaGeometry.dataXToScreen(time)
+                        val y = cpaGeometry.dataYToScreen(conc)
+                        if (!hasMovedCpa) {
+                            cpaPath.moveTo(x, y)
+                            hasMovedCpa = true
+                        } else {
+                            cpaPath.lineTo(x, y)
+                        }
+                    }
+                }
+                // Dashed so the CPA line stays distinguishable from E2 in every palette.
+                drawPath(
+                    path = cpaPath,
+                    color = cpaColor,
+                    style = Stroke(
+                        width = 2.5.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(8.dp.toPx(), 5.dp.toPx())
+                        )
+                    )
+                )
+            }
+
             // 在曲线上用星形标记实际给药记录。
             doseTimePoints.forEach { doseTime ->
                 if (doseTime >= timeMin && doseTime <= timeMax) {
@@ -640,6 +718,24 @@ fun ConcentrationChart(
             )
         }
 
+        // v1.10 (S5) — CPA right-axis tick labels, in the secondary color, on its own scale.
+        if (cpaSeries != null && cpaVisibleScale != null) {
+            val cpaGeometry = geometry.copy(dataYMax = cpaVisibleScale.max)
+            val cpaAxisTextStyle = TextStyle(color = cpaColor, fontSize = 11.sp)
+            cpaVisibleScale.tickValues().forEach { concValue ->
+                val y = cpaGeometry.dataYToScreen(concValue)
+                val text = formatYAxisLabel(concValue, cpaVisibleScale.tickStep)
+                val textLayoutResult = textMeasurer.measure(text = text, style = cpaAxisTextStyle)
+                drawText(
+                    textLayoutResult = textLayoutResult,
+                    topLeft = Offset(
+                        chartRight + labelToAxisGapPx,
+                        y - textLayoutResult.size.height / 2
+                    )
+                )
+            }
+        }
+
         // 绘制坐标轴
         drawLine(
             color = onSurfaceColor,
@@ -715,15 +811,29 @@ fun ConcentrationChart(
                 val timeMillis = (time * 3600000).toLong()
                 val timeText = dateFormat.format(Date(timeMillis))
                 val concText = "%.1f pg/mL".format(conc)
-                
+                // v1.10 (S5/S9): show the CPA estimate at the same touch point, on its own line.
+                val cpaConcText = cpaSeries?.concentration(time)
+                    ?.let { cpaConc -> "%.1f ng/mL".format(cpaConc) }
+
                 Surface(
                     modifier = Modifier
                         .offset {
+                            // 靠近右边缘时把信息窗翻到触点左侧，避免被裁切。
+                            val gapPx = 16.dp.toPx()
+                            val rightX = pos.x + gapPx
+                            val x = if (chartBoxWidthPx > 0 &&
+                                rightX + tooltipWidthPx > chartBoxWidthPx
+                            ) {
+                                (pos.x - gapPx - tooltipWidthPx).coerceAtLeast(0f)
+                            } else {
+                                rightX
+                            }
                             IntOffset(
-                                x = (pos.x + 16.dp.toPx()).toInt(),
+                                x = x.toInt(),
                                 y = (pos.y - 60.dp.toPx()).toInt()
                             )
                         }
+                        .onSizeChanged { tooltipWidthPx = it.width }
                         .wrapContentSize(),
                     color = surfaceColor,
                     shadowElevation = 4.dp,
@@ -746,6 +856,15 @@ fun ConcentrationChart(
                                 color = primaryColor
                             )
                         )
+                        cpaConcText?.let { text ->
+                            Text(
+                                text = text,
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = cpaColor
+                                )
+                            )
+                        }
                     }
                 }
             }

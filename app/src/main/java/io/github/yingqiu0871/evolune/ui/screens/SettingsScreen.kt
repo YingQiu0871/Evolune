@@ -61,6 +61,7 @@ fun SettingsScreen(
     onSelectPresetSource: () -> Unit,
     onPresetPaletteChange: (PresetPalette) -> Unit,
     onTimeFormatChange: (TimeFormat) -> Unit,
+    onShowCpaCurveChange: (Boolean) -> Unit,
     onAutoCheckUpdatesChange: (Boolean) -> Unit,
     onCheckForUpdates: () -> Unit,
     onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit,
@@ -81,9 +82,8 @@ fun SettingsScreen(
     portableDialog: PortableDialogMessage?,
     onDismissPortableDialog: () -> Unit,
     onOpenGoogleDrive: () -> Unit,
-    onOpenGuide: () -> Unit,
+    onOpenHelp: () -> Unit,
     onOpenPrivacy: () -> Unit,
-    onOpenFeatureTutorial: () -> Unit,
     onOpenAbout: () -> Unit,
     showTopBar: Boolean = true
 ) {
@@ -123,11 +123,16 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .testTag("settings-root"),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             SettingsBasicDataSection(
-                bodyWeight = userSettings.bodyWeight,
-                onBodyWeightChange = onBodyWeightChange
+                settings = userSettings,
+                healthConnectWeightSyncState = healthConnectWeightSyncState,
+                onBodyWeightChange = onBodyWeightChange,
+                onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
+                onReauthorize = onHealthConnectReauthorize,
+                onManagePermissions = onHealthConnectManagePermissions,
+                onShowCpaCurveChange = onShowCpaCurveChange
             )
             SettingsAppearanceSection(
                 settings = userSettings,
@@ -138,8 +143,6 @@ fun SettingsScreen(
                 onTimeFormatChange = onTimeFormatChange
             )
             SettingsSyncBackupSection(
-                settings = userSettings,
-                healthConnectWeightSyncState = healthConnectWeightSyncState,
                 backupRestoreConnected = backupRestoreConnected,
                 importResult = importResult,
                 onDismissImportResult = onDismissImportResult,
@@ -155,24 +158,22 @@ fun SettingsScreen(
                 onImportPortableJson = onImportPortableJson,
                 portableDialog = portableDialog,
                 onDismissPortableDialog = onDismissPortableDialog,
-                onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
-                onReauthorize = onHealthConnectReauthorize,
-                onManagePermissions = onHealthConnectManagePermissions,
                 onOpenGoogleDrive = onOpenGoogleDrive,
                 snackbarHostState = snackbarHostState
             )
-            SettingsUpdateSection(
-                autoCheckUpdates = userSettings.autoCheckUpdates,
-                onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
-                onCheckForUpdates = onCheckForUpdates,
-                updateCheckResult = updateCheckResult,
-                snackbarHostState = snackbarHostState
-            )
             SettingsNavigationRowsSection(
-                onOpenGuide = onOpenGuide,
+                onOpenHelp = onOpenHelp,
                 onOpenPrivacy = onOpenPrivacy,
-                onOpenFeatureTutorial = onOpenFeatureTutorial,
-                onOpenAbout = onOpenAbout
+                onOpenAbout = onOpenAbout,
+                updates = {
+                    SettingsUpdateSection(
+                        autoCheckUpdates = userSettings.autoCheckUpdates,
+                        onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
+                        onCheckForUpdates = onCheckForUpdates,
+                        updateCheckResult = updateCheckResult,
+                        snackbarHostState = snackbarHostState
+                    )
+                }
             )
         }
     }
@@ -193,6 +194,7 @@ private fun SettingsScreenPreview() {
             onSelectPresetSource = {},
             onPresetPaletteChange = {},
             onTimeFormatChange = {},
+            onShowCpaCurveChange = {},
             onAutoCheckUpdatesChange = {},
             onCheckForUpdates = {},
             onHealthConnectWeightSyncEnabledChange = {},
@@ -213,9 +215,8 @@ private fun SettingsScreenPreview() {
             portableDialog = null,
             onDismissPortableDialog = {},
             onOpenGoogleDrive = {},
-            onOpenGuide = {},
+            onOpenHelp = {},
             onOpenPrivacy = {},
-            onOpenFeatureTutorial = {},
             onOpenAbout = {},
             showTopBar = false
         )

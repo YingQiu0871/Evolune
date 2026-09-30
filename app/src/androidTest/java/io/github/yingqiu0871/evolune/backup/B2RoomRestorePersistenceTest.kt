@@ -220,12 +220,18 @@ class B2RoomRestorePersistenceTest {
             return true
         }
 
+        override suspend fun updateShowCpaCurve(enabled: Boolean) {
+            userSettings.value = userSettings.value.copy(showCpaCurve = enabled)
+        }
+
         override suspend fun replaceSettings(settings: UserSettings): Boolean {
             replaceCalls++
             val previous = userSettings.value
             userSettings.value = settings.copy(
                 lastHealthConnectWeightKg = previous.lastHealthConnectWeightKg,
-                lastHealthConnectWeightAdoptedAt = localMutationAt
+                lastHealthConnectWeightAdoptedAt = localMutationAt,
+                // v1.10 (S7): local-only display preference, never overwritten by restore.
+                showCpaCurve = previous.showCpaCurve
             )
             return true
         }

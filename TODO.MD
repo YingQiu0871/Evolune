@@ -1,7 +1,7 @@
-# 后续路线（v1.9.1 已封版）
+# 后续路线（v1.10.0 已封版）
 
-截至 2026-09-29，v1.0–v1.9.1 已发布（最新稳定版 [v1.9.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)，
-2026-09-29）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
+截至 2026-09-30，v1.0–v1.10.0 已发布（最新稳定版 [v1.10.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)，
+2026-09-30）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
 当前状态见 [CURRENT_STATUS](docs/evolune/CURRENT_STATUS.md)，完整文档索引见
 [DOCUMENTATION_INDEX](docs/evolune/DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
 [文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
@@ -368,7 +368,10 @@
       merge commit 合入 `main`，annotated tag `v1.9.1` 指向该合并提交；GitHub Release
       https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1，3 资产；CI #82、androidTest 与模拟器冒烟见
       `docs/evolune/v1.9.1/V191_RELEASE_NOTES.md`）。
-- [ ] NEXT：无已授权的后续里程碑。v1.9.1 已封版；任何新版本需单独立项、独立设计与评审。
+- [x] v1.10.0 默认关闭的 CPA 估算曲线、历史页返回保持位置、设置页重排与「使用帮助」合并 — **RELEASED**
+      （2026-09-30；规划 `docs/evolune/v1.10/V110_CPA_CURVE_PLAN.md`，release notes
+      `docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md`）。
+- [ ] NEXT：无已授权的后续里程碑。v1.10.0 已封版；任何新版本需单独立项、独立设计与评审（半透明界面设计待评估）。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
@@ -381,11 +384,12 @@
       历史 evidence 中的 pre-amend 引用仅为过程信息。
 - [ ] 明确的新 contract 才可推进：逐日 series / chart、coverage 百分比 UI、Option-2 timing metric、
       anti-androgen 真实身份投影字段（均需语义批准，不得在 hardening 中偷加）。
-- [ ] `v1.7` 早期草案的 Optional CPA PK Curve 保持独立科学/来源评审门槛，不因 C-01 关闭而改变状态。
+- [x] `v1.7` 早期草案的 Optional CPA PK Curve 已在 v1.10.0 以默认关闭、一室模型交付。
 
-## 未立项候选 — Optional CPA PK Curve（v1.7 早期草案，未随 v1.7 发布）
+## Optional CPA PK Curve（v1.7 早期草案，v1.10.0 交付）
 
-- [ ] 在独立科学、来源和回归评估通过后，增加默认关闭且单位独立的 CPA 估算曲线。
+- [x] 默认关闭且单位独立的 CPA 估算曲线（一室模型，参数取自 Androcur 说明书）。
+- [ ] 双室模型：需可引用的拟合参数后再评估，以改善单次服药峰值的低估。
 
 ## Deferred
 

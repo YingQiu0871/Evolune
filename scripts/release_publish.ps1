@@ -5,6 +5,7 @@ param(
     [Parameter(Mandatory)][string]$Commit,        # the main merge commit the tag must point at
     [string]$NotesFile,                           # release notes markdown (optional)
     [string]$ExpectedCertSha256 = 'b9b6b955',
+    [string]$Repo = 'YingQiu0871/Evolune',        # GitHub repo for the Release (never the upstream fork)
     [switch]$Publish                              # without it: dry run, nothing is pushed or created
 )
 
@@ -39,6 +40,8 @@ $apksigner = Get-ChildItem -Path (Join-Path $sdkRoot 'build-tools') -Filter 'apk
     Sort-Object { [version]($_.Directory.Name -replace '[^0-9.].*$', '') } -Descending | Select-Object -First 1
 if (-not $apksigner) { throw 'apksigner.bat not found under ANDROID_SDK_ROOT\build-tools.' }
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI (gh) not found.' }
+# The checkout also has an `upstream` remote; without a pinned repo gh may resolve to it.
+$env:GH_REPO = $Repo
 
 function Test-ApkSignature([string]$Path) {
     $out = & $apksigner.FullName verify --print-certs $Path
@@ -73,7 +76,7 @@ if (& git -C $repoRoot ls-remote --tags origin "refs/tags/$tag") { throw "Tag $t
 & gh release view $tag 2>$null | Out-Null
 if ($LASTEXITCODE -eq 0) { throw "GitHub Release $tag already exists." }
 
-Write-Host "Plan: annotated tag $tag -> $fullCommit; Release $tag with $($names -join ', ')"
+Write-Host "Plan: annotated tag $tag -> $fullCommit; Release $tag on $Repo with $($names -join ', ')"
 if (-not $Publish) {
     Write-Host 'Dry run only. Re-run with -Publish to push the tag and create the Release.'
     return
