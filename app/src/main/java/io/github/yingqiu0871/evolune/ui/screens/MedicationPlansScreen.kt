@@ -19,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import io.github.yingqiu0871.evolune.ui.components.plusChrome
+import io.github.yingqiu0871.evolune.ui.components.chromeBottomPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -285,7 +287,10 @@ fun MedicationPlansScreenContent(
             LargeFloatingActionButton(
                 onClick = { if (interactionsEnabled) onAddClick() },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.testTag("plan-add")
+                // Keep the FAB above the translucent bottom bar the list scrolls under.
+                modifier = Modifier
+                    .padding(bottom = chromeBottomPadding())
+                    .testTag("plan-add")
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -297,9 +302,12 @@ fun MedicationPlansScreenContent(
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
+                .fillMaxSize(),
+            contentPadding = paddingValues.plusChrome(
+                    horizontal = 16.dp,
+                    top = 16.dp,
+                    bottom = 16.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (showNotificationPermissionSetup) {

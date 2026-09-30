@@ -8,6 +8,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import io.github.yingqiu0871.evolune.ui.components.plusChrome
+import io.github.yingqiu0871.evolune.ui.components.chromeBottomPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -110,6 +112,8 @@ private fun MedicationRecordsScreenContent(
             }
         },
         floatingActionButton = {
+            // Keep the FAB above the translucent bottom bar the list scrolls under.
+            Box(modifier = Modifier.padding(bottom = chromeBottomPadding())) {
             FloatingActionButtonMenu(
                 expanded = fabMenuExpanded,
                 button = {
@@ -188,6 +192,7 @@ private fun MedicationRecordsScreenContent(
                     }
                 }
             }
+            }
         },
         modifier = modifier
     ) { paddingValues ->
@@ -230,9 +235,12 @@ private fun MedicationRecordsScreenContent(
             
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
+                    .fillMaxSize(),
+                contentPadding = paddingValues.plusChrome(
+                    horizontal = 16.dp,
+                    top = 16.dp,
+                    bottom = 16.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(

@@ -133,7 +133,7 @@ class MotionListUxBoundaryTest {
 
         assertTrue(source.contains("Box(modifier = Modifier.fillMaxSize())"))
         assertTrue(source.contains("The top-level Scaffold stays intact"))
-        assertTrue(source.contains("BottomNavigationBar(navController = navController)"))
+        assertTrue(source.contains("BottomNavigationBar(navController = navController"))
         assertTrue(source.contains("NavigationRailBar(navController = navController)"))
         assertTrue(source.split("modifier = Modifier.fillMaxSize()").size - 1 >= 2)
         assertFalse(source.contains("navigationChromeState"))
