@@ -2,14 +2,15 @@ package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -24,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -105,7 +107,6 @@ internal fun SettingsImportExportBlock(
             onExportClick = onExportClick,
             onExportToClipboard = { showClipboardWarning = true }
         )
-        Spacer(modifier = Modifier.height(8.dp))
     }
 
     rangeDialogFormat?.let { format ->
@@ -186,12 +187,7 @@ private fun PortableSection(
     onImportJsonClick: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.portable_section_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        SettingsSubsectionTitle(title = stringResource(R.string.portable_section_title))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -233,14 +229,24 @@ private fun LegacySection(
     onExportClick: () -> Unit,
     onExportToClipboard: () -> Unit
 ) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = stringResource(R.string.settings_data_legacy_title),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Column(
+        // Rarely used compatibility actions stay one tap away but collapsed by default.
+        SegmentedListItem(
+            modifier = Modifier.testTag("settings-legacy-toggle"),
+            onClick = { expanded = !expanded },
+            shapes = stableSegmentedShapes(index = 0, count = 1),
+            colors = settingsListItemColors(),
+            leadingContent = { Icon(Icons.Outlined.History, null) },
+            trailingContent = {
+                Icon(
+                    imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                    contentDescription = null
+                )
+            },
+            supportingContent = { Text(stringResource(R.string.settings_legacy_group_desc)) }
+        ) { Text(stringResource(R.string.settings_data_legacy_title)) }
+        if (expanded) Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {

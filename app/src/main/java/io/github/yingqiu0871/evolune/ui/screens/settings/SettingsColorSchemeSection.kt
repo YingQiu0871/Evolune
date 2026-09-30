@@ -71,7 +71,7 @@ internal fun SettingsColorSchemeSection(
             .testTag("settings-color-scheme-section"),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SettingsSectionHeader(title = stringResource(R.string.settings_color_scheme_title))
+        SettingsSubsectionTitle(title = stringResource(R.string.settings_color_scheme_title))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)

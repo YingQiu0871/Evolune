@@ -2,15 +2,15 @@ package io.github.yingqiu0871.evolune.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.MonitorWeight
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +22,16 @@ import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.data.UserSettings
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
 import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncStatus
+import io.github.yingqiu0871.evolune.ui.components.settingsListItemColors
+import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
- * v1.7.2 Slice C — Health Connect controls inline in Sync & backup. Presentation only:
+ * Health Connect weight source, shown next to the body weight it feeds. Presentation only:
  * permission handling, consent flows and the existing SettingsDataStore owner are unchanged.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SettingsHealthConnectSection(
     settings: UserSettings,
@@ -39,137 +42,82 @@ internal fun SettingsHealthConnectSection(
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("MM-dd HH:mm")
         .withZone(ZoneId.systemDefault())
+    val showReauthorize = settings.healthConnectWeightSyncEnabled &&
+        state.status == HealthConnectWeightSyncStatus.PERMISSION_REQUIRED
+    val rowCount = if (showReauthorize) 3 else 2
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("settings-health-connect-section"),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Text(
-            text = stringResource(R.string.settings_sync_backup_health_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Text(
-            text = connectionStatusText(state.status),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .testTag("health-connect-sync-connection-status")
-        )
-        Text(
-            text = connectionDescriptionText(state.status),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        HorizontalDivider()
-        Text(
-            text = stringResource(R.string.settings_health_connect_sync_items),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        ListItem(
+        SegmentedListItem(
             modifier = Modifier.testTag("health-connect-weight-sync-row"),
-            headlineContent = {
-                Text(stringResource(R.string.settings_health_connect_sync_weight))
-            },
-            supportingContent = {
-                Text(stringResource(R.string.settings_health_connect_sync_weight_desc))
-            },
+            onClick = { onWeightSyncEnabledChange(!settings.healthConnectWeightSyncEnabled) },
+            shapes = stableSegmentedShapes(index = 0, count = rowCount),
+            colors = settingsListItemColors(),
+            leadingContent = { Icon(Icons.Outlined.MonitorWeight, contentDescription = null) },
             trailingContent = {
                 Switch(
                     modifier = Modifier.testTag("health-connect-weight-sync-switch"),
                     checked = settings.healthConnectWeightSyncEnabled,
                     onCheckedChange = onWeightSyncEnabledChange
                 )
-            }
-        )
-        if (state.lastWeightKg != null && state.lastAdoptedAt != null) {
-            Text(
-                text = stringResource(
-                    R.string.settings_health_connect_sync_last,
-                    state.lastWeightKg,
-                    dateFormatter.format(state.lastAdoptedAt)
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .testTag("health-connect-sync-last")
-            )
-        }
-        if (state.status == HealthConnectWeightSyncStatus.NO_DATA) {
-            Text(
-                text = stringResource(R.string.settings_health_connect_sync_no_data),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .testTag("health-connect-sync-no-data")
-            )
-        }
-
-        ListItem(
-            modifier = Modifier.testTag("health-connect-medication-sync-row"),
-            headlineContent = {
-                Text(stringResource(R.string.settings_health_connect_sync_medication))
             },
             supportingContent = {
-                Text(stringResource(R.string.settings_health_connect_sync_coming_soon))
-            },
-            trailingContent = {
-                Switch(
-                    modifier = Modifier.testTag("health-connect-medication-sync-switch"),
-                    checked = false,
-                    onCheckedChange = null,
-                    enabled = false
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(R.string.settings_health_connect_sync_weight_desc))
+                    Text(
+                        text = connectionStatusText(state.status) + " · " +
+                            connectionDescriptionText(state.status),
+                        modifier = Modifier.testTag("health-connect-sync-connection-status")
+                    )
+                    if (state.lastWeightKg != null && state.lastAdoptedAt != null) {
+                        Text(
+                            text = stringResource(
+                                R.string.settings_health_connect_sync_last,
+                                state.lastWeightKg,
+                                dateFormatter.format(state.lastAdoptedAt)
+                            ),
+                            modifier = Modifier.testTag("health-connect-sync-last")
+                        )
+                    }
+                    if (state.status == HealthConnectWeightSyncStatus.NO_DATA) {
+                        Text(
+                            text = stringResource(R.string.settings_health_connect_sync_no_data),
+                            modifier = Modifier.testTag("health-connect-sync-no-data")
+                        )
+                    }
+                }
+            }
+        ) { Text(stringResource(R.string.settings_health_connect_sync_weight)) }
+
+        if (showReauthorize) {
+            SegmentedListItem(
+                modifier = Modifier.testTag("health-connect-reauthorize"),
+                onClick = onReauthorize,
+                shapes = stableSegmentedShapes(index = 1, count = rowCount),
+                colors = settingsListItemColors(),
+                leadingContent = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
+                trailingContent = { Icon(Icons.Outlined.ChevronRight, contentDescription = null) }
+            ) { Text(stringResource(R.string.settings_health_connect_sync_reauthorize)) }
+        }
+
+        SegmentedListItem(
+            modifier = Modifier.testTag("health-connect-manage-permissions"),
+            onClick = onManagePermissions,
+            shapes = stableSegmentedShapes(index = rowCount - 1, count = rowCount),
+            colors = settingsListItemColors(),
+            leadingContent = { Icon(Icons.Outlined.VerifiedUser, contentDescription = null) },
+            trailingContent = { Icon(Icons.Outlined.ChevronRight, contentDescription = null) },
+            supportingContent = {
+                Text(
+                    text = permissionStatusText(state.status),
+                    modifier = Modifier.testTag("health-connect-weight-permission-status")
                 )
             }
-        )
-
-        HorizontalDivider()
-        Text(
-            text = stringResource(R.string.settings_health_connect_sync_permissions),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Text(
-            text = permissionStatusText(state.status),
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .testTag("health-connect-weight-permission-status")
-        )
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .testTag("health-connect-manage-permissions"),
-            onClick = onManagePermissions
-        ) {
-            Text(stringResource(R.string.settings_health_connect_sync_manage_permissions))
-        }
-        if (
-            settings.healthConnectWeightSyncEnabled &&
-            state.status == HealthConnectWeightSyncStatus.PERMISSION_REQUIRED
-        ) {
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .testTag("health-connect-reauthorize"),
-                onClick = onReauthorize
-            ) {
-                Text(stringResource(R.string.settings_health_connect_sync_reauthorize))
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.settings_health_connect_sync_deferred_note),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        ) { Text(stringResource(R.string.settings_health_connect_sync_manage_permissions)) }
     }
 }
 

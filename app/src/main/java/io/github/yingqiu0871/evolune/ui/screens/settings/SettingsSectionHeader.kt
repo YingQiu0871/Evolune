@@ -17,3 +17,14 @@ internal fun SettingsSectionHeader(title: String, modifier: Modifier = Modifier)
         modifier = modifier.padding(horizontal = 16.dp)
     )
 }
+
+/** Shared title for a group of controls inside a section (e.g. 夜间模式, 配色). */
+@Composable
+internal fun SettingsSubsectionTitle(title: String, modifier: Modifier = Modifier) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(horizontal = 16.dp)
+    )
+}

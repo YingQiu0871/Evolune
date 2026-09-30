@@ -216,6 +216,8 @@ class DataImportExportScreenTest {
         }
 
         composeRule.onNodeWithText("Legacy / Mahiro JSON v1 兼容").assertIsDisplayed()
+        // The legacy Mahiro actions are collapsed by default.
+        composeRule.onNodeWithTag("settings-legacy-toggle").performClick()
 
         composeRule.onNodeWithTag("settings-export-clipboard").performClick()
         composeRule.onNodeWithTag("legacy-clipboard-warning").assertIsDisplayed()

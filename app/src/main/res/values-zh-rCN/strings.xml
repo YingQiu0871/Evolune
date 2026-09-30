@@ -2,9 +2,11 @@
     <string name="app_name">Evolune</string>
 
     <string name="settings_title">设置</string>
-    <string name="settings_sync_backup_title">同步与备份</string>
-    <string name="settings_basic_data_title">基础数据</string>
-    <string name="settings_appearance_format_title">外观与格式</string>
+    <string name="settings_sync_backup_title">备份与数据</string>
+    <string name="settings_help_about_title">关于与帮助</string>
+    <string name="settings_legacy_group_desc">兼容 hrt.mahiro.uk 的导入导出，含剪贴板</string>
+    <string name="settings_basic_data_title">血药浓度计算</string>
+    <string name="settings_appearance_format_title">外观</string>
     <string name="settings_about_title">关于</string>
     <string name="settings_about_desc">官网、开发者信息、版权与免责声明</string>
     <string name="settings_guide_title">指南</string>
@@ -13,25 +15,17 @@
     <string name="settings_privacy_desc">隐私数据使用与权限说明</string>
     <string name="settings_feature_tutorial_title">功能教程</string>
     <string name="settings_feature_tutorial_desc">用药方案、记录、PK、Widget、Wear 与备份</string>
-    <string name="settings_sync_backup_health_title">健康数据</string>
-    <string name="settings_sync_backup_cloud_title">云备份</string>
     <string name="settings_sync_backup_google_drive_title">Google Drive 备份与恢复</string>
 
-    <string name="settings_weight_title">体重</string>
     <string name="settings_weight_desc">用于血药浓度计算</string>
     <string name="settings_weight_label">体重 (kg)</string>
     <string name="settings_weight_error">请输入有效的体重 (0–300 kg)</string>
 
-    <string name="settings_health_connect_sync_items">同步项目</string>
-    <string name="settings_health_connect_sync_weight">体重同步</string>
+    <string name="settings_health_connect_sync_weight">从 Health Connect 同步体重</string>
     <string name="settings_health_connect_sync_weight_desc">自动采用较新的 Health Connect 体重记录，用于血药浓度计算</string>
     <string name="settings_health_connect_sync_last">最近采用：%1$.1f kg · %2$s</string>
-    <string name="settings_health_connect_sync_medication">用药数据同步</string>
-    <string name="settings_health_connect_sync_coming_soon">暂未开放，计划在 v1.8 评估</string>
-    <string name="settings_health_connect_sync_permissions">权限</string>
     <string name="settings_health_connect_sync_manage_permissions">管理 Health Connect 权限</string>
     <string name="settings_health_connect_sync_reauthorize">重新授权体重读取</string>
-    <string name="settings_health_connect_sync_deferred_note">用药数据同步属于后续版本范围；当前仅支持前台体重读取。</string>
     <string name="settings_health_connect_sync_connected_desc">已获得体重读取权限，Evolune 会在前台检查新记录</string>
     <string name="settings_health_connect_sync_permission_desc">需要允许 Evolune 读取 Health Connect 中的体重数据</string>
     <string name="settings_health_connect_sync_unavailable_desc">当前设备没有可用的 Health Connect provider</string>
@@ -101,10 +95,6 @@
     <string name="settings_theme_mode_dark">深色</string>
     <string name="settings_theme_mode_amoled">OLED 全黑</string>
     <string name="settings_theme_mode_system">系统默认</string>
-    <string name="settings_theme_mode_light_desc">始终使用浅色主题</string>
-    <string name="settings_theme_mode_dark_desc">始终使用深色主题</string>
-    <string name="settings_theme_mode_amoled_desc">OLED 屏幕纯黑背景</string>
-    <string name="settings_theme_mode_system_desc">跟随系统设置</string>
 
     <string name="settings_color_theme_dynamic_desc">跟随系统动态着色 (Android 12+)</string>
 
@@ -118,9 +108,6 @@
     <string name="settings_time_format_system">跟随系统</string>
     <string name="settings_time_format_12h">12小时制</string>
     <string name="settings_time_format_24h">24小时制</string>
-    <string name="settings_time_format_system_desc">根据设备语言区域自动选择</string>
-    <string name="settings_time_format_12h_desc">始终使用12小时制</string>
-    <string name="settings_time_format_24h_desc">始终使用24小时制</string>
 
     <string name="settings_show_cpa_curve_title">显示 CPA 估算曲线</string>
     <string name="settings_show_cpa_curve_desc">在首页浓度图叠加醋酸环丙孕酮估算浓度（ng/mL，右侧坐标轴）。模型估算，非实测；单次服药峰值可能被低估。</string>
@@ -229,7 +216,6 @@
     <string name="portable_clipboard_warning_title">隐私提示</string>
     <string name="portable_clipboard_warning_message">旧版剪贴板导出会将用药记录复制到系统剪贴板。根据操作系统行为，其他应用或设备可能读取到这些数据。仍要继续吗？</string>
 
-    <string name="settings_update_title">更新</string>
     <string name="settings_auto_check_updates">自动检查更新</string>
     <string name="settings_check_updates_now">检查更新</string>
     <string name="settings_current_version">当前版本</string>

@@ -77,7 +77,6 @@ internal fun SettingsUpdateSection(
             .testTag("settings-update-section"),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SettingsSectionHeader(title = stringResource(R.string.settings_update_title))
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(2.dp)

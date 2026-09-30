@@ -11,8 +11,6 @@ import androidx.compose.ui.test.performScrollTo
 import io.github.yingqiu0871.evolune.backup.BackupRestoreUiState
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupGeneration
 import io.github.yingqiu0871.evolune.backup.cloud.CloudBackupId
-import io.github.yingqiu0871.evolune.data.UserSettings
-import io.github.yingqiu0871.evolune.healthconnect.HealthConnectWeightSyncState
 import io.github.yingqiu0871.evolune.ui.screens.settings.SettingsSyncBackupSection
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.viewmodel.ImportResult
@@ -25,15 +23,13 @@ class SyncAndBackupScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun syncAndBackupInlineSectionExposesLocalHealthAndDriveControls() {
+    fun syncAndBackupInlineSectionExposesLocalAndDriveControls() {
         val opened = mutableListOf<String>()
         composeRule.setContent {
             EvoluneTheme {
                 val snackbarHostState = remember { SnackbarHostState() }
                 TestScrollHost {
                     SettingsSyncBackupSection(
-                        settings = UserSettings(),
-                        healthConnectWeightSyncState = HealthConnectWeightSyncState(),
                         backupRestoreConnected = true,
                         importResult = ImportResult.Idle,
                         onDismissImportResult = {},
@@ -49,9 +45,6 @@ class SyncAndBackupScreenTest {
                         onImportPortableJson = {},
                         portableDialog = null,
                         onDismissPortableDialog = {},
-                        onWeightSyncEnabledChange = { opened += "health" },
-                        onReauthorize = {},
-                        onManagePermissions = {},
                         onOpenGoogleDrive = { opened += "drive" },
                         snackbarHostState = snackbarHostState
                     )
@@ -60,7 +53,6 @@ class SyncAndBackupScreenTest {
         }
 
         composeRule.onNodeWithTag("settings-import-export-block").assertIsDisplayed()
-        composeRule.onNodeWithTag("health-connect-weight-sync-switch").performScrollTo()
         composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
             .performScrollTo()
             .assertIsDisplayed()
@@ -89,6 +81,8 @@ class SyncAndBackupScreenTest {
             }
         }
 
+        // The legacy Mahiro actions are collapsed by default.
+        composeRule.onNodeWithTag("settings-legacy-toggle").performScrollTo().performClick()
         composeRule.onNodeWithTag("settings-import-json").assertIsDisplayed().performClick()
         composeRule.onNodeWithTag("settings-import-clipboard").performClick()
         composeRule.onNodeWithTag("settings-export-json").performClick()

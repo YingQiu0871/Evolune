@@ -124,11 +124,16 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .testTag("settings-root"),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             SettingsBasicDataSection(
-                bodyWeight = userSettings.bodyWeight,
-                onBodyWeightChange = onBodyWeightChange
+                settings = userSettings,
+                healthConnectWeightSyncState = healthConnectWeightSyncState,
+                onBodyWeightChange = onBodyWeightChange,
+                onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
+                onReauthorize = onHealthConnectReauthorize,
+                onManagePermissions = onHealthConnectManagePermissions,
+                onShowCpaCurveChange = onShowCpaCurveChange
             )
             SettingsAppearanceSection(
                 settings = userSettings,
@@ -136,12 +141,9 @@ fun SettingsScreen(
                 onSelectDynamicSource = onSelectDynamicSource,
                 onSelectPresetSource = onSelectPresetSource,
                 onPresetPaletteChange = onPresetPaletteChange,
-                onTimeFormatChange = onTimeFormatChange,
-                onShowCpaCurveChange = onShowCpaCurveChange
+                onTimeFormatChange = onTimeFormatChange
             )
             SettingsSyncBackupSection(
-                settings = userSettings,
-                healthConnectWeightSyncState = healthConnectWeightSyncState,
                 backupRestoreConnected = backupRestoreConnected,
                 importResult = importResult,
                 onDismissImportResult = onDismissImportResult,
@@ -157,24 +159,23 @@ fun SettingsScreen(
                 onImportPortableJson = onImportPortableJson,
                 portableDialog = portableDialog,
                 onDismissPortableDialog = onDismissPortableDialog,
-                onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
-                onReauthorize = onHealthConnectReauthorize,
-                onManagePermissions = onHealthConnectManagePermissions,
                 onOpenGoogleDrive = onOpenGoogleDrive,
-                snackbarHostState = snackbarHostState
-            )
-            SettingsUpdateSection(
-                autoCheckUpdates = userSettings.autoCheckUpdates,
-                onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
-                onCheckForUpdates = onCheckForUpdates,
-                updateCheckResult = updateCheckResult,
                 snackbarHostState = snackbarHostState
             )
             SettingsNavigationRowsSection(
                 onOpenGuide = onOpenGuide,
                 onOpenPrivacy = onOpenPrivacy,
                 onOpenFeatureTutorial = onOpenFeatureTutorial,
-                onOpenAbout = onOpenAbout
+                onOpenAbout = onOpenAbout,
+                updates = {
+                    SettingsUpdateSection(
+                        autoCheckUpdates = userSettings.autoCheckUpdates,
+                        onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
+                        onCheckForUpdates = onCheckForUpdates,
+                        updateCheckResult = updateCheckResult,
+                        snackbarHostState = snackbarHostState
+                    )
+                }
             )
         }
     }
