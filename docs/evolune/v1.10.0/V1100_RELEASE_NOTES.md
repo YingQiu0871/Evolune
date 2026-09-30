@@ -32,4 +32,10 @@ Evolune v1.10.0 adds an optional cyproterone acetate (CPA) estimated curve, keep
 
 ## 验证状态 / Verification status
 
-（发布前补充 / to be completed before publication）
+- **CI #93（`c739162`）通过**：`Build Debug APK` 工作流（`./gradlew test`、`:app:assembleDebug`、`:wear:assembleDebug`）。/ CI run #93 (`c739162`) passed.
+- **JVM**：`:app:testDebugUnitTest` 1,461 个测试，0 失败。新增 CPA 模型测试（与 Bateman 解析解、终末半衰期、稳态累积、剂量线性、非 CPA 排除对照）及 CPA 编排、历史页刷新、图表坐标轴测试。/ JVM: 1,461 app tests, 0 failures, including new CPA model, orchestration, History refresh and chart axis tests.
+- **androidTest（2026-09-30，本机 Pixel_7 AVD，Android 15 / API 35，zh-CN、1080×2400，Debug 构建）**：`:app:connectedDebugAndroidTest` **396 个测试，0 失败，0 错误，5 跳过**（与 v1.9.1 相同的条件门控跳过项）。/ androidTest: 396 tests, 0 failures, 0 errors, 5 condition-gated skips (same as v1.9.1), on the standard environment.
+- **签名 Release 构建（2026-09-30，所有者本机，候选提交 `c739162`）**：`scripts/release_verify.ps1` 以发布环境变量签名构建 Phone/Wear Release（含 R8）成功；versionName 1.10.0，versionCode 101100000 / 1101100000，两个 APK 的签名证书 SHA-256 均为 `b9b6b955…aab08`，与发布身份一致。哈希以 Release 附带的 `SHA256SUMS.txt` 为准。合并到 `main` 后相对该提交仅有文档变化（构建不嵌入 git 信息），因此发布的就是这两个 APK。/ Signed Release build from candidate `c739162` (R8): version 1.10.0, 101100000 / 1101100000, release certificate matches. Hashes: see the attached `SHA256SUMS.txt`. Only documentation differs after merging, so these APKs are published without a rebuild.
+- **模拟器冒烟（发布 APK 本身）**：在已安装 v1.9.0 正式版（保留数据）的 Pixel_7 AVD 上 `adb install -r` 覆盖升级到 1.10.0，首次安装时间与已有记录保留；首页、设置、历史可正常打开；开启 CPA 曲线并导入 CPA 记录后，R8 构建正确绘制 CPA 虚线与右轴，E2 当前浓度不变；无 Evolune 的 `FATAL EXCEPTION` 或 ANR。/ Emulator smoke on the release APK: in-place upgrade from v1.9.0 with data retained; Home, Settings and History open; the CPA curve renders correctly in the R8 build with E2 unchanged; no fatal exception or ANR.
+- 另在 Debug 构建上通过模拟器确认：历史页从三个子页面返回位置不变（列表底部与中部各测多次，像素级一致）；设置页新布局、预设色块显隐与「使用帮助」导航。/ Also confirmed on Debug builds: History return position (pixel-identical across repeated round trips), the new Settings layout, preset tile visibility and Help navigation.
+- **未覆盖**：Google Drive 加密备份/恢复、Phone↔Wear 配对同步、Wear 发布 APK 的安装冒烟（本次无 Wear 代码改动）、真机安装。/ Not covered: Google Drive backup/restore, paired Phone↔Wear sync, Wear release APK install smoke (no Wear code changes in this release), real-device installation.
