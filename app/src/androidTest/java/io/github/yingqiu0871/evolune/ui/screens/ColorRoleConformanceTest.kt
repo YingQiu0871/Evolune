@@ -184,7 +184,7 @@ class ColorRoleConformanceTest {
         composeRule.onNodeWithTag("theme-mode-amoled")
             .performScrollTo()
             .assertIsDisplayed()
-            .performClick()
+            .scrollToAndClick()
 
         composeRule.waitUntil(5_000L) {
             runBlocking { store.userSettings.first().themeMode == ThemeMode.AMOLED }
