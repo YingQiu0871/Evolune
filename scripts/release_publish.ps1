@@ -1,3 +1,6 @@
+#Requires -Version 7.0
+# Windows PowerShell 5.1 turns native stderr output (gh "not found", git push progress) into
+# terminating errors under ErrorActionPreference=Stop, which can abort a publish half-way.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$ArtifactDir,   # output folder of scripts/release_verify.ps1
