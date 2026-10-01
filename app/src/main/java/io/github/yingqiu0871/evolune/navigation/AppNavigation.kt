@@ -113,6 +113,16 @@ import io.github.yingqiu0871.evolune.export.readBoundedBytes
 import io.github.yingqiu0871.evolune.pk.AntiAndrogen
 import io.github.yingqiu0871.evolune.pk.SublingualTier
 import io.github.yingqiu0871.evolune.ui.components.EditorTransitionHost
+import io.github.yingqiu0871.evolune.ui.components.FrostedBackdrop
+import io.github.yingqiu0871.evolune.ui.components.LocalChromeInsets
+import io.github.yingqiu0871.evolune.ui.components.frostedGlass
+import io.github.yingqiu0871.evolune.ui.components.frostedSource
+import io.github.yingqiu0871.evolune.ui.components.rememberFrostedBackdrop
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import io.github.yingqiu0871.evolune.ui.components.ContextualAuthorizationDialog
 import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
@@ -160,6 +170,9 @@ import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
+
+/** Opacity of the tint laid over the blurred backdrop in the frosted top/bottom bars. */
+private const val FROSTED_TINT_ALPHA = 0.60f
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
@@ -802,6 +815,9 @@ fun AppNavigation(
 
     // The top-level Scaffold stays intact beneath full-screen editor layers so its
     // bottom inset and navigation geometry cannot change during editor transitions.
+    // Frosted chrome: primary tabs draw under the translucent top/bottom bars, which blur the
+    // content behind them. Full-screen child routes keep the opaque, space-reserving layout.
+    val frostedBackdrop = rememberFrostedBackdrop()
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             contentWindowInsets = WindowInsets.safeDrawing.only(
@@ -809,11 +825,12 @@ fun AppNavigation(
             ),
             bottomBar = {
                 if (!useNavigationRail && !isFullScreenSubroute) {
-                    BottomNavigationBar(navController = navController)
+                    BottomNavigationBar(navController = navController, backdrop = frostedBackdrop)
                 }
             },
             topBar = {
                 AppTopBar(
+                    backdrop = frostedBackdrop,
                     currentScreen = currentScreen,
                     alignWithNavigationRail = useNavigationRail && !isFullScreenSubroute,
                     onRefresh = hrtViewModel::runSimulation,
@@ -848,9 +865,22 @@ fun AppNavigation(
         var swipeDelta by remember { mutableFloatStateOf(0f) }
         val swipeThresholdPx = with(LocalDensity.current) { NAV_SWIPE_THRESHOLD_DP.dp.toPx() }
 
+        val layoutDirection = LocalLayoutDirection.current
+        val chromeTop = innerPadding.calculateTopPadding()
+        val chromeBottom = innerPadding.calculateBottomPadding()
+        val contentUnderChrome = !isFullScreenSubroute
         Row(
             modifier = Modifier
-                .padding(innerPadding)
+                .then(
+                    if (contentUnderChrome) {
+                        Modifier.padding(
+                            start = innerPadding.calculateStartPadding(layoutDirection),
+                            end = innerPadding.calculateEndPadding(layoutDirection)
+                        )
+                    } else {
+                        Modifier.padding(innerPadding)
+                    }
+                )
                 // 根 Scaffold 是 Horizontal+Bottom 安全区的唯一所有者：
                 // 消费掉这部分 inset，目的地内部的 Scaffold 取到的 safeDrawing
                 // 只剩 Top，不会再次叠加底部导航栏高度（Settings 底部异常色块的根因）。
@@ -858,12 +888,21 @@ fun AppNavigation(
                 .fillMaxSize()
         ) {
             if (useNavigationRail && !isFullScreenSubroute) {
-                NavigationRailBar(navController = navController)
+                Box(modifier = Modifier.padding(top = chromeTop, bottom = chromeBottom)) {
+                    NavigationRailBar(navController = navController)
+                }
             }
+            val chromeInsets = if (contentUnderChrome) {
+                WindowInsets(top = chromeTop, bottom = chromeBottom)
+            } else {
+                WindowInsets(0, 0, 0, 0)
+            }
+            CompositionLocalProvider(LocalChromeInsets provides chromeInsets) {
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
+                    .frostedSource(frostedBackdrop)
                     .testTag("app-content")
                     .pointerInput(Unit) {
                     detectHorizontalDragGestures(
@@ -1178,6 +1217,7 @@ fun AppNavigation(
             }
         }
         } // Box
+        } // CompositionLocalProvider
         } // Row
     }
 
@@ -1321,6 +1361,7 @@ private fun DoseEventOperationError.displayMessage(): String = when (this) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AppTopBar(
+    backdrop: FrostedBackdrop,
     currentScreen: Screen,
     alignWithNavigationRail: Boolean,
     onRefresh: () -> Unit,
@@ -1330,7 +1371,10 @@ private fun AppTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .frostedGlass(
+                backdrop = backdrop,
+                tint = MaterialTheme.colorScheme.surface.copy(alpha = FROSTED_TINT_ALPHA)
+            )
             .testTag("app-top-bar")
     ) {
         if (alignWithNavigationRail) {
@@ -1374,7 +1418,8 @@ private fun AppTopBar(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent,
                 titleContentColor = MaterialTheme.colorScheme.onSurface,
                 navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1439,12 +1484,21 @@ private fun navigateToTab(navController: NavHostController, screen: Screen) {
  */
 @Composable
 private fun BottomNavigationBar(
-    navController: NavHostController
+    navController: NavHostController,
+    backdrop: FrostedBackdrop
 ) {
     var lastNavigateAt by remember { mutableLongStateOf(0L) }
     val items = rememberNavItems()
 
-    NavigationBar(modifier = Modifier.testTag("navigation-bar")) {
+    NavigationBar(
+        modifier = Modifier
+            .testTag("navigation-bar")
+            .frostedGlass(
+                backdrop = backdrop,
+                tint = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = FROSTED_TINT_ALPHA)
+            ),
+        containerColor = Color.Transparent
+    ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 

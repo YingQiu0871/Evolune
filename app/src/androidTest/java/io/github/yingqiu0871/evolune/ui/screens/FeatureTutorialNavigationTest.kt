@@ -55,8 +55,7 @@ class FeatureTutorialNavigationTest {
         composeRule.waitForIdle()
         openSettings()
         composeRule.onNodeWithTag("settings-help-entry")
-            .performScrollTo()
-            .performClick()
+            .scrollToAndClick()
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("settings-feature-tutorial-entry")
                 .fetchSemanticsNodes().isNotEmpty()
