@@ -172,7 +172,7 @@ private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
 
 /** Opacity of the tint laid over the blurred backdrop in the frosted top/bottom bars. */
-private const val FROSTED_TINT_ALPHA = 0.72f
+private const val FROSTED_TINT_ALPHA = 0.60f
 private val NAVIGATION_RAIL_WIDTH = 80.dp
 private val NAVIGATION_RAIL_ITEM_SPACING = 4.dp
 
