@@ -3,51 +3,56 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
-Documentation updated on 2026-10-01 for the `v1.11.0` release (release branch merged into `main` with a normal
-merge commit; the annotated tag `v1.11.0` points at that merge commit). See the
+Documentation updated on 2026-10-01 for the `v1.11.1` release (release branch merged into `main` with a normal
+merge commit; the annotated tag `v1.11.1` points at that merge commit). See the
 [complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
 [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version: [`v1.11.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)
+- Stable version: [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
 - Release date: 2026-10-01
-- Release source: annotated tag `v1.11.0` → the `main` merge commit of the `release/v1.11.0` PR;
+- Release source: annotated tag `v1.11.1` → the `main` merge commit of the `release/v1.11.1` PR;
   preserve this tag
-- Previous sealed stable release: [`v1.10.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
-  (2026-09-30)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.11.0 GitHub Release
+- Previous sealed stable release: [`v1.11.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)
+  (2026-10-01)
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.11.1 GitHub Release
 
-v1.11.0 gives the top app bar and bottom navigation bar a frosted-glass look (primary-tab content scrolls
-under the bars, which blur it; no new dependency) and moves the widget refresh and Wear snapshot/dashboard
+v1.11.1 is a fix release: after a dose record is added, the Records list scrolls to it instead of leaving it
+behind the top bar. See the [v1.11.1 release notes](v1.11.1/V1111_RELEASE_NOTES.md).
+
+v1.11.0 (previous) gave the top app bar and bottom navigation bar a frosted-glass look (primary-tab content scrolls
+under the bars, which blur it; no new dependency) and moved the widget refresh and Wear snapshot/dashboard
 work that follows every dose or plan change off the main thread. There is no Room schema migration and no
 backup or Portable format change. See the [v1.11.0 release notes](v1.11.0/V1110_RELEASE_NOTES.md).
 
-v1.10.0 (previous) added an optional, default-off cyproterone acetate (CPA) estimated curve on the Home chart (its own
-ng/mL right axis; E2 values, Widgets, Wear and Retrospective PK unchanged), keeps the History scroll position
-when returning from Insights / Retrospective PK / Timeline, and regroups the Settings page. There is no Room
+v1.10.0 (earlier) added an optional, default-off cyproterone acetate (CPA) estimated curve on the Home chart (its own
+ng/mL right axis; E2 values, Widgets, Wear and Retrospective PK unchanged), kept the History scroll position
+when returning from Insights / Retrospective PK / Timeline, and regrouped the Settings page. There is no Room
 schema migration and no backup or Portable format change. See the
 [v1.10.0 release notes](v1.10.0/V1100_RELEASE_NOTES.md).
 
-## v1.11.0 Release Identity
+## v1.11.1 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.11.0 (101110000)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.11.0 (1101110000)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.11.1 (101110100)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.11.1 (1101110100)` | 30 |
 
 APK sizes and SHA-256 values are not repeated here; use the `SHA256SUMS.txt` attached to the
-[v1.11.0 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0) as the source of truth
+[v1.11.1 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1) as the source of truth
 (policy: [Release Process](../release/RELEASE_PROCESS.md)).
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
 `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
 Debug builds use a separate `.debug` application ID suffix and signing identity.
 
-### v1.10.0 / v1.9.1 Release Identity (previous)
+### v1.11.0 / v1.10.0 / v1.9.1 Release Identity (previous)
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
+| Phone | `io.github.yingqiu0871.evolune` | `1.11.0 (101110000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.11.0 (1101110000)` | 30 |
 | Phone | `io.github.yingqiu0871.evolune` | `1.10.0 (101100000)` | 31 |
 | Wear | `io.github.yingqiu0871.evolune` | `1.10.0 (1101100000)` | 30 |
 | Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
@@ -76,8 +81,9 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.9.1` | 2026-09-29 | Code audit and slimming: dead code, unused resources and imports removed |
 | `v1.10.0` | 2026-09-30 | Optional CPA estimated curve, History scroll-position return, Settings regrouping |
 | `v1.11.0` | 2026-10-01 | Frosted-glass top and bottom bars; widget and Wear sync work moved off the main thread |
+| `v1.11.1` | 2026-10-01 | Fix: Records list scrolls to a newly added record |
 
-Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.0 dates are the recorded GitHub Release
+Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.1 dates are the recorded GitHub Release
 publication dates. Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
@@ -107,7 +113,9 @@ from the previous one without clearing data.
 - **Code audit and slimming (v1.9.1):** dead code, unused resources and imports removed.
 - **CPA curve, History and Settings (v1.10.0):** optional default-off CPA estimated curve on the Home chart,
   History scroll-position return, Settings regrouped by purpose.
-- **Frosted bars and background sync (v1.11.0):** see Current Release above.
+- **Frosted bars and background sync (v1.11.0):** frosted-glass top and bottom bars; widget refresh and Wear
+  snapshot/dashboard work moved off the main thread.
+- **Records scroll fix (v1.11.1):** see Current Release above.
 
 ## Widget Gallery Capabilities (shipped v1.6, carried forward)
 
@@ -555,7 +563,10 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     `release/v1.11.0` 以普通 merge commit 合入 `main`，annotated tag `v1.11.0` 指向发布合并提交；
     1.11.0 / Phone 101110000 / Wear 1101110000；无 schema、备份格式或 Portable 格式变化；release notes
     [`v1.11.0/V1110_RELEASE_NOTES.md`](v1.11.0/V1110_RELEASE_NOTES.md)）。
-  - **NEXT:** 无已授权的后续里程碑。v1.11.0 已封版；新版本需单独立项（候选见 Current Limitations 与
+  - **v1.11.1 记录页新增记录后自动滚动 — RELEASED**（2026-10-01；PR #38 与 `release/v1.11.1` 以普通 merge commit
+    合入 `main`，annotated tag `v1.11.1` 指向发布合并提交；1.11.1 / Phone 101110100 / Wear 1101110100；release notes
+    [`v1.11.1/V1111_RELEASE_NOTES.md`](v1.11.1/V1111_RELEASE_NOTES.md)）。
+  - **NEXT:** 无已授权的后续里程碑。v1.11.1 已封版；新版本需单独立项（候选见 Current Limitations 与
     [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
