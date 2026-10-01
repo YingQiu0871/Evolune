@@ -3,46 +3,53 @@
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
 
-Documentation updated on 2026-09-30 for the `v1.10.0` release (feature branch merged into `main` with a normal
-merge commit; the annotated tag `v1.10.0` points at that merge commit). See the
+Documentation updated on 2026-10-01 for the `v1.11.0` release (release branch merged into `main` with a normal
+merge commit; the annotated tag `v1.11.0` points at that merge commit). See the
 [complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
 [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version: [`v1.10.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
-- Release date: 2026-09-30
-- Release source: annotated tag `v1.10.0` → the `main` merge commit of the `feature/v1.10-cpa-curve` PR;
+- Stable version: [`v1.11.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)
+- Release date: 2026-10-01
+- Release source: annotated tag `v1.11.0` → the `main` merge commit of the `release/v1.11.0` PR;
   preserve this tag
-- Previous sealed stable release: [`v1.9.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
-  (2026-09-29)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.10.0 GitHub Release
+- Previous sealed stable release: [`v1.10.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
+  (2026-09-30)
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.11.0 GitHub Release
 
-v1.10.0 adds an optional, default-off cyproterone acetate (CPA) estimated curve on the Home chart (its own
+v1.11.0 gives the top app bar and bottom navigation bar a frosted-glass look (primary-tab content scrolls
+under the bars, which blur it; no new dependency) and moves the widget refresh and Wear snapshot/dashboard
+work that follows every dose or plan change off the main thread. There is no Room schema migration and no
+backup or Portable format change. See the [v1.11.0 release notes](v1.11.0/V1110_RELEASE_NOTES.md).
+
+v1.10.0 (previous) added an optional, default-off cyproterone acetate (CPA) estimated curve on the Home chart (its own
 ng/mL right axis; E2 values, Widgets, Wear and Retrospective PK unchanged), keeps the History scroll position
 when returning from Insights / Retrospective PK / Timeline, and regroups the Settings page. There is no Room
 schema migration and no backup or Portable format change. See the
 [v1.10.0 release notes](v1.10.0/V1100_RELEASE_NOTES.md).
 
-## v1.10.0 Release Identity
+## v1.11.0 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.10.0 (101100000)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.10.0 (1101100000)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.11.0 (101110000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.11.0 (1101110000)` | 30 |
 
 APK sizes and SHA-256 values are not repeated here; use the `SHA256SUMS.txt` attached to the
-[v1.10.0 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0) as the source of truth
+[v1.11.0 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0) as the source of truth
 (policy: [Release Process](../release/RELEASE_PROCESS.md)).
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
 `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
 Debug builds use a separate `.debug` application ID suffix and signing identity.
 
-### v1.9.1 Release Identity (previous)
+### v1.10.0 / v1.9.1 Release Identity (previous)
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
+| Phone | `io.github.yingqiu0871.evolune` | `1.10.0 (101100000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.10.0 (1101100000)` | 30 |
 | Phone | `io.github.yingqiu0871.evolune` | `1.9.1 (101090100)` | 31 |
 | Wear | `io.github.yingqiu0871.evolune` | `1.9.1 (1101090100)` | 30 |
 
@@ -68,12 +75,13 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.9.0` | 2026-09-28 | Maintenance: checkout-reproducible tests, dependency and configuration cleanup |
 | `v1.9.1` | 2026-09-29 | Code audit and slimming: dead code, unused resources and imports removed |
 | `v1.10.0` | 2026-09-30 | Optional CPA estimated curve, History scroll-position return, Settings regrouping |
+| `v1.11.0` | 2026-10-01 | Frosted-glass top and bottom bars; widget and Wear sync work moved off the main thread |
 
-Dates for v1.7.x are the tag commit dates; v1.8.0–v1.10.0 dates are the recorded GitHub Release
+Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.0 dates are the recorded GitHub Release
 publication dates. Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
-## Shipped Since v1.6 (v1.7–v1.10)
+## Shipped Since v1.6 (v1.7–v1.11)
 
 - **History and Timeline (v1.7.0):** day-by-day medication activity that separates planned occurrences
   from actual intake, with timing differences; a monthly Timeline of matched, unrecorded-schedule and
@@ -97,7 +105,9 @@ from the previous one without clearing data.
 - **Maintenance (v1.9.0):** checkout-reproducible tests, one redundant direct dependency declaration and
   unused Glance catalog metadata / obsolete ProGuard keep rules removed.
 - **Code audit and slimming (v1.9.1):** dead code, unused resources and imports removed.
-- **CPA curve, History and Settings (v1.10.0):** see Current Release above.
+- **CPA curve, History and Settings (v1.10.0):** optional default-off CPA estimated curve on the Home chart,
+  History scroll-position return, Settings regrouped by purpose.
+- **Frosted bars and background sync (v1.11.0):** see Current Release above.
 
 ## Widget Gallery Capabilities (shipped v1.6, carried forward)
 
@@ -541,8 +551,12 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     1.10.0 / Phone 101100000 / Wear 1101100000；无 schema、备份格式或 Portable 格式变化，E2 PK 数值不变；
     规划 [`v1.10/V110_CPA_CURVE_PLAN.md`](v1.10/V110_CPA_CURVE_PLAN.md)，release notes
     [`v1.10.0/V1100_RELEASE_NOTES.md`](v1.10.0/V1100_RELEASE_NOTES.md)）。
-  - **NEXT:** 无已授权的后续里程碑。v1.10.0 已封版；新版本需单独立项（候选见 Current Limitations 与
-    [ROADMAP](ROADMAP.md)；半透明界面设计待评估）。
+  - **v1.11.0 毛玻璃导航栏 / Widget 与手表同步移出主线程 — RELEASED**（2026-10-01；PR #34、#35、#36 与
+    `release/v1.11.0` 以普通 merge commit 合入 `main`，annotated tag `v1.11.0` 指向发布合并提交；
+    1.11.0 / Phone 101110000 / Wear 1101110000；无 schema、备份格式或 Portable 格式变化；release notes
+    [`v1.11.0/V1110_RELEASE_NOTES.md`](v1.11.0/V1110_RELEASE_NOTES.md)）。
+  - **NEXT:** 无已授权的后续里程碑。v1.11.0 已封版；新版本需单独立项（候选见 Current Limitations 与
+    [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
     Coordinator 42（独立复审已核实最终 XML 计数与六个 R1 增项）；历史已批准证据不回写，后续

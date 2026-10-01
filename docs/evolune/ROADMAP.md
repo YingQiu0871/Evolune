@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图记录截至 2026-09-30 已发布的 v1.0.0–v1.10.0（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4、v1.9.1 维护版本），并从 v1.10.0 基线向后规划；
+本路线图记录截至 2026-10-01 已发布的 v1.0.0–v1.11.0（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4、v1.9.1 维护版本），并从 v1.11.0 基线向后规划；
 当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
 [Migration Plan](MIGRATION_PLAN.md)。
 
@@ -108,9 +108,26 @@ History & Insights 版本已发布并封存；[`v1.7.0` GitHub Release](https://
 发布范围：History 与回顾性 PK 的后台处理与刷新成本、首页时钟与边界刷新的生命周期约束、
 Home 模拟的协作式取消、被中断恢复流程的安全回滚、更新检查取消处理。无 schema、备份格式或用药语义变化。
 
+### v1.11.0 — 2026-10-01
+
+当前公开稳定版本已发布并封存；[`v1.11.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)
+绑定不可变 annotated tag `v1.11.0`（指向 `release/v1.11.0` PR 在 `main` 上的普通合并提交），包含 Phone APK、
+Wear APK 与 `SHA256SUMS.txt` 三个资产。
+
+发布范围：
+
+- 毛玻璃导航栏：五个主页面的内容滚动到顶部标题栏和底部导航栏下方，两个栏对其后方内容做模糊并叠加半透明底色；
+  浅色、深色、OLED 全黑与侧边导航栏布局均适用；未新增依赖。
+- 性能：每次用药记录或方案变化后的 Widget 刷新、手表快照发布与手表仪表盘同步移出主线程（修复「记录」页一键添加时的停顿）。
+- 发布脚本要求 PowerShell 7，并固定 GitHub 目标仓库。
+- 无 Room schema 迁移、无备份或 Portable 格式变化、PK 数值代码未改。详见
+  [v1.11.0 发布说明](v1.11.0/V1110_RELEASE_NOTES.md)。
+
+`v1.11.0` tag 与 GitHub Release 保持封存；后续工作不会移动或重建该 tag。
+
 ### v1.10.0 — 2026-09-30
 
-当前公开稳定版本已发布并封存；[`v1.10.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
+上一公开稳定版本，已发布并封存；[`v1.10.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.10.0)
 绑定不可变 annotated tag `v1.10.0`（指向 `feature/v1.10-cpa-curve` PR 在 `main` 上的普通合并提交），包含 Phone APK、
 Wear APK 与 `SHA256SUMS.txt` 三个资产。
 
@@ -128,7 +145,7 @@ Wear APK 与 `SHA256SUMS.txt` 三个资产。
 
 ### v1.9.1 — 2026-09-29
 
-上一公开稳定版本，已发布并封存；[`v1.9.1` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
+较早的公开稳定版本，已发布并封存；[`v1.9.1` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.9.1)
 绑定不可变 annotated tag `v1.9.1`（指向 PR #31 在 `main` 上的普通合并提交），包含 Phone APK、Wear APK 与
 `SHA256SUMS.txt` 三个资产。
 
@@ -436,7 +453,9 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
 - **v1.10.0 · CPA 估算曲线 / 历史页返回位置 / 设置页重排 — RELEASED**（2026-09-30；规划
   [`v1.10/V110_CPA_CURVE_PLAN.md`](v1.10/V110_CPA_CURVE_PLAN.md)，release notes
   [`v1.10.0/V1100_RELEASE_NOTES.md`](v1.10.0/V1100_RELEASE_NOTES.md)）。
-  **NEXT:** 无已授权的后续里程碑；新版本需单独立项（半透明界面设计待评估）。
+- **v1.11.0 · 毛玻璃导航栏 / Widget 与手表同步移出主线程 — RELEASED**（2026-10-01；release notes
+  [`v1.11.0/V1110_RELEASE_NOTES.md`](v1.11.0/V1110_RELEASE_NOTES.md)）。
+  **NEXT:** 无已授权的后续里程碑；新版本需单独立项。
 
 ## Historical and future milestones
 
