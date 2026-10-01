@@ -57,7 +57,9 @@ import io.github.yingqiu0871.evolune.wear.WearAppDataLayer
 import io.github.yingqiu0871.evolune.wear.WearAppProducerIdentityStore
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotBuilder
 import io.github.yingqiu0871.evolune.wear.WearAppSnapshotRevisionStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 internal fun initialRouteForIntent(action: String?): String? = when (action) {
     "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
@@ -234,23 +236,30 @@ class MainActivity : ComponentActivity() {
                         WidgetUpdateReason.PLAN_CHANGED
                     )
                 }
+                // The Wear dashboard and snapshot effects read the database and build payloads
+                // from every plan and event. They are launched from composition, so they hop off
+                // the main thread; otherwise each dose/plan change stalls the UI (visible as a
+                // hitch when quick-adding a record).
                 LaunchedEffect(
                     domainMedicationPlans,
                     pkState.simulationResult,
                     pkState.currentConcentration
                 ) {
-                    val plans = runCatching {
-                        productionRepositoryProvider.medicationPlans.observeAll().first()
-                    }.getOrNull() ?: return@LaunchedEffect
-                    WearDataLayer.syncDashboard(
-                        applicationContext,
-                        plans.filter { it.isEnabled }.take(2),
-                        pkState.currentConcentration,
-                        io.github.yingqiu0871.evolune.wear.sampleWearCurve(
-                            pkState.simulationResult,
-                            pkState.currentTimeH
+                    val dashboardPkState = pkState
+                    withContext(Dispatchers.Default) {
+                        val plans = runCatching {
+                            productionRepositoryProvider.medicationPlans.observeAll().first()
+                        }.getOrNull() ?: return@withContext
+                        WearDataLayer.syncDashboard(
+                            applicationContext,
+                            plans.filter { it.isEnabled }.take(2),
+                            dashboardPkState.currentConcentration,
+                            io.github.yingqiu0871.evolune.wear.sampleWearCurve(
+                                dashboardPkState.simulationResult,
+                                dashboardPkState.currentTimeH
+                            )
                         )
-                    )
+                    }
                 }
                 LaunchedEffect(
                     domainMedicationPlans,
@@ -261,27 +270,33 @@ class MainActivity : ComponentActivity() {
                     pkState.error
                 ) {
                     if (pkState.isSimulating) return@LaunchedEffect
-                    io.github.yingqiu0871.evolune.wear.withReservedWearAppSnapshotRevision(
-                        reserveRevision = {
-                            WearAppSnapshotRevisionStore.reserve(applicationContext)
-                        }
-                    ) { snapshotRevision ->
-                        WearAppDataLayer.publishSnapshot(
-                            context = applicationContext,
-                            snapshot = WearAppSnapshotBuilder.build(
-                                plans = domainMedicationPlans,
-                                events = doseEvents,
-                                generatedAt = java.time.Instant.now(),
-                                zoneId = java.time.ZoneId.systemDefault(),
-                                snapshotRevision = snapshotRevision,
-                                currentConcentration = pkState.currentConcentration,
-                                concentrationCalculatedAt = pkState.concentrationCalculatedAt,
-                                concentrationError = pkState.error != null,
-                                producerIdentity = WearAppProducerIdentityStore.current(
-                                    applicationContext
+                    val snapshotPlans = domainMedicationPlans
+                    val snapshotEvents = doseEvents
+                    val snapshotPkState = pkState
+                    withContext(Dispatchers.Default) {
+                        io.github.yingqiu0871.evolune.wear.withReservedWearAppSnapshotRevision(
+                            reserveRevision = {
+                                WearAppSnapshotRevisionStore.reserve(applicationContext)
+                            }
+                        ) { snapshotRevision ->
+                            WearAppDataLayer.publishSnapshot(
+                                context = applicationContext,
+                                snapshot = WearAppSnapshotBuilder.build(
+                                    plans = snapshotPlans,
+                                    events = snapshotEvents,
+                                    generatedAt = java.time.Instant.now(),
+                                    zoneId = java.time.ZoneId.systemDefault(),
+                                    snapshotRevision = snapshotRevision,
+                                    currentConcentration = snapshotPkState.currentConcentration,
+                                    concentrationCalculatedAt =
+                                        snapshotPkState.concentrationCalculatedAt,
+                                    concentrationError = snapshotPkState.error != null,
+                                    producerIdentity = WearAppProducerIdentityStore.current(
+                                        applicationContext
+                                    )
                                 )
                             )
-                        )
+                        }
                     }
                 }
                 

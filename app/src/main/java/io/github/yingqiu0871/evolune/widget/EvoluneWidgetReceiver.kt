@@ -858,11 +858,15 @@ internal suspend fun requestEvoluneWidgetUpdate(
     reason: WidgetUpdateReason,
     appWidgetIds: IntArray? = null
 ) {
-    val applicationContext = context.applicationContext
-    val manager = AppWidgetManager.getInstance(applicationContext)
-    val ids = appWidgetIds ?: WidgetProviderCatalog.allWidgetIds(applicationContext)
-    val work = createProductionWidgetUpdateWork(applicationContext, manager)
-    ContractWidgetUpdateCoordinator { work.handle(ids) }.request(reason)
+    // Loading the snapshot (database reads + PK math) and building RemoteViews is too heavy for
+    // the main thread; callers include composition-launched effects in MainActivity.
+    withContext(Dispatchers.Default) {
+        val applicationContext = context.applicationContext
+        val manager = AppWidgetManager.getInstance(applicationContext)
+        val ids = appWidgetIds ?: WidgetProviderCatalog.allWidgetIds(applicationContext)
+        val work = createProductionWidgetUpdateWork(applicationContext, manager)
+        ContractWidgetUpdateCoordinator { work.handle(ids) }.request(reason)
+    }
 }
 
 private fun createProductionWidgetUpdateWork(
