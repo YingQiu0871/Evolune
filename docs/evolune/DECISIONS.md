@@ -1,7 +1,7 @@
 # 架构决策记录
 
 This file preserves historical decision context. The index below was reconciled through v1.6.0 on
-2026-09-12 and extended through v1.9.0 on 2026-09-29. Original ADR backgrounds describe their decision-time state, not current missing features.
+2026-09-12, extended through v1.9.0 on 2026-09-29 and checked against v1.11.1 on 2026-10-01. Original ADR backgrounds describe their decision-time state, not current missing features.
 Current implementation is in [Architecture](ARCHITECTURE.md); release evidence is in the [version review](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current status index
@@ -31,7 +31,7 @@ Current implementation is in [Architecture](ARCHITECTURE.md); release evidence i
 
 ## Decisions since v1.6 (recorded in version documents)
 
-The v1.7–v1.9 semantic and process decisions were recorded, frozen and independently reviewed in their own version folders rather than as new numbered ADRs. Pointers:
+The v1.7–v1.10 semantic and process decisions were recorded, frozen and independently reviewed in their own version folders rather than as new numbered ADRs. Pointers:
 
 | Topic | Where it is recorded |
 |---|---|
@@ -41,6 +41,7 @@ The v1.7–v1.9 semantic and process decisions were recorded, frozen and indepen
 | Portable export/import | [v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md](v1.7/V17_E_EXPORT_DATA_PORTABILITY_CONTRACT.md) |
 | Flat Settings, app palettes, legacy theme continuity, backup schema v2 | [v1.7.2/V172_CONTRACT.md](v1.7.2/V172_CONTRACT.md) |
 | Release-graph proof before removing a dependency (v1.9.0 D-01) | [v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md](v1.9.0/V19_D_01_RELEASE_GRAPH_DEAD_DEPENDENCY_PROOF_PLAN.md) |
+| Optional CPA estimated curve (v1.10.0): parameter review, default off, separate path with zero E2/Widget/Wear/Retrospective PK impact, explicit CPA type code only, separate ng/mL axis, Home chart only, local preference outside backup/restore/export | [v1.10/V110_CPA_CURVE_PLAN.md](v1.10/V110_CPA_CURVE_PLAN.md) (frozen semantics S1–S9), deviations in [V110_IMPLEMENTATION_REPORT.md](v1.10/V110_IMPLEMENTATION_REPORT.md) |
 
 ## ADR-001：保持 Evolune 使用 MIT
 

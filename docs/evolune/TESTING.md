@@ -2,7 +2,8 @@
 
 ## 标准 androidTest 环境 / Standard androidTest environment
 
-`app` 的 androidTest（约 396 个设备测试）里，Insights / Timeline 的 UI 测试依赖固定的语言与屏幕：
+截至 v1.11.1（2026-10-01），`app` 的 androidTest 共 396 个设备测试；v1.10.0、v1.11.0 与 v1.11.1 发布前在下表标准环境上
+均为 396 个测试、0 失败、0 错误、5 个条件门控跳过（详见各版本发布说明）。其中 Insights / Timeline 的 UI 测试依赖固定的语言与屏幕：Insights / Timeline 的 UI 测试依赖固定的语言与屏幕：
 
 | 项目 | 标准值 |
 |---|---|
@@ -16,6 +17,12 @@
 7 个因屏幕太矮导致 lazy 列表节点不在组合范围内。v1.9.0 基线在同一模拟器上失败的也是这 8 个，
 这是环境前提，不是回归。/ On the AVD defaults (en-US, 1080×1920) 8 Insights/Timeline tests fail; this is an
 environment precondition, not a regression.
+
+自 v1.11.0 起主页面内容会滚动到半透明（毛玻璃）底栏下方：`performScrollTo()` 之后节点可能位于底栏之后，
+坐标点击会落在导航项上，因此真实 Activity 的设置页流程测试改用语义点击 `scrollToAndClick()`。切换标签页的测试
+应重试直到目标标签被选中，以避开 200 ms 导航防连点窗口。/ Since v1.11.0 primary-tab content scrolls under the
+translucent bottom bar; real-activity flows click through semantics (`scrollToAndClick()`), and tab-switching
+helpers retry until the tab is selected because of the 200 ms navigation throttle.
 
 ## 本地 / Local
 
@@ -40,4 +47,4 @@ environment precondition, not a regression.
 
 首次 CI 运行（2026-09-29，PR #32，core 范围）：环境确认为 zh-CN / 1080x2400 / API 35，92 个 insights + timeline 设备测试全部通过，
 模拟器任务总耗时约 9 分 19 秒。PR 中只改动该 workflow 或 `scripts/android_test_env.sh` 时也会触发它。
-`full` 范围（约 396 个测试）尚未在 CI 上跑过，耗时未知。
+`full` 范围（396 个测试）尚未在 CI 上跑过，耗时未知；上述 396 项结果均来自本机标准 AVD。

@@ -1,8 +1,8 @@
 # 架构
 
-本文描述截至 v1.9.0 的生产架构（2026-09-29 更新；v1.6 基线于 2026-09-12 盘点，v1.7–v1.9 增补），历史兼容路径单独标注。事实依据为 v1.9.0 tagged source（`d099998`）、v1.6.0 盘点与 [Current Status](CURRENT_STATUS.md)。
+本文描述截至 v1.11.1 的生产架构（2026-10-01 更新；v1.6 基线于 2026-09-12 盘点，v1.7–v1.11.1 增补），历史兼容路径单独标注。事实依据为 v1.11.1 发布源码（`main` 合并提交 `b929fe1`）、v1.6.0 盘点与 [Current Status](CURRENT_STATUS.md)。
 
-## Current Architecture (v1.6 baseline, extended through v1.9)
+## Current Architecture (v1.6 baseline, extended through v1.11.1)
 
 ### 模块与逻辑边界
 
@@ -72,12 +72,29 @@ History, Timeline, Insights and Retrospective PK are read-only consumers of one 
 - **Ownership and dispatch (v1.8.0).** One Activity-owned `MainFeatureServices` graph shares `HistoryReadService` across History, Timeline, Insights and Retrospective PK. Room owns its query executors; post-query History projection and Retrospective PK run on `Default`. Home simulation also runs on `Default` with cooperative cancellation, and Home clock and boundary refresh follow the lifecycle. Startup restore keeps the reviewed `runBlocking(IO)` gate.
 - **Export.** `export/` provides Evolune Portable JSON v1 (export and additive import with full prevalidation and stable event IDs) and CSV v1 (export only); it is independent of the encrypted `.evbackup` format.
 - **Theme.** `theme/palette/` is the shared palette authority for the app and Widgets (Dynamic plus eight presets, and a legacy built-in theme preserved for upgrades). Theme state is part of backup schema v2; v1 backups remain restorable.
+- **Refresh and scroll position (v1.10.0).** Returning to History from Insights, Retrospective PK or Timeline keeps the list position, and a refresh keeps already-loaded content instead of swapping in a loading placeholder (a deliberate adjustment of the v1.7 Phase A loading-state behavior).
+
+### Optional CPA estimated curve (v1.10+)
+
+A default-off cyproterone acetate (CPA) estimate shown only on the Home chart. Frozen semantics are in [v1.10/V110_CPA_CURVE_PLAN.md](v1.10/V110_CPA_CURVE_PLAN.md).
+
+- **Separate path.** `pk/cpa/CpaPk.kt` (`CpaPkParameters`, `CpaSimulator`, `CpaSeries`, `isCpaEvent`/`isCpaPlan`) is an oral one-compartment Bateman model with Androcur-derived parameters (terminal t½ 43.9 h, F 0.88, Vd 13.3 L/kg, ka 1.0 h⁻¹). It never enters `PkSimulationCalculator`, `PKState` or `SimulationEngine`; the E2 engine and its golden tests are unchanged. The model underestimates single-dose peaks and is always labelled as an estimate.
+- **Selection.** Only recorded anti-androgen events and enabled plans whose type code is CPA (`0.0`); missing or unknown type codes are never treated as CPA. No Room, backup or Portable format change.
+- **Orchestration.** `HRTViewModel.cpaState` is computed on `Default` with cooperative cancellation only while `UserSettings.showCpaCurve` is true, on the same time grid as E2; otherwise it is `null` and no CPA work runs.
+- **Presentation.** `ConcentrationChart` draws the series on its own right-hand ng/mL axis (E2 keeps pg/mL on the left; values are never summed). Widgets, Wear, Retrospective PK, Insights and History do not show it.
+- **Setting.** `showCpaCurve` (DataStore key `show_cpa_curve`) is a local display preference: not written by the backup codec, not touched by `replaceSettings` on restore, not exported.
+
+### App shell and navigation chrome (v1.10–v1.11)
+
+- **Settings (v1.10.0).** The Settings page is grouped by purpose: concentration estimate (body weight, Health Connect weight sync, CPA curve), appearance, backup & data (Google Drive first; legacy Mahiro JSON import/export collapsed by default) and help & about. The former feature-tutorial and guide rows are one Help entry (`HelpScreen`, a full-screen child route) that links to the feature tutorial and the first-run guide.
+- **Frosted bars (v1.11.0).** On the five primary tabs, content draws under the top app bar and the bottom navigation bar; in the navigation-rail (wide) layout only the top bar is frosted and the rail stays opaque. `ui/components/FrostedChrome.kt` records the content into a Compose `GraphicsLayer` and each bar redraws the part behind it through a RenderEffect blur under a 60% surface tint; scroll containers pad by the bar heights. No new dependency. Full-screen child routes keep the opaque, space-reserving layout.
+- **Records list (v1.11.1).** When exactly one record is added, the Records list scrolls to it; first composition and multi-record imports do not scroll.
 
 ### Widget pipeline
 
 The phone Widget is a RemoteViews AppWidget. `WidgetSnapshotLoader` reads enabled plans, their today's occurrences and PK events through Repository contracts, then builds a chronological responsive/scrollable snapshot with current concentration. Quick actions use a deterministic occurrence identity, validate plan and slot/date state, persist a `source=WIDGET` event with the actual click time, and only then refresh Widgets and show feedback.
 
-There is no separate Widget database and no production DAO bypass. v1.6 registers four providers:
+Since v1.11.0, `requestEvoluneWidgetUpdate` switches to `Dispatchers.Default` itself, so the in-app refresh after every dose-event or plan change no longer runs on the main thread; the receiver-driven path already ran in the background. There is no separate Widget database and no production DAO bypass. v1.6 registers four providers:
 `EvoluneWidgetReceiver` (today plan, preserving the old component), `NextDoseWidgetReceiver`,
 `CurrentE2WidgetReceiver` and `PkChartWidgetReceiver`. Each instance retains independent appearance.
 Today completion is part of today plan, not a fifth picker entry. `WidgetPresentation`/`WidgetUiMapper` and
@@ -117,6 +134,8 @@ The legacy transport above does not describe all current Wear traffic. Since v1.
 own contracts and Phone handlers, producer/revision checks and replay-safe results. v1.6 adds optional
 snapshot tag 11 `todaySummary`; its denominator comes from Phone's full-day occurrences, not the
 truncated upcoming list (maximum five occurrences).
+
+On Phone, the Wear App snapshot publication and Wear dashboard sync that `MainActivity` launches after dose-event or plan changes capture their inputs and run on `Dispatchers.Default` since v1.11.0; the Wear module itself is unchanged.
 
 `WearAppStore` is a rebuildable cache. Three new Tile services and three Short Text Complication
 providers consume it and share refresh coordination. The old `DoseTileService` component remains.
@@ -206,25 +225,21 @@ Shipped as v1.8.0 (2026-09-26): dispatcher ownership for History and Retrospecti
 
 ### v1.9: Maintenance (completed)
 
-Shipped as v1.9.0 (2026-09-28): checkout-reproducible tests (path-scoped line-ending rules and a source-read seam so golden byte fixtures are deterministic on CRLF checkouts), removal of one redundant direct dependency declaration (still provided transitively by Compose) and of unused Glance catalog metadata and obsolete Glance/ActionCallback ProGuard rules. No schema, backup-format or medication-semantics change. Deferred with no demonstrated benefit: E-01 duplicated lifecycle bridges and T-03 device-test sleeps.
+Shipped as v1.9.0 (2026-09-28): checkout-reproducible tests (path-scoped line-ending rules and a source-read seam so golden byte fixtures are deterministic on CRLF checkouts), removal of one redundant direct dependency declaration (still provided transitively by Compose) and of unused Glance catalog metadata and obsolete Glance/ActionCallback ProGuard rules. No schema, backup-format or medication-semantics change. Deferred with no demonstrated benefit: E-01 duplicated lifecycle bridges and T-03 device-test sleeps. v1.9.1 (2026-09-29) removed dead code, unused resources and imports without architectural change.
 
-### Candidate (not shipped): Optional CPA PK Curve
+### v1.10: Optional CPA curve, History and Settings (completed)
 
-An early v1.7 draft proposed this; it did not ship with v1.7 and is not scheduled.
+Shipped as v1.10.0 (2026-09-30). The CPA candidate first proposed in an early v1.7 draft was implemented after a Phase 0 audit and an independent parameter review against the Androcur product information (an external reference project was used only for cross-checking): independent CPA series, same chart time domain/plot area, separate unit semantics, default off, E2 output unaffected whether on or off. See "Optional CPA estimated curve" above. History scroll-position return and the Settings regrouping shipped in the same release. No Room schema, backup or Portable format change; Wear module unchanged.
 
-- independent CPA series;
-- same chart time domain/plot area;
-- separate unit semantics;
-- default off;
-- E2 output unaffected when off;
-- scientific parameters require independent evidence/source review;
-- no implementation parameter is authorized merely by being present in an external reference project.
+### v1.11: Frosted bars and off-main-thread sync (completed)
+
+Shipped as v1.11.0 (2026-10-01): frosted-glass top and bottom bars on the primary tabs, and widget refresh plus Wear snapshot/dashboard sync moved off the main thread. v1.11.1 (2026-10-01) fixed the Records list so a newly added record scrolls into view. No Room schema, backup or Portable format change, no PK numerics change, Wear module unchanged.
 
 ### Deferred evolution
 
 - Gradle module extraction may follow stable package boundaries when build/test isolation justifies it.
 - Tracked Date requires a separate product decision and domain design.
-- Personalized calibration and PK 2.0 require isolated scientific, provenance and regression review.
+- Personalized calibration and PK 2.0 require isolated scientific, provenance and regression review. A two-compartment CPA model, CPA on Widgets/Wear/Retrospective PK and other anti-androgen curves are out of the v1.10 scope.
 - SQLCipher requires a threat model and tested migration/key-recovery strategy.
 
 Future work must preserve v1.0 migration compatibility, stable IDs, scoped PK attribution, sealed release history and the explicit publication boundary.
