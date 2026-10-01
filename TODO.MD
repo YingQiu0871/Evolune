@@ -1,6 +1,6 @@
-# 后续路线（v1.11.0 已封版）
+# 后续路线（v1.11.1 已封版）
 
-截至 2026-10-01，v1.0–v1.11.0 已发布（最新稳定版 [v1.11.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)，
+截至 2026-10-01，v1.0–v1.11.1 已发布（最新稳定版 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)，
 2026-10-01）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
 当前状态见 [CURRENT_STATUS](docs/evolune/CURRENT_STATUS.md)，完整文档索引见
 [DOCUMENTATION_INDEX](docs/evolune/DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
@@ -373,8 +373,11 @@
       `docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md`）。
 - [x] v1.11.0 毛玻璃顶部/底部导航栏；用药记录变化后的 Widget 与手表同步移出主线程 — **RELEASED**
       （2026-10-01；release notes `docs/evolune/v1.11.0/V1110_RELEASE_NOTES.md`）。
-- [ ] NEXT：无已授权的后续里程碑。v1.11.0 已封版；任何新版本需单独立项、独立设计与评审。
-- [ ] 待真机确认：毛玻璃在低端设备上的滚动性能；一键添加卡顿是否已由后台化修复（模拟器无法复现）。
+- [x] v1.11.1 修复「记录」页添加记录后列表不自动滚动到新记录 — **RELEASED**（2026-10-01；release notes
+      `docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md`）。
+- [x] 真机确认（所有者，v1.11.0）：毛玻璃导航栏滚动流畅；一键添加不再卡顿。
+- [ ] NEXT：无已授权的后续里程碑。v1.11.1 已封版；任何新版本需单独立项、独立设计与评审。
+- [ ] 毛玻璃在低端设备上的滚动性能尚未专门测量。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
       无行为缺陷；② `TimelineGeometryTest` 未使用的 `assertCenteredBothAxes` helper 名称（both
