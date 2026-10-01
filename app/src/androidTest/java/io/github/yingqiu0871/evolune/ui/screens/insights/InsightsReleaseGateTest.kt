@@ -67,9 +67,19 @@ class InsightsReleaseGateTest {
         }
     }
 
+    /**
+     * The bottom bar ignores a click within 200 ms of the previous navigation, so a tab click can
+     * be dropped when the previous switch settles quickly; click again until the tab is selected.
+     */
     private fun selectTab(route: String) {
-        composeRule.onNodeWithTag("nav-bar-$route").performClick()
-        composeRule.waitForIdle()
+        composeRule.waitUntil(5_000L) {
+            composeRule.onNodeWithTag("nav-bar-$route").performClick()
+            composeRule.waitForIdle()
+            composeRule.onAllNodes(
+                androidx.compose.ui.test.hasTestTag("nav-bar-$route") and
+                    androidx.compose.ui.test.isSelected()
+            ).fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     private fun openInsights() {
