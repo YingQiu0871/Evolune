@@ -3,6 +3,7 @@ package io.github.yingqiu0871.evolune.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -233,7 +234,23 @@ private fun MedicationRecordsScreenContent(
                 events.sortedByDescending { it.occurredAt }
             }
             
+            // 列表按 key 锚定当前可见项，新记录插在其上方时不会自己露出来：
+            // 恰好新增一条时滚到它的位置（首次进入或批量导入不滚动）。
+            val listState = rememberLazyListState()
+            var knownIds by remember { mutableStateOf<Set<UUID>?>(null) }
+            LaunchedEffect(sortedEvents) {
+                val ids = sortedEvents.mapTo(HashSet()) { it.id }
+                val previous = knownIds
+                knownIds = ids
+                val added = previous?.let { ids - it }.orEmpty()
+                if (added.size == 1) {
+                    val index = sortedEvents.indexOfFirst { it.id == added.single() }
+                    if (index >= 0) listState.animateScrollToItem(index)
+                }
+            }
+
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .fillMaxSize(),
                 contentPadding = paddingValues.plusChrome(
