@@ -68,8 +68,7 @@ class SyncAndBackupNavigationTest {
             .assertIsDisplayed()
 
         composeRule.onNodeWithTag("settings-sync-backup-google-drive-entry")
-            .performScrollTo()
-            .performClick()
+            .scrollToAndClick()
         composeRule.waitUntil(5_000L) {
             composeRule.onAllNodesWithTag("google-drive-backup-now")
                 .fetchSemanticsNodes().isNotEmpty()
@@ -89,7 +88,7 @@ class SyncAndBackupNavigationTest {
         openRowAndReturn("settings-help-entry", assertTitle = R.string.settings_help_title)
 
         // 使用帮助 links to the tutorial and the first-run guide; both return to it.
-        composeRule.onNodeWithTag("settings-help-entry").performScrollTo().performClick()
+        composeRule.onNodeWithTag("settings-help-entry").scrollToAndClick()
         openHelpRowAndReturn("settings-feature-tutorial-entry", "feature-tutorial-step-title")
         openHelpRowAndReturn("settings-guide-entry", null)
         pressBack()
@@ -121,7 +120,7 @@ class SyncAndBackupNavigationTest {
         assertTag: String? = null,
         assertTitle: Int? = null
     ) {
-        composeRule.onNodeWithTag(entryTag).performScrollTo().performClick()
+        composeRule.onNodeWithTag(entryTag).scrollToAndClick()
         if (assertTag != null) {
             composeRule.waitUntil(5_000L) {
                 composeRule.onAllNodesWithTag(assertTag).fetchSemanticsNodes().isNotEmpty()

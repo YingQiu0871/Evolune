@@ -83,12 +83,12 @@ class SliceCSettingsSmokeTest {
         composeRule.onNodeWithTag("color-legacy-builtin-current").assertIsDisplayed()
         screenshot("02-legacy-builtin-state")
 
-        composeRule.onNodeWithTag("palette-tile-monet_blue").performScrollTo().performClick()
+        composeRule.onNodeWithTag("palette-tile-monet_blue").scrollToAndClick()
         composeRule.waitForIdle()
         Thread.sleep(400)
         screenshot("03-monet-blue-selected")
 
-        composeRule.onNodeWithTag("theme-mode-dark").performScrollTo().performClick()
+        composeRule.onNodeWithTag("theme-mode-dark").scrollToAndClick()
         composeRule.waitForIdle()
         Thread.sleep(400)
         screenshot("04-dark-theme-mode")
@@ -97,7 +97,7 @@ class SliceCSettingsSmokeTest {
         screenshot("05-lower-sections")
 
         composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo()
-        composeRule.onNodeWithTag("palette-tile-monet_amber").performClick()
+        composeRule.onNodeWithTag("palette-tile-monet_amber").scrollToAndClick()
         composeRule.waitForIdle()
         Thread.sleep(400)
         screenshot("06-monet-amber-selected")

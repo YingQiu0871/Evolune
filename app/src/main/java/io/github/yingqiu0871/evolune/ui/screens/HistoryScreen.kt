@@ -48,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import io.github.yingqiu0871.evolune.ui.components.plusChrome
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -228,10 +229,9 @@ fun HistoryScreenContent(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
                 .testTag("history-content-list"),
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = innerPadding.plusChrome(bottom = 24.dp)
         ) {
             item { MonthNavigationHeader(model, onPreviousMonth, onNextMonth) }
             item { WeekdayHeader() }
