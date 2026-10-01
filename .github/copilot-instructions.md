@@ -1,9 +1,10 @@
 # Copilot Instructions
 
-截至 2026-09-29，Evolune 当前公开稳定版为 v1.9.0（tag `v1.9.0` = `d099998`）。v1.2 的前台
+截至 2026-10-01，Evolune 当前公开稳定版为 v1.11.1（tag `v1.11.1`）。v1.2 的前台
 Health Connect 体重读取和手动 Google Drive 加密备份、v1.3 Wear App、v1.4 引导、v1.5 稳定性、
 v1.6 Gallery、v1.7 History & Insights（History/Timeline/Insights/回顾性 PK/Portable 导出）、
-v1.8 全局卫生和 v1.9 维护清理均已发布。保持本文件简洁，以生产源码和
+v1.8 全局卫生、v1.9 维护清理、v1.10 可选 CPA 估算曲线与设置页重排、v1.11 毛玻璃导航栏
+与后台 Widget/Wear 同步均已发布。保持本文件简洁，以生产源码和
 docs/evolune/CURRENT_STATUS.md 为准。
 
 ## Architecture
@@ -33,6 +34,9 @@ docs/evolune/CURRENT_STATUS.md 为准。
 - 计划的 wall-clock 时间与其对应的有效 instant 是两个概念，DST 回退保持较早偏移的
   occurrence 物化；跨本地日期的 legacy/null-slot 匹配只显示为推断匹配，不称为精确匹配。
 - 回顾性 PK 与 PK 曲线始终标注为模型估算，不是实测血药浓度。
+- 可选 CPA 曲线（`pk/cpa/`，默认关闭）只在首页图显示，ng/mL 独立右轴，与 E2 series
+  分离、不相加；只计入明确标为 CPA 的记录/方案；开关不进入备份/导出，不改 E2、
+  Widget、Wear 或回顾性 PK。
 
 ## Widget and Wear actions
 
@@ -50,5 +54,6 @@ docs/evolune/CURRENT_STATUS.md 为准。
   任务明确授权并提供独立迁移/回归计划。
 - 不把历史报告、评审记录或 legacy specification 改写成当前状态。
 - 编写新 Compose UI 时保持 `MainActivity.kt` 为组合入口，优先添加独立 composable
-  和 preview；复用现有 Material 3 组件与窗口响应式布局。
+  和 preview；复用现有 Material 3 组件与窗口响应式布局。五个主页面的内容在毛玻璃
+  顶/底栏下方滚动，使用 `ui/components/FrostedChrome.kt` 的 chrome padding 留出栏高。
 - 不引入新的依赖、秘密、凭据或本地路径；变更前后保持 `git diff --check` 通过。

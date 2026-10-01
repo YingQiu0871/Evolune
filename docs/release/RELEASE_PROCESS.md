@@ -3,7 +3,8 @@
 签名密码只从环境变量读取（`EVOLUNE_KEYSTORE_PATH`、`EVOLUNE_KEYSTORE_PASSWORD`、`EVOLUNE_KEY_ALIAS`、
 `EVOLUNE_KEY_PASSWORD`），脚本不会输出或写入它们。
 
-两个发布脚本都需要 PowerShell 7（`pwsh`），在 Windows PowerShell 5.1 下会直接拒绝运行（5.1 会把 `gh`、`git push`
+两个发布脚本（`scripts/release_verify.ps1`、`scripts/release_publish.ps1`，自 v1.11.0 起）都以 `#Requires -Version 7.0`
+要求 PowerShell 7（`pwsh`），在 Windows PowerShell 5.1 下会直接拒绝运行（5.1 会把 `gh`、`git push`
 写到 stderr 的正常输出当成终止性错误，可能让发布中途停下）。调用方式例如
 `pwsh -NoProfile -File .\scripts\release_publish.ps1 ...`。
 
@@ -14,7 +15,9 @@
    `Evolune-Phone-v<version>.apk` / `Evolune-Wear-v<version>.apk` 复制到
    `release-artifacts\v<version>-rc\<时间戳>\`，并生成 `SHA256SUMS.txt`（LF、无 BOM）。
 4. **发布**：先空跑 `.\scripts\release_publish.ps1 -ArtifactDir <上面的目录> -Version <version> -Commit <main 合并提交>`，
-   确认计划后加 `-Publish`，并输入版本号确认。脚本会复核哈希、创建 annotated tag 并只推送该 tag、
+   确认计划后加 `-Publish`，并输入版本号确认。可选 `-NotesFile <发布说明.md>` 作为 Release 正文。
+   目标仓库由 `-Repo` 固定（默认 `YingQiu0871/Evolune`，脚本据此设置 `GH_REPO`），避免 `gh` 解析到本地的
+   `upstream` 远端；空跑输出的计划会显示目标仓库。脚本会复核哈希、创建 annotated tag 并只推送该 tag、
    创建 GitHub Release 上传三个资产，再下载回读比对哈希与签名。已存在的 tag / Release 会直接拒绝，不会移动或覆盖。
 5. **文档**：见下节。
 

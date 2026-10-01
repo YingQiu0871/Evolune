@@ -5,7 +5,7 @@ Phone Widget 的关系。Room v3 的表结构和迁移细节以
 [产品概览](docs/evolune/PRODUCT_OVERVIEW.md) 与 schema 导出为准；本文不改变
 数据库协议。
 
-文档核对：2026-09-12（v1.6.0），2026-09-29 补记至 v1.9.0；核心 slots/时间语义延续 v1.0，匹配包含 v1.2.2 后的安全回退。v1.7 起 History/Timeline/Insights/回顾性 PK 使用共享历史投影做 occurrence 匹配（精确 slot+日期 → slot ±1 小时 → null-slot ±1 小时 → null-slot 同日 legacy），并标注匹配来源；细节见 [架构](docs/evolune/ARCHITECTURE.md) 与 [V17_DATA_SEMANTICS](docs/evolune/v1.7/V17_DATA_SEMANTICS.md)。
+文档核对：2026-09-12（v1.6.0），2026-09-29 补记至 v1.9.0，2026-10-01 补记至 v1.11.1（v1.10.0–v1.11.1 未改动本文描述的计划、slots、occurrence 或匹配语义，也无 Room schema 迁移）；核心 slots/时间语义延续 v1.0，匹配包含 v1.2.2 后的安全回退。v1.7 起 History/Timeline/Insights/回顾性 PK 使用共享历史投影做 occurrence 匹配（精确 slot+日期 → slot ±1 小时 → null-slot ±1 小时 → null-slot 同日 legacy），并标注匹配来源；细节见 [架构](docs/evolune/ARCHITECTURE.md) 与 [V17_DATA_SEMANTICS](docs/evolune/v1.7/V17_DATA_SEMANTICS.md)。
 
 ## MedicationPlan aggregate
 
@@ -73,6 +73,8 @@ Occurrence 是一个具体计划、槽位和日期的逻辑发生项，包含：
 通知入口。通知确认最终写入同一个 `DoseEventRepository`；提醒不是另一份用药事实。
 计划禁用或修改后，旧提醒会被取消/重排。
 
+v1.10.0 的可选 CPA 估算曲线只读取已启用、途径为抗雄且药物类型明确标为 CPA 的计划来预测未来剂量（`isCpaPlan`）；它不改变计划结构、提醒或 occurrence，开关关闭时不做任何 CPA 计算。
+
 v1.6 Wear“跳过本次”由 Phone 验证 plan/slot/scheduledAt 等身份后在 ReminderSkipStore
 保存精确提醒抑制，并在调度和 receiver 投递时过滤。不生成 DoseEvent，不等同记录完成；
 旧无 slotId 闹钟的兼容性按最终发布修复记录保留。
@@ -87,6 +89,8 @@ occurrence-driven 展示。今日计划中的多个时间槽对应多个独立�
 
 Phone 仅在 AVAILABLE 时提供确认，点击时仍重新校验 availability、当前本地日期和方案身份。
 Wear App/新 Tile 延续 UPCOMING/DUE 的版本化确认规则，两者不是同一按钮可用性契约。
+
+自 v1.11.0 起，应用内每次记录或方案变化后触发的 Widget 刷新、Wear 快照发布与仪表盘同步在后台线程执行，不再占用主线程；刷新内容与触发时机不变。
 
 Widget 只是展示和动作入口，Phone Room/domain/repository 仍是唯一事实来源。配置、
 缓存或 RemoteViews 状态都不能独立创建或修改用药事件。

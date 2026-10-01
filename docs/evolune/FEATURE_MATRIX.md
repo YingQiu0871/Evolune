@@ -1,15 +1,15 @@
 # 功能矩阵
 
-本表以已发布的 `v1.9.0` 和当前 `main` 为准。状态使用 `SHIPPED v1.x`、`PARTIAL`、`PLANNED v1.x`、`DEFERRED` 和 `NOT IMPLEMENTED`。
+本表以已发布的 `v1.11.1`（2026-10-01）和当前 `main` 为准。状态使用 `SHIPPED v1.x`、`PARTIAL`、`PLANNED v1.x`、`DEFERRED` 和 `NOT IMPLEMENTED`。
 
-| 功能 | 状态 | 截至 v1.9 的实现事实 / 边界 |
+| 功能 | 状态 | 截至 v1.11.1 的实现事实 / 边界 |
 |---|---|---|
 | MedicationPlan | SHIPPED v1.0 | 领域模型、Room aggregate、启用状态、daily/weekly/custom schedule 均已接入生产路径 |
 | Scheduled dose slots | SHIPPED v1.0 | 稳定 UUIDv5、分钟精度 local time、权威顺序与连续 position；v2-to-v3 backfill 已实现 |
 | DoseEvent | SHIPPED v1.0 | 稳定 UUID、权威 `occurredAt`、来源/状态/revision 与可选 zone/date/slot metadata |
 | Repository/data boundary | SHIPPED v1.0 | `core.dataapi` contracts + Room implementations；当前是 `app` 内 package 边界 |
 | Dose insert/update conflict handling | SHIPPED v1.0 | 插入区分 idempotent/conflict；更新使用 expected revision |
-| Medication history | SHIPPED v1.0 | 手机端查看、编辑、删除以及 PK 查询路径 |
+| Medication history | SHIPPED v1.0; scroll fix v1.11.1 | 手机端查看、编辑、删除以及 PK 查询路径；v1.11.1 起记录页恰好新增一条记录时滚动到该记录（首次进入与批量导入不滚动） |
 | Reminders and notification actions | SHIPPED v1.0 | AlarmManager、通知接收器、重排与 typed action 写入 |
 | Mahiro JSON v1 import/export | SHIPPED v1.0 | 独立 DTO/codec/adapter；时间和来源兼容、逐项结果与明确失败 |
 | PK visualization | SHIPPED v1.0 | Estradiol PK 估算、当前浓度、历史/预测图；不是医学检测或建议 |
@@ -25,20 +25,23 @@
 | Health Connect | SHIPPED v1.2 | SDK、READ_WEIGHT、可选前台读取最近 30 天体重、权限/provider 状态和本地 freshness 保护；不含用药写入 |
 | Google Drive backup/restore | SHIPPED v1.2 | 显式授权、手动 appDataFolder 加密备份、回读验证、三代保留与恢复预览；不是实时同步 |
 | Background / real-time cloud sync | NOT IMPLEMENTED | 不常驻同步，不把云端作为另一用药数据库 |
-| Onboarding / terms / permission guidance | SHIPPED v1.4 | v1.4-A 信任/权限基础与 v1.4-B 六步功能教程已实现、验收并发布于 `v1.4.0` |
+| Onboarding / terms / permission guidance | SHIPPED v1.4; help entry v1.10 | v1.4-A 信任/权限基础与 v1.4-B 六步功能教程已实现、验收并发布于 `v1.4.0`；v1.10.0 起设置页「功能教程」与「指南」合并为「使用帮助」入口，「指南」更名为「首次引导」 |
 | Stability / performance / code cleanup | SHIPPED v1.5 | 范围内稳定性、性能和清理；Energy/background 为 SKIPPED_BY_OWNER，不能宣称电池实测 PASS |
 | Phone launcher Logo scale | SHIPPED v1.5 | adaptive-icon foreground/monochrome 安全区和 launcher mask 已验收 |
 | Expanded Phone/Wear widget gallery | SHIPPED v1.6 | 四个 Phone Widget、三个新 Tile、兼容曲线 Tile 和三个 Complication，共用 Phone 派生状态边界 |
-| History（按日历日） | SHIPPED v1.7; polished v1.7.1–v1.7.2 | 共享历史投影：实际记录是权威，区分计划时点与实际摄入并显示时间差；未匹配事件按真实来源显示；只读，不写入数据 |
+| History（按日历日） | SHIPPED v1.7; polished v1.7.1–v1.7.2, v1.10 | 共享历史投影：实际记录是权威，区分计划时点与实际摄入并显示时间差；未匹配事件按真实来源显示；只读，不写入数据；v1.10.0 起从洞察/回顾性 PK/时间线返回保留滚动位置，刷新时保留已加载内容 |
 | Timeline（月度） | SHIPPED v1.7; date strip v1.7.1 | 已匹配 / 未记录计划 / 未匹配摄入三类行；仅呈现事实，无评分或依从性判定 |
 | Insights（7/30/90 天） | SHIPPED v1.7 | 记录次数、来源分布、身份置信度；不输出严格历史依从率、百分比或 timing 指标 |
 | Retrospective PK | SHIPPED v1.7; chart redesigned v1.7.1 | 基于所选区间权威已记录摄入的模型估算曲线；7/30/90 天区间；始终标注为估算，不是实测血药浓度 |
 | Evolune Portable JSON v1 / CSV v1 | SHIPPED v1.7 | JSON 导出（30 天/90 天/全部）与增量导入；CSV 仅导出；与加密备份相互独立 |
-| Flat Settings and app color schemes | SHIPPED v1.7.1–v1.7.2 | 设置页扁平化；Dynamic + 8 预设配色；旧内置主题兼容；备份 schema v2（兼容 v1 恢复） |
+| Flat Settings and app color schemes | SHIPPED v1.7.1–v1.7.2; regrouped v1.10 | 设置页扁平化；Dynamic + 8 预设配色；旧内置主题兼容；备份 schema v2（兼容 v1 恢复）；v1.10.0 起按用途分为血药浓度计算、外观、备份与数据、关于与帮助四组，旧格式导入导出默认收起，8 个预设色块仅在选择「预设配色」后显示 |
 | Navigation stability and motion | SHIPPED v1.7.3 / v1.7.4 | 全屏子页面卡顿修复；220 ms 淡入 + 0.98→1.0 缩放进入动效 |
 | Global hygiene (performance / lifecycle / cancellation / restore recovery) | SHIPPED v1.8 | 后台处理与刷新成本、Home 生命周期与协作式取消、被中断恢复的 PREPARED journal 安全回滚；无 schema/备份/语义变化 |
 | Checkout-reproducible tests and config cleanup | SHIPPED v1.9 | Windows CRLF 检出下测试确定性；移除冗余直接依赖声明与过期 Glance/ProGuard 配置；无 schema/备份/语义变化 |
-| Optional CPA PK curve | PLANNED（未立项；原 v1.7 早期草案，未随 v1.7 发布） | 默认关闭；开启后与 E2 在同一时间轴/图表区域显示并以图例区分，保持独立单位；实施前需独立科学与来源审查 |
+| Code audit and slimming | SHIPPED v1.9.1 | 移除死代码、未使用资源与 import；无 schema/备份/语义变化 |
+| Optional CPA estimated curve | SHIPPED v1.10 | 默认关闭；口服一室模型（Androcur 说明书参数），只计入明确标为 CPA 的记录与已启用方案；仅在首页图显示，右侧独立 ng/mL 轴，不与 E2 相加；会低估单次服药峰值，始终标注为模型估算；开关为本机显示偏好，不进入备份/恢复/导出；E2、Widget、Wear、回顾性 PK 不变 |
+| Frosted-glass top/bottom bars | SHIPPED v1.11 | 五个主页面内容滚动到顶栏/底栏下方并被模糊（宽屏侧边导航栏布局只有顶栏为毛玻璃）（Compose `GraphicsLayer` + RenderEffect，60% 底色，无新依赖）；全屏子页面布局不变 |
+| Off-main-thread Widget / Wear sync | SHIPPED v1.11 | 记录或方案变化后的 Widget 刷新、Wear 快照发布与仪表盘同步在后台线程执行；无 Wear 模块代码改动，无 schema/备份/语义变化 |
 | User-controlled JSON migration | SHIPPED v1.0 | 文件/剪贴板兼容交换；不等同完整原生备份 |
 | Encrypted backup format | SHIPPED v1.2 | AES-256-GCM、PBKDF2-HMAC-SHA256（默认 600,000 次）、版本校验、恢复 journal；不等同 SQLCipher 数据库加密 |
 | Tracked Date | DEFERRED | 当前无实体、表或产品入口；不属于 v1.0/v1.1 已锁范围 |
@@ -49,5 +52,5 @@
 ## 版本方向
 
 - `v1.0.0` 已发布并封存；表中 `SHIPPED v1.0` 仅描述该实现。
-- `v1.1`、`v1.2.0/v1.2.2`、`v1.3.0/v1.3.1`、`v1.4.0`、`v1.5.0`、`v1.6.0`、`v1.7.0–v1.7.4`、`v1.8.0`、`v1.9.0` 均有公开发布；v1.6 及更早的日期与证据见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)，v1.7–v1.9 见 [Current Status](CURRENT_STATUS.md) 与各版本目录的发布说明。可选 CPA 曲线仍是未立项候选。
+- `v1.1`、`v1.2.0/v1.2.2`、`v1.3.0/v1.3.1`、`v1.4.0`、`v1.5.0`、`v1.6.0`、`v1.7.0–v1.7.4`、`v1.8.0`、`v1.9.0/v1.9.1`、`v1.10.0`、`v1.11.0/v1.11.1` 均有公开发布；v1.6 及更早的日期与证据见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)，v1.7–v1.11.1 见 [Current Status](CURRENT_STATUS.md) 与各版本目录的发布说明。可选 CPA 估算曲线已于 v1.10.0 发布；双室 CPA 模型及 CPA 进入 Widget/Wear/回顾性 PK 不在当前范围内。
 - `DEFERRED` 不表示承诺进入某个版本。

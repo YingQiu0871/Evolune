@@ -1,6 +1,6 @@
-# 设置功能（v1.10.0）
+# 设置功能（v1.11.1）
 
-更新日期：2026-09-30，适用 v1.10.0（v1.10.0 按用途重新分组了设置页）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+更新日期：2026-10-01，适用 v1.11.1（v1.10.0 按用途重新分组了设置页；v1.11.0 起设置页作为主页面之一使用毛玻璃顶栏/底栏，v1.11.0 与 v1.11.1 未改动设置项本身）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
 
 ## 页面与功能
 
@@ -14,6 +14,8 @@
 | 关于与帮助 | 使用帮助（功能教程；首次引导——使用条款、数据边界与医疗免责声明）、隐私与权限、自动检查更新与手动 GitHub Release 检查、当前版本、关于（官网/开发者信息/版权与免责声明） | 引导状态独立于用药数据；更新检查不上传用药内容 |
 
 Health Connect 读取最近 30 天的有效体重；provider 不可用或用户拒绝授权时，手动记录和核心功能仍可使用。Google Drive 使用 appDataFolder、上传回读验证与三个备份代次保留。原生备份使用 AES-256-GCM、PBKDF2-HMAC-SHA256（默认 600,000 次），恢复通过 journal 与事务协调 Room/DataStore；备份口令必须由用户保管。若恢复被中断，下次启动会依据 PREPARED journal 安全回滚（v1.8.0）。
+
+「使用帮助」打开 HelpScreen，从中进入功能教程或首次引导。自 v1.11.0 起，设置页内容会滚动到半透明的毛玻璃顶栏和底部导航栏下方，首尾留出栏高，不会被遮挡。
 
 ## Phone Widget 配置
 
@@ -34,6 +36,7 @@ Phone/Wear 的 Android Auto Backup 与设备迁移排除私有数据；这不等
 ## 实现入口
 
 - [SettingsScreen](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
+- [HelpScreen](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HelpScreen.kt)（使用帮助，v1.10.0）
 - [设置分区组件](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/)（血药浓度计算、外观、配色、备份与数据、更新、关于与帮助）
 - [配色调色板权威](app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/)
 - [Portable 导出/导入](app/src/main/java/io/github/yingqiu0871/evolune/export/)
