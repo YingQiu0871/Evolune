@@ -13,6 +13,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
+import io.github.yingqiu0871.evolune.ui.screens.clickThroughSemantics
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -83,7 +84,7 @@ class InsightsNavigationTest {
         composeRule.onNodeWithTag("history-insights-entry").assertExists()
 
         scrollHistoryToInsightsEntry()
-        composeRule.onNodeWithTag("history-insights-entry").performClick()
+        composeRule.onNodeWithTag("history-insights-entry").clickThroughSemantics()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("insights-screen").assertExists()
@@ -101,7 +102,7 @@ class InsightsNavigationTest {
         selectHistory()
 
         scrollHistoryToInsightsEntry()
-        composeRule.onNodeWithTag("history-insights-entry").performClick()
+        composeRule.onNodeWithTag("history-insights-entry").clickThroughSemantics()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("insights-screen").assertExists()
 
@@ -110,7 +111,7 @@ class InsightsNavigationTest {
 
         // re-entry must not crash and must keep rendering the production surface
         scrollHistoryToInsightsEntry()
-        composeRule.onNodeWithTag("history-insights-entry").performClick()
+        composeRule.onNodeWithTag("history-insights-entry").clickThroughSemantics()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("insights-screen").assertExists()
         composeRule.onNodeWithTag("insights-range-selector").assertExists()

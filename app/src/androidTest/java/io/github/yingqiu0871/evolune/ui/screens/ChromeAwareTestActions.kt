@@ -14,5 +14,12 @@ import androidx.compose.ui.test.performSemanticsAction
  */
 fun SemanticsNodeInteraction.scrollToAndClick(): SemanticsNodeInteraction {
     performScrollTo()
-    return performSemanticsAction(SemanticsActions.OnClick)
+    return clickThroughSemantics()
 }
+
+/**
+ * Clicks the node through its semantics action. Use after `performScrollToNode()` on a lazy list:
+ * on short screens the target can end up at the bottom edge, behind the translucent bottom bar.
+ */
+fun SemanticsNodeInteraction.clickThroughSemantics(): SemanticsNodeInteraction =
+    performSemanticsAction(SemanticsActions.OnClick)

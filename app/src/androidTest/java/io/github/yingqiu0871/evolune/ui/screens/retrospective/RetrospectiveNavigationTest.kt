@@ -13,6 +13,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
+import io.github.yingqiu0871.evolune.ui.screens.clickThroughSemantics
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -83,7 +84,7 @@ class RetrospectiveNavigationTest {
         composeRule.onNodeWithTag("history-retrospective-entry").assertExists()
 
         scrollHistoryToRetrospectiveEntry()
-        composeRule.onNodeWithTag("history-retrospective-entry").performClick()
+        composeRule.onNodeWithTag("history-retrospective-entry").clickThroughSemantics()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("retrospective-screen").assertExists()
@@ -98,7 +99,7 @@ class RetrospectiveNavigationTest {
     fun theRetrospectiveSubRouteDoesNotAddBottomNavigationEntries() {
         selectHistory()
         scrollHistoryToRetrospectiveEntry()
-        composeRule.onNodeWithTag("history-retrospective-entry").performClick()
+        composeRule.onNodeWithTag("history-retrospective-entry").clickThroughSemantics()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("retrospective-screen").assertExists()

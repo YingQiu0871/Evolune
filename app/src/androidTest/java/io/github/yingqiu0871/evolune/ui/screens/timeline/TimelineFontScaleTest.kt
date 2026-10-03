@@ -93,6 +93,7 @@ class TimelineFontScaleTest {
     }
 
     private fun scrollStripTo(date: LocalDate) {
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         composeRule.onNodeWithTag("timeline-day-strip")
             .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
         composeRule.waitForIdle()
@@ -194,6 +195,7 @@ class TimelineFontScaleTest {
         assertTrue("nav slots symmetric", abs(leftSlot - rightSlot) <= 0.5f)
 
         val screenCenter = centerOf("timeline-screen")
+        composeRule.scrollTimelineBodyTo("timeline-section-header-2026-09-15")
         val headerLeft = boundsOf("timeline-section-header-2026-09-15").left.value
         val sectionLeft = boundsOf("timeline-section-2026-09-15").left.value
         assertTrue("section header left aligned with its section", abs(headerLeft - sectionLeft) <= 1f)

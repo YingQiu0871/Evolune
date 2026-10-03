@@ -150,24 +150,37 @@ class InsightsScreenTest {
         }
     }
 
+    /**
+     * Scrolls the lazy content list until [tag] is composed and on screen. The surface is taller
+     * than a 1080x1920 screen, so lower sections only exist after scrolling.
+     */
+    private fun scrollContentTo(tag: String) {
+        composeRule.onNodeWithTag("insights-content-list").performScrollToNode(hasTestTag(tag))
+        composeRule.waitForIdle()
+    }
+
     @Test
     fun contentShowsEveryShippedSection() {
         setContent(state())
 
         composeRule.onNodeWithTag("insights-screen").assertExists()
-        composeRule.onNodeWithTag("insights-card-recorded-intakes").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights-card-recorded-days").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights-coverage-section").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights-sources-section").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights-content-list")
-            .performScrollToNode(hasTestTag("insights-confidence-section"))
-        composeRule.onNodeWithTag("insights-confidence-section").assertIsDisplayed()
-        composeRule.onNodeWithTag("insights-content-list")
-            .performScrollToNode(hasTestTag("insights-dose-section"))
-        composeRule.onNodeWithTag("insights-dose-section").assertIsDisplayed()
+        listOf(
+            "insights-card-recorded-intakes",
+            "insights-card-recorded-days",
+            "insights-coverage-section",
+            "insights-sources-section",
+            "insights-confidence-section",
+            "insights-dose-section"
+        ).forEach { tag ->
+            scrollContentTo(tag)
+            composeRule.onNodeWithTag(tag).assertIsDisplayed()
+        }
 
+        scrollContentTo("insights-coverage-section")
         composeRule.onNodeWithText(context.getString(R.string.insights_coverage_title)).assertIsDisplayed()
+        scrollContentTo("insights-coverage-disclosure-schedule")
         composeRule.onNodeWithTag("insights-coverage-disclosure-schedule").assertIsDisplayed()
+        scrollContentTo("insights-coverage-disclosure-absence")
         composeRule.onNodeWithTag("insights-coverage-disclosure-absence").assertIsDisplayed()
     }
 
@@ -191,10 +204,13 @@ class InsightsScreenTest {
         setContent(state())
 
         MedicationIntakeSource.entries.forEach { source ->
+            scrollContentTo("insights-source-row-${source.name}")
             composeRule.onNodeWithTag("insights-source-row-${source.name}").assertExists()
         }
+        scrollContentTo("insights-source-row-LEGACY")
         composeRule.onNodeWithTag("insights-source-row-LEGACY").assertIsDisplayed()
         InsightsBindingConfidence.entries.forEach { confidence ->
+            scrollContentTo("insights-confidence-row-${confidence.name}")
             composeRule.onNodeWithTag("insights-confidence-row-${confidence.name}").assertExists()
         }
         // the legacy source keeps its own label instead of being merged into manual
@@ -392,13 +408,14 @@ class InsightsScreenTest {
     @Test
     fun everyMetricRowExposesExactlyOneSemanticFact() {
         setContent(state())
-        composeRule.onNodeWithTag("insights-content-list")
-            .performScrollToNode(hasTestTag("insights-dose-section"))
 
         // The merged tree is what TalkBack walks: each row must be exactly one node carrying the
         // localized "label: value" fact, and the child label/value Texts must not appear as their
         // own nodes (that was the B-03 P2 duplication risk).
         fun assertSingleFact(tag: String, label: String, value: String, expected: String) {
+            // Bring the row into the composed window first: on short screens the lazy list has not
+            // composed the lower sections yet.
+            scrollContentTo(tag)
             assertEquals("$tag must be one merged node", 1, composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().size)
             composeRule.onNodeWithTag(tag).assertContentDescriptionEquals(expected)
             assertEquals(

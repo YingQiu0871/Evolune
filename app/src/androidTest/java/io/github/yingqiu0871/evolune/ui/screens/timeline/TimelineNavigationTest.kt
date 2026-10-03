@@ -17,6 +17,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.ui.screens.clickThroughSemantics
 import io.github.yingqiu0871.evolune.history.timeline.TimelineRangePhase
 import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModel
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
@@ -95,7 +96,7 @@ class TimelineNavigationTest {
         composeRule.onNodeWithTag("history-timeline-entry").assertExists()
 
         scrollHistoryToTimelineEntry()
-        composeRule.onNodeWithTag("history-timeline-entry").performClick()
+        composeRule.onNodeWithTag("history-timeline-entry").clickThroughSemantics()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("timeline-screen").assertExists()
@@ -111,7 +112,7 @@ class TimelineNavigationTest {
         composeRule.onNodeWithTag("nav-bar-timeline").assertDoesNotExist()
 
         scrollHistoryToTimelineEntry()
-        composeRule.onNodeWithTag("history-timeline-entry").performClick()
+        composeRule.onNodeWithTag("history-timeline-entry").clickThroughSemantics()
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("timeline-screen").assertExists()
@@ -137,7 +138,7 @@ class TimelineNavigationTest {
     fun timelineContextIsRetainedAcrossHistoryRoundTripWithExactlyOneReentryRefresh() {
         selectHistory()
         scrollHistoryToTimelineEntry()
-        composeRule.onNodeWithTag("history-timeline-entry").performClick()
+        composeRule.onNodeWithTag("history-timeline-entry").clickThroughSemantics()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("timeline-screen").assertExists()
 
@@ -179,7 +180,7 @@ class TimelineNavigationTest {
         assertEquals(selectedDay, afterBack.selectedDate)
 
         scrollHistoryToTimelineEntry()
-        composeRule.onNodeWithTag("history-timeline-entry").performClick()
+        composeRule.onNodeWithTag("history-timeline-entry").clickThroughSemantics()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("timeline-screen").assertExists()
 
