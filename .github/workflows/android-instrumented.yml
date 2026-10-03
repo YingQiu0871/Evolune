@@ -90,5 +90,8 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: androidtest-reports
-          path: app/build/reports/androidTests/
+          # The raw results include per-test logcat, which frame-level probes log their samples to.
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
           if-no-files-found: warn
