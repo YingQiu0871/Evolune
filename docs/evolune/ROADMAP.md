@@ -248,7 +248,7 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   （全历史只读通道 → Phase A 投影 → 提取/资格/排序/贴片预处理 → 未改动的 SimulationEngine → typed 结果）。
 - **C-01 生产实现** — **APPROVED / CLOSED**（final independent implementation review **APPROVE**）：
   contract HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
-  `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence [`v1.7/evidence/c-01/`](v1.7/evidence/c-01/)。
+  `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence [`v1.7/evidence/c-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-01)。
 - 最终验证摘要：1260 JVM tests / 0 failures / 0 errors / 0 skipped · fresh 54/54 Gradle tasks executed ·
   Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）· golden PK regression preserved · zero-write PASS ·
   schema / PK numerical source / Home·Wear·Widget orchestration unchanged。
@@ -259,7 +259,7 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   contract HEAD `8be09339bfae1c4a138b4ccb739f86302c60d627`。
 - **C-04 生产实现** — **APPROVED / CLOSED**（final independent implementation review **APPROVE**；R1 T4
   disclosure closure 后通过）：approved implementation HEAD
-  `823bd9ce5c276dc473cc041efba409bd931c589f`，evidence [`v1.7/evidence/c-04/`](v1.7/evidence/c-04/)。
+  `823bd9ce5c276dc473cc041efba409bd931c589f`，evidence [`v1.7/evidence/c-04/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-04)。
 - C-04 最终验证摘要：focused C-04 JVM 73 / 0 / 0 / 0 · fresh full JVM 1333 / 0 failures / 0 errors / 0 skipped ·
   54/54 Gradle tasks executed · affected instrumentation 14/14 PASS（Pixel_7 AVD API 35） · evidence 169/169
   manifest data entries、171/171 HEAD blob verification、0 mismatches · C-01 / schema / PK numerical source /
@@ -274,7 +274,7 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   independent implementation review APPROVE）：
   [`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)，
   contract HEAD `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`，implementation HEAD
-  `97838fbf7c8692ada9d44d8401a6008283fac178`，evidence [`v1.7/evidence/d-01/`](v1.7/evidence/d-01/)。
+  `97838fbf7c8692ada9d44d8401a6008283fac178`，evidence [`v1.7/evidence/d-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/d-01)。
   验证：focused 32/0/0/0 · fresh full JVM 1365/0/0/0 · 54/54 tasks · instrumentation N/A
   （无 Android/UI surface）· evidence 167/167 manifest coverage、169/169 blob verification、0 mismatches。
   **D-01 冻结**：未经重开评审不得再改 D-01 生产。
@@ -487,7 +487,7 @@ C-04 contract APPROVED / FROZEN、C-04 生产实现 APPROVED / CLOSED、Phase-C 
 `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`（C-01）/ `8be09339bfae1c4a138b4ccb739f86302c60d627`（C-04），
 approved implementation HEAD `145d53bd922c30338171cc7b0529a36dc482b4a6`（C-01）/
 `823bd9ce5c276dc473cc041efba409bd931c589f`（C-04）；evidence 见
-[`evidence/c-01/`](v1.7/evidence/c-01/)、[`evidence/c-04/`](v1.7/evidence/c-04/)，详见上方 Phase C 小节）。
+[`evidence/c-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-01)、[`evidence/c-04/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-04)，详见上方 Phase C 小节）。
 **NEXT:** Phase F — Final Consistency Gate（`V17_PLAN.md` §9；release gate
 `APPROVE V1.7.0 RELEASE CANDIDATE`）（D-04 CLOSED / FROZEN @
 `e53342bcd6c4c4af428adc5822f603c71ed8bb24`；D-05 CLOSED / FROZEN @ contract

@@ -6,7 +6,7 @@
 > Gate cleanup commit：`a0144df85f2890b83b1af7a240939705128071c5`（`docs: resolve v1.7-A gate semantics`）
 > 实现 commit：`192c8d3bd9edb25db3b2c2809a168b086d7cd8ae`（`feat: add historical projection provenance foundation`）
 > 测试/证据 commit：本文件所在的 `test: verify v1.7 historical projection semantics`
-> 阶段证据清单：[`evidence/a-01/MANIFEST.sha256`](evidence/a-01/MANIFEST.sha256)
+> 阶段证据清单：[`evidence/a-01/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-01/MANIFEST.sha256)
 
 ---
 

@@ -6,8 +6,8 @@
 > Commit 1（review accuracy）：`docs: clarify v1.7-A review evidence`
 > Commit 2（read model）：`feat: add history day and range read model`
 > Commit 3（tests/evidence）：`test: verify v1.7 history range semantics`
-> 阶段证据清单（A-02 candidate）：[`evidence/a-02/MANIFEST.sha256`](evidence/a-02/MANIFEST.sha256)（frozen，R1 不再改动）
-> R1（极端时区 query-bound 修复）证据：[`evidence/a-02-r1/MANIFEST.sha256`](evidence/a-02-r1/MANIFEST.sha256)
+> 阶段证据清单（A-02 candidate）：[`evidence/a-02/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-02/MANIFEST.sha256)（frozen，R1 不再改动）
+> R1（极端时区 query-bound 修复）证据：[`evidence/a-02-r1/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-02-r1/MANIFEST.sha256)
 > R1 commits：`fix: widen History event query for timezone extremes`、`docs: verify A-02 extreme timezone bounds`
 
 ---
@@ -328,7 +328,7 @@ inclusive **3661** 天 → `IllegalArgumentException`，且**发生在 repositor
 | wear | 11 | 90 | 0 | 0 | 0 | 90 |
 | **合计** | **106** | **922** | **0** | **0** | **0** | **922** |
 
-证据：[`evidence/a-02-r1/MANIFEST.sha256`](evidence/a-02-r1/MANIFEST.sha256)（fresh XML + aggregate TSV + Gradle log + before/after 复现记录）。
+证据：[`evidence/a-02-r1/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-02-r1/MANIFEST.sha256)（fresh XML + aggregate TSV + Gradle log + before/after 复现记录）。
 A-02 candidate 的 `evidence/a-02/MANIFEST.sha256` 保持 frozen，未被 R1 修改。
 
 **DoseCheckInMatcher**：R1 未修改，边界结论沿用 §10（reminder matcher ≠ historical matcher；A-04 / 独立 hardening 再评估）。

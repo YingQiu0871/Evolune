@@ -10,7 +10,7 @@
 > Phase-A contracts：[`V17_A_01_HISTORICAL_PROJECTION.md`](V17_A_01_HISTORICAL_PROJECTION.md) ·
 > [`V17_A_02_HISTORY_READ_MODEL.md`](V17_A_02_HISTORY_READ_MODEL.md) ·
 > [`V17_A_03_HISTORY_UI.md`](V17_A_03_HISTORY_UI.md) · [`V17_A_04_HARDENING.md`](V17_A_04_HARDENING.md)
-> 证据：[`evidence/b-01/`](evidence/b-01/)
+> 证据：[`evidence/b-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/b-01)
 
 ---
 
