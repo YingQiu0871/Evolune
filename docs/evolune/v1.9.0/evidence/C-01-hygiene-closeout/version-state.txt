@@ -1,8 +1,0 @@
-VERSION STATE (exact, at closeout)
-  versionName        = 1.8.0
-  Phone versionCode  = 101080000
-  Wear versionCode   = 1101080000
-Mandatory distinction:
-  FUNCTIONAL V1.9 WORK = COMPLETE
-  V1.9.0 RELEASE PACKAGING = NOT YET PERFORMED
-No version bump was made in C-01; no v1.9 tag exists; nothing was published.

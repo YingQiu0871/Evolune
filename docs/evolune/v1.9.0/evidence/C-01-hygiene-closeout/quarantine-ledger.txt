@@ -1,6 +1,0 @@
-HISTORICAL QUARANTINE LEDGER (preserved; NOT part of authoritative lineage)
-  fc364e64bcfc62a3d9daa2636a80d2561935e96a = EXCLUDED / NON-AUTHORITATIVE
- 5ad1070c42dfa5deca7083beb7087f6b0068d572 = QUARANTINED / NON-AUTHORITATIVE
-Both tips were re-verified unchanged during C-01. Neither was merged, cherry-picked, rebased,
-deleted, amended, reinterpreted or used as an accepted predecessor, and no evidence was copied
-from either. They remain historical quarantined objects.

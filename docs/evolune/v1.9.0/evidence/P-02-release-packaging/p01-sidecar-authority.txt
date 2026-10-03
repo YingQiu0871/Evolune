@@ -1,7 +1,0 @@
-P-01 SIDECAR AUTHORITY (recorded exactly)
-GOVERNING P-01 PLAN SHA = 18e7f5e8ea299034b9f6ba9756190dc82c864d7d
-P-01 AUTHORITY MODEL = SIDECAR / NON-ANCESTRAL / SHA-PINNED
-P-01 IN RELEASE ANCESTRY = NO  (verified: git merge-base --is-ancestor 18e7f5e HEAD = false)
-P-01R verdict: APPROVE V1.9.0 P-01R — SIDECAR PLAN AUTHORITY CONFIRMED / P-02a AUTHORIZED
-Sidecar lineage remains separate: 957e82f -> 18e7f5e (not merged).
-P-02b uses the frozen P-01 requirements; no other plan SHA substitutes.

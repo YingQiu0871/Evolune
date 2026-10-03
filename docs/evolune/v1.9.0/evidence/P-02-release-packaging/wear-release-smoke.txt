@@ -1,7 +1,0 @@
-WEAR RELEASE SMOKE — signed v1.9.0 release APK on Wear emulator (emulator-5556, Wear_OS_Large_Round)
-Artifact under test: wear-release.apk sha256 78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1
-Install: adb install -r -> Success.
-Launch: monkey LAUNCHER -> io.github.yingqiu0871.evolune/.wear.WearAppActivity resumed.
-Screenshot: screenshots/release-wear-launch.png (43,256 bytes).
-Logcat: 0 FATAL EXCEPTION / ANR / UnsatisfiedLinkError / ClassNotFoundException / NoClassDefFoundError.
-Process alive at end of smoke.

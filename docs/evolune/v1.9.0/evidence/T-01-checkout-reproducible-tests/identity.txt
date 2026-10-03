@@ -1,7 +1,0 @@
-EVOLUNE v1.9.0 T-01 — checkout-reproducible tests (test/config-only hygiene slice)
-worktree:   D:\Evolune-Workspace\worktrees\Evolune-v1.9.0-t01
-branch:     feature/v1.9.0-t01-checkout-reproducibility
-parent:     51a839aebadb3f516b38b69e4a96078389bdf0ea (released v1.8.0 closure commit)
-tag v1.8.0: c101c238ec1e963a61191fb82d5ffa287219e400 -> 51a839aebadb3f516b38b69e4a96078389bdf0ea
-origin/main: 51a839aebadb3f516b38b69e4a96078389bdf0ea
-commit:     test(v1.9.0): make checkout-sensitive tests reproducible

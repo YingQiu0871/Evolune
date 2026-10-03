@@ -107,7 +107,7 @@ Android Auto Backup / 设备迁移中的私有数据排除规则，与应用内�
 - [第 0 阶段报告](docs/PHASE_0_REPORT.md)
 - [第 1 阶段报告](docs/phase-reports/)
 - [外部审阅记录](reviews/)
-- [各版本发布说明与证据](docs/evolune/)（v1.2–v1.11 目录）
+- [各版本发布说明与证据](docs/evolune/)（v1.2–v1.11 目录；原始证据文件已归档，见[证据归档说明](docs/evolune/EVIDENCE_ARCHIVE.md)）
 
 ### 来源与许可证
 
@@ -225,7 +225,7 @@ Users who installed the v1.0 Wear APK should follow the [Wear v1.1 identity migr
 - [Phase 0 Report](docs/PHASE_0_REPORT.md)
 - [Phase 1 Reports](docs/phase-reports/)
 - [External Review Records](reviews/)
-- [Per-version release notes and evidence](docs/evolune/) (v1.2–v1.11 folders)
+- [Per-version release notes and evidence](docs/evolune/) (v1.2–v1.11 folders; raw evidence files are archived, see the [evidence archive note](docs/evolune/EVIDENCE_ARCHIVE.md))
 
 ### Provenance and License
 

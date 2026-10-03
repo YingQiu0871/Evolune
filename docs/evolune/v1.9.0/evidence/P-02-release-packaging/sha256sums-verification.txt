@@ -1,7 +1,0 @@
-SHA256SUMS.txt VERIFICATION (independent parse)
-File: D:\Evolune-Workspace\release-candidates\v1.9.0\SHA256SUMS.txt
-byte size 181; own SHA-256 d74e590af465e0ff620d834094de8bfacd038901127b4136dbb83d1f7f782aef
-Parsed entries = 2; duplicates = 0; extra entries = 0; lowercase hex = YES; two-space delimiter = YES; LF = YES.
-  0b66f39e4e6d217888bbc57f717a3b23ea40a571b420d3fbdff597649e7b01e1  Evolune-Phone-v1.9.0.apk  -> MATCH
-  78fe8561e258aef8615e7d61e8f6a3acc9d7f141b0ac6f2bffe2a8ff221827b1  Evolune-Wear-v1.9.0.apk   -> MATCH
-No self entry; no RELEASE_BODY entry; no logs/evidence entries.

@@ -2,6 +2,8 @@
 
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
+Raw `evidence/` folders cited below were moved out of `main` on 2026-10-03 and are archived at commit `337cfbe`;
+see the [evidence archive note](EVIDENCE_ARCHIVE.md).
 
 Documentation updated on 2026-10-01 for the `v1.11.1` release (release branch merged into `main` with a normal
 merge commit; the annotated tag `v1.11.1` points at that merge commit). See the
