@@ -13,7 +13,7 @@ v1.1 的 `PK_NUMERICAL_ALGORITHM_DIFF = ZERO` 是当时的回归结论；本次�
 Widget 刷新（含其 PK 计算）与 Wear 快照/仪表盘同步移出主线程。v1.10.0 另行交付了可选、默认关闭的
 CPA 估算模型（见下文「CPA 估算模型（v1.10.0）」），它与 E2 管线完全分离。个性化 calibration/PK 2.0
 仍不是已交付功能（截至 v1.11.1）。当前数据入口见
-[架构](docs/evolune/ARCHITECTURE.md)，原有科学公式和来源归属在本次文档维护中不改写。
+[架构](ARCHITECTURE.md)，原有科学公式和来源归属在本次文档维护中不改写。
 
 ## 概述
 
@@ -194,8 +194,8 @@ Widget、Wear 和 UI 不直接读取或重算 PK 参数，也不创建第二份�
 
 v1.10.0 起，`pk/cpa/CpaPk.kt` 提供一个独立于上述 E2 模型的醋酸环丙孕酮（CPA）估算模型，
 只用于首页浓度图上可选的 CPA 估算曲线（设置 →「血药浓度计算」→「显示 CPA 估算曲线」，默认关闭）。
-设计与参数来源见 [V110_CPA_CURVE_PLAN](docs/evolune/v1.10/V110_CPA_CURVE_PLAN.md) 与
-[实现报告](docs/evolune/v1.10/V110_IMPLEMENTATION_REPORT.md)。
+设计与参数来源见 [V110_CPA_CURVE_PLAN](v1.10/V110_CPA_CURVE_PLAN.md) 与
+[实现报告](v1.10/V110_IMPLEMENTATION_REPORT.md)。
 
 - **模型**：口服一室模型，每个事件一条 Bateman 曲线，线性叠加（`CpaSimulator.simulate()`）；
   `ka ≈ ke` 时使用与 E2 相同形式的极限式。
@@ -376,8 +376,8 @@ AUC = Σ (C(tᵢ) + C(tᵢ₋₁))/2 × (tᵢ - tᵢ₋₁)
 
 ## 版权声明
 
-本实现的来源和权利范围以 [SOURCE_PROVENANCE](docs/SOURCE_PROVENANCE.md)、
-[THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md) 与 NOTICE 为准。2026-08-14 的明确许可
+本实现的来源和权利范围以 [SOURCE_PROVENANCE](../SOURCE_PROVENANCE.md)、
+[THIRD_PARTY_NOTICES](../../THIRD_PARTY_NOTICES.md) 与 NOTICE 为准。2026-08-14 的明确许可
 仅覆盖原作者拥有或有权授权的内容，不将整个上游仓库或第三方贡献自动重新许可为 MIT。
 
 ---

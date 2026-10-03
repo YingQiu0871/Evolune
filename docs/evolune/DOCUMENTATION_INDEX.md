@@ -194,14 +194,14 @@
 
 | 路径 | 文档标题 |
 | --- | --- |
-| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.1 |
-| [MEDICATION_PLAN_FEATURE.md](../../MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
-| [PK_IMPLEMENTATION.md](../../PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
-| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
-| [QUICK_START_UI.md](../../QUICK_START_UI.md) | 当前 UI 结构速览 |
-| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
-| [TODO.MD](../../TODO.MD) | 后续路线（v1.11.1 已封版） |
-| [UI_COMPONENTS.md](../../UI_COMPONENTS.md) | UI 组件清单 |
+| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.1 |
+| [MEDICATION_PLAN_FEATURE.md](MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
+| [PK_IMPLEMENTATION.md](PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
+| [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
+| [QUICK_START_UI.md](QUICK_START_UI.md) | 当前 UI 结构速览 |
+| [SETTINGS_FEATURE.md](SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
+| [TODO.md](TODO.md) | 后续路线（v1.11.1 已封版） |
+| [UI_COMPONENTS.md](UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
 | [docs/evolune/DECISIONS.md](../../docs/evolune/DECISIONS.md) | 架构决策记录 |

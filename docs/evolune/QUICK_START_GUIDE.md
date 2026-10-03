@@ -8,7 +8,7 @@
 
 从 Release 页面分别下载 Phone 和 Wear APK，安装到对应设备。Phone 需要 Android 12/API 31 及以上，Wear 最低 API 30。v1.6 至 v1.11.1 的每个版本都支持从上一版同签名覆盖升级（如 v1.11.0→v1.11.1），保留数据和已有组件，不需要清除数据。
 
-只有历史 v1.0 Wear 的旧 application ID 需要按 [身份迁移说明](docs/evolune/WEAR_V11_MIGRATION.md) 处理；不要把这条特殊规则用于 v1.1 以后的常规升级。v1.3.0 Wear APK 有已知安装缺陷，已由 v1.3.1 修复。Debug 包的身份和数据与 Release 分开。
+只有历史 v1.0 Wear 的旧 application ID 需要按 [身份迁移说明](WEAR_V11_MIGRATION.md) 处理；不要把这条特殊规则用于 v1.1 以后的常规升级。v1.3.0 Wear APK 有已知安装缺陷，已由 v1.3.1 修复。Debug 包的身份和数据与 Release 分开。
 
 ## 第一次使用
 
@@ -72,4 +72,4 @@ v1.7 起主导航新增“历史”入口。日历与所选日期的实际记录
 
 使用 JDK 17 和工程指定的 Android SDK（compile SDK 36.1）。Windows 使用 `gradlew.bat test assembleDebug`，macOS/Linux 使用 `./gradlew test assembleDebug`。正式用户下载 Release，不用 CI Debug 产物替换正式包。
 
-更多信息见 [设置](SETTINGS_FEATURE.md)、[实现总览](IMPLEMENTATION_SUMMARY.md) 和 [完整文档索引](docs/evolune/DOCUMENTATION_INDEX.md)。
+更多信息见 [设置](SETTINGS_FEATURE.md)、[实现总览](IMPLEMENTATION_SUMMARY.md) 和 [完整文档索引](DOCUMENTATION_INDEX.md)。

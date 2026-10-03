@@ -1,6 +1,6 @@
 # Evolune Implementation Summary — through v1.11.1
 
-文档核对日期：2026-10-01。当前公开稳定版为 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)，发布于 2026-10-01（Phone 1.11.1 / 101110100，Wear 1.11.1 / 1101110100），annotated tag `v1.11.1` 指向 `release/v1.11.1` PR 在 `main` 上的合并提交；上一稳定版为 v1.11.0（2026-10-01），更早的 v1.10.0 发布于 2026-09-30。v1.9.0（2026-09-28）的 annotated tag 指向提交 `d099998c46e747b99855b7c9c56b3e1bd671a089`。v1.6.0（2026-09-10，tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`）及更早版本的盘点见[版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；v1.7–v1.11 的发布状态见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+文档核对日期：2026-10-01。当前公开稳定版为 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)，发布于 2026-10-01（Phone 1.11.1 / 101110100，Wear 1.11.1 / 1101110100），annotated tag `v1.11.1` 指向 `release/v1.11.1` PR 在 `main` 上的合并提交；上一稳定版为 v1.11.0（2026-10-01），更早的 v1.10.0 发布于 2026-09-30。v1.9.0（2026-09-28）的 annotated tag 指向提交 `d099998c46e747b99855b7c9c56b3e1bd671a089`。v1.6.0（2026-09-10，tag 指向 `58ab66fc22b93630de4ea7137651b2388ff5f1a2`）及更早版本的盘点见[版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md)；v1.7–v1.11 的发布状态见 [Current Status](CURRENT_STATUS.md)。
 
 ## 版本累计成果
 
@@ -25,7 +25,7 @@
 | v1.11.0 | 五个主页面顶栏/底栏毛玻璃（无新依赖）；记录/方案变化后的 Widget 刷新与 Wear 快照/仪表盘同步移出主线程；发布脚本要求 PowerShell 7 |
 | v1.11.1 | 修复：恰好新增一条记录时，记录页滚动到该记录 |
 
-完整日期、tag 和来源见 [版本回顾](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md) 与 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+完整日期、tag 和来源见 [版本回顾](DOCUMENTATION_REVIEW_V16_2026-09-12.md) 与 [Current Status](CURRENT_STATUS.md)。
 
 ## 数据与工程边界
 
@@ -64,8 +64,8 @@ Phone 快速确认受 `AVAILABLE` 和 action-time 复核约束；Wear 的 `UPCOM
 
 ## 验证与后续
 
-v1.9.0 的验证记录见 [Current Status](docs/evolune/CURRENT_STATUS.md)：新检出的完整 JVM 门禁为 187 个套件、1,709 个测试、0 失败/0 错误/0 跳过（证据 `docs/evolune/v1.9.0/evidence/P-02-release-packaging/jvm-xml-recount.txt`）。[v1.6 最终发布门禁](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) 记录 863 JVM tests、签名与 APK 回读、Phone/Wear 保留数据覆盖安装及负责人真表验收。v1.10.0–v1.11.1 各版发布时记录的结果为 app JVM 1,461 个测试 0 失败、androidTest 396 个 0 失败 5 跳过（条件门控），详见各版 release notes。这些数字是各自发布时记录，本次文档更新没有重跑 Android 构建或设备测试。
+v1.9.0 的验证记录见 [Current Status](CURRENT_STATUS.md)：新检出的完整 JVM 门禁为 187 个套件、1,709 个测试、0 失败/0 错误/0 跳过（证据 `docs/evolune/v1.9.0/evidence/P-02-release-packaging/jvm-xml-recount.txt`）。[v1.6 最终发布门禁](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) 记录 863 JVM tests、签名与 APK 回读、Phone/Wear 保留数据覆盖安装及负责人真表验收。v1.10.0–v1.11.1 各版发布时记录的结果为 app JVM 1,461 个测试 0 失败、androidTest 396 个 0 失败 5 跳过（条件门控），详见各版 release notes。这些数字是各自发布时记录，本次文档更新没有重跑 Android 构建或设备测试。
 
 Phone 最终视觉证据包含隔离模拟器全流程和真机覆盖/实例保留，未在最终真机逐项重新新建四款 Widget。可选 AlarmManager/并发跳过压力测试仍为 P3；v1.5 耗电豁免不是实测 PASS。
 
-Optional CPA PK Curve 未随 v1.7 发布，后在 v1.10.0 以默认关闭的首页估算曲线交付（见上）；Tracked Date、个性化 PK、SQLCipher 和进一步模块拆分不属于已交付承诺。完整文档分类见 [文档索引](docs/evolune/DOCUMENTATION_INDEX.md)。
+Optional CPA PK Curve 未随 v1.7 发布，后在 v1.10.0 以默认关闭的首页估算曲线交付（见上）；Tracked Date、个性化 PK、SQLCipher 和进一步模块拆分不属于已交付承诺。完整文档分类见 [文档索引](DOCUMENTATION_INDEX.md)。

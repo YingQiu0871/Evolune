@@ -34,14 +34,14 @@ v1.2 的 RC 文档保留当时未放行状态；新增[v1.2 阅读说明](v1.2/R
 | --- | --- | --- |
 | Phone Widget | 四个独立 provider：今日计划、下一次服药、当前 E2、E2 趋势；今日完成度并入今日计划 | [最终规格说明](v1.6/V16_SPEC.md)、[Widget 实现](../../app/src/main/java/io/github/yingqiu0871/evolune/widget/EvoluneWidgetReceiver.kt) |
 | Widget 动作 | 今日计划符合 AVAILABLE 条件的项目提供确认；下一次服药仅展示并打开 App，没有直接确认按钮 | 同上；早期下一次服药确认要求保留为历史差异 |
-| Widget 配置 | 每实例外观配置；应用成功才保存，取消不写入；四个系统入口决定样式 | [快速指南](../../QUICK_START_GUIDE.md) |
+| Widget 配置 | 每实例外观配置；应用成功才保存，取消不写入；四个系统入口决定样式 | [快速指南](QUICK_START_GUIDE.md) |
 | Wear Tile | 三个新 Tile，加保留旧身份的 DoseTileService，共四个服务；预览元数据及品牌图标已补齐 | [Wear Manifest](../../wear/src/main/AndroidManifest.xml)、[最终门禁](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md) |
 | Complication | 三个 SHORT_TEXT provider；点击打开 App | [v1.6 阅读入口](v1.6/README.md) |
-| Wear 外观 | Wear 本地选择系统动态色或八组预制色；不描述成从 Phone 同步外观偏好 | [设置说明](../../SETTINGS_FEATURE.md) |
+| Wear 外观 | Wear 本地选择系统动态色或八组预制色；不描述成从 Phone 同步外观偏好 | [设置说明](SETTINGS_FEATURE.md) |
 | 权威与同步 | app、wear、experience-core 三模块；Phone Room 为用药数据权威，Wear 为可重建缓存；v1 快照协议与兼容旧路径分开描述 | [架构](ARCHITECTURE.md) |
-| 跳过本次 | 按计划、slot、scheduledAt 保存跳过并抑制该次提醒；不写 DoseEvent，不算已完成 | [用药方案](../../MEDICATION_PLAN_FEATURE.md) |
-| 备份与体重 | Health Connect 只读体重；原生加密备份与 Mahiro JSON 分开；Google Drive 为前台手动 appDataFolder 流程 | [设置说明](../../SETTINGS_FEATURE.md)、[v1.2 说明](v1.2/README.md) |
-| PK 与存储 | v1.6 更改呈现与入口，未改变 PK 数学模型、Room schema 或备份格式 | [实现总结](../../IMPLEMENTATION_SUMMARY.md)、[发行说明](v1.6/V16_RELEASE_NOTES.md) |
+| 跳过本次 | 按计划、slot、scheduledAt 保存跳过并抑制该次提醒；不写 DoseEvent，不算已完成 | [用药方案](MEDICATION_PLAN_FEATURE.md) |
+| 备份与体重 | Health Connect 只读体重；原生加密备份与 Mahiro JSON 分开；Google Drive 为前台手动 appDataFolder 流程 | [设置说明](SETTINGS_FEATURE.md)、[v1.2 说明](v1.2/README.md) |
+| PK 与存储 | v1.6 更改呈现与入口，未改变 PK 数学模型、Room schema 或备份格式 | [实现总结](IMPLEMENTATION_SUMMARY.md)、[发行说明](v1.6/V16_RELEASE_NOTES.md) |
 
 ## 对最初设备问题的回顾
 

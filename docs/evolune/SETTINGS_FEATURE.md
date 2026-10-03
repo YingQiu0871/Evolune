@@ -1,6 +1,6 @@
 # 设置功能（v1.11.1）
 
-更新日期：2026-10-01，适用 v1.11.1（v1.10.0 按用途重新分组了设置页；v1.11.0 起设置页作为主页面之一使用毛玻璃顶栏/底栏，v1.11.0 与 v1.11.1 未改动设置项本身）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](docs/evolune/CURRENT_STATUS.md)。
+更新日期：2026-10-01，适用 v1.11.1（v1.10.0 按用途重新分组了设置页；v1.11.0 起设置页作为主页面之一使用毛玻璃顶栏/底栏，v1.11.0 与 v1.11.1 未改动设置项本身）。Phone 设置由扁平的 SettingsScreen 及 `ui/screens/settings/` 下的分区组件、SettingsViewModel 和 SettingsDataStore 组成；同步/备份由各自 coordinator/provider 处理。当前版本见 [Current Status](CURRENT_STATUS.md)。
 
 ## 页面与功能
 
@@ -35,14 +35,14 @@ Phone/Wear 的 Android Auto Backup 与设备迁移排除私有数据；这不等
 
 ## 实现入口
 
-- [SettingsScreen](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
-- [HelpScreen](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HelpScreen.kt)（使用帮助，v1.10.0）
-- [设置分区组件](app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/)（血药浓度计算、外观、配色、备份与数据、更新、关于与帮助）
-- [配色调色板权威](app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/)
-- [Portable 导出/导入](app/src/main/java/io/github/yingqiu0871/evolune/export/)
-- [SettingsViewModel](app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt)
-- [SettingsDataStore](app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt)
-- [Health Connect adapter](app/src/main/java/io/github/yingqiu0871/evolune/healthconnect/AndroidHealthConnectWeightProvider.kt)
-- [BackupRestoreCoordinator](app/src/main/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinator.kt)
-- [GoogleDriveBackupProvider](app/src/main/java/io/github/yingqiu0871/evolune/backup/cloud/google/GoogleDriveBackupProvider.kt)
-- [WidgetConfigurationActivity](app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetConfigurationActivity.kt)
+- [SettingsScreen](../../app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/SettingsScreen.kt)
+- [HelpScreen](../../app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/HelpScreen.kt)（使用帮助，v1.10.0）
+- [设置分区组件](../../app/src/main/java/io/github/yingqiu0871/evolune/ui/screens/settings/)（血药浓度计算、外观、配色、备份与数据、更新、关于与帮助）
+- [配色调色板权威](../../app/src/main/java/io/github/yingqiu0871/evolune/theme/palette/)
+- [Portable 导出/导入](../../app/src/main/java/io/github/yingqiu0871/evolune/export/)
+- [SettingsViewModel](../../app/src/main/java/io/github/yingqiu0871/evolune/viewmodel/SettingsViewModel.kt)
+- [SettingsDataStore](../../app/src/main/java/io/github/yingqiu0871/evolune/data/SettingsDataStore.kt)
+- [Health Connect adapter](../../app/src/main/java/io/github/yingqiu0871/evolune/healthconnect/AndroidHealthConnectWeightProvider.kt)
+- [BackupRestoreCoordinator](../../app/src/main/java/io/github/yingqiu0871/evolune/backup/BackupRestoreCoordinator.kt)
+- [GoogleDriveBackupProvider](../../app/src/main/java/io/github/yingqiu0871/evolune/backup/cloud/google/GoogleDriveBackupProvider.kt)
+- [WidgetConfigurationActivity](../../app/src/main/java/io/github/yingqiu0871/evolune/widget/WidgetConfigurationActivity.kt)

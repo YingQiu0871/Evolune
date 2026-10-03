@@ -2,9 +2,9 @@
 
 截至 2026-10-01，v1.0–v1.11.1 已发布（最新稳定版 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)，
 2026-10-01）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
-当前状态见 [CURRENT_STATUS](docs/evolune/CURRENT_STATUS.md)，完整文档索引见
-[DOCUMENTATION_INDEX](docs/evolune/DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
-[文档盘点](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
+当前状态见 [CURRENT_STATUS](CURRENT_STATUS.md)，完整文档索引见
+[DOCUMENTATION_INDEX](DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
+[文档盘点](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
 
 ## v1.2 — Google Integration & Data Continuity（已发布）
 
@@ -36,8 +36,8 @@
 
 ## v1.6 — Widget Gallery（已封版发布）
 
-实施计划：[V16_PLAN](docs/evolune/v1.6/V16_PLAN.md)；
-审阅方式：[V16_REVIEW](docs/evolune/v1.6/V16_REVIEW.md)。A–G 已完成，最终矩阵与产物身份见 [V16_ACCEPTANCE](docs/evolune/v1.6/V16_ACCEPTANCE.md) 和 [最终发布门禁](docs/evolune/v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md)。
+实施计划：[V16_PLAN](v1.6/V16_PLAN.md)；
+审阅方式：[V16_REVIEW](v1.6/V16_REVIEW.md)。A–G 已完成，最终矩阵与产物身份见 [V16_ACCEPTANCE](v1.6/V16_ACCEPTANCE.md) 和 [最终发布门禁](v1.6/V16_FINAL_RELEASE_GATE_2026-09-09.md)。
 
 - [x] v1.6-A：冻结 v1.5.0 基线、样式/状态/尺寸规格、设备矩阵和刷新性能预算。
 - [x] v1.6-B：共享展示状态、按实例样式配置、旧 Widget 兼容及 Wear 字段/协议契约。
@@ -400,7 +400,7 @@
 ## Deferred
 
 - v1.6 最终门禁保留的可选 P3：真实 AlarmManager 队列与连续并发跳过压力测试；不伪装成已执行。
-- 本次文档盘点发现的历史日志/截图可追溯性缺口见 [盘点报告](docs/evolune/DOCUMENTATION_REVIEW_V16_2026-09-12.md)；不补造证据。
+- 本次文档盘点发现的历史日志/截图可追溯性缺口见 [盘点报告](DOCUMENTATION_REVIEW_V16_2026-09-12.md)；不补造证据。
 
 - Tracked Date、个性化 PK/calibration、SQLCipher 和 Gradle module extraction 仍需
   单独产品/安全/迁移决策。
