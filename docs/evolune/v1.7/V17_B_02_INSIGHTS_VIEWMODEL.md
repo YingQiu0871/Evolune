@@ -8,7 +8,7 @@
 > 依据（§1 preflight 重读）：[`V17_B_00_INSIGHTS_SEMANTICS.md`](V17_B_00_INSIGHTS_SEMANTICS.md) ·
 > [`V17_B_01_INSIGHTS_DOMAIN.md`](V17_B_01_INSIGHTS_DOMAIN.md) · [`V17_A_04_HARDENING.md`](V17_A_04_HARDENING.md) ·
 > `HistoryViewModel.kt` / `HistoryRangeSource.kt` / 现有 ViewModel factory 与 lifecycle idiom
-> 证据：[`evidence/b-02/`](evidence/b-02/)
+> 证据：[`evidence/b-02/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/b-02)
 
 **B-02 不重新定义任何 aggregate 数学**：所有计数/分布/剂量/披露语义仍由 B-01
 `ReadOnlyMedicationInsightsAggregator` 产生，ViewModel 只做编排。

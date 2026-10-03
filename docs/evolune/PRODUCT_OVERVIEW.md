@@ -82,7 +82,7 @@ Phone 与 Wear Manifest 都引用 `data_extraction_rules.xml` 和 `backup_rules.
 
 ### Health Connect 与原生备份
 
-Health Connect 是可选前台体重读取 adapter，读取最近 30 天的有效体重并保护较新的本地/手动输入，不上传用药记录。原生备份使用版本化 envelope、口令派生密钥及 AES-256-GCM；恢复先预览、校验，再通过恢复事务和 journal 协调 Room/DataStore。Google Drive `appDataFolder` 提供手动加密备份、回读校验和三代保留，不提供实时云数据库同步。设置入口和限制见 [设置功能](../../SETTINGS_FEATURE.md)。
+Health Connect 是可选前台体重读取 adapter，读取最近 30 天的有效体重并保护较新的本地/手动输入，不上传用药记录。原生备份使用版本化 envelope、口令派生密钥及 AES-256-GCM；恢复先预览、校验，再通过恢复事务和 journal 协调 Room/DataStore。Google Drive `appDataFolder` 提供手动加密备份、回读校验和三代保留，不提供实时云数据库同步。设置入口和限制见 [设置功能](SETTINGS_FEATURE.md)。
 
 ## 已发布能力与边界
 

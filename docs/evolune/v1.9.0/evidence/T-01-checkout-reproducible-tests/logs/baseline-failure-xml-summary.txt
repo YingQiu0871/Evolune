@@ -1,9 +1,0 @@
-# Baseline (51a839a) raw checkout focused run — finding reconstruction
-core.autocrlf: file:C:/Program Files/Git/etc/gitconfig	true
-worktree: fresh detached @ 51a839a, fixtures checked out CRLF (no attribute at baseline)
-  io.github.yingqiu0871.evolune.export.PortableGoldenFixtureTest tests=3 failures=2 errors=0
-    FAILED: the canonical JSON byte fixture is reproduced exactly
-    FAILED: the canonical CSV byte fixture is reproduced exactly
-  io.github.yingqiu0871.evolune.navigation.HistoryLazyEntryArchitectureTest tests=4 failures=1 errors=0
-    FAILED: History entry creates exactly one Activity-owned ViewModel
-TOTAL suites=2 tests=7 failures=3 errors=0

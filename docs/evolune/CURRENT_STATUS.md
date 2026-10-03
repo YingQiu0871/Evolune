@@ -2,6 +2,8 @@
 
 This document is the canonical quick reference for the current public release and development baseline.
 Historical plans and phase reports remain evidence of earlier decisions but do not override this status.
+Raw `evidence/` folders cited below were moved out of `main` on 2026-10-03 and are archived at commit `337cfbe`;
+see the [evidence archive note](EVIDENCE_ARCHIVE.md).
 
 Documentation updated on 2026-10-01 for the `v1.11.1` release (release branch merged into `main` with a normal
 merge commit; the annotated tag `v1.11.1` points at that merge commit). See the
@@ -264,7 +266,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - C-01 实现规格 — **APPROVED**（[`V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md`](v1.7/V17_C_01_RETROSPECTIVE_PK_IMPLEMENTATION.md)）。
   - C-01 生产实现 — **APPROVED / CLOSED**（final independent implementation review **APPROVE**）：
     contract HEAD `34ca5e1b2bd7f7f7476a63e795d75a9c827acef9`，approved implementation HEAD
-    `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence [`v1.7/evidence/c-01/`](v1.7/evidence/c-01/)。
+    `145d53bd922c30338171cc7b0529a36dc482b4a6`，evidence [`v1.7/evidence/c-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-01)。
   - 最终验证摘要：1260 JVM tests / 0 failures / 0 errors / 0 skipped · fresh 54/54 Gradle tasks executed ·
     Room instrumentation 1/1 PASS（Pixel_7 AVD API 35）· golden PK regression preserved · zero-write PASS ·
     schema / PK numerical source / Home·Wear·Widget orchestration unchanged。
@@ -275,7 +277,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     contract HEAD `8be09339bfae1c4a138b4ccb739f86302c60d627`。
   - C-04 生产实现 — **APPROVED / CLOSED**（final independent implementation review APPROVE；R1 T4 disclosure
     closure 后通过）：approved implementation HEAD `823bd9ce5c276dc473cc041efba409bd931c589f`，
-    evidence [`v1.7/evidence/c-04/`](v1.7/evidence/c-04/)。
+    evidence [`v1.7/evidence/c-04/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/c-04)。
   - C-04 最终验证摘要：focused C-04 JVM 73 / 0 / 0 / 0 · fresh full JVM 1333 tests / 0 failures / 0 errors /
     0 skipped · fresh 54/54 Gradle tasks executed · affected instrumentation 14/14 PASS（Pixel_7 AVD API 35）·
     evidence 169/169 manifest data entries · 171/171 HEAD blob verification · 0 mismatches ·
@@ -289,7 +291,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - Phase D · D-01 contract — **APPROVED / FROZEN**（[`V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md`](v1.7/V17_D_01_TIMELINE_READ_MODEL_CONTRACT.md)，
     contract HEAD `a245a5ec7a2dcd977ff0de3b3a79c8b129f67e34`）；D-01 implementation —
     **APPROVED / CLOSED**（implementation HEAD `97838fbf7c8692ada9d44d8401a6008283fac178`；
-    evidence [`v1.7/evidence/d-01/`](v1.7/evidence/d-01/)）。验证摘要：focused D-01 JVM 32 / 0 / 0 / 0 ·
+    evidence [`v1.7/evidence/d-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/d-01)）。验证摘要：focused D-01 JVM 32 / 0 / 0 / 0 ·
     fresh full JVM 1365 / 0 failures / 0 errors / 0 skipped · 54/54 Gradle tasks executed ·
     instrumentation not applicable（无 Android/UI surface）· evidence 167/167 manifest coverage、
     169/169 HEAD blob verification、0 mismatches。**D-01 冻结**：未经重开评审不得再改 D-01 生产。
@@ -298,7 +300,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     contract HEAD `ec0416e32ca0094ce3347a776f76c66b63c0261e`；含 R1/R2）；D-03 implementation —
     **APPROVED / CLOSED**（final independent implementation review `APPROVE V17-D03 IMPLEMENTATION`；
     implementation HEAD `d7d27f204e0eb298ca9a1ac629c7022ef621f603`；evidence
-    [`v1.7/evidence/d-03/`](v1.7/evidence/d-03/)）。验证摘要：focused D-03 JVM **56 / 0 failures /
+    [`v1.7/evidence/d-03/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/d-03)）。验证摘要：focused D-03 JVM **56 / 0 failures /
     0 errors / 0 skipped** · fresh full JVM **1421 / 0 / 0 / 0**（app 1160 · experience-core 171 ·
     wear 90）· Gradle **54/54** actionable tasks executed · instrumentation **not applicable**
     （D-03 Android/UI-free）· evidence **170 files · 168/168 manifest coverage · 170/170 HEAD

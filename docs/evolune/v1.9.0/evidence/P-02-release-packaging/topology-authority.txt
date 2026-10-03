@@ -1,6 +1,0 @@
-TOPOLOGY / AUTHORITY
-Functional freeze tree: 9beb4039119788d14c7019271aa80a3cd444b624 (product/config/test at 7797b6c)
-Release lineage: 2fe04ee -> d7fd1e7 -> 284909a -> 7797b6c -> 957e82f -> 0b96d9e (P-02a)
-P-02b executes the frozen P-01 packaging plan against P-02a and adds evidence only.
-Target release metadata: versionName 1.9.0; Phone 101090000; Wear 1101090000.
-Established signer: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08

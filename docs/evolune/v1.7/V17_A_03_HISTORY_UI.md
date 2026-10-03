@@ -9,10 +9,10 @@
 > Commit（A-03-UI-R1 轮）：`afcd02c fix: correct History cross-date timestamps, a11y counts and inferred wording`（P1 + 两个 P2 合并且逐条标注，reviewer 允许合并 1–3）、`d1889bf test: verify A-03 History presentation fixes`、`69dc99c test: guard the cross-date presentation rule against regressions`、`docs: close A-03 UI review findings`
 > Commit（A-03-UI 轮）：`63f2c7b docs: close A-03 preflight review notes`、`0395ad8 feat: add History calendar presentation`、`206cdf2 feat: expose History as primary phone tab`、`1412a9f test: verify v1.7 History phone experience`、`docs: close A-03 History UI round`
 > Commit（A-03-PRE-01）：`2afdbaf fix: exclude future unrecorded occurrences from History`、`c48826b test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`
-> 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
-> 证据清单（A-03-UI-R1）：[`evidence/a-03-ui-r1/MANIFEST.sha256`](evidence/a-03-ui-r1/MANIFEST.sha256)（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，manifest 自身 SHA-256 `d9a6fdb3f463cdc2f6abb15cf478fe500f6b904c665a745fe11f9b9b4620ee70`）
-> 证据清单（A-03 UI，冻结）：[`evidence/a-03-ui/MANIFEST.sha256`](evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
-> 证据清单（A-03-PRE-01）：[`evidence/a-03-pre-01/MANIFEST.sha256`](evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
+> 证据清单（preflight，冻结不改）：[`evidence/a-03/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03/MANIFEST.sha256)（112 条目，coverage 112=112，manifest 自身 SHA-256 `d6d4559afa0c428bc3b8affcbfa29d6375f2ffdbed1cce20e3927db7e27ff892`）
+> 证据清单（A-03-UI-R1）：[`evidence/a-03-ui-r1/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03-ui-r1/MANIFEST.sha256)（**130 条目，coverage 130=130，`sha256sum -c` 130 OK / 0 FAILED**，manifest 自身 SHA-256 `d9a6fdb3f463cdc2f6abb15cf478fe500f6b904c665a745fe11f9b9b4620ee70`）
+> 证据清单（A-03 UI，冻结）：[`evidence/a-03-ui/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03-ui/MANIFEST.sha256)（126 条目，coverage 126=126，`sha256sum -c` 126 OK / 0 FAILED，manifest 自身 SHA-256 `05d7d8266a3945f11fbb179583ba14b6552f46d42a9b89d81d653820169b9933`）
+> 证据清单（A-03-PRE-01）：[`evidence/a-03-pre-01/MANIFEST.sha256`](https://github.com/YingQiu0871/Evolune/blob/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03-pre-01/MANIFEST.sha256)（115 条目，coverage 115=115，`sha256sum -c` 115 OK / 0 FAILED，manifest 自身 SHA-256 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`；该清单在 A-03-UI 第 0 轮的 **P3-A** 清理后重新生成，见 §13）
 
 ---
 
@@ -144,7 +144,7 @@ Preview 使用 synthetic UI model、导航只允许新增一个 destination + �
 ## 6. 交付物
 
 - 本文档（缺口报告 + 修复建议 + 顺延清单）；
-- 证据：[`evidence/a-03/`](evidence/a-03/)（preflight 复现、契约测试源码存档、fresh JVM XML/日志/aggregate）；
+- 证据：[`evidence/a-03/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03)（preflight 复现、契约测试源码存档、fresh JVM XML/日志/aggregate）；
 - commit：`docs: close A-02 review precision notes`、`docs: report A-03 history contract gap`；
 - **无 UI 代码、无 ViewModel、无导航改动、无 Compose 测试**。
 
@@ -314,7 +314,7 @@ vs Settings 二级页）、日历组件选型、是否引入可注入时间 prov
 
 - 源码：`HistoricalProjection.kt`（域修复）、3 个测试文件（§8.5）；
 - 文档：本文档（§8 / §10 / §11 / §12）；
-- 证据：[`evidence/a-03-pre-01/`](evidence/a-03-pre-01/)：
+- 证据：[`evidence/a-03-pre-01/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03-pre-01)：
   `a03pre01-jvm-run.log`、三模块 JUnit XML 副本（111 个）、`jvm-aggregate.tsv`、`contract-test-green.txt`
   （放回的契约测试 RED→GREEN，含"恢复方法与 RED 方法字节相同"的 SHA-256 证明）、`source-diff-stat.txt`
   （改动面 + UI/Wear/adapter/matcher/schema/依赖各 0 改动的逐条证明）、`MANIFEST.sha256`
@@ -322,7 +322,7 @@ vs Settings 二级页）、日历组件选型、是否引入可注入时间 prov
   `d4c4c310…` → P3-A 清理后为 `8d9ed4c89407eec2680851afe76bc99d4b828205c524af7d2c216e2ce4af5b8a`）；
   P3-A 只改了 `contract-test-green.txt`（`9be8845b…` → `a48836e9…`）并重新生成 manifest，
   其余 114 个证据文件字节未变；
-- preflight 证据 [`evidence/a-03/`](evidence/a-03/) **冻结未改**（`git diff` 0 改动，见
+- preflight 证据 [`evidence/a-03/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03) **冻结未改**（`git diff` 0 改动，见
   `source-diff-stat.txt` 最后一项边界证明）；
 - commit：`fix: exclude future unrecorded occurrences from History`、
   `test: verify History temporal horizon contract`、`docs: close A-03 History contract gap`；
@@ -485,7 +485,7 @@ io.github.yingqiu0871.evolune.ui.screens.HistoryNavigationTest
 
 ## 23. 交付物与证据（A-03 UI）
 
-- 证据：[`evidence/a-03-ui/`](evidence/a-03-ui/)：
+- 证据：[`evidence/a-03-ui/`](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence/a-03-ui)：
   `a03ui-jvm-run.log`、`jvm-{app,experience-core,wear}/`（114 个 JUnit XML）、`jvm-aggregate.tsv`、
   `a03ui-androidtest-run.log`、`androidtest-xml/`（baseline + final 聚合 XML）、`androidtest-aggregate.tsv`、
   `a03ui-focused-history-ui-run.log`、`a03ui-assemble-debug.log`、`screenshots/`（3 张 Pixel 7 PNG）、

@@ -57,7 +57,7 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 4. 返回“主页”查看当前浓度、历史曲线和未来预测。
 5. 在“历史”中回看已记录的用药活动，并按需进入时间线、洞察或回顾性 PK。
 6. 在“设置 → 备份与数据”中按需使用 Portable JSON/CSV 导出与导入、Health Connect 或 Google Drive 加密备份/恢复；恢复前检查预览并保管好备份口令。
-7. 在桌面小组件选择器选择四类入口；在手表添加 Tile 或编辑支持 Short Text 的表盘槽位。详见 [快速开始](../../QUICK_START_GUIDE.md)。
+7. 在桌面小组件选择器选择四类入口；在手表添加 Tile 或编辑支持 Short Text 的表盘槽位。详见 [快速开始](QUICK_START_GUIDE.md)。
 
 ## 本地开发构建
 

@@ -194,17 +194,18 @@
 
 | 路径 | 文档标题 |
 | --- | --- |
-| [IMPLEMENTATION_SUMMARY.md](../../IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.1 |
-| [MEDICATION_PLAN_FEATURE.md](../../MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
-| [PK_IMPLEMENTATION.md](../../PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
-| [QUICK_START_GUIDE.md](../../QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
-| [QUICK_START_UI.md](../../QUICK_START_UI.md) | 当前 UI 结构速览 |
-| [SETTINGS_FEATURE.md](../../SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
-| [TODO.MD](../../TODO.MD) | 后续路线（v1.11.1 已封版） |
-| [UI_COMPONENTS.md](../../UI_COMPONENTS.md) | UI 组件清单 |
+| [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) | Evolune Implementation Summary — through v1.9.1 |
+| [MEDICATION_PLAN_FEATURE.md](MEDICATION_PLAN_FEATURE.md) | 用药方案与时间槽 |
+| [PK_IMPLEMENTATION.md](PK_IMPLEMENTATION.md) | Evolune 药代动力学（PK）模块实现文档 |
+| [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
+| [QUICK_START_UI.md](QUICK_START_UI.md) | 当前 UI 结构速览 |
+| [SETTINGS_FEATURE.md](SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
+| [TODO.md](TODO.md) | 后续路线（v1.11.1 已封版） |
+| [UI_COMPONENTS.md](UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
 | [docs/evolune/DECISIONS.md](../../docs/evolune/DECISIONS.md) | 架构决策记录 |
+| [docs/evolune/EVIDENCE_ARCHIVE.md](../../docs/evolune/EVIDENCE_ARCHIVE.md) | 证据归档说明 |
 | [docs/evolune/FEATURE_MATRIX.md](../../docs/evolune/FEATURE_MATRIX.md) | 功能矩阵 |
 | [docs/evolune/PRODUCT_OVERVIEW.md](../../docs/evolune/PRODUCT_OVERVIEW.md) | 产品概览 |
 | [docs/evolune/README.md](../../docs/evolune/README.md) | Evolune（月序） |
@@ -214,7 +215,7 @@
 
 ## v1.7–v1.9 文档目录（37）
 
-每个版本目录包含发布说明；v1.7 另含分阶段契约与证据记录，v1.7.2 含契约/计划/清单。`evidence/` 子目录保存原始验证证据（哈希清单、日志、截图），此处只列目录与文件数，不逐个索引。
+每个版本目录包含发布说明；v1.7 另含分阶段契约与证据记录，v1.7.2 含契约/计划/清单。`evidence/` 子目录原先保存原始验证证据（哈希清单、日志、截图）；2026-10-03 起已从主分支移除，归档在提交 `337cfbe` 中，见[证据归档说明](EVIDENCE_ARCHIVE.md)。
 
 | 路径 | 文档标题 |
 | --- | --- |
@@ -263,17 +264,17 @@
 | [docs/evolune/TESTING.md](../../docs/evolune/TESTING.md) | Evolune 测试环境 / Testing Environment |
 | [docs/release/RELEASE_PROCESS.md](../../docs/release/RELEASE_PROCESS.md) | Evolune 发布流程 / Release Process |
 
-证据目录（原始记录，不逐个索引）：
+证据目录（原始记录，已归档到提交 `337cfbe`，不逐个索引；找回方法见[证据归档说明](EVIDENCE_ARCHIVE.md)）：
 
 | 目录 | 文件数 |
 | --- | ---: |
-| [docs/evolune/v1.7/evidence/](../../docs/evolune/v1.7/evidence/) | 3618 |
-| [docs/evolune/v1.7.1/evidence/](../../docs/evolune/v1.7.1/evidence/) | 73 |
-| [docs/evolune/v1.7.2/evidence/](../../docs/evolune/v1.7.2/evidence/) | 211 |
-| [docs/evolune/v1.7.3/evidence/](../../docs/evolune/v1.7.3/evidence/) | 57 |
-| [docs/evolune/v1.7.4/evidence/](../../docs/evolune/v1.7.4/evidence/) | 66 |
-| [docs/evolune/v1.8.0/evidence/](../../docs/evolune/v1.8.0/evidence/) | 510 |
-| [docs/evolune/v1.9.0/evidence/](../../docs/evolune/v1.9.0/evidence/) | 179 |
+| [docs/evolune/v1.7/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7/evidence) | 3618 |
+| [docs/evolune/v1.7.1/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7.1/evidence) | 73 |
+| [docs/evolune/v1.7.2/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7.2/evidence) | 211 |
+| [docs/evolune/v1.7.3/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7.3/evidence) | 57 |
+| [docs/evolune/v1.7.4/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.7.4/evidence) | 66 |
+| [docs/evolune/v1.8.0/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.8.0/evidence) | 510 |
+| [docs/evolune/v1.9.0/evidence/](https://github.com/YingQiu0871/Evolune/tree/337cfbe73f8dad3da1fc47fdb3545d67e5425610/docs/evolune/v1.9.0/evidence) | 179 |
 
 ## 补充范围
 
