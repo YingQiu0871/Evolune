@@ -23,6 +23,14 @@ on:
           - core
           - full
         default: core
+      locale:
+        description: "Emulator locale (standard: zh-CN). en-US checks the suite does not depend on it."
+        type: string
+        default: zh-CN
+      size:
+        description: "Emulator screen size (standard: 1080x2400). 1080x1920 is the AVD default."
+        type: string
+        default: 1080x2400
 
 permissions:
   contents: read
@@ -63,6 +71,10 @@ jobs:
 
       - name: Run androidTest on API 35 emulator
         uses: reactivecircus/android-emulator-runner@v2
+        # Scheduled and push runs have no inputs and fall back to the standard environment.
+        env:
+          EVOLUNE_TEST_LOCALE: ${{ inputs.locale || 'zh-CN' }}
+          EVOLUNE_TEST_SIZE: ${{ inputs.size || '1080x2400' }}
         with:
           api-level: 35
           target: google_apis
