@@ -16,6 +16,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.yingqiu0871.evolune.MainActivity
 import io.github.yingqiu0871.evolune.R
+import io.github.yingqiu0871.evolune.ui.screens.clickThroughSemantics
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -84,7 +85,7 @@ class InsightsReleaseGateTest {
 
     private fun openInsights() {
         scrollHistoryToInsightsEntry()
-        composeRule.onNodeWithTag("history-insights-entry").performClick()
+        composeRule.onNodeWithTag("history-insights-entry").clickThroughSemantics()
         composeRule.waitForIdle()
     }
 

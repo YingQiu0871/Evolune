@@ -4,12 +4,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -78,13 +74,13 @@ class HistoryRefreshDeviceTest {
 
     @Test
     fun returningToHistoryShowsAnIntakeRecordedWhileAway() {
-        selectTab("history")
+        composeRule.selectPrimaryTab("history")
         assertTrue(
             "the seeded intake must not be visible before it exists",
             composeRule.onAllNodesWithText(doseText, substring = true).fetchSemanticsNodes().isEmpty()
         )
 
-        selectTab("records")
+        composeRule.selectPrimaryTab("records")
 
         // Record through the authoritative production repository while History is not composed.
         val today = LocalDate.now(zone)
@@ -108,7 +104,7 @@ class HistoryRefreshDeviceTest {
             inserted
         )
 
-        selectTab("history")
+        composeRule.selectPrimaryTab("history")
 
         // The tab return must have refreshed the visible month: the new intake is visible.
         composeRule.waitUntil(5_000L) {
@@ -119,7 +115,7 @@ class HistoryRefreshDeviceTest {
 
     @Test
     fun switchingToHistoryAndStayingThereDoesNotDuplicateQueries() {
-        selectTab("history")
+        composeRule.selectPrimaryTab("history")
 
         // Selecting a day recomposes the screen without leaving the destination: no extra load may
         // happen (the JVM tests count reads; here we prove the screen stays interactive and stable).
@@ -127,33 +123,5 @@ class HistoryRefreshDeviceTest {
         composeRule.onNodeWithTag("history-calendar").assertExists()
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("history-screen").assertExists()
-    }
-
-    private fun selectTab(route: String) {
-        val target = tag(route)
-        val deadline = System.currentTimeMillis() + 5_000L
-        while (System.currentTimeMillis() < deadline) {
-            composeRule.onNodeWithTag(target).performClick()
-            composeRule.waitForIdle()
-            val selected = composeRule
-                .onAllNodesWithTag(target)
-                .fetchSemanticsNodes()
-                .any { it.config.getOrNull(SemanticsProperties.Selected) == true }
-            if (selected) return
-            Thread.sleep(NAV_CLICK_THROTTLE_MS + 100L)
-        }
-        error("tab $route did not become selected")
-    }
-
-    private fun tag(route: String): String =
-        if (composeRule.onAllNodesWithTag("nav-bar-$route").fetchSemanticsNodes().isNotEmpty()) {
-            "nav-bar-$route"
-        } else {
-            "nav-rail-$route"
-        }
-
-    private companion object {
-        /** Mirrors `AppNavigation.NAV_CLICK_THROTTLE_MS`. */
-        const val NAV_CLICK_THROTTLE_MS = 200L
     }
 }

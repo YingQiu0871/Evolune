@@ -74,12 +74,25 @@ class RealAppImeFrameProbeTest {
         shell("ime reset")
         shell("ime enable ${ProbeTestIme.ID}")
         shell("ime set ${ProbeTestIme.ID}")
-        SystemClock.sleep(1_500)
+        awaitCurrentIme(ProbeTestIme.ID)
         Log.i(
             TAG,
             "IME switched from=$originalIme to=${ProbeTestIme.ID} " +
                 "windowFocus=${composeRule.activity.window.decorView.hasWindowFocus()}"
         )
+    }
+
+    /** Waits until the system reports [id] as the current input method instead of sleeping. */
+    private fun awaitCurrentIme(id: String) {
+        val inputMethodManager = composeRule.activity.getSystemService(InputMethodManager::class.java)
+        composeRule.waitUntil(5_000L) {
+            val current = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                inputMethodManager?.currentInputMethodInfo?.id
+            } else {
+                shell("settings get secure default_input_method").trim()
+            }
+            current == id
+        }
     }
 
     @After

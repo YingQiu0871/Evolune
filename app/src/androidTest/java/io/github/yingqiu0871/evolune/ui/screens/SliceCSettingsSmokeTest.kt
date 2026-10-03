@@ -5,6 +5,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -84,13 +86,11 @@ class SliceCSettingsSmokeTest {
         screenshot("02-legacy-builtin-state")
 
         composeRule.onNodeWithTag("palette-tile-monet_blue").scrollToAndClick()
-        composeRule.waitForIdle()
-        Thread.sleep(400)
+        awaitSelected("palette-tile-monet_blue")
         screenshot("03-monet-blue-selected")
 
         composeRule.onNodeWithTag("theme-mode-dark").scrollToAndClick()
-        composeRule.waitForIdle()
-        Thread.sleep(400)
+        awaitSelected("theme-mode-dark")
         screenshot("04-dark-theme-mode")
 
         composeRule.onNodeWithTag("settings-about-entry").performScrollTo().assertIsDisplayed()
@@ -98,8 +98,7 @@ class SliceCSettingsSmokeTest {
 
         composeRule.onNodeWithTag("settings-color-scheme-section").performScrollTo()
         composeRule.onNodeWithTag("palette-tile-monet_amber").scrollToAndClick()
-        composeRule.waitForIdle()
-        Thread.sleep(400)
+        awaitSelected("palette-tile-monet_amber")
         screenshot("06-monet-amber-selected")
     }
 
@@ -107,9 +106,18 @@ class SliceCSettingsSmokeTest {
         val cancellations = composeRule.onAllNodesWithText("取消").fetchSemanticsNodes()
         if (cancellations.isNotEmpty()) {
             composeRule.onAllNodesWithText("取消")[0].performClick()
-            composeRule.waitForIdle()
-            Thread.sleep(300)
+            composeRule.waitUntil(5_000L) {
+                composeRule.onAllNodesWithText("取消").fetchSemanticsNodes().size < cancellations.size
+            }
         }
+    }
+
+    /** Waits for the persisted choice to come back as the selected state before a screenshot. */
+    private fun awaitSelected(tag: String) {
+        composeRule.waitUntil(5_000L) {
+            composeRule.onAllNodes(hasTestTag(tag) and isSelected()).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.waitForIdle()
     }
 
     private fun openSettings() {

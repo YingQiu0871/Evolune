@@ -77,6 +77,7 @@ class TimelineScreenTest {
     }
 
     private fun scrollStripTo(date: java.time.LocalDate) {
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         composeRule.onNodeWithTag("timeline-day-strip")
             .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
         composeRule.waitForIdle()
@@ -277,6 +278,9 @@ class TimelineScreenTest {
 
         composeRule.onNodeWithTag("timeline-section-$target").assertIsDisplayed()
         assertEquals(target, state.selectedDate)
+        // The newest section is still part of the list (the month stays rendered), even if a
+        // short screen has scrolled it out of composition.
+        composeRule.scrollTimelineBodyTo("timeline-section-2026-09-16")
         composeRule.onNodeWithTag("timeline-section-2026-09-16").assertExists()
     }
 

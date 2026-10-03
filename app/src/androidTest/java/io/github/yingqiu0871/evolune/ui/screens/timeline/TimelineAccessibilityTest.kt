@@ -39,6 +39,9 @@ import org.junit.runner.RunWith
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import kotlin.math.abs
 
 /**
@@ -70,6 +73,7 @@ class TimelineAccessibilityTest {
     }
 
     private fun scrollStripTo(date: LocalDate) {
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         composeRule.onNodeWithTag("timeline-day-strip")
             .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
         composeRule.waitForIdle()
@@ -156,8 +160,21 @@ class TimelineAccessibilityTest {
         // Absolute header: heading + exactly ONE full-weekday phrase (no visible short form).
         composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
             .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Heading))
+        // The date part follows the device locale (MEDIUM style, as the screen formats it); the
+        // zh-CN golden is pinned when the suite runs in the standard environment.
+        val dateText = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+            .withLocale(Locale.getDefault())
+            .format(absoluteDate)
+        val spokenPhrase = context.getString(
+            R.string.timeline_a11y_date_weekday,
+            dateText,
+            context.getString(R.string.timeline_a11y_weekday_sat)
+        )
+        if (Locale.getDefault().language == "zh" && Locale.getDefault().country == "CN") {
+            assertEquals("2026年9月12日，星期六", spokenPhrase)
+        }
         composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
-            .assertContentDescriptionEquals("2026年9月12日，星期六")
+            .assertContentDescriptionEquals(spokenPhrase)
         composeRule.onNodeWithTag("timeline-section-header-2026-09-12")
             .assert(SemanticsMatcher.keyNotDefined(SemanticsProperties.Text))
 
@@ -165,7 +182,7 @@ class TimelineAccessibilityTest {
         // spoken node; exactly one node carries the header's tag and phrase.
         val shortForm = context.getString(
             R.string.timeline_section_date_weekday,
-            "2026年9月12日",
+            dateText,
             context.getString(R.string.history_weekday_sat)
         )
         assertTrue(

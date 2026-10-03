@@ -56,6 +56,7 @@ class TimelineGeometryTest {
     }
 
     private fun scrollStripTo(date: LocalDate) {
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         composeRule.onNodeWithTag("timeline-day-strip")
             .performScrollToNode(hasTestTag("timeline-day-cell-$date"))
         composeRule.waitForIdle()
@@ -138,6 +139,7 @@ class TimelineGeometryTest {
         scrollStripTo(singleDigit)
         composeRule.onNodeWithTag("timeline-day-cell-$singleDigit").performClick()
         composeRule.waitForIdle()
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
 
         val centredSingleNumber = centerOf("timeline-day-number-$singleDigit")
         val centredSingleHighlight = centerOf("timeline-day-highlight-$singleDigit")
@@ -154,6 +156,7 @@ class TimelineGeometryTest {
         scrollStripTo(doubleDigit)
         composeRule.onNodeWithTag("timeline-day-cell-$doubleDigit").performClick()
         composeRule.waitForIdle()
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         val doubleNumber = centerOf("timeline-day-number-$doubleDigit")
         val doubleHighlight = centerOf("timeline-day-highlight-$doubleDigit")
         assertTrue(
@@ -270,6 +273,7 @@ class TimelineGeometryTest {
         scrollStripTo(firstDate)
         composeRule.onNodeWithTag("timeline-day-cell-$firstDate").performClick()
         composeRule.waitForIdle()
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
 
         val containerCenter = centerOf("timeline-day-strip-container")
         val firstCenter = centerOf("timeline-day-cell-$firstDate")
@@ -293,6 +297,7 @@ class TimelineGeometryTest {
         scrollStripTo(lastDate)
         composeRule.onNodeWithTag("timeline-day-cell-$lastDate").performClick()
         composeRule.waitForIdle()
+        composeRule.scrollTimelineBodyTo("timeline-day-strip")
         val lastCenter = centerOf("timeline-day-cell-$lastDate")
         val containerCenterAfter = centerOf("timeline-day-strip-container")
         assertTrue(
