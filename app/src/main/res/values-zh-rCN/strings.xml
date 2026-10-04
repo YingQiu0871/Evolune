@@ -595,4 +595,30 @@
     <string name="timeline_a11y_day_cell_today">%1$s，%2$s，%3$s</string>
     <string name="timeline_a11y_day_cell_disabled">%1$s，%2$s，%3$s</string>
     <string name="timeline_a11y_row_side">%1$s，%2$s，%3$s，%4$s</string>
+    <!-- PK 2.0 slice 3: lab results -->
+    <string name="lab_results_title">化验结果</string>
+    <string name="lab_results_entry_title">化验结果</string>
+    <string name="lab_results_entry_subtitle">记录血清雌二醇或睾酮化验值</string>
+    <string name="lab_results_entry_action">打开化验结果</string>
+    <string name="lab_results_intro">在这里记录抽血化验的激素数值。目前只保存，不会改变首页曲线。</string>
+    <string name="lab_results_empty">还没有化验结果。点“添加”记录一次化验。</string>
+    <string name="lab_results_load_error">无法读取化验结果，请稍后再试。</string>
+    <string name="lab_results_add">添加</string>
+    <string name="lab_results_edit_action">编辑化验结果</string>
+    <string name="lab_results_value_with_unit">%1$s %2$s</string>
+    <string name="lab_results_kind_estradiol">雌二醇</string>
+    <string name="lab_results_kind_testosterone">睾酮</string>
+    <string name="lab_results_editor_add_title">添加化验结果</string>
+    <string name="lab_results_editor_edit_title">编辑化验结果</string>
+    <string name="lab_results_value_label">数值</string>
+    <string name="lab_results_testosterone_note">睾酮单位的结果只保存，不参与雌二醇曲线校准。</string>
+    <string name="lab_results_delete_title">删除这条化验结果？</string>
+    <string name="lab_results_delete_message">删除后无法恢复。</string>
+    <string name="lab_results_error_value_missing">请输入数值。</string>
+    <string name="lab_results_error_value_not_number">数值格式不正确。</string>
+    <string name="lab_results_error_value_not_positive">数值必须大于 0。</string>
+    <string name="lab_results_error_value_too_large">数值过大，请检查单位和小数点。</string>
+    <string name="lab_results_error_future">化验时间不能晚于现在。</string>
+    <string name="lab_results_error_stale">这条结果已在别处修改或删除，请关闭后重试。</string>
+    <string name="lab_results_error_storage">保存失败，请稍后再试。</string>
 </resources>

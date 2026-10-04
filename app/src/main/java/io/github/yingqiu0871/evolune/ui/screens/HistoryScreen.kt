@@ -121,7 +121,8 @@ fun HistoryScreen(
     showTopBar: Boolean = false,
     onOpenInsights: () -> Unit = {},
     onOpenRetrospectivePk: () -> Unit = {},
-    onOpenTimeline: () -> Unit = {}
+    onOpenTimeline: () -> Unit = {},
+    onOpenLabResults: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -159,7 +160,8 @@ fun HistoryScreen(
         showTopBar = showTopBar,
         onOpenInsights = onOpenInsights,
         onOpenRetrospectivePk = onOpenRetrospectivePk,
-        onOpenTimeline = onOpenTimeline
+        onOpenTimeline = onOpenTimeline,
+        onOpenLabResults = onOpenLabResults
     )
 }
 
@@ -179,7 +181,8 @@ fun HistoryScreenContent(
     showTopBar: Boolean = false,
     onOpenInsights: () -> Unit = {},
     onOpenRetrospectivePk: () -> Unit = {},
-    onOpenTimeline: () -> Unit = {}
+    onOpenTimeline: () -> Unit = {},
+    onOpenLabResults: () -> Unit = {}
 ) {
     val model = remember(state) { HistoryPresentation.present(state) }
     val listState = rememberLazyListState()
@@ -251,6 +254,7 @@ fun HistoryScreenContent(
             item { InsightsEntryCard(rememberPositionThen(onOpenInsights)) }
             item { RetrospectivePkEntryCard(rememberPositionThen(onOpenRetrospectivePk)) }
             item { TimelineEntryCard(rememberPositionThen(onOpenTimeline)) }
+            item { LabResultsEntryCard(rememberPositionThen(onOpenLabResults)) }
         }
     }
 }
@@ -291,6 +295,49 @@ private fun RetrospectivePkEntryCard(onOpenRetrospectivePk: () -> Unit) {
                     text = stringResource(R.string.retrospective_entry_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null
+            )
+        }
+    }
+}
+
+// ---------- Lab results entry (PK 2.0 slice 3) ----------
+
+/** The entry point into the lab results list; presentational only, like the cards above. */
+@Composable
+private fun LabResultsEntryCard(onOpenLabResults: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 0.dp)
+            .clickable(
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.lab_results_entry_action)
+            ) { onOpenLabResults() }
+            .testTag("history-lab-results-entry"),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.lab_results_entry_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.lab_results_entry_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
             Icon(

@@ -31,7 +31,8 @@ class PrimaryNavigationChromeTest {
                 FEATURE_TUTORIAL_ROUTE,
                 INSIGHTS_ROUTE,
                 RETROSPECTIVE_ROUTE,
-                TIMELINE_ROUTE
+                TIMELINE_ROUTE,
+                LAB_RESULTS_ROUTE
             ),
             PrimaryNavigationChrome.FULL_SCREEN_ROUTES
         )
