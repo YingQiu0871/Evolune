@@ -2,6 +2,7 @@ package io.github.yingqiu0871.evolune.export
 
 import io.github.yingqiu0871.evolune.application.MahiroJsonV1ExportService
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
+import io.github.yingqiu0871.evolune.core.model.LabResult
 import kotlinx.coroutines.CancellationException
 
 /** Typed legacy Mahiro export outcome (frozen contract §33/§44 P2-1). */
@@ -19,12 +20,16 @@ sealed interface LegacyMahiroExportOutcome {
  * untouched (legacy compatibility surface).
  */
 internal class LegacyMahiroExportRunner(
-    private val exportFunction: (Double, List<DoseEvent>) -> String
+    private val exportFunction: (Double, List<DoseEvent>, List<LabResult>) -> String
 ) {
     constructor(exportService: MahiroJsonV1ExportService) : this(exportService::export)
 
-    fun export(weight: Double, events: List<DoseEvent>): LegacyMahiroExportOutcome = try {
-        LegacyMahiroExportOutcome.Success(exportFunction(weight, events))
+    fun export(
+        weight: Double,
+        events: List<DoseEvent>,
+        labResults: List<LabResult> = emptyList()
+    ): LegacyMahiroExportOutcome = try {
+        LegacyMahiroExportOutcome.Success(exportFunction(weight, events, labResults))
     } catch (error: CancellationException) {
         throw error
     } catch (_: IllegalArgumentException) {

@@ -63,9 +63,28 @@ class MahiroV1Codec(
             }
         }
 
+        // labResults was ignored before PK 2.0; a non-array value is still ignored rather than
+        // failing the whole document.
+        val decodedLabs = mutableListOf<MahiroV1LabResultDto>()
+        val labDiagnostics = mutableListOf<MahiroV1EntryDiagnostic>()
+        (rootObject["labResults"] as? JsonArray)?.forEachIndexed { index, element ->
+            when (val result = decodeLabResult(element)) {
+                is LabDecodeResult.Success -> decodedLabs += result.lab
+                is LabDecodeResult.Failure -> labDiagnostics += MahiroV1EntryDiagnostic(
+                    index = index,
+                    error = result.error
+                )
+            }
+        }
+
         return MahiroV1DecodeResult.Success(
-            document = MahiroV1DocumentDto(weight = weight, events = decodedEvents),
-            diagnostics = diagnostics
+            document = MahiroV1DocumentDto(
+                weight = weight,
+                events = decodedEvents,
+                labResults = decodedLabs
+            ),
+            diagnostics = diagnostics,
+            labDiagnostics = labDiagnostics
         )
     }
 
@@ -90,7 +109,16 @@ class MahiroV1Codec(
                     }
                 }
             }
-            putJsonArray("labResults") {}
+            putJsonArray("labResults") {
+                document.labResults.forEach { lab ->
+                    addJsonObject {
+                        lab.id?.let { put("id", it) }
+                        put("timeH", lab.timeH)
+                        put("concValue", lab.concValue)
+                        put("unit", lab.unit)
+                    }
+                }
+            }
             putJsonArray("doseTemplates") {}
         }
         return prettyJson.encodeToString(root)
@@ -138,6 +166,31 @@ class MahiroV1Codec(
         )
     }
 
+    private fun decodeLabResult(element: JsonElement): LabDecodeResult {
+        val lab = element as? JsonObject
+            ?: return LabDecodeResult.Failure(MahiroV1EntryError.ExpectedObject)
+        val id = when (val value = lab["id"]) {
+            null -> null
+            is JsonPrimitive -> if (value.isString) value.content else {
+                return LabDecodeResult.Failure(MahiroV1EntryError.InvalidFieldType("id"))
+            }
+            else -> return LabDecodeResult.Failure(MahiroV1EntryError.InvalidFieldType("id"))
+        }
+        val timeH = lab.requiredDouble("timeH") ?: return lab.labFieldFailure("timeH")
+        val concValue = lab.requiredDouble("concValue") ?: return lab.labFieldFailure("concValue")
+        val unit = lab.requiredString("unit") ?: return lab.labFieldFailure("unit")
+        return LabDecodeResult.Success(
+            MahiroV1LabResultDto(id = id, timeH = timeH, concValue = concValue, unit = unit)
+        )
+    }
+
+    private fun JsonObject.labFieldFailure(field: String): LabDecodeResult.Failure =
+        if (field !in this) {
+            LabDecodeResult.Failure(MahiroV1EntryError.MissingField(field))
+        } else {
+            LabDecodeResult.Failure(MahiroV1EntryError.InvalidFieldType(field))
+        }
+
     private fun JsonObject.requiredString(field: String): String? =
         (get(field) as? JsonPrimitive)?.takeIf(JsonPrimitive::isString)?.content
 
@@ -150,6 +203,11 @@ class MahiroV1Codec(
         } else {
             EventDecodeResult.Failure(MahiroV1EntryError.InvalidFieldType(field))
         }
+
+    private sealed interface LabDecodeResult {
+        data class Success(val lab: MahiroV1LabResultDto) : LabDecodeResult
+        data class Failure(val error: MahiroV1EntryError) : LabDecodeResult
+    }
 
     private sealed interface EventDecodeResult {
         data class Success(val event: MahiroV1DoseEventDto) : EventDecodeResult
