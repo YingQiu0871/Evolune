@@ -257,6 +257,10 @@ class B2RoomRestorePersistenceTest {
             userSettings.value = userSettings.value.copy(showCpaCurve = enabled)
         }
 
+        override suspend fun updateCalibrateE2Curve(enabled: Boolean) {
+            userSettings.value = userSettings.value.copy(calibrateE2Curve = enabled)
+        }
+
         override suspend fun replaceSettings(settings: UserSettings): Boolean {
             replaceCalls++
             val previous = userSettings.value
@@ -264,7 +268,8 @@ class B2RoomRestorePersistenceTest {
                 lastHealthConnectWeightKg = previous.lastHealthConnectWeightKg,
                 lastHealthConnectWeightAdoptedAt = localMutationAt,
                 // v1.10 (S7): local-only display preference, never overwritten by restore.
-                showCpaCurve = previous.showCpaCurve
+                showCpaCurve = previous.showCpaCurve,
+                calibrateE2Curve = previous.calibrateE2Curve
             )
             return true
         }

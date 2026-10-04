@@ -22,10 +22,12 @@ import io.github.yingqiu0871.evolune.core.dataapi.LabResultRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
+import io.github.yingqiu0871.evolune.core.model.LabResult
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportRunner
+import io.github.yingqiu0871.evolune.pk.calibration.E2Calibration
 import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
 import io.github.yingqiu0871.evolune.pk.cpa.CpaSimulator
 import io.github.yingqiu0871.evolune.pk.cpa.isCpaEvent
@@ -35,6 +37,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -44,10 +47,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -140,6 +145,18 @@ private data class CpaSimulationTrigger(
     val refresh: Long
 )
 
+/**
+ * PK 2.0 slice 4: recomputation trigger for the optional Home E2 calibration.
+ * [labResults] is null when the lab store could not be read.
+ */
+private data class E2CalibrationTrigger(
+    val events: List<DoseEvent>,
+    val labResults: List<LabResult>?,
+    val bodyWeightKG: Double,
+    val refresh: Long
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class HRTViewModel internal constructor(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
@@ -158,7 +175,9 @@ class HRTViewModel internal constructor(
     operationScope: CoroutineScope? = null,
     private val bodyWeightFlow: Flow<Double> = flowOf(55.0),
     /** v1.10 (S1/S6): local display preference gating the optional CPA series. */
-    private val showCpaCurveFlow: Flow<Boolean> = flowOf(false)
+    private val showCpaCurveFlow: Flow<Boolean> = flowOf(false),
+    /** PK 2.0 slice 4: local display preference gating the Home E2 calibration. */
+    private val calibrateE2CurveFlow: Flow<Boolean> = flowOf(false)
 ) : ViewModel() {
     private val scope = operationScope ?: viewModelScope
     private val operationLock = Any()
@@ -216,6 +235,14 @@ class HRTViewModel internal constructor(
     private val _cpaState = MutableStateFlow<CpaSeries?>(null)
     val cpaState: StateFlow<CpaSeries?> = _cpaState.asStateFlow()
 
+    /**
+     * PK 2.0 slice 4 — personal E2 amplitude for the Home chart. `null` while the setting is
+     * off (or the inputs cannot be read); [E2Calibration.isIdentity] when it is on but no lab
+     * is comparable. Never merged into [pkState], so Widget and Wear stay uncalibrated.
+     */
+    private val _e2Calibration = MutableStateFlow<E2Calibration?>(null)
+    val e2Calibration: StateFlow<E2Calibration?> = _e2Calibration.asStateFlow()
+
     val currentTimeH: StateFlow<Double> = flow {
         while (true) {
             emit(clock.millis() / MILLIS_PER_HOUR)
@@ -271,6 +298,37 @@ class HRTViewModel internal constructor(
                     )
                 }
         }
+        scope.launch {
+            calibrateE2CurveFlow
+                .distinctUntilChanged()
+                .flatMapLatest { enabled ->
+                    if (!enabled) {
+                        flowOf<E2CalibrationTrigger?>(null)
+                    } else {
+                        combine(
+                            eventUpdates,
+                            labResultUpdates(),
+                            bodyWeightFlow,
+                            simulationRefresh
+                        ) { eventList, labs, weight, refresh ->
+                            E2CalibrationTrigger(eventList, labs, weight, refresh)
+                        }
+                    }
+                }
+                .distinctUntilChanged()
+                .collectLatest { trigger -> calculateAndPublishE2Calibration(trigger) }
+        }
+    }
+
+    /** Only subscribed while calibration is on, so the lab store is not opened otherwise. */
+    private fun labResultUpdates(): Flow<List<LabResult>?> {
+        val repository = labResultRepository ?: return flowOf(emptyList())
+        return repository.observeAll()
+            .map<List<LabResult>, List<LabResult>?> { it }
+            .catch { error ->
+                if (error is CancellationException) throw error
+                emit(null)
+            }
     }
 
     fun startCreateSession() {
@@ -529,6 +587,33 @@ class HRTViewModel internal constructor(
         }
     }
 
+    /**
+     * PK 2.0 slice 4 — compares every E2 lab with the model over the full recorded history
+     * (all of [events], not the Home window) and publishes only [_e2Calibration].
+     */
+    private suspend fun calculateAndPublishE2Calibration(trigger: E2CalibrationTrigger?) {
+        val labs = trigger?.labResults
+        if (trigger == null || labs == null) {
+            _e2Calibration.value = null
+            return
+        }
+        try {
+            val ownerContext = currentCoroutineContext()
+            _e2Calibration.value = withContext(simulationDispatcher) {
+                E2CurveCalibrationCalculator.calculate(
+                    historicalDoseEvents = trigger.events,
+                    labResults = labs,
+                    bodyWeightKG = trigger.bodyWeightKG,
+                    cancellationCheck = { ownerContext.ensureActive() }
+                )
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: RuntimeException) {
+            _e2Calibration.value = null
+        }
+    }
+
     private fun persistCommand(command: DoseEventEditCommand) {
         when (command) {
             is DoseEventEditCommand.Create -> launchOperation(DoseEventOperation.CREATE) {
@@ -645,7 +730,8 @@ class HRTViewModelFactory(
                 medicationPlanRepository = medicationPlanRepository,
                 labResultRepository = labResultRepository,
                 bodyWeightFlow = settingsDataStore.userSettings.map { it.bodyWeight },
-                showCpaCurveFlow = settingsDataStore.userSettings.map { it.showCpaCurve }
+                showCpaCurveFlow = settingsDataStore.userSettings.map { it.showCpaCurve },
+                calibrateE2CurveFlow = settingsDataStore.userSettings.map { it.calibrateE2Curve }
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

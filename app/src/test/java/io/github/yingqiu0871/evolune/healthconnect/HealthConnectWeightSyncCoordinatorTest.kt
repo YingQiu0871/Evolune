@@ -499,6 +499,10 @@ private class FakeSettingsStore(
     override suspend fun updateShowCpaCurve(enabled: Boolean) {
         userSettings.value = userSettings.value.copy(showCpaCurve = enabled)
     }
+
+    override suspend fun updateCalibrateE2Curve(enabled: Boolean) {
+        userSettings.value = userSettings.value.copy(calibrateE2Curve = enabled)
+    }
 }
 
 private class FakeHealthConnectWeightProvider : HealthConnectWeightProvider {

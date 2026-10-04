@@ -26,6 +26,16 @@ internal data class PkSimulationInput(
     val zoneId: ZoneId
 )
 
+/** Recorded, non-antiandrogen doses in PK form: the history the E2 model runs on. */
+internal fun recordedE2PkEvents(
+    historicalDoseEvents: List<DoseEvent>
+): List<io.github.yingqiu0871.evolune.pk.DoseEvent> = DomainDoseEventToPkAdapter.adapt(
+    historicalDoseEvents.filter { event ->
+        event.status == DoseEventStatus.RECORDED &&
+            event.route != Route.ANTIANDROGEN
+    }
+)
+
 internal fun interface PkSimulationCalculator {
     suspend fun calculate(input: PkSimulationInput): PKState
 }
@@ -66,12 +76,7 @@ internal object DefaultPkSimulationCalculator : PkSimulationCalculator {
         simulationRunner: PkSimulationRunner,
         cancellationCheck: () -> Unit = {}
     ): PKState {
-        val historicalEvents = DomainDoseEventToPkAdapter.adapt(
-            input.historicalDoseEvents.filter { event ->
-                event.status == DoseEventStatus.RECORDED &&
-                    event.route != Route.ANTIANDROGEN
-            }
-        )
+        val historicalEvents = recordedE2PkEvents(input.historicalDoseEvents)
         val plans = input.enabledPlans.filter { it.route != Route.ANTIANDROGEN }
         val futureEvents = if (plans.isNotEmpty()) {
             val predicted = MedicationPlanPredictor.generateFutureEventsForDomainPlans(

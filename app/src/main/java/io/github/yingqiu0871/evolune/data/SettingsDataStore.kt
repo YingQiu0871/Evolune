@@ -72,7 +72,13 @@ data class UserSettings(
      * by [AtomicSettingsStore.replaceSettings] (restore keeps the local value), never part of
      * Portable JSON/CSV.
      */
-    val showCpaCurve: Boolean = false
+    val showCpaCurve: Boolean = false,
+    /**
+     * PK 2.0 slice 4 local display preference: scales the Home E2 curve by the personal
+     * amplitude fitted from E2 lab results. Default off. Same backup rules as [showCpaCurve]:
+     * never written by the backup codec or [AtomicSettingsStore.replaceSettings].
+     */
+    val calibrateE2Curve: Boolean = false
 )
 
 const val MAX_BODY_WEIGHT_KG = 300.0
@@ -103,6 +109,9 @@ interface SettingsStore {
 
     /** v1.10 (S1/S7): local-only display preference, never persisted by backup/restore. */
     suspend fun updateShowCpaCurve(enabled: Boolean)
+
+    /** PK 2.0 slice 4: local-only display preference, never persisted by backup/restore. */
+    suspend fun updateCalibrateE2Curve(enabled: Boolean)
 }
 
 /**
@@ -137,6 +146,7 @@ class SettingsDataStore(
         private val LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY =
             stringPreferencesKey("last_health_connect_weight_adopted_at")
         private val SHOW_CPA_CURVE_KEY = booleanPreferencesKey("show_cpa_curve")
+        private val CALIBRATE_E2_CURVE_KEY = booleanPreferencesKey("calibrate_e2_curve")
     }
     
     /**
@@ -180,7 +190,8 @@ class SettingsDataStore(
             lastHealthConnectWeightKg = preferences[LAST_HEALTH_CONNECT_WEIGHT_KG_KEY],
             lastHealthConnectWeightAdoptedAt = preferences[LAST_HEALTH_CONNECT_WEIGHT_ADOPTED_AT_KEY]
                 ?.let { value -> runCatching { Instant.parse(value) }.getOrNull() },
-            showCpaCurve = preferences[SHOW_CPA_CURVE_KEY] ?: false
+            showCpaCurve = preferences[SHOW_CPA_CURVE_KEY] ?: false,
+            calibrateE2Curve = preferences[CALIBRATE_E2_CURVE_KEY] ?: false
         )
     }
     
@@ -299,6 +310,13 @@ class SettingsDataStore(
     override suspend fun updateShowCpaCurve(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[SHOW_CPA_CURVE_KEY] = enabled
+        }
+    }
+
+    /** PK 2.0 slice 4: local-only like [updateShowCpaCurve]; restore never touches it. */
+    override suspend fun updateCalibrateE2Curve(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[CALIBRATE_E2_CURVE_KEY] = enabled
         }
     }
 

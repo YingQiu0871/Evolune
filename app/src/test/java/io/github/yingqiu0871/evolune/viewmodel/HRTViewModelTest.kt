@@ -7,6 +7,7 @@ import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.ConditionalDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LabResultRepository
 import io.github.yingqiu0871.evolune.core.dataapi.LatestDoseDeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.PlanSaveResult
@@ -16,6 +17,8 @@ import io.github.yingqiu0871.evolune.core.model.DoseEvent
 import io.github.yingqiu0871.evolune.core.model.DoseEventSource
 import io.github.yingqiu0871.evolune.core.model.DoseEventStatus
 import io.github.yingqiu0871.evolune.core.model.ExtraKey
+import io.github.yingqiu0871.evolune.core.model.LabResult
+import io.github.yingqiu0871.evolune.core.model.LabUnit
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.core.model.ScheduleType
 import io.github.yingqiu0871.evolune.export.LegacyMahiroExportOutcome
@@ -893,6 +896,120 @@ class HRTViewModelTest {
         Unit
     }
 
+    @Test
+    fun `lab calibration off publishes nothing and never opens the lab store`() = runBlocking {
+        val labs = FakeLabResultRepository(listOf(lab(NOW.minusSeconds(86_400L * 39), 400.0)))
+        val fixture = fixture(
+            repository = FakeDoseEventRepository().apply { observed.value = listOf(injection()) },
+            simulationDispatcher = Dispatchers.Unconfined,
+            labResultRepository = labs,
+            calibrateE2CurveFlow = flowOf(false)
+        )
+        try {
+            withTimeout(5_000L) {
+                fixture.viewModel.pkState.filter { it.currentTimeH > 0.0 }.first()
+            }
+            delay(100L)
+            assertNull(fixture.viewModel.e2Calibration.value)
+            assertEquals(0, labs.observeCalls.get())
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `lab calibration on fits labs older than the Home window from the full history`() =
+        runBlocking {
+            // The injection is outside the Home PK window (pkEvents is empty) but still
+            // drives the model value at the 39-day-old draw.
+            val labs = FakeLabResultRepository(
+                listOf(
+                    lab(NOW.minusSeconds(86_400L * 39), 5_000.0),
+                    lab(NOW.minusSeconds(86_400L * 39), 50.0, LabUnit.NMOL_PER_L)
+                )
+            )
+            val fixture = fixture(
+                repository = FakeDoseEventRepository().apply {
+                    observed.value = listOf(injection())
+                },
+                simulationDispatcher = Dispatchers.Unconfined,
+                labResultRepository = labs,
+                calibrateE2CurveFlow = flowOf(true)
+            )
+            try {
+                val calibration = withTimeout(5_000L) {
+                    fixture.viewModel.e2Calibration.filterNotNull().first()
+                }
+                assertEquals(1, calibration.labCount)
+                assertTrue(calibration.scale > 1.0)
+                assertNull(fixture.viewModel.pkState.value.simulationResult)
+            } finally {
+                fixture.close()
+            }
+        }
+
+    @Test
+    fun `lab calibration on without comparable labs publishes the identity`() = runBlocking {
+        val fixture = fixture(
+            repository = FakeDoseEventRepository().apply { observed.value = listOf(injection()) },
+            simulationDispatcher = Dispatchers.Unconfined,
+            labResultRepository = FakeLabResultRepository(
+                listOf(lab(NOW.minusSeconds(86_400L * 45), 120.0))
+            ),
+            calibrateE2CurveFlow = flowOf(true)
+        )
+        try {
+            val calibration = withTimeout(5_000L) {
+                fixture.viewModel.e2Calibration.filterNotNull().first()
+            }
+            assertTrue(calibration.isIdentity)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    private fun injection(): DoseEvent {
+        val occurredAt = NOW.minusSeconds(86_400L * 40)
+        return DoseEvent(
+            id = UUID.randomUUID(),
+            route = Route.INJECTION,
+            occurredAt = occurredAt,
+            zoneId = TEST_ZONE,
+            localDate = occurredAt.atZone(TEST_ZONE).toLocalDate(),
+            doseMG = 5.0,
+            ester = Ester.EV,
+            extras = emptyMap(),
+            source = DoseEventSource.MANUAL,
+            status = DoseEventStatus.RECORDED,
+            revision = 1L
+        )
+    }
+
+    private fun lab(
+        measuredAt: Instant,
+        value: Double,
+        unit: LabUnit = LabUnit.PG_PER_ML
+    ): LabResult = LabResult(UUID.randomUUID(), measuredAt, value, unit)
+
+    private class FakeLabResultRepository(results: List<LabResult>) : LabResultRepository {
+        private val results = MutableStateFlow(results)
+        val observeCalls = AtomicInteger()
+
+        override fun observeAll(): Flow<List<LabResult>> {
+            observeCalls.incrementAndGet()
+            return results
+        }
+
+        override suspend fun getById(id: UUID): LabResult? = null
+        override suspend fun insert(result: LabResult): InsertResult = InsertResult.Invalid
+        override suspend fun update(result: LabResult, expectedRevision: Long): UpdateResult =
+            UpdateResult.Invalid
+        override suspend fun deleteIfRevisionMatches(
+            id: UUID,
+            expectedRevision: Long
+        ): ConditionalDeleteResult = ConditionalDeleteResult.Invalid
+    }
+
     private fun cpaEvent(): DoseEvent = DoseEvent(
         id = UUID.randomUUID(),
         route = Route.ANTIANDROGEN,
@@ -917,7 +1034,9 @@ class HRTViewModelTest {
         simulationDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default,
         simulationCalculator: PkSimulationCalculator = DefaultPkSimulationCalculator,
         bodyWeightFlow: Flow<Double> = flowOf(55.0),
-        showCpaCurveFlow: Flow<Boolean> = flowOf(false)
+        showCpaCurveFlow: Flow<Boolean> = flowOf(false),
+        labResultRepository: LabResultRepository? = null,
+        calibrateE2CurveFlow: Flow<Boolean> = flowOf(false)
     ): ViewModelFixture {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         return ViewModelFixture(
@@ -930,7 +1049,9 @@ class HRTViewModelTest {
                 simulationCalculator = simulationCalculator,
                 operationScope = scope,
                 bodyWeightFlow = bodyWeightFlow,
-                showCpaCurveFlow = showCpaCurveFlow
+                showCpaCurveFlow = showCpaCurveFlow,
+                labResultRepository = labResultRepository,
+                calibrateE2CurveFlow = calibrateE2CurveFlow
             ),
             scope = scope
         )

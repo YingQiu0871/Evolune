@@ -8,8 +8,9 @@ import kotlin.math.sqrt
 /**
  * PK 2.0 slice 1: personal E2 amplitude calibration against measured lab results.
  *
- * Pure computation only — no storage, UI or production caller yet. Design, parameter sources
- * and the provenance boundary are in docs/evolune/pk2/PK2_CALIBRATION_PLAN.md.
+ * Pure computation. Since slice 4 the Home chart applies it when the user turns it on
+ * (`E2CurveCalibrationCalculator`). Design, parameter sources and the provenance boundary are
+ * in docs/evolune/pk2/PK2_CALIBRATION_PLAN.md.
  *
  * The production E2 model ([io.github.yingqiu0871.evolune.pk.SimulationEngine]) is never
  * modified: calibration is a separate multiplicative layer applied to its output, so the
@@ -110,17 +111,28 @@ object E2Calibrator {
         if (times.isEmpty() || times.size != simulation.concPGmL.size) return emptyList()
         val start = times.first()
         val end = times.last()
-        return labs.mapNotNull { lab ->
-            val measured = lab.valuePgMl
-            if (!lab.timeH.isFinite() || !measured.isFinite() || measured <= 0.0) return@mapNotNull null
-            if (lab.timeH < start || lab.timeH > end) return@mapNotNull null
-            val predicted = simulation.concentration(lab.timeH) ?: return@mapNotNull null
-            if (!predicted.isFinite() || predicted < E2CalibrationParameters.MIN_PREDICTED_PG_ML) {
-                return@mapNotNull null
-            }
-            CalibrationPoint(lab.id, lab.timeH, measured, predicted)
-        }.sortedBy { it.timeH }
+        return points(labs) { timeH ->
+            if (timeH < start || timeH > end) null else simulation.concentration(timeH)
+        }
     }
+
+    /**
+     * Same pairing rules as the [SimulationResult] overload, with the uncalibrated model
+     * prediction supplied per draw time. [predictedPgMlAt] returns null when the model has no
+     * value at that time.
+     */
+    fun points(
+        labs: List<E2LabResult>,
+        predictedPgMlAt: (timeH: Double) -> Double?
+    ): List<CalibrationPoint> = labs.mapNotNull { lab ->
+        val measured = lab.valuePgMl
+        if (!lab.timeH.isFinite() || !measured.isFinite() || measured <= 0.0) return@mapNotNull null
+        val predicted = predictedPgMlAt(lab.timeH) ?: return@mapNotNull null
+        if (!predicted.isFinite() || predicted < E2CalibrationParameters.MIN_PREDICTED_PG_ML) {
+            return@mapNotNull null
+        }
+        CalibrationPoint(lab.id, lab.timeH, measured, predicted)
+    }.sortedBy { it.timeH }
 
     /**
      * Maximum a-posteriori log-amplitude under a Gaussian population prior centred on the

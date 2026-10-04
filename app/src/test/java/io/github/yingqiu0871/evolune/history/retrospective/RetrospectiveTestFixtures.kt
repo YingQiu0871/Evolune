@@ -143,6 +143,7 @@ internal class FakeSettingsStore(
     override suspend fun updateBodyWeightFromHealthConnect(weight: Double, adoptedAt: Instant): Boolean = true
     override suspend fun updateHealthConnectWeightMetadata(weight: Double, adoptedAt: Instant): Boolean = true
     override suspend fun updateShowCpaCurve(enabled: Boolean) = Unit
+    override suspend fun updateCalibrateE2Curve(enabled: Boolean) = Unit
 }
 
 // ---------- typed result builders ----------
