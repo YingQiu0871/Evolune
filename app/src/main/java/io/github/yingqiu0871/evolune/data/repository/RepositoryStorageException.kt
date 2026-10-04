@@ -2,6 +2,7 @@ package io.github.yingqiu0871.evolune.data.repository
 
 import android.database.sqlite.SQLiteConstraintException
 import android.database.sqlite.SQLiteException
+import io.github.yingqiu0871.evolune.data.lab.LabMappingError
 import io.github.yingqiu0871.evolune.data.mapper.MappingError
 import io.github.yingqiu0871.evolune.data.mapper.MappingResult
 import kotlinx.coroutines.CancellationException
@@ -14,6 +15,10 @@ sealed class RepositoryStorageException(
 class CorruptAggregateException(
     val mappingError: MappingError
 ) : RepositoryStorageException("Persisted aggregate violates the repository contract")
+
+class CorruptLabResultException(
+    val mappingError: LabMappingError
+) : RepositoryStorageException("Persisted lab result violates the repository contract")
 
 class RepositoryConstraintException(
     operation: String,

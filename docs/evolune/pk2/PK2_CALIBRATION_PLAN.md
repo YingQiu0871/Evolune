@@ -20,7 +20,8 @@
 | # | 内容 | 用户可见 | Schema |
 | --- | --- | --- | --- |
 | 1 | 校准核心算法：单位换算、化验点与模型对比、个人幅度系数、测试与本文 | 否 | 否 |
-| 2 | 化验结果存储：Room 表与独立 migration、repository、备份/恢复、Mahiro JSON `labResults` 导入导出（当前忽略并写空数组） | 否 | 是 |
+| 2a | 化验结果存储：独立 Room 数据库 `evolune_labs`（v1）、repository、与第 1 片的输入桥接 | 否 | 新库，不改 v3 |
+| 2b | 备份/恢复、Mahiro JSON `labResults` 导入导出（当前忽略并写空数组） | 否 | 否 |
 | 3 | 化验结果录入、编辑、删除与列表界面 | 是 | 否 |
 | 4 | 首页 E2 曲线校准：设置中默认关闭的开关，图上标出化验点与校准系数，文案注明模型估算 | 是 | 否 |
 | 5 | 回顾性 PK 接入校准；评估个人清除率（半衰期）拟合与时间加权 | 是 | 否 |
@@ -80,3 +81,18 @@ Smirnova Oyama）。该项目提供 EKF、OU-Kalman 与 MIPD 等多种校准方�
 - 化验来自很久以前、方案已变化时是否按时间衰减权重（第 5 片评估）。
 - 是否在单次化验离群时使用稳健似然（如 Student-t）。
 - 睾酮单位化验：不在范围内，导入时保留但不参与 E2 校准（第 2 片决定存储语义）。
+
+## 5. 第 2a 片：存储
+
+- 化验结果放在独立的 Room 数据库 `evolune_labs`（version 1，表 `lab_results`），不改 `AppDatabase`
+  的 v3 结构、迁移链和降级边界；旧版 App 不会打开这个文件。现有 `backup_rules.xml` 与
+  `data_extraction_rules.xml` 的 `domain="database" path="."` 已把它排除在云备份和设备迁移之外。
+- 领域模型 `core.model.LabResult`（UUID、`measuredAt`、数值、单位、revision）与
+  `core.dataapi.LabResultRepository`，语义与 `DoseEventRepository` 一致：插入要求 revision 1 且幂等，
+  更新和删除按 revision 比较。
+- 单位持久化码 `PG_PER_ML`/`PMOL_PER_L`/`NG_PER_DL`/`NMOL_PER_L` 冻结；睾酮单位只保存不参与 E2 校准
+  （`LabResult.toE2LabResultOrNull()` 返回 null）。
+- 数值必须有限且 > 0，时间必须能精确表示为毫秒；不合规的持久化行报错而不修复。
+- 不建时间索引：化验条数很少，全表读取即可。
+- 在第 2b 片之前，恢复备份不触及化验库；此时还没有录入界面，库为空。
+
