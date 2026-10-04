@@ -1095,6 +1095,7 @@ fun AppNavigation(
                     },
                     onTimeFormatChange = settingsViewModel::updateTimeFormat,
                     onShowCpaCurveChange = settingsViewModel::updateShowCpaCurve,
+                    onCalibrateE2CurveChange = settingsViewModel::updateCalibrateE2Curve,
                     onAutoCheckUpdatesChange = settingsViewModel::updateAutoCheckUpdates,
                     onCheckForUpdates = { settingsViewModel.checkForUpdates(versionName) },
                     onHealthConnectWeightSyncEnabledChange = { enabled ->

@@ -78,6 +78,17 @@ class SettingsCategoryScreenTest {
     }
 
     @Test
+    fun basicDataLabCalibrationToggleDefaultsOffAndReportsTheNewValue() {
+        val changes = mutableListOf<Boolean>()
+        setSettingsContent(onCalibrateE2CurveChange = { changes += it })
+
+        composeRule.onNodeWithTag("settings-calibrate-e2-curve").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf(true), changes)
+        }
+    }
+
+    @Test
     fun appearanceInlineKeepsThemeModeTimeAndCanonicalColorCallbacks() {
         val selectedModes = mutableListOf<ThemeMode>()
         val selectedFormats = mutableListOf<TimeFormat>()
@@ -222,6 +233,7 @@ class SettingsCategoryScreenTest {
         onPresetPaletteChange: (PresetPalette) -> Unit = {},
         onTimeFormatChange: (TimeFormat) -> Unit = {},
         onShowCpaCurveChange: (Boolean) -> Unit = {},
+        onCalibrateE2CurveChange: (Boolean) -> Unit = {},
         onAutoCheckUpdatesChange: (Boolean) -> Unit = {},
         onCheckForUpdates: () -> Unit = {},
         onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit = {},
@@ -244,6 +256,7 @@ class SettingsCategoryScreenTest {
                     onPresetPaletteChange = onPresetPaletteChange,
                     onTimeFormatChange = onTimeFormatChange,
                     onShowCpaCurveChange = onShowCpaCurveChange,
+                    onCalibrateE2CurveChange = onCalibrateE2CurveChange,
                     onAutoCheckUpdatesChange = onAutoCheckUpdatesChange,
                     onCheckForUpdates = onCheckForUpdates,
                     onHealthConnectWeightSyncEnabledChange =
@@ -290,6 +303,7 @@ private fun SettingsScreenTestHost() {
         onPresetPaletteChange = {},
         onTimeFormatChange = {},
         onShowCpaCurveChange = {},
+        onCalibrateE2CurveChange = {},
         onAutoCheckUpdatesChange = {},
         onCheckForUpdates = {},
         onHealthConnectWeightSyncEnabledChange = {},

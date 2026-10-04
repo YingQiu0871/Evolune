@@ -112,6 +112,8 @@
     <string name="settings_time_format_24h">24小时制</string>
 
     <string name="settings_show_cpa_curve_title">显示 CPA 估算曲线</string>
+    <string name="settings_calibrate_e2_curve_title">按化验校准首页曲线</string>
+    <string name="settings_calibrate_e2_curve_desc">用记录的雌二醇化验估算个人系数，按比例调整首页 E2 曲线。校准后仍是模型估算，不是实测浓度；小组件和手表不受影响。</string>
     <string name="settings_show_cpa_curve_desc">在首页浓度图叠加醋酸环丙孕酮估算浓度（ng/mL，右侧坐标轴）。模型估算，非实测；单次服药峰值可能被低估。</string>
 
     <string name="about_section_title">关于</string>
@@ -311,6 +313,14 @@
     <string name="chart_content_description_with_cpa">雌二醇血药浓度曲线图，叠加显示醋酸环丙孕酮估算浓度曲线</string>
     <string name="home_chart_legend_e2">雌二醇 E2（pg/mL）</string>
     <string name="home_chart_legend_cpa">CPA 估算（ng/mL）</string>
+    <string name="chart_content_description_lab_points">，菱形标记为化验实测值</string>
+    <string name="home_calibration_applied_title">已按化验校准</string>
+    <string name="home_calibration_applied_body">根据 %1$d 次雌二醇化验，曲线按模型估算 × %2$s 显示。</string>
+    <string name="home_calibration_fit_error">化验与校准后曲线的典型偏差约 ±%1$s%%。</string>
+    <string name="home_calibration_markers">图中的菱形 ◆ 是化验实测值。</string>
+    <string name="home_calibration_unavailable_title">化验校准未生效</string>
+    <string name="home_calibration_unavailable_body">还没有可以对比的雌二醇化验：需要以 pg/mL 或 pmol/L 记录，且抽血前已有用药记录。曲线仍是未校准的模型估算。</string>
+    <string name="home_calibration_disclaimer">校准只按比例调整曲线高度，不改变形状。结果仍是模型估算，不是实测血药浓度，也不是诊断或治疗建议。</string>
 
     <string name="unit_ug_per_day">µg/天</string>
 
@@ -600,7 +610,7 @@
     <string name="lab_results_entry_title">化验结果</string>
     <string name="lab_results_entry_subtitle">记录血清雌二醇或睾酮化验值</string>
     <string name="lab_results_entry_action">打开化验结果</string>
-    <string name="lab_results_intro">在这里记录抽血化验的激素数值。目前只保存，不会改变首页曲线。</string>
+    <string name="lab_results_intro">在这里记录抽血化验的激素数值。在设置中开启“按化验校准首页曲线”后，雌二醇结果会用来校准首页曲线。</string>
     <string name="lab_results_empty">还没有化验结果。点“添加”记录一次化验。</string>
     <string name="lab_results_load_error">无法读取化验结果，请稍后再试。</string>
     <string name="lab_results_add">添加</string>

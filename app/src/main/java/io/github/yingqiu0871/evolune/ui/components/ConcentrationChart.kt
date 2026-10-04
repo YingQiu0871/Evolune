@@ -99,6 +99,25 @@ private fun createStarPath(
 }
 
 /**
+ * PK 2.0 slice 4: a measured E2 lab value drawn on the chart.
+ *
+ * @param timeH draw time in absolute hours since 1970
+ * @param valuePgMl measured value converted to pg/mL
+ */
+data class ChartLabPoint(
+    val timeH: Double,
+    val valuePgMl: Double
+)
+
+private fun createDiamondPath(center: Offset, radius: Float): Path = Path().apply {
+    moveTo(center.x, center.y - radius)
+    lineTo(center.x + radius, center.y)
+    lineTo(center.x, center.y + radius)
+    lineTo(center.x - radius, center.y)
+    close()
+}
+
+/**
  * 雌二醇浓度图表组件
  * 使用 Canvas 绘制交互式折线图
  * 
@@ -117,6 +136,8 @@ private fun createStarPath(
  * @param cpaSeries v1.10 (S5/S6/S9) 可选的 CPA 估算浓度曲线（ng/mL），仅在设置开启时非空；
  *   为 null 时绘制与开启前完全一致，never影响 E2 坐标轴/主曲线。使用独立的右侧坐标轴，
  *   永不与 E2（pg/mL）共用刻度或相加（S5）。
+ * @param labPoints PK 2.0 第 4 片：开启化验校准时的化验实测值（pg/mL），以菱形标出；
+ *   为空时绘制与之前完全一致。
  */
 @Composable
 fun ConcentrationChart(
@@ -127,7 +148,8 @@ fun ConcentrationChart(
     modifier: Modifier = Modifier,
     forkPointTimeHState: State<Double?>? = null,
     is24Hour: Boolean = true,
-    cpaSeries: CpaSeries? = null
+    cpaSeries: CpaSeries? = null,
+    labPoints: List<ChartLabPoint> = emptyList()
 ) {
     RecordComposeRecomposition(
         surface = "ConcentrationChart",
@@ -208,6 +230,12 @@ fun ConcentrationChart(
             baselineSimulationResult?.let { baseline ->
                 add(ChartSeries(baseline.timeH, baseline.concPGmL))
             }
+            // Keep visible lab markers inside the plot instead of clipping them at the top.
+            labPoints
+                .filter { it.timeH in visibleTimeStart..visibleTimeEnd }
+                .forEach { point ->
+                    add(ChartSeries(listOf(point.timeH), listOf(point.valuePgMl)))
+                }
         },
         visibleStartH = visibleTimeStart,
         visibleEndH = visibleTimeEnd
@@ -261,15 +289,21 @@ fun ConcentrationChart(
 
     val chartDescription = stringResource(R.string.chart_content_description)
     val chartDescriptionWithCpa = stringResource(R.string.chart_content_description_with_cpa)
+    val chartDescriptionLabPoints = stringResource(R.string.chart_content_description_lab_points)
     Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { chartBoxWidthPx = it.width }
             .semantics {
-                contentDescription = if (cpaSeries != null) {
+                val baseDescription = if (cpaSeries != null) {
                     chartDescriptionWithCpa
                 } else {
                     chartDescription
+                }
+                contentDescription = if (labPoints.isNotEmpty()) {
+                    baseDescription + chartDescriptionLabPoints
+                } else {
+                    baseDescription
                 }
             }
     ) {
@@ -621,6 +655,24 @@ fun ConcentrationChart(
                             )
                         )
                     }
+                }
+            }
+
+            // PK 2.0 slice 4 — measured lab values as diamonds, at their own measured height
+            // (not on the curve), so the gap to the model stays visible.
+            labPoints.forEach { point ->
+                val x = geometry.dataXToScreen(point.timeH)
+                if (x >= chartLeft && x <= chartRight && point.valuePgMl.isFinite()) {
+                    val diamond = createDiamondPath(
+                        center = Offset(x, geometry.dataYToScreen(point.valuePgMl)),
+                        radius = 7.dp.toPx()
+                    )
+                    drawPath(path = diamond, color = onSurfaceColor)
+                    drawPath(
+                        path = diamond,
+                        color = surfaceColor,
+                        style = Stroke(width = 1.5.dp.toPx(), join = StrokeJoin.Round)
+                    )
                 }
             }
 

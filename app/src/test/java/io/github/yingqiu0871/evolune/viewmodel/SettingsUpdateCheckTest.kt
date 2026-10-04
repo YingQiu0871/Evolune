@@ -159,6 +159,8 @@ private object TestSettingsStore : SettingsStore {
     ): Boolean = true
 
     override suspend fun updateShowCpaCurve(enabled: Boolean) = Unit
+
+    override suspend fun updateCalibrateE2Curve(enabled: Boolean) = Unit
 }
 
 private object TestHealthConnectWeightProvider : HealthConnectWeightProvider {

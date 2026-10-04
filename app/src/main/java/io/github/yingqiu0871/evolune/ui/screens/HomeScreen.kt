@@ -17,6 +17,7 @@ import io.github.yingqiu0871.evolune.ui.components.chromePadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +29,10 @@ import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.core.model.MedicationPlan
 import io.github.yingqiu0871.evolune.diagnostics.RecordComposeRecomposition
 import io.github.yingqiu0871.evolune.pk.SimulationResult
+import io.github.yingqiu0871.evolune.pk.calibration.E2Calibration
+import io.github.yingqiu0871.evolune.pk.calibration.E2Calibrator
 import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
+import io.github.yingqiu0871.evolune.ui.components.ChartLabPoint
 import io.github.yingqiu0871.evolune.ui.components.ConcentrationChart
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
@@ -39,6 +43,7 @@ import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryIdentity
 import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryObservation
 import java.time.Instant
 import java.time.ZoneId
+import java.util.Locale
 
 /**
  * 主页屏幕
@@ -54,6 +59,7 @@ fun HomeScreen(
 ) {
     val pkState by viewModel.pkState.collectAsState()
     val cpaState by viewModel.cpaState.collectAsState()
+    val e2Calibration by viewModel.e2Calibration.collectAsState()
     val doseTimePoints by viewModel.doseTimePoints.collectAsState()
     val enabledPlans by viewModel.enabledPlans.collectAsState()
     val realtimeCurrentTimeState = viewModel.currentTimeH.collectAsStateWithLifecycle()
@@ -61,6 +67,7 @@ fun HomeScreen(
     HomeScreenContent(
         pkState = pkState,
         cpaSeries = cpaState,
+        e2Calibration = e2Calibration,
         doseTimePoints = doseTimePoints,
         enabledPlans = enabledPlans,
         realtimeCurrentTimeState = realtimeCurrentTimeState,
@@ -91,6 +98,8 @@ fun HomeScreen(
 private fun HomeScreenContent(
     pkState: PKState,
     cpaSeries: CpaSeries? = null,
+    /** PK 2.0 slice 4: null while calibration is off. */
+    e2Calibration: E2Calibration? = null,
     doseTimePoints: List<Double>,
     enabledPlans: List<MedicationPlan>,
     realtimeCurrentTimeState: State<Double>,
@@ -111,7 +120,18 @@ private fun HomeScreenContent(
         recompositionToken = pkState
     )
 
-    val simulationResult = pkState.simulationResult
+    // PK 2.0 slice 4 — the displayed curves are scaled here only; pkState (which also feeds
+    // Widget and Wear) stays the uncalibrated model.
+    val appliedCalibration = e2Calibration?.takeUnless { it.isIdentity }
+    val simulationResult = remember(pkState.simulationResult, appliedCalibration) {
+        pkState.simulationResult?.calibratedBy(appliedCalibration)
+    }
+    val baselineSimulationResult = remember(pkState.baselineSimulationResult, appliedCalibration) {
+        pkState.baselineSimulationResult?.calibratedBy(appliedCalibration)
+    }
+    val labPoints = remember(e2Calibration) {
+        e2Calibration?.points.orEmpty().map { ChartLabPoint(it.timeH, it.measuredPgMl) }
+    }
     val error = pkState.error
     val forkPointTimeHState = remember { mutableStateOf<Double?>(null) }
 
@@ -248,13 +268,18 @@ private fun HomeScreenContent(
                     // 图表卡片
                     ChartCard(
                         simulationResult = simulationResult,
-                        baselineSimulationResult = pkState.baselineSimulationResult,
+                        baselineSimulationResult = baselineSimulationResult,
                         currentTimeHState = realtimeCurrentTimeState,
                         doseTimePoints = doseTimePoints,
                         forkPointTimeHState = forkPointTimeHState,
                         is24Hour = is24Hour,
-                        cpaSeries = cpaSeries
+                        cpaSeries = cpaSeries,
+                        labPoints = labPoints
                     )
+
+                    e2Calibration?.let { calibration ->
+                        E2CalibrationNote(calibration)
+                    }
 
                     // 浓度等级说明
                     ConcentrationLevelGuide()
@@ -395,7 +420,8 @@ private fun ChartCard(
     doseTimePoints: List<Double>,
     forkPointTimeHState: State<Double?>,
     is24Hour: Boolean = true,
-    cpaSeries: CpaSeries? = null
+    cpaSeries: CpaSeries? = null,
+    labPoints: List<ChartLabPoint> = emptyList()
 ) {
     Card(
         modifier = Modifier
@@ -439,9 +465,77 @@ private fun ChartCard(
                 forkPointTimeHState = forkPointTimeHState,
                 is24Hour = is24Hour,
                 cpaSeries = cpaSeries,
+                labPoints = labPoints,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+            )
+        }
+    }
+}
+
+private fun SimulationResult.calibratedBy(calibration: E2Calibration?): SimulationResult =
+    if (calibration == null) this else E2Calibrator.apply(this, calibration)
+
+/**
+ * PK 2.0 slice 4 — states whether the curve above is calibrated, by how much, and that it is
+ * still a model estimate. Only shown while the setting is on.
+ */
+@Composable
+internal fun E2CalibrationNote(calibration: E2Calibration) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("home-e2-calibration-note"),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (calibration.isIdentity) {
+                Text(
+                    text = stringResource(R.string.home_calibration_unavailable_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.home_calibration_unavailable_body),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.home_calibration_applied_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(
+                        R.string.home_calibration_applied_body,
+                        calibration.labCount,
+                        String.format(Locale.ROOT, "%.2f", calibration.scale)
+                    ),
+                    modifier = Modifier.testTag("home-e2-calibration-scale"),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                calibration.fitErrorPct?.let { errorPct ->
+                    Text(
+                        text = stringResource(
+                            R.string.home_calibration_fit_error,
+                            String.format(Locale.ROOT, "%.0f", errorPct)
+                        ),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.home_calibration_markers),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Text(
+                text = stringResource(R.string.home_calibration_disclaimer),
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

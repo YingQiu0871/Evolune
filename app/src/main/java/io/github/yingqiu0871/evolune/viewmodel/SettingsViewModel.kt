@@ -223,6 +223,13 @@ class SettingsViewModel(
         }
     }
 
+    /** PK 2.0 slice 4: toggle lab-based calibration of the Home E2 curve. Local only. */
+    fun updateCalibrateE2Curve(enabled: Boolean) {
+        scope.launch {
+            settingsDataStore.updateCalibrateE2Curve(enabled)
+        }
+    }
+
     /**
      * 在应用启动时，若自动检查更新已开启则执行检查
      */

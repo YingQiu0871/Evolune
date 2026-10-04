@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -32,7 +33,8 @@ import io.github.yingqiu0871.evolune.ui.components.stableSegmentedShapes
 
 /**
  * Concentration-estimate section: everything that feeds or shapes the PK calculation on one
- * place — body weight, its optional Health Connect source and the optional CPA curve. The
+ * place — body weight, its optional Health Connect source, the optional CPA curve and the
+ * optional lab calibration of the E2 curve. The
  * persisted authority remains SettingsViewModel/SettingsDataStore; only the text-field
  * interaction state is local.
  */
@@ -45,7 +47,8 @@ internal fun SettingsBasicDataSection(
     onWeightSyncEnabledChange: (Boolean) -> Unit,
     onReauthorize: () -> Unit,
     onManagePermissions: () -> Unit,
-    onShowCpaCurveChange: (Boolean) -> Unit
+    onShowCpaCurveChange: (Boolean) -> Unit,
+    onCalibrateE2CurveChange: (Boolean) -> Unit
 ) {
     val bodyWeight = settings.bodyWeight
     var weightText by remember(bodyWeight) { mutableStateOf(bodyWeight.toString()) }
@@ -112,5 +115,23 @@ internal fun SettingsBasicDataSection(
                 Text(stringResource(R.string.settings_show_cpa_curve_desc))
             }
         ) { Text(stringResource(R.string.settings_show_cpa_curve_title)) }
+
+        // PK 2.0 slice 4 — lab-based calibration of the Home E2 curve. Default off; copy says
+        // the calibrated curve is still a model estimate.
+        SegmentedListItem(
+            modifier = Modifier.testTag("settings-calibrate-e2-curve"),
+            onClick = { onCalibrateE2CurveChange(!settings.calibrateE2Curve) },
+            shapes = stableSegmentedShapes(SettingsListItemPosition.SINGLE),
+            colors = settingsListItemColors(),
+            leadingContent = {
+                Icon(imageVector = Icons.Outlined.Science, contentDescription = null)
+            },
+            trailingContent = {
+                Switch(checked = settings.calibrateE2Curve, onCheckedChange = onCalibrateE2CurveChange)
+            },
+            supportingContent = {
+                Text(stringResource(R.string.settings_calibrate_e2_curve_desc))
+            }
+        ) { Text(stringResource(R.string.settings_calibrate_e2_curve_title)) }
     }
 }

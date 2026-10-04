@@ -63,6 +63,7 @@ fun SettingsScreen(
     onPresetPaletteChange: (PresetPalette) -> Unit,
     onTimeFormatChange: (TimeFormat) -> Unit,
     onShowCpaCurveChange: (Boolean) -> Unit,
+    onCalibrateE2CurveChange: (Boolean) -> Unit,
     onAutoCheckUpdatesChange: (Boolean) -> Unit,
     onCheckForUpdates: () -> Unit,
     onHealthConnectWeightSyncEnabledChange: (Boolean) -> Unit,
@@ -134,7 +135,8 @@ fun SettingsScreen(
                 onWeightSyncEnabledChange = onHealthConnectWeightSyncEnabledChange,
                 onReauthorize = onHealthConnectReauthorize,
                 onManagePermissions = onHealthConnectManagePermissions,
-                onShowCpaCurveChange = onShowCpaCurveChange
+                onShowCpaCurveChange = onShowCpaCurveChange,
+                onCalibrateE2CurveChange = onCalibrateE2CurveChange
             )
             SettingsAppearanceSection(
                 settings = userSettings,
@@ -197,6 +199,7 @@ private fun SettingsScreenPreview() {
             onPresetPaletteChange = {},
             onTimeFormatChange = {},
             onShowCpaCurveChange = {},
+            onCalibrateE2CurveChange = {},
             onAutoCheckUpdatesChange = {},
             onCheckForUpdates = {},
             onHealthConnectWeightSyncEnabledChange = {},
