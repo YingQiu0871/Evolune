@@ -40,10 +40,12 @@ import io.github.yingqiu0871.evolune.history.HistoryFormatting
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkLimitation
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkResult
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkUnavailableReason
+import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveCalibration
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePhase
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkRange
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkUiState
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModel
+import io.github.yingqiu0871.evolune.ui.components.E2CalibrationNote
 import java.time.ZoneId
 
 /**
@@ -148,6 +150,7 @@ fun RetrospectivePkScreenContent(
                     } else {
                         ContentBlock(
                             available = available,
+                            calibration = state.calibration,
                             markers = state.markers,
                             displayZone = state.displayZone,
                             is24Hour = is24Hour,
@@ -227,21 +230,33 @@ private fun LoadingBlock() {
 @Composable
 private fun ContentBlock(
     available: RetrospectivePkResult.Available,
+    calibration: RetrospectiveCalibration?,
     markers: List<io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker>,
     displayZone: ZoneId,
     is24Hour: Boolean,
     onRetry: () -> Unit
 ) {
+    // PK 2.0 slice 5a: with lab calibration on, the chart shows the approved series scaled by
+    // the VM-built overlay; the approved result itself is unchanged.
     RetrospectiveConcentrationChart(
-        series = available.series,
+        series = calibration?.calibratedSeries ?: available.series,
         markers = markers,
         displayZone = displayZone,
         is24Hour = is24Hour,
+        labPoints = calibration?.visibleLabPoints.orEmpty(),
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
             .testTag("retrospective-chart")
     )
+    calibration?.let { overlay ->
+        E2CalibrationNote(
+            labCount = overlay.reading.labCount,
+            scale = overlay.reading.scale,
+            fitErrorPct = overlay.reading.fitErrorPct,
+            modifier = Modifier.testTag("retrospective-calibration-note")
+        )
+    }
     Text(
         text = stringResource(R.string.retrospective_chart_hint),
         style = MaterialTheme.typography.bodySmall,

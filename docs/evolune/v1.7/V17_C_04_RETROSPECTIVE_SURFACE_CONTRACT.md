@@ -1077,3 +1077,25 @@ zh：`精确输入`、`同一快照`、`所用输入`、`已同步`、`原子`
 - 状态结论：**C-01 CLOSED** · **C-04 CONTRACT APPROVED / FROZEN** · **C-04 PRODUCTION APPROVED / CLOSED**
   @ `823bd9ce5c276dc473cc041efba409bd931c589f`。
 - 本契约冻结（APPROVED / FROZEN）；后续 Phase-C 切片必须消费本契约与 C-01 API/结果契约，不得随意改动。
+
+---
+
+## 18. PK 2.0 第 5a 片补充契约：可选化验校准叠加层（2026-10-04）
+
+本节是 §16 所要求的“新契约”，只在用户开启设置“按化验校准 E2 曲线”（`UserSettings.calibrateE2Curve`，
+默认关闭）时生效；关闭时 C-04 的行为、读取次数和画面与 §1–§17 完全一致。设计背景见
+[PK2_CALIBRATION_PLAN §10](../pk2/PK2_CALIBRATION_PLAN.md)。
+
+- **C-01 不变**：`history/pk/**`、`RetrospectivePkResult`、`Available.series` 不做任何修改。校准是 VM 在
+  `CONTENT` 时构造的独立叠加层 `RetrospectiveCalibration`（`history/retrospective/RetrospectiveCalibrationModels.kt`），
+  其中 `calibratedSeries` 是批准 series 的逐点 × 系数副本，时间点不变。
+- **第四次读取（仅设置开启时）**：三次 C-04 读取全部成功、得到 `Content` 之后，VM 调用
+  `RetrospectiveCalibrationSource.read(bodyWeightKg)` 一次。它在 composition root（`MainFeatureServices`）由
+  `RepositoryRetrospectiveCalibrationSource` 实现，用与首页相同的输入和 `E2CurveCalibrationCalculator`，
+  所以两处系数一致。这次读取失败只会去掉叠加层，批准的曲线和标记照常发布；它受同一 generation token 约束。
+- **seam 边界不变**：叠加层模型不引用 `io.github.yingqiu0871.evolune.pk`，已加入 §14.11 架构守卫列表。
+- **第三类图上标记（化验点）**：只画落在可见窗口内、可与模型对比的雌二醇化验，以菱形画在其实测高度，
+  不画在曲线上。它与两类 C-04 marker 分开建模，不进入 `RetrospectiveMarker`。
+- **文案**：曲线下方显示与首页共用的 `E2CalibrationNote`（`e2_calibration_*` 字符串），写明化验次数、
+  系数，并注明曲线仍是模型估算。`retrospective_*` 字符串不变，§12 的措辞守卫继续适用于它们。
+  “化验”一词只出现在化验点和校准说明里，用来指化验本身，从不用来描述曲线。

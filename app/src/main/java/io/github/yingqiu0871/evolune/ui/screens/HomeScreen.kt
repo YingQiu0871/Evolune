@@ -17,7 +17,6 @@ import io.github.yingqiu0871.evolune.ui.components.chromePadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +33,7 @@ import io.github.yingqiu0871.evolune.pk.calibration.E2Calibrator
 import io.github.yingqiu0871.evolune.pk.cpa.CpaSeries
 import io.github.yingqiu0871.evolune.ui.components.ChartLabPoint
 import io.github.yingqiu0871.evolune.ui.components.ConcentrationChart
+import io.github.yingqiu0871.evolune.ui.components.E2CalibrationNote
 import io.github.yingqiu0871.evolune.ui.theme.EvoluneTheme
 import io.github.yingqiu0871.evolune.utils.MedicationPlanPredictor
 import io.github.yingqiu0871.evolune.viewmodel.ConcentrationLevel
@@ -43,7 +43,6 @@ import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryIdentity
 import io.github.yingqiu0871.evolune.viewmodel.ScheduleBoundaryObservation
 import java.time.Instant
 import java.time.ZoneId
-import java.util.Locale
 
 /**
  * 主页屏幕
@@ -278,7 +277,11 @@ private fun HomeScreenContent(
                     )
 
                     e2Calibration?.let { calibration ->
-                        E2CalibrationNote(calibration)
+                        E2CalibrationNote(
+                            labCount = calibration.labCount,
+                            scale = calibration.scale,
+                            fitErrorPct = calibration.fitErrorPct
+                        )
                     }
 
                     // 浓度等级说明
@@ -476,70 +479,6 @@ private fun ChartCard(
 
 private fun SimulationResult.calibratedBy(calibration: E2Calibration?): SimulationResult =
     if (calibration == null) this else E2Calibrator.apply(this, calibration)
-
-/**
- * PK 2.0 slice 4 — states whether the curve above is calibrated, by how much, and that it is
- * still a model estimate. Only shown while the setting is on.
- */
-@Composable
-internal fun E2CalibrationNote(calibration: E2Calibration) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("home-e2-calibration-note"),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (calibration.isIdentity) {
-                Text(
-                    text = stringResource(R.string.home_calibration_unavailable_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = stringResource(R.string.home_calibration_unavailable_body),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.home_calibration_applied_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = stringResource(
-                        R.string.home_calibration_applied_body,
-                        calibration.labCount,
-                        String.format(Locale.ROOT, "%.2f", calibration.scale)
-                    ),
-                    modifier = Modifier.testTag("home-e2-calibration-scale"),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                calibration.fitErrorPct?.let { errorPct ->
-                    Text(
-                        text = stringResource(
-                            R.string.home_calibration_fit_error,
-                            String.format(Locale.ROOT, "%.0f", errorPct)
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.home_calibration_markers),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Text(
-                text = stringResource(R.string.home_calibration_disclaimer),
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
-}
 
 /**
  * 浓度等级说明

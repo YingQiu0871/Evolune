@@ -172,7 +172,8 @@ class MainActivity : ComponentActivity() {
             medicationPlanViewModelFactory = MedicationPlanViewModelFactory(
                 productionRepositoryProvider.medicationPlans,
                 reminderManager
-            )
+            ),
+            labResults = RoomLabResultRepository.get(applicationContext)
         )
         
         setContent {

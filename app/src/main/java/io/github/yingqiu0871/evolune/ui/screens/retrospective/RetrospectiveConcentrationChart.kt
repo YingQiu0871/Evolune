@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import io.github.yingqiu0871.evolune.R
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkSeries
 import io.github.yingqiu0871.evolune.history.retrospective.RecordedIntakeMarker
+import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveLabPoint
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectiveMarker
 import io.github.yingqiu0871.evolune.history.retrospective.ScheduleContextMarker
 import java.time.Duration
@@ -95,6 +96,19 @@ internal fun retrospectiveChartYMax(points: List<RetrospectiveChartPoint>): Doub
         .maxOrNull()
         ?.takeIf { it > 0.0 }
         ?: 1.0
+
+/**
+ * PK 2.0 slice 5a: the y-axis top also covers the visible lab values (with a little headroom so
+ * a diamond at the maximum is not cut off). Without labs it is exactly [retrospectiveChartYMax].
+ */
+internal fun retrospectiveChartYMax(
+    points: List<RetrospectiveChartPoint>,
+    labValuesPgMl: List<Double>
+): Double {
+    val curveMax = retrospectiveChartYMax(points)
+    val labMax = labValuesPgMl.filter { it.isFinite() && it > 0.0 }.maxOrNull() ?: return curveMax
+    return maxOf(curveMax, labMax * 1.05)
+}
 
 /** Hour offset of a marker instant relative to the series start (may fall outside `[0, totalHours]`). */
 internal fun markerHourOffset(instant: Instant, series: RetrospectivePkSeries): Double =
@@ -204,14 +218,25 @@ internal fun RetrospectiveConcentrationChart(
     markers: List<RetrospectiveMarker>,
     displayZone: ZoneId,
     is24Hour: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    labPoints: List<RetrospectiveLabPoint> = emptyList()
 ) {
     val points = remember(series) { retrospectiveChartPoints(series) }
     val drawnPoints = remember(points) {
         retrospectiveChartDecimate(points, RETROSPECTIVE_CHART_MAX_POINTS)
     }
     val totalHours = remember(series) { retrospectiveChartTotalHours(series) }
-    val yMax = remember(points) { retrospectiveChartYMax(points) }
+    val yMax = remember(points, labPoints) {
+        retrospectiveChartYMax(points, labPoints.map { it.valuePgMl })
+    }
+    val labHours = remember(series, labPoints) {
+        labPoints.mapNotNull { lab ->
+            val hour = markerHourOffset(lab.measuredAt, series)
+            if (hour.isFinite() && hour >= 0.0 && hour <= totalHours) hour to lab.valuePgMl else null
+        }
+    }
+    val labColor = MaterialTheme.colorScheme.onSurface
+    val labOutlineColor = MaterialTheme.colorScheme.surface
     val scheduleHours = remember(series, markers) {
         markers.filterIsInstance<ScheduleContextMarker>().mapNotNull { marker ->
             markerHourOffset(marker.scheduledAt, series)
@@ -332,6 +357,24 @@ internal fun RetrospectiveConcentrationChart(
             val x = xForHour(hour)
             if (x.isFinite()) {
                 drawCircle(intakeColor, radius = 3.5f, center = Offset(x, bottom - 6f))
+            }
+        }
+
+        // PK 2.0 slice 5a — measured lab values as diamonds at their measured height.
+        labHours.forEach { (hour, value) ->
+            val x = xForHour(hour)
+            val y = yForValue(value)
+            if (x.isFinite() && y.isFinite()) {
+                val radius = 6.dp.toPx()
+                val diamond = Path().apply {
+                    moveTo(x, y - radius)
+                    lineTo(x + radius, y)
+                    lineTo(x, y + radius)
+                    lineTo(x - radius, y)
+                    close()
+                }
+                drawPath(diamond, labColor)
+                drawPath(diamond, labOutlineColor, style = Stroke(width = 1.5.dp.toPx()))
             }
         }
 
