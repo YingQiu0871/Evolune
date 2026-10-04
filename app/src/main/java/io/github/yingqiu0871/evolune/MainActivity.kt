@@ -37,6 +37,7 @@ import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
+import io.github.yingqiu0871.evolune.data.repository.RoomLabResultRepository
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
@@ -164,7 +165,8 @@ class MainActivity : ComponentActivity() {
             hrtViewModelFactory = HRTViewModelFactory(
                 repository = productionRepositoryProvider.doseEvents,
                 medicationPlanRepository = productionRepositoryProvider.medicationPlans,
-                settingsDataStore = settingsDataStore
+                settingsDataStore = settingsDataStore,
+                labResultRepository = RoomLabResultRepository.get(applicationContext)
             ),
             medicationPlanViewModelFactory = MedicationPlanViewModelFactory(
                 productionRepositoryProvider.medicationPlans,

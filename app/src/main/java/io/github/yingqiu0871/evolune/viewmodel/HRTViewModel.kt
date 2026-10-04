@@ -18,6 +18,7 @@ import io.github.yingqiu0871.evolune.core.adapter.DomainDoseEventToPkAdapter
 import io.github.yingqiu0871.evolune.core.dataapi.DeleteResult
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
 import io.github.yingqiu0871.evolune.core.dataapi.InsertResult
+import io.github.yingqiu0871.evolune.core.dataapi.LabResultRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.core.dataapi.UpdateResult
 import io.github.yingqiu0871.evolune.core.model.DoseEvent
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -143,8 +145,10 @@ class HRTViewModel internal constructor(
     private val medicationPlanRepository: MedicationPlanRepository,
     private val sessionFactory: DoseEventEditSessionFactory = DoseEventEditSessionFactory(),
     private val clock: Clock = Clock.systemUTC(),
+    /** PK 2.0 lab results carried by Mahiro JSON import/export; null keeps them out. */
+    private val labResultRepository: LabResultRepository? = null,
     private val jsonImportService: MahiroJsonV1ImportService =
-        MahiroJsonV1ImportService(repository),
+        MahiroJsonV1ImportService(repository, labRepository = labResultRepository),
     private val jsonExportService: MahiroJsonV1ExportService =
         MahiroJsonV1ExportService(clock = clock),
     private val legacyExportRunner: LegacyMahiroExportRunner =
@@ -404,7 +408,14 @@ class HRTViewModel internal constructor(
      */
     suspend fun exportToMahiroJson(weight: Double): LegacyMahiroExportOutcome =
         withContext(Dispatchers.Default) {
-            legacyExportRunner.export(weight, events.value)
+            val labResults = try {
+                labResultRepository?.observeAll()?.first().orEmpty()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: RuntimeException) {
+                return@withContext LegacyMahiroExportOutcome.UnexpectedFailure
+            }
+            legacyExportRunner.export(weight, events.value, labResults)
         }
 
     internal fun observeScheduleBoundary(
@@ -623,7 +634,8 @@ class HRTViewModel internal constructor(
 class HRTViewModelFactory(
     private val repository: DoseEventRepository,
     private val medicationPlanRepository: MedicationPlanRepository,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    private val labResultRepository: LabResultRepository? = null
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HRTViewModel::class.java)) {
@@ -631,6 +643,7 @@ class HRTViewModelFactory(
             return HRTViewModel(
                 repository = repository,
                 medicationPlanRepository = medicationPlanRepository,
+                labResultRepository = labResultRepository,
                 bodyWeightFlow = settingsDataStore.userSettings.map { it.bodyWeight },
                 showCpaCurveFlow = settingsDataStore.userSettings.map { it.showCpaCurve }
             ) as T

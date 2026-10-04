@@ -103,12 +103,12 @@ class PortableCrossFormatTest {
 
     @Test
     fun `unexpected runtime failures map to a typed unexpected outcome`() {
-        val invalidRunner = LegacyMahiroExportRunner { _, _ -> throw IllegalArgumentException("mapped") }
+        val invalidRunner = LegacyMahiroExportRunner { _, _, _ -> throw IllegalArgumentException("mapped") }
         assertEquals(
             LegacyMahiroExportOutcome.InvalidData,
             invalidRunner.export(55.0, emptyList())
         )
-        val failingRunner = LegacyMahiroExportRunner { _, _ -> throw IllegalStateException("boom") }
+        val failingRunner = LegacyMahiroExportRunner { _, _, _ -> throw IllegalStateException("boom") }
         assertEquals(
             LegacyMahiroExportOutcome.UnexpectedFailure,
             failingRunner.export(55.0, emptyList())
