@@ -36,6 +36,20 @@ jobs:
       - name: Build App Debug APK
         run: ./gradlew --no-daemon :app:assembleDebug
 
+      - name: Check exported Room schemas are committed
+        run: |
+          # Room writes app/schemas during the build; a schema change must ship with its JSON.
+          changes="$(git status --porcelain -- app/schemas)"
+          if [ -n "$changes" ]; then
+            echo "Uncommitted Room schema exports:"
+            echo "$changes"
+            git diff -- app/schemas
+            git ls-files --others --exclude-standard -- app/schemas | while read -r f; do
+              echo "::group::$f"; cat "$f"; echo "::endgroup::"
+            done
+            exit 1
+          fi
+
       - name: Compile androidTest sources
         run: ./gradlew --no-daemon :app:assembleDebugAndroidTest
 
