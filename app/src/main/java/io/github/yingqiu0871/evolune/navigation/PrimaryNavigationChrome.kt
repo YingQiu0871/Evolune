@@ -24,7 +24,8 @@ internal object PrimaryNavigationChrome {
         FEATURE_TUTORIAL_ROUTE,
         INSIGHTS_ROUTE,
         RETROSPECTIVE_ROUTE,
-        TIMELINE_ROUTE
+        TIMELINE_ROUTE,
+        LAB_RESULTS_ROUTE
     )
 
     /** True when the route shows the primary navigation chrome (bar/rail). */
@@ -44,3 +45,4 @@ internal const val FEATURE_TUTORIAL_ROUTE = "feature_tutorial"
 internal const val INSIGHTS_ROUTE = "insights"
 internal const val RETROSPECTIVE_ROUTE = "retrospective"
 internal const val TIMELINE_ROUTE = "timeline"
+internal const val LAB_RESULTS_ROUTE = "lab_results"

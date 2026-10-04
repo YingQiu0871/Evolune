@@ -38,6 +38,7 @@ import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.data.repository.RoomLabResultRepository
+import io.github.yingqiu0871.evolune.labs.LabResultsViewModelFactory
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
 import io.github.yingqiu0871.evolune.onboarding.OnboardingStateStore
@@ -320,6 +321,9 @@ class MainActivity : ComponentActivity() {
                         insightsViewModelFactory = mainFeatureServices.insightsViewModelFactory,
                         retrospectiveViewModelFactory = mainFeatureServices.retrospectiveViewModelFactory,
                         timelineViewModelFactory = mainFeatureServices.timelineViewModelFactory,
+                        labResultsViewModelFactory = LabResultsViewModelFactory(
+                            RoomLabResultRepository.get(applicationContext)
+                        ),
                         portableExportService = mainFeatureServices.portableExportService,
                         portableImportService = mainFeatureServices.portableImportService,
                         settingsViewModel = settingsViewModel,

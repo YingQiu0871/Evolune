@@ -164,9 +164,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.yingqiu0871.evolune.history.insights.InsightsViewModel
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModel
 import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModel
+import io.github.yingqiu0871.evolune.labs.LabResultsViewModel
 import io.github.yingqiu0871.evolune.ui.screens.insights.InsightsRoute
 import io.github.yingqiu0871.evolune.ui.screens.retrospective.RetrospectiveRoute
 import io.github.yingqiu0871.evolune.ui.screens.timeline.TimelineRoute
+import io.github.yingqiu0871.evolune.ui.screens.labs.LabResultsRoute
 
 private const val NAV_CLICK_THROTTLE_MS = 200L
 private const val NAV_SWIPE_THRESHOLD_DP = 60
@@ -207,6 +209,7 @@ fun AppNavigation(
     insightsViewModelFactory: ViewModelProvider.Factory,
     retrospectiveViewModelFactory: ViewModelProvider.Factory,
     timelineViewModelFactory: ViewModelProvider.Factory,
+    labResultsViewModelFactory: ViewModelProvider.Factory,
     portableExportService: PortableExportService,
     portableImportService: PortableImportService,
     settingsViewModel: SettingsViewModel,
@@ -846,6 +849,7 @@ fun AppNavigation(
                         INSIGHTS_ROUTE -> stringResource(R.string.insights_title)
                         RETROSPECTIVE_ROUTE -> stringResource(R.string.retrospective_title)
                         TIMELINE_ROUTE -> stringResource(R.string.timeline_title)
+                        LAB_RESULTS_ROUTE -> stringResource(R.string.lab_results_title)
                         else -> null
                     },
                 onNavigateUp = if (currentRoute == FEATURE_TUTORIAL_ROUTE) {
@@ -1007,6 +1011,9 @@ fun AppNavigation(
                     },
                     onOpenTimeline = {
                         navController.navigate(TIMELINE_ROUTE) { launchSingleTop = true }
+                    },
+                    onOpenLabResults = {
+                        navController.navigate(LAB_RESULTS_ROUTE) { launchSingleTop = true }
                     }
                 )
             }
@@ -1050,6 +1057,15 @@ fun AppNavigation(
                     is24Hour = is24Hour,
                     showTopBar = false
                 )
+            }
+            composable(LAB_RESULTS_ROUTE) { entry ->
+                // Same Activity-scoped owner as the other History child surfaces.
+                val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
+                val labResultsViewModel: LabResultsViewModel = viewModel(
+                    viewModelStoreOwner = owner,
+                    factory = labResultsViewModelFactory
+                )
+                LabResultsRoute(viewModel = labResultsViewModel, is24Hour = is24Hour)
             }
             composable(Screen.MEDICATION_PLANS.route) {
                 MedicationPlansScreen(
