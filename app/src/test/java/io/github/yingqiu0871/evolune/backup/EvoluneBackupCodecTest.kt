@@ -249,7 +249,7 @@ class EvoluneBackupCodecTest {
         )
         assertFailure(
             EvoluneBackupCodec().decodeAndValidate(
-                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(3)),
+                replaceEnvelopeField(encoded, "payloadSchemaVersion", JsonPrimitive(4)),
                 passphrase
             ),
             BackupCodecErrorCode.UNSUPPORTED_PAYLOAD_VERSION

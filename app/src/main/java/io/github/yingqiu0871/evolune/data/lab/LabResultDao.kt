@@ -37,6 +37,15 @@ interface LabResultDao {
         expectedRevision: Long
     ): Int
 
+    @Query("SELECT * FROM lab_results ORDER BY measuredAtEpochMillis ASC, id ASC")
+    suspend fun getAllForRestore(): List<LabResultEntity>
+
+    @Query("DELETE FROM lab_results")
+    suspend fun deleteAllForRestore(): Int
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertAllForRestore(entities: List<LabResultEntity>)
+
     @Query("DELETE FROM lab_results WHERE id = :id AND revision = :expectedRevision")
     suspend fun deleteIfRevisionMatches(id: String, expectedRevision: Long): Int
 }

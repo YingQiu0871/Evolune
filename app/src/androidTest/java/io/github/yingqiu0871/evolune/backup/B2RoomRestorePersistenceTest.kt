@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.data.AppDatabase
+import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import io.github.yingqiu0871.evolune.data.AtomicSettingsStore
 import io.github.yingqiu0871.evolune.data.ColorTheme
 import io.github.yingqiu0871.evolune.data.SettingsStore
@@ -30,6 +31,7 @@ import java.nio.charset.StandardCharsets
 @RunWith(AndroidJUnit4::class)
 class B2RoomRestorePersistenceTest {
     private lateinit var database: AppDatabase
+    private lateinit var labDatabase: LabDatabase
     private lateinit var settings: FakeAtomicSettingsStore
     private lateinit var persistence: RoomRestorePersistence
 
@@ -37,13 +39,15 @@ class B2RoomRestorePersistenceTest {
     fun setUp() {
         val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        labDatabase = Room.inMemoryDatabaseBuilder(context, LabDatabase::class.java).build()
         settings = FakeAtomicSettingsStore()
-        persistence = RoomRestorePersistence(database, settings, settings)
+        persistence = RoomRestorePersistence(database, labDatabase, settings, settings)
     }
 
     @After
     fun tearDown() {
         database.close()
+        labDatabase.close()
     }
 
     @Test
@@ -57,8 +61,34 @@ class B2RoomRestorePersistenceTest {
     }
 
     @Test
+    fun `lab results are replaced in the lab database and read back exactly`() = runBlocking {
+        persistence.replaceRoom(targetRoom())
+
+        val replaced = targetRoom().copy(
+            labResults = listOf(
+                BackupLabResultV1(OTHER_LAB_ID, "2026-08-24T07:00:00Z", 150.0, "PG_PER_ML", 1L)
+            )
+        )
+        persistence.replaceRoom(replaced)
+
+        assertEquals(replaced, persistence.readRoomState())
+        assertEquals(1, labDatabase.labResultDao().getAllForRestore().size)
+    }
+
+    @Test
+    fun `a state without lab results leaves the lab database untouched`() = runBlocking {
+        persistence.replaceRoom(targetRoom())
+
+        persistence.replaceRoom(RestoreRoomState(emptyList(), emptyList(), emptyList(), labResults = null))
+
+        val read = persistence.readRoomState()
+        assertTrue(read.doseEvents.isEmpty())
+        assertEquals(targetRoom().labResults, read.labResults)
+    }
+
+    @Test
     fun `room trigger failure rolls back the complete replacement transaction`() = runBlocking {
-        val before = RestoreRoomState(emptyList(), emptyList(), emptyList())
+        val before = RestoreRoomState(emptyList(), emptyList(), emptyList(), emptyList())
         persistence.replaceRoom(before)
         database.openHelper.writableDatabase.execSQL(
             """
@@ -103,11 +133,11 @@ class B2RoomRestorePersistenceTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = FileRestoreJournalStore(context)
         val journal = RestoreJournal(
-            1,
+            2,
             "00000000-0000-4000-8000-000000000100",
             "2026-08-23T12:34:56Z",
             RestoreJournalPhase.PREPARED,
-            RestoreRoomState(emptyList(), emptyList(), emptyList()),
+            RestoreRoomState(emptyList(), emptyList(), emptyList(), emptyList()),
             BackupSettingsV1(55.0, "SYSTEM", "DYNAMIC", true, "SYSTEM", "DYNAMIC", null)
         )
 
@@ -143,6 +173,9 @@ class B2RoomRestorePersistenceTest {
                 "2026-08-22", 2.0, "EV", emptyMap(), DANGLING_SLOT_ID,
                 "MANUAL", "RECORDED", 2L
             )
+        ),
+        labResults = listOf(
+            BackupLabResultV1(LAB_ID, "2026-08-23T09:30:00.250Z", 412.5, "PMOL_PER_L", 3L)
         )
     )
 
@@ -243,5 +276,7 @@ class B2RoomRestorePersistenceTest {
         private const val SLOT_TWO_ID = "00000000-0000-4000-8000-000000000003"
         private const val EVENT_ID = "00000000-0000-4000-8000-000000000004"
         private const val DANGLING_SLOT_ID = "00000000-0000-4000-8000-000000000099"
+        private const val LAB_ID = "00000000-0000-4000-8000-0000000000a1"
+        private const val OTHER_LAB_ID = "00000000-0000-4000-8000-0000000000a2"
     }
 }

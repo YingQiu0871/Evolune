@@ -8,6 +8,8 @@ import io.github.yingqiu0871.evolune.data.ThemePresetSelection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -23,7 +25,14 @@ import java.time.Instant
 import java.util.UUID
 
 private const val JOURNAL_FILE_NAME = "evolune_restore_journal.json"
-private const val JOURNAL_FORMAT_VERSION = 1
+private const val JOURNAL_FORMAT_VERSION_LEGACY = 1
+
+/** PK 2.0: `beforeRoom` also carries the lab database (`labResults`). */
+private const val JOURNAL_FORMAT_VERSION_LAB_RESULTS = 2
+
+/** The journal format that can represent [room]: v2 exactly when it carries lab results. */
+internal fun restoreJournalFormatVersionFor(room: RestoreRoomState): Int =
+    if (room.labResults != null) JOURNAL_FORMAT_VERSION_LAB_RESULTS else JOURNAL_FORMAT_VERSION_LEGACY
 
 @Serializable
 private data class RestoreJournalWire(
@@ -39,7 +48,20 @@ private data class RestoreJournalWire(
 private data class RestoreRoomStateWire(
     val medicationPlans: List<RestorePlanWire>,
     val scheduledDoseSlots: List<RestoreSlotWire>,
-    val doseEvents: List<RestoreEventWire>
+    val doseEvents: List<RestoreEventWire>,
+    // Absent (not null) in a v1 journal, so the v1 key set stays byte-identical.
+    @OptIn(ExperimentalSerializationApi::class)
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
+    val labResults: List<RestoreLabResultWire>? = null
+)
+
+@Serializable
+private data class RestoreLabResultWire(
+    val id: String,
+    val measuredAt: String,
+    val value: Double,
+    val unit: String,
+    val revision: Long
 )
 
 @Serializable
@@ -118,8 +140,16 @@ internal object RestoreJournalCodec {
         }
         val room = root["beforeRoom"] as? JsonObject ?: return corrupt()
         val settings = root["beforeSettings"] as? JsonObject ?: return corrupt()
-        if (!room.hasExactKeys("medicationPlans", "scheduledDoseSlots", "doseEvents") ||
+        val roomHasLabResults = room.hasExactKeys(
+            "medicationPlans", "scheduledDoseSlots", "doseEvents", "labResults"
+        )
+        if (!roomHasLabResults && !room.hasExactKeys("medicationPlans", "scheduledDoseSlots", "doseEvents") ||
             settings.keys != LEGACY_SETTINGS_KEYS && settings.keys != CURRENT_SETTINGS_KEYS
+        ) {
+            return corrupt()
+        }
+        if (roomHasLabResults &&
+            !room["labResults"].hasExactArrayObjectKeys("id", "measuredAt", "value", "unit", "revision")
         ) {
             return corrupt()
         }
@@ -145,10 +175,15 @@ internal object RestoreJournalCodec {
             return corrupt()
         }
 
-        if (wire.formatVersion != JOURNAL_FORMAT_VERSION) {
+        if (wire.formatVersion != JOURNAL_FORMAT_VERSION_LEGACY &&
+            wire.formatVersion != JOURNAL_FORMAT_VERSION_LAB_RESULTS
+        ) {
             return RestoreJournalDecodeResult.Failure(
                 RestoreError(RestoreErrorCode.UNSUPPORTED_JOURNAL_VERSION)
             )
+        }
+        if (roomHasLabResults != (wire.formatVersion == JOURNAL_FORMAT_VERSION_LAB_RESULTS)) {
+            return corrupt()
         }
         val phase = try {
             RestoreJournalPhase.valueOf(wire.phase)
@@ -202,14 +237,15 @@ internal object RestoreJournalCodec {
     private fun RestoreJournal.toWire(): RestoreJournalWire {
         val payload = beforeRoom.toPayload(beforeSettings)
         return RestoreJournalWire(
-            formatVersion = formatVersion,
+            formatVersion = restoreJournalFormatVersionFor(beforeRoom),
             operationId = operationId,
             createdAt = createdAt,
             phase = phase.name,
             beforeRoom = RestoreRoomStateWire(
                 medicationPlans = payload.medicationPlans.map { it.toWire() },
                 scheduledDoseSlots = payload.scheduledDoseSlots.map { it.toWire() },
-                doseEvents = payload.doseEvents.map { it.toWire() }
+                doseEvents = payload.doseEvents.map { it.toWire() },
+                labResults = payload.labResults?.map { it.toWire() }
             ),
             beforeSettings = beforeSettings.toWire()
         )
@@ -220,8 +256,15 @@ internal object RestoreJournalCodec {
             medicationPlans = beforeRoom.medicationPlans.map { it.toPayload() },
             scheduledDoseSlots = beforeRoom.scheduledDoseSlots.map { it.toPayload() },
             doseEvents = beforeRoom.doseEvents.map { it.toPayload() },
-            settings = beforeSettings.toPayload(legacySettings)
+            settings = beforeSettings.toPayload(legacySettings),
+            labResults = beforeRoom.labResults?.map { it.toPayload() }
         )
+
+    private fun BackupLabResultV1.toWire() =
+        RestoreLabResultWire(id, measuredAt, value, unit, revision)
+
+    private fun RestoreLabResultWire.toPayload() =
+        BackupLabResultV1(id, measuredAt, value, unit, revision)
 
     private fun BackupMedicationPlanV1.toWire() = RestorePlanWire(
         id, name, route, ester, doseMG, scheduleType, daysOfWeek, intervalDays,

@@ -2,6 +2,7 @@ package io.github.yingqiu0871.evolune.data
 
 import androidx.room.withTransaction
 import io.github.yingqiu0871.evolune.backup.BackupDoseEventV1
+import io.github.yingqiu0871.evolune.backup.BackupLabResultV1
 import io.github.yingqiu0871.evolune.backup.BackupMedicationPlanV1
 import io.github.yingqiu0871.evolune.backup.BackupScheduledDoseSlotV1
 import io.github.yingqiu0871.evolune.backup.BackupSettingsV1
@@ -11,30 +12,38 @@ import io.github.yingqiu0871.evolune.backup.toBackupSettings
 import io.github.yingqiu0871.evolune.backup.toUserSettings
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeAdapter
 import io.github.yingqiu0871.evolune.core.time.LegacyTimeResult
+import io.github.yingqiu0871.evolune.data.lab.LabDatabase
+import io.github.yingqiu0871.evolune.data.lab.LabResultEntity
 import kotlinx.coroutines.flow.first
 import java.time.Instant
 import java.time.LocalTime
 import java.util.UUID
 
 /**
- * Production Room/DataStore gateway. Room replacement is one database
- * transaction; settings replacement is one DataStore edit through
+ * Production Room/DataStore gateway. AppDatabase replacement is one database
+ * transaction and lab database replacement is a second one; the restore journal
+ * covers the gap between them. Settings replacement is one DataStore edit through
  * [AtomicSettingsStore].
  */
 internal class RoomRestorePersistence(
     private val database: AppDatabase,
+    private val labDatabase: LabDatabase,
     private val settingsStore: SettingsStore,
     private val atomicSettingsStore: AtomicSettingsStore
 ) : RestorePersistence {
-    override suspend fun readRoomState(): RestoreRoomState = database.withTransaction {
-        val plans = database.medicationPlanDao().getAllPlansForRestore()
-        val slots = database.scheduledDoseSlotDao().getAllSlotsForRestore()
-        val events = database.doseEventDao().getAllEventsForRestore()
-        RestoreRoomState(
-            medicationPlans = plans.toBackupPlans(slots),
-            scheduledDoseSlots = slots.map { it.toBackupSlot() },
-            doseEvents = events.map { it.toBackupEvent() }
-        ).canonical()
+    override suspend fun readRoomState(): RestoreRoomState {
+        val appState = database.withTransaction {
+            val plans = database.medicationPlanDao().getAllPlansForRestore()
+            val slots = database.scheduledDoseSlotDao().getAllSlotsForRestore()
+            val events = database.doseEventDao().getAllEventsForRestore()
+            RestoreRoomState(
+                medicationPlans = plans.toBackupPlans(slots),
+                scheduledDoseSlots = slots.map { it.toBackupSlot() },
+                doseEvents = events.map { it.toBackupEvent() }
+            )
+        }
+        val labResults = labDatabase.labResultDao().getAllForRestore().map { it.toBackupLabResult() }
+        return appState.copy(labResults = labResults).canonical()
     }
 
     override suspend fun replaceRoom(state: RestoreRoomState) {
@@ -55,6 +64,12 @@ internal class RoomRestorePersistence(
             if (entities.events.isNotEmpty()) {
                 database.doseEventDao().insertEventsForRestore(entities.events)
             }
+        }
+        val labEntities = state.labResults?.map { it.toLabEntity() } ?: return
+        labDatabase.withTransaction {
+            val dao = labDatabase.labResultDao()
+            dao.deleteAllForRestore()
+            if (labEntities.isNotEmpty()) dao.insertAllForRestore(labEntities)
         }
     }
 
@@ -176,6 +191,22 @@ private fun DoseEventEntity.toBackupEvent(): BackupDoseEventV1 {
         revision = revision
     )
 }
+
+private fun LabResultEntity.toBackupLabResult(): BackupLabResultV1 = BackupLabResultV1(
+    id = id,
+    measuredAt = Instant.ofEpochMilli(measuredAtEpochMillis).toString(),
+    value = value,
+    unit = unit,
+    revision = revision
+)
+
+private fun BackupLabResultV1.toLabEntity(): LabResultEntity = LabResultEntity(
+    id = UUID.fromString(id).toString(),
+    measuredAtEpochMillis = Instant.parse(measuredAt).toEpochMilli(),
+    value = value,
+    unit = unit,
+    revision = revision
+)
 
 private fun canonicalLocalTime(value: LocalTime): String =
     value.hour.toString().padStart(2, '0') + ":" +

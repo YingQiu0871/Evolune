@@ -11,7 +11,21 @@ data class EvoluneBackupPayloadV1(
     val medicationPlans: List<BackupMedicationPlanV1>,
     val scheduledDoseSlots: List<BackupScheduledDoseSlotV1>,
     val doseEvents: List<BackupDoseEventV1>,
-    val settings: BackupSettingsV1
+    val settings: BackupSettingsV1,
+    /**
+     * PK 2.0 lab results (schema v3). Null means "not part of this payload" (schema v1/v2
+     * backups): restoring such a payload leaves the local lab database untouched. An empty list
+     * means the backup was taken with no lab results.
+     */
+    val labResults: List<BackupLabResultV1>? = null
+)
+
+data class BackupLabResultV1(
+    val id: String,
+    val measuredAt: String,
+    val value: Double,
+    val unit: String,
+    val revision: Long
 )
 
 data class BackupMedicationPlanV1(
@@ -146,11 +160,25 @@ object EvoluneBackupFormat {
     /** Frozen schema-v1 payload version (the released v1.7.1 format). */
     const val PAYLOAD_SCHEMA_VERSION_LEGACY = 1
 
-    /** Current schema version written by this code (v1.7.2: strict settings theme fields). */
+    /**
+     * Schema written for a payload without lab results (v1.7.2: strict settings theme fields).
+     * Payloads that carry lab results are written as [PAYLOAD_SCHEMA_VERSION_LAB_RESULTS].
+     */
     const val PAYLOAD_SCHEMA_VERSION = 2
 
-    /** Reader support: exactly these two versions, nothing else. */
-    val SUPPORTED_PAYLOAD_SCHEMA_VERSIONS = setOf(PAYLOAD_SCHEMA_VERSION_LEGACY, PAYLOAD_SCHEMA_VERSION)
+    /** PK 2.0: schema v2 plus a required top-level `labResults` array. */
+    const val PAYLOAD_SCHEMA_VERSION_LAB_RESULTS = 3
+
+    /** Reader support: exactly these versions, nothing else. */
+    val SUPPORTED_PAYLOAD_SCHEMA_VERSIONS = setOf(
+        PAYLOAD_SCHEMA_VERSION_LEGACY,
+        PAYLOAD_SCHEMA_VERSION,
+        PAYLOAD_SCHEMA_VERSION_LAB_RESULTS
+    )
+
+    /** The schema a payload is written as: v3 exactly when it carries lab results. */
+    fun payloadSchemaVersionFor(payload: EvoluneBackupPayloadV1): Int =
+        if (payload.labResults != null) PAYLOAD_SCHEMA_VERSION_LAB_RESULTS else PAYLOAD_SCHEMA_VERSION
 
     const val ENCRYPTION_ALGORITHM = "AES-256-GCM"
     const val KDF_ALGORITHM = "PBKDF2-HMAC-SHA256"
