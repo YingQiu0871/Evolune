@@ -643,7 +643,7 @@ Wear 最终交付：
 
 ## Later / Deferred
 
-- Personalized PK / calibration evolution，包括 PK 2.0；需独立科学、来源和回归评估。
+- Personalized PK / calibration evolution，包括 PK 2.0；需独立科学、来源和回归评估。2026-10-04 起按切片推进，见 [PK2_CALIBRATION_PLAN](pk2/PK2_CALIBRATION_PLAN.md)。
 - Tracked Date；仍需产品决策和领域语义设计。
 - Repository rehousing 与 `D:\Evolune` protected-root retirement；应在 v1.2 之后作为单独、可验证的迁移批次安排，不与功能版本混合。
 - 由测试隔离和构建收益驱动的 Gradle module extraction。
