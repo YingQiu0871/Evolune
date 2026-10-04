@@ -202,7 +202,7 @@ class B2RestoreTransactionTest {
         )
         assertEquals(
             RestoreJournalErrorCode.UNSUPPORTED,
-            journalDecodeCode(encoded.replace("\"formatVersion\":1", "\"formatVersion\":2"))
+            journalDecodeCode(encoded.replace("\"formatVersion\":1", "\"formatVersion\":3"))
         )
         assertEquals(
             RestoreJournalErrorCode.CORRUPT,

@@ -30,7 +30,12 @@ internal class RestorePersistenceSnapshotSource(
         return try {
             val room = persistence.readRoomState().canonical()
             val settings = persistence.readSettings()
-            val payload = room.toPayload(settings)
+            // No lab results is written as "no lab section" (schema v2) so app
+            // versions without lab support can still restore the backup; a v2
+            // restore leaves the lab database untouched.
+            val payload = room.toPayload(settings).let {
+                if (it.labResults.isNullOrEmpty()) it.copy(labResults = null) else it
+            }
             when (val validation = codec.validate(payload)) {
                 is BackupValidationResult.Valid -> SnapshotCaptureResult.Success(
                     validation.payload.payload

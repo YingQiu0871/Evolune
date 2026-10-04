@@ -35,6 +35,7 @@ import io.github.yingqiu0871.evolune.backup.cloud.google.GoogleDriveBackupProvid
 import io.github.yingqiu0871.evolune.backup.cloud.google.HttpUrlConnectionDriveRemoteGateway
 import io.github.yingqiu0871.evolune.data.recoverInterruptedRestoreAtStartup
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
+import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import io.github.yingqiu0871.evolune.data.repository.ProductionRepositoryProvider
 import io.github.yingqiu0871.evolune.healthconnect.AndroidHealthConnectWeightProvider
 import io.github.yingqiu0871.evolune.navigation.AppNavigation
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
         val productionRepositoryProvider =
             ProductionRepositoryProvider.get(applicationContext)
         val roomRestorePersistence = productionRepositoryProvider.createRestorePersistence(
+            labDatabase = LabDatabase.getDatabase(applicationContext),
             settingsStore = settingsDataStore,
             atomicSettingsStore = settingsDataStore
         )

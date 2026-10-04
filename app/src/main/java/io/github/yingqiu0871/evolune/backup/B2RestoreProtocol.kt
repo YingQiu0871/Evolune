@@ -40,14 +40,30 @@ internal data class RestorePreview(
     val themeMode: String,
     val colorTheme: String,
     val autoCheckUpdates: Boolean,
-    val timeFormat: String
+    val timeFormat: String,
+    /** Lab results in the backup; null for a schema v1/v2 backup, which leaves local labs untouched. */
+    val labResultCount: Int? = null
 )
 
+/**
+ * Local database state replaced by a restore: the AppDatabase aggregates plus, since PK 2.0, the
+ * separate lab database. [labResults] null means "not part of this state" — replacement leaves
+ * the lab database untouched and [matches] does not compare it.
+ */
 internal data class RestoreRoomState(
     val medicationPlans: List<BackupMedicationPlanV1>,
     val scheduledDoseSlots: List<BackupScheduledDoseSlotV1>,
-    val doseEvents: List<BackupDoseEventV1>
+    val doseEvents: List<BackupDoseEventV1>,
+    val labResults: List<BackupLabResultV1>? = null
 ) {
+    /** True when [this] (a read-back) holds [target]; labs are compared only when targeted. */
+    fun matches(target: RestoreRoomState): Boolean {
+        val actual = canonical()
+        val expected = target.canonical()
+        return actual.copy(labResults = null) == expected.copy(labResults = null) &&
+            (expected.labResults == null || actual.labResults == expected.labResults)
+    }
+
     fun canonical(): RestoreRoomState = RestoreRoomState(
         medicationPlans = medicationPlans.sortedBy { it.id },
         scheduledDoseSlots = scheduledDoseSlots.sortedWith(
@@ -58,6 +74,10 @@ internal data class RestoreRoomState(
         doseEvents = doseEvents.sortedWith(
             compareBy<BackupDoseEventV1> { it.occurredAt }
                 .thenBy { it.id }
+        ),
+        labResults = labResults?.sortedWith(
+            compareBy<BackupLabResultV1> { it.measuredAt }
+                .thenBy { it.id }
         )
     )
 
@@ -66,7 +86,8 @@ internal data class RestoreRoomState(
             medicationPlans = medicationPlans,
             scheduledDoseSlots = scheduledDoseSlots,
             doseEvents = doseEvents,
-            settings = settings
+            settings = settings,
+            labResults = labResults
         )
 
     companion object {
@@ -74,7 +95,8 @@ internal data class RestoreRoomState(
             RestoreRoomState(
                 medicationPlans = payload.medicationPlans,
                 scheduledDoseSlots = payload.scheduledDoseSlots,
-                doseEvents = payload.doseEvents
+                doseEvents = payload.doseEvents,
+                labResults = payload.labResults
             ).canonical()
     }
 }
@@ -190,5 +212,6 @@ internal fun restorePreview(
     themeMode = payload.settings.themeMode,
     colorTheme = payload.settings.colorTheme,
     autoCheckUpdates = payload.settings.autoCheckUpdates,
-    timeFormat = payload.settings.timeFormat
+    timeFormat = payload.settings.timeFormat,
+    labResultCount = payload.labResults?.size
 )

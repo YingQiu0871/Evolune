@@ -4,6 +4,7 @@ import android.content.Context
 import io.github.yingqiu0871.evolune.backup.FileRestoreJournalStore
 import io.github.yingqiu0871.evolune.backup.RestoreRecoveryResult
 import io.github.yingqiu0871.evolune.backup.RestoreTransaction
+import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
@@ -18,6 +19,7 @@ internal fun recoverInterruptedRestoreAtStartup(
     RestoreTransaction(
         persistence = RoomRestorePersistence(
             database = AppDatabase.getDatabase(context),
+            labDatabase = LabDatabase.getDatabase(context),
             settingsStore = settingsStore,
             atomicSettingsStore = settingsStore
         ),

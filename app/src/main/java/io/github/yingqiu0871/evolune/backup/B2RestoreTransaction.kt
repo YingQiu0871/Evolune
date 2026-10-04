@@ -80,7 +80,7 @@ internal class RestoreTransaction(
         }
 
         val preparedJournal = RestoreJournal(
-            formatVersion = 1,
+            formatVersion = restoreJournalFormatVersionFor(beforeRoom),
             operationId = nextOperationId(),
             createdAt = now().toString(),
             phase = RestoreJournalPhase.PREPARED,
@@ -125,7 +125,7 @@ internal class RestoreTransaction(
         }
 
         val postcondition = try {
-            persistence.readRoomState().canonical() == prepared.room.canonical() &&
+            persistence.readRoomState().matches(prepared.room) &&
                 persistence.readSettings() == prepared.settings
         } catch (error: Throwable) {
             rethrowCancellation(error)
@@ -198,7 +198,7 @@ internal class RestoreTransaction(
             if (!persistence.replaceSettings(journal.beforeSettings)) {
                 throw IllegalStateException("settings rollback rejected")
             }
-            check(persistence.readRoomState().canonical() == journal.beforeRoom.canonical())
+            check(persistence.readRoomState().matches(journal.beforeRoom))
             check(persistence.readSettings() == journal.beforeSettings)
             journalStore.delete()
             RestoreRecoveryResult.Recovered
@@ -220,7 +220,7 @@ internal class RestoreTransaction(
             if (!persistence.replaceSettings(beforeSettings)) {
                 throw IllegalStateException("settings rollback rejected")
             }
-            check(persistence.readRoomState().canonical() == beforeRoom.canonical())
+            check(persistence.readRoomState().matches(beforeRoom))
             check(persistence.readSettings() == beforeSettings)
             journalStore.delete()
             RestoreResult.Failure(original)

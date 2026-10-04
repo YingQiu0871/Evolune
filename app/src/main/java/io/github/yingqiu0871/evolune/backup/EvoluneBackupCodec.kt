@@ -150,6 +150,22 @@ class EvoluneBackupCodec(
             if (event.revision < 1L) return invalid("doseEvents[$index].revision")
         }
 
+        val labIds = linkedSetOf<String>()
+        for ((index, lab) in payload.labResults.orEmpty().withIndex()) {
+            validateUuid(lab.id, "labResults[$index].id")?.let {
+                return BackupValidationResult.Invalid(it)
+            }
+            if (!labIds.add(lab.id)) return invalid("labResults[$index].id")
+            if (!isPersistableInstant(lab.measuredAt)) {
+                return invalid("labResults[$index].measuredAt")
+            }
+            if (!lab.value.isFinite() || lab.value <= 0.0) {
+                return invalid("labResults[$index].value")
+            }
+            if (lab.unit !in SUPPORTED_LAB_UNITS) return invalid("labResults[$index].unit")
+            if (lab.revision < 1L) return invalid("labResults[$index].revision")
+        }
+
         val settings = payload.settings
         if (!settings.bodyWeightKg.isFinite() ||
             settings.bodyWeightKg <= 0.0 ||
@@ -250,7 +266,7 @@ class EvoluneBackupCodec(
         val header = EvoluneBackupEnvelopeV1(
             magic = EvoluneBackupFormat.MAGIC,
             envelopeFormatVersion = EvoluneBackupFormat.ENVELOPE_FORMAT_VERSION,
-            payloadSchemaVersion = EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION,
+            payloadSchemaVersion = EvoluneBackupFormat.payloadSchemaVersionFor(validated.payload),
             createdAt = metadata.createdAt,
             producerAppVersionName = metadata.producerAppVersionName,
             producerAppVersionCode = metadata.producerAppVersionCode,
@@ -478,12 +494,18 @@ class EvoluneBackupCodec(
             throw PayloadFormatException(null)
         }
         val rootObject = root as? JsonObject ?: throw PayloadFormatException(null)
-        requireExactPayloadFields(rootObject)
+        if (rootObject.keys != PAYLOAD_FIELDS && rootObject.keys != PAYLOAD_FIELDS_V3) {
+            throw PayloadFormatException(null)
+        }
         val payloadVersion = rootObject.requiredPayloadInt("payloadSchemaVersion")
         if (payloadVersion !in EvoluneBackupFormat.SUPPORTED_PAYLOAD_SCHEMA_VERSIONS ||
             payloadVersion != envelopeSchemaVersion
         ) {
             throw UnsupportedPayloadVersionException()
+        }
+        val hasLabResults = payloadVersion == EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION_LAB_RESULTS
+        if (hasLabResults != (rootObject.keys == PAYLOAD_FIELDS_V3)) {
+            throw PayloadFormatException(null)
         }
         val plans = rootObject.requiredPayloadArray("medicationPlans").mapIndexed { index, element ->
             parsePlan(element, index)
@@ -495,7 +517,26 @@ class EvoluneBackupCodec(
             parseEvent(element, index)
         }
         val settings = parseSettings(rootObject.requiredPayloadObject("settings"), payloadVersion)
-        return EvoluneBackupPayloadV1(plans, slots, events, settings)
+        val labResults = if (hasLabResults) {
+            rootObject.requiredPayloadArray("labResults").mapIndexed { index, element ->
+                parseLabResult(element, index)
+            }
+        } else {
+            null
+        }
+        return EvoluneBackupPayloadV1(plans, slots, events, settings, labResults)
+    }
+
+    private fun parseLabResult(element: JsonElement, index: Int): BackupLabResultV1 {
+        val objectValue = element as? JsonObject ?: throw PayloadFormatException("labResults[$index]")
+        requireExactPayloadFields(objectValue, "labResults[$index]")
+        return BackupLabResultV1(
+            id = objectValue.requiredPayloadString("id"),
+            measuredAt = objectValue.requiredPayloadString("measuredAt"),
+            value = objectValue.requiredPayloadDouble("value"),
+            unit = objectValue.requiredPayloadString("unit"),
+            revision = objectValue.requiredPayloadLong("revision")
+        )
     }
 
     private fun parsePlan(element: JsonElement, index: Int): BackupMedicationPlanV1 {
@@ -589,7 +630,7 @@ class EvoluneBackupCodec(
 
     private fun canonicalPayloadBytes(payload: EvoluneBackupPayloadV1): ByteArray {
         val root = buildJsonObject {
-            put("payloadSchemaVersion", EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION)
+            put("payloadSchemaVersion", EvoluneBackupFormat.payloadSchemaVersionFor(payload))
             putJsonArray("medicationPlans") {
                 payload.medicationPlans
                     .sortedBy { it.id }
@@ -654,6 +695,22 @@ class EvoluneBackupCodec(
                 put("timeFormat", payload.settings.timeFormat)
                 put("themeColorSource", payload.settings.themeColorSource)
                 put("themePresetId", payload.settings.themePresetId)
+            }
+            payload.labResults?.let { labResults ->
+                putJsonArray("labResults") {
+                    labResults
+                        .sortedWith(compareBy<BackupLabResultV1> { canonicalInstant(it.measuredAt) }
+                            .thenBy { it.id })
+                        .forEach { lab ->
+                            addJsonObject {
+                                put("id", lab.id)
+                                put("measuredAt", canonicalInstant(lab.measuredAt))
+                                put("value", lab.value)
+                                put("unit", lab.unit)
+                                put("revision", lab.revision)
+                            }
+                        }
+                }
             }
         }
         return json.encodeToString(JsonElement.serializer(), root)
@@ -990,6 +1047,7 @@ class EvoluneBackupCodec(
                 field.startsWith("medicationPlans[") -> PLAN_FIELDS
                 field.startsWith("scheduledDoseSlots[") -> SLOT_FIELDS
                 field.startsWith("doseEvents[") -> EVENT_FIELDS
+                field.startsWith("labResults[") -> LAB_RESULT_FIELDS
                 else -> PAYLOAD_FIELDS
             }
         }
@@ -1106,7 +1164,11 @@ class EvoluneBackupCodec(
             "id", "name", "route", "ester", "doseMG", "scheduleType", "daysOfWeek",
             "intervalDays", "isEnabled", "extras", "createdAt"
         )
+        val PAYLOAD_FIELDS_V3 = PAYLOAD_FIELDS + "labResults"
         val SLOT_FIELDS = setOf("id", "planId", "localTime", "position")
+        val LAB_RESULT_FIELDS = setOf("id", "measuredAt", "value", "unit", "revision")
+        val SUPPORTED_LAB_UNITS =
+            io.github.yingqiu0871.evolune.core.model.LabUnit.entries.map { it.code }.toSet()
         val EVENT_FIELDS = setOf(
             "id", "route", "occurredAt", "zoneId", "localDate", "doseMG", "ester", "extras",
             "slotId", "source", "status", "revision"

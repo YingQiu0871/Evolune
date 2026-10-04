@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.yingqiu0871.evolune.data.AppDatabase
+import io.github.yingqiu0871.evolune.data.lab.LabDatabase
 import io.github.yingqiu0871.evolune.data.RoomRestorePersistence
 import io.github.yingqiu0871.evolune.data.SettingsDataStore
 import kotlinx.coroutines.flow.first
@@ -22,6 +23,7 @@ import java.nio.charset.StandardCharsets
 class B2PreparedRestoreSettingsCompatibilityTest {
     private lateinit var context: Context
     private lateinit var database: AppDatabase
+    private lateinit var labDatabase: LabDatabase
     private lateinit var settings: SettingsDataStore
     private lateinit var persistence: RoomRestorePersistence
     private lateinit var journal: FileRestoreJournalStore
@@ -31,8 +33,9 @@ class B2PreparedRestoreSettingsCompatibilityTest {
     fun setUp() = runBlocking {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        labDatabase = Room.inMemoryDatabaseBuilder(context, LabDatabase::class.java).build()
         settings = SettingsDataStore(context)
-        persistence = RoomRestorePersistence(database, settings, settings)
+        persistence = RoomRestorePersistence(database, labDatabase, settings, settings)
         journal = FileRestoreJournalStore(context)
         originalSettings = settings.userSettings.first()
         journal.delete()
@@ -43,6 +46,7 @@ class B2PreparedRestoreSettingsCompatibilityTest {
         journal.delete()
         settings.replaceSettings(originalSettings)
         database.close()
+        labDatabase.close()
     }
 
     @Test
@@ -96,7 +100,7 @@ class B2PreparedRestoreSettingsCompatibilityTest {
     }
 
     private suspend fun recoverCurrent(beforeSettings: BackupSettingsV1) {
-        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList())
+        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList(), emptyList())
         seed(beforeRoom, beforeSettings)
         journal.write(
             RestoreJournal(
@@ -119,7 +123,7 @@ class B2PreparedRestoreSettingsCompatibilityTest {
     }
 
     private suspend fun recoverLegacy(colorTheme: String, expectedSettings: BackupSettingsV1) {
-        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList())
+        val beforeRoom = RestoreRoomState(emptyList(), emptyList(), emptyList(), emptyList())
         seed(beforeRoom, expectedSettings)
         writeLegacyJournal(colorTheme)
         mutate()

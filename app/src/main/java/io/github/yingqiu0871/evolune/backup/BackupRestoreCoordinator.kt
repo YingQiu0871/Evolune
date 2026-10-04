@@ -225,7 +225,9 @@ internal class BackupRestoreCoordinator(
                             io.github.yingqiu0871.evolune.backup.cloud.CloudBackupUploadMetadata(
                                 createdAt = createdAt,
                                 envelopeFormatVersion = EvoluneBackupFormat.ENVELOPE_FORMAT_VERSION,
-                                payloadSchemaVersion = EvoluneBackupFormat.PAYLOAD_SCHEMA_VERSION
+                                payloadSchemaVersion = EvoluneBackupFormat.payloadSchemaVersionFor(
+                                    snapshot.payload
+                                )
                             )
                         )) {
                             is CloudBackupResult.Success -> {
