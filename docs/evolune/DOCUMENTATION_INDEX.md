@@ -262,6 +262,7 @@
 | [docs/evolune/v1.11.0/V1110_RELEASE_NOTES.md](../../docs/evolune/v1.11.0/V1110_RELEASE_NOTES.md) | Evolune v1.11.0 正式版 / Official Release |
 | [docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md](../../docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md) | Evolune v1.11.1 正式版 / Official Release |
 | [docs/evolune/TESTING.md](../../docs/evolune/TESTING.md) | Evolune 测试环境 / Testing Environment |
+| [docs/evolune/pk2/PK2_CALIBRATION_PLAN.md](../../docs/evolune/pk2/PK2_CALIBRATION_PLAN.md) | PK 2.0 — 个性化 E2 校准：切片计划与第 1 片设计 |
 | [docs/release/RELEASE_PROCESS.md](../../docs/release/RELEASE_PROCESS.md) | Evolune 发布流程 / Release Process |
 
 证据目录（原始记录，已归档到提交 `337cfbe`，不逐个索引；找回方法见[证据归档说明](EVIDENCE_ARCHIVE.md)）：
