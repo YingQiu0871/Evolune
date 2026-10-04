@@ -133,7 +133,7 @@ class B2RoomRestorePersistenceTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = FileRestoreJournalStore(context)
         val journal = RestoreJournal(
-            1,
+            2,
             "00000000-0000-4000-8000-000000000100",
             "2026-08-23T12:34:56Z",
             RestoreJournalPhase.PREPARED,
