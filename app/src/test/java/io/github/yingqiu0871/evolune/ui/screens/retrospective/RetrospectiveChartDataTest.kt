@@ -86,6 +86,15 @@ class RetrospectiveChartDataTest {
         assertEquals(1.0, retrospectiveChartYMax(zero), 0.0)
     }
 
+    @Test
+    fun `PK 2_0 lab values raise the y axis only when they exceed the curve`() {
+        val points = retrospectiveChartPoints(seriesOf(listOf(0.0, 100.0)))
+
+        assertEquals(100.0, retrospectiveChartYMax(points, emptyList()), 0.0)
+        assertEquals(100.0, retrospectiveChartYMax(points, listOf(80.0, Double.NaN)), 0.0)
+        assertEquals(210.0, retrospectiveChartYMax(points, listOf(200.0)), 1e-9)
+    }
+
     // ---------- v1.7.1 UI hotfix: view-only decimation, labels, inspection ----------
 
     @Test

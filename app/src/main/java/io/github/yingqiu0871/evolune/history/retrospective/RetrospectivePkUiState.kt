@@ -37,5 +37,7 @@ data class RetrospectivePkUiState(
     val result: RetrospectivePkResult? = null,
     /** Filled only on a fully successful load; rendered only in CONTENT. */
     val markers: List<RetrospectiveMarker> = emptyList(),
-    val failure: RetrospectiveLoadFailure? = null
+    val failure: RetrospectiveLoadFailure? = null,
+    /** PK 2.0 slice 5a: set only in CONTENT while lab calibration is on. */
+    val calibration: RetrospectiveCalibration? = null
 )

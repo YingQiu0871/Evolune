@@ -24,7 +24,9 @@ class RetrospectiveArchitectureGuardTest {
         "src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePresentation.kt",
         "src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveSurfaceLifecycle.kt",
         "src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectiveConcentrationChart.kt",
-        "src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt"
+        "src/main/java/io/github/yingqiu0871/evolune/ui/screens/retrospective/RetrospectivePkScreen.kt",
+        // PK 2.0 slice 5a overlay models: same seam boundary as the C-04 surface.
+        "src/main/java/io/github/yingqiu0871/evolune/history/retrospective/RetrospectiveCalibrationModels.kt"
     )
 
     private val blockComment = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL)

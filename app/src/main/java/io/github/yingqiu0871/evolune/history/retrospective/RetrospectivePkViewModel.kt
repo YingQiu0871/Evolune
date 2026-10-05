@@ -9,6 +9,7 @@ import io.github.yingqiu0871.evolune.data.isValidBodyWeight
 import io.github.yingqiu0871.evolune.experience.MedicationOccurrencePolicy
 import io.github.yingqiu0871.evolune.history.AllAvailableHistorySource
 import io.github.yingqiu0871.evolune.history.HistoryRangeSource
+import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkSeries
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkSource
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkWindow
 import kotlinx.coroutines.CancellationException
@@ -53,7 +54,9 @@ class RetrospectivePkViewModel(
     private val settingsStore: SettingsStore,
     private val clock: Clock = Clock.systemUTC(),
     private val displayZone: () -> ZoneId = ZoneId::systemDefault,
-    operationScope: CoroutineScope? = null
+    operationScope: CoroutineScope? = null,
+    /** PK 2.0 slice 5a: read only when the user turned lab calibration on; null keeps it out. */
+    private val calibrationSource: RetrospectiveCalibrationSource? = null
 ) : ViewModel() {
 
     private val scope = operationScope ?: viewModelScope
@@ -152,14 +155,15 @@ class RetrospectivePkViewModel(
             phase = RetrospectivePhase.LOADING,
             result = null,
             markers = emptyList(),
-            failure = null
+            failure = null,
+            calibration = null
         )
 
         loadJob = scope.launch {
             try {
                 // §6.3: the body-weight gate runs BEFORE any seam call. Invalid → zero history reads.
-                val bodyWeightKg = try {
-                    settingsStore.userSettings.first().bodyWeight
+                val settings = try {
+                    settingsStore.userSettings.first()
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (error: Throwable) {
@@ -173,6 +177,7 @@ class RetrospectivePkViewModel(
                     }
                     return@launch
                 }
+                val bodyWeightKg = settings.bodyWeight
                 if (!isValidBodyWeight(bodyWeightKg)) {
                     publish(token) {
                         it.copy(
@@ -193,13 +198,21 @@ class RetrospectivePkViewModel(
                     bodyWeightKg = bodyWeightKg
                 )
                 when (val outcome = coordinator.load(capture)) {
-                    is RetrospectivePkLoadOutcome.Content -> publish(token) {
-                        it.copy(
-                            phase = RetrospectivePhase.CONTENT,
-                            result = outcome.result,
-                            markers = outcome.markers,
-                            failure = null
-                        )
+                    is RetrospectivePkLoadOutcome.Content -> {
+                        val calibration = if (settings.calibrateE2Curve) {
+                            readCalibration(bodyWeightKg, outcome.result.series)
+                        } else {
+                            null
+                        }
+                        publish(token) {
+                            it.copy(
+                                phase = RetrospectivePhase.CONTENT,
+                                result = outcome.result,
+                                markers = outcome.markers,
+                                failure = null,
+                                calibration = calibration
+                            )
+                        }
                     }
 
                     is RetrospectivePkLoadOutcome.Unavailable -> publish(token) {
@@ -234,6 +247,24 @@ class RetrospectivePkViewModel(
             } finally {
                 if (token == generation) runPendingRefresh()
             }
+        }
+    }
+
+    /**
+     * PK 2.0 slice 5a — a calibration read failure only drops the overlay; the approved curve and
+     * markers still publish.
+     */
+    private suspend fun readCalibration(
+        bodyWeightKg: Double,
+        series: RetrospectivePkSeries
+    ): RetrospectiveCalibration? {
+        val source = calibrationSource ?: return null
+        return try {
+            RetrospectiveCalibration.of(source.read(bodyWeightKg), series)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: RuntimeException) {
+            null
         }
     }
 
@@ -281,7 +312,8 @@ class RetrospectivePkViewModelFactory(
     private val historyRangeSource: HistoryRangeSource,
     private val settingsStore: SettingsStore,
     private val clock: Clock = Clock.systemUTC(),
-    private val displayZone: () -> ZoneId = ZoneId::systemDefault
+    private val displayZone: () -> ZoneId = ZoneId::systemDefault,
+    private val calibrationSource: RetrospectiveCalibrationSource? = null
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T = create(modelClass, CreationExtras.Empty)
@@ -297,7 +329,8 @@ class RetrospectivePkViewModelFactory(
             historyRangeSource = historyRangeSource,
             settingsStore = settingsStore,
             clock = clock,
-            displayZone = displayZone
+            displayZone = displayZone,
+            calibrationSource = calibrationSource
         ) as T
     }
 }

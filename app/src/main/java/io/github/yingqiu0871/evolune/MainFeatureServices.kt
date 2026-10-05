@@ -2,6 +2,7 @@ package io.github.yingqiu0871.evolune
 
 import androidx.lifecycle.ViewModelProvider
 import io.github.yingqiu0871.evolune.core.dataapi.DoseEventRepository
+import io.github.yingqiu0871.evolune.core.dataapi.LabResultRepository
 import io.github.yingqiu0871.evolune.core.dataapi.MedicationPlanRepository
 import io.github.yingqiu0871.evolune.data.SettingsStore
 import io.github.yingqiu0871.evolune.export.PortableExportService
@@ -13,6 +14,7 @@ import io.github.yingqiu0871.evolune.history.insights.InsightsViewModelFactory
 import io.github.yingqiu0871.evolune.history.pk.RetrospectivePkService
 import io.github.yingqiu0871.evolune.history.retrospective.RetrospectivePkViewModelFactory
 import io.github.yingqiu0871.evolune.history.timeline.TimelineViewModelFactory
+import io.github.yingqiu0871.evolune.labs.RepositoryRetrospectiveCalibrationSource
 import java.time.Clock
 
 /**
@@ -45,7 +47,9 @@ internal class MainFeatureServices private constructor(
             backupRestoreViewModelFactory: ViewModelProvider.Factory,
             hrtViewModelFactory: ViewModelProvider.Factory,
             medicationPlanViewModelFactory: ViewModelProvider.Factory,
-            exportClock: Clock = Clock.systemUTC()
+            exportClock: Clock = Clock.systemUTC(),
+            /** PK 2.0 slice 5a: enables the optional retrospective lab calibration. */
+            labResults: LabResultRepository? = null
         ): MainFeatureServices {
             val historyReadService = HistoryReadService(
                 medicationPlans = medicationPlans,
@@ -68,7 +72,10 @@ internal class MainFeatureServices private constructor(
                     retrospectivePkSource = retrospectivePkService,
                     allAvailableHistorySource = historyReadService,
                     historyRangeSource = historyRangeSource,
-                    settingsStore = settingsStore
+                    settingsStore = settingsStore,
+                    calibrationSource = labResults?.let { labs ->
+                        RepositoryRetrospectiveCalibrationSource(doseEvents, labs)
+                    }
                 ),
                 timelineViewModelFactory = TimelineViewModelFactory(
                     rangeSource = historyRangeSource

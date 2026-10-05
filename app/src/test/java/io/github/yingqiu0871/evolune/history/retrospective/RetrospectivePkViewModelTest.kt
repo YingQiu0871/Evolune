@@ -60,7 +60,9 @@ class RetrospectivePkViewModelTest {
         pkFailure: Throwable? = null,
         allFailure: Throwable? = null,
         rangeFailure: Throwable? = null,
-        gate: CompletableDeferred<Unit>? = null
+        gate: CompletableDeferred<Unit>? = null,
+        calibrateE2Curve: Boolean = false,
+        calibrationSource: RetrospectiveCalibrationSource? = null
     ): Fixture {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         val clock = MutableTestClock(C04_NOW, utc)
@@ -74,7 +76,9 @@ class RetrospectivePkViewModelTest {
         val rangeSource = RecordingHistoryRangeSource(range).apply {
             failure = rangeFailure
         }
-        val settings = FakeSettingsStore(weight)
+        val settings = FakeSettingsStore(weight).apply {
+            this.settings.value = this.settings.value.copy(calibrateE2Curve = calibrateE2Curve)
+        }
         val viewModel = RetrospectivePkViewModel(
             retrospectivePkSource = pkSource,
             allAvailableHistorySource = allSource,
@@ -82,7 +86,8 @@ class RetrospectivePkViewModelTest {
             settingsStore = settings,
             clock = clock,
             displayZone = { utc },
-            operationScope = scope
+            operationScope = scope,
+            calibrationSource = calibrationSource
         )
         return Fixture(viewModel, scope, pkSource, allSource, rangeSource, settings, clock)
     }
@@ -677,4 +682,97 @@ class RetrospectivePkViewModelTest {
             fixture.close()
         }
     }
+
+    // ---------- PK 2.0 slice 5a: optional lab calibration ----------
+
+    private class RecordingCalibrationSource(
+        private val reading: RetrospectiveCalibrationReading?
+    ) : RetrospectiveCalibrationSource {
+        val weights = mutableListOf<Double>()
+
+        override suspend fun read(bodyWeightKg: Double): RetrospectiveCalibrationReading {
+            weights += bodyWeightKg
+            return reading ?: throw IllegalStateException("synthetic calibration read failure")
+        }
+    }
+
+    @Test
+    fun `calibration off never reads the calibration source`() {
+        val source = RecordingCalibrationSource(reading(scale = 2.0))
+        val fixture = fixture(calibrateE2Curve = false, calibrationSource = source)
+        try {
+            assertEquals(RetrospectivePhase.CONTENT, fixture.viewModel.uiState.value.phase)
+            assertNull(fixture.viewModel.uiState.value.calibration)
+            assertTrue(source.weights.isEmpty())
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `calibration on scales a copy of the approved series and keeps only in-window labs`() {
+        val window = c04Window()
+        val inside = RetrospectiveLabPoint(window.startInclusive.plusSeconds(86_400), 180.0)
+        val outside = RetrospectiveLabPoint(window.startInclusive.minusSeconds(86_400), 90.0)
+        val source = RecordingCalibrationSource(reading(scale = 1.5, labs = listOf(outside, inside)))
+        val fixture = fixture(weight = 61.0, calibrateE2Curve = true, calibrationSource = source)
+        try {
+            val state = fixture.viewModel.uiState.value
+            val approved = (state.result as RetrospectivePkResult.Available).series
+            val calibration = state.calibration!!
+
+            assertEquals(RetrospectivePhase.CONTENT, state.phase)
+            assertEquals(listOf(61.0), source.weights)
+            assertEquals(
+                approved.points.map { it.concentrationPGmL * 1.5 },
+                calibration.calibratedSeries.points.map { it.concentrationPGmL }
+            )
+            assertEquals(approved.points.map { it.instant }, calibration.calibratedSeries.points.map { it.instant })
+            assertEquals(listOf(inside), calibration.visibleLabPoints)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `calibration with no comparable lab leaves the series unchanged`() {
+        val source = RecordingCalibrationSource(reading(scale = 1.0, labCount = 0))
+        val fixture = fixture(calibrateE2Curve = true, calibrationSource = source)
+        try {
+            val state = fixture.viewModel.uiState.value
+            val approved = (state.result as RetrospectivePkResult.Available).series
+            assertSame(approved, state.calibration!!.calibratedSeries)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    @Test
+    fun `a calibration read failure still publishes the approved content without an overlay`() {
+        val fixture = fixture(
+            calibrateE2Curve = true,
+            calibrationSource = RecordingCalibrationSource(reading = null)
+        )
+        try {
+            val state = fixture.viewModel.uiState.value
+            assertEquals(RetrospectivePhase.CONTENT, state.phase)
+            assertNull(state.calibration)
+            assertEquals(1, fixture.pkSource.requests.size)
+            assertEquals(1, fixture.allSource.calls.size)
+            assertEquals(1, fixture.rangeSource.calls.size)
+        } finally {
+            fixture.close()
+        }
+    }
+
+    private fun reading(
+        scale: Double,
+        labCount: Int = 1,
+        labs: List<RetrospectiveLabPoint> = emptyList()
+    ) = RetrospectiveCalibrationReading(
+        scale = scale,
+        labCount = labCount,
+        fitErrorPct = null,
+        labPoints = labs
+    )
 }
