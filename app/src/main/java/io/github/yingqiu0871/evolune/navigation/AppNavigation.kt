@@ -20,6 +20,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.WeightRecord
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -78,8 +79,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -977,21 +980,21 @@ fun AppNavigation(
                 }
             },
         ) {
-            composable(Screen.HOME.route) {
+            opaqueComposable(Screen.HOME.route) {
                 HomeScreen(
                     viewModel = hrtViewModel,
                     is24Hour = is24Hour,
                     showTopBar = false
                 )
             }
-            composable(Screen.RECORDS.route) {
+            opaqueComposable(Screen.RECORDS.route) {
                 MedicationRecordsScreen(
                     viewModel = hrtViewModel,
                     is24Hour = is24Hour,
                     showTopBar = false
                 )
             }
-            composable(Screen.HISTORY.route) { entry ->
+            opaqueComposable(Screen.HISTORY.route) { entry ->
                 // History is Activity-owned like the other history feature surfaces, but its
                 // ViewModel is not requested until this destination is actually entered.
                 val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
@@ -1017,7 +1020,7 @@ fun AppNavigation(
                     }
                 )
             }
-            composable(INSIGHTS_ROUTE) { entry ->
+            opaqueComposable(INSIGHTS_ROUTE) { entry ->
                 // The Insights ViewModel is scoped to the hosting Activity so that leaving and
                 // re-entering the destination keeps the same instance: the B-02 surface-return
                 // refresh then applies to the real product path (v1.7-B-03 §33/§34).
@@ -1028,7 +1031,7 @@ fun AppNavigation(
                 )
                 InsightsRoute(viewModel = insightsViewModel, showTopBar = false)
             }
-            composable(RETROSPECTIVE_ROUTE) { entry ->
+            opaqueComposable(RETROSPECTIVE_ROUTE) { entry ->
                 // Same owner discipline as Insights (v1.7-C-04 §8): the retrospective ViewModel is
                 // scoped to the hosting Activity so a leave/return keeps the generation history and
                 // the activation refresh applies to the real product path.
@@ -1043,7 +1046,7 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
-            composable(TIMELINE_ROUTE) { entry ->
+            opaqueComposable(TIMELINE_ROUTE) { entry ->
                 // Same owner discipline as Insights / Retrospective (V17-D-04 §3): the Timeline
                 // ViewModel is scoped to the hosting Activity so a leave/return keeps the current
                 // month/date and the activation refresh applies to the real product path.
@@ -1058,7 +1061,7 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
-            composable(LAB_RESULTS_ROUTE) { entry ->
+            opaqueComposable(LAB_RESULTS_ROUTE) { entry ->
                 // Same Activity-scoped owner as the other History child surfaces.
                 val owner: ViewModelStoreOwner = activity as? ViewModelStoreOwner ?: entry
                 val labResultsViewModel: LabResultsViewModel = viewModel(
@@ -1067,14 +1070,14 @@ fun AppNavigation(
                 )
                 LabResultsRoute(viewModel = labResultsViewModel, is24Hour = is24Hour)
             }
-            composable(Screen.MEDICATION_PLANS.route) {
+            opaqueComposable(Screen.MEDICATION_PLANS.route) {
                 MedicationPlansScreen(
                     viewModel = medicationPlanViewModel,
                     is24Hour = is24Hour,
                     showTopBar = false
                 )
             }
-            composable(Screen.SETTINGS.route) {
+            opaqueComposable(Screen.SETTINGS.route) {
                 SettingsScreen(
                     userSettings = userSettings,
                     healthConnectWeightSyncState = healthConnectWeightSyncState,
@@ -1150,14 +1153,14 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
-            composable(ABOUT_ROUTE) {
+            opaqueComposable(ABOUT_ROUTE) {
                 AboutScreen(
                     onOpenDisclosures = {
                         navController.navigate(DISCLOSURES_ROUTE) { launchSingleTop = true }
                     }
                 )
             }
-            composable(HELP_ROUTE) {
+            opaqueComposable(HELP_ROUTE) {
                 HelpScreen(
                     onOpenFeatureTutorial = {
                         navController.navigate(FEATURE_TUTORIAL_ROUTE) { launchSingleTop = true }
@@ -1167,7 +1170,7 @@ fun AppNavigation(
                     }
                 )
             }
-            composable(ONBOARDING_ROUTE) {
+            opaqueComposable(ONBOARDING_ROUTE) {
                 OnboardingFlowScreen(
                     state = resolvedOnboardingState,
                     beginnerOnboarding = resolvedOnboardingState.needsBeginnerOnboarding,
@@ -1185,7 +1188,7 @@ fun AppNavigation(
                     showTopBar = false
                 )
             }
-            composable(FEATURE_TUTORIAL_ROUTE) {
+            opaqueComposable(FEATURE_TUTORIAL_ROUTE) {
                 FeatureTutorialScreen(
                     onCreatePlan = medicationPlanViewModel::startCreateSession,
                     onRecordDose = hrtViewModel::startCreateSession,
@@ -1202,10 +1205,10 @@ fun AppNavigation(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            composable(DISCLOSURES_ROUTE) {
+            opaqueComposable(DISCLOSURES_ROUTE) {
                 DisclosuresScreen()
             }
-            composable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
+            opaqueComposable(GOOGLE_DRIVE_BACKUP_RESTORE_ROUTE) {
                 GoogleDriveBackupRestoreScreen(
                     connected = backupRestoreConnected,
                     state = backupRestoreState,
@@ -1345,6 +1348,28 @@ fun AppNavigation(
         )
         }
         }
+}
+
+// Each destination paints its own opaque surface: during a predictive back gesture
+// NavHost composes the popping and the revealed entry stacked, and a chrome-crossing
+// edge runs no transition, so a transparent page would show the one beneath it.
+// navigation-compose 2.10 adds separate predictivePop* transitions that default to a
+// scale-out; pass them with the same PrimaryNavigationChrome policy when upgrading.
+private fun NavGraphBuilder.opaqueComposable(
+    route: String,
+    content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
+) {
+    composable(route) { entry ->
+        val scope = this
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface),
+            propagateMinConstraints = true
+        ) {
+            scope.content(entry)
+        }
+    }
 }
 
 private fun io.github.yingqiu0871.evolune.core.model.DoseEvent.toRecordDefaults(): RecordDefaults =
