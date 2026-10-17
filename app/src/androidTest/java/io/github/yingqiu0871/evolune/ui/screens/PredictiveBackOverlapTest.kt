@@ -11,7 +11,6 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -64,14 +63,13 @@ class PredictiveBackOverlapTest {
     }
 
     @Test
-    fun labResultsOverHistoryDoesNotShowHistoryThroughDuringPredictiveBack() {
+    fun helpOverSettingsDoesNotShowSettingsThroughDuringPredictiveBack() {
         composeRule.waitForIdle()
-        composeRule.selectPrimaryTab("history")
-        waitForTag("history-lab-results-entry")
-        composeRule.onNodeWithTag("history-lab-results-entry").scrollToAndClick()
-        waitForTag("lab-results-screen")
+        openSettings()
+        composeRule.onNodeWithTag("settings-help-entry").scrollToAndClick()
+        waitForTag("settings-help-screen")
 
-        assertPoppingPageStaysOpaque("lab-results-screen")
+        assertPoppingPageStaysOpaque("settings-help-screen")
     }
 
     // Starts a predictive back gesture, checks the popping page still looks like it did before
@@ -136,12 +134,7 @@ class PredictiveBackOverlapTest {
     }
 
     private fun openSettings() {
-        val railSettings = composeRule.onAllNodesWithTag("nav-rail-settings").fetchSemanticsNodes()
-        if (railSettings.isNotEmpty()) {
-            composeRule.onNodeWithTag("nav-rail-settings").performClick()
-        } else {
-            composeRule.onNodeWithTag("nav-bar-settings").performClick()
-        }
+        composeRule.selectPrimaryTab("settings")
         waitForTag("settings-basic-data-section")
     }
 

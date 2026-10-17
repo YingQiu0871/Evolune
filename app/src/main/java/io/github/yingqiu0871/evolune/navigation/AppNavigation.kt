@@ -20,6 +20,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.PermissionController
 import androidx.health.connect.client.records.WeightRecord
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -78,9 +79,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -130,7 +131,6 @@ import io.github.yingqiu0871.evolune.ui.components.MedicationPlanBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.MedicationRecordBottomSheet
 import io.github.yingqiu0871.evolune.ui.components.PatchMode
 import io.github.yingqiu0871.evolune.ui.components.RecordDefaults
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import io.github.yingqiu0871.evolune.ui.motion.RouteEdgeTracker
@@ -1353,6 +1353,8 @@ fun AppNavigation(
 // Each destination paints its own opaque surface: during a predictive back gesture
 // NavHost composes the popping and the revealed entry stacked, and a chrome-crossing
 // edge runs no transition, so a transparent page would show the one beneath it.
+// navigation-compose 2.10 adds separate predictivePop* transitions that default to a
+// scale-out; pass them with the same PrimaryNavigationChrome policy when upgrading.
 private fun NavGraphBuilder.opaqueComposable(
     route: String,
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit
