@@ -22,12 +22,15 @@ object E2CalibrationParameters {
     const val PMOL_PER_L_PER_PG_PER_ML: Double = 3.671
 
     /**
-     * Log-space SD of a single lab measurement (assay + draw-timing scatter), ≈ ±13 %.
-     * Reference value, see plan §3.2.
+     * Log-space SD of a single lab around the personally scaled model (within-lab assay error,
+     * day-to-day variation and draw-timing error), ≈ ±28 %. See docs/evolune/pk2/PK2_PARAMETER_REVIEW.md.
      */
-    const val MEASUREMENT_LOG_SD: Double = 0.13
+    const val MEASUREMENT_LOG_SD: Double = 0.25
 
-    /** Log-space SD of the population prior on the personal amplitude, ≈ ±65 %. Plan §3.2. */
+    /**
+     * Log-space SD of the population prior on the personal amplitude, ≈ ±65 %.
+     * See docs/evolune/pk2/PK2_PARAMETER_REVIEW.md.
+     */
     const val PRIOR_LOG_SD: Double = 0.5
 
     /**
