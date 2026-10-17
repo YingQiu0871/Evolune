@@ -63,6 +63,8 @@ Evolune's current estradiol pharmacokinetic implementation materially traces to 
 
 Scientific/project references, including the Oyama citation and public data-format compatibility references, are used as citations, factual context, or interoperability targets unless a more specific lineage entry says otherwise. No tracked release material marked CC BY-NC-SA, and no copied CC BY-NC-SA prose, image, chart, or derived code, was identified in this review. Citation alone does not alter Evolune's source license.
 
+PK 2.0 lab calibration (`pk/calibration/E2Calibration.kt`): the log-space amplitude approach and the initial σ/τ reference values were read from the MIT-licensed Oyama-s-HRT-Tracker `logic.ts` and implemented independently, without copied source. Since 2026-10-17 the shipped σ (0.25) and τ (0.5) are set from the cited public literature in `docs/evolune/pk2/PK2_PARAMETER_REVIEW.md`, not from that project.
+
 ## Release controls
 
 1. Publish only the explicitly reviewed release branch and a tag created from its approved sealing commit.

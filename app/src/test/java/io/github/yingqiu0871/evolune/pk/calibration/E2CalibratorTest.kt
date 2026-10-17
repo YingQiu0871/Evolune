@@ -52,11 +52,11 @@ class E2CalibratorTest {
     }
 
     @Test
-    fun `a single lab is shrunk slightly toward the model and has no fit error`() {
+    fun `a single lab is shrunk toward the model and has no fit error`() {
         val calibration = E2Calibrator.calibrate(flat, listOf(lab("a", 50.0, 200.0)))
         assertEquals(1, calibration.labCount)
         assertEquals(shrunkScale(2.0, 1), calibration.scale, epsilon)
-        assertTrue(calibration.scale < 2.0 && calibration.scale > 1.8)
+        assertTrue(calibration.scale < 2.0 && calibration.scale > 1.6)
         assertNull(calibration.fitErrorPct)
     }
 
@@ -70,7 +70,7 @@ class E2CalibratorTest {
         assertEquals(shrunkScale(1.5, 4), four.scale, epsilon)
         assertTrue(four.scale > one.scale)
         assertTrue(four.scale < 1.5)
-        assertTrue(four.fitErrorPct!! < 2.0)
+        assertTrue(four.fitErrorPct!! < 5.0)
     }
 
     @Test
