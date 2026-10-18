@@ -18,7 +18,9 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ## 当前稳定版本
 
-**Evolune v1.11.1** 已于 2026-10-01 发布。请从 [Evolune v1.11.1 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1) 下载经过签名的 Phone APK 与 Wear APK（并附 `SHA256SUMS.txt`）。`v1.11.0` 为上一版封存发布。
+**Evolune v1.12.0** 计划于 2026-10-18 发布，发布后请从 [Evolune v1.12.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0) 下载经过签名的 Phone APK 与 Wear APK（并附 `SHA256SUMS.txt`）。在此之前最新已发布版本为 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)。
+
+v1.12.0 新增「化验结果」记录（历史页入口，独立数据库 `evolune_labs`），以及实验性、默认关闭的「按化验校准 E2 曲线」开关，校准参数尚待独立科学审阅；含化验结果的加密备份为 payload schema v3，旧版本无法恢复。另修复预测性返回时页面透出下层的问题。详见 [v1.12.0 发布说明](v1.12.0/V1120_RELEASE_NOTES.md)。
 
 v1.11.1 是修复版本：「记录」页恰好新增一条记录时自动滚动到该记录。v1.11.0 为五个主页面的顶栏与底部导航栏加入毛玻璃效果，并把记录/方案变化后的 Widget 刷新与手表同步移出主线程；v1.10.0 新增默认关闭的 CPA 估算曲线、历史页返回保留位置与设置页按用途重排。v1.10–v1.11.1 均无 Room schema 迁移、无备份或 Portable 格式变化，E2 用药计算语义不变。此前 v1.6 Widget Gallery 已通过独立复审、真实 Phone/Wear 覆盖安装与项目负责人真实手表验收；v1.7 History & Insights、v1.8 全局卫生与 v1.9 维护清理亦已发布。
 
@@ -46,7 +48,7 @@ GitHub Actions 的 `Build Debug APK` 产物只用于开发和测试。Debug 与 
 
 - 手机端：Android 12 及以上（`minSdk = 31`），应用 ID `io.github.yingqiu0871.evolune`
 - 手表端：Wear OS / Android API 30 及以上（`minSdk = 30`），应用 ID `io.github.yingqiu0871.evolune`（Kotlin namespace `io.github.yingqiu0871.evolune.wear`）
-- v1.11.1：Phone `versionCode = 101110100`；Wear `versionCode = 1101110100`
+- v1.12.0：Phone `versionCode = 101120000`；Wear `versionCode = 1101120000`
 - 历史 v1.0.0：Phone/Wear 使用 `versionCode = 10060`；不代表当前升级目标。
 
 ## 快速上手
@@ -106,7 +108,7 @@ reviews/  外部审阅报告和逐项处置记录
 - History & Insights（v1.7）、全局卫生（v1.8）、维护清理（v1.9）、CPA 估算曲线与设置重排（v1.10）以及毛玻璃导航栏（v1.11）已发布并封版。
 - v1.2–v1.11.1 的已发布历史以 [Roadmap](ROADMAP.md) 为准；CPA 曲线仅显示在首页浓度图，不进入备份/导出，不提供 Widget、Wear 或回顾性 PK 中的 CPA 显示。
 - Tracked Date 仍为 deferred，没有实体或产品入口。
-- 个性化 calibration/PK 2.0 截至 v1.11.1 仍未实现。
+- PK 2.0 个性化：v1.12.0 加入化验结果与默认关闭的 E2 幅度校准（仅首页与回顾性页面；PKState、Widget、Wear 不校准）；个人清除率拟合评估后暂不实现。
 
 ## 常见问题
 
