@@ -17,6 +17,11 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - "build.gradle.kts"
+      - "app/build.gradle.kts"
+      - "wear/build.gradle.kts"
+      - "app/proguard-rules.pro"
+      - "wear/proguard-rules.pro"
+      - "gradle/libs.versions.toml"
 
 permissions:
   contents: read
@@ -159,7 +164,7 @@ jobs:
           for name in "Evolune-Phone-v$VERSION.apk" "Evolune-Wear-v$VERSION.apk"; do
             apk="$out/$name"
             "$apksigner" verify --print-certs "$apk" > "$RUNNER_TEMP/certs.txt"
-            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f' || true)"
             if [ -z "$cert" ]; then
               echo "::error::No certificate SHA-256 digest in apksigner output for $name."
               exit 1
@@ -202,7 +207,8 @@ jobs:
       - name: Upload release assets
         uses: actions/upload-artifact@v7
         with:
-          name: evolune-release-v${{ steps.version.outputs.version }}
+          # PR runs are candidates built from the merge ref; keep their artifacts apart from dispatch runs.
+          name: evolune-release-v${{ steps.version.outputs.version }}${{ github.event_name == 'pull_request' && format('-pr{0}', github.event.pull_request.number) || '' }}
           path: |
             release-assets/Evolune-Phone-v${{ steps.version.outputs.version }}.apk
             release-assets/Evolune-Wear-v${{ steps.version.outputs.version }}.apk
@@ -255,7 +261,7 @@ jobs:
           fi
           for name in "Evolune-Phone-v$VERSION.apk" "Evolune-Wear-v$VERSION.apk"; do
             "$apksigner" verify --print-certs "$name" > "$RUNNER_TEMP/certs.txt"
-            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f')"
+            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f' || true)"
             case "$cert" in
               "$EXPECTED_CERT_SHA256_PREFIX"*) ;;
               *) echo "::error::Certificate mismatch for $name: $cert"; exit 1 ;;
@@ -263,30 +269,43 @@ jobs:
           done
           echo "Assets match SHA256SUMS.txt and the release certificate."
 
-      - name: Check tag and Release do not exist
+      - name: Check tag and Release
+        id: check
         run: |
           set -euo pipefail
           tag="v$VERSION"
-          if [ -n "$(git tag --list "$tag")" ]; then
-            echo "::error::Tag $tag already exists locally."
-            exit 1
-          fi
-          if [ -n "$(git ls-remote --tags origin "refs/tags/$tag")" ]; then
-            echo "::error::Tag $tag already exists on origin."
-            exit 1
-          fi
-          if gh release view "$tag" > /dev/null 2>&1; then
-            echo "::error::GitHub Release $tag already exists."
-            exit 1
-          fi
           digits="${VERSION//./}"
           notes="docs/evolune/v$VERSION/V${digits}_RELEASE_NOTES.md"
           if [ ! -f "$notes" ]; then
             echo "::error::Release notes not found: $notes"
             exit 1
           fi
+          status="$(gh api -i "repos/$GH_REPO/releases/tags/$tag" 2>/dev/null | head -n 1 | awk '{print $2}' || true)"
+          case "$status" in
+            404) ;;
+            200) echo "::error::GitHub Release $tag already exists."; exit 1 ;;
+            *) echo "::error::Could not check whether Release $tag exists (HTTP status '${status}')."; exit 1 ;;
+          esac
+          # A tag left by an earlier run that failed before creating the Release is reused only
+          # when it already points at this exact commit; a tag is never moved.
+          remote_target="$(git ls-remote origin "refs/tags/$tag^{}" | cut -f1)"
+          if [ -n "$remote_target" ]; then
+            if [ "$remote_target" != "$COMMIT" ]; then
+              echo "::error::Tag $tag already exists on origin at $remote_target, not $COMMIT."
+              exit 1
+            fi
+            echo "Tag $tag already points at $COMMIT; resuming with the Release."
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$(git ls-remote --tags origin "refs/tags/$tag")" ]; then
+            echo "::error::Tag $tag exists on origin but is not an annotated tag."
+            exit 1
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create and push tag
+        id: tag
+        if: steps.check.outputs.tag_exists != 'true'
         run: |
           set -euo pipefail
           tag="v$VERSION"
@@ -319,3 +338,8 @@ jobs:
           sha256sum -c SHA256SUMS.txt
           echo "Read-back verified: assets match SHA256SUMS.txt."
           echo "Release: $(gh release view "$tag" --json url --jq .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Explain partial publish
+        if: failure() && (steps.tag.outcome == 'success' || steps.check.outputs.tag_exists == 'true')
+        run: |
+          echo "::error::Tag v$VERSION is on origin at $COMMIT but the Release was not completed. Delete any draft Release v$VERSION, then re-run this workflow on main with the same version and publish=true; it reuses the tag and creates the Release."
