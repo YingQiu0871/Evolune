@@ -100,7 +100,7 @@ Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.1 dates are the record
 publication dates (the v1.12.0 date is planned until the release is published). Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
-## Shipped Since v1.6 (v1.7–v1.11)
+## Shipped Since v1.6 (v1.7–v1.12)
 
 - **History and Timeline (v1.7.0):** day-by-day medication activity that separates planned occurrences
   from actual intake, with timing differences; a monthly Timeline of matched, unrecorded-schedule and
