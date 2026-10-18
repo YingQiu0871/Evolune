@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  EXPECTED_CERT_SHA256_PREFIX: b9b6b955
+  EXPECTED_CERT_SHA256: b9b6b9552fa4c7b656936d4c3aeb71c1229aa17c393337719bc8d0e07edaab08
 
 jobs:
   build:
@@ -171,7 +171,7 @@ jobs:
             fi
             apk_hash="$(sha256sum "$apk" | cut -d' ' -f1)"
             case "$cert" in
-              "$EXPECTED_CERT_SHA256_PREFIX"*) match=true ;;
+              "$EXPECTED_CERT_SHA256") match=true ;;
               *) match=false; all_match=false ;;
             esac
             {
@@ -179,7 +179,7 @@ jobs:
               echo "APK: $name"
               echo "  apk sha256 : $apk_hash"
               echo "  cert sha256: $cert"
-              echo "  cert matches release identity prefix '$EXPECTED_CERT_SHA256_PREFIX': $match"
+              echo "  cert matches release certificate: $match"
               if [ -n "$aapt2" ]; then
                 "$aapt2" dump badging "$apk" | grep -m 1 -o "versionCode='[^']*' versionName='[^']*'" | sed 's/^/  /' || true
               fi
@@ -263,7 +263,7 @@ jobs:
             "$apksigner" verify --print-certs "$name" > "$RUNNER_TEMP/certs.txt"
             cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f' || true)"
             case "$cert" in
-              "$EXPECTED_CERT_SHA256_PREFIX"*) ;;
+              "$EXPECTED_CERT_SHA256") ;;
               *) echo "::error::Certificate mismatch for $name: $cert"; exit 1 ;;
             esac
           done

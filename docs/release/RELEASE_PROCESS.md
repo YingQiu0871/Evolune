@@ -23,7 +23,7 @@
 
 ## 云端发布 / Cloud release (GitHub Actions)
 
-除本地脚本外，也可用 `.github/workflows/release.yml` 在云端签名构建并发布，逻辑与上面两个脚本一致（同样校验证书前缀 `b9b6b955`、生成 `SHA256SUMS.txt`、拒绝已存在的 tag / Release）。
+除本地脚本外，也可用 `.github/workflows/release.yml` 在云端签名构建并发布，逻辑与上面两个脚本一致（校验完整的发布证书 SHA-256 `B9B6B955…DAAB08`（本地脚本只校验前缀 `b9b6b955`）、生成 `SHA256SUMS.txt`、拒绝已存在的 tag / Release）。
 
 - **Secrets**（仓库 Settings → Secrets and variables → Actions）：`EVOLUNE_KEYSTORE_BASE64`（`.jks` 的 `base64 -w0` 输出，单行）、
   `EVOLUNE_KEYSTORE_PASSWORD`、`EVOLUNE_KEY_ALIAS`、`EVOLUNE_KEY_PASSWORD`。缺少任何一个会在构建前失败并指出名称。
