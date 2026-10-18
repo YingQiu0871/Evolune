@@ -21,6 +21,20 @@
    创建 GitHub Release 上传三个资产，再下载回读比对哈希与签名。已存在的 tag / Release 会直接拒绝，不会移动或覆盖。
 5. **文档**：见下节。
 
+## 云端发布 / Cloud release (GitHub Actions)
+
+除本地脚本外，也可用 `.github/workflows/release.yml` 在云端签名构建并发布，逻辑与上面两个脚本一致（同样校验证书前缀 `b9b6b955`、生成 `SHA256SUMS.txt`、拒绝已存在的 tag / Release）。
+
+- **Secrets**（仓库 Settings → Secrets and variables → Actions）：`EVOLUNE_KEYSTORE_BASE64`（`.jks` 的 `base64 -w0` 输出，单行）、
+  `EVOLUNE_KEYSTORE_PASSWORD`、`EVOLUNE_KEY_ALIAS`、`EVOLUNE_KEY_PASSWORD`。缺少任何一个会在构建前失败并指出名称。
+- **PR**：修改 `.github/workflows/release.yml` 或根 `build.gradle.kts` 的 PR（非 fork）只跑构建 + 验证，版本取自 `evoluneVersionName`，绝不发布。
+- **构建**：Actions → Release → Run workflow，`version` 填 `evoluneVersionName`（不一致则失败），`publish=false`。
+  产物 `evolune-release-v<version>`（两个 APK、`SHA256SUMS.txt`、`verification.txt`）可在运行页下载。
+- **发布**：在 `main` 上运行并勾选 `publish=true`。需要已存在 `docs/evolune/v<version>/V<版本号去掉点>_RELEASE_NOTES.md`
+  （如 `V1120_RELEASE_NOTES.md`）。workflow 会复核哈希与证书、在构建的提交上创建 annotated tag 并只推送该 tag、
+  创建 Release 上传三个资产并下载回读比对。
+- 本地脚本仍可作为替代路径。
+
 ## 哈希写在哪里 / Where hashes live
 
 tag、合并提交与 APK 哈希只有发布后才确定，因此**不再**在 `CURRENT_STATUS`、`ROADMAP` 等状态文档里逐份回填。
