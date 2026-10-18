@@ -15,7 +15,7 @@ Evolune 是面向 Android 与 Wear OS 的本地优先用药记录、提醒和药
 
 当前版本为 **v1.12.0**（计划 2026-10-18 发布；发布前最新已发布稳定版为 v1.11.1，2026-10-01）。
 
-- [下载 Evolune v1.12.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
+- [下载 Evolune v1.12.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)（发布后可用；在此之前请下载 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)）
 - [v1.12.0 发布说明](docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md)
 - Phone：**1.12.0 / versionCode 101120000**
 - Wear：**1.12.0 / versionCode 1101120000**
@@ -137,7 +137,7 @@ Evolune is a local-first medication logging, reminder, and pharmacokinetic (PK) 
 
 The current version is **v1.12.0** (planned for 2026-10-18; until it is published the latest published stable release is v1.11.1, 2026-10-01).
 
-- [Download Evolune v1.12.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
+- [Download Evolune v1.12.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0) (available once published; until then use [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1))
 - [v1.12.0 Release Notes](docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md)
 - Phone: **1.12.0 / versionCode 101120000**
 - Wear: **1.12.0 / versionCode 1101120000**

@@ -13,13 +13,14 @@ with a normal merge commit and the annotated tag `v1.12.0` points at that merge 
 
 ## Current Release
 
-- Stable version: [`v1.12.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
+- Stable version (planned, not yet published): [`v1.12.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0);
+  until it is published, the stable download is [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
 - Release date: 2026-10-18 (planned)
 - Release source: annotated tag `v1.12.0` → the `main` merge commit of the `release/v1.12.0` PR;
   preserve this tag
 - Previous sealed stable release: [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
   (2026-10-01)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.12.0 GitHub Release
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` will be attached to the v1.12.0 GitHub Release
 
 v1.12.0 adds Lab results (History tab; a separate `evolune_labs` Room database, `AppDatabase` stays v3) and an
 experimental, default-off Settings option, "按化验校准 E2 曲线", that scales the Home and retrospective E2 curves by a
