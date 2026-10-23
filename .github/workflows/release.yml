@@ -164,7 +164,7 @@ jobs:
           for name in "Evolune-Phone-v$VERSION.apk" "Evolune-Wear-v$VERSION.apk"; do
             apk="$out/$name"
             "$apksigner" verify --print-certs "$apk" > "$RUNNER_TEMP/certs.txt"
-            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f' || true)"
+            cert="$(sed -nE 's/.*certificate SHA-256 digest:[[:space:]]*([0-9a-fA-F]{64}).*/\1/p' "$RUNNER_TEMP/certs.txt" | head -n 1 | tr 'A-F' 'a-f' || true)"
             if [ -z "$cert" ]; then
               echo "::error::No certificate SHA-256 digest in apksigner output for $name."
               exit 1
@@ -261,7 +261,7 @@ jobs:
           fi
           for name in "Evolune-Phone-v$VERSION.apk" "Evolune-Wear-v$VERSION.apk"; do
             "$apksigner" verify --print-certs "$name" > "$RUNNER_TEMP/certs.txt"
-            cert="$(grep -m 1 'certificate SHA-256 digest' "$RUNNER_TEMP/certs.txt" | cut -d: -f2 | tr -d '[:space:]' | tr 'A-F' 'a-f' || true)"
+            cert="$(sed -nE 's/.*certificate SHA-256 digest:[[:space:]]*([0-9a-fA-F]{64}).*/\1/p' "$RUNNER_TEMP/certs.txt" | head -n 1 | tr 'A-F' 'a-f' || true)"
             case "$cert" in
               "$EXPECTED_CERT_SHA256") ;;
               *) echo "::error::Certificate mismatch for $name: $cert"; exit 1 ;;
