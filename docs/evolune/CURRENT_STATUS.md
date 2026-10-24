@@ -5,22 +5,21 @@ Historical plans and phase reports remain evidence of earlier decisions but do n
 Raw `evidence/` folders cited below were moved out of `main` on 2026-10-03 and are archived at commit `337cfbe`;
 see the [evidence archive note](EVIDENCE_ARCHIVE.md).
 
-Documentation updated on 2026-10-18 for the planned `v1.12.0` release (the release branch is merged into `main`
-with a normal merge commit and the annotated tag `v1.12.0` points at that merge commit once published; until then
-`v1.11.1` remains the latest published release). See the
+Documentation updated on 2026-10-24 for the published `v1.12.0` release (PR #54 was merged into `main`
+with a normal merge commit and the annotated tag `v1.12.0` points at that merge commit; `v1.11.1` is the previous
+sealed release). See the
 [complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
 [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version (planned, not yet published): [`v1.12.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0);
-  until it is published, the stable download is [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
-- Release date: 2026-10-18 (planned)
-- Release source: annotated tag `v1.12.0` → the `main` merge commit of the `release/v1.12.0` PR;
+- Stable version: [`v1.12.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
+- Release date: 2026-10-24
+- Release source: annotated tag `v1.12.0` → the `main` merge commit of PR #54;
   preserve this tag
 - Previous sealed stable release: [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
   (2026-10-01)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` will be attached to the v1.12.0 GitHub Release
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` are attached to the v1.12.0 GitHub Release, built and published by the GitHub Actions `Release` workflow (the first cloud-signed release)
 
 v1.12.0 adds Lab results (History tab; a separate `evolune_labs` Room database, `AppDatabase` stays v3) and an
 experimental, default-off Settings option, "按化验校准 E2 曲线", that scales the Home and retrospective E2 curves by a
@@ -95,10 +94,10 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.10.0` | 2026-09-30 | Optional CPA estimated curve, History scroll-position return, Settings regrouping |
 | `v1.11.0` | 2026-10-01 | Frosted-glass top and bottom bars; widget and Wear sync work moved off the main thread |
 | `v1.11.1` | 2026-10-01 | Fix: Records list scrolls to a newly added record |
-| `v1.12.0` | 2026-10-18 (planned) | Lab results; experimental default-off E2 curve calibration with labs; backup schema v3; predictive-back fix |
+| `v1.12.0` | 2026-10-24 | Lab results; experimental default-off E2 curve calibration with labs; backup schema v3; predictive-back fix |
 
-Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.1 dates are the recorded GitHub Release
-publication dates (the v1.12.0 date is planned until the release is published). Every release in this line is signed with the same certificate and upgrades in place
+Dates for v1.7.x are the tag commit dates; v1.8.0–v1.12.0 dates are the recorded GitHub Release
+publication dates ). Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
 ## Shipped Since v1.6 (v1.7–v1.12)
@@ -583,7 +582,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - **v1.11.1 记录页新增记录后自动滚动 — RELEASED**（2026-10-01；PR #38 与 `release/v1.11.1` 以普通 merge commit
     合入 `main`，annotated tag `v1.11.1` 指向发布合并提交；1.11.1 / Phone 101110100 / Wear 1101110100；release notes
     [`v1.11.1/V1111_RELEASE_NOTES.md`](v1.11.1/V1111_RELEASE_NOTES.md)）。
-  - **v1.12.0 化验结果与实验性 E2 曲线校准 — 准备发布**（计划 2026-10-18；PK 2.0 切片 1–5b 与预测性返回修复 #52；
+  - **v1.12.0 化验结果与实验性 E2 曲线校准 — RELEASED**（2026-10-24；PR #54 以普通 merge commit 合入 `main`，annotated tag `v1.12.0` 指向发布合并提交，由 GitHub Actions `Release` 工作流签名发布（首次云端签名）；PK 2.0 切片 1–5b 与预测性返回修复 #52；
     1.12.0 / Phone 101120000 / Wear 1101120000；`AppDatabase` 仍为 v3，化验结果在独立库 `evolune_labs` v1；
     备份 payload schema v3（无化验时仍为 v2）；校准开关默认关闭，σ/τ 参数待独立科学审阅；release notes
     [`v1.12.0/V1120_RELEASE_NOTES.md`](v1.12.0/V1120_RELEASE_NOTES.md)）。

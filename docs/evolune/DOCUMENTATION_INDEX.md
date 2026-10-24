@@ -200,7 +200,7 @@
 | [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
 | [QUICK_START_UI.md](QUICK_START_UI.md) | 当前 UI 结构速览 |
 | [SETTINGS_FEATURE.md](SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
-| [TODO.md](TODO.md) | 后续路线（v1.12.0 准备发布；v1.11.1 已封版） |
+| [TODO.md](TODO.md) | 后续路线（v1.12.0 已发布；v1.11.1 已封版） |
 | [UI_COMPONENTS.md](UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |

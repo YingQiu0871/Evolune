@@ -18,7 +18,7 @@ Evolune 是一个以本地数据为中心的 Android/Wear OS 用药记录工具�
 
 ## 当前稳定版本
 
-**Evolune v1.12.0** 计划于 2026-10-18 发布，发布后请从 [Evolune v1.12.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0) 下载经过签名的 Phone APK 与 Wear APK（并附 `SHA256SUMS.txt`）。在此之前最新已发布版本为 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)。
+**Evolune v1.12.0** 已于 2026-10-24 发布，请从 [Evolune v1.12.0 GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0) 下载经过签名的 Phone APK 与 Wear APK（并附 `SHA256SUMS.txt`）。上一封存发布版为 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)。
 
 v1.12.0 新增「化验结果」记录（历史页入口，独立数据库 `evolune_labs`），以及实验性、默认关闭的「按化验校准 E2 曲线」开关，校准参数尚待独立科学审阅；含化验结果的加密备份为 payload schema v3，旧版本无法恢复。另修复预测性返回时页面透出下层的问题。详见 [v1.12.0 发布说明](v1.12.0/V1120_RELEASE_NOTES.md)。
 
