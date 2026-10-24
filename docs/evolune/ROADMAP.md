@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图记录截至 2026-10-18 已发布的 v1.0.0–v1.11.1（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4、v1.9.1、v1.11.1 维护版本）和准备发布的 v1.12.0，并从 v1.12.0 基线向后规划；
+本路线图记录截至 2026-10-24 已发布的 v1.0.0–v1.12.0（含 v1.2.2、v1.3.1 热修复及 v1.7.1–v1.7.4、v1.9.1、v1.11.1 维护版本），并从 v1.12.0 基线向后规划；
 当前实现事实见 [Current Status](CURRENT_STATUS.md)，pre-v1 分阶段计划见已标记为历史文档的
 [Migration Plan](MIGRATION_PLAN.md)。
 
@@ -108,10 +108,11 @@ History & Insights 版本已发布并封存；[`v1.7.0` GitHub Release](https://
 发布范围：History 与回顾性 PK 的后台处理与刷新成本、首页时钟与边界刷新的生命周期约束、
 Home 模拟的协作式取消、被中断恢复流程的安全回滚、更新检查取消处理。无 schema、备份格式或用药语义变化。
 
-### v1.12.0 — 2026-10-18（计划）
+### v1.12.0 — 2026-10-24
 
-准备发布的版本；发布后 [`v1.12.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
-将绑定不可变 annotated tag `v1.12.0`（指向 `release/v1.12.0` PR 在 `main` 上的普通合并提交）。
+最新公开稳定版本，已发布并封存；[`v1.12.0` GitHub Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)
+绑定不可变 annotated tag `v1.12.0`（指向 PR #54 在 `main` 上的普通合并提交），由 GitHub Actions `Release` 工作流
+签名并发布（首次云端签名）。
 
 发布范围：「历史」页新增化验结果（添加、编辑、删除；独立 Room 数据库 `evolune_labs` v1，`AppDatabase` 仍为 v3）；
 设置中实验性、默认关闭的「按化验校准 E2 曲线」，用 E2 化验估算个人幅度系数并缩放首页与回顾性 E2 曲线
@@ -480,7 +481,7 @@ Phase C 采用“先契约、后规格、再实现”的顺序，C-01 已通过�
   [`v1.11.0/V1110_RELEASE_NOTES.md`](v1.11.0/V1110_RELEASE_NOTES.md)）。
 - **v1.11.1 · 记录页新增记录后自动滚动 — RELEASED**（2026-10-01；release notes
   [`v1.11.1/V1111_RELEASE_NOTES.md`](v1.11.1/V1111_RELEASE_NOTES.md)）。
-- **v1.12.0 · 化验结果 / 实验性 E2 曲线校准 — 准备发布**（计划 2026-10-18；release notes
+- **v1.12.0 · 化验结果 / 实验性 E2 曲线校准 — RELEASED**（2026-10-24；release notes
   [`v1.12.0/V1120_RELEASE_NOTES.md`](v1.12.0/V1120_RELEASE_NOTES.md)）。
   **NEXT:** 无已授权的后续里程碑；新版本需单独立项。
 

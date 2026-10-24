@@ -1,7 +1,7 @@
-# 后续路线（v1.12.0 准备发布；v1.11.1 已封版）
+# 后续路线（v1.12.0 已发布；v1.11.1 已封版）
 
-截至 2026-10-18，v1.0–v1.11.1 已发布（最新已发布稳定版 [v1.11.1](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)，
-2026-10-01）；v1.12.0 正在准备发布（计划 2026-10-18）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
+截至 2026-10-24，v1.0–v1.12.0 已发布（最新已发布稳定版 [v1.12.0](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0)，
+2026-10-24；上一封存版 v1.11.1，2026-10-01）。下文区分已完成里程碑与未授权的未来候选，不是把旧版本重新列入待办。
 当前状态见 [CURRENT_STATUS](CURRENT_STATUS.md)，完整文档索引见
 [DOCUMENTATION_INDEX](DOCUMENTATION_INDEX.md)；截至 v1.6 的版本盘点见
 [文档盘点](DOCUMENTATION_REVIEW_V16_2026-09-12.md)。
@@ -376,11 +376,12 @@
 - [x] v1.11.1 修复「记录」页添加记录后列表不自动滚动到新记录 — **RELEASED**（2026-10-01；release notes
       `docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md`）。
 - [x] 真机确认（所有者，v1.11.0）：毛玻璃导航栏滚动流畅；一键添加不再卡顿。
-- [ ] v1.12.0 化验结果；实验性、默认关闭的按化验校准 E2 曲线（首页与回顾性）；备份 payload schema v3、恢复日志 v2、Mahiro JSON
-      `labResults`；预测性返回手势不再透出下层页面 — **准备发布**（计划 2026-10-18；release notes
-      `docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md`）。待办：androidTest 完整运行、签名 Release 构建、从 v1.11.1 的模拟器升级冒烟。
+- [x] v1.12.0 化验结果；实验性、默认关闭的按化验校准 E2 曲线（首页与回顾性）；备份 payload schema v3、恢复日志 v2、Mahiro JSON
+      `labResults`；预测性返回手势不再透出下层页面 — **RELEASED**（2026-10-24；release notes
+      `docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md`）。
+- [ ] v1.12.0 发布 APK 从 v1.11.1 覆盖升级的模拟器冒烟尚未做。
 - [ ] 校准参数（σ/τ）的独立科学审阅尚未完成，完成前该开关不作为正式功能宣传。
-- [ ] NEXT：无已授权的后续里程碑。v1.12.0 发布后封版；任何新版本需单独立项、独立设计与评审。
+- [ ] NEXT：无已授权的后续里程碑。v1.12.0 已封版；任何新版本需单独立项、独立设计与评审。
 - [ ] 毛玻璃在低端设备上的滚动性能尚未专门测量。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
