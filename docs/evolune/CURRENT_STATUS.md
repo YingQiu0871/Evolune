@@ -97,7 +97,7 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.12.0` | 2026-10-24 | Lab results; experimental default-off E2 curve calibration with labs; backup schema v3; predictive-back fix |
 
 Dates for v1.7.x are the tag commit dates; v1.8.0–v1.12.0 dates are the recorded GitHub Release
-publication dates ). Every release in this line is signed with the same certificate and upgrades in place
+publication dates. Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
 ## Shipped Since v1.6 (v1.7–v1.12)
@@ -586,7 +586,7 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
     1.12.0 / Phone 101120000 / Wear 1101120000；`AppDatabase` 仍为 v3，化验结果在独立库 `evolune_labs` v1；
     备份 payload schema v3（无化验时仍为 v2）；校准开关默认关闭，σ/τ 参数待独立科学审阅；release notes
     [`v1.12.0/V1120_RELEASE_NOTES.md`](v1.12.0/V1120_RELEASE_NOTES.md)）。
-  - **NEXT:** 无已授权的后续里程碑。v1.12.0 发布后封版；新版本需单独立项（候选见 Current Limitations 与
+  - **NEXT:** 无已授权的后续里程碑。v1.12.0 已封版；新版本需单独立项（候选见 Current Limitations 与
     [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /

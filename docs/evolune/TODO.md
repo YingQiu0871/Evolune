@@ -379,8 +379,9 @@
 - [x] v1.12.0 化验结果；实验性、默认关闭的按化验校准 E2 曲线（首页与回顾性）；备份 payload schema v3、恢复日志 v2、Mahiro JSON
       `labResults`；预测性返回手势不再透出下层页面 — **RELEASED**（2026-10-24；release notes
       `docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md`）。
+- [ ] v1.12.0 发布 APK 从 v1.11.1 覆盖升级的模拟器冒烟尚未做。
 - [ ] 校准参数（σ/τ）的独立科学审阅尚未完成，完成前该开关不作为正式功能宣传。
-- [ ] NEXT：无已授权的后续里程碑。v1.12.0 发布后封版；任何新版本需单独立项、独立设计与评审。
+- [ ] NEXT：无已授权的后续里程碑。v1.12.0 已封版；任何新版本需单独立项、独立设计与评审。
 - [ ] 毛玻璃在低端设备上的滚动性能尚未专门测量。
 - P3 处置（D-04 implementation；CLOSED / 非阻塞，不重开 D-04）：① `TimelineUiArchitectureGuardTest`
       标签 "F14" 用于 coroutine-scope guard，与契约 F14（依赖策略）编号漂移——命名/追溯性影响，
