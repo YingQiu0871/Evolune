@@ -200,7 +200,7 @@
 | [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) | Evolune 快速开始指南（v1.9.1） |
 | [QUICK_START_UI.md](QUICK_START_UI.md) | 当前 UI 结构速览 |
 | [SETTINGS_FEATURE.md](SETTINGS_FEATURE.md) | 设置功能（v1.10.0） |
-| [TODO.md](TODO.md) | 后续路线（v1.11.1 已封版） |
+| [TODO.md](TODO.md) | 后续路线（v1.12.0 准备发布；v1.11.1 已封版） |
 | [UI_COMPONENTS.md](UI_COMPONENTS.md) | UI 组件清单 |
 | [docs/evolune/ARCHITECTURE.md](../../docs/evolune/ARCHITECTURE.md) | 架构 |
 | [docs/evolune/CURRENT_STATUS.md](../../docs/evolune/CURRENT_STATUS.md) | Evolune Current Status |
@@ -261,8 +261,10 @@
 | [docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md](../../docs/evolune/v1.10.0/V1100_RELEASE_NOTES.md) | Evolune v1.10.0 正式版 / Official Release |
 | [docs/evolune/v1.11.0/V1110_RELEASE_NOTES.md](../../docs/evolune/v1.11.0/V1110_RELEASE_NOTES.md) | Evolune v1.11.0 正式版 / Official Release |
 | [docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md](../../docs/evolune/v1.11.1/V1111_RELEASE_NOTES.md) | Evolune v1.11.1 正式版 / Official Release |
+| [docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md](../../docs/evolune/v1.12.0/V1120_RELEASE_NOTES.md) | Evolune v1.12.0 正式版 / Official Release |
 | [docs/evolune/TESTING.md](../../docs/evolune/TESTING.md) | Evolune 测试环境 / Testing Environment |
 | [docs/evolune/pk2/PK2_CALIBRATION_PLAN.md](../../docs/evolune/pk2/PK2_CALIBRATION_PLAN.md) | PK 2.0 — 个性化 E2 校准：切片计划与第 1 片设计 |
+| [docs/evolune/pk2/PK2_CLEARANCE_EVALUATION.md](../../docs/evolune/pk2/PK2_CLEARANCE_EVALUATION.md) | PK 2.0 — 个人清除率拟合与化验时间加权评估（暂不实现） |
 | [docs/release/RELEASE_PROCESS.md](../../docs/release/RELEASE_PROCESS.md) | Evolune 发布流程 / Release Process |
 
 证据目录（原始记录，已归档到提交 `337cfbe`，不逐个索引；找回方法见[证据归档说明](EVIDENCE_ARCHIVE.md)）：

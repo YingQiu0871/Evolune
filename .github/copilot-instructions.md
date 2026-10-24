@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-截至 2026-10-01，Evolune 当前公开稳定版为 v1.11.1（tag `v1.11.1`）。v1.2 的前台
+截至 2026-10-18，Evolune 正在发布 v1.12.0（化验结果与默认关闭的 E2 校准）；此前公开稳定版为 v1.11.1（tag `v1.11.1`）。v1.2 的前台
 Health Connect 体重读取和手动 Google Drive 加密备份、v1.3 Wear App、v1.4 引导、v1.5 稳定性、
 v1.6 Gallery、v1.7 History & Insights（History/Timeline/Insights/回顾性 PK/Portable 导出）、
 v1.8 全局卫生、v1.9 维护清理、v1.10 可选 CPA 估算曲线与设置页重排、v1.11 毛玻璃导航栏

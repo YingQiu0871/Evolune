@@ -5,25 +5,34 @@ Historical plans and phase reports remain evidence of earlier decisions but do n
 Raw `evidence/` folders cited below were moved out of `main` on 2026-10-03 and are archived at commit `337cfbe`;
 see the [evidence archive note](EVIDENCE_ARCHIVE.md).
 
-Documentation updated on 2026-10-01 for the `v1.11.1` release (release branch merged into `main` with a normal
-merge commit; the annotated tag `v1.11.1` points at that merge commit). See the
+Documentation updated on 2026-10-18 for the planned `v1.12.0` release (the release branch is merged into `main`
+with a normal merge commit and the annotated tag `v1.12.0` points at that merge commit once published; until then
+`v1.11.1` remains the latest published release). See the
 [complete documentation index](DOCUMENTATION_INDEX.md) and the earlier
 [v1.6 documentation audit](DOCUMENTATION_REVIEW_V16_2026-09-12.md).
 
 ## Current Release
 
-- Stable version: [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
-- Release date: 2026-10-01
-- Release source: annotated tag `v1.11.1` → the `main` merge commit of the `release/v1.11.1` PR;
+- Stable version (planned, not yet published): [`v1.12.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0);
+  until it is published, the stable download is [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
+- Release date: 2026-10-18 (planned)
+- Release source: annotated tag `v1.12.0` → the `main` merge commit of the `release/v1.12.0` PR;
   preserve this tag
-- Previous sealed stable release: [`v1.11.0`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.0)
+- Previous sealed stable release: [`v1.11.1`](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1)
   (2026-10-01)
-- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` attached to the v1.11.1 GitHub Release
+- Release downloads: signed Phone and Wear APKs plus `SHA256SUMS.txt` will be attached to the v1.12.0 GitHub Release
 
-v1.11.1 is a fix release: after a dose record is added, the Records list scrolls to it instead of leaving it
-behind the top bar. See the [v1.11.1 release notes](v1.11.1/V1111_RELEASE_NOTES.md).
+v1.12.0 adds Lab results (History tab; a separate `evolune_labs` Room database, `AppDatabase` stays v3) and an
+experimental, default-off Settings option, "按化验校准 E2 曲线", that scales the Home and retrospective E2 curves by a
+personal amplitude fitted from E2 labs. PKState, Widgets and Wear stay uncalibrated; the calibration parameters are
+engineering reference values still pending independent scientific review. Encrypted backups containing lab results
+use payload schema v3 (lab-free backups stay v2) and Mahiro JSON carries `labResults`. It also fixes pages showing
+through each other during the predictive back gesture. See the [v1.12.0 release notes](v1.12.0/V1120_RELEASE_NOTES.md).
 
-v1.11.0 (previous) gave the top app bar and bottom navigation bar a frosted-glass look (primary-tab content scrolls
+v1.11.1 (previous) was a fix release: after a dose record is added, the Records list scrolls to it instead of
+leaving it behind the top bar. See the [v1.11.1 release notes](v1.11.1/V1111_RELEASE_NOTES.md).
+
+v1.11.0 (earlier) gave the top app bar and bottom navigation bar a frosted-glass look (primary-tab content scrolls
 under the bars, which blur it; no new dependency) and moved the widget refresh and Wear snapshot/dashboard
 work that follows every dose or plan change off the main thread. There is no Room schema migration and no
 backup or Portable format change. See the [v1.11.0 release notes](v1.11.0/V1110_RELEASE_NOTES.md).
@@ -34,25 +43,27 @@ when returning from Insights / Retrospective PK / Timeline, and regrouped the Se
 schema migration and no backup or Portable format change. See the
 [v1.10.0 release notes](v1.10.0/V1100_RELEASE_NOTES.md).
 
-## v1.11.1 Release Identity
+## v1.12.0 Release Identity
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
-| Phone | `io.github.yingqiu0871.evolune` | `1.11.1 (101110100)` | 31 |
-| Wear | `io.github.yingqiu0871.evolune` | `1.11.1 (1101110100)` | 30 |
+| Phone | `io.github.yingqiu0871.evolune` | `1.12.0 (101120000)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.12.0 (1101120000)` | 30 |
 
 APK sizes and SHA-256 values are not repeated here; use the `SHA256SUMS.txt` attached to the
-[v1.11.1 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.11.1) as the source of truth
+[v1.12.0 Release](https://github.com/YingQiu0871/Evolune/releases/tag/v1.12.0) as the source of truth
 (policy: [Release Process](../release/RELEASE_PROCESS.md)).
 
 Both release APKs use the persistent Evolune release certificate with SHA-256
 `B9B6B9552FA4C7B656936D4C3AEB71C1229AA17C393337719BC8D0E07EDAAB08` (continuous across the release line).
 Debug builds use a separate `.debug` application ID suffix and signing identity.
 
-### v1.11.0 / v1.10.0 / v1.9.1 Release Identity (previous)
+### v1.11.1 / v1.11.0 / v1.10.0 / v1.9.1 Release Identity (previous)
 
 | Target | Application ID | Version | Minimum API |
 |---|---|---:|---:|
+| Phone | `io.github.yingqiu0871.evolune` | `1.11.1 (101110100)` | 31 |
+| Wear | `io.github.yingqiu0871.evolune` | `1.11.1 (1101110100)` | 30 |
 | Phone | `io.github.yingqiu0871.evolune` | `1.11.0 (101110000)` | 31 |
 | Wear | `io.github.yingqiu0871.evolune` | `1.11.0 (1101110000)` | 30 |
 | Phone | `io.github.yingqiu0871.evolune` | `1.10.0 (101100000)` | 31 |
@@ -84,12 +95,13 @@ Debug builds use a separate `.debug` application ID suffix and signing identity.
 | `v1.10.0` | 2026-09-30 | Optional CPA estimated curve, History scroll-position return, Settings regrouping |
 | `v1.11.0` | 2026-10-01 | Frosted-glass top and bottom bars; widget and Wear sync work moved off the main thread |
 | `v1.11.1` | 2026-10-01 | Fix: Records list scrolls to a newly added record |
+| `v1.12.0` | 2026-10-18 (planned) | Lab results; experimental default-off E2 curve calibration with labs; backup schema v3; predictive-back fix |
 
 Dates for v1.7.x are the tag commit dates; v1.8.0–v1.11.1 dates are the recorded GitHub Release
-publication dates. Every release in this line is signed with the same certificate and upgrades in place
+publication dates (the v1.12.0 date is planned until the release is published). Every release in this line is signed with the same certificate and upgrades in place
 from the previous one without clearing data.
 
-## Shipped Since v1.6 (v1.7–v1.11)
+## Shipped Since v1.6 (v1.7–v1.12)
 
 - **History and Timeline (v1.7.0):** day-by-day medication activity that separates planned occurrences
   from actual intake, with timing differences; a monthly Timeline of matched, unrecorded-schedule and
@@ -117,7 +129,8 @@ from the previous one without clearing data.
   History scroll-position return, Settings regrouped by purpose.
 - **Frosted bars and background sync (v1.11.0):** frosted-glass top and bottom bars; widget refresh and Wear
   snapshot/dashboard work moved off the main thread.
-- **Records scroll fix (v1.11.1):** see Current Release above.
+- **Records scroll fix (v1.11.1):** the Records list scrolls to a newly added record.
+- **Lab results and experimental E2 calibration (v1.12.0):** see Current Release above.
 
 ## Widget Gallery Capabilities (shipped v1.6, carried forward)
 
@@ -231,7 +244,9 @@ independently exercised on a real watch. See the [gate's per-surface matrix](v1.
 - Health Connect is limited to optional foreground body-weight reads; background access and medication/PHR writes are not implemented.
 - Google Drive requires explicit authorization and manual backup/restore; background and real-time multi-device cloud synchronization are not implemented.
 - Auto Backup/device transfer intentionally excludes private app data.
-- Tracked Date, personalized calibration/PK 2.0 and SQLCipher remain deferred or unimplemented.
+- Tracked Date and SQLCipher remain deferred or unimplemented. Lab-based E2 amplitude calibration (v1.12.0) is
+  experimental and default-off; its σ/τ parameters are engineering reference values pending independent scientific
+  review, and personal clearance fitting and lab time weighting are evaluated but not implemented.
 - The optional CPA curve (v1.10.0) is a one-compartment model: it reflects exposure and steady state
   but underestimates single-dose peaks; a two-compartment model is deferred until citable fitted
   parameters exist. It is shown on the Home chart only (not Widgets, Wear or Retrospective PK).
@@ -568,7 +583,11 @@ relicense unrelated third-party contributions. See [Source Provenance](../SOURCE
   - **v1.11.1 记录页新增记录后自动滚动 — RELEASED**（2026-10-01；PR #38 与 `release/v1.11.1` 以普通 merge commit
     合入 `main`，annotated tag `v1.11.1` 指向发布合并提交；1.11.1 / Phone 101110100 / Wear 1101110100；release notes
     [`v1.11.1/V1111_RELEASE_NOTES.md`](v1.11.1/V1111_RELEASE_NOTES.md)）。
-  - **NEXT:** 无已授权的后续里程碑。v1.11.1 已封版；新版本需单独立项（候选见 Current Limitations 与
+  - **v1.12.0 化验结果与实验性 E2 曲线校准 — 准备发布**（计划 2026-10-18；PK 2.0 切片 1–5b 与预测性返回修复 #52；
+    1.12.0 / Phone 101120000 / Wear 1101120000；`AppDatabase` 仍为 v3，化验结果在独立库 `evolune_labs` v1；
+    备份 payload schema v3（无化验时仍为 v2）；校准开关默认关闭，σ/τ 参数待独立科学审阅；release notes
+    [`v1.12.0/V1120_RELEASE_NOTES.md`](v1.12.0/V1120_RELEASE_NOTES.md)）。
+  - **NEXT:** 无已授权的后续里程碑。v1.12.0 发布后封版；新版本需单独立项（候选见 Current Limitations 与
     [ROADMAP](ROADMAP.md)）。
   - Implementation-review P3 处置（hygiene，仅记录；不改证据）：① `d-03/tr-hc-f-mapping.txt`
     头部保留 pre-R1 计数（focused 50 / Coordinator 36），最终提交的 JUnit 证据为 focused 56 /
